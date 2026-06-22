@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>K-TCG Quant | 부스터팩 시세와 미개봉 퀀트 지표</title>
+    <meta
+      name="description"
+      content="포켓몬, 원피스 카드 미개봉 부스터팩과 박스의 시세 변화, 유동성, 재밀봉 리스크, 퀀트 점수를 추적하는 TCG 데이터 사이트입니다."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="K-TCG Quant home">
+        <span class="brandMark">Q</span>
+        <span>
+          <strong>K-TCG Quant</strong>
+          <small>부스터팩 시세 퀀트</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="#market">시세표</a>
+        <a href="#risk">리스크</a>
+        <a href="#articles">분석글</a>
+        <a href="about.html">운영원칙</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="heroCopy">
+          <p class="eyebrow">Korean TCG Quant Dashboard</p>
+          <h1>부스터팩 시세,<br />지표로 봅니다.</h1>
+          <p class="lead">
+            포켓몬과 원피스 미개봉 부스터팩·박스의 가격 모멘텀, 유동성, 재판 가능성,
+            재밀봉 위험을 한 화면에서 비교합니다. 현재 데이터는 MVP 검증용 샘플이며
+            실제 수집기는 다음 단계에서 연결합니다.
+          </p>
+          <div class="heroActions">
+            <a class="button primary" href="#market">시세표 보기</a>
+            <a class="button secondary" href="#articles">입문 분석 읽기</a>
+          </div>
+        </div>
+        <div class="marketVisual" aria-label="TCG sealed box market chart">
+          <div class="packScene">
+            <div class="pack packA"></div>
+            <div class="pack packB"></div>
+            <div class="pack packC"></div>
+          </div>
+          <div class="visualChart">
+            <span style="height: 42%"></span>
+            <span style="height: 58%"></span>
+            <span style="height: 50%"></span>
+            <span style="height: 74%"></span>
+            <span style="height: 66%"></span>
+            <span style="height: 86%"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tickerBand" aria-label="Market summary">
+        <div>
+          <strong id="trackedCount">0</strong>
+          <span>추적 상품</span>
+        </div>
+        <div>
+          <strong id="avgMomentum">0%</strong>
+          <span>평균 90일 모멘텀</span>
+        </div>
+        <div>
+          <strong id="watchCount">0</strong>
+          <span>고위험 관찰</span>
+        </div>
+      </section>
+
+      <section class="section" id="market">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">Quant Board</p>
+            <h2>부스터팩 시세표</h2>
+          </div>
+          <div class="controls" role="group" aria-label="Market filters">
+            <button class="filter active" data-filter="all">전체</button>
+            <button class="filter" data-filter="Pokemon">포켓몬</button>
+            <button class="filter" data-filter="One Piece">원피스</button>
+          </div>
+          <div class="controls" role="group" aria-label="Language filters">
+            <button class="langFilter active" data-lang="primary">국내·일본</button>
+            <button class="langFilter" data-lang="일본어판">일본어판</button>
+            <button class="langFilter" data-lang="한국어판">한국어판</button>
+            <button class="langFilter" data-lang="reference">해외 참고</button>
+          </div>
+        </div>
+        <div class="productBoard" id="productCards" aria-label="Booster pack quant cards">
+        </div>
+        <p class="note">
+          모든 가격은 보기 편하도록 <strong>원화(₩) 기준</strong>으로 통일했습니다. 일본어판은 보조줄에 엔화 원본가와 전일 JPY/KRW
+          환율을, 해외 참고(eBay·해외 USD) 항목은 USD 원본가와 전일 USD/KRW 환율을 함께 표시합니다. 정렬도 원화 기준입니다.
+          가격은 아직 <strong>샘플 / MVP 검증용</strong> 데이터이며, 실제 운영 시 eBay Sold, PriceCharting, Yahoo Auctions,
+          Mercari, TCGPlayer, Cardmarket, 국내 중고거래 실거래를 교차 검증해 업데이트합니다.
+        </p>
+      </section>
+
+      <section class="section split" id="risk">
+        <div>
+          <p class="eyebrow">Quant Model</p>
+          <h2>팩 시세는 박스보다 리스크 점수가 더 중요합니다.</h2>
+          <p>
+            개별 부스터팩은 박스보다 재밀봉, 무게측정, 서치 리스크가 큽니다. 그래서 가격 모멘텀보다
+            거래 신뢰도, 사진 검수 가능성, 판매자 이력, 유통 단위의 안정성을 더 크게 반영합니다.
+          </p>
+        </div>
+        <div class="riskGrid">
+          <article class="riskItem">
+            <strong>Supply</strong>
+            <span>재판 가능성과 유통 잔량</span>
+          </article>
+          <article class="riskItem">
+            <strong>Liquidity</strong>
+            <span>실거래 빈도와 매도 난이도</span>
+          </article>
+          <article class="riskItem">
+            <strong>Seal Risk</strong>
+            <span>재밀봉, 무게측정, 서치 가능성</span>
+          </article>
+          <article class="riskItem">
+            <strong>Demand</strong>
+            <span>플레이어 수요와 콜렉터 수요</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="articles">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">Research Notes</p>
+            <h2>초기 분석글</h2>
+          </div>
+        </div>
+        <div class="articleGrid">
+          <a class="articleCard" href="articles/sealed-box-rules.html">
+            <span>입문</span>
+            <h3>부스터팩 시세가 오르는 7가지 조건</h3>
+            <p>초보자가 가격 그래프보다 먼저 확인해야 하는 공급, 수요, 재판, 검수 기준.</p>
+          </a>
+          <a class="articleCard" href="articles/reseal-checklist.html">
+            <span>검수</span>
+            <h3>재밀봉 박스 체크리스트</h3>
+            <p>랩 접합선, 박스 눌림, 판매자 이력, 사진 각도로 보는 기본 검수 절차.</p>
+          </a>
+          <a class="articleCard" href="articles/japan-vs-english.html">
+            <span>비교</span>
+            <h3>일본판과 영어판 박스의 장기 수요 차이</h3>
+            <p>가격만 싼 일본판을 무조건 사면 안 되는 이유와 언어권별 매도 전략.</p>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>K-TCG Quant는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
+      <nav aria-label="Footer navigation">
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="disclaimer.html">Disclaimer</a>
+      </nav>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
