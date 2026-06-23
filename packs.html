@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>원피스 부스터팩 TOP 10 히트카드 | K-TCG Quant</title>
+    <meta
+      name="description"
+      content="원피스 카드게임 부스터팩별로 어떤 히트카드(알트아트·리더 패러렐·만화 레어)가 들어있는지 한눈에 보는 카탈로그. OP-01부터 순차 수집 중."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .packHero {
+        padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 52px) 8px;
+      }
+      .packHero h1 {
+        font-size: clamp(28px, 5vw, 52px);
+        margin-bottom: 12px;
+      }
+      .packHero .lead {
+        font-size: 16px;
+      }
+      .miniStats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        margin: 18px clamp(16px, 4vw, 52px) 0;
+        background: var(--line);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .miniStats div {
+        padding: 14px 16px;
+        background: var(--paper);
+      }
+      .miniStats strong {
+        display: block;
+        font-size: 24px;
+      }
+      .miniStats span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .packSection {
+        padding: 30px clamp(16px, 4vw, 52px) 0;
+      }
+      .packGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .packChip {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        min-height: 84px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--paper);
+        color: var(--ink);
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      .packChip:hover:not(.pending) {
+        border-color: rgba(16, 215, 160, 0.4);
+      }
+      .packChip.active {
+        background: rgba(16, 215, 160, 0.12);
+        border-color: rgba(16, 215, 160, 0.45);
+      }
+      .packChip.pending {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .packCode {
+        color: var(--accent);
+        font-weight: 900;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+      }
+      .packName {
+        font-weight: 800;
+        font-size: 16px;
+      }
+      .packEn {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .packTag {
+        margin-top: 4px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #1a1e28;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .packTag.ready {
+        background: rgba(16, 215, 160, 0.14);
+        color: var(--accent);
+      }
+      #detail {
+        margin-top: 26px;
+        padding-top: 8px;
+      }
+      .detailHead {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .detailHead h2 small {
+        color: var(--muted);
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .priceToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--paper);
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      .hitList {
+        list-style: none;
+        margin: 16px 0 0;
+        padding: 0;
+        display: grid;
+        gap: 8px;
+      }
+      .hitRow {
+        display: grid;
+        grid-template-columns: 30px 96px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        background: #10131a;
+        border: 1px solid #252a38;
+        border-radius: 12px;
+      }
+      .hitRank {
+        color: var(--muted);
+        font-weight: 900;
+        font-size: 16px;
+        text-align: center;
+      }
+      .hitArt {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 26px;
+        padding: 0 8px;
+        border-radius: 8px;
+        border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+        background: color-mix(in srgb, var(--c) 12%, transparent);
+        color: var(--c);
+        font-size: 11px;
+        font-weight: 900;
+        text-align: center;
+        line-height: 1.1;
+      }
+      .hitMain {
+        min-width: 0;
+      }
+      .hitName {
+        display: block;
+        font-weight: 800;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+        word-break: keep-all;
+      }
+      .hitNo {
+        display: block;
+        margin-top: 2px;
+        color: #737b8e;
+        font-size: 12px;
+        letter-spacing: 0.5px;
+      }
+      .hitPrice {
+        color: var(--accent);
+        font-weight: 900;
+        font-size: 14px;
+        white-space: nowrap;
+      }
+      @media (max-width: 560px) {
+        .miniStats strong {
+          font-size: 20px;
+        }
+        .hitRow {
+          grid-template-columns: 24px minmax(0, 1fr);
+          gap: 6px 10px;
+        }
+        .hitRank {
+          grid-row: span 2;
+        }
+        .hitArt {
+          grid-column: 2;
+          justify-self: start;
+          margin-bottom: 2px;
+        }
+        .hitMain {
+          grid-column: 2;
+        }
+        .hitPrice {
+          grid-column: 2;
+          margin-top: 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="packs.html" aria-label="K-TCG Quant home">
+        <span class="brandMark">Q</span>
+        <span>
+          <strong>K-TCG Quant</strong>
+          <small>원피스 부스터팩 카탈로그</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="packs.html">부스터팩</a>
+        <a href="index.html">시세판(베타)</a>
+        <a href="about.html">운영원칙</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="packHero">
+        <p class="eyebrow">One Piece Booster Packs</p>
+        <h1>원피스 부스터팩 — 팩별 TOP 10 히트카드</h1>
+        <p class="lead">
+          어떤 부스터팩에 어떤 카드가 들어있는지 헷갈릴 때, 팩을 고르면 그 팩의 대표 히트카드
+          (알트아트 · 리더 패러렐 · 만화 레어 등)를 바로 봅니다. 출처는 Haki TCG, 현재는
+          MVP 검증용이며 가격/시세 연동은 다음 단계입니다.
+        </p>
+      </section>
+
+      <section class="miniStats" aria-label="요약">
+        <div><strong id="statPacks">0</strong><span>등록 부스터팩</span></div>
+        <div><strong id="statReady">0</strong><span>카드 수집 완료 팩</span></div>
+        <div><strong id="statCards">0</strong><span>수집된 히트카드</span></div>
+      </section>
+
+      <section class="packSection">
+        <p class="eyebrow">Pick a pack</p>
+        <h2>부스터팩 고르기</h2>
+        <div class="packGrid" id="packList"></div>
+
+        <div id="detail"></div>
+
+        <p class="note">
+          OP-01~OP-09는 TOP 10 수집 완료. OP-10 이후 신규 세트는 가이드 데이터가 준비되는 대로 추가합니다.
+          카드 이미지·정확한 시세·등급별 가격은 이후 단계에서 연결할 예정입니다.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>K-TCG Quant는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다. (MVP)</p>
+      <nav aria-label="Footer navigation">
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="disclaimer.html">Disclaimer</a>
+      </nav>
+    </footer>
+
+    <script src="packs.js"></script>
+  </body>
+</html>
