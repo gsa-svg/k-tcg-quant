@@ -82,10 +82,37 @@
       .hitNo { display: block; margin-top: 2px; color: #737b8e; font-size: 12px; letter-spacing: .3px; }
       .hitPrice { color: var(--accent); font-weight: 900; font-size: 14px; white-space: nowrap; }
 
+      .viewTabs { display: flex; gap: 8px; margin: 10px 0 4px; }
+      .viewTab {
+        min-height: 36px; padding: 0 14px; border: 1px solid var(--line); border-radius: 9px;
+        background: var(--paper); color: var(--muted); font: inherit; font-weight: 800; font-size: 13px; cursor: pointer;
+      }
+      .viewTab.active { background: rgba(16,215,160,.12); border-color: rgba(16,215,160,.45); color: var(--accent); }
+      .viewTab[disabled] { opacity: .4; cursor: not-allowed; }
+
+      .psaWrap { margin-top: 14px; overflow-x: auto; }
+      .psaTable { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
+      .psaTable th, .psaTable td { padding: 11px 10px; border-bottom: 1px solid #20242e; text-align: right; white-space: nowrap; }
+      .psaTable th { color: var(--muted); font-size: 12px; font-weight: 800; }
+      .psaTable th.pCard, .psaTable td.pCard { text-align: left; white-space: normal; }
+      .pName { font-weight: 800; }
+      .pNo { margin-left: 6px; color: #737b8e; font-size: 12px; }
+      .pBadge {
+        margin-left: 7px; padding: 1px 7px; border-radius: 6px; font-size: 10px; font-weight: 900;
+        color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+        background: color-mix(in srgb, var(--c) 14%, transparent);
+      }
+      .pNumv { font-variant-numeric: tabular-nums; font-weight: 800; color: var(--ink); }
+      .pNumv.dim { color: var(--muted); font-weight: 700; }
+      .gemHi { color: var(--accent); }
+      .gemMid { color: #f3c74f; }
+      .gemLo { color: #ff6683; }
+
       @media (max-width: 560px) {
         .hitRow { grid-template-columns: 22px 42px minmax(0,1fr); gap: 8px 10px; }
         .hitImg { width: 42px; height: 58px; }
         .hitPrice { grid-column: 3; margin-top: 2px; }
+        .psaTable { font-size: 13px; }
       }
     </style>
   </head>

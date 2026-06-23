@@ -3,6 +3,7 @@ const state = {
   lang: "jp",
   selected: null,
   showPrice: false,
+  view: "hits", // "hits" | "psa"
 };
 
 const rarityColor = {
@@ -14,6 +15,21 @@ const rarityColor = {
   UC: "#9aa3b2",
   C: "#9aa3b2",
 };
+
+// PSA(GemRate) rarity → 짧은 배지 코드 + 색
+const psaRarity = {
+  "Special Alternate Art": { s: "SAA", c: "#bb86fc" },
+  "Manga Alternate Art": { s: "MAA", c: "#ff8a3d" },
+  "Alternate Art": { s: "AA", c: "#7db7ff" },
+  "Treasure Rare": { s: "TR", c: "#f3c74f" },
+  "Secret Rare": { s: "SEC", c: "#ff6683" },
+  SEC: { s: "SEC", c: "#ff6683" },
+  Leader: { s: "L", c: "#7db7ff" },
+  "Pre-Release": { s: "PR", c: "#9aa3b2" },
+  Base: { s: "C", c: "#9aa3b2" },
+};
+const rb = (r) => psaRarity[r] || { s: (r || "").slice(0, 3).toUpperCase(), c: "#9aa3b2" };
+const num = (n) => (n == null ? "-" : new Intl.NumberFormat("ko-KR").format(n));
 
 const krw = (usd) =>
   usd == null
@@ -121,17 +137,7 @@ function renderPackGrid() {
   });
 }
 
-function renderDetail() {
-  const pack = currentPacks().find((p) => p.key === state.selected);
-  const el = document.querySelector("#detail");
-  if (!pack) return;
-  const set = pack.set;
-  const cards = set.cards || [];
-  if (!cards.length) {
-    el.innerHTML = `<p class="note">${pack.code} ${pack.nameKo} — 아직 카드 데이터가 준비되지 않았습니다(신규 세트).</p>`;
-    return;
-  }
-
+function renderHitList(cards) {
   const rows = cards
     .map((c) => {
       const color = rarityColor[c.rarity] || "#8d95a7";
@@ -147,6 +153,72 @@ function renderDetail() {
         </li>`;
     })
     .join("");
+  return `<ol class="hitList">${rows}</ol>`;
+}
+
+function renderPsaTable(psa) {
+  const rows = psa
+    .map((c) => {
+      const b = rb(c.rarity);
+      const gem = c.gem == null ? "-" : `${c.gem}%`;
+      const gemClass = c.gem >= 90 ? "gemHi" : c.gem >= 80 ? "gemMid" : "gemLo";
+      return `
+        <tr>
+          <td class="pCard">
+            <span class="pName">${c.name}</span>
+            <span class="pNo">#${c.number}</span>
+            <span class="pBadge" style="--c:${b.c}">${b.s}</span>
+          </td>
+          <td class="pNumv">${num(c.psa10)}</td>
+          <td class="pNumv dim">${num(c.psa9)}</td>
+          <td class="pNumv">${num(c.total)}</td>
+          <td class="pNumv ${gemClass}">${gem}</td>
+        </tr>`;
+    })
+    .join("");
+  return `
+    <div class="psaWrap">
+      <table class="psaTable">
+        <thead>
+          <tr>
+            <th class="pCard">카드</th>
+            <th>PSA 10</th>
+            <th>PSA 9</th>
+            <th>총계</th>
+            <th>보석확률</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p class="note">PSA 등급 인구 데이터 (출처: GemRate / PSA 집계). 보석확률 = PSA10 비율.</p>
+    </div>`;
+}
+
+function renderDetail() {
+  const pack = currentPacks().find((p) => p.key === state.selected);
+  const el = document.querySelector("#detail");
+  if (!pack) return;
+  const set = pack.set;
+  const cards = set.cards || [];
+  if (!cards.length) {
+    el.innerHTML = `<p class="note">${pack.code} ${pack.nameKo} — 아직 카드 데이터가 준비되지 않았습니다(신규 세트).</p>`;
+    return;
+  }
+
+  const hasPsa = (set.psa || []).length > 0;
+  if (state.view === "psa" && !hasPsa) state.view = "hits";
+
+  let body;
+  if (state.view === "psa") {
+    body = renderPsaTable(set.psa);
+  } else {
+    body = `
+      <label class="priceToggle">
+        <input type="checkbox" id="priceChk" ${state.showPrice ? "checked" : ""} />
+        참고 시세(원화) 보기
+      </label>
+      ${renderHitList(cards)}`;
+  }
 
   el.innerHTML = `
     <div class="detailHead">
@@ -154,16 +226,21 @@ function renderDetail() {
       <div class="detailInfo">
         <p class="eyebrow">${pack.code} · Booster Box</p>
         <h2>${pack.nameKo} <small>${pack.nameEn}</small></h2>
-        <p class="note">이 팩의 대표 히트카드 TOP 10 (시세 높은 순). 출처: TCG Quant · 이미지: TCGplayer.</p>
-        <label class="priceToggle">
-          <input type="checkbox" id="priceChk" ${state.showPrice ? "checked" : ""} />
-          참고 시세(원화) 보기
-        </label>
+        <div class="viewTabs">
+          <button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">시세 TOP 10</button>
+          <button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>
+            PSA 인구·보석확률
+          </button>
+        </div>
+        ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
     </div>
-    <ol class="hitList">${rows}</ol>
+    ${body}
   `;
 
+  el.querySelectorAll(".viewTab:not([disabled])").forEach((b) =>
+    b.addEventListener("click", () => { state.view = b.dataset.view; renderDetail(); }),
+  );
   const chk = document.querySelector("#priceChk");
   if (chk) chk.addEventListener("change", () => { state.showPrice = chk.checked; renderDetail(); });
 }
