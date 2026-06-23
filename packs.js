@@ -138,22 +138,45 @@ function renderPackGrid() {
 }
 
 function renderHitList(cards) {
-  const rows = cards
+  const cells = cards
     .map((c) => {
       const color = rarityColor[c.rarity] || "#8d95a7";
+      const img = c.img || FALLBACK;
       return `
-        <li class="hitRow">
-          <span class="hitRank">${c.rank}</span>
-          <img class="hitImg" src="${c.img || FALLBACK}" alt="${c.name}" loading="lazy" onerror="this.src='${FALLBACK}'" />
-          <span class="hitMain">
+        <figure class="hitCard" data-img="${img}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
+          <div class="hitThumb">
+            <span class="hitRank">${c.rank}</span>
+            ${c.rarity ? `<span class="hitRar" style="--c:${color}">${c.rarity}</span>` : ""}
+            <img src="${img}" alt="${c.name}" onerror="this.src='${FALLBACK}'" />
+          </div>
+          <figcaption>
             <span class="hitName">${c.name}</span>
-            <span class="hitNo">${c.number || ""} ${c.rarity ? `· <b style="color:${color}">${c.rarity}</b>` : ""}</span>
-          </span>
-          ${state.showPrice ? `<span class="hitPrice">${krw(c.priceUsd)}</span>` : ""}
-        </li>`;
+            <span class="hitNo">${c.number || ""}</span>
+            ${state.showPrice ? `<span class="hitPrice">${krw(c.priceUsd)}</span>` : ""}
+          </figcaption>
+        </figure>`;
     })
     .join("");
-  return `<ol class="hitList">${rows}</ol>`;
+  return `<div class="hitGallery">${cells}</div>`;
+}
+
+function openLightbox(src, name) {
+  let lb = document.querySelector("#lightbox");
+  if (!lb) {
+    lb = document.createElement("div");
+    lb.id = "lightbox";
+    lb.innerHTML = `<div class="lbInner"><img id="lbImg" alt=""/><p id="lbCap"></p><button id="lbClose" aria-label="닫기">✕</button></div>`;
+    document.body.appendChild(lb);
+    lb.addEventListener("click", (e) => { if (e.target === lb || e.target.id === "lbClose") lb.classList.remove("open"); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") lb.classList.remove("open"); });
+  }
+  // 큰 이미지: TCGplayer CDN 400w → 1000x1000 시도
+  const big = src.replace(/_(\d+)w\.jpg/, "_1000x1000.jpg");
+  const imgEl = lb.querySelector("#lbImg");
+  imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = src; };
+  imgEl.src = big;
+  lb.querySelector("#lbCap").textContent = name || "";
+  lb.classList.add("open");
 }
 
 function renderPsaTable(psa) {
@@ -243,6 +266,9 @@ function renderDetail() {
   );
   const chk = document.querySelector("#priceChk");
   if (chk) chk.addEventListener("change", () => { state.showPrice = chk.checked; renderDetail(); });
+  el.querySelectorAll(".hitCard").forEach((f) =>
+    f.addEventListener("click", () => openLightbox(f.dataset.img, f.dataset.name)),
+  );
 }
 
 load();

@@ -67,20 +67,54 @@
         color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
       }
 
-      .hitList { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 8px; }
-      .hitRow {
-        display: grid; grid-template-columns: 26px 46px minmax(0,1fr) auto; align-items: center;
-        gap: 12px; padding: 8px 12px; background: #10131a; border: 1px solid #252a38; border-radius: 12px;
+      .hitGallery {
+        margin: 18px 0 0; display: grid; gap: 14px;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
       }
-      .hitRank { color: var(--muted); font-weight: 900; font-size: 15px; text-align: center; }
-      .hitImg {
-        width: 46px; height: 64px; object-fit: cover; border-radius: 6px;
-        background: #1a1e28; border: 1px solid #2b3040;
+      .hitCard { margin: 0; cursor: zoom-in; }
+      .hitThumb {
+        position: relative; border-radius: 10px; overflow: hidden;
+        background: #1a1e28; border: 1px solid #2b3040; aspect-ratio: 5 / 7;
       }
-      .hitMain { min-width: 0; }
-      .hitName { display: block; font-weight: 800; font-size: 15px; overflow-wrap: anywhere; word-break: keep-all; }
-      .hitNo { display: block; margin-top: 2px; color: #737b8e; font-size: 12px; letter-spacing: .3px; }
-      .hitPrice { color: var(--accent); font-weight: 900; font-size: 14px; white-space: nowrap; }
+      .hitThumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .15s; }
+      .hitCard:hover .hitThumb img { transform: scale(1.04); }
+      .hitRank {
+        position: absolute; top: 6px; left: 6px; z-index: 2;
+        min-width: 22px; height: 22px; padding: 0 6px; display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 7px; background: rgba(8,10,15,.82); color: #fff; font-weight: 900; font-size: 12px;
+      }
+      .hitRar {
+        position: absolute; top: 6px; right: 6px; z-index: 2;
+        padding: 1px 7px; border-radius: 7px; font-size: 10px; font-weight: 900;
+        color: #fff; background: color-mix(in srgb, var(--c) 75%, #000);
+      }
+      .hitCard figcaption { padding: 7px 2px 0; }
+      .hitName { display: block; font-weight: 800; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; word-break: keep-all; }
+      .hitNo { display: block; margin-top: 2px; color: #737b8e; font-size: 11px; letter-spacing: .3px; }
+      .hitPrice { display: block; margin-top: 3px; color: var(--accent); font-weight: 900; font-size: 14px; }
+
+      #lightbox {
+        position: fixed; inset: 0; z-index: 50; display: none;
+        align-items: center; justify-content: center; padding: 20px;
+        background: rgba(4,6,10,.85); backdrop-filter: blur(4px);
+      }
+      #lightbox.open { display: flex; }
+      .lbInner { position: relative; max-width: 92vw; max-height: 92vh; text-align: center; }
+      #lbImg {
+        max-width: 90vw; max-height: 82vh; border-radius: 14px;
+        border: 1px solid #2b3040; box-shadow: var(--shadow); background: #1a1e28;
+      }
+      #lbCap { margin: 10px 0 0; color: #dde3f1; font-weight: 700; }
+      #lbClose {
+        position: absolute; top: -14px; right: -10px; width: 40px; height: 40px;
+        border-radius: 999px; border: 1px solid #2b3040; background: #11141c; color: #fff;
+        font-size: 18px; font-weight: 900; cursor: pointer;
+      }
+
+      @media (max-width: 560px) {
+        .hitGallery { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .psaTable { font-size: 13px; }
+      }
 
       .viewTabs { display: flex; gap: 8px; margin: 10px 0 4px; }
       .viewTab {
@@ -107,13 +141,6 @@
       .gemHi { color: var(--accent); }
       .gemMid { color: #f3c74f; }
       .gemLo { color: #ff6683; }
-
-      @media (max-width: 560px) {
-        .hitRow { grid-template-columns: 22px 42px minmax(0,1fr); gap: 8px 10px; }
-        .hitImg { width: 42px; height: 58px; }
-        .hitPrice { grid-column: 3; margin-top: 2px; }
-        .psaTable { font-size: 13px; }
-      }
     </style>
   </head>
   <body>
