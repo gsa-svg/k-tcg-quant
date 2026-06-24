@@ -150,8 +150,8 @@
         .packHero { padding: 16px 14px 2px; }
         .packHero h1 { font-size: 26px; line-height: 1.16; }
         .packHero .lead { font-size: 13px; line-height: 1.65; }
-        .langTabs { margin: 12px 12px 0; top: 104px; gap: 6px; }
-        .langTab { flex: 1 1 auto; min-height: 38px; padding: 0 10px; justify-content: center; font-size: 13px; }
+        .langTabs { margin: 12px 12px 0; top: 104px; gap: 6px; flex-wrap: nowrap; }
+        .langTab { flex: 1 1 0; min-width: 0; min-height: 38px; padding: 0 8px; justify-content: center; font-size: 12px; }
         .packSection { padding: 14px 12px 0; }
         .packGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
         .packChip { gap: 8px; padding: 8px; border-radius: 10px; }
@@ -250,7 +250,7 @@
       <div class="langTabs" role="group" aria-label="언어 선택">
         <button class="langTab active" data-lang="jp">일본판 <small id="statJp"></small></button>
         <button class="langTab" data-lang="kr">한국판 <small id="statKr"></small></button>
-        <button class="langTab" data-lang="extra">엑스트라/프리미엄</button>
+        <button class="langTab" data-lang="extra">특수팩 <small>EB/PRB</small></button>
       </div>
 
       <section class="packSection">
