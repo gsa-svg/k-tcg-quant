@@ -10,7 +10,25 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <style>
-      .packHero { padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 52px) 4px; }
+      main { max-width: 1200px; margin: 0 auto; }
+
+      /* 쿠팡 파트너스 광고 자리 */
+      .adSlot { margin: 14px clamp(16px,4vw,52px) 0; }
+      .adInner {
+        display: flex; align-items: center; justify-content: center;
+        min-height: 100px; padding: 12px; border: 1px dashed #2f3645; border-radius: 12px;
+        background: repeating-linear-gradient(45deg,#0e1117,#0e1117 10px,#0c0f15 10px,#0c0f15 20px);
+        color: #7a8194; overflow: hidden;
+      }
+      .adInner :is(iframe,img,a,ins) { max-width: 100%; }
+      .adLabel {
+        display: inline-flex; align-items: center; gap: 6px;
+        color: #7a8194; font-size: 12px; font-weight: 800; letter-spacing: .5px;
+      }
+      .adLabel::before { content: "AD"; padding: 1px 6px; border-radius: 5px; background: #1a1e28; color: #aeb5c8; font-size: 10px; }
+      .adDisclosure { margin: 6px 2px 0; color: #6b7281; font-size: 11px; }
+
+      .packHero { padding: clamp(20px, 4vw, 40px) clamp(16px, 4vw, 52px) 4px; }
       .packHero h1 { font-size: clamp(26px, 5vw, 48px); margin-bottom: 10px; }
       .packHero .lead { font-size: 15px; }
 
@@ -160,6 +178,18 @@
     </header>
 
     <main>
+      <!-- ===== 쿠팡 파트너스 광고 자리 =====
+           아래 .adInner 안의 placeholder(span)를 지우고
+           쿠팡 파트너스에서 발급받은 배너 코드(<iframe ...> 또는 <script ...>)를 그대로 붙여넣으세요. -->
+      <aside class="adSlot" aria-label="광고 영역">
+        <div class="adInner" id="coupangAd">
+          <span class="adLabel">쿠팡 파트너스 광고 자리 — 배너 코드를 여기에 넣으세요</span>
+        </div>
+        <p class="adDisclosure">
+          이 페이지에는 쿠팡 파트너스 등 제휴 광고가 표시될 수 있으며, 일부 링크를 통해 구매가 발생하면 일정액의 수수료를 제공받습니다.
+        </p>
+      </aside>
+
       <section class="packHero">
         <p class="eyebrow">One Piece Booster Packs</p>
         <h1>원피스 부스터팩 — 팩별 TOP 10 히트카드</h1>
