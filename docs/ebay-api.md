@@ -37,6 +37,17 @@ EBAY_SEARCH_LIMIT=10
 & 'C:\Users\kimtt\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' .\tools\ebay-search.js "One Piece Card Game OP-01 Romance Dawn Booster Box Japanese sealed"
 ```
 
+## 일본판 부스터팩 High/Middle/Low 업데이트
+
+Active 매물을 조회해 일본판 부스터팩별 `High / Middle / Low`를 `data/onepiece-packs.json`에 저장한다.
+중국/홍콩/마카오 발송지 또는 중국권 판매자명으로 추정되는 매물은 계산에서 제외한다.
+
+```powershell
+& 'C:\Users\kimtt\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' .\tools\update-ebay-pack-prices.js OP-01 OP-02 OP-03
+```
+
+코드를 지정하지 않으면 준비된 일본판 전체 세트를 순서대로 갱신한다.
+
 ## 사용 API
 
 - OAuth Client Credentials로 앱 토큰 발급

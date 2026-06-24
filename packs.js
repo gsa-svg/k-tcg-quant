@@ -46,6 +46,21 @@ const fmtUsd = (v) =>
 const fmtJpy = (v) =>
   new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY", maximumFractionDigits: 0 }).format(v);
 
+function fmtOriginalCurrency(value, currency) {
+  if (value == null) return "-";
+  if (currency === "JPY") return fmtJpy(value);
+  if (currency === "USD") return fmtUsd(value);
+  return `${currency || ""} ${num(value)}`.trim();
+}
+
+function marketKrw(value, currency) {
+  const fx = (state.data && state.data.fx) || {};
+  if (value == null) return null;
+  if (currency === "JPY") return value * (fx.jpyKrw || 9.1);
+  if (currency === "USD") return value * (fx.usdKrw || 1388.2);
+  return null;
+}
+
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
@@ -84,6 +99,48 @@ function ebayLinks(pack) {
     <div class="marketLinks" aria-label="eBay market links">
       <a href="${base}&LH_Sold=1&LH_Complete=1&_sop=13" target="_blank" rel="noopener noreferrer">eBay Sold</a>
       <a href="${base}&LH_BIN=1&_sop=15" target="_blank" rel="noopener noreferrer">eBay Active</a>
+    </div>`;
+}
+
+function renderBoxMarket(set) {
+  const market = set.boxMarket?.jp?.ebayActive;
+  if (!market) {
+    return `
+      <div class="boxMarket empty">
+        <span class="bmLabel">일본판 박스 eBay</span>
+        <strong>가격 수집 대기</strong>
+        <small>Active 매물 기준 · 중국/홍콩/마카오 발송지 제외 예정</small>
+      </div>`;
+  }
+
+  const rows = [
+    ["High", market.high],
+    ["Middle", market.middle],
+    ["Low", market.low],
+  ];
+
+  return `
+    <div class="boxMarket">
+      <div class="bmHead">
+        <span class="bmLabel">일본판 박스 eBay Active</span>
+        <small>${market.updated || "업데이트일 미상"} · 표본 ${market.sampleSize || 0}건${
+          market.excludedCount ? ` · 제외 ${market.excludedCount}건` : ""
+        }</small>
+      </div>
+      <div class="bmRows">
+        ${rows
+          .map(([label, value]) => {
+            const krwValue = marketKrw(value, market.currency);
+            return `
+              <span class="bmRow">
+                <i>${label}</i>
+                <b>${krwValue == null ? "-" : fmtKrw(krwValue)}</b>
+                <small>${fmtOriginalCurrency(value, market.currency)}</small>
+              </span>`;
+          })
+          .join("")}
+      </div>
+      <p>정렬 후 하위/중앙/상위 가격대. 재밀봉 리스크를 줄이기 위해 중국권 발송지는 제외합니다.</p>
     </div>`;
 }
 
@@ -314,6 +371,7 @@ function renderDetail() {
           </button>
         </div>
         ${ebayLinks(pack)}
+        ${state.lang === "jp" ? renderBoxMarket(set) : ""}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
     </div>

@@ -172,6 +172,12 @@
         .pl { display: block; font-size: 11px; overflow-wrap: anywhere; }
         .pl i { width: 38px; }
         .pl small { display: block; margin-left: 42px; margin-top: 1px; }
+        .boxMarket { width: 100%; padding: 10px; }
+        .bmHead { display: block; }
+        .bmHead small { display: block; margin-top: 3px; }
+        .bmRows { gap: 6px; }
+        .bmRow { padding: 7px 6px; }
+        .bmRow b { font-size: 12px; }
         .psaTable { font-size: 13px; }
         #lightbox { padding: 14px; }
         #lbImg { max-width: 94vw; max-height: 78vh; }
@@ -198,6 +204,24 @@
         border-color: rgba(16,215,160,.32);
         color: var(--accent);
       }
+      .boxMarket {
+        margin-top: 12px; padding: 12px; border: 1px solid #263040; border-radius: 12px;
+        background: rgba(14,18,26,.72);
+      }
+      .boxMarket.empty { opacity: .82; }
+      .bmHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+      .bmLabel { color: var(--accent); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .35px; }
+      .bmHead small, .boxMarket > small { color: #737b8e; font-size: 11px; }
+      .boxMarket > strong { display: block; margin-top: 4px; color: #eef2ff; font-size: 15px; }
+      .bmRows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+      .bmRow {
+        display: grid; gap: 1px; padding: 8px; border-radius: 9px;
+        border: 1px solid #252b38; background: #111620;
+      }
+      .bmRow i { color: #7a8194; font-style: normal; font-size: 10px; font-weight: 900; }
+      .bmRow b { color: #eef2ff; font-size: 14px; font-weight: 900; }
+      .bmRow small { color: #737b8e; font-size: 10px; overflow-wrap: anywhere; }
+      .boxMarket p { margin: 9px 0 0; color: #737b8e; font-size: 11px; line-height: 1.45; }
 
       .psaWrap { margin-top: 14px; overflow-x: auto; }
       .psaTable { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
