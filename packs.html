@@ -121,11 +121,25 @@
       .pl.base b { color: #f3c74f; }
       .pl.nm b { color: #eef2ff; }
       .pl.psa b { color: var(--accent); }
+      .pl.psaEbay {
+        margin-top: 4px; padding-top: 5px; border-top: 1px solid #252b38;
+      }
+      .pl.psaEbay > i {
+        display: block; width: auto; margin-bottom: 4px; color: var(--accent);
+      }
       .pl small { color: #737b8e; }
       .pl small em {
         display: inline-flex; margin-left: 4px; padding: 1px 5px; border-radius: 999px;
         background: #202635; color: #aeb7c9; font-style: normal; font-size: 9px; font-weight: 900;
       }
+      .bandRows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+      .bandRow {
+        display: grid; gap: 1px; padding: 6px; border-radius: 8px;
+        border: 1px solid #252b38; background: #111620;
+      }
+      .bandRow i { width: auto; color: #7a8194; font-style: normal; font-size: 9px; font-weight: 900; }
+      .bandRow b { color: #eef2ff; font-size: 11px; font-weight: 900; overflow-wrap: anywhere; }
+      .bandRow small { color: #737b8e; font-size: 9px; overflow-wrap: anywhere; }
 
       #lightbox {
         position: fixed; inset: 0; z-index: 50; display: none;
@@ -178,6 +192,11 @@
         .pl { display: block; font-size: 11px; overflow-wrap: anywhere; }
         .pl i { width: 38px; }
         .pl small { display: block; margin-left: 42px; margin-top: 1px; }
+        .pl.psaEbay > i { width: auto; }
+        .pl.psaEbay > small { margin-left: 0; }
+        .bandRows { gap: 3px; }
+        .bandRow { padding: 5px 4px; }
+        .bandRow b { font-size: 10px; }
         .sourceLegend { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
         .sourceLegend span { padding: 7px 8px; }
         .sourceLegend b { font-size: 10px; }
@@ -186,8 +205,8 @@
         .bmHead { display: block; }
         .bmHead small { display: block; margin-top: 3px; }
         .bmRows { gap: 6px; }
-        .bmRow { padding: 7px 6px; }
-        .bmRow b { font-size: 12px; }
+        .bmRows .bandRow { padding: 7px 6px; }
+        .bmRows .bandRow b { font-size: 12px; }
         .psaTable { font-size: 13px; }
         #lightbox { padding: 14px; }
         #lbImg { max-width: 94vw; max-height: 78vh; }
@@ -237,13 +256,10 @@
       .bmHead small, .boxMarket > small { color: #737b8e; font-size: 11px; }
       .boxMarket > strong { display: block; margin-top: 4px; color: #eef2ff; font-size: 15px; }
       .bmRows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-      .bmRow {
-        display: grid; gap: 1px; padding: 8px; border-radius: 9px;
-        border: 1px solid #252b38; background: #111620;
-      }
-      .bmRow i { color: #7a8194; font-style: normal; font-size: 10px; font-weight: 900; }
-      .bmRow b { color: #eef2ff; font-size: 14px; font-weight: 900; }
-      .bmRow small { color: #737b8e; font-size: 10px; overflow-wrap: anywhere; }
+      .bmRows .bandRow { padding: 8px; border-radius: 9px; }
+      .bmRows .bandRow i { font-size: 10px; }
+      .bmRows .bandRow b { font-size: 14px; }
+      .bmRows .bandRow small { font-size: 10px; }
       .boxMarket p { margin: 9px 0 0; color: #737b8e; font-size: 11px; line-height: 1.45; }
 
       .psaWrap { margin-top: 14px; overflow-x: auto; }
@@ -330,6 +346,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260624sources1"></script>
+    <script src="packs.js?v=20260624psaebay1"></script>
   </body>
 </html>

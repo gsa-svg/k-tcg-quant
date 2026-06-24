@@ -11,6 +11,7 @@
 ```powershell
 & 'C:\Users\kimtt\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' .\tools\update-yuyutei-nm-prices.js
 & 'C:\Users\kimtt\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' .\tools\update-cardrush-nm-fallback.js
+& 'C:\Users\kimtt\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' .\tools\update-ebay-psa10-prices.js
 ```
 
 ## 주의
@@ -18,3 +19,5 @@
 - PRB/EB 재록 카드는 원 세트 번호와 재록 페이지 번호가 다를 수 있다.
 - DON 카드는 유유테이에서 번호가 `-`로 표시되어 이름 기반 보정이 필요하다.
 - 일본 NM과 TCG Quant USD 기준가는 같은 지표가 아니다. 화면에는 둘을 분리해서 표시한다.
+- PSA10 공식 가격이 있는 카드는 그대로 두고, 공식 가격이 없는 카드만 `PSA10 eBay` High/Middle/Low를 채운다.
+- `PSA10 eBay`는 eBay Active 호가 기준이다. Sold 실거래가가 아니다.

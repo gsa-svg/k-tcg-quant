@@ -54,6 +54,26 @@ function marketKrw(value, currency) {
   return null;
 }
 
+function priceBandRows(market) {
+  const rows = [
+    ["High", market.high],
+    ["Middle", market.middle],
+    ["Low", market.low],
+  ];
+
+  return rows
+    .map(([label, value]) => {
+      const krwValue = marketKrw(value, market.currency);
+      return `
+        <span class="bandRow">
+          <i>${label}</i>
+          <b>${krwValue == null ? "-" : fmtKrw(krwValue)}</b>
+          <small>${fmtOriginalCurrency(value, market.currency)}</small>
+        </span>`;
+    })
+    .join("");
+}
+
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
@@ -67,6 +87,13 @@ function priceLines(c) {
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
     h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
+  } else if (c.psa10Ebay?.sampleSize > 0) {
+    h += `
+      <span class="pl psaEbay">
+        <i>PSA10 eBay</i>
+        <span class="bandRows">${priceBandRows(c.psa10Ebay)}</span>
+        <small>eBay Active · 표본 ${c.psa10Ebay.sampleSize}건</small>
+      </span>`;
   }
   return h ? `<div class="priceLines">${h}</div>` : "";
 }
@@ -109,12 +136,6 @@ function renderBoxMarket(set) {
       </div>`;
   }
 
-  const rows = [
-    ["High", market.high],
-    ["Middle", market.middle],
-    ["Low", market.low],
-  ];
-
   return `
     <div class="boxMarket">
       <div class="bmHead">
@@ -124,29 +145,19 @@ function renderBoxMarket(set) {
         }</small>
       </div>
       <div class="bmRows">
-        ${rows
-          .map(([label, value]) => {
-            const krwValue = marketKrw(value, market.currency);
-            return `
-              <span class="bmRow">
-                <i>${label}</i>
-                <b>${krwValue == null ? "-" : fmtKrw(krwValue)}</b>
-                <small>${fmtOriginalCurrency(value, market.currency)}</small>
-              </span>`;
-          })
-          .join("")}
+        ${priceBandRows(market)}
       </div>
       <p>정렬 후 하위/중앙/상위 가격대. 재밀봉 리스크를 줄이기 위해 중국권 발송지는 제외합니다.</p>
     </div>`;
 }
 
 function renderSourceLegend(set) {
-  const hasPsa10 = (set.cards || []).some((card) => card.psa10Usd != null);
+  const hasPsa10 = (set.cards || []).some((card) => card.psa10Usd != null || card.psa10Ebay?.sampleSize > 0);
   return `
     <div class="sourceLegend" aria-label="가격 출처 요약">
       <span><b>기준가</b><small>TCG Quant 글로벌 USD</small></span>
       <span><b>NM</b><small>유유테이 우선 · 카드러시 보조</small></span>
-      <span class="${hasPsa10 ? "" : "muted"}"><b>PSA10</b><small>${hasPsa10 ? "실거래 확인분만 표시" : "확인된 거래가 없음"}</small></span>
+      <span class="${hasPsa10 ? "" : "muted"}"><b>PSA10</b><small>${hasPsa10 ? "공식값 우선 · 없으면 eBay" : "확인된 가격 없음"}</small></span>
       <span><b>박스가</b><small>eBay Active 호가</small></span>
     </div>`;
 }
