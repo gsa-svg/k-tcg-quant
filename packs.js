@@ -49,16 +49,13 @@ const fmtJpy = (v) =>
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
-  if (c.priceUsd != null) {
-    h += `<span class="pl market"><i>TCG</i> <b>${fmtUsd(c.priceUsd)}</b> <small>약 ${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</small></span>`;
-  }
   if (c.nmJpy != null) {
     const nmVenue = c.nmVenue || "遊々亭";
-    h += `<span class="pl"><i>NM</i> <b>${fmtJpy(c.nmJpy)}</b> <small>약 ${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))} · ${nmVenue}</small></span>`;
+    h += `<span class="pl"><i>NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} · ${nmVenue}</small></span>`;
   }
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
-    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtUsd(c.psa10Usd)}</b> <small>약 ${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}${d ? " · " + d : ""}</small></span>`;
+    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""}</small></span>`;
   }
   return h ? `<div class="priceLines">${h}</div>` : "";
 }
@@ -283,8 +280,8 @@ function renderDetail() {
     const nmSource = set.nmSource || "遊々亭(유유테이)";
     const psaSource = set.psaSource || "PSA APR";
     const srcNote = set.priced
-      ? `<p class="srcNote">원본 통화를 우선 표시합니다. NM 출처 · ${nmSource} &nbsp;|&nbsp; PSA/물량 출처 · ${psaSource} &nbsp;|&nbsp; 환율 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
-      : `<p class="srcNote">TCGplayer USD 시세를 우선 표시하고, 원화는 참고 환산값입니다. 일부 세트의 JPY NM/PSA10 보강 데이터는 순차 적용 중입니다.</p>`;
+      ? `<p class="srcNote">원화 환산가를 우선 표시합니다. NM 출처 · ${nmSource} &nbsp;|&nbsp; PSA/물량 출처 · ${psaSource} &nbsp;|&nbsp; 환율 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
+      : `<p class="srcNote">JPY NM/PSA10 보강 데이터가 있는 세트부터 원화 환산가를 표시합니다. 일부 세트는 순차 적용 중입니다.</p>`;
     body = srcNote + renderHitList(cards);
   }
 
