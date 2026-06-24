@@ -38,6 +38,22 @@ const krw = (usd) =>
         Math.round(usd * (state.data?.fx?.usdKrw || 1388.2)),
       );
 
+const fmtKrw = (v) =>
+  new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(Math.round(v));
+
+function priceLines(c) {
+  const fx = (state.data && state.data.fx) || {};
+  let h = "";
+  if (c.nmJpy != null) {
+    h += `<span class="pl"><i>NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>¥${c.nmJpy.toLocaleString()} · 遊々亭</small></span>`;
+  }
+  if (c.psa10Usd != null) {
+    const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
+    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>$${Math.round(c.psa10Usd).toLocaleString()}${d ? " · " + d : ""}</small></span>`;
+  }
+  return h ? `<div class="priceLines">${h}</div>` : "";
+}
+
 const FALLBACK =
   "data:image/svg+xml;utf8," +
   encodeURIComponent(
@@ -152,7 +168,7 @@ function renderHitList(cards) {
           <figcaption>
             <span class="hitName">${c.name}</span>
             <span class="hitNo">${c.number || ""}</span>
-            ${state.showPrice ? `<span class="hitPrice">${krw(c.priceUsd)}</span>` : ""}
+            ${priceLines(c)}
           </figcaption>
         </figure>`;
     })
@@ -236,12 +252,10 @@ function renderDetail() {
   if (state.view === "psa") {
     body = renderPsaTable(set.psa);
   } else {
-    body = `
-      <label class="priceToggle">
-        <input type="checkbox" id="priceChk" ${state.showPrice ? "checked" : ""} />
-        참고 시세(원화) 보기
-      </label>
-      ${renderHitList(cards)}`;
+    const srcNote = set.priced
+      ? `<p class="note">NM = 유유테이(생카드·엔) · PSA10 = PSA APR 최근 낙찰(USD)을 원화 환산. 환율 ¥${state.data.fx.jpyKrw} / $${state.data.fx.usdKrw}.</p>`
+      : `<p class="note">시세는 OP-05부터 순차 적용 중입니다.</p>`;
+    body = srcNote + renderHitList(cards);
   }
 
   el.innerHTML = `
