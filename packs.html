@@ -118,6 +118,7 @@
       .pl { font-size: 12px; color: #c7cdda; line-height: 1.25; }
       .pl i { display: inline-block; width: 44px; font-style: normal; font-weight: 800; font-size: 10px; color: #7a8194; }
       .pl b { font-weight: 900; color: #eef2ff; }
+      .pl.base b { color: #f3c74f; }
       .pl.psa b { color: var(--accent); }
       .pl small { color: #737b8e; }
 
@@ -277,22 +278,22 @@
         <h1>원피스 부스터팩 — 팩별 TOP 10 히트카드</h1>
         <p class="lead">
           팩을 고르면 박스 이미지와 그 팩의 대표 히트카드(시세 높은 순) TOP 10을 카드 이미지와 함께 봅니다.
-          일본판 OP-01~16 / 한국판 OPK-01~12. 데이터 출처 TCG Quant, 이미지 TCGplayer.
+          일본판 OP-01~16 / 특수팩 EB·PRB / 한국판 OPK-01~12. 데이터 출처 TCG Quant, 이미지 TCGplayer.
           가격은 원화 환산가를 먼저 보여주고, 엔화/달러 원본가는 작은 글씨로 함께 표시합니다.
         </p>
       </section>
 
       <div class="langTabs" role="group" aria-label="언어 선택">
         <button class="langTab active" data-lang="jp">일본판 <small id="statJp"></small></button>
+        <button class="langTab" data-lang="extra">특수팩 <small id="statExtra"></small></button>
         <button class="langTab" data-lang="kr">한국판 <small id="statKr"></small></button>
-        <button class="langTab" data-lang="extra">특수팩 <small>EB/PRB</small></button>
       </div>
 
       <section class="packSection">
         <div class="packGrid" id="packList"></div>
         <div id="detail"></div>
         <p class="note">
-          ※ 한국판(OPK)은 정식 발매 순서에 맞춰 OP-01~12까지 표시하며, 카드 구성은 동일 세트 기준입니다.
+          ※ 한국판(OPK)은 정식 발매 순서에 맞춰 OPK-01~12까지 자리만 먼저 표시하며, 별도 시세 수집 전까지 준비중으로 둡니다.
           신규 세트(예: OP-16)는 시세 데이터가 준비되는 대로 자동 반영됩니다. 원화 표기는 투자 비교용 참고값입니다.
         </p>
       </section>
@@ -307,6 +308,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260624ebay1"></script>
+    <script src="packs.js?v=20260624prices2"></script>
   </body>
 </html>

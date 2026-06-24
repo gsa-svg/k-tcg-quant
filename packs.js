@@ -64,6 +64,9 @@ function marketKrw(value, currency) {
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
+  if (c.priceUsd != null) {
+    h += `<span class="pl base"><i>기준가</i> <b>${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.priceUsd)} · TCG Quant</small></span>`;
+  }
   if (c.nmJpy != null) {
     const nmVenue = c.nmVenue || "遊々亭";
     h += `<span class="pl"><i>NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} · ${nmVenue}</small></span>`;
@@ -182,7 +185,8 @@ function currentPacks() {
   if (state.lang === "kr") {
     return d.kr.list.map((it) => {
       const set = d.sets[it.base] || {};
-      return { key: it.opk, code: it.opk, nameKo: it.nameKo, nameEn: set.nameEn || "", set };
+      const pendingSet = { ...set, cards: [], psa: [], boxMarket: null };
+      return { key: it.opk, code: it.opk, nameKo: it.nameKo, nameEn: set.nameEn || "", set: pendingSet };
     });
   }
   const list = state.lang === "extra" ? d.extra.list : d.jp.list;
@@ -202,9 +206,10 @@ function renderStats() {
   const d = state.data;
   const readyCount = (codes) => codes.filter((c) => (d.sets[c]?.cards || []).length > 0).length;
   const jpReady = readyCount(d.jp.list);
-  const krReady = d.kr.list.filter((it) => (d.sets[it.base]?.cards || []).length > 0).length;
+  const extraReady = readyCount(d.extra.list);
   document.querySelector("#statJp").textContent = `${jpReady}/${d.jp.list.length}`;
-  document.querySelector("#statKr").textContent = `${krReady}/${d.kr.list.length}`;
+  document.querySelector("#statExtra").textContent = `${extraReady}/${d.extra.list.length}`;
+  document.querySelector("#statKr").textContent = `준비중`;
 }
 
 function bindLangTabs() {
@@ -371,7 +376,7 @@ function renderDetail() {
           </button>
         </div>
         ${ebayLinks(pack)}
-        ${state.lang === "jp" ? renderBoxMarket(set) : ""}
+        ${state.lang !== "kr" ? renderBoxMarket(set) : ""}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
     </div>

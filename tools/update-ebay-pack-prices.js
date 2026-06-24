@@ -38,9 +38,8 @@ function requireCredentials() {
 }
 
 function buildQuery(code, set) {
-  return ["One Piece Card Game", code, set.nameEn, "Booster Box", "Japanese", "sealed"]
-    .filter(Boolean)
-    .join(" ");
+  const boxType = code.startsWith("PRB") ? "Premium Booster Box" : code.startsWith("EB") ? "Extra Booster Box" : "Booster Box";
+  return ["One Piece Card Game", code, set.nameEn, boxType, "Japanese", "sealed"].filter(Boolean).join(" ");
 }
 
 async function getApplicationToken() {
@@ -79,7 +78,7 @@ async function searchActiveListings(token, query) {
 function isJapaneseSealedBoosterBox(item, code) {
   const title = item.title || "";
   const codePattern = new RegExp(code.replace("-", "[- ]?"), "i");
-  const positive = [/one piece/i, codePattern, /booster box|display box|box/i, /japanese|jp\b|japan/i];
+  const positive = [/one piece/i, codePattern, /booster box|premium booster|extra booster|display box|box/i, /japanese|jp\b|japan/i];
   const negative = [/english|korean|chinese|simplified|card lot|single card|proxy|digital|empty box|case\b/i];
   return positive.every((pattern) => pattern.test(title)) && !negative.some((pattern) => pattern.test(title));
 }
@@ -142,7 +141,8 @@ async function main() {
 
   const onlyCodes = process.argv.slice(2);
   const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-  const codes = onlyCodes.length ? onlyCodes : data.jp.list.filter((code) => data.sets[code]?.cards?.length);
+  const defaultCodes = [...data.jp.list, ...data.extra.list].filter((code) => data.sets[code]?.nameEn);
+  const codes = onlyCodes.length ? onlyCodes : defaultCodes;
   const token = (await getApplicationToken()).access_token;
 
   for (const code of codes) {
