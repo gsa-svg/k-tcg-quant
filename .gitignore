@@ -7,3 +7,8 @@ server-*.err.log
 
 # 미리보기 캡처
 preview-mobile-*.png
+
+# 민감 정보가 포함될 수 있는 eBay 키 화면 캡처 / 로컬 환경변수
+ebay-keyset-*.png
+.env
+.env.local
