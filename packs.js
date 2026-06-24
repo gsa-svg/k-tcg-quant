@@ -30,13 +30,6 @@ const psaRarity = {
 const rb = (r) => psaRarity[r] || { s: (r || "").slice(0, 3).toUpperCase(), c: "#9aa3b2" };
 const num = (n) => (n == null ? "-" : new Intl.NumberFormat("ko-KR").format(n));
 
-const krw = (usd) =>
-  usd == null
-    ? "-"
-    : new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(
-        Math.round(usd * (state.data?.fx?.usdKrw || 1388.2)),
-      );
-
 const fmtKrw = (v) =>
   new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(Math.round(v));
 
