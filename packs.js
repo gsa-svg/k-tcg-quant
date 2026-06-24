@@ -253,8 +253,8 @@ function renderDetail() {
     body = renderPsaTable(set.psa);
   } else {
     const srcNote = set.priced
-      ? `<p class="note">NM = 유유테이(생카드·엔) · PSA10 = PSA APR 최근 낙찰(USD)을 원화 환산. 환율 ¥${state.data.fx.jpyKrw} / $${state.data.fx.usdKrw}.</p>`
-      : `<p class="note">시세는 OP-05부터 순차 적용 중입니다.</p>`;
+      ? `<p class="srcNote">NM 출처 · 遊々亭(유유테이, 생카드 시세) &nbsp;|&nbsp; PSA10 출처 · PSA APR(최근 낙찰가) &nbsp;·&nbsp; 원화 환산 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
+      : `<p class="srcNote">시세는 OP-05부터 순차 적용 중입니다.</p>`;
     body = srcNote + renderHitList(cards);
   }
 
@@ -267,7 +267,7 @@ function renderDetail() {
         <div class="viewTabs">
           <button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">시세 TOP 10</button>
           <button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>
-            PSA 인구·보석확률
+            PSA 통계
           </button>
         </div>
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
