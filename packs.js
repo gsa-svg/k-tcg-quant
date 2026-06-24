@@ -58,15 +58,15 @@ function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
   if (c.priceUsd != null) {
-    h += `<span class="pl base"><i>기준가</i> <b>${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.priceUsd)} · TCG Quant</small></span>`;
+    h += `<span class="pl base"><i>기준가</i> <b>${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.priceUsd)} <em>TCG Quant</em></small></span>`;
   }
   if (c.nmJpy != null) {
     const nmVenue = c.nmVenue || "遊々亭";
-    h += `<span class="pl"><i>NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} · ${nmVenue}</small></span>`;
+    h += `<span class="pl nm"><i>NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} <em>${nmVenue}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
-    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""}</small></span>`;
+    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
   }
   return h ? `<div class="priceLines">${h}</div>` : "";
 }
@@ -137,6 +137,17 @@ function renderBoxMarket(set) {
           .join("")}
       </div>
       <p>정렬 후 하위/중앙/상위 가격대. 재밀봉 리스크를 줄이기 위해 중국권 발송지는 제외합니다.</p>
+    </div>`;
+}
+
+function renderSourceLegend(set) {
+  const hasPsa10 = (set.cards || []).some((card) => card.psa10Usd != null);
+  return `
+    <div class="sourceLegend" aria-label="가격 출처 요약">
+      <span><b>기준가</b><small>TCG Quant 글로벌 USD</small></span>
+      <span><b>NM</b><small>유유테이 우선 · 카드러시 보조</small></span>
+      <span class="${hasPsa10 ? "" : "muted"}"><b>PSA10</b><small>${hasPsa10 ? "실거래 확인분만 표시" : "확인된 거래가 없음"}</small></span>
+      <span><b>박스가</b><small>eBay Active 호가</small></span>
     </div>`;
 }
 
@@ -348,12 +359,8 @@ function renderDetail() {
   if (state.view === "psa") {
     body = renderPsaTable(set.psa);
   } else {
-    const nmSource = set.nmSource || "遊々亭(유유테이)";
-    const psaSource = set.psaSource || "PSA APR";
-    const srcNote = set.priced
-      ? `<p class="srcNote">원화 환산가를 우선 표시합니다. NM 출처 · ${nmSource} &nbsp;|&nbsp; PSA/물량 출처 · ${psaSource} &nbsp;|&nbsp; 환율 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
-      : `<p class="srcNote">JPY NM/PSA10 보강 데이터가 있는 세트부터 원화 환산가를 표시합니다. 일부 세트는 순차 적용 중입니다.</p>`;
-    body = srcNote + renderHitList(cards);
+    const fxNote = `<p class="srcNote">환율 기준: ¥${state.data.fx.jpyKrw} / $${state.data.fx.usdKrw}. 원화는 비교용 환산값입니다.</p>`;
+    body = renderSourceLegend(set) + fxNote + renderHitList(cards);
   }
 
   el.innerHTML = `
