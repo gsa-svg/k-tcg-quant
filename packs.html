@@ -31,11 +31,16 @@
       .adLabel::before { content: "AD"; padding: 1px 6px; border-radius: 5px; background: #1a1e28; color: #aeb5c8; font-size: 10px; }
       .adDisclosure { margin: 6px 2px 0; color: #6b7281; font-size: 11px; }
 
-      .packHero { padding: clamp(20px, 4vw, 40px) clamp(16px, 4vw, 52px) 4px; }
+      .packHero { padding: clamp(18px, 4vw, 40px) clamp(16px, 4vw, 52px) 4px; }
       .packHero h1 { font-size: clamp(26px, 5vw, 48px); margin-bottom: 10px; }
       .packHero .lead { font-size: 15px; }
 
-      .langTabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px clamp(16px,4vw,52px) 0; }
+      .langTabs {
+        display: flex; flex-wrap: wrap; gap: 8px; margin: 16px clamp(16px,4vw,52px) 0;
+        position: sticky; top: 64px; z-index: 12; padding: 8px 0;
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        backdrop-filter: blur(10px);
+      }
       .langTab {
         display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px;
         border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
@@ -81,12 +86,8 @@
         box-shadow: var(--shadow);
       }
       .detailInfo { min-width: 0; flex: 1; }
+      .detailInfo h2 { overflow-wrap: anywhere; word-break: keep-all; }
       .detailInfo h2 small { color: var(--muted); font-size: 15px; font-weight: 700; }
-      .priceToggle {
-        display: inline-flex; align-items: center; gap: 7px; margin-top: 6px; padding: 8px 12px;
-        border: 1px solid var(--line); border-radius: 10px; background: var(--paper);
-        color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
-      }
 
       .hitGallery {
         margin: 18px 0 0; display: grid; gap: 14px;
@@ -117,6 +118,7 @@
       .pl { font-size: 12px; color: #c7cdda; line-height: 1.25; }
       .pl i { display: inline-block; width: 44px; font-style: normal; font-weight: 800; font-size: 10px; color: #7a8194; }
       .pl b { font-weight: 900; color: #eef2ff; }
+      .pl.market b { color: #f3c74f; }
       .pl.psa b { color: var(--accent); }
       .pl small { color: #737b8e; }
 
@@ -139,8 +141,42 @@
       }
 
       @media (max-width: 560px) {
-        .hitGallery { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .topbar { align-items: flex-start; }
+        .nav { width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 2px; }
+        .adSlot { margin: 10px 12px 0; }
+        .adInner { min-height: 72px; padding: 10px; border-radius: 10px; }
+        .adLabel { font-size: 11px; text-align: center; line-height: 1.35; }
+        .adDisclosure { font-size: 10px; line-height: 1.45; }
+        .packHero { padding: 16px 14px 2px; }
+        .packHero h1 { font-size: 26px; line-height: 1.16; }
+        .packHero .lead { font-size: 13px; line-height: 1.65; }
+        .langTabs { margin: 12px 12px 0; top: 104px; gap: 6px; }
+        .langTab { flex: 1 1 auto; min-height: 38px; padding: 0 10px; justify-content: center; font-size: 13px; }
+        .packSection { padding: 14px 12px 0; }
+        .packGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .packChip { gap: 8px; padding: 8px; border-radius: 10px; }
+        .packBox { width: 46px; height: 62px; border-radius: 7px; }
+        .packCode { font-size: 11px; }
+        .packName { font-size: 13px; line-height: 1.25; }
+        .packEn { display: none; }
+        .detailHead { gap: 12px; }
+        .detailBox { width: 82px; height: 112px; border-radius: 10px; }
+        .detailInfo h2 { font-size: 22px; line-height: 1.2; }
+        .detailInfo h2 small { display: block; margin-top: 3px; font-size: 12px; }
+        .viewTabs { width: 100%; }
+        .viewTab { flex: 1; padding: 0 8px; font-size: 12px; }
+        .srcNote { font-size: 11px; line-height: 1.55; }
+        .hitGallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .hitName { font-size: 12px; }
+        .hitNo { font-size: 10px; }
+        .priceLines { gap: 4px; }
+        .pl { display: block; font-size: 11px; overflow-wrap: anywhere; }
+        .pl i { width: 38px; }
+        .pl small { display: block; margin-left: 42px; margin-top: 1px; }
         .psaTable { font-size: 13px; }
+        #lightbox { padding: 14px; }
+        #lbImg { max-width: 94vw; max-height: 78vh; }
+        #lbClose { top: 8px; right: 8px; }
       }
 
       .viewTabs { display: flex; gap: 8px; margin: 10px 0 4px; }
@@ -206,7 +242,8 @@
         <h1>원피스 부스터팩 — 팩별 TOP 10 히트카드</h1>
         <p class="lead">
           팩을 고르면 박스 이미지와 그 팩의 대표 히트카드(시세 높은 순) TOP 10을 카드 이미지와 함께 봅니다.
-          일본판 OP-01~16 / 한국판 OPK-01~12. 데이터 출처 TCG Quant, 이미지 TCGplayer. 가격은 토글로 표시.
+          일본판 OP-01~16 / 한국판 OPK-01~12. 데이터 출처 TCG Quant, 이미지 TCGplayer.
+          가격은 원본 통화를 먼저 보여주고 원화 환산값은 참고로 함께 표시합니다.
         </p>
       </section>
 
@@ -221,7 +258,7 @@
         <div id="detail"></div>
         <p class="note">
           ※ 한국판(OPK)은 정식 발매 순서에 맞춰 OP-01~12까지 표시하며, 카드 구성은 동일 세트 기준입니다.
-          신규 세트(예: OP-16)는 시세 데이터가 준비되는 대로 자동 반영됩니다. 표시 가격은 해외(USD) 시세의 원화 환산 참고값입니다.
+          신규 세트(예: OP-16)는 시세 데이터가 준비되는 대로 자동 반영됩니다. 원화 표기는 투자 비교용 참고값입니다.
         </p>
       </section>
     </main>

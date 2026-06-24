@@ -2,7 +2,6 @@ const state = {
   data: null,
   lang: "jp",
   selected: null,
-  showPrice: false,
   view: "hits", // "hits" | "psa"
 };
 
@@ -41,15 +40,24 @@ const krw = (usd) =>
 const fmtKrw = (v) =>
   new Intl.NumberFormat("ko-KR", { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(Math.round(v));
 
+const fmtUsd = (v) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: v >= 100 ? 0 : 2 }).format(v);
+
+const fmtJpy = (v) =>
+  new Intl.NumberFormat("ja-JP", { style: "currency", currency: "JPY", maximumFractionDigits: 0 }).format(v);
+
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
+  if (c.priceUsd != null) {
+    h += `<span class="pl market"><i>TCG</i> <b>${fmtUsd(c.priceUsd)}</b> <small>약 ${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</small></span>`;
+  }
   if (c.nmJpy != null) {
-    h += `<span class="pl"><i>NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>¥${c.nmJpy.toLocaleString()} · 遊々亭</small></span>`;
+    h += `<span class="pl"><i>NM</i> <b>${fmtJpy(c.nmJpy)}</b> <small>약 ${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))} · 遊々亭</small></span>`;
   }
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
-    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>$${Math.round(c.psa10Usd).toLocaleString()}${d ? " · " + d : ""}</small></span>`;
+    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtUsd(c.psa10Usd)}</b> <small>약 ${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}${d ? " · " + d : ""}</small></span>`;
   }
   return h ? `<div class="priceLines">${h}</div>` : "";
 }
@@ -253,8 +261,8 @@ function renderDetail() {
     body = renderPsaTable(set.psa);
   } else {
     const srcNote = set.priced
-      ? `<p class="srcNote">NM 출처 · 遊々亭(유유테이, 생카드 시세) &nbsp;|&nbsp; PSA10 출처 · PSA APR(최근 낙찰가) &nbsp;·&nbsp; 원화 환산 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
-      : `<p class="srcNote">시세는 OP-05부터 순차 적용 중입니다.</p>`;
+      ? `<p class="srcNote">원본 통화를 우선 표시합니다. TCG/PSA10은 USD, NM은 JPY 기준이며 원화는 참고 환산값입니다. 환율 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
+      : `<p class="srcNote">TCGplayer USD 시세를 우선 표시하고, 원화는 참고 환산값입니다. 일부 세트의 JPY NM/PSA10 보강 데이터는 순차 적용 중입니다.</p>`;
     body = srcNote + renderHitList(cards);
   }
 
@@ -279,8 +287,6 @@ function renderDetail() {
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) =>
     b.addEventListener("click", () => { state.view = b.dataset.view; renderDetail(); }),
   );
-  const chk = document.querySelector("#priceChk");
-  if (chk) chk.addEventListener("change", () => { state.showPrice = chk.checked; renderDetail(); });
   el.querySelectorAll(".hitCard").forEach((f) =>
     f.addEventListener("click", () => openLightbox(f.dataset.img, f.dataset.name)),
   );
