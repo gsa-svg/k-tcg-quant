@@ -186,6 +186,18 @@
       .viewTab.active { background: #fbe7a6; border-color: #e7cd72; color: #3b330a; }
       .viewTab[disabled] { opacity: .4; cursor: not-allowed; }
       .srcNote { margin: 10px 0 0; color: #7a8194; font-size: 12px; }
+      .marketLinks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .marketLinks a {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 34px; padding: 0 12px; border-radius: 9px;
+        border: 1px solid #2b3040; background: #1a1e28; color: #b6bdce;
+        font-size: 12px; font-weight: 900; text-decoration: none;
+      }
+      .marketLinks a:first-child {
+        background: rgba(16,215,160,.12);
+        border-color: rgba(16,215,160,.32);
+        color: var(--accent);
+      }
 
       .psaWrap { margin-top: 14px; overflow-x: auto; }
       .psaTable { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 460px; }
@@ -271,6 +283,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260624krw1"></script>
+    <script src="packs.js?v=20260624ebay1"></script>
   </body>
 </html>

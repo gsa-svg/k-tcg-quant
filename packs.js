@@ -71,6 +71,22 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 
+function ebayQueryFor(pack) {
+  const language = state.lang === "kr" ? "Korean" : "Japanese";
+  const parts = ["One Piece Card Game", pack.code, pack.nameEn, "Booster Box", language, "sealed"];
+  return parts.filter(Boolean).join(" ");
+}
+
+function ebayLinks(pack) {
+  const q = encodeURIComponent(ebayQueryFor(pack));
+  const base = `https://www.ebay.com/sch/i.html?_nkw=${q}`;
+  return `
+    <div class="marketLinks" aria-label="eBay market links">
+      <a href="${base}&LH_Sold=1&LH_Complete=1&_sop=13" target="_blank" rel="noopener noreferrer">eBay Sold</a>
+      <a href="${base}&LH_BIN=1&_sop=15" target="_blank" rel="noopener noreferrer">eBay Active</a>
+    </div>`;
+}
+
 async function fetchPackData() {
   let lastError;
 
@@ -297,6 +313,7 @@ function renderDetail() {
             PSA 통계
           </button>
         </div>
+        ${ebayLinks(pack)}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
     </div>
