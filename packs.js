@@ -190,8 +190,8 @@ function renderPsaTable(psa) {
           <td class="pCard">
             <span class="pName">${c.name}</span>
             <span class="pNo">#${c.number}</span>
-            <span class="pBadge" style="--c:${b.c}">${b.s}</span>
           </td>
+          <td class="pRar"><span class="pBadge" style="--c:${b.c}">${b.s}</span></td>
           <td class="pNumv">${num(c.psa10)}</td>
           <td class="pNumv dim">${num(c.psa9)}</td>
           <td class="pNumv">${num(c.total)}</td>
@@ -205,6 +205,7 @@ function renderPsaTable(psa) {
         <thead>
           <tr>
             <th class="pCard">카드</th>
+            <th class="pRar">희박</th>
             <th>PSA 10</th>
             <th>PSA 9</th>
             <th>총계</th>
