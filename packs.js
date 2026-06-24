@@ -53,7 +53,8 @@ function priceLines(c) {
     h += `<span class="pl market"><i>TCG</i> <b>${fmtUsd(c.priceUsd)}</b> <small>약 ${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</small></span>`;
   }
   if (c.nmJpy != null) {
-    h += `<span class="pl"><i>NM</i> <b>${fmtJpy(c.nmJpy)}</b> <small>약 ${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))} · 遊々亭</small></span>`;
+    const nmVenue = c.nmVenue || "遊々亭";
+    h += `<span class="pl"><i>NM</i> <b>${fmtJpy(c.nmJpy)}</b> <small>약 ${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))} · ${nmVenue}</small></span>`;
   }
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
@@ -68,14 +69,33 @@ const FALLBACK =
     "<svg xmlns='http://www.w3.org/2000/svg' width='80' height='110'><rect width='100%' height='100%' rx='8' fill='%231a1e28'/><text x='50%' y='52%' fill='%23566' font-size='11' text-anchor='middle' font-family='sans-serif'>이미지</text></svg>",
   );
 
+const DATA_URLS = [
+  "data/onepiece-packs.json",
+  "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
+];
+
+async function fetchPackData() {
+  let lastError;
+
+  for (const url of DATA_URLS) {
+    try {
+      const res = await fetch(url, { cache: "no-store" });
+      if (!res.ok) throw new Error(`${url} HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError;
+}
+
 async function load() {
   try {
-    const res = await fetch("data/onepiece-packs.json", { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    state.data = await res.json();
+    state.data = await fetchPackData();
   } catch (err) {
     document.querySelector("#packList").innerHTML =
-      `<p class="note">데이터를 불러오지 못했습니다. (${err.message}) 웹서버에서 열어야 합니다.</p>`;
+      `<p class="note">데이터를 불러오지 못했습니다. (${err.message}) 잠시 후 다시 시도해주세요.</p>`;
     return;
   }
   bindLangTabs();
@@ -260,8 +280,10 @@ function renderDetail() {
   if (state.view === "psa") {
     body = renderPsaTable(set.psa);
   } else {
+    const nmSource = set.nmSource || "遊々亭(유유테이)";
+    const psaSource = set.psaSource || "PSA APR";
     const srcNote = set.priced
-      ? `<p class="srcNote">원본 통화를 우선 표시합니다. TCG/PSA10은 USD, NM은 JPY 기준이며 원화는 참고 환산값입니다. 환율 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
+      ? `<p class="srcNote">원본 통화를 우선 표시합니다. NM 출처 · ${nmSource} &nbsp;|&nbsp; PSA/물량 출처 · ${psaSource} &nbsp;|&nbsp; 환율 ¥${state.data.fx.jpyKrw}/$${state.data.fx.usdKrw}</p>`
       : `<p class="srcNote">TCGplayer USD 시세를 우선 표시하고, 원화는 참고 환산값입니다. 일부 세트의 JPY NM/PSA10 보강 데이터는 순차 적용 중입니다.</p>`;
     body = srcNote + renderHitList(cards);
   }
