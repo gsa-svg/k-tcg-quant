@@ -40,6 +40,12 @@
         background: rgba(17,22,32,.82); color: #b8c1d4; font-size: 13px; line-height: 1.65;
       }
       .introPanel strong { color: #eef2ff; }
+      .introPanel p { margin: 8px 0 0; }
+      .introPanel .introHead { margin: 13px 0 5px; color: #eef2ff; font-weight: 800; font-size: 12px; letter-spacing: .3px; }
+      .introPanel ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+      .introPanel li b { color: #eef2ff; }
+      .introPanel .introMeta { margin-top: 13px; padding-top: 11px; border-top: 1px solid #20242e; color: #8d95a7; font-size: 12px; }
+      .introPanel code { padding: 1px 5px; border-radius: 5px; background: #1a1e28; color: #aeb7c9; font-size: 11px; }
 
       .langTabs {
         display: flex; flex-wrap: wrap; gap: 8px; margin: 16px clamp(16px,4vw,52px) 0;
@@ -351,16 +357,33 @@
         <p class="eyebrow">One Piece Booster Packs</p>
         <h1>원피스 부스터팩 — 팩별 TOP 10 히트카드</h1>
         <p class="lead">
-          팩을 고르면 박스 이미지와 그 팩의 대표 히트카드(시세 높은 순) TOP 10을 카드 이미지와 함께 봅니다.
-          일본판 OP-01~16 / 특수팩 EB·PRB / 한국판 OPK-01~12. 데이터 출처 TCG Quant, 이미지 TCGplayer.
-          가격은 원화 환산가를 먼저 보여주고, 엔화/달러 원본가는 작은 글씨로 함께 표시합니다.
+          부스터박스(시리즈)를 고르면 <strong>박스 이미지</strong>와 그 시리즈의 <strong>대표 히트카드 TOP 10</strong>(시세 높은 순)을
+          카드 이미지와 함께 보여줍니다. 어떤 팩에 어떤 카드가 들어있고 지금 얼마에 거래되는지 한 화면에서 비교하세요.
         </p>
       </section>
 
-      <section class="introPanel" aria-label="사이트 기준 안내">
-        <strong>K-TCG Quant는 원피스 미개봉 부스터팩 리서치 도구입니다.</strong>
-        팩별 박스 가격, 히트카드 TOP10, 일본 NM 가격, PSA10 가격, PSA 통계를 한 화면에서 비교합니다.
-        모든 가격은 투자 참고용이며 매수 추천이 아닙니다.
+      <section class="introPanel" aria-label="사이트 안내">
+        <strong>K-TCG Quant — 원피스 미개봉 부스터박스 시세·히트카드 리서치 도구</strong>
+        <p>
+          박스(시리즈)를 누르면 그 박스의 대표 히트카드 TOP 10을 시세 높은 순으로, 카드 이미지·번호·레어도와 함께 봅니다.
+          카드를 누르면 크게 확대됩니다.
+        </p>
+
+        <p class="introHead">주요 기능</p>
+        <ul>
+          <li><b>박스 시세</b> — 부스터박스 eBay 실매물 기준 High / Middle / Low (중국·홍콩·마카오 셀러 제외)</li>
+          <li><b>히트카드 TOP 10</b> — 시리즈별 대표 카드 + 이미지 클릭 확대</li>
+          <li><b>카드 시세 3종</b> — 영문판(글로벌 USD) · NM(일본 미감정 생카드, 엔화) · PSA10(감정 카드)</li>
+          <li><b>PSA 통계</b> — 카드별 PSA10 / PSA9 인구수, 총계, PSA10확률(감정 중 PSA10 비율)</li>
+          <li><b>원화 환산</b> — 메인은 원화로 통일, 엔/달러 원본가는 작은 글씨로 병기</li>
+          <li><b>공유 URL</b> — 박스별 주소로 바로 링크 (예: <code>?set=OP-13</code>)</li>
+        </ul>
+
+        <p class="introMeta">
+          현재 <strong>일본어판 시리즈(OP · EB · PRB)</strong>를 지원합니다. 한국판(OPK)은 준비 중입니다.<br />
+          데이터 출처 — 시세 <strong>TCG Quant</strong> · 카드/박스 이미지 <strong>TCGplayer</strong> · 일본 NM 시세 <strong>遊々亭(유유테이)</strong> · PSA 통계 <strong>GemRate</strong>.
+          모든 수치는 투자 참고용이며 매수 추천이 아닙니다. 카드 가격은 미감정(raw) 기준이고 PSA10만 감정가입니다.
+        </p>
       </section>
 
       <div class="langTabs" role="group" aria-label="언어 선택">
@@ -393,6 +416,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260625label1" defer></script>
+    <script src="packs.js?v=20260625intro1" defer></script>
   </body>
 </html>
