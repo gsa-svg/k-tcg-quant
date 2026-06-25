@@ -3,10 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>K-TCG Quant | 부스터팩 시세와 미개봉 퀀트 지표</title>
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; upgrade-insecure-requests"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>K-TCG Quant | 遺?ㅽ꽣???쒖꽭? 誘멸컻遊????吏??/title>
     <meta
       name="description"
-      content="포켓몬, 원피스 카드 미개봉 부스터팩과 박스의 시세 변화, 유동성, 재밀봉 리스크, 퀀트 점수를 추적하는 TCG 데이터 사이트입니다."
+      content="?ъ폆紐? ?먰뵾??移대뱶 誘멸컻遊?遺?ㅽ꽣?⑷낵 諛뺤뒪???쒖꽭 蹂?? ?좊룞?? ?щ?遊?由ъ뒪?? ????먯닔瑜?異붿쟻?섎뒗 TCG ?곗씠???ъ씠?몄엯?덈떎."
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -16,15 +21,15 @@
         <span class="brandMark">Q</span>
         <span>
           <strong>K-TCG Quant</strong>
-          <small>부스터팩 시세 퀀트</small>
+          <small>遺?ㅽ꽣???쒖꽭 ???/small>
         </span>
       </a>
       <nav class="nav" aria-label="Primary navigation">
-        <a href="packs.html">부스터팩</a>
-        <a href="#market">시세표</a>
-        <a href="#risk">리스크</a>
-        <a href="#articles">분석글</a>
-        <a href="about.html">운영원칙</a>
+        <a href="packs.html">遺?ㅽ꽣??/a>
+        <a href="#market">?쒖꽭??/a>
+        <a href="#risk">由ъ뒪??/a>
+        <a href="#articles">遺꾩꽍湲</a>
+        <a href="about.html">?댁쁺?먯튃</a>
       </nav>
     </header>
 
@@ -32,15 +37,15 @@
       <section class="hero">
         <div class="heroCopy">
           <p class="eyebrow">Korean TCG Quant Dashboard</p>
-          <h1>부스터팩 시세,<br />지표로 봅니다.</h1>
+          <h1>遺?ㅽ꽣???쒖꽭,<br />吏?쒕줈 遊낅땲??</h1>
           <p class="lead">
-            포켓몬과 원피스 미개봉 부스터팩·박스의 가격 모멘텀, 유동성, 재판 가능성,
-            재밀봉 위험을 한 화면에서 비교합니다. 현재 데이터는 MVP 검증용 샘플이며
-            실제 수집기는 다음 단계에서 연결합니다.
+            ?ъ폆紐ш낵 ?먰뵾??誘멸컻遊?遺?ㅽ꽣?㈑룸컯?ㅼ쓽 媛寃?紐⑤찘?, ?좊룞?? ?ы뙋 媛?μ꽦,
+            ?щ?遊??꾪뿕?????붾㈃?먯꽌 鍮꾧탳?⑸땲?? ?꾩옱 ?곗씠?곕뒗 MVP 寃利앹슜 ?섑뵆?대ŉ
+            ?ㅼ젣 ?섏쭛湲곕뒗 ?ㅼ쓬 ?④퀎?먯꽌 ?곌껐?⑸땲??
           </p>
           <div class="heroActions">
-            <a class="button primary" href="packs.html">원피스 부스터팩 카드 보기</a>
-            <a class="button secondary" href="#market">시세표(베타)</a>
+            <a class="button primary" href="packs.html">?먰뵾??遺?ㅽ꽣??移대뱶 蹂닿린</a>
+            <a class="button secondary" href="#market">?쒖꽭??踰좏?)</a>
           </div>
         </div>
         <div class="marketVisual" aria-label="TCG sealed box market chart">
@@ -63,15 +68,15 @@
       <section class="tickerBand" aria-label="Market summary">
         <div>
           <strong id="trackedCount">0</strong>
-          <span>추적 상품</span>
+          <span>異붿쟻 ?곹뭹</span>
         </div>
         <div>
           <strong id="avgMomentum">0%</strong>
-          <span>평균 90일 모멘텀</span>
+          <span>?됯퇏 90??紐⑤찘?</span>
         </div>
         <div>
           <strong id="watchCount">0</strong>
-          <span>고위험 관찰</span>
+          <span>怨좎쐞??愿李?/span>
         </div>
       </section>
 
@@ -79,55 +84,55 @@
         <div class="sectionHead">
           <div>
             <p class="eyebrow">Quant Board</p>
-            <h2>부스터팩 시세표</h2>
+            <h2>遺?ㅽ꽣???쒖꽭??/h2>
           </div>
           <div class="controls" role="group" aria-label="Market filters">
-            <button class="filter active" data-filter="all">전체</button>
-            <button class="filter" data-filter="Pokemon">포켓몬</button>
-            <button class="filter" data-filter="One Piece">원피스</button>
+            <button class="filter active" data-filter="all">?꾩껜</button>
+            <button class="filter" data-filter="Pokemon">?ъ폆紐?/button>
+            <button class="filter" data-filter="One Piece">?먰뵾??/button>
           </div>
           <div class="controls" role="group" aria-label="Language filters">
-            <button class="langFilter active" data-lang="primary">국내·일본</button>
-            <button class="langFilter" data-lang="일본어판">일본어판</button>
-            <button class="langFilter" data-lang="한국어판">한국어판</button>
-            <button class="langFilter" data-lang="reference">해외 참고</button>
+            <button class="langFilter active" data-lang="primary">援?궡쨌?쇰낯</button>
+            <button class="langFilter" data-lang="?쇰낯?댄뙋">?쇰낯?댄뙋</button>
+            <button class="langFilter" data-lang="?쒓뎅?댄뙋">?쒓뎅?댄뙋</button>
+            <button class="langFilter" data-lang="reference">?댁쇅 李멸퀬</button>
           </div>
         </div>
         <div class="productBoard" id="productCards" aria-label="Booster pack quant cards">
         </div>
         <p class="note">
-          모든 가격은 보기 편하도록 <strong>원화(₩) 기준</strong>으로 통일했습니다. 일본어판은 보조줄에 엔화 원본가와 전일 JPY/KRW
-          환율을, 해외 참고(eBay·해외 USD) 항목은 USD 원본가와 전일 USD/KRW 환율을 함께 표시합니다. 정렬도 원화 기준입니다.
-          가격은 아직 <strong>샘플 / MVP 검증용</strong> 데이터이며, 실제 운영 시 eBay Sold, PriceCharting, Yahoo Auctions,
-          Mercari, TCGPlayer, Cardmarket, 국내 중고거래 실거래를 교차 검증해 업데이트합니다.
+          紐⑤뱺 媛寃⑹? 蹂닿린 ?명븯?꾨줉 <strong>?먰솕(?? 湲곗?</strong>?쇰줈 ?듭씪?덉뒿?덈떎. ?쇰낯?댄뙋? 蹂댁“以꾩뿉 ?뷀솕 ?먮낯媛? ?꾩씪 JPY/KRW
+          ?섏쑉?? ?댁쇅 李멸퀬(eBay쨌?댁쇅 USD) ??ぉ? USD ?먮낯媛? ?꾩씪 USD/KRW ?섏쑉???④퍡 ?쒖떆?⑸땲?? ?뺣젹???먰솕 湲곗??낅땲??
+          媛寃⑹? ?꾩쭅 <strong>?섑뵆 / MVP 寃利앹슜</strong> ?곗씠?곗씠硫? ?ㅼ젣 ?댁쁺 ??eBay Sold, PriceCharting, Yahoo Auctions,
+          Mercari, TCGPlayer, Cardmarket, 援?궡 以묎퀬嫄곕옒 ?ㅺ굅?섎? 援먯감 寃利앺빐 ?낅뜲?댄듃?⑸땲??
         </p>
       </section>
 
       <section class="section split" id="risk">
         <div>
           <p class="eyebrow">Quant Model</p>
-          <h2>팩 시세는 박스보다 리스크 점수가 더 중요합니다.</h2>
+          <h2>???쒖꽭??諛뺤뒪蹂대떎 由ъ뒪???먯닔媛 ??以묒슂?⑸땲??</h2>
           <p>
-            개별 부스터팩은 박스보다 재밀봉, 무게측정, 서치 리스크가 큽니다. 그래서 가격 모멘텀보다
-            거래 신뢰도, 사진 검수 가능성, 판매자 이력, 유통 단위의 안정성을 더 크게 반영합니다.
+            媛쒕퀎 遺?ㅽ꽣?⑹? 諛뺤뒪蹂대떎 ?щ?遊? 臾닿쾶痢≪젙, ?쒖튂 由ъ뒪?ш? ?쎈땲?? 洹몃옒??媛寃?紐⑤찘?蹂대떎
+            嫄곕옒 ?좊ː?? ?ъ쭊 寃??媛?μ꽦, ?먮ℓ???대젰, ?좏넻 ?⑥쐞???덉젙?깆쓣 ???ш쾶 諛섏쁺?⑸땲??
           </p>
         </div>
         <div class="riskGrid">
           <article class="riskItem">
             <strong>Supply</strong>
-            <span>재판 가능성과 유통 잔량</span>
+            <span>?ы뙋 媛?μ꽦怨??좏넻 ?붾웾</span>
           </article>
           <article class="riskItem">
             <strong>Liquidity</strong>
-            <span>실거래 빈도와 매도 난이도</span>
+            <span>?ㅺ굅??鍮덈룄? 留ㅻ룄 ?쒖씠??/span>
           </article>
           <article class="riskItem">
             <strong>Seal Risk</strong>
-            <span>재밀봉, 무게측정, 서치 가능성</span>
+            <span>?щ?遊? 臾닿쾶痢≪젙, ?쒖튂 媛?μ꽦</span>
           </article>
           <article class="riskItem">
             <strong>Demand</strong>
-            <span>플레이어 수요와 콜렉터 수요</span>
+            <span>?뚮젅?댁뼱 ?섏슂? 肄쒕젆???섏슂</span>
           </article>
         </div>
       </section>
@@ -136,31 +141,31 @@
         <div class="sectionHead">
           <div>
             <p class="eyebrow">Research Notes</p>
-            <h2>초기 분석글</h2>
+            <h2>珥덇린 遺꾩꽍湲</h2>
           </div>
         </div>
         <div class="articleGrid">
           <a class="articleCard" href="articles/sealed-box-rules.html">
-            <span>입문</span>
-            <h3>부스터팩 시세가 오르는 7가지 조건</h3>
-            <p>초보자가 가격 그래프보다 먼저 확인해야 하는 공급, 수요, 재판, 검수 기준.</p>
+            <span>?낅Ц</span>
+            <h3>遺?ㅽ꽣???쒖꽭媛 ?ㅻⅤ??7媛吏 議곌굔</h3>
+            <p>珥덈낫?먭? 媛寃?洹몃옒?꾨낫??癒쇱? ?뺤씤?댁빞 ?섎뒗 怨듦툒, ?섏슂, ?ы뙋, 寃??湲곗?.</p>
           </a>
           <a class="articleCard" href="articles/reseal-checklist.html">
-            <span>검수</span>
-            <h3>재밀봉 박스 체크리스트</h3>
-            <p>랩 접합선, 박스 눌림, 판매자 이력, 사진 각도로 보는 기본 검수 절차.</p>
+            <span>寃??/span>
+            <h3>?щ?遊?諛뺤뒪 泥댄겕由ъ뒪??/h3>
+            <p>???묓빀?? 諛뺤뒪 ?뚮┝, ?먮ℓ???대젰, ?ъ쭊 媛곷룄濡?蹂대뒗 湲곕낯 寃???덉감.</p>
           </a>
           <a class="articleCard" href="articles/japan-vs-english.html">
-            <span>비교</span>
-            <h3>일본판과 영어판 박스의 장기 수요 차이</h3>
-            <p>가격만 싼 일본판을 무조건 사면 안 되는 이유와 언어권별 매도 전략.</p>
+            <span>鍮꾧탳</span>
+            <h3>?쇰낯?먭낵 ?곸뼱??諛뺤뒪???κ린 ?섏슂 李⑥씠</h3>
+            <p>媛寃⑸쭔 ???쇰낯?먯쓣 臾댁“嫄??щ㈃ ???섎뒗 ?댁쑀? ?몄뼱沅뚮퀎 留ㅻ룄 ?꾨왂.</p>
           </a>
         </div>
       </section>
     </main>
 
     <footer class="footer">
-      <p>K-TCG Quant는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
+      <p>K-TCG Quant???ъ옄 沅뚯쑀媛 ?꾨땶 ?곗씠??湲곕컲 由ъ꽌移??ъ씠?몄엯?덈떎.</p>
       <nav aria-label="Footer navigation">
         <a href="about.html">About</a>
         <a href="privacy.html">Privacy</a>
