@@ -109,7 +109,8 @@ const DATA_URLS = [
   "data/onepiece-packs.json",
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
-const DATA_VERSION = "20260625stitch1";
+const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
+const DATA_VERSION = "20260625seo2";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -124,6 +125,17 @@ function trackEvent(name, params = {}) {
   window.dataLayer.push({ event: name, ...params });
 }
 
+function setJsonLd(id, data) {
+  let script = document.querySelector(`#${id}`);
+  if (!script) {
+    script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = id;
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(data);
+}
+
 function updateUrl(replace = false) {
   if (!state.selected) return;
   const params = new URLSearchParams();
@@ -135,11 +147,15 @@ function updateUrl(replace = false) {
 
 function updateSeo(pack) {
   if (!pack) return;
-  document.title = `${pack.code} ${pack.nameKo} ${pack.nameEn} 박스 시세 TOP10 | K-TCG Quant`;
+  const title = `${pack.code} ${pack.nameKo} ${pack.nameEn} 부스터팩 시세·히트카드 TOP10 | K-TCG Quant`;
+  const description = `${pack.code} ${pack.nameKo}(${pack.nameEn}) 부스터팩 박스 가격, eBay Active, TOP10 히트카드, NM, PSA10, PSA 통계를 비교합니다.`;
+  document.title = title;
   document.querySelector('meta[name="description"]')?.setAttribute(
     "content",
-    `${pack.code} ${pack.nameKo}(${pack.nameEn}) 부스터팩 박스 가격, TOP10 히트카드, NM, PSA10, PSA 통계를 비교합니다.`,
+    description,
   );
+  document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+  document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
   let canonical = document.querySelector('link[rel="canonical"]');
   if (!canonical) {
     canonical = document.createElement("link");
@@ -149,7 +165,29 @@ function updateSeo(pack) {
   const params = new URLSearchParams();
   params.set("set", pack.key);
   if (state.lang !== "jp") params.set("lang", state.lang);
-  canonical.href = `${location.origin}${location.pathname}?${params}`;
+  canonical.href = `${SITE_BASE}/packs.html?${params}`;
+  document.querySelector('meta[property="og:url"]')?.setAttribute("content", canonical.href);
+
+  const set = pack.set || {};
+  const image = set.box ? new URL(set.box, location.href).href : undefined;
+  setJsonLd("packStructuredData", {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    name: title.replace(" | K-TCG Quant", ""),
+    description,
+    url: canonical.href,
+    image,
+    inLanguage: "ko-KR",
+    isAccessibleForFree: true,
+    creator: {
+      "@type": "Organization",
+      name: "K-TCG Quant",
+      url: `${SITE_BASE}/`,
+    },
+    dateModified: state.data?.updated || undefined,
+    variableMeasured: ["Booster box price", "Top 10 hit cards", "NM price", "PSA10 price", "PSA population"],
+    keywords: [`${pack.code}`, pack.nameKo, pack.nameEn, "원피스 카드게임", "부스터팩 시세", "PSA10", "eBay"],
+  });
 }
 
 function ebayQueryFor(pack) {
