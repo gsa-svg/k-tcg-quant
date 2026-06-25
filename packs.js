@@ -79,7 +79,7 @@ function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
   if (c.priceUsd != null) {
-    h += `<span class="pl base"><i>기준가</i> <b>${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.priceUsd)} <em>TCG Quant</em></small></span>`;
+    h += `<span class="pl base"><i>영문판</i> <b>${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.priceUsd)} <em>TCG Quant</em></small></span>`;
   }
   if (c.nmJpy != null) {
     const nmVenue = c.nmVenue || "遊々亭";
@@ -198,7 +198,7 @@ function renderSourceLegend(set) {
   const hasPsa10 = (set.cards || []).some((card) => card.psa10Usd != null || card.psa10Ebay?.sampleSize > 0);
   return `
     <div class="sourceLegend" aria-label="가격 출처 요약">
-      <span><b>기준가</b><small>TCG Quant 글로벌 USD</small></span>
+      <span><b>영문판 기준가</b><small>TCG Quant 글로벌 USD(영문판)</small></span>
       <span><b>NM</b><small>유유테이 우선 · 카드러시 보조</small></span>
       <span class="${hasPsa10 ? "" : "muted"}"><b>PSA10</b><small>${hasPsa10 ? "공식값 우선 · 없으면 eBay" : "확인된 가격 없음"}</small></span>
       <span><b>박스가</b><small>eBay Active 호가</small></span>
@@ -417,16 +417,16 @@ function renderPsaTable(psa) {
         <thead>
           <tr>
             <th class="pCard">카드</th>
-            <th class="pRar">희박</th>
+            <th class="pRar">등급</th>
             <th>PSA 10</th>
             <th>PSA 9</th>
             <th>총계</th>
-            <th>보석확률</th>
+            <th>PSA10확률</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
-      <p class="note">PSA 등급 인구 데이터 (출처: GemRate / PSA 집계). 보석확률 = PSA10 비율.</p>
+      <p class="note">PSA 등급 인구 데이터 (출처: GemRate / PSA 집계). PSA10확률 = 감정 카드 중 PSA10 비율.</p>
     </div>`;
 }
 
@@ -477,7 +477,7 @@ function renderDetail() {
         ${ebayLinks(pack)}
         ${state.lang !== "kr" ? renderBoxMarket(set) : ""}
         ${renderDataNotice()}
-        ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
+        ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 PSA10확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
     </div>
     ${body}
