@@ -1,0 +1,59 @@
+name: Update market data
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every 2 days at 03:20 KST.
+    - cron: "20 18 */2 * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-market-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+      EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+      EBAY_MARKETPLACE_ID: EBAY_US
+      EBAY_SEARCH_LIMIT: "50"
+      EBAY_PSA_SEARCH_LIMIT: "50"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify scripts
+        run: |
+          node --check packs.js
+          node --check tools/update-ebay-pack-prices.js
+          node --check tools/update-ebay-psa10-prices.js
+          node tools/test-price-outliers.js
+
+      - name: Update eBay pack prices
+        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
+        run: node tools/update-ebay-pack-prices.js
+
+      - name: Update eBay PSA10 prices
+        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
+        run: node tools/update-ebay-psa10-prices.js
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet data/onepiece-packs.json; then
+            echo "No market data changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/onepiece-packs.json
+          git commit -m "Update market data"
+          git push

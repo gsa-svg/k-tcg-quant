@@ -11,4 +11,5 @@
   - `node --check packs.js`
   - `node --check tools/update-ebay-psa10-prices.js`
   - `node tools/test-price-outliers.js`
+- 자동 업데이트 템플릿: `docs/workflow-templates/update-market-data.yml`
 - 작업 후 품질 점수와 남은 TODO만 짧게 말한다.
