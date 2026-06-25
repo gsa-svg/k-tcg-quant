@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { percentile, removePriceOutliers } = require("./price-outliers");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
@@ -115,51 +116,6 @@ function isPsa10JapaneseCard(item, setCode, card) {
   ];
 
   return positive.every((pattern) => pattern.test(title)) && !negative.some((pattern) => pattern.test(title)) && hasNumber(title, number);
-}
-
-function percentile(sortedValues, ratio) {
-  if (!sortedValues.length) return null;
-  const index = Math.min(sortedValues.length - 1, Math.max(0, Math.round((sortedValues.length - 1) * ratio)));
-  return Number(sortedValues[index].toFixed(2));
-}
-
-function median(sortedValues) {
-  if (!sortedValues.length) return null;
-  const middle = Math.floor(sortedValues.length / 2);
-  if (sortedValues.length % 2) return sortedValues[middle];
-  return (sortedValues[middle - 1] + sortedValues[middle]) / 2;
-}
-
-function removePriceOutliers(sortedValues) {
-  if (sortedValues.length < 2) {
-    return { values: sortedValues, outlierCount: 0 };
-  }
-
-  if (sortedValues.length === 2) {
-    const [low, high] = sortedValues;
-    if (high > low * 5 && high - low > 1000) {
-      return { values: [low], outlierCount: 1 };
-    }
-    return { values: sortedValues, outlierCount: 0 };
-  }
-
-  const center = median(sortedValues);
-  if (!center || center <= 0) {
-    return { values: sortedValues, outlierCount: 0 };
-  }
-
-  const minAllowed = center / 5;
-  const maxAllowed = center * 3;
-  const values = sortedValues.filter((value) => {
-    const highOutlier = value > maxAllowed && value - center > 1000;
-    const lowOutlier = value < minAllowed && center - value > 100;
-    return !highOutlier && !lowOutlier;
-  });
-
-  return {
-    values: values.length ? values : sortedValues,
-    outlierCount: sortedValues.length - values.length,
-  };
 }
 
 function analyzeItems(items, setCode, card) {
