@@ -1,7 +1,7 @@
 {
  "_note": "원피스 부스터팩별 TOP 10 히트카드. 데이터·이미지 출처: TCG Quant(tcgquant.com) / 카드·박스 이미지는 TCGplayer CDN. 가격은 USD 시세이며 표시는 토글로 숨김(원화 환산 환율 usdKrw). PSA 인구/보석확률(gem rate)은 GemRate(PSA 집계) 기준.",
  "source": "https://tcgquant.com",
- "updated": "2026-06-24",
+ "updated": "2026-06-25",
  "fx": {
   "usdKrw": 1388.2,
   "jpyKrw": 9.1
@@ -5406,15 +5406,16 @@
      "rank": 2,
      "psa10Ebay": {
       "source": "eBay Browse API item_summary/search",
-      "query": "One Piece Card Game OP13-119 Portgas D. Ace PSA 10 Japanese",
-      "updated": "2026-06-24",
+      "query": "One Piece Card Game OP13-119 Portgas D. Ace 119 Red Manga Alternate Art PSA 10 Japanese",
+      "updated": "2026-06-25",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 265.4,
-      "middle": 284.49,
+      "low": 250,
+      "middle": 265.4,
       "high": 558,
-      "sampleSize": 5,
-      "excludedCount": 0
+      "sampleSize": 3,
+      "excludedCount": 0,
+      "outlierCount": 0
      }
     },
     {
@@ -5426,15 +5427,16 @@
      "rank": 3,
      "psa10Ebay": {
       "source": "eBay Browse API item_summary/search",
-      "query": "One Piece Card Game OP13-120 Sabo 120 Red Super Alternate Art PSA 10 Japanese",
-      "updated": "2026-06-24",
+      "query": "One Piece Card Game OP13-120 Sabo 120 Red Manga Alternate Art PSA 10 Japanese",
+      "updated": "2026-06-25",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 190,
-      "middle": 387.4,
-      "high": 3299.95,
-      "sampleSize": 4,
-      "excludedCount": 0
+      "low": 387.4,
+      "middle": 1349.9,
+      "high": 1349.9,
+      "sampleSize": 2,
+      "excludedCount": 1,
+      "outlierCount": 1
      }
     },
     {
@@ -5455,14 +5457,15 @@
      "psa10Ebay": {
       "source": "eBay Browse API item_summary/search",
       "query": "One Piece Card Game OP13-119 Portgas D. Ace 119 Super Alternate Art PSA 10 Japanese",
-      "updated": "2026-06-24",
+      "updated": "2026-06-25",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
       "low": 250,
       "middle": 265.4,
       "high": 558,
       "sampleSize": 3,
-      "excludedCount": 0
+      "excludedCount": 0,
+      "outlierCount": 0
      }
     },
     {
@@ -5475,14 +5478,15 @@
      "psa10Ebay": {
       "source": "eBay Browse API item_summary/search",
       "query": "One Piece Card Game OP13-120 Sabo 120 Super Alternate Art PSA 10 Japanese",
-      "updated": "2026-06-24",
+      "updated": "2026-06-25",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
       "low": 309.99,
-      "middle": 3299.95,
-      "high": 3299.95,
-      "sampleSize": 2,
-      "excludedCount": 0
+      "middle": 309.99,
+      "high": 309.99,
+      "sampleSize": 1,
+      "excludedCount": 1,
+      "outlierCount": 1
      }
     },
     {
@@ -5503,14 +5507,15 @@
      "psa10Ebay": {
       "source": "eBay Browse API item_summary/search",
       "query": "One Piece Card Game OP13-080 St Ethanbaron V Nusjuro Parallel PSA 10 Japanese",
-      "updated": "2026-06-24",
+      "updated": "2026-06-25",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 89.95,
+      "low": 469.7,
       "middle": 469.75,
-      "high": 469.85,
-      "sampleSize": 7,
-      "excludedCount": 0
+      "high": 469.8,
+      "sampleSize": 5,
+      "excludedCount": 2,
+      "outlierCount": 2
      }
     },
     {
@@ -5523,14 +5528,15 @@
      "psa10Ebay": {
       "source": "eBay Browse API item_summary/search",
       "query": "One Piece Card Game OP13-083 St Jaygarcia Saturn Parallel PSA 10 Japanese",
-      "updated": "2026-06-24",
+      "updated": "2026-06-25",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 474.7,
+      "low": 474.65,
       "middle": 474.9,
       "high": 580,
       "sampleSize": 6,
-      "excludedCount": 0
+      "excludedCount": 0,
+      "outlierCount": 0
      }
     }
    ],
