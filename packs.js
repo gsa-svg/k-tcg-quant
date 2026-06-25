@@ -109,10 +109,47 @@ const DATA_URLS = [
   "data/onepiece-packs.json",
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
-const DATA_VERSION = "20260625opt1";
+const DATA_VERSION = "20260625seo1";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
+}
+
+function trackEvent(name, params = {}) {
+  if (typeof window.gtag === "function") {
+    window.gtag("event", name, params);
+    return;
+  }
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: name, ...params });
+}
+
+function updateUrl(replace = false) {
+  if (!state.selected) return;
+  const params = new URLSearchParams();
+  params.set("set", state.selected);
+  if (state.lang !== "jp") params.set("lang", state.lang);
+  if (state.view !== "hits") params.set("view", state.view);
+  history[replace ? "replaceState" : "pushState"]({ selected: state.selected, lang: state.lang, view: state.view }, "", `${location.pathname}?${params}`);
+}
+
+function updateSeo(pack) {
+  if (!pack) return;
+  document.title = `${pack.code} ${pack.nameKo} ${pack.nameEn} 박스 시세 TOP10 | K-TCG Quant`;
+  document.querySelector('meta[name="description"]')?.setAttribute(
+    "content",
+    `${pack.code} ${pack.nameKo}(${pack.nameEn}) 부스터팩 박스 가격, TOP10 히트카드, NM, PSA10, PSA 통계를 비교합니다.`,
+  );
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.rel = "canonical";
+    document.head.appendChild(canonical);
+  }
+  const params = new URLSearchParams();
+  params.set("set", pack.key);
+  if (state.lang !== "jp") params.set("lang", state.lang);
+  canonical.href = `${location.origin}${location.pathname}?${params}`;
 }
 
 function ebayQueryFor(pack) {
@@ -192,11 +229,12 @@ async function load() {
       `<p class="note">데이터를 불러오지 못했습니다. (${err.message}) 잠시 후 다시 시도해주세요.</p>`;
     return;
   }
+  applyRouteState();
   bindLangTabs();
-  selectFirstOfLang();
   renderStats();
   renderPackGrid();
   renderDetail();
+  updateUrl(true);
 }
 
 // returns normalized pack list for current language:
@@ -223,6 +261,26 @@ function selectFirstOfLang() {
   state.selected = (ready || packs[0]).key;
 }
 
+function applyRouteState() {
+  const params = new URLSearchParams(location.search);
+  const requestedLang = params.get("lang");
+  if (["jp", "extra", "kr"].includes(requestedLang)) state.lang = requestedLang;
+
+  const requestedSet = params.get("set");
+  let pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
+  if (!pack && requestedSet) {
+    for (const lang of ["jp", "extra", "kr"]) {
+      state.lang = lang;
+      pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
+      if (pack) break;
+    }
+  }
+
+  if (pack) state.selected = pack.key;
+  else selectFirstOfLang();
+  state.view = params.get("view") === "psa" ? "psa" : "hits";
+}
+
 function renderStats() {
   const d = state.data;
   const readyCount = (codes) => codes.filter((c) => (d.sets[c]?.cards || []).length > 0).length;
@@ -237,11 +295,14 @@ function bindLangTabs() {
   document.querySelectorAll(".langTab").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.lang === state.lang);
     btn.onclick = () => {
+      if (state.lang === btn.dataset.lang) return;
       state.lang = btn.dataset.lang;
       document.querySelectorAll(".langTab").forEach((b) => b.classList.toggle("active", b === btn));
       selectFirstOfLang();
       renderPackGrid();
       renderDetail();
+      updateUrl();
+      trackEvent("select_language", { language: state.lang });
     };
   });
 }
@@ -281,6 +342,8 @@ function renderPackGrid() {
       state.selected = btn.dataset.key;
       renderPackGrid();
       renderDetail();
+      updateUrl();
+      trackEvent("select_pack", { pack_code: state.selected, language: state.lang });
       document.querySelector("#detail").scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
@@ -367,10 +430,20 @@ function renderPsaTable(psa) {
     </div>`;
 }
 
+function renderDataNotice() {
+  return `
+    <div class="dataNotice">
+      <b>데이터 기준</b>
+      eBay Active는 현재 호가이며 실거래가가 아닙니다. PSA10 eBay는 공식 PSA10 가격이 없을 때만 보조로 표시합니다.
+      NM은 일본 매장 기준, 박스가는 중국권 발송지와 명확한 오탐을 제외한 참고값입니다.
+    </div>`;
+}
+
 function renderDetail() {
   const pack = currentPacks().find((p) => p.key === state.selected);
   const el = document.querySelector("#detail");
   if (!pack) return;
+  updateSeo(pack);
   const set = pack.set;
   const cards = set.cards || [];
   if (!cards.length) {
@@ -403,6 +476,7 @@ function renderDetail() {
         </div>
         ${ebayLinks(pack)}
         ${state.lang !== "kr" ? renderBoxMarket(set) : ""}
+        ${renderDataNotice()}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 보석확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
     </div>
@@ -410,11 +484,32 @@ function renderDetail() {
   `;
 
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) =>
-    b.addEventListener("click", () => { state.view = b.dataset.view; renderDetail(); }),
+    b.addEventListener("click", () => {
+      if (state.view === b.dataset.view) return;
+      state.view = b.dataset.view;
+      renderDetail();
+      updateUrl();
+      trackEvent("select_view", { pack_code: state.selected, view: state.view });
+    }),
+  );
+  el.querySelectorAll(".marketLinks a").forEach((a) =>
+    a.addEventListener("click", () =>
+      trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href }),
+    ),
   );
   el.querySelectorAll(".hitCard").forEach((f) =>
-    f.addEventListener("click", () => openLightbox(f.dataset.img, f.dataset.name)),
+    f.addEventListener("click", () => {
+      trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name });
+      openLightbox(f.dataset.img, f.dataset.name);
+    }),
   );
 }
+
+window.addEventListener("popstate", () => {
+  applyRouteState();
+  bindLangTabs();
+  renderPackGrid();
+  renderDetail();
+});
 
 load();
