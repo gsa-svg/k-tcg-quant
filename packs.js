@@ -2,6 +2,7 @@ const state = {
   data: null,
   lang: "jp",
   selected: null,
+  renderedLang: null,
   view: "hits", // "hits" | "psa"
 };
 
@@ -247,6 +248,14 @@ function bindLangTabs() {
 
 function renderPackGrid() {
   const wrap = document.querySelector("#packList");
+  if (state.renderedLang === state.lang && wrap.children.length) {
+    wrap.querySelectorAll(".packChip").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.key === state.selected);
+    });
+    return;
+  }
+
+  state.renderedLang = state.lang;
   const packs = currentPacks();
   wrap.innerHTML = packs
     .map((p) => {
@@ -268,6 +277,7 @@ function renderPackGrid() {
 
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
     btn.addEventListener("click", () => {
+      if (state.selected === btn.dataset.key) return;
       state.selected = btn.dataset.key;
       renderPackGrid();
       renderDetail();
