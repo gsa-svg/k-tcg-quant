@@ -109,7 +109,7 @@ const DATA_URLS = [
   "data/onepiece-packs.json",
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
-const DATA_VERSION = "20260625seo1";
+const DATA_VERSION = "20260625stitch1";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -232,6 +232,7 @@ async function load() {
   applyRouteState();
   bindLangTabs();
   renderStats();
+  renderMarketStatus();
   renderPackGrid();
   renderDetail();
   updateUrl(true);
@@ -289,6 +290,25 @@ function renderStats() {
   document.querySelector("#statJp").textContent = `${jpReady}/${d.jp.list.length}`;
   document.querySelector("#statExtra").textContent = `${extraReady}/${d.extra.list.length}`;
   document.querySelector("#statKr").textContent = `준비중`;
+}
+
+function renderMarketStatus() {
+  const el = document.querySelector("#marketStatus");
+  if (!el || !state.data) return;
+
+  const sets = Object.values(state.data.sets || {});
+  const pricedSets = sets.filter((set) => (set.cards || []).length > 0).length;
+  const cardCount = sets.reduce((sum, set) => sum + (set.cards || []).length, 0);
+  const boxSamples = sets.reduce((sum, set) => sum + (set.boxMarket?.jp?.ebayActive?.sampleSize || 0), 0);
+  const updated = state.data.updated || "확인중";
+
+  el.innerHTML = `
+    <span><i></i>Market Live</span>
+    <span>Sets ${pricedSets}</span>
+    <span>Cards ${cardCount}</span>
+    <span>Box Samples ${boxSamples}</span>
+    <span>Update ${updated}</span>
+  `;
 }
 
 function bindLangTabs() {
