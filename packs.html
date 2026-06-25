@@ -17,6 +17,7 @@
 
       /* 쿠팡 파트너스 광고 자리 */
       .adSlot { margin: 14px clamp(16px,4vw,52px) 0; }
+      .adSlot.inlineAd { margin: 22px 0 0; }
       .adInner {
         display: flex; align-items: center; justify-content: center;
         min-height: 100px; padding: 12px; border: 1px dashed #2f3645; border-radius: 12px;
@@ -30,6 +31,7 @@
       }
       .adLabel::before { content: "AD"; padding: 1px 6px; border-radius: 5px; background: #1a1e28; color: #aeb5c8; font-size: 10px; }
       .adDisclosure { margin: 6px 2px 0; color: #6b7281; font-size: 11px; }
+      .adsenseSlot .adInner { min-height: 120px; }
 
       .packHero { padding: clamp(18px, 4vw, 40px) clamp(16px, 4vw, 52px) 4px; }
       .packHero h1 { font-size: clamp(26px, 5vw, 48px); margin-bottom: 10px; }
@@ -173,7 +175,9 @@
         .topbar { align-items: flex-start; }
         .nav { width: 100%; justify-content: flex-start; overflow-x: auto; padding-bottom: 2px; }
         .adSlot { margin: 10px 12px 0; }
+        .adSlot.inlineAd { margin: 16px 0 0; }
         .adInner { min-height: 72px; padding: 10px; border-radius: 10px; }
+        .adsenseSlot .adInner { min-height: 100px; }
         .adLabel { font-size: 11px; text-align: center; line-height: 1.35; }
         .adDisclosure { font-size: 10px; line-height: 1.45; }
         .packHero { padding: 16px 14px 2px; }
@@ -351,6 +355,11 @@
 
       <section class="packSection">
         <div class="packGrid" id="packList"></div>
+        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense 광고 영역">
+          <div class="adInner" id="adsensePackGridAd">
+            <span class="adLabel">Google AdSense 광고 자리 — 반응형 디스플레이 코드를 여기에 넣으세요</span>
+          </div>
+        </aside>
         <div id="detail"></div>
         <p class="note">
           ※ 한국판(OPK)은 정식 발매 순서에 맞춰 OPK-01~12까지 자리만 먼저 표시하며, 별도 시세 수집 전까지 준비중으로 둡니다.
@@ -368,6 +377,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260624psaebay1"></script>
+    <script src="packs.js?v=20260625adslot1"></script>
   </body>
 </html>
