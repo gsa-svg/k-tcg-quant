@@ -1,14 +1,13 @@
-# 로컬 서버 로그 / 작업 산출물
+# Local server logs
 server-*.log
 server-*.err.log
+server-*.out.log
 
-# Codex 원격 첨부(작업용 사진, 공개 배포 대상 아님)
+# Codex attachments and local previews
 .codex-remote-attachments/
+preview-*.png
 
-# 미리보기 캡처
-preview-mobile-*.png
-
-# 민감 정보가 포함될 수 있는 eBay 키 화면 캡처 / 로컬 환경변수
+# Sensitive local files
 ebay-keyset-*.png
 .env
 .env.local

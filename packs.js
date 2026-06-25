@@ -108,6 +108,11 @@ const DATA_URLS = [
   "data/onepiece-packs.json",
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
+const DATA_VERSION = "20260625opt1";
+
+function withVersion(url) {
+  return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
+}
 
 function ebayQueryFor(pack) {
   const language = state.lang === "kr" ? "Korean" : "Japanese";
@@ -167,7 +172,7 @@ async function fetchPackData() {
 
   for (const url of DATA_URLS) {
     try {
-      const res = await fetch(url, { cache: "no-store" });
+      const res = await fetch(withVersion(url), { cache: "default" });
       if (!res.ok) throw new Error(`${url} HTTP ${res.status}`);
       return await res.json();
     } catch (err) {
@@ -250,7 +255,7 @@ function renderPackGrid() {
       const box = p.set.box || FALLBACK;
       return `
         <button class="packChip${active}${has ? "" : " pending"}" data-key="${p.key}" ${has ? "" : "disabled"}>
-          <img class="packBox" src="${box}" alt="${p.code} 박스" loading="lazy" onerror="this.src='${FALLBACK}'" />
+          <img class="packBox" src="${box}" alt="${p.code} 박스" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" />
           <span class="packMeta">
             <span class="packCode">${p.code}</span>
             <span class="packName">${p.nameKo}</span>
@@ -281,7 +286,7 @@ function renderHitList(cards) {
           <div class="hitThumb">
             <span class="hitRank">${c.rank}</span>
             ${c.rarity ? `<span class="hitRar" style="--c:${color}">${c.rarity}</span>` : ""}
-            <img src="${img}" alt="${c.name}" onerror="this.src='${FALLBACK}'" />
+            <img src="${img}" alt="${c.name}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" />
           </div>
           <figcaption>
             <span class="hitName">${c.name}</span>
@@ -376,7 +381,7 @@ function renderDetail() {
 
   el.innerHTML = `
     <div class="detailHead">
-      <img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} 박스" onerror="this.src='${FALLBACK}'" />
+      <img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} 박스" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" />
       <div class="detailInfo">
         <p class="eyebrow">${pack.code} · Booster Box</p>
         <h2>${pack.nameKo} <small>${pack.nameEn}</small></h2>
