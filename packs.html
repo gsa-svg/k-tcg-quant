@@ -141,6 +141,16 @@
       .bandRow b { color: #eef2ff; font-size: 11px; font-weight: 900; overflow-wrap: anywhere; }
       .bandRow small { color: #737b8e; font-size: 9px; overflow-wrap: anywhere; }
 
+      /* 카드 안 PSA10 eBay 밴드: 좁은 카드폭에서 3열은 줄바꿈으로 깨짐 → 세로 1열로 */
+      .pl.psaEbay .bandRows { grid-template-columns: 1fr; gap: 3px; }
+      .pl.psaEbay .bandRow {
+        display: grid; grid-template-columns: 38px 1fr; gap: 0 6px;
+        padding: 0; border: 0; background: none; border-radius: 0;
+      }
+      .pl.psaEbay .bandRow i { grid-column: 1; grid-row: 1; align-self: baseline; font-size: 10px; }
+      .pl.psaEbay .bandRow b { grid-column: 2; grid-row: 1; font-size: 12px; }
+      .pl.psaEbay .bandRow small { grid-column: 2; grid-row: 2; font-size: 10px; }
+
       #lightbox {
         position: fixed; inset: 0; z-index: 50; display: none;
         align-items: center; justify-content: center; padding: 20px;
@@ -280,6 +290,18 @@
       .gemHi { color: var(--accent); }
       .gemMid { color: #f3c74f; }
       .gemLo { color: #ff6683; }
+
+      /* 모바일: 좁은 박스 패널(약 247px)에서 3열은 금액이 숫자 중간에 줄바꿈됨 → 세로 1열로 */
+      @media (max-width: 560px) {
+        .bmRows { grid-template-columns: 1fr; gap: 6px; }
+        .bmRows .bandRow {
+          display: grid; grid-template-columns: 54px 1fr auto; align-items: baseline;
+          gap: 2px 8px; padding: 7px 9px;
+        }
+        .bmRows .bandRow i { grid-column: 1; font-size: 11px; }
+        .bmRows .bandRow b { grid-column: 2; font-size: 14px; white-space: nowrap; overflow-wrap: normal; }
+        .bmRows .bandRow small { grid-column: 3; text-align: right; white-space: nowrap; }
+      }
     </style>
   </head>
   <body>
