@@ -8,19 +8,15 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com; upgrade-insecure-requests"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <title>원피스 부스터팩 시세 TOP10 히트카드 | K-TCG Quant</title>
-    <meta
-      name="description"
-      content="원피스 카드게임 부스터팩별 박스 시세, eBay 가격, TOP10 히트카드, NM, PSA10, PSA 통계를 비교합니다."
-    />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://gsa-svg.github.io/k-tcg-quant/packs.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta property="og:site_name" content="K-TCG Quant" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="원피스 부스터팩 시세 TOP10 히트카드 | K-TCG Quant" />
     <meta property="og:description" content="일본판·특수팩 원피스 부스터팩 박스 시세와 히트카드 TOP10, NM·PSA10 데이터를 비교합니다." />
     <meta property="og:url" content="https://gsa-svg.github.io/k-tcg-quant/packs.html" />
     <meta name="twitter:card" content="summary" />
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -39,6 +35,8 @@
         }
       }
     </script>
+    <title>원피스 부스터팩 시세 TOP10 히트카드 | K-TCG Quant</title>
+    <meta name="description" content="원피스 카드게임 부스터팩별 박스 시세, eBay 가격, TOP10 히트카드, NM, PSA10, PSA 통계를 비교합니다." />
     <link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin />
     <link rel="preconnect" href="https://card.yuyu-tei.jp" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -67,7 +65,7 @@
         font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
 
-      /* 荑좏뙜 ?뚰듃?덉뒪 愿묎퀬 ?먮━ */
+      /* 쿠팡 파트너스 광고 자리 */
       .adSlot { margin: 14px clamp(16px,4vw,52px) 0; }
       .adSlot.inlineAd { margin: 22px 0 0; }
       .adInner {
@@ -238,7 +236,7 @@
       .bandRow b { color: #eef2ff; font-size: 11px; font-weight: 900; overflow-wrap: anywhere; }
       .bandRow small { color: #737b8e; font-size: 9px; overflow-wrap: anywhere; }
 
-      /* 移대뱶 ??PSA10 eBay 諛대뱶: 醫곸? 移대뱶??뿉??3?댁? 以꾨컮轅덉쑝濡?源⑥쭚 ???몃줈 1?대줈 */
+      /* 카드 안 PSA10 eBay 밴드: 좁은 카드폭에서 3열은 줄바꿈으로 깨짐 → 세로 1열로 */
       .pl.psaEbay .bandRows { grid-template-columns: 1fr; gap: 3px; }
       .pl.psaEbay .bandRow {
         display: grid; grid-template-columns: 38px 1fr; gap: 0 6px;
@@ -397,7 +395,7 @@
       .gemMid { color: #f3c74f; }
       .gemLo { color: #ff6683; }
 
-      /* 紐⑤컮?? 醫곸? 諛뺤뒪 ?⑤꼸(??247px)?먯꽌 3?댁? 湲덉븸???レ옄 以묎컙??以꾨컮轅덈맖 ???몃줈 1?대줈 */
+      /* 모바일: 좁은 박스 패널(약 247px)에서 3열은 금액이 숫자 중간에 줄바꿈됨 → 세로 1열로 */
       @media (max-width: 560px) {
         .bmRows { grid-template-columns: 1fr; gap: 6px; }
         .bmRows .bandRow {
@@ -416,26 +414,26 @@
         <span class="brandMark">Q</span>
         <span>
           <strong>K-TCG Quant</strong>
-          <small>?먰뵾??遺?ㅽ꽣??移댄깉濡쒓렇</small>
+          <small>원피스 부스터팩 카탈로그</small>
         </span>
       </a>
       <nav class="nav" aria-label="Primary navigation">
-        <a href="packs.html">遺?ㅽ꽣??/a>
-        <a href="index.html">?쒖꽭??踰좏?)</a>
-        <a href="about.html">?댁쁺?먯튃</a>
+        <a href="packs.html">부스터팩</a>
+        <a href="index.html">시세판(베타)</a>
+        <a href="about.html">운영원칙</a>
       </nav>
     </header>
 
     <main>
-      <!-- ===== 荑좏뙜 ?뚰듃?덉뒪 愿묎퀬 ?먮━ =====
-           ?꾨옒 .adInner ?덉쓽 placeholder(span)瑜?吏?곌퀬
-           荑좏뙜 ?뚰듃?덉뒪?먯꽌 諛쒓툒諛쏆? 諛곕꼫 肄붾뱶(<iframe ...> ?먮뒗 <script ...>)瑜?洹몃?濡?遺숈뿬?ｌ쑝?몄슂. -->
-      <aside class="adSlot" aria-label="愿묎퀬 ?곸뿭">
+      <!-- ===== 쿠팡 파트너스 광고 자리 =====
+           아래 .adInner 안의 placeholder(span)를 지우고
+           쿠팡 파트너스에서 발급받은 배너 코드(<iframe ...> 또는 <script ...>)를 그대로 붙여넣으세요. -->
+      <aside class="adSlot" aria-label="광고 영역">
         <div class="adInner" id="coupangAd">
-          <span class="adLabel">荑좏뙜 ?뚰듃?덉뒪 愿묎퀬 ?먮━ ??諛곕꼫 肄붾뱶瑜??ш린???ｌ쑝?몄슂</span>
+          <span class="adLabel">쿠팡 파트너스 광고 자리 — 배너 코드를 여기에 넣으세요</span>
         </div>
         <p class="adDisclosure">
-          ???섏씠吏?먮뒗 荑좏뙜 ?뚰듃?덉뒪 ???쒗쑕 愿묎퀬媛 ?쒖떆?????덉쑝硫? ?쇰? 留곹겕瑜??듯빐 援щℓ媛 諛쒖깮?섎㈃ ?쇱젙?≪쓽 ?섏닔猷뚮? ?쒓났諛쏆뒿?덈떎.
+          이 페이지에는 쿠팡 파트너스 등 제휴 광고가 표시될 수 있으며, 일부 링크를 통해 구매가 발생하면 일정액의 수수료를 제공받습니다.
         </p>
       </aside>
 
@@ -443,58 +441,59 @@
         <p class="eyebrow">One Piece Booster Packs</p>
         <h1>K-TCG Quant / <span>Booster Box Terminal</span></h1>
         <p class="lead">
-          遺?ㅽ꽣諛뺤뒪(?쒕━利?瑜?怨좊Ⅴ硫?<strong>諛뺤뒪 ?대?吏</strong>? 洹??쒕━利덉쓽 <strong>????덊듃移대뱶 TOP 10</strong>(?쒖꽭 ?믪? ????          移대뱶 ?대?吏? ?④퍡 蹂댁뿬以띾땲?? ?대뼡 ?⑹뿉 ?대뼡 移대뱶媛 ?ㅼ뼱?덇퀬 吏湲??쇰쭏??嫄곕옒?섎뒗吏 ???붾㈃?먯꽌 鍮꾧탳?섏꽭??
+          부스터박스(시리즈)를 고르면 <strong>박스 이미지</strong>와 그 시리즈의 <strong>대표 히트카드 TOP 10</strong>(시세 높은 순)을
+          카드 이미지와 함께 보여줍니다. 어떤 팩에 어떤 카드가 들어있고 지금 얼마에 거래되는지 한 화면에서 비교하세요.
         </p>
       </section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"></div>
 
-      <section class="introPanel" aria-label="?ъ씠???덈궡">
-        <strong>K-TCG Quant ???먰뵾??誘멸컻遊?遺?ㅽ꽣諛뺤뒪 ?쒖꽭쨌?덊듃移대뱶 由ъ꽌移??꾧뎄</strong>
+      <section class="introPanel" aria-label="사이트 안내">
+        <strong>K-TCG Quant — 원피스 미개봉 부스터박스 시세·히트카드 리서치 도구</strong>
         <p>
-          諛뺤뒪(?쒕━利?瑜??꾨Ⅴ硫?洹?諛뺤뒪??????덊듃移대뱶 TOP 10???쒖꽭 ?믪? ?쒖쑝濡? 移대뱶 ?대?吏쨌踰덊샇쨌?덉뼱?꾩? ?④퍡 遊낅땲??
-          移대뱶瑜??꾨Ⅴ硫??ш쾶 ?뺣??⑸땲??
+          박스(시리즈)를 누르면 그 박스의 대표 히트카드 TOP 10을 시세 높은 순으로, 카드 이미지·번호·레어도와 함께 봅니다.
+          카드를 누르면 크게 확대됩니다.
         </p>
 
-        <p class="introHead">二쇱슂 湲곕뒫</p>
+        <p class="introHead">주요 기능</p>
         <ul>
-          <li><b>諛뺤뒪 ?쒖꽭</b> ??遺?ㅽ꽣諛뺤뒪 eBay ?ㅻℓ臾?湲곗? High / Middle / Low (以묎뎅쨌?띿쉘쨌留덉뭅??????쒖쇅)</li>
-          <li><b>?덊듃移대뱶 TOP 10</b> ???쒕━利덈퀎 ???移대뱶 + ?대?吏 ?대┃ ?뺣?</li>
-          <li><b>移대뱶 ?쒖꽭 3醫?/b> ???곷Ц??湲濡쒕쾶 USD) 쨌 NM(?쇰낯 誘멸컧???앹뭅?? ?뷀솕) 쨌 PSA10(媛먯젙 移대뱶)</li>
-          <li><b>PSA ?듦퀎</b> ??移대뱶蹂?PSA10 / PSA9 ?멸뎄?? 珥앷퀎, PSA10?뺣쪧(媛먯젙 以?PSA10 鍮꾩쑉)</li>
-          <li><b>?먰솕 ?섏궛</b> ??硫붿씤? ?먰솕濡??듭씪, ???щ윭 ?먮낯媛???묒? 湲?⑤줈 蹂묎린</li>
-          <li><b>怨듭쑀 URL</b> ??諛뺤뒪蹂?二쇱냼濡?諛붾줈 留곹겕 (?? <code>?set=OP-13</code>)</li>
+          <li><b>박스 시세</b> — 부스터박스 eBay 실매물 기준 High / Middle / Low (중국·홍콩·마카오 셀러 제외)</li>
+          <li><b>히트카드 TOP 10</b> — 시리즈별 대표 카드 + 이미지 클릭 확대</li>
+          <li><b>카드 시세 3종</b> — 영문판(글로벌 USD) · NM(일본 미감정 생카드, 엔화) · PSA10(감정 카드)</li>
+          <li><b>PSA 통계</b> — 카드별 PSA10 / PSA9 인구수, 총계, PSA10확률(감정 중 PSA10 비율)</li>
+          <li><b>원화 환산</b> — 메인은 원화로 통일, 엔/달러 원본가는 작은 글씨로 병기</li>
+          <li><b>공유 URL</b> — 박스별 주소로 바로 링크 (예: <code>?set=OP-13</code>)</li>
         </ul>
 
         <p class="introMeta">
-          ?꾩옱 <strong>?쇰낯?댄뙋 ?쒕━利?OP 쨌 EB 쨌 PRB)</strong>瑜?吏?먰빀?덈떎. ?쒓뎅??OPK)? 以鍮?以묒엯?덈떎.<br />
-          ?곗씠??異쒖쿂 ???쒖꽭 <strong>TCG Quant</strong> 쨌 移대뱶/諛뺤뒪 ?대?吏 <strong>TCGplayer</strong> 쨌 ?쇰낯 NM ?쒖꽭 <strong>?듽끺벼(?좎쑀?뚯씠)</strong> 쨌 PSA ?듦퀎 <strong>GemRate</strong>.
-          紐⑤뱺 ?섏튂???ъ옄 李멸퀬?⑹씠硫?留ㅼ닔 異붿쿇???꾨떃?덈떎. 移대뱶 媛寃⑹? 誘멸컧??raw) 湲곗??닿퀬 PSA10留?媛먯젙媛?낅땲??
+          현재 <strong>일본어판 시리즈(OP · EB · PRB)</strong>를 지원합니다. 한국판(OPK)은 준비 중입니다.<br />
+          데이터 출처 — 시세 <strong>TCG Quant</strong> · 카드/박스 이미지 <strong>TCGplayer</strong> · 일본 NM 시세 <strong>遊々亭(유유테이)</strong> · PSA 통계 <strong>GemRate</strong>.
+          모든 수치는 투자 참고용이며 매수 추천이 아닙니다. 카드 가격은 미감정(raw) 기준이고 PSA10만 감정가입니다.
         </p>
       </section>
 
-      <div class="langTabs" role="group" aria-label="?몄뼱 ?좏깮">
-        <button class="langTab active" data-lang="jp">?쇰낯??<small id="statJp"></small></button>
-        <button class="langTab" data-lang="extra">?뱀닔??<small id="statExtra"></small></button>
-        <button class="langTab" data-lang="kr">?쒓뎅??<small id="statKr"></small></button>
+      <div class="langTabs" role="group" aria-label="언어 선택">
+        <button class="langTab active" data-lang="jp">일본판 <small id="statJp"></small></button>
+        <button class="langTab" data-lang="extra">특수팩 <small id="statExtra"></small></button>
+        <button class="langTab" data-lang="kr">한국판 <small id="statKr"></small></button>
       </div>
 
       <section class="packSection">
         <div class="packGrid" id="packList"></div>
-        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense 愿묎퀬 ?곸뿭">
+        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense 광고 영역">
           <div class="adInner" id="adsensePackGridAd">
-            <span class="adLabel">Google AdSense 愿묎퀬 ?먮━ ??諛섏쓳???붿뒪?뚮젅??肄붾뱶瑜??ш린???ｌ쑝?몄슂</span>
+            <span class="adLabel">Google AdSense 광고 자리 — 반응형 디스플레이 코드를 여기에 넣으세요</span>
           </div>
         </aside>
         <div id="detail"></div>
         <p class="note">
-          ???쒓뎅??OPK)? ?뺤떇 諛쒕ℓ ?쒖꽌??留욎떠 OPK-01~12源뚯? ?먮━留?癒쇱? ?쒖떆?섎ŉ, 蹂꾨룄 ?쒖꽭 ?섏쭛 ?꾧퉴吏 以鍮꾩쨷?쇰줈 ?〓땲??
-          ?좉퇋 ?명듃(?? OP-16)???쒖꽭 ?곗씠?곌? 以鍮꾨릺???濡??먮룞 諛섏쁺?⑸땲?? ?먰솕 ?쒓린???ъ옄 鍮꾧탳??李멸퀬媛믪엯?덈떎.
+          ※ 한국판(OPK)은 정식 발매 순서에 맞춰 OPK-01~12까지 자리만 먼저 표시하며, 별도 시세 수집 전까지 준비중으로 둡니다.
+          신규 세트(예: OP-16)는 시세 데이터가 준비되는 대로 자동 반영됩니다. 원화 표기는 투자 비교용 참고값입니다.
         </p>
       </section>
     </main>
 
     <footer class="footer">
-      <p>K-TCG Quant???ъ옄 沅뚯쑀媛 ?꾨땶 ?곗씠??湲곕컲 由ъ꽌移??ъ씠?몄엯?덈떎. (MVP)</p>
+      <p>K-TCG Quant는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다. (MVP)</p>
       <nav aria-label="Footer navigation">
         <a href="about.html">About</a>
         <a href="privacy.html">Privacy</a>
@@ -502,6 +501,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260625seo2" defer></script>
+    <script src="packs.js?v=20260626fix1" defer></script>
   </body>
 </html>
