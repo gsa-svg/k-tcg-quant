@@ -14,7 +14,7 @@
     <meta property="og:site_name" content="K-TCG Quant" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="일본 아마존 TCG 초대판매 링크 | K-TCG Quant" />
-    <meta property="og:description" content="원피스·포켓몬 카드 일본 아마존 초대판매, 추첨, 예약 상품 링크를 상품별로 정리합니다." />
+    <meta property="og:description" content="일본 Amazon.co.jp의 포켓몬·원피스 카드 초대판매 링크를 현재 응모 가능성이 있는 항목 위주로 정리합니다." />
     <meta property="og:url" content="https://gsa-svg.github.io/k-tcg-quant/amazon-lottery.html" />
     <meta name="twitter:card" content="summary" />
     <script type="application/ld+json">
@@ -25,7 +25,7 @@
         "url": "https://gsa-svg.github.io/k-tcg-quant/amazon-lottery.html",
         "inLanguage": "ko-KR",
         "isAccessibleForFree": true,
-        "description": "원피스·포켓몬 카드 일본 아마존 초대판매, 추첨, 예약 상품 링크 모음",
+        "description": "일본 Amazon.co.jp의 포켓몬·원피스 카드 초대판매 링크 모음",
         "creator": {
           "@type": "Organization",
           "name": "K-TCG Quant",
@@ -34,20 +34,13 @@
       }
     </script>
     <title>일본 아마존 TCG 초대판매 링크 | K-TCG Quant</title>
-    <meta name="description" content="원피스·포켓몬 카드 일본 아마존 초대판매, 추첨, 예약 상품 링크를 상품별로 정리합니다." />
+    <meta name="description" content="일본 Amazon.co.jp의 포켓몬·원피스 카드 초대판매, 추첨, 예약 상품 링크를 현재 응모 가능성이 있는 항목 위주로 정리합니다." />
     <link rel="stylesheet" href="styles.css" />
     <style>
       main { max-width: 1180px; margin: 0 auto; }
-      .lotteryHero {
-        padding: clamp(28px, 6vw, 64px) clamp(16px, 4vw, 52px) 18px;
-      }
-      .lotteryHero h1 {
-        max-width: 900px;
-        font-size: clamp(32px, 6vw, 62px);
-      }
-      .lotteryHero .lead {
-        max-width: 820px;
-      }
+      .lotteryHero { padding: clamp(28px, 6vw, 64px) clamp(16px, 4vw, 52px) 18px; }
+      .lotteryHero h1 { max-width: 900px; font-size: clamp(32px, 6vw, 62px); }
+      .lotteryHero .lead { max-width: 820px; }
       .statusStrip {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -60,18 +53,9 @@
         background: rgba(17, 20, 28, .82);
         padding: 13px 14px;
       }
-      .statusBox b {
-        display: block;
-        color: var(--accent);
-        font-size: 20px;
-      }
-      .statusBox span {
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .lotterySection {
-        padding: 16px clamp(16px, 4vw, 52px) 40px;
-      }
+      .statusBox b { display: block; color: var(--accent); font-size: 20px; }
+      .statusBox span { color: var(--muted); font-size: 12px; }
+      .lotterySection { padding: 16px clamp(16px, 4vw, 52px) 40px; }
       .lotteryGrid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -80,20 +64,14 @@
       .lotteryCard {
         display: grid;
         gap: 12px;
-        min-height: 250px;
+        min-height: 230px;
         padding: 16px;
         border: 1px solid var(--line);
         border-radius: 8px;
         background: #11141c;
       }
-      .lotteryCard:hover {
-        border-color: rgba(16, 215, 160, .42);
-      }
-      .lotteryMeta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
+      .lotteryCard:hover { border-color: rgba(16, 215, 160, .42); }
+      .lotteryMeta { display: flex; flex-wrap: wrap; gap: 6px; }
       .pill {
         display: inline-flex;
         align-items: center;
@@ -111,23 +89,10 @@
         border-color: rgba(16, 215, 160, .38);
         background: rgba(16, 215, 160, .1);
       }
-      .lotteryCard h2 {
-        margin: 0;
-        font-size: 19px;
-        line-height: 1.28;
-      }
-      .lotteryCard p {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.55;
-        font-size: 13px;
-      }
-      .lotteryActions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: auto;
-      }
+      .pill.cut { color: #f3c74f; border-color: rgba(243, 199, 79, .42); background: rgba(243, 199, 79, .08); }
+      .lotteryCard h2 { margin: 0; font-size: 19px; line-height: 1.28; }
+      .lotteryCard p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 13px; }
+      .lotteryActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
       .lotteryActions a {
         display: inline-flex;
         align-items: center;
@@ -155,26 +120,13 @@
         color: #b8c1d4;
         line-height: 1.7;
       }
-      .guidePanel h2 {
-        font-size: 18px;
-      }
-      .guidePanel ul {
-        margin: 0;
-        padding-left: 20px;
-      }
-      .guidePanel li + li {
-        margin-top: 6px;
-      }
+      .guidePanel h2 { font-size: 18px; }
+      .guidePanel ul { margin: 0; padding-left: 20px; }
+      .guidePanel li + li { margin-top: 6px; }
       @media (max-width: 620px) {
-        .statusStrip {
-          grid-template-columns: 1fr;
-        }
-        .lotteryCard {
-          min-height: auto;
-        }
-        .lotteryActions a {
-          width: 100%;
-        }
+        .statusStrip { grid-template-columns: 1fr; }
+        .lotteryCard { min-height: auto; }
+        .lotteryActions a { width: 100%; }
       }
     </style>
   </head>
@@ -200,75 +152,17 @@
         <h1>일본 아마존 TCG 초대판매 링크</h1>
         <p class="lead">
           일본 Amazon.co.jp에서 초대 리퀘스트, 추첨 판매, 예약 판매가 열리는 TCG 상품을 한 곳에 모읍니다.
-          버튼이 보이면 Amazon 계정으로 로그인한 뒤 상품 페이지에서 직접 신청해야 합니다.
+          어비스아이 아래 항목은 응모 기간이 지난 것으로 보고 제거했습니다.
         </p>
         <div class="statusStrip" aria-label="Amazon lottery summary">
-          <div class="statusBox"><b>6</b><span>직접 상품 링크</span></div>
+          <div class="statusBox"><b>2</b><span>직접 상품 링크</span></div>
           <div class="statusBox"><b>2</b><span>검색 fallback</span></div>
-          <div class="statusBox"><b>2026-06-29</b><span>마지막 링크 점검</span></div>
+          <div class="statusBox"><b>2026-06-29</b><span>마지막 링크 정리</span></div>
         </div>
       </section>
 
       <section class="lotterySection">
         <div class="sectionHead">
-          <div>
-            <p class="eyebrow">One Piece</p>
-            <h2>원피스 카드 일본 아마존</h2>
-          </div>
-        </div>
-        <div class="lotteryGrid">
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">OP-13</span><span class="pill">ASIN B0FX7X71KK</span></div>
-            <h2>受け継がれる意志<br />계승되는 의지</h2>
-            <p>Amazon 상품 설명에 초대 리퀘스트 안내가 있는 OP-13 박스 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0FX7X71KK" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-              <a href="packs.html?set=OP-13">시세 보기</a>
-            </div>
-          </article>
-
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">OP-12</span><span class="pill">ASIN B0DW3R4T9G</span></div>
-            <h2>師弟の絆<br />사제의 인연</h2>
-            <p>Amazon 상품 페이지에서 초대 리퀘스트 문구가 확인된 OP-12 박스 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0DW3R4T9G" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-              <a href="packs.html?set=OP-12">시세 보기</a>
-            </div>
-          </article>
-
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">OP-10</span><span class="pill">ASIN B0DDWZWW1Z</span></div>
-            <h2>王族の血統<br />왕족의 혈통</h2>
-            <p>초대 리퀘스트 방식으로 노출되는 OP-10 박스 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0DDWZWW1Z" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-              <a href="packs.html?set=OP-10">시세 보기</a>
-            </div>
-          </article>
-
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">OP-09</span><span class="pill">ASIN B0D46M9DHD</span></div>
-            <h2>新たなる皇帝<br />새로운 황제</h2>
-            <p>Amazon 상품 설명에 초대 리퀘스트 안내가 잡히는 OP-09 박스 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0D46M9DHD" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-              <a href="packs.html?set=OP-09">시세 보기</a>
-            </div>
-          </article>
-
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">OP-08</span><span class="pill">ASIN B0CRY385YN</span></div>
-            <h2>二つの伝説<br />두 개의 전설</h2>
-            <p>초대 리퀘스트 안내가 확인된 OP-08 박스 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0CRY385YN" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-              <a href="packs.html?set=OP-08">시세 보기</a>
-            </div>
-          </article>
-        </div>
-
-        <div class="sectionHead" style="margin-top: 28px">
           <div>
             <p class="eyebrow">Pokemon</p>
             <h2>포켓몬 카드 일본 아마존</h2>
@@ -283,6 +177,15 @@
               <a class="primary" href="https://www.amazon.co.jp/dp/B0GXCRBL5J" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
             </div>
           </article>
+
+          <article class="lotteryCard">
+            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">아비スアイ</span><span class="pill">ASIN B0GP9QHQ3Y</span><span class="pill cut">절단 기준</span></div>
+            <h2>アビスアイ<br />어비스아이</h2>
+            <p>Amazon 상품 설명에 초대 리퀘스트 안내가 잡히는 포켓몬 카드 MEGA 확장팩 링크입니다. 이 항목 아래 만료된 응모 링크는 제거했습니다.</p>
+            <div class="lotteryActions">
+              <a class="primary" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
+            </div>
+          </article>
         </div>
 
         <div class="sectionHead" style="margin-top: 28px">
@@ -293,19 +196,19 @@
         </div>
         <div class="lotteryGrid">
           <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill">검색</span><span class="pill">ONE PIECE</span></div>
-            <h2>ワンピース 招待リクエスト</h2>
-            <p>직접 상품 링크가 막히거나 품절이면 Amazon 검색 결과에서 최신 초대판매 상품을 확인합니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/s?k=%E6%8B%9B%E5%BE%85%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88+%E3%83%AF%E3%83%B3%E3%83%94%E3%83%BC%E3%82%B9" target="_blank" rel="noopener noreferrer">검색 열기</a>
-            </div>
-          </article>
-          <article class="lotteryCard">
             <div class="lotteryMeta"><span class="pill">검색</span><span class="pill">POKEMON</span></div>
             <h2>ポケモンカード 招待リクエスト</h2>
             <p>포켓몬 카드 초대판매 상품을 Amazon 검색 결과에서 확인하는 fallback 링크입니다.</p>
             <div class="lotteryActions">
               <a class="primary" href="https://www.amazon.co.jp/s?k=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3%E3%82%AB%E3%83%BC%E3%83%89+%E6%8B%9B%E5%BE%85%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88" target="_blank" rel="noopener noreferrer">검색 열기</a>
+            </div>
+          </article>
+          <article class="lotteryCard">
+            <div class="lotteryMeta"><span class="pill">검색</span><span class="pill">ONE PIECE</span></div>
+            <h2>ワンピース 招待リクエスト</h2>
+            <p>원피스 직접 응모 링크는 만료 가능성이 높아 검색 링크만 남겼습니다. 새 초대판매 상품 확인용입니다.</p>
+            <div class="lotteryActions">
+              <a class="primary" href="https://www.amazon.co.jp/s?k=%E6%8B%9B%E5%BE%85%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88+%E3%83%AF%E3%83%B3%E3%83%94%E3%83%BC%E3%82%B9" target="_blank" rel="noopener noreferrer">검색 열기</a>
             </div>
           </article>
         </div>
