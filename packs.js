@@ -85,8 +85,13 @@ function priceVenueLabel(venue) {
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
-  if (c.priceUsd != null) {
-    h += `<span class="pl base"><i>영문판 NM</i> <b>${fmtKrw(c.priceUsd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.priceUsd)} <em>TCG Quant</em></small></span>`;
+  if (c.englishNmEbay?.sampleSize > 0) {
+    h += `
+      <span class="pl psaEbay">
+        <i>영문판 NM eBay</i>
+        <span class="bandRows">${priceBandRows(c.englishNmEbay)}</span>
+        <small>eBay Active · 표본 ${c.englishNmEbay.sampleSize}건</small>
+      </span>`;
   }
   if (c.nmJpy != null) {
     const nmVenue = priceVenueLabel(c.nmVenue);
@@ -241,9 +246,10 @@ function renderBoxMarket(set) {
 
 function renderSourceLegend(set) {
   const hasPsa10 = (set.cards || []).some((card) => card.psa10Usd != null || card.psa10Ebay?.sampleSize > 0);
+  const hasEnglishNmEbay = (set.cards || []).some((card) => card.englishNmEbay?.sampleSize > 0);
   return `
     <div class="sourceLegend" aria-label="가격 출처 요약">
-      <span><b>영문판 NM</b><small>TCG Quant 글로벌 USD 기준</small></span>
+      <span><b>영문판 NM</b><small>${hasEnglishNmEbay ? "eBay Active 기준" : "eBay 매칭 없음"}</small></span>
       <span><b>일본판 NM</b><small>유유테이 우선 · 카드러시 보조</small></span>
       <span class="${hasPsa10 ? "" : "muted"}"><b>PSA10</b><small>${hasPsa10 ? "공식값 우선 · 없으면 eBay" : "확인된 가격 없음"}</small></span>
       <span><b>박스가</b><small>eBay Active 호가</small></span>
@@ -500,7 +506,7 @@ function renderDataNotice() {
     <div class="dataNotice">
       <b>데이터 기준</b>
       eBay Active는 현재 호가이며 실거래가가 아닙니다. PSA10 eBay는 공식 PSA10 가격이 없을 때만 보조로 표시합니다.
-      일본판 NM은 일본 매장 기준, 박스가는 중국권 발송지와 명확한 오탐을 제외한 참고값입니다.
+      영문판 NM eBay와 박스가는 중국권 발송지와 명확한 오탐을 제외한 참고값입니다. 일본판 NM은 일본 매장 기준입니다.
     </div>`;
 }
 

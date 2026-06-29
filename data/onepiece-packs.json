@@ -1,7 +1,7 @@
 {
  "_note": "원피스 부스터팩별 TOP 10 히트카드. 데이터·이미지 출처: TCG Quant(tcgquant.com) / 카드·박스 이미지는 TCGplayer CDN. 가격은 USD 시세이며 표시는 토글로 숨김(원화 환산 환율 usdKrw). PSA 인구/보석확률(gem rate)은 GemRate(PSA 집계) 기준.",
  "source": "https://tcgquant.com",
- "updated": "2026-06-25",
+ "updated": "2026-06-29",
  "fx": {
   "usdKrw": 1388.2,
   "jpyKrw": 9.1
@@ -150,6 +150,19 @@
       "high": 3446.85,
       "sampleSize": 5,
       "excludedCount": 0
+     },
+     "englishNmEbay": {
+      "source": "eBay Browse API item_summary/search",
+      "query": "One Piece Card Game OP01-025 Roronoa Zoro 025 Parallel English NM",
+      "updated": "2026-06-29",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "low": 115.89,
+      "middle": 183.34,
+      "high": 183.34,
+      "sampleSize": 2,
+      "excludedCount": 0,
+      "outlierCount": 0
      }
     },
     {
@@ -204,6 +217,19 @@
       "high": 1562.45,
       "sampleSize": 8,
       "excludedCount": 0
+     },
+     "englishNmEbay": {
+      "source": "eBay Browse API item_summary/search",
+      "query": "One Piece Card Game OP01-078 Boa Hancock Parallel English NM",
+      "updated": "2026-06-29",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "low": 80.43,
+      "middle": 128.99,
+      "high": 128.99,
+      "sampleSize": 2,
+      "excludedCount": 0,
+      "outlierCount": 0
      }
     },
     {
@@ -1884,7 +1910,20 @@
      "nmJpy": 5980,
      "nmVenue": "遊々亭",
      "nmSourceUrl": "https://yuyu-tei.jp/sell/opc/s/op06",
-     "nmStock": "×"
+     "nmStock": "×",
+     "englishNmEbay": {
+      "source": "eBay Browse API item_summary/search",
+      "query": "One Piece Card Game OP03-114 Charlotte Linlin SP English NM",
+      "updated": "2026-06-29",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "low": 133.81,
+      "middle": 138.81,
+      "high": 138.81,
+      "sampleSize": 2,
+      "excludedCount": 0,
+      "outlierCount": 0
+     }
     },
     {
      "rank": 9,
@@ -2889,6 +2928,19 @@
       "high": 300,
       "sampleSize": 14,
       "excludedCount": 0
+     },
+     "englishNmEbay": {
+      "source": "eBay Browse API item_summary/search",
+      "query": "One Piece Card Game ST04-005 Queen SP English NM",
+      "updated": "2026-06-29",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "low": 50,
+      "middle": 56.92,
+      "high": 56.92,
+      "sampleSize": 2,
+      "excludedCount": 0,
+      "outlierCount": 0
      }
     },
     {
@@ -3894,7 +3946,20 @@
      "nmJpy": 980,
      "nmVenue": "遊々亭",
      "nmSourceUrl": "https://yuyu-tei.jp/sell/opc/s/op10",
-     "nmStock": "1 点"
+     "nmStock": "1 点",
+     "englishNmEbay": {
+      "source": "eBay Browse API item_summary/search",
+      "query": "One Piece Card Game OP10-118 Monkey D. Luffy 118 Parallel English NM",
+      "updated": "2026-06-29",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "low": 141.94,
+      "middle": 145.49,
+      "high": 159.95,
+      "sampleSize": 3,
+      "excludedCount": 0,
+      "outlierCount": 0
+     }
     },
     {
      "rank": 8,

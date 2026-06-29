@@ -23,6 +23,7 @@ jobs:
       EBAY_MARKETPLACE_ID: EBAY_US
       EBAY_SEARCH_LIMIT: "50"
       EBAY_PSA_SEARCH_LIMIT: "50"
+      EBAY_ENGLISH_NM_SEARCH_LIMIT: "50"
 
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +36,7 @@ jobs:
         run: |
           node --check packs.js
           node --check tools/update-ebay-pack-prices.js
+          node --check tools/update-ebay-english-nm-prices.js
           node --check tools/update-ebay-psa10-prices.js
           node tools/test-price-outliers.js
 
@@ -45,6 +47,10 @@ jobs:
       - name: Update eBay PSA10 prices
         if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: node tools/update-ebay-psa10-prices.js
+
+      - name: Update eBay English NM prices
+        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
+        run: node tools/update-ebay-english-nm-prices.js
 
       - name: Commit changes
         run: |
