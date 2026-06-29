@@ -42,6 +42,7 @@ const fmtJpy = (v) =>
 
 function fmtOriginalCurrency(value, currency) {
   if (value == null) return "-";
+  if (currency === "KRW") return fmtKrw(value);
   if (currency === "JPY") return fmtJpy(value);
   if (currency === "USD") return fmtUsd(value);
   return `${currency || ""} ${num(value)}`.trim();
@@ -50,6 +51,7 @@ function fmtOriginalCurrency(value, currency) {
 function marketKrw(value, currency) {
   const fx = (state.data && state.data.fx) || {};
   if (value == null) return null;
+  if (currency === "KRW") return value;
   if (currency === "JPY") return value * (fx.jpyKrw || 9.1);
   if (currency === "USD") return value * (fx.usdKrw || 1388.2);
   return null;
@@ -93,11 +95,12 @@ function priceLines(c) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
     h += `<span class="pl psa"><i>일본어판 PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
   } else if (c.psa10Ebay?.sampleSize > 0) {
+    const psa10EbaySourceLabel = c.psa10Ebay.soldBased ? "eBay Sold" : "eBay Active";
     h += `
       <span class="pl psaEbay">
         <i>일본어판 PSA10 eBay</i>
         <span class="bandRows">${priceBandRows(c.psa10Ebay)}</span>
-        <small>eBay Active · 표본 ${c.psa10Ebay.sampleSize}건</small>
+        <small>${psa10EbaySourceLabel} · 표본 ${c.psa10Ebay.sampleSize}건</small>
       </span>`;
   }
   if (c.englishNmEbay?.sampleSize > 0) {
