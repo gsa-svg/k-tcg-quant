@@ -221,6 +221,39 @@ function ebayLinks(pack) {
     </div>`;
 }
 
+function renderBoxSeries(set) {
+  const s = set.boxSeries;
+  const pts = (s && s.points) || [];
+  if (pts.length < 2) return "";
+  const W = 600, H = 190, padL = 8, padR = 14, padT = 14, padB = 8;
+  const xs = pts.map((p) => new Date(p.d).getTime());
+  const ys = pts.map((p) => p.p);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  let minY = Math.min(...ys), maxY = Math.max(...ys);
+  const span = maxY - minY || maxY;
+  minY -= span * 0.15; maxY += span * 0.15;
+  const X = (t) => padL + ((t - minX) / (maxX - minX || 1)) * (W - padL - padR);
+  const Y = (v) => padT + (1 - (v - minY) / (maxY - minY || 1)) * (H - padT - padB);
+  const line = pts.map((p, i) => (i ? "L" : "M") + X(xs[i]).toFixed(1) + " " + Y(p.p).toFixed(1)).join(" ");
+  const area = `${line} L${X(maxX).toFixed(1)} ${H - padB} L${X(minX).toFixed(1)} ${H - padB} Z`;
+  const last = pts[pts.length - 1];
+  const fmtD = (d) => d.slice(5).replace("-", "/");
+  return `
+    <div class="boxChart">
+      <div class="bcHead"><span class="bmLabel">박스 시세 추이 · 최근 3개월 (eBay Sold)</span><strong>${fmtKrw(last.p)}</strong></div>
+      <svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="박스 시세 추이 그래프">
+        <defs><linearGradient id="bcg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#10d7a0" stop-opacity=".35"/><stop offset="1" stop-color="#10d7a0" stop-opacity="0"/>
+        </linearGradient></defs>
+        <path d="${area}" fill="url(#bcg)"/>
+        <path d="${line}" fill="none" stroke="#10d7a0" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <circle cx="${X(maxX).toFixed(1)}" cy="${Y(last.p).toFixed(1)}" r="4.5" fill="#10d7a0"/>
+      </svg>
+      <div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span>최고 ${fmtKrw(Math.max(...ys))} · 최저 ${fmtKrw(Math.min(...ys))}</span><span>${fmtD(last.d)}</span></div>
+      <p class="note">${s.source}. 주간 중앙값이며, 표본이 적은 주는 변동이 큽니다. 단일 박스 기준(케이스·로트 제외).</p>
+    </div>`;
+}
+
 function renderBoxMarket(set) {
   const market = set.boxMarket?.jp?.ebayActive;
   if (!market) {
@@ -549,6 +582,7 @@ function renderDetail() {
           </button>
         </div>
         ${ebayLinks(pack)}
+        ${state.lang !== "kr" ? renderBoxSeries(set) : ""}
         ${state.lang !== "kr" ? renderBoxMarket(set) : ""}
         ${renderDataNotice()}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 PSA10확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}

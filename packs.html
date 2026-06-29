@@ -395,6 +395,13 @@
       .gemMid { color: #f3c74f; }
       .gemLo { color: #ff6683; }
 
+      .boxChart { margin-top: 16px; padding: 12px 14px; border: 1px solid #252b38; border-radius: 12px; background: #10131a; }
+      .bcHead { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+      .bcHead strong { color: var(--accent); font-size: 16px; }
+      .bcSvg { width: 100%; aspect-ratio: 600 / 190; height: auto; display: block; margin-top: 8px; }
+      .bcAxis { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: #737b8e; font-size: 11px; }
+      .boxChart .note { margin-top: 8px; }
+
       /* 모바일: 좁은 박스 패널(약 247px)에서 3열은 금액이 숫자 중간에 줄바꿈됨 → 세로 1열로 */
       @media (max-width: 560px) {
         .bmRows { grid-template-columns: 1fr; gap: 6px; }
@@ -650,6 +657,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260629order1" defer></script>
+    <script src="packs.js?v=20260629chart1" defer></script>
   </body>
 </html>
