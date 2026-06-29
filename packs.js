@@ -122,7 +122,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260626fix1";
+const DATA_VERSION = "20260629order1";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
