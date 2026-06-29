@@ -406,6 +406,154 @@
         .bmRows .bandRow b { grid-column: 2; font-size: 14px; white-space: nowrap; overflow-wrap: normal; }
         .bmRows .bandRow small { grid-column: 3; text-align: right; white-space: nowrap; }
       }
+
+      @media (max-width: 560px) {
+        body { -webkit-text-size-adjust: 100%; }
+        main { overflow-x: hidden; }
+        .packHero { border-left-width: 3px; }
+        .marketStatus {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .marketStatus span:first-child,
+        .marketStatus span:last-child {
+          grid-column: 1 / -1;
+        }
+        .introPanel {
+          max-height: 132px;
+          overflow: hidden;
+          position: relative;
+        }
+        .introPanel::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 34px;
+          background: linear-gradient(to bottom, rgba(20,23,28,0), rgba(20,23,28,.96));
+          pointer-events: none;
+        }
+        .langTabs {
+          overflow-x: auto;
+          scrollbar-width: none;
+        }
+        .langTabs::-webkit-scrollbar { display: none; }
+        .langTab { min-width: 96px; flex: 0 0 auto; }
+        .detailHead {
+          padding: 12px;
+          border-radius: 8px;
+        }
+        .detailBox {
+          width: 72px;
+          height: 98px;
+        }
+        .sourceLegend {
+          grid-template-columns: 1fr;
+          gap: 7px;
+        }
+        .sourceLegend span {
+          display: grid;
+          grid-template-columns: 92px 1fr;
+          align-items: center;
+          padding: 8px 10px;
+        }
+        .sourceLegend small { font-size: 11px; }
+        .srcNote,
+        .dataNotice {
+          font-size: 11px;
+          line-height: 1.55;
+        }
+        .hitGallery {
+          grid-template-columns: 1fr;
+          gap: 9px;
+        }
+        .hitCard {
+          display: grid;
+          grid-template-columns: 92px minmax(0, 1fr);
+          gap: 10px;
+          min-height: 132px;
+          padding: 9px;
+          border: 1px solid #252b38;
+          border-radius: 8px;
+          background: rgba(17, 22, 32, .72);
+        }
+        .hitThumb {
+          width: 92px;
+          height: 128px;
+          aspect-ratio: auto;
+          border-radius: 7px;
+        }
+        .hitCard figcaption {
+          min-width: 0;
+          padding: 0;
+          align-self: start;
+        }
+        .hitName {
+          font-size: 13px;
+          line-height: 1.3;
+        }
+        .hitNo { margin-top: 3px; }
+        .priceLines {
+          margin-top: 7px;
+          gap: 6px;
+        }
+        .pl {
+          display: grid;
+          grid-template-columns: 78px minmax(0, 1fr);
+          gap: 1px 7px;
+          align-items: baseline;
+          font-size: 12px;
+          line-height: 1.35;
+        }
+        .pl i {
+          width: auto;
+          font-size: 10px;
+          line-height: 1.2;
+        }
+        .pl b {
+          font-size: 13px;
+          overflow-wrap: normal;
+          white-space: nowrap;
+        }
+        .pl small {
+          grid-column: 2;
+          display: block;
+          margin: 0;
+          font-size: 10px;
+        }
+        .pl.psaEbay {
+          display: block;
+          margin-top: 2px;
+          padding-top: 6px;
+        }
+        .pl.psaEbay .bandRow {
+          grid-template-columns: 44px minmax(0, 1fr) auto;
+          align-items: baseline;
+          gap: 1px 6px;
+        }
+        .pl.psaEbay .bandRow i {
+          grid-column: 1;
+          font-size: 10px;
+        }
+        .pl.psaEbay .bandRow b {
+          grid-column: 2;
+          font-size: 12px;
+          white-space: nowrap;
+        }
+        .pl.psaEbay .bandRow small {
+          grid-column: 3;
+          grid-row: 1;
+          font-size: 10px;
+          text-align: right;
+          white-space: nowrap;
+        }
+        .psaWrap {
+          margin-left: -12px;
+          margin-right: -12px;
+          padding: 0 12px 4px;
+        }
+      }
     </style>
   </head>
   <body>
