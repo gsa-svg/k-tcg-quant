@@ -13,120 +13,127 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta property="og:site_name" content="K-TCG Quant" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="일본 아마존 TCG 초대판매 링크 | K-TCG Quant" />
-    <meta property="og:description" content="일본 Amazon.co.jp의 포켓몬·원피스 카드 초대판매 링크를 현재 응모 가능성이 있는 항목 위주로 정리합니다." />
+    <meta property="og:title" content="일본 아마존 TCG 응모 가능 목록 | K-TCG Quant" />
+    <meta property="og:description" content="일본 Amazon.co.jp TCG 초대판매와 응모 가능 상품 링크를 체크리스트로 정리합니다." />
     <meta property="og:url" content="https://gsa-svg.github.io/k-tcg-quant/amazon-lottery.html" />
     <meta name="twitter:card" content="summary" />
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        "name": "일본 아마존 TCG 초대판매 링크",
-        "url": "https://gsa-svg.github.io/k-tcg-quant/amazon-lottery.html",
-        "inLanguage": "ko-KR",
-        "isAccessibleForFree": true,
-        "description": "일본 Amazon.co.jp의 포켓몬·원피스 카드 초대판매 링크 모음",
-        "creator": {
-          "@type": "Organization",
-          "name": "K-TCG Quant",
-          "url": "https://gsa-svg.github.io/k-tcg-quant/"
-        }
-      }
-    </script>
-    <title>일본 아마존 TCG 초대판매 링크 | K-TCG Quant</title>
-    <meta name="description" content="일본 Amazon.co.jp의 포켓몬·원피스 카드 초대판매, 추첨, 예약 상품 링크를 현재 응모 가능성이 있는 항목 위주로 정리합니다." />
+    <title>일본 아마존 TCG 응모 가능 목록 | K-TCG Quant</title>
+    <meta name="description" content="일본 Amazon.co.jp TCG 초대판매와 응모 가능 상품 링크를 체크리스트로 정리합니다." />
     <link rel="stylesheet" href="styles.css" />
     <style>
-      main { max-width: 1180px; margin: 0 auto; }
-      .lotteryHero { padding: clamp(28px, 6vw, 64px) clamp(16px, 4vw, 52px) 18px; }
-      .lotteryHero h1 { max-width: 900px; font-size: clamp(32px, 6vw, 62px); }
-      .lotteryHero .lead { max-width: 820px; }
-      .statusStrip {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 20px;
+      main { max-width: 1180px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 28px) 44px; }
+      .lotteryListHead {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin: 0 0 14px;
       }
-      .statusBox {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: rgba(17, 20, 28, .82);
-        padding: 13px 14px;
+      .lotteryListHead h1 {
+        margin: 0;
+        font-size: clamp(24px, 4vw, 34px);
+        line-height: 1.2;
       }
-      .statusBox b { display: block; color: var(--accent); font-size: 20px; }
-      .statusBox span { color: var(--muted); font-size: 12px; }
-      .lotterySection { padding: 16px clamp(16px, 4vw, 52px) 40px; }
-      .lotteryGrid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 12px;
-      }
-      .lotteryCard {
-        display: grid;
-        gap: 12px;
-        min-height: 230px;
-        padding: 16px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: #11141c;
-      }
-      .lotteryCard:hover { border-color: rgba(16, 215, 160, .42); }
-      .lotteryMeta { display: flex; flex-wrap: wrap; gap: 6px; }
-      .pill {
+      .selectAllWrap {
         display: inline-flex;
         align-items: center;
-        min-height: 24px;
-        padding: 0 8px;
-        border: 1px solid #2b3040;
-        border-radius: 999px;
-        color: #cbd3e3;
-        background: #151a24;
-        font-size: 11px;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 14px;
         font-weight: 800;
+        white-space: nowrap;
       }
-      .pill.hot {
-        color: var(--accent);
-        border-color: rgba(16, 215, 160, .38);
-        background: rgba(16, 215, 160, .1);
+      .lotteryInfo {
+        margin: 0 0 14px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
       }
-      .pill.cut { color: #f3c74f; border-color: rgba(243, 199, 79, .42); background: rgba(243, 199, 79, .08); }
-      .lotteryCard h2 { margin: 0; font-size: 19px; line-height: 1.28; }
-      .lotteryCard p { margin: 0; color: var(--muted); line-height: 1.55; font-size: 13px; }
-      .lotteryActions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
-      .lotteryActions a {
+      .entryList {
+        display: grid;
+        gap: 10px;
+      }
+      .entryItem {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 14px;
+        min-height: 66px;
+        padding: 14px 18px;
+        border: 1px solid #2d2f33;
+        border-radius: 10px;
+        background: #1b1b1b;
+      }
+      .entryItem.isNew {
+        border-color: rgba(64, 177, 78, .75);
+        box-shadow: inset 0 0 0 1px rgba(64, 177, 78, .15);
+      }
+      .entryCheck,
+      .selectAllCheck {
+        width: 22px;
+        height: 22px;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+      .entryTitle {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        color: #f4f6fb;
+        font-size: clamp(16px, 2.5vw, 20px);
+        font-weight: 900;
+        line-height: 1.35;
+        word-break: keep-all;
+      }
+      .newBadge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 9px;
+        border-radius: 6px;
+        background: #41b84d;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+      }
+      .openLink {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 38px;
-        padding: 0 12px;
+        width: 34px;
+        height: 34px;
         border-radius: 7px;
-        border: 1px solid var(--line);
-        background: #151a24;
-        color: var(--ink);
-        font-size: 13px;
-        font-weight: 900;
+        color: #a7abb4;
+        font-size: 24px;
+        font-weight: 600;
       }
-      .lotteryActions a.primary {
-        border-color: rgba(16, 215, 160, .36);
+      .openLink:hover {
         color: var(--accent);
         background: rgba(16, 215, 160, .1);
       }
       .guidePanel {
-        margin-top: 18px;
-        padding: 16px;
+        margin-top: 16px;
+        padding: 14px 16px;
         border: 1px solid #2a3344;
         border-radius: 8px;
         background: rgba(251, 231, 166, .05);
         color: #b8c1d4;
-        line-height: 1.7;
+        line-height: 1.65;
+        font-size: 13px;
       }
-      .guidePanel h2 { font-size: 18px; }
-      .guidePanel ul { margin: 0; padding-left: 20px; }
-      .guidePanel li + li { margin-top: 6px; }
       @media (max-width: 620px) {
-        .statusStrip { grid-template-columns: 1fr; }
-        .lotteryCard { min-height: auto; }
-        .lotteryActions a { width: 100%; }
+        main { padding: 18px 12px 34px; }
+        .lotteryListHead { align-items: flex-start; }
+        .entryItem {
+          grid-template-columns: auto 1fr auto;
+          min-height: 58px;
+          padding: 12px 12px;
+          gap: 10px;
+        }
+        .entryCheck,
+        .selectAllCheck { width: 20px; height: 20px; }
+        .openLink { width: 30px; height: 30px; font-size: 22px; }
       }
     </style>
   </head>
@@ -147,91 +154,136 @@
     </header>
 
     <main>
-      <section class="lotteryHero">
-        <p class="eyebrow">Amazon Japan Lottery</p>
-        <h1>일본 아마존 TCG 초대판매 링크</h1>
-        <p class="lead">
-          일본 Amazon.co.jp에서 초대 리퀘스트, 추첨 판매, 예약 판매가 열리는 TCG 상품을 한 곳에 모읍니다.
-          어비스아이 아래 항목은 응모 기간이 지난 것으로 보고 제거했습니다.
-        </p>
-        <div class="statusStrip" aria-label="Amazon lottery summary">
-          <div class="statusBox"><b>2</b><span>직접 상품 링크</span></div>
-          <div class="statusBox"><b>2</b><span>검색 fallback</span></div>
-          <div class="statusBox"><b>2026-06-29</b><span>마지막 링크 정리</span></div>
-        </div>
+      <div class="lotteryListHead">
+        <h1>응모 가능 목록</h1>
+        <label class="selectAllWrap">
+          <input class="selectAllCheck" id="selectAllEntries" type="checkbox" />
+          <span>전체선택</span>
+        </label>
+      </div>
+      <p class="lotteryInfo">
+        각 항목 오른쪽 아이콘을 누르면 Amazon.co.jp 상품 또는 검색 페이지가 새 창으로 열립니다.
+        직접 ASIN이 확인된 상품은 상품 페이지로, 불확실한 세트는 검색 링크로 연결했습니다.
+      </p>
+
+      <section class="entryList" aria-label="Amazon Japan lottery entries">
+        <article class="entryItem isNew">
+          <input class="entryCheck" type="checkbox" aria-label="스타터 세트 ex 이브이 ex 선택" />
+          <div class="entryTitle"><span class="newBadge">NEW</span><span>스타터 세트 ex 이브이 ex</span></div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88ex+%E3%82%A4%E3%83%BC%E3%83%96%E3%82%A4ex" target="_blank" rel="noopener noreferrer" aria-label="스타터 세트 ex 이브이 ex 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="스타터 세트 ex 조로아 & 조로아크 ex 선택" />
+          <div class="entryTitle">스타터 세트 ex 조로아 & 조로아크 ex</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88ex+%E3%82%BE%E3%83%AD%E3%82%A2+%E3%82%BE%E3%83%AD%E3%82%A2%E3%83%BC%E3%82%AFex" target="_blank" rel="noopener noreferrer" aria-label="스타터 세트 ex 조로아 & 조로아크 ex 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="스타터 세트 ex 나오하 & 마스카나 ex 선택" />
+          <div class="entryTitle">스타터 세트 ex 나오하 & 마스카나 ex</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BF%E3%83%BC%E3%82%BB%E3%83%83%E3%83%88ex+%E3%83%8B%E3%83%A3%E3%82%AA%E3%83%8F+%E3%83%9E%E3%82%B9%E3%82%AB%E3%83%BC%E3%83%8B%E3%83%A3ex" target="_blank" rel="noopener noreferrer" aria-label="스타터 세트 ex 나오하 & 마스카나 ex 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="스톰 에메랄드 선택" />
+          <div class="entryTitle">스톰 에메랄드</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP928YDZ" target="_blank" rel="noopener noreferrer" aria-label="스톰 에메랄드 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="원피스 OP-17 선택" />
+          <div class="entryTitle">원피스 OP-17</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0H43ZX8LK" target="_blank" rel="noopener noreferrer" aria-label="원피스 OP-17 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="포켓몬 30주년 팩 선택" />
+          <div class="entryTitle">포켓몬 30주년 팩</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCRBL5J" target="_blank" rel="noopener noreferrer" aria-label="포켓몬 30주년 팩 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 에브이 블래키 세트 선택" />
+          <div class="entryTitle">30주년 에브이·블래키 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCM4BCZ" target="_blank" rel="noopener noreferrer" aria-label="30주년 에브이 블래키 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 1세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 1세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+1%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 1세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 2세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 2세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+2%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 2세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 3세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 3세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+3%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 3세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 4세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 4세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+4%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 4세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 5세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 5세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+5%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 5세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 6세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 6세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+6%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 6세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 7세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 7세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+7%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 7세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 8세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 8세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+8%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 8세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="30주년 스타팅 9세대 세트 선택" />
+          <div class="entryTitle">30주년 스타팅 9세대 세트</div>
+          <a class="openLink" href="https://www.amazon.co.jp/s?k=30th+CELEBRATION+%E3%82%B9%E3%82%BF%E3%83%BC%E3%83%86%E3%82%A3%E3%83%B3%E3%82%B0+9%E4%B8%96%E4%BB%A3+%E3%82%BB%E3%83%83%E3%83%88" target="_blank" rel="noopener noreferrer" aria-label="30주년 스타팅 9세대 세트 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="건담 EB01 선택" />
+          <div class="entryTitle">건담 EB01</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GTTJ9X7C" target="_blank" rel="noopener noreferrer" aria-label="건담 EB01 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="원피스 OP-16 선택" />
+          <div class="entryTitle">원피스 OP-16</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GN5JV7JS" target="_blank" rel="noopener noreferrer" aria-label="원피스 OP-16 열기">↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="어비스아이 선택" />
+          <div class="entryTitle">어비스아이</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y" target="_blank" rel="noopener noreferrer" aria-label="어비스아이 열기">↗</a>
+        </article>
       </section>
 
-      <section class="lotterySection">
-        <div class="sectionHead">
-          <div>
-            <p class="eyebrow">Pokemon</p>
-            <h2>포켓몬 카드 일본 아마존</h2>
-          </div>
-        </div>
-        <div class="lotteryGrid">
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">MEGA</span><span class="pill">ASIN B0GXCRBL5J</span></div>
-            <h2>30th CELEBRATION<br />포켓몬 카드 MEGA</h2>
-            <p>Amazon 상품 설명에 초대 판매 안내가 있는 포켓몬 카드 박스 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0GXCRBL5J" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-            </div>
-          </article>
-
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill hot">초대판매</span><span class="pill">아비スアイ</span><span class="pill">ASIN B0GP9QHQ3Y</span><span class="pill cut">절단 기준</span></div>
-            <h2>アビスアイ<br />어비스아이</h2>
-            <p>Amazon 상품 설명에 초대 리퀘스트 안내가 잡히는 포켓몬 카드 MEGA 확장팩 링크입니다. 이 항목 아래 만료된 응모 링크는 제거했습니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y" target="_blank" rel="noopener noreferrer">응모 페이지 열기</a>
-            </div>
-          </article>
-        </div>
-
-        <div class="sectionHead" style="margin-top: 28px">
-          <div>
-            <p class="eyebrow">Fallback Search</p>
-            <h2>응모 상품 검색 링크</h2>
-          </div>
-        </div>
-        <div class="lotteryGrid">
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill">검색</span><span class="pill">POKEMON</span></div>
-            <h2>ポケモンカード 招待リクエスト</h2>
-            <p>포켓몬 카드 초대판매 상품을 Amazon 검색 결과에서 확인하는 fallback 링크입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/s?k=%E3%83%9D%E3%82%B1%E3%83%A2%E3%83%B3%E3%82%AB%E3%83%BC%E3%83%89+%E6%8B%9B%E5%BE%85%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88" target="_blank" rel="noopener noreferrer">검색 열기</a>
-            </div>
-          </article>
-          <article class="lotteryCard">
-            <div class="lotteryMeta"><span class="pill">검색</span><span class="pill">ONE PIECE</span></div>
-            <h2>ワンピース 招待リクエスト</h2>
-            <p>원피스 직접 응모 링크는 만료 가능성이 높아 검색 링크만 남겼습니다. 새 초대판매 상품 확인용입니다.</p>
-            <div class="lotteryActions">
-              <a class="primary" href="https://www.amazon.co.jp/s?k=%E6%8B%9B%E5%BE%85%E3%83%AA%E3%82%AF%E3%82%A8%E3%82%B9%E3%83%88+%E3%83%AF%E3%83%B3%E3%83%94%E3%83%BC%E3%82%B9" target="_blank" rel="noopener noreferrer">검색 열기</a>
-            </div>
-          </article>
-        </div>
-
-        <aside class="guidePanel" aria-label="Amazon invitation guide">
-          <h2>신청 전 체크</h2>
-          <ul>
-            <li>Amazon.co.jp 계정으로 로그인한 상태에서 상품 페이지의 <strong>招待をリクエストする</strong> 버튼을 눌러야 합니다.</li>
-            <li>초대 리퀘스트는 보통 12개월 유효하지만, 판매가 끝나면 리퀘스트도 종료될 수 있습니다.</li>
-            <li>초대 메일은 재고 상황에 따라 발송됩니다. 선택되지 않을 수 있고, 초대 후 구매 가능 시간도 제한됩니다.</li>
-            <li>이 페이지는 링크 모음입니다. 가격, 배송 가능 국가, 계정 제한, 결제 가능 여부는 Amazon.co.jp에서 최종 확인해야 합니다.</li>
-          </ul>
-        </aside>
-      </section>
+      <aside class="guidePanel">
+        Amazon.co.jp 계정으로 로그인한 뒤 상품 페이지의 초대 리퀘스트 버튼을 눌러야 합니다.
+        검색 링크로 연결된 항목은 직접 ASIN 확인 전 임시 연결입니다.
+      </aside>
     </main>
 
-    <footer class="footer">
-      <p>K-TCG Quant는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
-      <nav aria-label="Footer navigation">
-        <a href="packs.html">Booster Packs</a>
-        <a href="privacy.html">Privacy</a>
-        <a href="disclaimer.html">Disclaimer</a>
-      </nav>
-    </footer>
+    <script>
+      const selectAll = document.querySelector("#selectAllEntries");
+      const checks = [...document.querySelectorAll(".entryCheck")];
+      selectAll.addEventListener("change", () => {
+        checks.forEach((check) => {
+          check.checked = selectAll.checked;
+        });
+      });
+      checks.forEach((check) => {
+        check.addEventListener("change", () => {
+          selectAll.checked = checks.every((item) => item.checked);
+          selectAll.indeterminate = checks.some((item) => item.checked) && !selectAll.checked;
+        });
+      });
+    </script>
   </body>
 </html>
