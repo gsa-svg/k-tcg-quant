@@ -1,7 +1,11 @@
 function percentile(sortedValues, ratio) {
   if (!sortedValues.length) return null;
-  const index = Math.min(sortedValues.length - 1, Math.max(0, Math.round((sortedValues.length - 1) * ratio)));
-  return Number(sortedValues[index].toFixed(2));
+  const position = Math.min(sortedValues.length - 1, Math.max(0, (sortedValues.length - 1) * ratio));
+  const lowerIndex = Math.floor(position);
+  const upperIndex = Math.ceil(position);
+  const weight = position - lowerIndex;
+  const value = sortedValues[lowerIndex] * (1 - weight) + sortedValues[upperIndex] * weight;
+  return Number(value.toFixed(2));
 }
 
 function median(sortedValues) {

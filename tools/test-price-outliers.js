@@ -8,6 +8,7 @@ function sorted(values) {
 }
 
 assert.equal(percentile(sorted([100, 200, 300]), 0.5), 200);
+assert.equal(percentile(sorted([5350, 5390.8, 6700, 7949.99]), 0.5), 6045.4);
 assert.equal(median(sorted([100, 200, 300, 400])), 250);
 
 assert.deepEqual(removePriceOutliers(sorted([309.99, 3299.95])), {

@@ -10,6 +10,7 @@ const envPath = path.join(projectRoot, ".env");
 
 const excludedLocationCountries = new Set(["CN", "HK", "MO"]);
 const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangzhou|shanghai|beijing|\bcn\b|\bhk\b)/i;
+const minimumSampleSize = 2;
 
 function loadEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -105,20 +106,50 @@ function hasNumber(title, number) {
   return new RegExp(`\\b${spaced}\\b`, "i").test(title) || new RegExp(`\\b${compact}\\b`, "i").test(title);
 }
 
+function normalizeTitleNumber(number) {
+  return (number || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+}
+
+function hasConflictingCardNumber(title, expectedNumber) {
+  const expected = normalizeTitleNumber(expectedNumber);
+  const found = title.match(/\b(?:OP|EB|PRB|ST)\s*-?\s*\d{1,2}\s*-?\s*\d{3}\b/gi) || [];
+  return found.map(normalizeTitleNumber).some((number) => number !== expected);
+}
+
+function hasVariantSignal(title, card) {
+  const name = `${card.name || ""} ${card.rarity || ""}`;
+  if (/manga|comic/i.test(name)) return /manga|comic/i.test(title);
+  if (/\bsp\b|special/i.test(name)) return /\bsp\b|special|parallel/i.test(title);
+  if (/parallel|alternate/i.test(name)) return /parallel|alternate|alt\s*art/i.test(title);
+  return true;
+}
+
 function isPsa10JapaneseCard(item, setCode, card) {
   const title = item.title || "";
   const number = normalizeNumber(card.number, setCode);
   const positive = [/one piece/i, /psa\s*10|gem\s*mint\s*10/i, /japanese|japan|jpn/i];
   const negative = [
     /psa\s*[1-9]\b(?!0)|psa\s*9|psa\s*8|bgs|cgc|ars|raw|ungraded|proxy|digital/i,
-    /english|korean|chinese|simplified/i,
+    /english|\beng\b|\ben\b|korean|chinese|simplified/i,
     /lot of|bundle|repack|booster|box|case/i,
   ];
 
-  return positive.every((pattern) => pattern.test(title)) && !negative.some((pattern) => pattern.test(title)) && hasNumber(title, number);
+  return (
+    positive.every((pattern) => pattern.test(title)) &&
+    !negative.some((pattern) => pattern.test(title)) &&
+    hasNumber(title, number) &&
+    !hasConflictingCardNumber(title, number) &&
+    hasVariantSignal(title, card)
+  );
 }
 
-function analyzeItems(items, setCode, card) {
+function minimumPsa10Usd(card, fx) {
+  if (!Number.isFinite(card.nmJpy) || !fx?.jpyKrw || !fx?.usdKrw) return null;
+  const nmUsd = (card.nmJpy * fx.jpyKrw) / fx.usdKrw;
+  return Number((nmUsd * 0.85).toFixed(2));
+}
+
+function analyzeItems(items, setCode, card, fx) {
   const kept = [];
   let excludedCount = 0;
 
@@ -142,14 +173,18 @@ function analyzeItems(items, setCode, card) {
   const currency = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length)[0]?.[0] || "USD";
   const rawValues = (grouped[currency] || []).sort((a, b) => a - b);
   const { values, outlierCount } = removePriceOutliers(rawValues);
+  const minUsd = currency === "USD" ? minimumPsa10Usd(card, fx) : null;
+  const qualityFailed =
+    values.length < minimumSampleSize ||
+    (minUsd != null && values.length > 0 && percentile(values, 0.5) < minUsd);
 
   return {
     currency,
-    low: percentile(values, 0.15),
-    middle: percentile(values, 0.5),
-    high: percentile(values, 0.85),
-    sampleSize: values.length,
-    excludedCount: excludedCount + outlierCount,
+    low: qualityFailed ? null : percentile(values, 0.15),
+    middle: qualityFailed ? null : percentile(values, 0.5),
+    high: qualityFailed ? null : percentile(values, 0.85),
+    sampleSize: qualityFailed ? 0 : values.length,
+    excludedCount: excludedCount + outlierCount + (qualityFailed ? values.length : 0),
     outlierCount,
   };
 }
@@ -178,7 +213,7 @@ async function main() {
   for (const { code, card } of targets) {
     const query = buildQuery(code, card);
     const result = await searchActiveListings(token, query);
-    const market = analyzeItems(result.itemSummaries || [], code, card);
+    const market = analyzeItems(result.itemSummaries || [], code, card, data.fx);
 
     if (market.sampleSize > 0) {
       card.psa10Ebay = {
