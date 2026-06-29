@@ -85,27 +85,27 @@ function priceVenueLabel(venue) {
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
-  if (c.englishNmEbay?.sampleSize > 0) {
-    h += `
-      <span class="pl psaEbay">
-        <i>영문판 NM eBay</i>
-        <span class="bandRows">${priceBandRows(c.englishNmEbay)}</span>
-        <small>eBay Active · 표본 ${c.englishNmEbay.sampleSize}건</small>
-      </span>`;
-  }
   if (c.nmJpy != null) {
     const nmVenue = priceVenueLabel(c.nmVenue);
     h += `<span class="pl nm"><i>일본판 NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} <em>${nmVenue}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
-    h += `<span class="pl psa"><i>PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
+    h += `<span class="pl psa"><i>일본어판 PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
   } else if (c.psa10Ebay?.sampleSize > 0) {
     h += `
       <span class="pl psaEbay">
-        <i>PSA10 eBay</i>
+        <i>일본어판 PSA10 eBay</i>
         <span class="bandRows">${priceBandRows(c.psa10Ebay)}</span>
         <small>eBay Active · 표본 ${c.psa10Ebay.sampleSize}건</small>
+      </span>`;
+  }
+  if (c.englishNmEbay?.sampleSize > 0) {
+    h += `
+      <span class="pl psaEbay">
+        <i>영문판 NM eBay</i>
+        <span class="bandRows">${priceBandRows(c.englishNmEbay)}</span>
+        <small>eBay Active · 표본 ${c.englishNmEbay.sampleSize}건</small>
       </span>`;
   }
   return h ? `<div class="priceLines">${h}</div>` : "";
@@ -249,9 +249,9 @@ function renderSourceLegend(set) {
   const hasEnglishNmEbay = (set.cards || []).some((card) => card.englishNmEbay?.sampleSize > 0);
   return `
     <div class="sourceLegend" aria-label="가격 출처 요약">
-      <span><b>영문판 NM</b><small>${hasEnglishNmEbay ? "eBay Active 기준" : "eBay 매칭 없음"}</small></span>
       <span><b>일본판 NM</b><small>유유테이 우선 · 카드러시 보조</small></span>
-      <span class="${hasPsa10 ? "" : "muted"}"><b>PSA10</b><small>${hasPsa10 ? "공식값 우선 · 없으면 eBay" : "확인된 가격 없음"}</small></span>
+      <span class="${hasPsa10 ? "" : "muted"}"><b>일본어판 PSA10</b><small>${hasPsa10 ? "공식값 우선 · 없으면 eBay" : "확인된 가격 없음"}</small></span>
+      <span><b>영문판 NM</b><small>${hasEnglishNmEbay ? "eBay Active 기준" : "eBay 매칭 없음"}</small></span>
       <span><b>박스가</b><small>eBay Active 호가</small></span>
     </div>`;
 }
@@ -505,7 +505,7 @@ function renderDataNotice() {
   return `
     <div class="dataNotice">
       <b>데이터 기준</b>
-      eBay Active는 현재 호가이며 실거래가가 아닙니다. PSA10 eBay는 공식 PSA10 가격이 없을 때만 보조로 표시합니다.
+      eBay Active는 현재 호가이며 실거래가가 아닙니다. 일본어판 PSA10 eBay는 공식 일본어판 PSA10 가격이 없을 때만 보조로 표시합니다.
       영문판 NM eBay와 박스가는 중국권 발송지와 명확한 오탐을 제외한 참고값입니다. 일본판 NM은 일본 매장 기준입니다.
     </div>`;
 }
