@@ -469,6 +469,53 @@
       .quantMetric.good strong { color: var(--accent); }
       .quantMetric.watch strong { color: #f3c74f; }
       .quantMetric.risk strong { color: #ff6683; }
+      .analysisSummary {
+        grid-column: 1 / -1;
+        display: grid;
+        gap: 7px;
+        padding: 12px;
+        border: 1px solid #283142;
+        border-radius: 9px;
+        background: rgba(16,215,160,.06);
+      }
+      .analysisSummary h3 {
+        margin: 0;
+        color: #eef2ff;
+        font-size: 14px;
+        line-height: 1.25;
+      }
+      .analysisSummary p {
+        margin: 0;
+        color: #b7c0d1;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      .analysisBreakdown {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .analysisBreakdown span {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+        padding: 9px 10px;
+        border-radius: 8px;
+        border: 1px solid #242b38;
+        background: #101620;
+      }
+      .analysisBreakdown b {
+        color: #eef2ff;
+        font-size: 11px;
+        font-weight: 950;
+      }
+      .analysisBreakdown small {
+        color: #8d96a8;
+        font-size: 11px;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
       .riskTags {
         grid-column: 1 / -1;
         display: flex;
@@ -496,6 +543,7 @@
         .quantPanel { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px; gap: 7px; }
         .quantMetric { padding: 9px; }
         .quantMetric strong { font-size: 18px; }
+        .analysisBreakdown { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       .boxMarket {
         margin-top: 12px; padding: 12px; border: 1px solid #263040; border-radius: 6px;

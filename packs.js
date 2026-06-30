@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630supplydemand";
+const DATA_VERSION = "20260630analysis";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -431,6 +431,22 @@ function renderSetAnalytics(set) {
   const topSources = [...new Set(a.pricedCards.map((row) => row.card.name || row.card.number).filter(Boolean))]
     .slice(0, 3)
     .join(" · ");
+  const supplySentence =
+    a.supply.activeCount <= 10
+      ? `eBay Active 매물이 ${a.supply.activeCount}건으로 공급이 타이트합니다.`
+      : `eBay Active 매물이 ${a.supply.activeCount}건으로 공급은 ${a.supply.label} 수준입니다.`;
+  const demandSentence =
+    a.demand.recentSales > 0
+      ? `최근 4주 Sold ${a.demand.recentSales}건, 이전 4주 대비 ${demandTrend}로 ${a.demand.label} 상태입니다.`
+      : "최근 Sold 표본이 부족해 수요 판단은 보수적으로 봐야 합니다.";
+  const supportSentence =
+    a.supportRatio == null
+      ? "박스 가격 또는 카드 가격 표본이 부족해 카드 지지력은 계산 대기 상태입니다."
+      : `카드값÷박스값은 ${support}로 TOP10 카드 가격이 박스 가격을 ${a.supportRatio >= 3 ? "강하게" : "일부"} 받칩니다.`;
+  const riskSentence =
+    a.spreadRatio != null && a.spreadRatio > 0.45
+      ? `다만 박스 가격차가 ${spread}라 매수가는 Sold와 낮은 Active 호가를 같이 확인해야 합니다.`
+      : "가격 분산은 과도하지 않아 현재 표본 안에서는 비교가 비교적 쉽습니다.";
 
   return `
     <div class="quantPanel">
@@ -463,6 +479,19 @@ function renderSetAnalytics(set) {
         <span>박스 가격차</span>
         <strong>${spread}</strong>
         <small>같은 박스 최고가·최저가 차이</small>
+      </div>
+      <div class="analysisSummary">
+        <h3>분석 요약</h3>
+        <p>${demandSentence}</p>
+        <p>${supplySentence}</p>
+        <p>${supportSentence}</p>
+        <p>${riskSentence}</p>
+      </div>
+      <div class="analysisBreakdown">
+        <span><b>공급</b><small>Active ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건 · ${a.supply.label}</small></span>
+        <span><b>수요</b><small>최근 Sold ${a.demand.recentSales}건 · 이전 ${a.demand.previousSales}건 · ${demandTrend}</small></span>
+        <span><b>카드 지지</b><small>히트카드 파워 ${fmtKrw(a.hitPower || 0)} · ${support}</small></span>
+        <span><b>주의</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span>
       </div>
       <div class="riskTags">
         ${a.risks.map((risk) => `<span>${risk}</span>`).join("")}
