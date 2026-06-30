@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630clean";
+const DATA_VERSION = "20260630align";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -548,7 +548,7 @@ function renderStats() {
   const readyCount = (codes) => codes.filter((c) => (d.sets[c]?.cards || []).length > 0).length;
   const jpReady = readyCount(d.jp.list);
   const extraReady = readyCount(d.extra.list);
-  document.querySelector("#statJp").textContent = `${jpReady}/${d.jp.list.length}`;
+  document.querySelector("#statJp").textContent = `OP ${jpReady}/${d.jp.list.length}`;
   document.querySelector("#statExtra").textContent = `${extraReady}/${d.extra.list.length}`;
 }
 
