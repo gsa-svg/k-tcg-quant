@@ -65,7 +65,7 @@
         font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
 
-      /* 쿠팡 파트너스 광고 자리 */
+      /* Google AdSense 광고 자리 */
       .adSlot { margin: 14px clamp(16px,4vw,52px) 0; }
       .adSlot.inlineAd { margin: 22px 0 0; }
       .adInner {
@@ -704,15 +704,15 @@
     </header>
 
     <main>
-      <!-- ===== 쿠팡 파트너스 광고 자리 =====
+      <!-- ===== Google AdSense 광고 자리 (상단) =====
            아래 .adInner 안의 placeholder(span)를 지우고
-           쿠팡 파트너스에서 발급받은 배너 코드(<iframe ...> 또는 <script ...>)를 그대로 붙여넣으세요. -->
-      <aside class="adSlot" aria-label="광고 영역">
-        <div class="adInner" id="coupangAd">
-          <span class="adLabel">쿠팡 파트너스 광고 자리 — 배너 코드를 여기에 넣으세요</span>
+           AdSense에서 발급받은 반응형 디스플레이 광고 코드(<ins ...> + <script>)를 그대로 붙여넣으세요. -->
+      <aside class="adSlot adsenseSlot" aria-label="Google AdSense 광고 영역 (상단)">
+        <div class="adInner" id="adsenseTopAd">
+          <span class="adLabel">Google AdSense 광고 자리 (상단) — 반응형 디스플레이 코드를 여기에 넣으세요</span>
         </div>
         <p class="adDisclosure">
-          이 페이지에는 쿠팡 파트너스 등 제휴 광고가 표시될 수 있으며, 일부 링크를 통해 구매가 발생하면 일정액의 수수료를 제공받습니다.
+          이 페이지에는 Google AdSense 광고가 표시될 수 있습니다. 표시되는 광고는 Google이 선택합니다.
         </p>
       </aside>
 
@@ -756,9 +756,9 @@
 
       <section class="packSection">
         <div class="packGrid" id="packList"></div>
-        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense 광고 영역">
+        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense 광고 영역 (본문)">
           <div class="adInner" id="adsensePackGridAd">
-            <span class="adLabel">Google AdSense 광고 자리 — 반응형 디스플레이 코드를 여기에 넣으세요</span>
+            <span class="adLabel">Google AdSense 광고 자리 (본문) — 반응형 디스플레이 코드를 여기에 넣으세요</span>
           </div>
         </aside>
         <div id="detail"></div>
