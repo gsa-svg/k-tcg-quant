@@ -57,6 +57,16 @@ function marketKrw(value, currency) {
   return null;
 }
 
+// 글로벌 표기: 달러 메인 + 원화·엔화 병기. 원본 통화는 환산 기준점으로만 사용.
+function triMain(value, currency) {
+  const fx = (state.data && state.data.fx) || {};
+  if (value == null) return { usd: null, krw: null, jpy: null, main: "-", sub: "" };
+  const krw = marketKrw(value, currency);
+  const usd = currency === "USD" ? value : krw / (fx.usdKrw || 1388.2);
+  const jpy = currency === "JPY" ? value : krw / (fx.jpyKrw || 9.1);
+  return { usd, krw, jpy, main: fmtUsd(usd), sub: `${fmtKrw(krw)} · ${fmtJpy(jpy)}` };
+}
+
 function priceBandRows(market) {
   const rows = [
     ["High", market.high],
@@ -66,12 +76,12 @@ function priceBandRows(market) {
 
   return rows
     .map(([label, value]) => {
-      const krwValue = marketKrw(value, market.currency);
+      const t = triMain(value, market.currency);
       return `
         <span class="bandRow">
           <i>${label}</i>
-          <b>${krwValue == null ? "-" : fmtKrw(krwValue)}</b>
-          <small>${fmtOriginalCurrency(value, market.currency)}</small>
+          <b>${t.main}</b>
+          <small>${t.sub}</small>
         </span>`;
     })
     .join("");
@@ -96,11 +106,13 @@ function priceLines(c) {
       </span>`;
   } else if (c.nmJpy != null) {
     const nmVenue = priceVenueLabel(c.nmVenue);
-    h += `<span class="pl nm"><i>일본판 NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} <em>${nmVenue}</em></small></span>`;
+    const t = triMain(c.nmJpy, "JPY");
+    h += `<span class="pl nm"><i>일본판 NM</i> <b>${t.main}</b> <small>${t.sub} <em>${nmVenue}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
-    h += `<span class="pl psa"><i>일본어판 PSA10</i> <b>${fmtKrw(c.psa10Usd * (fx.usdKrw || 1388.2))}</b> <small>${fmtUsd(c.psa10Usd)}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
+    const t = triMain(c.psa10Usd, "USD");
+    h += `<span class="pl psa"><i>일본어판 PSA10</i> <b>${t.main}</b> <small>${t.sub}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
   } else if (c.psa10Ebay?.sampleSize > 0) {
     const psa10EbaySourceLabel = c.psa10Ebay.soldBased ? "eBay Sold" : "eBay Active";
     h += `
@@ -132,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630nm3";
+const DATA_VERSION = "20260630usd";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -356,7 +368,7 @@ function renderSetAnalytics(set) {
       <div class="quantMetric ${scoreClass(a.cardPowerScore)}">
         <span>카드 지지력</span>
         <strong>${support}</strong>
-        <small>히트카드 파워 ${fmtKrw(a.hitPower || 0)}</small>
+        <small>히트카드 파워 ${triMain(a.hitPower || 0, "KRW").main}</small>
       </div>
       <div class="quantMetric ${scoreClass(a.liquidityScore)}">
         <span>유동성</span>
@@ -403,7 +415,7 @@ function renderBoxSeries(set) {
   const fmtD = (d) => d.slice(5).replace("-", "/");
   return `
     <div class="boxChart">
-      <div class="bcHead"><span class="bmLabel">박스 시세 추이 · 최근 3개월 (eBay Sold)</span><strong>${fmtKrw(last.p)}</strong></div>
+      <div class="bcHead"><span class="bmLabel">박스 시세 추이 · 최근 3개월 (eBay Sold)</span><strong>${triMain(last.p, "KRW").main} <small style="font-weight:400;opacity:.7">${triMain(last.p, "KRW").sub}</small></strong></div>
       <svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="박스 시세 추이 그래프">
         <defs><linearGradient id="bcg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#10d7a0" stop-opacity=".35"/><stop offset="1" stop-color="#10d7a0" stop-opacity="0"/>
@@ -412,7 +424,7 @@ function renderBoxSeries(set) {
         <path d="${line}" fill="none" stroke="#10d7a0" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
         <circle cx="${X(maxX).toFixed(1)}" cy="${Y(last.p).toFixed(1)}" r="4.5" fill="#10d7a0"/>
       </svg>
-      <div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span>최고 ${fmtKrw(Math.max(...ys))} · 최저 ${fmtKrw(Math.min(...ys))}</span><span>${fmtD(last.d)}</span></div>
+      <div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span>최고 ${triMain(Math.max(...ys), "KRW").main} · 최저 ${triMain(Math.min(...ys), "KRW").main}</span><span>${fmtD(last.d)}</span></div>
       <p class="note">${s.source}. 주간 중앙값이며, 표본이 적은 주는 변동이 큽니다. 단일 박스 기준(케이스·로트 제외).</p>
     </div>`;
 }
@@ -659,13 +671,13 @@ function historyChart(history, market) {
   });
   return `
     <div class="cardChart">
-      <div class="cardChartHead"><strong>3?? NM ???</strong><span>${points[0].date} ~ ${points[points.length - 1].date}</span></div>
-      <svg viewBox="0 0 600 180" role="img" aria-label="3?? NM ?? ???">
+      <div class="cardChartHead"><strong>3개월 NM 추이</strong><span>${points[0].date} ~ ${points[points.length - 1].date}</span></div>
+      <svg viewBox="0 0 600 180" role="img" aria-label="3개월 NM 시세 추이">
         <path d="M24 150H576" class="chartAxis"></path>
         <polyline points="${coords.map((p) => `${p.x},${p.y}`).join(" ")}" class="chartLine"></polyline>
         ${coords.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" class="chartDot"></circle>`).join("")}
       </svg>
-      <div class="cardChartRange"><span>${fmtKrw(min)}</span><span>${fmtKrw(max)}</span></div>
+      <div class="cardChartRange"><span>${triMain(min, "KRW").main}</span><span>${triMain(max, "KRW").main}</span></div>
     </div>`;
 }
 
@@ -768,7 +780,7 @@ function renderDetail() {
   if (state.view === "psa") {
     body = renderPsaTable(set.psa);
   } else {
-    const fxNote = `<p class="srcNote">환율 기준: ¥${state.data.fx.jpyKrw} / $${state.data.fx.usdKrw}. 원화는 비교용 환산값입니다.</p>`;
+    const fxNote = `<p class="srcNote">시세는 달러(USD) 기준 표기 · 원화·엔화는 환율 환산 병기. 적용 환율: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>`;
     body = renderSourceLegend(set) + fxNote + renderHitList(cards);
   }
 
