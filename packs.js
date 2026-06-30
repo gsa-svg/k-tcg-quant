@@ -583,7 +583,7 @@ function renderDetail() {
         </div>
         ${ebayLinks(pack)}
         ${state.lang !== "kr" ? renderBoxSeries(set) : ""}
-        ${state.lang !== "kr" ? renderBoxMarket(set) : ""}
+        ${state.lang !== "kr" && !set.boxSeries ? renderBoxMarket(set) : ""}
         ${renderDataNotice()}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 PSA10확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
