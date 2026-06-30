@@ -11,6 +11,7 @@ const envPath = path.join(projectRoot, ".env");
 const excludedLocationCountries = new Set(["CN", "HK", "MO"]);
 const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangzhou|shanghai|beijing|\bcn\b|\bhk\b)/i;
 const minimumSampleSize = 1;
+const minimumMatchScore = 80;
 
 function loadEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -137,7 +138,7 @@ function hasVariantSignal(title, card) {
   return true;
 }
 
-function isJapaneseRawNmCard(item, setCode, card) {
+function scoreJapaneseRawNmCard(item, setCode, card) {
   const title = item.title || "";
   const condition = item.condition || "";
   const number = normalizeNumber(card.number, setCode);
@@ -154,17 +155,34 @@ function isJapaneseRawNmCard(item, setCode, card) {
   ];
   const tokens = nameTokens(card);
   const hasName = tokens.length === 0 || tokens.every((token) => new RegExp(`\\b${token}\\b`, "i").test(title));
+  const hasVariant = hasVariantSignal(title, card);
+  const hasRawCondition = !/graded/i.test(condition);
+  const hasExpectedNumber = hasNumber(title, number);
+  const hasConflict = hasConflictingCardNumber(title, number);
+  const hasNegative = negative.some((pattern) => pattern.test(title));
 
-  return (
+  let score = 0;
+  if (positive.every((pattern) => pattern.test(title))) score += 15;
+  if (hasJapaneseSignal) score += 20;
+  if (hasExpectedNumber) score += 25;
+  if (hasName) score += 15;
+  if (hasVariant) score += 20;
+  if (hasRawCondition) score += 10;
+  if (hasConflict) score -= 60;
+  if (hasNegative) score -= 70;
+
+  const matched =
     positive.every((pattern) => pattern.test(title)) &&
     hasJapaneseSignal &&
-    !negative.some((pattern) => pattern.test(title)) &&
-    !/graded/i.test(condition) &&
-    hasNumber(title, number) &&
-    !hasConflictingCardNumber(title, number) &&
+    !hasNegative &&
+    hasRawCondition &&
+    hasExpectedNumber &&
+    !hasConflict &&
     hasName &&
-    hasVariantSignal(title, card)
-  );
+    hasVariant &&
+    score >= minimumMatchScore;
+
+  return { matched, score };
 }
 
 function analyzeItems(items, setCode, card) {
@@ -175,26 +193,32 @@ function analyzeItems(items, setCode, card) {
     const value = Number(item.price?.value);
     const currency = item.price?.currency;
     if (!Number.isFinite(value) || !currency) continue;
-    if (!isJapaneseRawNmCard(item, setCode, card)) continue;
+    const match = scoreJapaneseRawNmCard(item, setCode, card);
+    if (!match.matched) continue;
     if (isExcludedSeller(item)) {
       excludedCount += 1;
       continue;
     }
-    kept.push({ value, currency });
+    kept.push({ value, currency, matchScore: match.score });
   }
 
   const grouped = kept.reduce((acc, item) => {
     acc[item.currency] = acc[item.currency] || [];
-    acc[item.currency].push(item.value);
+    acc[item.currency].push(item);
     return acc;
   }, {});
   const currency = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length)[0]?.[0] || "USD";
-  const rawValues = (grouped[currency] || []).sort((a, b) => a - b);
+  const selectedItems = grouped[currency] || [];
+  const rawValues = selectedItems.map((item) => item.value).sort((a, b) => a - b);
   const { values, outlierCount } = removePriceOutliers(rawValues);
   const referenceFloor = currency === "USD" && Number.isFinite(card.priceUsd) ? card.priceUsd * 0.25 : null;
   const qualityFailed =
     values.length < minimumSampleSize ||
     (referenceFloor != null && values.length > 0 && percentile(values, 0.5) < referenceFloor);
+  const averageMatchScore = selectedItems.length
+    ? Number((selectedItems.reduce((sum, item) => sum + item.matchScore, 0) / selectedItems.length).toFixed(1))
+    : 0;
+  const confidence = qualityFailed ? "hidden" : values.length >= 5 ? "A" : values.length >= 2 ? "B" : "C";
 
   return {
     currency,
@@ -204,6 +228,8 @@ function analyzeItems(items, setCode, card) {
     sampleSize: qualityFailed ? 0 : values.length,
     excludedCount: excludedCount + outlierCount + (qualityFailed ? values.length : 0),
     outlierCount,
+    matchScore: qualityFailed ? 0 : averageMatchScore,
+    confidence,
   };
 }
 
@@ -258,6 +284,8 @@ async function main() {
           middle: market.middle,
           high: market.high,
           sampleSize: market.sampleSize,
+          matchScore: market.matchScore,
+          confidence: market.confidence,
         }),
       };
       updated += 1;

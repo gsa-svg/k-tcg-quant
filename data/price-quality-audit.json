@@ -1,12 +1,76 @@
 {
- "updated": "2026-06-30T01:28:57.129Z",
+ "updated": "2026-06-30T04:54:16.038Z",
  "hideSuspiciousNm": false,
  "summary": {
-  "issues": 8,
+  "issues": 25,
   "block": 0,
-  "review": 8
+  "review": 25
  },
  "issues": [
+  {
+   "severity": "review",
+   "code": "OP-01",
+   "rank": 3,
+   "number": "OP01-002",
+   "name": "Trafalgar Law 002 Parallel",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 198.97,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-04",
+   "rank": 6,
+   "number": "OP02-099",
+   "name": "Sakazuki SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 68.29,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-05",
+   "rank": 7,
+   "number": "OP01-121",
+   "name": "Yamato SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 217.09,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-06",
+   "rank": 6,
+   "number": "OP06-118",
+   "name": "Roronoa Zoro Alternate Art",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 44.99,
+    "currency": "USD"
+   }
+  },
   {
    "severity": "review",
    "code": "EB-01",
@@ -22,6 +86,54 @@
     "nmVenue": "遊々亭",
     "englishKrw": 158088,
     "ratio": 0.0184
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-07",
+   "rank": 2,
+   "number": "OP06-101",
+   "name": "O Nami SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 447.55,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-08",
+   "rank": 2,
+   "number": "OP07-109",
+   "name": "Monkey D. Luffy TR",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 200,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-08",
+   "rank": 7,
+   "number": "ST06-006",
+   "name": "Tashigi SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 98.77,
+    "currency": "USD"
    }
   },
   {
@@ -56,6 +168,54 @@
     "nmVenue": "遊々亭",
     "englishKrw": 1094179,
     "ratio": 0.0042
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-09",
+   "rank": 6,
+   "number": "OP08-106",
+   "name": "Nami SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 3,
+    "confidence": "B",
+    "matchScore": 105,
+    "middle": 386.48,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-10",
+   "rank": 8,
+   "number": "ST12-012",
+   "name": "Charlotte Pudding SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 41.38,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-10",
+   "rank": 9,
+   "number": "EB01-056",
+   "name": "Charlotte Flampe SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 58.06,
+    "currency": "USD"
    }
   },
   {
@@ -111,6 +271,38 @@
   },
   {
    "severity": "review",
+   "code": "OP-11",
+   "rank": 6,
+   "number": "ST16-004",
+   "name": "Shanks SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 142.3,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "PRB-02",
+   "rank": 7,
+   "number": "OP06-007",
+   "name": "Shanks SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 169.58,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
    "code": "OP-14",
    "rank": 3,
    "number": "PRB02-006",
@@ -128,6 +320,70 @@
   },
   {
    "severity": "review",
+   "code": "EB-03",
+   "rank": 4,
+   "number": "EB03-061",
+   "name": "Uta 061 Manga",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 1366.08,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "EB-03",
+   "rank": 6,
+   "number": "EB03-045",
+   "name": "Perona 045 SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 263.18,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "EB-03",
+   "rank": 7,
+   "number": "EB03-003",
+   "name": "Uta 003 SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 260.69,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-15",
+   "rank": 2,
+   "number": "EB04-044",
+   "name": "Koby EB04 044 Manga",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 591.97,
+    "currency": "USD"
+   }
+  },
+  {
+   "severity": "review",
    "code": "OP-15",
    "rank": 6,
    "number": "OP13-037",
@@ -141,6 +397,22 @@
     "nmVenue": "カードラッシュ",
     "englishKrw": 434007,
     "ratio": 0.0025
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-15",
+   "rank": 7,
+   "number": "OP13-031",
+   "name": "Trafalgar Law SP",
+   "field": "japaneseNmEbay",
+   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "current": {
+    "sampleSize": 1,
+    "confidence": "C",
+    "matchScore": 105,
+    "middle": 226.54,
+    "currency": "USD"
    }
   }
  ]

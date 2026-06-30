@@ -133,6 +133,39 @@ function auditPsa10Price(issues, code, card) {
   }
 }
 
+function auditJapaneseNmEbay(issues, code, card) {
+  const market = card.japaneseNmEbay;
+  if (!market) return;
+
+  if (market.soldBased !== true) {
+    addIssue(issues, {
+      severity: "review",
+      code,
+      card,
+      field: "japaneseNmEbay",
+      reason: "japanese_nm_ebay_active_not_sold_price",
+      current: {
+        sampleSize: market.sampleSize,
+        confidence: market.confidence || null,
+        matchScore: market.matchScore || null,
+        middle: market.middle,
+        currency: market.currency,
+      },
+    });
+  }
+
+  if ((market.matchScore || 0) < 80 || market.sampleSize < 1) {
+    addIssue(issues, {
+      severity: "block",
+      code,
+      card,
+      field: "japaneseNmEbay",
+      reason: "japanese_nm_ebay_match_quality_too_low",
+      current: market,
+    });
+  }
+}
+
 function hideBlockedNm(data, issues) {
   const blockedNmKeys = new Set(
     issues
@@ -164,6 +197,7 @@ function main() {
     for (const card of set.cards || []) {
       auditNmPrice(issues, code, card, fx);
       auditPsa10Price(issues, code, card);
+      auditJapaneseNmEbay(issues, code, card);
     }
   }
 

@@ -92,7 +92,7 @@ function priceLines(c) {
       <span class="pl psaEbay">
         <i>${"\uC77C\uBCF8\uD310 NM eBay"}</i>
         <span class="bandRows">${priceBandRows(c.japaneseNmEbay)}</span>
-        <small>eBay Active · ${"\uD45C\uBCF8"} ${c.japaneseNmEbay.sampleSize}${"\uAC74"}</small>
+        <small>eBay Active · ${"\uD45C\uBCF8"} ${c.japaneseNmEbay.sampleSize}${"\uAC74"} · ${"\uC2E0\uB8B0"} ${c.japaneseNmEbay.confidence || "C"}</small>
       </span>`;
   } else if (c.nmJpy != null) {
     const nmVenue = priceVenueLabel(c.nmVenue);
@@ -529,7 +529,7 @@ function cardMarketPanel(card) {
     <div class="cardMarketPanel">
       <h3>${"\uC77C\uBCF8\uD310 NM eBay"}</h3>
       <div class="bandRows cardMarketRows">${priceBandRows(market)}</div>
-      <p>eBay Active · ${"\uD45C\uBCF8"} ${market.sampleSize}${"\uAC74"} · ${market.updated || ""}</p>
+      <p>eBay Active · ${"\uD45C\uBCF8"} ${market.sampleSize}${"\uAC74"} · ${"\uC2E0\uB8B0"} ${market.confidence || "C"} · ${market.updated || ""}</p>
       ${historyChart(market.history, market)}
     </div>`;
 }
