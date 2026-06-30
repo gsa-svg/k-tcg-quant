@@ -75,14 +75,39 @@ a {
 .nav {
   display: flex;
   align-items: center;
-  gap: 22px;
-  color: var(--muted);
-  font-size: 14px;
+  gap: 10px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.nav a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #dfe6f7;
+}
+
+.nav a[aria-current="page"],
+.nav a:first-child {
+  background: rgba(16, 215, 160, 0.12);
+  border-color: rgba(16, 215, 160, 0.34);
+  color: var(--accent);
 }
 
 .nav a:hover,
 .footer a:hover {
   color: var(--ink);
+}
+
+.nav a:hover {
+  background: #151923;
+  border-color: #2b3040;
 }
 
 .hero {
@@ -748,11 +773,19 @@ h2 {
 
   .nav {
     width: 100%;
-    flex-wrap: wrap;
-    overflow-x: visible;
-    padding-bottom: 4px;
-    gap: 12px 18px;
-    white-space: normal;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 6px;
+    gap: 8px;
+    scrollbar-width: thin;
+  }
+
+  .nav a {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 14px;
   }
 
   .hero,
@@ -791,6 +824,41 @@ h2 {
     max-width: 100vw;
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .topbar {
+    min-height: 0;
+    gap: 12px;
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+
+  .brand strong {
+    font-size: 18px;
+  }
+
+  .brand small {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-left: -2px;
+    margin-right: -2px;
+    width: calc(100% + 4px);
+    overflow: visible;
+    gap: 8px;
+  }
+
+  .nav a {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 10px;
+    font-size: 13px;
+    background: #121722;
+    border-color: #252c3a;
   }
 
   .riskGrid {
