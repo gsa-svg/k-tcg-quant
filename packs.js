@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630align";
+const DATA_VERSION = "20260630supplydemand";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -252,6 +252,12 @@ function scoreClass(score) {
   return "risk";
 }
 
+function pressureClass(score) {
+  if (score >= 80) return "risk";
+  if (score >= 60) return "watch";
+  return "good";
+}
+
 function boxMidKrw(set) {
   const active = set.boxMarket?.jp?.ebayActive;
   const activeMid = active?.middle != null ? marketKrw(active.middle, active.currency) : null;
@@ -301,6 +307,64 @@ function cardComparableKrw(card) {
   return null;
 }
 
+function soldDemandStats(set) {
+  const points = (set.boxSeries?.points || [])
+    .filter((point) => point?.d && Number.isFinite(point.n))
+    .slice()
+    .sort((a, b) => a.d.localeCompare(b.d));
+  const recent = points.slice(-4);
+  const previous = points.slice(-8, -4);
+  const recentSales = recent.reduce((sum, point) => sum + (point.n || 0), 0);
+  const previousSales = previous.reduce((sum, point) => sum + (point.n || 0), 0);
+  const trend =
+    previousSales > 0
+      ? (recentSales - previousSales) / previousSales
+      : recentSales > 0
+        ? 1
+        : 0;
+  const score = Math.max(0, Math.min(100, Math.round(recentSales * 10 + trend * 22)));
+  const label =
+    recentSales >= 8 && trend >= 0.15
+      ? "수요 상승"
+      : recentSales >= 5
+        ? "수요 양호"
+        : recentSales <= 2
+          ? "수요 약함"
+          : trend < -0.25
+            ? "수요 둔화"
+            : "수요 보통";
+
+  return { score, label, recentSales, previousSales, trend };
+}
+
+function supplyPressureStats(set) {
+  const active = set.boxMarket?.jp?.ebayActive;
+  const activeCount = active?.sampleSize || 0;
+  const excludedCount = active?.excludedCount || 0;
+  const score =
+    activeCount <= 2
+      ? 95
+      : activeCount <= 5
+        ? 82
+        : activeCount <= 10
+          ? 65
+          : activeCount <= 18
+            ? 42
+            : 22;
+  const label =
+    activeCount <= 2
+      ? "극소 매물"
+      : activeCount <= 5
+        ? "낮은 재고"
+        : activeCount <= 10
+          ? "타이트"
+          : activeCount <= 18
+            ? "보통"
+            : "넉넉";
+
+  return { score, label, activeCount, excludedCount };
+}
+
 function setAnalytics(set) {
   const cards = (set.cards || []).slice(0, 10);
   const box = boxMidKrw(set);
@@ -324,11 +388,18 @@ function setAnalytics(set) {
 
   const liquidityScore = Math.min(100, Math.round(((box?.sampleSize || 0) / 10) * 55 + (pricedCards.length / 10) * 45));
   const cardPowerScore = supportRatio == null ? 0 : Math.min(100, Math.round(supportRatio * 24));
+  const demand = soldDemandStats(set);
+  const supply = supplyPressureStats(set);
   const confidencePenalty = pricedCards.filter((row) => row.market.confidence === "C").length * 3;
   const riskPenalty = (spreadRatio != null && spreadRatio > 0.45 ? 12 : 0) + (!box?.soldBased ? 8 : 0) + confidencePenalty;
-  const investmentScore = Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.52 + liquidityScore * 0.36 - riskPenalty)));
+  const investmentScore = Math.max(
+    0,
+    Math.min(100, Math.round(cardPowerScore * 0.42 + liquidityScore * 0.24 + demand.score * 0.2 + supply.score * 0.14 - riskPenalty)),
+  );
 
   const risks = [];
+  if (supply.score >= 65) risks.push(`공급 ${supply.label}`);
+  if (demand.score >= 70 || demand.score <= 25) risks.push(demand.label);
   if (!box) risks.push("박스가 없음");
   else if (!box.soldBased) risks.push("박스 Active 호가");
   if ((box?.sampleSize || 0) < 3) risks.push("박스 표본 부족");
@@ -344,6 +415,8 @@ function setAnalytics(set) {
     supportRatio,
     liquidityScore,
     cardPowerScore,
+    demand,
+    supply,
     investmentScore,
     spreadRatio,
     risks,
@@ -354,6 +427,7 @@ function renderSetAnalytics(set) {
   const a = setAnalytics(set);
   const support = a.supportRatio == null ? "-" : `${a.supportRatio.toFixed(1)}x`;
   const spread = a.spreadRatio == null ? "-" : `${Math.round(a.spreadRatio * 100)}%`;
+  const demandTrend = a.demand.trend > 0 ? `+${Math.round(a.demand.trend * 100)}%` : `${Math.round(a.demand.trend * 100)}%`;
   const topSources = [...new Set(a.pricedCards.map((row) => row.card.name || row.card.number).filter(Boolean))]
     .slice(0, 3)
     .join(" · ");
@@ -374,6 +448,16 @@ function renderSetAnalytics(set) {
         <span>거래 활발도</span>
         <strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong>
         <small>수집 표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
+      </div>
+      <div class="quantMetric ${pressureClass(a.supply.score)}">
+        <span>공급압박</span>
+        <strong>${a.supply.score}<small>/100 · ${a.supply.label}</small></strong>
+        <small>eBay Active ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건</small>
+      </div>
+      <div class="quantMetric ${scoreClass(a.demand.score)}">
+        <span>수요강도</span>
+        <strong>${a.demand.score}<small>/100 · ${a.demand.label}</small></strong>
+        <small>최근 4주 Sold ${a.demand.recentSales}건 · 이전 대비 ${demandTrend}</small>
       </div>
       <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}">
         <span>박스 가격차</span>

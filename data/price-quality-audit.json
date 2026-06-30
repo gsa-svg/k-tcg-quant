@@ -1,107 +1,78 @@
 {
- "updated": "2026-06-30T05:13:59.515Z",
+ "updated": "2026-06-30T08:06:12.347Z",
  "hideSuspiciousNm": false,
  "summary": {
-  "issues": 25,
+  "issues": 33,
   "block": 0,
-  "review": 25
+  "review": 33
  },
  "issues": [
   {
    "severity": "review",
-   "code": "OP-01",
-   "rank": 3,
-   "number": "OP01-002",
-   "name": "Trafalgar Law 002 Parallel",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "code": "OP-05",
+   "rank": 8,
+   "number": "OP05-100",
+   "name": "Enel 100 SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 198.97,
-    "currency": "USD"
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-04",
-   "rank": 6,
-   "number": "OP02-099",
-   "name": "Sakazuki SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
-   "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 68.29,
-    "currency": "USD"
+    "nmJpy": 780,
+    "nmKrw": 7098,
+    "priceUsd": 172.41,
+    "nmVenue": "遊々亭",
+    "englishKrw": 239340,
+    "ratio": 0.0297
    }
   },
   {
    "severity": "review",
    "code": "OP-05",
-   "rank": 7,
-   "number": "OP01-121",
-   "name": "Yamato SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "rank": 9,
+   "number": "OP04-044",
+   "name": "Kaido 044 SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 217.09,
-    "currency": "USD"
+    "nmJpy": 580,
+    "nmKrw": 5278,
+    "priceUsd": 142.65,
+    "nmVenue": "遊々亭",
+    "englishKrw": 198027,
+    "ratio": 0.0267
    }
   },
   {
    "severity": "review",
    "code": "OP-06",
-   "rank": 6,
-   "number": "OP06-118",
-   "name": "Roronoa Zoro Alternate Art",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
-   "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 44.99,
-    "currency": "USD"
-   }
-  },
-  {
-   "severity": "review",
-   "code": "EB-01",
-   "rank": 3,
-   "number": "EB01-061",
-   "name": "Mr2BonKurei Bentham Alternate Art",
+   "rank": 2,
+   "number": "OP04-064",
+   "name": "Ms All Sunday SP",
    "field": "nmJpy",
    "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "nmJpy": 320,
-    "nmKrw": 2912,
-    "priceUsd": 113.88,
+    "nmJpy": 980,
+    "nmKrw": 8918,
+    "priceUsd": 313.35,
     "nmVenue": "遊々亭",
-    "englishKrw": 158088,
-    "ratio": 0.0184
+    "englishKrw": 434992,
+    "ratio": 0.0205
    }
   },
   {
    "severity": "review",
-   "code": "OP-07",
-   "rank": 2,
-   "number": "OP06-101",
-   "name": "O Nami SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "code": "OP-06",
+   "rank": 3,
+   "number": "ST01-007",
+   "name": "Nami TR",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 447.55,
-    "currency": "USD"
+    "nmJpy": 120,
+    "nmKrw": 1092,
+    "priceUsd": 268.28,
+    "nmVenue": "遊々亭",
+    "englishKrw": 372426,
+    "ratio": 0.0029
    }
   },
   {
@@ -110,30 +81,15 @@
    "rank": 2,
    "number": "OP07-109",
    "name": "Monkey D. Luffy TR",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 200,
-    "currency": "USD"
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-08",
-   "rank": 7,
-   "number": "ST06-006",
-   "name": "Tashigi SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
-   "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 98.77,
-    "currency": "USD"
+    "nmJpy": 320,
+    "nmKrw": 2912,
+    "priceUsd": 455,
+    "nmVenue": "遊々亭",
+    "englishKrw": 631631,
+    "ratio": 0.0046
    }
   },
   {
@@ -151,6 +107,23 @@
     "nmVenue": "遊々亭",
     "englishKrw": 5737889,
     "ratio": 0.0314
+   }
+  },
+  {
+   "severity": "review",
+   "code": "PRB-01",
+   "rank": 5,
+   "number": "OP01-120",
+   "name": "Shanks Manga",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 500,
+    "nmKrw": 4550,
+    "priceUsd": 1250,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1735250,
+    "ratio": 0.0026
    }
   },
   {
@@ -176,46 +149,66 @@
    "rank": 6,
    "number": "OP08-106",
    "name": "Nami SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 3,
-    "confidence": "B",
-    "matchScore": 105,
-    "middle": 386.48,
-    "currency": "USD"
+    "nmJpy": 3980,
+    "nmKrw": 36218,
+    "priceUsd": 860.76,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1194907,
+    "ratio": 0.0303
    }
   },
   {
    "severity": "review",
-   "code": "OP-10",
-   "rank": 8,
-   "number": "ST12-012",
-   "name": "Charlotte Pudding SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
-   "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 41.38,
-    "currency": "USD"
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-10",
+   "code": "OP-09",
    "rank": 9,
-   "number": "EB01-056",
-   "name": "Charlotte Flampe SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "number": "OP05-067",
+   "name": "Zoro Juurou SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 58.06,
-    "currency": "USD"
+    "nmJpy": 1780,
+    "nmKrw": 16198,
+    "priceUsd": 581.91,
+    "nmVenue": "遊々亭",
+    "englishKrw": 807807,
+    "ratio": 0.0201
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-10",
+   "rank": 2,
+   "number": "ST15-002",
+   "name": "EdwardNewgate SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 580,
+    "nmKrw": 5278,
+    "priceUsd": 218.33,
+    "nmVenue": "遊々亭",
+    "englishKrw": 303086,
+    "ratio": 0.0174
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-10",
+   "rank": 3,
+   "number": "OP08-052",
+   "name": "Portgas D. Ace TR",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 120,
+    "nmKrw": 1092,
+    "priceUsd": 152.18,
+    "nmVenue": "遊々亭",
+    "englishKrw": 211256,
+    "ratio": 0.0052
    }
   },
   {
@@ -238,6 +231,23 @@
   {
    "severity": "review",
    "code": "EB-02",
+   "rank": 3,
+   "number": "OP08-001",
+   "name": "Tony TonyChopper SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 4980,
+    "nmKrw": 45318,
+    "priceUsd": 2855.84,
+    "nmVenue": "遊々亭",
+    "englishKrw": 3964477,
+    "ratio": 0.0114
+   }
+  },
+  {
+   "severity": "review",
+   "code": "EB-02",
    "rank": 5,
    "number": "OP06-022",
    "name": "Yamato SP",
@@ -250,6 +260,23 @@
     "nmVenue": "遊々亭",
     "englishKrw": 1258417,
     "ratio": 0.036
+   }
+  },
+  {
+   "severity": "review",
+   "code": "EB-02",
+   "rank": 6,
+   "number": "OP08-058",
+   "name": "Charlotte Pudding SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 3980,
+    "nmKrw": 36218,
+    "priceUsd": 833,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1156371,
+    "ratio": 0.0313
    }
   },
   {
@@ -271,34 +298,121 @@
   },
   {
    "severity": "review",
-   "code": "OP-11",
-   "rank": 6,
-   "number": "ST16-004",
-   "name": "Shanks SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "code": "EB-02",
+   "rank": 9,
+   "number": "OP08-002",
+   "name": "Marco SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 142.3,
-    "currency": "USD"
+    "nmJpy": 1280,
+    "nmKrw": 11648,
+    "priceUsd": 680.76,
+    "nmVenue": "遊々亭",
+    "englishKrw": 945031,
+    "ratio": 0.0123
    }
   },
   {
    "severity": "review",
-   "code": "PRB-02",
-   "rank": 7,
-   "number": "OP06-007",
-   "name": "Shanks SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "code": "EB-02",
+   "rank": 10,
+   "number": "OP06-042",
+   "name": "Vinsmoke Reiju SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 169.58,
-    "currency": "USD"
+    "nmJpy": 2980,
+    "nmKrw": 27118,
+    "priceUsd": 679.87,
+    "nmVenue": "遊々亭",
+    "englishKrw": 943796,
+    "ratio": 0.0287
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-11",
+   "rank": 6,
+   "number": "ST16-004",
+   "name": "Shanks SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 780,
+    "nmKrw": 7098,
+    "priceUsd": 154.16,
+    "nmVenue": "遊々亭",
+    "englishKrw": 214005,
+    "ratio": 0.0332
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-12",
+   "rank": 1,
+   "number": "OP09-093",
+   "name": "Marshall D. Teach SP Gold",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 1480,
+    "nmKrw": 13468,
+    "priceUsd": 1580.19,
+    "nmVenue": "遊々亭",
+    "englishKrw": 2193620,
+    "ratio": 0.0061
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-12",
+   "rank": 2,
+   "number": "OP09-093",
+   "name": "Marshall D. Teach SP Silver",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 1480,
+    "nmKrw": 13468,
+    "priceUsd": 993.44,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1379093,
+    "ratio": 0.0098
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-14",
+   "rank": 1,
+   "number": "OP09-051",
+   "name": "Buggy OP09 051 SP Gold",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 1280,
+    "nmKrw": 11648,
+    "priceUsd": 2124.73,
+    "nmVenue": "遊々亭",
+    "englishKrw": 2949550,
+    "ratio": 0.0039
+   }
+  },
+  {
+   "severity": "review",
+   "code": "OP-14",
+   "rank": 2,
+   "number": "OP09-051",
+   "name": "Buggy OP09 051 SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 1280,
+    "nmKrw": 11648,
+    "priceUsd": 1083.86,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1504614,
+    "ratio": 0.0077
    }
   },
   {
@@ -310,28 +424,46 @@
    "field": "nmJpy",
    "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "nmJpy": 2980,
-    "nmKrw": 27118,
+    "nmJpy": 2480,
+    "nmKrw": 22568,
     "priceUsd": 810.76,
-    "nmVenue": "カードラッシュ",
+    "nmVenue": "遊々亭",
     "englishKrw": 1125497,
-    "ratio": 0.0241
+    "ratio": 0.0201
    }
   },
   {
    "severity": "review",
    "code": "EB-03",
-   "rank": 4,
-   "number": "EB03-061",
-   "name": "Uta 061 Manga",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "rank": 1,
+   "number": "EB03-055",
+   "name": "Nico Robin 055 SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 1366.08,
-    "currency": "USD"
+    "nmJpy": 3980,
+    "nmKrw": 36218,
+    "priceUsd": 1221.64,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1695881,
+    "ratio": 0.0214
+   }
+  },
+  {
+   "severity": "review",
+   "code": "EB-03",
+   "rank": 2,
+   "number": "EB03-053",
+   "name": "Nami 053 SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 6980,
+    "nmKrw": 63518,
+    "priceUsd": 1198.57,
+    "nmVenue": "遊々亭",
+    "englishKrw": 1663855,
+    "ratio": 0.0382
    }
   },
   {
@@ -340,46 +472,66 @@
    "rank": 6,
    "number": "EB03-045",
    "name": "Perona 045 SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 263.18,
-    "currency": "USD"
+    "nmJpy": 1980,
+    "nmKrw": 18018,
+    "priceUsd": 370.34,
+    "nmVenue": "遊々亭",
+    "englishKrw": 514106,
+    "ratio": 0.035
    }
   },
   {
    "severity": "review",
    "code": "EB-03",
-   "rank": 7,
-   "number": "EB03-003",
-   "name": "Uta 003 SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "rank": 8,
+   "number": "EB03-031",
+   "name": "Vinsmoke Reiju SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 260.69,
-    "currency": "USD"
+    "nmJpy": 1480,
+    "nmKrw": 13468,
+    "priceUsd": 248.41,
+    "nmVenue": "遊々亭",
+    "englishKrw": 344843,
+    "ratio": 0.0391
    }
   },
   {
    "severity": "review",
-   "code": "OP-15",
-   "rank": 2,
-   "number": "EB04-044",
-   "name": "Koby EB04 044 Manga",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "code": "EB-03",
+   "rank": 9,
+   "number": "EB03-042",
+   "name": "Koala SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 591.97,
-    "currency": "USD"
+    "nmJpy": 980,
+    "nmKrw": 8918,
+    "priceUsd": 193.56,
+    "nmVenue": "遊々亭",
+    "englishKrw": 268700,
+    "ratio": 0.0332
+   }
+  },
+  {
+   "severity": "review",
+   "code": "EB-03",
+   "rank": 10,
+   "number": "EB03-018",
+   "name": "Tashigi SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
+   "current": {
+    "nmJpy": 780,
+    "nmKrw": 7098,
+    "priceUsd": 167.52,
+    "nmVenue": "遊々亭",
+    "englishKrw": 232551,
+    "ratio": 0.0305
    }
   },
   {
@@ -394,7 +546,7 @@
     "nmJpy": 120,
     "nmKrw": 1092,
     "priceUsd": 312.64,
-    "nmVenue": "カードラッシュ",
+    "nmVenue": "遊々亭",
     "englishKrw": 434007,
     "ratio": 0.0025
    }
@@ -402,17 +554,18 @@
   {
    "severity": "review",
    "code": "OP-15",
-   "rank": 7,
-   "number": "OP13-031",
-   "name": "Trafalgar Law SP",
-   "field": "japaneseNmEbay",
-   "reason": "japanese_nm_ebay_active_not_sold_price",
+   "rank": 10,
+   "number": "PRB02-014",
+   "name": "Sabo PRB02 014 SP",
+   "field": "nmJpy",
+   "reason": "japanese_nm_less_than_4_percent_of_english_reference",
    "current": {
-    "sampleSize": 1,
-    "confidence": "C",
-    "matchScore": 105,
-    "middle": 226.54,
-    "currency": "USD"
+    "nmJpy": 1280,
+    "nmKrw": 11648,
+    "priceUsd": 231.1,
+    "nmVenue": "遊々亭",
+    "englishKrw": 320813,
+    "ratio": 0.0363
    }
   }
  ]
