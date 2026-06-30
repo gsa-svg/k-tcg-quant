@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630usd";
+const DATA_VERSION = "20260630clean";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -225,8 +225,7 @@ function updateSeo(pack) {
 }
 
 function ebayQueryFor(pack) {
-  const language = state.lang === "kr" ? "Korean" : "Japanese";
-  const parts = ["One Piece Card Game", pack.code, pack.nameEn, "Booster Box", language, "sealed"];
+  const parts = ["One Piece Card Game", pack.code, pack.nameEn, "Booster Box", "Japanese", "sealed"];
   return parts.filter(Boolean).join(" ");
 }
 
@@ -362,28 +361,35 @@ function renderSetAnalytics(set) {
   return `
     <div class="quantPanel">
       <div class="quantMetric ${scoreClass(a.investmentScore)}">
-        <span>투자점수</span>
-        <strong>${a.investmentScore}<small>${scoreLabel(a.investmentScore)}</small></strong>
+        <span>투자 매력도</span>
+        <strong>${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small></strong>
+        <small>카드값·거래량·리스크 종합</small>
       </div>
       <div class="quantMetric ${scoreClass(a.cardPowerScore)}">
-        <span>카드 지지력</span>
+        <span>카드값 ÷ 박스값</span>
         <strong>${support}</strong>
-        <small>히트카드 파워 ${triMain(a.hitPower || 0, "KRW").main}</small>
+        <small>박스 1통 값 대비 인기카드(TOP10) 시세</small>
       </div>
       <div class="quantMetric ${scoreClass(a.liquidityScore)}">
-        <span>유동성</span>
-        <strong>${a.liquidityScore}<small>${scoreLabel(a.liquidityScore)}</small></strong>
-        <small>박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
+        <span>거래 활발도</span>
+        <strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong>
+        <small>수집 표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
       </div>
       <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}">
-        <span>가격 분산</span>
+        <span>박스 가격차</span>
         <strong>${spread}</strong>
-        <small>${a.box?.source || "박스 가격 없음"}</small>
+        <small>같은 박스 최고가·최저가 차이</small>
       </div>
       <div class="riskTags">
         ${a.risks.map((risk) => `<span>${risk}</span>`).join("")}
       </div>
-      <p class="quantNote">박스 중간가 대비 TOP10 카드 가격을 가중 계산한 참고 지표입니다. ${topSources ? `주요 반영 카드: ${topSources}` : "카드 가격 표본이 부족합니다."}</p>
+      <p class="quantNote">
+        <b>투자 매력도</b>=카드값·거래량·리스크를 합친 종합 점수(100점 만점, A~D 등급).
+        <b>카드값÷박스값</b>=박스 한 통 값 대비 그 안 TOP10 카드 시세(높을수록 카드가 비쌈).
+        <b>거래 활발도</b>=가격 계산에 쓴 매물·카드 표본이 얼마나 많은지.
+        <b>박스 가격차</b>=같은 박스인데 파는 곳마다 벌어지는 가격 폭.
+        모두 투자 참고용입니다.${topSources ? ` 주요 반영 카드: ${topSources}.` : ""}
+      </p>
     </div>`;
 }
 
@@ -504,13 +510,6 @@ async function load() {
 // [{key, code, nameKo, nameEn, set}]  (set = the underlying sets[baseCode] record)
 function currentPacks() {
   const d = state.data;
-  if (state.lang === "kr") {
-    return d.kr.list.map((it) => {
-      const set = d.sets[it.base] || {};
-      const pendingSet = { ...set, cards: [], psa: [], boxMarket: null };
-      return { key: it.opk, code: it.opk, nameKo: it.nameKo, nameEn: set.nameEn || "", set: pendingSet };
-    });
-  }
   const list = state.lang === "extra" ? d.extra.list : d.jp.list;
   return list.map((code) => {
     const set = d.sets[code] || {};
@@ -527,12 +526,12 @@ function selectFirstOfLang() {
 function applyRouteState() {
   const params = new URLSearchParams(location.search);
   const requestedLang = params.get("lang");
-  if (["jp", "extra", "kr"].includes(requestedLang)) state.lang = requestedLang;
+  if (["jp", "extra"].includes(requestedLang)) state.lang = requestedLang;
 
   const requestedSet = params.get("set");
   let pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
   if (!pack && requestedSet) {
-    for (const lang of ["jp", "extra", "kr"]) {
+    for (const lang of ["jp", "extra"]) {
       state.lang = lang;
       pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
       if (pack) break;
@@ -551,7 +550,6 @@ function renderStats() {
   const extraReady = readyCount(d.extra.list);
   document.querySelector("#statJp").textContent = `${jpReady}/${d.jp.list.length}`;
   document.querySelector("#statExtra").textContent = `${extraReady}/${d.extra.list.length}`;
-  document.querySelector("#statKr").textContent = `준비중`;
 }
 
 function renderMarketStatus() {
@@ -797,9 +795,9 @@ function renderDetail() {
           </button>
         </div>
         ${ebayLinks(pack)}
-        ${state.lang !== "kr" ? renderSetAnalytics(set) : ""}
-        ${state.lang !== "kr" ? renderBoxSeries(set) : ""}
-        ${state.lang !== "kr" && !set.boxSeries ? renderBoxMarket(set) : ""}
+        ${renderSetAnalytics(set)}
+        ${renderBoxSeries(set)}
+        ${!set.boxSeries ? renderBoxMarket(set) : ""}
         ${renderDataNotice()}
         ${hasPsa && state.view === "psa" ? `<p class="note">세트 평균 PSA10확률 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장</p>` : ""}
       </div>
