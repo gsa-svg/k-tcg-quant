@@ -226,17 +226,26 @@ function renderBoxSeries(set) {
   const pts = (s && s.points) || [];
   if (pts.length < 2) return "";
   const W = 600, H = 190, padL = 8, padR = 14, padT = 14, padB = 8;
+  // 표본수 가중 이동평균(±1주)으로 스무딩 — 표본 적은 주(n=1) 스파이크 완화
+  const sm = pts.map((p, i) => {
+    let sw = 0, sv = 0;
+    for (let j = Math.max(0, i - 1); j <= Math.min(pts.length - 1, i + 1); j++) {
+      const w = (pts[j].n || 1) * (j === i ? 1.6 : 1);
+      sw += w; sv += pts[j].p * w;
+    }
+    return Math.round(sv / sw);
+  });
   const xs = pts.map((p) => new Date(p.d).getTime());
-  const ys = pts.map((p) => p.p);
+  const ys = sm;
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   let minY = Math.min(...ys), maxY = Math.max(...ys);
   const span = maxY - minY || maxY;
   minY -= span * 0.15; maxY += span * 0.15;
   const X = (t) => padL + ((t - minX) / (maxX - minX || 1)) * (W - padL - padR);
   const Y = (v) => padT + (1 - (v - minY) / (maxY - minY || 1)) * (H - padT - padB);
-  const line = pts.map((p, i) => (i ? "L" : "M") + X(xs[i]).toFixed(1) + " " + Y(p.p).toFixed(1)).join(" ");
+  const line = pts.map((p, i) => (i ? "L" : "M") + X(xs[i]).toFixed(1) + " " + Y(sm[i]).toFixed(1)).join(" ");
   const area = `${line} L${X(maxX).toFixed(1)} ${H - padB} L${X(minX).toFixed(1)} ${H - padB} Z`;
-  const last = pts[pts.length - 1];
+  const last = { d: pts[pts.length - 1].d, p: sm[sm.length - 1] };
   const fmtD = (d) => d.slice(5).replace("-", "/");
   return `
     <div class="boxChart">
