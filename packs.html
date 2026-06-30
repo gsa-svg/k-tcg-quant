@@ -406,6 +406,83 @@
         border-color: rgba(16,215,160,.32);
         color: var(--accent);
       }
+      .quantPanel {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid #263040;
+        border-radius: 10px;
+        background: rgba(14,18,26,.72);
+      }
+      .quantMetric {
+        min-width: 0;
+        padding: 10px;
+        border: 1px solid #242b38;
+        border-radius: 8px;
+        background: #101620;
+      }
+      .quantMetric span {
+        display: block;
+        color: #8b94a7;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .quantMetric strong {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        margin-top: 4px;
+        color: #eef2ff;
+        font-size: 20px;
+        line-height: 1.05;
+        font-weight: 950;
+        font-variant-numeric: tabular-nums;
+      }
+      .quantMetric strong small {
+        color: inherit;
+        font-size: 11px;
+      }
+      .quantMetric > small {
+        display: block;
+        margin-top: 5px;
+        color: #7a8194;
+        font-size: 10px;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+      }
+      .quantMetric.good strong { color: var(--accent); }
+      .quantMetric.watch strong { color: #f3c74f; }
+      .quantMetric.risk strong { color: #ff6683; }
+      .riskTags {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 2px;
+      }
+      .riskTags span {
+        padding: 5px 8px;
+        border-radius: 999px;
+        border: 1px solid #2d3444;
+        background: #121822;
+        color: #b5bdcf;
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .quantNote {
+        grid-column: 1 / -1;
+        margin: 0;
+        color: #737b8e;
+        font-size: 11px;
+        line-height: 1.45;
+      }
+      @media (max-width: 760px) {
+        .quantPanel { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 8px; gap: 7px; }
+        .quantMetric { padding: 9px; }
+        .quantMetric strong { font-size: 18px; }
+      }
       .boxMarket {
         margin-top: 12px; padding: 12px; border: 1px solid #263040; border-radius: 6px;
         background: rgba(14,18,26,.72);

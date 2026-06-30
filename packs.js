@@ -132,7 +132,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630jpnm";
+const DATA_VERSION = "20260630quant";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -225,6 +225,153 @@ function ebayLinks(pack) {
     <div class="marketLinks" aria-label="eBay market links">
       <a href="${base}&LH_Sold=1&LH_Complete=1&_sop=13" target="_blank" rel="noopener noreferrer">eBay Sold</a>
       <a href="${base}&LH_BIN=1&_sop=15" target="_blank" rel="noopener noreferrer">eBay Active</a>
+    </div>`;
+}
+
+function scoreLabel(score) {
+  if (score >= 80) return "A";
+  if (score >= 60) return "B";
+  if (score >= 40) return "C";
+  return "D";
+}
+
+function scoreClass(score) {
+  if (score >= 70) return "good";
+  if (score >= 45) return "watch";
+  return "risk";
+}
+
+function boxMidKrw(set) {
+  const active = set.boxMarket?.jp?.ebayActive;
+  const activeMid = active?.middle != null ? marketKrw(active.middle, active.currency) : null;
+  if (activeMid != null) {
+    return {
+      value: activeMid,
+      source: "eBay Active",
+      sampleSize: active.sampleSize || 0,
+      soldBased: false,
+      updated: active.updated || "",
+    };
+  }
+
+  const points = set.boxSeries?.points || [];
+  const last = points[points.length - 1];
+  if (last?.p != null) {
+    return {
+      value: last.p,
+      source: "eBay Sold",
+      sampleSize: last.n || 0,
+      soldBased: true,
+      updated: last.d || "",
+    };
+  }
+
+  return null;
+}
+
+function cardComparableKrw(card) {
+  if (card.japaneseNmEbay?.sampleSize > 0 && card.japaneseNmEbay.middle != null) {
+    return {
+      value: marketKrw(card.japaneseNmEbay.middle, card.japaneseNmEbay.currency),
+      source: "일본판 NM eBay",
+      sampleSize: card.japaneseNmEbay.sampleSize || 0,
+      confidence: card.japaneseNmEbay.confidence || "C",
+    };
+  }
+  if (card.nmJpy != null) {
+    const fx = (state.data && state.data.fx) || {};
+    return {
+      value: card.nmJpy * (fx.jpyKrw || 9.1),
+      source: "일본판 NM",
+      sampleSize: 1,
+      confidence: "C",
+    };
+  }
+  return null;
+}
+
+function setAnalytics(set) {
+  const cards = (set.cards || []).slice(0, 10);
+  const box = boxMidKrw(set);
+  const pricedCards = cards
+    .map((card) => ({ card, market: cardComparableKrw(card) }))
+    .filter((row) => row.market?.value != null)
+    .sort((a, b) => b.market.value - a.market.value);
+
+  const top1 = pricedCards[0]?.market.value || 0;
+  const top3Avg = pricedCards.slice(0, 3).reduce((sum, row) => sum + row.market.value, 0) / Math.max(1, Math.min(3, pricedCards.length));
+  const top10Avg = pricedCards.reduce((sum, row) => sum + row.market.value, 0) / Math.max(1, pricedCards.length);
+  const hitPower = top1 * 0.4 + top3Avg * 0.3 + top10Avg * 0.3;
+  const supportRatio = box?.value ? hitPower / box.value : null;
+
+  const boxMarket = set.boxMarket?.jp?.ebayActive;
+  const spreadRatio =
+    boxMarket?.high != null && boxMarket?.low != null && boxMarket.middle
+      ? (marketKrw(boxMarket.high, boxMarket.currency) - marketKrw(boxMarket.low, boxMarket.currency)) /
+        marketKrw(boxMarket.middle, boxMarket.currency)
+      : null;
+
+  const liquidityScore = Math.min(100, Math.round(((box?.sampleSize || 0) / 10) * 55 + (pricedCards.length / 10) * 45));
+  const cardPowerScore = supportRatio == null ? 0 : Math.min(100, Math.round(supportRatio * 24));
+  const confidencePenalty = pricedCards.filter((row) => row.market.confidence === "C").length * 3;
+  const riskPenalty = (spreadRatio != null && spreadRatio > 0.45 ? 12 : 0) + (!box?.soldBased ? 8 : 0) + confidencePenalty;
+  const investmentScore = Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.52 + liquidityScore * 0.36 - riskPenalty)));
+
+  const risks = [];
+  if (!box) risks.push("박스가 없음");
+  else if (!box.soldBased) risks.push("박스 Active 호가");
+  if ((box?.sampleSize || 0) < 3) risks.push("박스 표본 부족");
+  if (spreadRatio != null && spreadRatio > 0.45) risks.push("가격 분산 큼");
+  if (pricedCards.length < 5) risks.push("카드 표본 부족");
+  if (pricedCards.some((row) => row.market.confidence === "C")) risks.push("카드 C등급 포함");
+  if (!risks.length) risks.push("주요 리스크 낮음");
+
+  return {
+    box,
+    pricedCards,
+    hitPower,
+    supportRatio,
+    liquidityScore,
+    cardPowerScore,
+    investmentScore,
+    spreadRatio,
+    risks,
+  };
+}
+
+function renderSetAnalytics(set) {
+  const a = setAnalytics(set);
+  const support = a.supportRatio == null ? "-" : `${a.supportRatio.toFixed(1)}x`;
+  const spread = a.spreadRatio == null ? "-" : `${Math.round(a.spreadRatio * 100)}%`;
+  const topSources = [...new Set(a.pricedCards.map((row) => row.card.name || row.card.number).filter(Boolean))]
+    .slice(0, 3)
+    .join(" · ");
+
+  return `
+    <div class="quantPanel">
+      <div class="quantMetric ${scoreClass(a.investmentScore)}">
+        <span>투자점수</span>
+        <strong>${a.investmentScore}<small>${scoreLabel(a.investmentScore)}</small></strong>
+      </div>
+      <div class="quantMetric ${scoreClass(a.cardPowerScore)}">
+        <span>카드 지지력</span>
+        <strong>${support}</strong>
+        <small>히트카드 파워 ${fmtKrw(a.hitPower || 0)}</small>
+      </div>
+      <div class="quantMetric ${scoreClass(a.liquidityScore)}">
+        <span>유동성</span>
+        <strong>${a.liquidityScore}<small>${scoreLabel(a.liquidityScore)}</small></strong>
+        <small>박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
+      </div>
+      <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}">
+        <span>가격 분산</span>
+        <strong>${spread}</strong>
+        <small>${a.box?.source || "박스 가격 없음"}</small>
+      </div>
+      <div class="riskTags">
+        ${a.risks.map((risk) => `<span>${risk}</span>`).join("")}
+      </div>
+      <p class="quantNote">박스 중간가 대비 TOP10 카드 가격을 가중 계산한 참고 지표입니다. ${topSources ? `주요 반영 카드: ${topSources}` : "카드 가격 표본이 부족합니다."}</p>
     </div>`;
 }
 
@@ -638,6 +785,7 @@ function renderDetail() {
           </button>
         </div>
         ${ebayLinks(pack)}
+        ${state.lang !== "kr" ? renderSetAnalytics(set) : ""}
         ${state.lang !== "kr" ? renderBoxSeries(set) : ""}
         ${state.lang !== "kr" && !set.boxSeries ? renderBoxMarket(set) : ""}
         ${renderDataNotice()}
