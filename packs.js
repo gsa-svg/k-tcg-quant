@@ -87,7 +87,14 @@ function priceVenueLabel(venue) {
 function priceLines(c) {
   const fx = (state.data && state.data.fx) || {};
   let h = "";
-  if (c.nmJpy != null) {
+  if (c.japaneseNmEbay?.sampleSize > 0) {
+    h += `
+      <span class="pl psaEbay">
+        <i>${"\uC77C\uBCF8\uD310 NM eBay"}</i>
+        <span class="bandRows">${priceBandRows(c.japaneseNmEbay)}</span>
+        <small>eBay Active · ${"\uD45C\uBCF8"} ${c.japaneseNmEbay.sampleSize}${"\uAC74"}</small>
+      </span>`;
+  } else if (c.nmJpy != null) {
     const nmVenue = priceVenueLabel(c.nmVenue);
     h += `<span class="pl nm"><i>일본판 NM</i> <b>${fmtKrw(c.nmJpy * (fx.jpyKrw || 9.1))}</b> <small>${fmtJpy(c.nmJpy)} <em>${nmVenue}</em></small></span>`;
   }
@@ -125,7 +132,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630prb01sogeking";
+const DATA_VERSION = "20260630jpnm";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -467,11 +474,11 @@ function renderPackGrid() {
 
 function renderHitList(cards) {
   const cells = cards
-    .map((c) => {
+    .map((c, index) => {
       const color = rarityColor[c.rarity] || "#8d95a7";
       const img = c.img || FALLBACK;
       return `
-        <figure class="hitCard" data-img="${img}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
+        <figure class="hitCard" data-card-index="${index}" data-img="${img}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
           <div class="hitThumb">
             <span class="hitRank">${c.rank}</span>
             ${c.rarity ? `<span class="hitRar" style="--c:${color}">${c.rarity}</span>` : ""}
@@ -488,12 +495,51 @@ function renderHitList(cards) {
   return `<div class="hitGallery">${cells}</div>`;
 }
 
-function openLightbox(src, name) {
+
+function historyChart(history, market) {
+  const points = Array.isArray(history) ? history.filter((row) => row.middle != null) : [];
+  if (points.length < 2) {
+    return `<div class="cardChartEmpty">${"\u0033\uAC1C\uC6D4 \uADF8\uB798\uD504\uB294 eBay NM \uC5C5\uB370\uC774\uD2B8\uAC00 2\uD68C \uC774\uC0C1 \uC313\uC774\uBA74 \uD45C\uC2DC\uB429\uB2C8\uB2E4."}</div>`;
+  }
+  const values = points.map((row) => marketKrw(row.middle, row.currency || market.currency)).filter((value) => value != null);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const span = max - min || 1;
+  const coords = values.map((value, index) => {
+    const x = points.length === 1 ? 300 : 24 + (index * 552) / (points.length - 1);
+    const y = 150 - ((value - min) / span) * 112;
+    return { x: x.toFixed(1), y: y.toFixed(1) };
+  });
+  return `
+    <div class="cardChart">
+      <div class="cardChartHead"><strong>3?? NM ???</strong><span>${points[0].date} ~ ${points[points.length - 1].date}</span></div>
+      <svg viewBox="0 0 600 180" role="img" aria-label="3?? NM ?? ???">
+        <path d="M24 150H576" class="chartAxis"></path>
+        <polyline points="${coords.map((p) => `${p.x},${p.y}`).join(" ")}" class="chartLine"></polyline>
+        ${coords.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" class="chartDot"></circle>`).join("")}
+      </svg>
+      <div class="cardChartRange"><span>${fmtKrw(min)}</span><span>${fmtKrw(max)}</span></div>
+    </div>`;
+}
+
+function cardMarketPanel(card) {
+  const market = card.japaneseNmEbay;
+  if (!market?.sampleSize) return `<div class="cardChartEmpty">${"\uC77C\uBCF8\uD310 NM eBay \uD45C\uBCF8\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4."}</div>`;
+  return `
+    <div class="cardMarketPanel">
+      <h3>${"\uC77C\uBCF8\uD310 NM eBay"}</h3>
+      <div class="bandRows cardMarketRows">${priceBandRows(market)}</div>
+      <p>eBay Active · ${"\uD45C\uBCF8"} ${market.sampleSize}${"\uAC74"} · ${market.updated || ""}</p>
+      ${historyChart(market.history, market)}
+    </div>`;
+}
+
+function openLightbox(src, name, card) {
   let lb = document.querySelector("#lightbox");
   if (!lb) {
     lb = document.createElement("div");
     lb.id = "lightbox";
-    lb.innerHTML = `<div class="lbInner"><img id="lbImg" alt=""/><p id="lbCap"></p><button id="lbClose" aria-label="닫기">✕</button></div>`;
+    lb.innerHTML = `<div class="lbInner"><button id="lbClose" aria-label="${"\uB2EB\uAE30"}">x</button><div class="lbGrid"><img id="lbImg" alt=""/><div><p id="lbCap"></p><div id="lbMarket"></div></div></div></div>`;
     document.body.appendChild(lb);
     lb.addEventListener("click", (e) => { if (e.target === lb || e.target.id === "lbClose") lb.classList.remove("open"); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") lb.classList.remove("open"); });
@@ -504,6 +550,7 @@ function openLightbox(src, name) {
   imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = src; };
   imgEl.src = big;
   lb.querySelector("#lbCap").textContent = name || "";
+  lb.querySelector("#lbMarket").innerHTML = cardMarketPanel(card || {});
   lb.classList.add("open");
 }
 
@@ -616,8 +663,9 @@ function renderDetail() {
   );
   el.querySelectorAll(".hitCard").forEach((f) =>
     f.addEventListener("click", () => {
+      const card = cards[Number(f.dataset.cardIndex)] || {};
       trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name });
-      openLightbox(f.dataset.img, f.dataset.name);
+      openLightbox(f.dataset.img, f.dataset.name, card);
     }),
   );
 }

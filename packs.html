@@ -253,11 +253,55 @@
       }
       #lightbox.open { display: flex; }
       .lbInner { position: relative; max-width: 92vw; max-height: 92vh; text-align: center; }
+      .lbGrid {
+        display: grid;
+        grid-template-columns: minmax(220px, 360px) minmax(260px, 420px);
+        gap: 18px;
+        align-items: start;
+      }
       #lbImg {
         max-width: 90vw; max-height: 82vh; border-radius: 14px;
         border: 1px solid #2b3040; box-shadow: var(--shadow); background: #1a1e28;
       }
-      #lbCap { margin: 10px 0 0; color: #dde3f1; font-weight: 700; }
+      #lbCap { margin: 0 0 10px; color: #dde3f1; font-weight: 800; text-align: left; }
+      .cardMarketPanel {
+        padding: 14px;
+        border: 1px solid #252b38;
+        border-radius: 12px;
+        background: #10131a;
+        text-align: left;
+      }
+      .cardMarketPanel h3 { margin: 0 0 10px; font-size: 16px; color: var(--accent); }
+      .cardMarketPanel p { margin: 9px 0 0; color: #8d95a7; font-size: 12px; }
+      .cardMarketRows { grid-template-columns: 1fr; gap: 6px; }
+      .cardChart {
+        margin-top: 14px;
+        padding-top: 12px;
+        border-top: 1px solid #252b38;
+      }
+      .cardChartHead,
+      .cardChartRange {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        color: #8d95a7;
+        font-size: 11px;
+      }
+      .cardChartHead strong { color: #dde3f1; font-size: 13px; }
+      .cardChart svg { width: 100%; height: auto; display: block; margin-top: 8px; }
+      .chartAxis { stroke: #313746; stroke-width: 1; }
+      .chartLine { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .chartDot { fill: #0a0c10; stroke: var(--accent); stroke-width: 2; }
+      .cardChartEmpty {
+        padding: 14px;
+        border: 1px dashed #313746;
+        border-radius: 10px;
+        background: #10131a;
+        color: #8d95a7;
+        font-size: 12px;
+        line-height: 1.55;
+        text-align: left;
+      }
       #lbClose {
         position: absolute; top: -14px; right: -10px; width: 40px; height: 40px;
         border-radius: 999px; border: 1px solid #2b3040; background: #11141c; color: #fff;
@@ -318,7 +362,9 @@
         .bmRows .bandRow b { font-size: 12px; }
         .psaTable { font-size: 13px; }
         #lightbox { padding: 14px; }
+        .lbGrid { grid-template-columns: 1fr; gap: 12px; }
         #lbImg { max-width: 94vw; max-height: 78vh; }
+        #lbCap { margin-top: 2px; }
         #lbClose { top: 8px; right: 8px; }
       }
 
