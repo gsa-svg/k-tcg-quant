@@ -78,8 +78,8 @@ async function searchActiveListings(token, query) {
 function isJapaneseSealedBoosterBox(item, code) {
   const title = item.title || "";
   const codePattern = new RegExp(code.replace("-", "[- ]?"), "i");
-  const positive = [/one piece/i, codePattern, /booster box|premium booster|extra booster|display box|box/i, /japanese|jp\b|japan/i];
-  const negative = [/english|korean|chinese|simplified|card lot|single card|proxy|digital|empty box|case\b/i];
+  const positive = [/one piece/i, codePattern, /booster box|premium booster box|extra booster box|display box|\bbox\b/i, /japanese|jp\b|japan/i];
+  const negative = [/english|korean|chinese|simplified|card lot|single card|single pack|loose pack|booster pack|proxy|digital|empty box|case\b/i];
   return positive.every((pattern) => pattern.test(title)) && !negative.some((pattern) => pattern.test(title));
 }
 
@@ -102,6 +102,29 @@ function percentile(sortedValues, ratio) {
   return Number(sortedValues[index].toFixed(2));
 }
 
+function listingTotal(item) {
+  const price = Number(item.price?.value);
+  const shipping = Number(item.shippingOptions?.[0]?.shippingCost?.value || 0);
+  if (!Number.isFinite(price)) return null;
+  return Number((price + (Number.isFinite(shipping) ? shipping : 0)).toFixed(2));
+}
+
+function listingSnapshot(item) {
+  const total = listingTotal(item);
+  if (total == null) return null;
+  return {
+    title: item.title || "",
+    url: item.itemWebUrl || "",
+    price: Number(item.price.value),
+    shipping: Number(item.shippingOptions?.[0]?.shippingCost?.value || 0),
+    total,
+    currency: item.price.currency,
+    country: item.itemLocation?.country || "",
+    seller: item.seller?.username || "",
+    condition: item.condition || "",
+  };
+}
+
 function analyzeItems(items, code) {
   const kept = [];
   let excludedCount = 0;
@@ -115,16 +138,21 @@ function analyzeItems(items, code) {
       excludedCount += 1;
       continue;
     }
-    kept.push({ value, currency });
+    kept.push({ value, currency, listing: listingSnapshot(item) });
   }
 
   const grouped = kept.reduce((acc, item) => {
     acc[item.currency] = acc[item.currency] || [];
-    acc[item.currency].push(item.value);
+    acc[item.currency].push(item);
     return acc;
   }, {});
   const currency = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length)[0]?.[0] || "USD";
-  const values = (grouped[currency] || []).sort((a, b) => a - b);
+  const selectedItems = grouped[currency] || [];
+  const values = selectedItems.map((item) => item.value).sort((a, b) => a - b);
+  const bestListing = selectedItems
+    .map((item) => item.listing)
+    .filter((item) => item?.url && item.currency === currency)
+    .sort((a, b) => a.total - b.total)[0] || null;
 
   return {
     currency,
@@ -133,6 +161,7 @@ function analyzeItems(items, code) {
     high: percentile(values, 0.85),
     sampleSize: values.length,
     excludedCount,
+    bestListing,
   };
 }
 

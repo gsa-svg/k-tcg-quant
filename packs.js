@@ -21,6 +21,26 @@ function t(ko, en) {
   return state.hl === "en" ? en : ko;
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function safeEbayUrl(value) {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return "";
+    if (!/(^|\.)ebay\./i.test(url.hostname)) return "";
+    return url.href;
+  } catch (e) {
+    return "";
+  }
+}
+
 function setText(selector, ko, en) {
   const node = document.querySelector(selector);
   if (node) node.textContent = t(ko, en);
@@ -196,11 +216,32 @@ function ebayQueryFor(pack) {
 function ebayLinks(pack) {
   const q = encodeURIComponent(ebayQueryFor(pack));
   const base = `https://www.ebay.com/sch/i.html?_nkw=${q}`;
+  const best = pack.set?.boxMarket?.jp?.ebayActive?.bestListing;
+  const bestUrl = safeEbayUrl(best?.url);
+  const bestPrice = best?.total != null ? triMain(best.total, best.currency).main : "";
   return `
     <div class="marketLinks" aria-label="eBay market links">
+      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("검수 최저 박스", "Verified lowest box")}${bestPrice ? ` · ${bestPrice}` : ""}</a>` : ""}
       <a href="${base}&LH_Sold=1&LH_Complete=1&_sop=13" target="_blank" rel="noopener noreferrer">eBay Sold</a>
       <a href="${base}&LH_BIN=1&_sop=15" target="_blank" rel="noopener noreferrer">eBay Active</a>
     </div>`;
+}
+
+function cardPsaSearchUrl(card) {
+  const query = ["One Piece Card Game", card.number, card.name, "PSA 10", "Japanese"].filter(Boolean).join(" ");
+  return `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_BIN=1&_sop=15`;
+}
+
+function cardBuyLinks(card) {
+  const best = card.psa10Active?.bestListing;
+  const bestUrl = safeEbayUrl(best?.url);
+  const searchUrl = cardPsaSearchUrl(card);
+  if (bestUrl) {
+    const price = best.total != null ? triMain(best.total, best.currency).main : "";
+    const country = best.country ? ` · ${escapeHtml(best.country)}` : "";
+    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("검수 최저 PSA10", "Verified lowest PSA 10")}${price ? ` · ${price}` : ""}</a><small>${t("배송 포함", "incl. shipping")}${country}</small></div>`;
+  }
+  return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 검색", "Search PSA 10 listings")}</a><small>${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
 }
 
 function scoreLabel(score) {
@@ -416,6 +457,7 @@ function renderHitList(cards) {
             <span class="hitName">${c.name}</span>
             <span class="hitNo">${c.number || ""}</span>
             ${priceLines(c)}
+            ${cardBuyLinks(c)}
           </figcaption>
         </figure>`;
     })
@@ -749,7 +791,10 @@ function renderDetail() {
   const body = state.view === "psa" ? renderPsaTable(set.psa) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
   el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
-  el.querySelectorAll(".marketLinks a").forEach((a) => a.addEventListener("click", () => trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href })));
+  el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
+    event.stopPropagation();
+    trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
+  }));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card); }));
 }
 
