@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260701valuation";
+const DATA_VERSION = "20260701plain";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -334,14 +334,14 @@ function soldDemandStats(set) {
   const score = Math.max(0, Math.min(100, Math.round(recentSales * 10 + trend * 22)));
   const label =
     recentSales >= 8 && trend >= 0.15
-      ? "수요 상승"
+      ? "잘 팔림"
       : recentSales >= 5
-        ? "수요 양호"
+        ? "괜찮음"
         : recentSales <= 2
-          ? "수요 약함"
+          ? "뜸함"
           : trend < -0.25
-            ? "수요 둔화"
-            : "수요 보통";
+            ? "식는 중"
+            : "보통";
 
   return { score, label, recentSales, previousSales, trend };
 }
@@ -362,14 +362,14 @@ function supplyPressureStats(set) {
             : 22;
   const label =
     activeCount <= 2
-      ? "극소 매물"
+      ? "매우 귀함"
       : activeCount <= 5
-        ? "낮은 재고"
+        ? "귀한 편"
         : activeCount <= 10
-          ? "타이트"
+          ? "조금 빠듯"
           : activeCount <= 18
             ? "보통"
-            : "넉넉";
+            : "흔함";
 
   return { score, label, activeCount, excludedCount };
 }
@@ -405,24 +405,24 @@ function valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRati
   score = Math.max(0, Math.min(reliabilityRisk ? 88 : 100, Math.round(score)));
   const label =
     score >= 75 && reliabilityRisk
-      ? "저평가 후보"
+      ? "싼 편일 수도"
       : score >= 75
-      ? "저평가"
+      ? "지금 싼 편"
       : score >= 62
-        ? "저평가 후보"
+        ? "싼 편일 수도"
         : score >= 42
-          ? "적정 구간"
+          ? "적정가"
           : score >= 28
-            ? "고평가 주의"
-            : "고평가";
+            ? "다소 비쌈"
+            : "비쌈";
   const tone = score >= 62 ? "good" : score >= 42 ? "watch" : "risk";
-  const gapText = soldGap == null ? "Sold 비교 없음" : `${soldGap >= 0 ? "+" : ""}${Math.round(soldGap * 100)}%`;
+  const gapText = soldGap == null ? "실거래 비교 없음" : `${soldGap >= 0 ? "+" : ""}${Math.round(soldGap * 100)}%`;
   const gapDirectionText =
     soldGap == null
-      ? "Sold 비교 없음"
+      ? "실거래 비교 없음"
       : soldGap >= 0
-        ? `최근 Sold보다 ${Math.round(soldGap * 100)}% 낮은`
-        : `최근 Sold보다 ${Math.abs(Math.round(soldGap * 100))}% 높은`;
+        ? `최근 실거래가보다 ${Math.round(soldGap * 100)}% 싼`
+        : `최근 실거래가보다 ${Math.abs(Math.round(soldGap * 100))}% 비싼`;
 
   return { score, label, tone, soldGap, gapText, gapDirectionText, current, sold };
 }
@@ -462,15 +462,15 @@ function setAnalytics(set) {
   );
 
   const risks = [];
-  if (supply.score >= 65) risks.push(`공급 ${supply.label}`);
-  if (demand.score >= 70 || demand.score <= 25) risks.push(demand.label);
-  if (!box) risks.push("박스가 없음");
-  else if (!box.soldBased) risks.push("박스 Active 호가");
-  if ((box?.sampleSize || 0) < 3) risks.push("박스 표본 부족");
-  if (spreadRatio != null && spreadRatio > 0.45) risks.push("가격 분산 큼");
-  if (pricedCards.length < 5) risks.push("카드 표본 부족");
-  if (pricedCards.some((row) => row.market.confidence === "C")) risks.push("카드 C등급 포함");
-  if (!risks.length) risks.push("주요 리스크 낮음");
+  if (supply.score >= 65) risks.push(`매물 ${supply.label}`);
+  if (demand.score >= 70 || demand.score <= 25) risks.push(`판매 ${demand.label}`);
+  if (!box) risks.push("박스 가격 없음");
+  else if (!box.soldBased) risks.push("실거래가 아님(현재 호가)");
+  if ((box?.sampleSize || 0) < 3) risks.push("박스 자료 적음");
+  if (spreadRatio != null && spreadRatio > 0.45) risks.push("가격 편차 큼");
+  if (pricedCards.length < 5) risks.push("카드 자료 적음");
+  if (pricedCards.some((row) => row.market.confidence === "C")) risks.push("일부 카드 시세 불확실");
+  if (!risks.length) risks.push("특이 위험 낮음");
 
   return {
     box,
@@ -491,7 +491,7 @@ function setAnalytics(set) {
 
 function renderSetAnalytics(set) {
   const a = setAnalytics(set);
-  const support = a.supportRatio == null ? "-" : `${a.supportRatio.toFixed(1)}x`;
+  const support = a.supportRatio == null ? "-" : `${a.supportRatio.toFixed(1)}배`;
   const spread = a.spreadRatio == null ? "-" : `${Math.round(a.spreadRatio * 100)}%`;
   const demandTrend = a.demand.trend > 0 ? `+${Math.round(a.demand.trend * 100)}%` : `${Math.round(a.demand.trend * 100)}%`;
   const topSources = [...new Set(a.pricedCards.map((row) => row.card.name || row.card.number).filter(Boolean))]
@@ -499,57 +499,57 @@ function renderSetAnalytics(set) {
     .join(" · ");
   const supplySentence =
     a.supply.activeCount <= 10
-      ? `eBay Active 매물이 ${a.supply.activeCount}건으로 공급이 타이트합니다.`
-      : `eBay Active 매물이 ${a.supply.activeCount}건으로 공급은 ${a.supply.label} 수준입니다.`;
+      ? `지금 eBay에 팔려고 나온 박스가 ${a.supply.activeCount}건뿐입니다. 물량이 적을수록 값이 잘 버팁니다.`
+      : `지금 eBay에 팔려고 나온 박스가 ${a.supply.activeCount}건으로, 물량은 ${a.supply.label} 수준입니다.`;
   const demandSentence =
     a.demand.recentSales > 0
-      ? `최근 4주 Sold ${a.demand.recentSales}건, 이전 4주 대비 ${demandTrend}로 ${a.demand.label} 상태입니다.`
-      : "최근 Sold 표본이 부족해 수요 판단은 보수적으로 봐야 합니다.";
+      ? `최근 4주간 ${a.demand.recentSales}건 팔렸고, 이전 4주보다 ${demandTrend} 흐름이라 '${a.demand.label}' 상태입니다.`
+      : "최근 판매 자료가 적어 수요는 보수적으로 봐야 합니다.";
   const supportSentence =
     a.supportRatio == null
-      ? "박스 가격 또는 카드 가격 표본이 부족해 카드 지지력은 계산 대기 상태입니다."
-      : `카드값÷박스값은 ${support}로 TOP10 카드 가격이 박스 가격을 ${a.supportRatio >= 3 ? "강하게" : "일부"} 받칩니다.`;
+      ? "박스 또는 카드 자료가 부족해 계산 대기 중입니다."
+      : `박스 1통 값 대비 인기카드(TOP10) 시세가 ${support}라, 카드가 박스값을 ${a.supportRatio >= 3 ? "든든히" : "일부"} 받쳐줍니다.`;
   const riskSentence =
     a.spreadRatio != null && a.spreadRatio > 0.45
-      ? `다만 박스 가격차가 ${spread}라 매수가는 Sold와 낮은 Active 호가를 같이 확인해야 합니다.`
-      : "가격 분산은 과도하지 않아 현재 표본 안에서는 비교가 비교적 쉽습니다.";
+      ? `박스마다 가격차가 ${spread}로 커서, 살 땐 실거래가와 가장 싼 매물을 함께 확인하세요.`
+      : "가격 편차가 크지 않아 비교가 비교적 쉽습니다.";
   const valuationSentence =
     a.valuation.soldGap == null
-      ? "최근 Sold 기준가가 부족해 밸류 구간은 카드 지지력과 공급·수요 중심으로 계산했습니다."
-      : `현재 박스가는 ${a.valuation.gapDirectionText} 수준입니다.`;
+      ? "최근 실거래 자료가 부족해, 카드값·물량·판매 흐름 위주로 판단했습니다."
+      : `지금 박스값은 ${a.valuation.gapDirectionText} 수준입니다.`;
 
   return `
     <div class="quantPanel">
       <div class="valuationBanner ${a.valuation.tone}">
-        <span>밸류 구간</span>
+        <span>가격 진단</span>
         <strong>${a.valuation.label}<small>${a.valuation.score}/100</small></strong>
         <p>${valuationSentence}</p>
-        <small>현재 ${a.valuation.current ? fmtKrw(a.valuation.current) : "-"} · 최근 Sold ${a.valuation.sold ? fmtKrw(a.valuation.sold) : "-"}</small>
+        <small>지금 박스값 ${a.valuation.current ? fmtKrw(a.valuation.current) : "-"} · 최근 실거래가 ${a.valuation.sold ? fmtKrw(a.valuation.sold) : "-"}</small>
       </div>
       <div class="quantMetric ${scoreClass(a.investmentScore)}">
         <span>투자 매력도</span>
         <strong>${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small></strong>
-        <small>카드값·거래량·리스크 종합</small>
+        <small>여러 항목을 합친 종합 점수</small>
       </div>
       <div class="quantMetric ${scoreClass(a.cardPowerScore)}">
-        <span>카드값 ÷ 박스값</span>
+        <span>카드값 (박스 대비)</span>
         <strong>${support}</strong>
-        <small>박스 1통 값 대비 인기카드(TOP10) 시세</small>
+        <small>박스 1통 값 대비 인기카드(TOP10) 시세 · 클수록 카드가 비쌈</small>
       </div>
       <div class="quantMetric ${scoreClass(a.liquidityScore)}">
-        <span>거래 활발도</span>
+        <span>자료 충분도</span>
         <strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong>
-        <small>수집 표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
+        <small>가격 계산에 쓴 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
       </div>
       <div class="quantMetric ${pressureClass(a.supply.score)}">
-        <span>공급압박</span>
+        <span>매물 희소성</span>
         <strong>${a.supply.score}<small>/100 · ${a.supply.label}</small></strong>
-        <small>eBay Active ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건</small>
+        <small>지금 파는 박스 ${a.supply.activeCount}건 · 적을수록 귀함</small>
       </div>
       <div class="quantMetric ${scoreClass(a.demand.score)}">
-        <span>수요강도</span>
+        <span>최근 판매 열기</span>
         <strong>${a.demand.score}<small>/100 · ${a.demand.label}</small></strong>
-        <small>최근 4주 Sold ${a.demand.recentSales}건 · 이전 대비 ${demandTrend}</small>
+        <small>최근 4주 ${a.demand.recentSales}건 팔림 · 이전 대비 ${demandTrend}</small>
       </div>
       <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}">
         <span>박스 가격차</span>
@@ -565,19 +565,22 @@ function renderSetAnalytics(set) {
         <p>${riskSentence}</p>
       </div>
       <div class="analysisBreakdown">
-        <span><b>공급</b><small>Active ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건 · ${a.supply.label}</small></span>
-        <span><b>수요</b><small>최근 Sold ${a.demand.recentSales}건 · 이전 ${a.demand.previousSales}건 · ${demandTrend}</small></span>
-        <span><b>카드 지지</b><small>히트카드 파워 ${fmtKrw(a.hitPower || 0)} · ${support}</small></span>
+        <span><b>매물</b><small>지금 파는 박스 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건 · ${a.supply.label}</small></span>
+        <span><b>판매</b><small>최근 4주 ${a.demand.recentSales}건 · 이전 4주 ${a.demand.previousSales}건 · ${demandTrend}</small></span>
+        <span><b>카드 가치</b><small>인기카드 합산 시세 ${fmtKrw(a.hitPower || 0)} · 박스값의 ${support}</small></span>
         <span><b>주의</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span>
       </div>
       <div class="riskTags">
         ${a.risks.map((risk) => `<span>${risk}</span>`).join("")}
       </div>
       <p class="quantNote">
-        <b>투자 매력도</b>=카드값·거래량·리스크를 합친 종합 점수(100점 만점, A~D 등급).
-        <b>카드값÷박스값</b>=박스 한 통 값 대비 그 안 TOP10 카드 시세(높을수록 카드가 비쌈).
-        <b>거래 활발도</b>=가격 계산에 쓴 매물·카드 표본이 얼마나 많은지.
-        <b>박스 가격차</b>=같은 박스인데 파는 곳마다 벌어지는 가격 폭.
+        <b>가격 진단</b> = 지금 박스값이 최근 실거래가보다 싼지·비싼지.
+        <b>투자 매력도</b> = 카드값·판매·물량·위험을 합친 종합 점수(100점 만점, A~D 등급).
+        <b>카드값(박스 대비)</b> = 박스 한 통 값 대비 그 안 인기카드(TOP10) 시세. 클수록 카드가 비쌈.
+        <b>자료 충분도</b> = 가격 계산에 쓴 실제 매물·카드 자료가 얼마나 많은지(많을수록 믿을 만함).
+        <b>매물 희소성</b> = 지금 eBay에 팔려고 나온 물량이 적을수록 높음(귀함).
+        <b>최근 판매 열기</b> = 최근 얼마나 자주 팔렸는지.
+        <b>박스 가격차</b> = 같은 박스인데 파는 곳마다 벌어지는 가격 폭.
         모두 투자 참고용입니다.${topSources ? ` 주요 반영 카드: ${topSources}.` : ""}
       </p>
     </div>`;
@@ -632,7 +635,7 @@ function renderBoxMarket(set) {
       <div class="boxMarket empty">
         <span class="bmLabel">일본판 박스 eBay</span>
         <strong>가격 수집 대기</strong>
-        <small>Active 매물 기준 · 중국/홍콩/마카오 발송지 제외 예정</small>
+        <small>지금 팔리는 매물 기준 · 중국/홍콩/마카오 발송지 제외 예정</small>
       </div>`;
   }
 
