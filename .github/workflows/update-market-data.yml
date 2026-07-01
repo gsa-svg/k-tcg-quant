@@ -37,6 +37,8 @@ jobs:
           node --check packs.js
           node --check tools/update-ebay-pack-prices.js
           node --check tools/update-ebay-english-nm-prices.js
+          node --check tools/update-ebay-japanese-nm-sold-prices.js
+          node --check tools/update-box-series-history.js
           node --check tools/audit-price-quality.js
           node --check tools/audit-active-listings.js
           node tools/test-price-outliers.js
@@ -49,19 +51,27 @@ jobs:
         if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: node tools/update-ebay-english-nm-prices.js
 
+      - name: Update eBay Japanese NM sold prices
+        if: env.EBAY_CLIENT_ID != ''
+        run: node tools/update-ebay-japanese-nm-sold-prices.js --continue-on-error
+
+      - name: Append box price history snapshot
+        run: node tools/update-box-series-history.js
+
       - name: Audit price quality
         run: |
+          node tools/audit-price-quality.js --hide-suspicious-nm
           node tools/audit-price-quality.js
           node tools/audit-active-listings.js
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/price-quality-audit.json; then
+          if git diff --quiet data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/price-quality-audit.json
+          git add data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json
           git commit -m "Update market data"
           git push

@@ -3,8 +3,10 @@
  "source": "https://tcgquant.com",
  "updated": "2026-07-01",
  "fx": {
-  "usdKrw": 1388.2,
-  "jpyKrw": 9.1
+  "date": "2026-07-01",
+  "jpyKrw": 9.53,
+  "usdKrw": 1548.63,
+  "source": "open.er-api.com latest USD"
  },
  "sets": {
   "OP-01": {
@@ -498,11 +500,11 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 338,
+      "low": 323.95,
       "middle": 350,
       "high": 384.99,
-      "sampleSize": 12,
-      "excludedCount": 1,
+      "sampleSize": 14,
+      "excludedCount": 3,
       "bestListing": {
        "title": "One Piece TCG: Romance Dawn (OP-01) Booster Box (Japanese)",
        "url": "https://www.ebay.com/itm/397892710165?_skw=One+Piece+Card+Game+OP-01+Romance+Dawn+Booster+Box+Japanese+sealed&hash=item5ca440ef15:g:N6YAAeSwx-Bp8ima",
@@ -519,9 +521,9 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 35,
     "points": [
      {
@@ -583,6 +585,12 @@
       "d": "2026-06-22",
       "p": 497189,
       "n": 5
+     },
+     {
+      "d": "2026-07-01",
+      "p": 542021,
+      "n": 14,
+      "basis": "active"
      }
     ]
    }
@@ -1073,9 +1081,9 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 15,
     "points": [
      {
@@ -1117,6 +1125,12 @@
       "d": "2026-06-08",
       "p": 230216,
       "n": 3
+     },
+     {
+      "d": "2026-07-01",
+      "p": 216793,
+      "n": 7,
+      "basis": "active"
      }
     ]
    }
@@ -1628,11 +1642,11 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 149.99,
+      "low": 150,
       "middle": 170.95,
       "high": 178.99,
       "sampleSize": 5,
-      "excludedCount": 11,
+      "excludedCount": 12,
       "bestListing": {
        "title": "OP-03 One Piece Pillars of Strength Booster Box - Japanese - US Seller",
        "url": "https://www.ebay.com/itm/206071033290?_skw=One+Piece+Card+Game+OP-03+Pillars+of+Strength+Booster+Box+Japanese+sealed&hash=item2ffaca6dca:g:6mUAAeSwVjJpkPAQ",
@@ -1649,9 +1663,9 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 9,
     "points": [
      {
@@ -1688,6 +1702,12 @@
       "d": "2026-06-22",
       "p": 232391,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 264738,
+      "n": 5,
+      "basis": "active"
      }
     ]
    }
@@ -2152,8 +2172,8 @@
       "sampleSize": 11,
       "excludedCount": 22,
       "bestListing": {
-       "title": "OP04 One Piece Card Game CCG Kingdoms Of Intrigue Japanese Sealed Booster Box US",
-       "url": "https://www.ebay.com/itm/377307690331?_skw=One+Piece+Card+Game+OP-04+Kingdoms+of+Intrigue+Booster+Box+Japanese+sealed&hash=item57d94a755b:g:vpsAAeSwqZVp88LW",
+       "title": "OP-04 One Piece Card Game Kingdoms Of Intrigue Japanese Sealed Booster Box US",
+       "url": "https://www.ebay.com/itm/377307107362?_skw=One+Piece+Card+Game+OP-04+Kingdoms+of+Intrigue+Booster+Box+Japanese+sealed&hash=item57d9419022:g:AOoAAeSwWxpp8257",
        "price": 119.88,
        "shipping": 0,
        "total": 119.88,
@@ -2169,9 +2189,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 11,
     "points": [
      {
@@ -2213,6 +2233,12 @@
       "d": "2026-06-15",
       "p": 337634,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 185665,
+      "n": 11,
+      "basis": "active"
      }
     ]
    }
@@ -2718,7 +2744,7 @@
       "middle": 155.89,
       "high": 238,
       "sampleSize": 12,
-      "excludedCount": 17,
+      "excludedCount": 20,
       "bestListing": {
        "title": "BANDAI One Piece Card Game Awakening of the New Era Booster Box Japanese OP-05",
        "url": "https://www.ebay.com/itm/389373506263?_skw=One+Piece+Card+Game+OP-05+Awakening+of+the+New+Era+Booster+Box+Japanese+sealed&hash=item5aa87832d7:g:3eMAAeSwCexpvQcU",
@@ -2735,9 +2761,9 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 32,
     "points": [
      {
@@ -2804,6 +2830,12 @@
       "d": "2026-06-22",
       "p": 436796,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 241416,
+      "n": 12,
+      "basis": "active"
      }
     ]
    }
@@ -3312,7 +3344,7 @@
       "low": 174.95,
       "middle": 199.99,
       "high": 469.99,
-      "sampleSize": 9,
+      "sampleSize": 10,
       "excludedCount": 1,
       "bestListing": {
        "title": "One Piece OP-06 Wings Of The Captain Booster Box Japanese Factory Sealed 24-Pack",
@@ -3332,9 +3364,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 15,
     "points": [
      {
@@ -3376,6 +3408,12 @@
       "d": "2026-06-15",
       "p": 184172,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 309711,
+      "n": 10,
+      "basis": "active"
      }
     ]
    }
@@ -3809,10 +3847,10 @@
       "marketplaceId": "EBAY_US",
       "currency": "USD",
       "low": 140,
-      "middle": 175,
-      "high": 179.99,
-      "sampleSize": 3,
-      "excludedCount": 22,
+      "middle": 179.99,
+      "high": 314.83,
+      "sampleSize": 4,
+      "excludedCount": 21,
       "bestListing": {
        "title": "One Piece TCG Japanese Memorial Collection (EB01) Booster Box",
        "url": "https://www.ebay.com/itm/137313762066?_skw=One+Piece+Card+Game+EB-01+Memorial+Collection+Extra+Booster+Box+Japanese+sealed&hash=item1ff889bb12:g:t48AAeSw1HpqB5bF",
@@ -3831,9 +3869,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 22,
     "points": [
      {
@@ -3895,6 +3933,12 @@
       "d": "2026-06-22",
       "p": 214791,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 278738,
+      "n": 4,
+      "basis": "active"
      }
     ]
    }
@@ -4314,9 +4358,9 @@
       "currency": "USD",
       "low": 79.38,
       "middle": 79.99,
-      "high": 106.95,
+      "high": 108.62,
       "sampleSize": 17,
-      "excludedCount": 14,
+      "excludedCount": 15,
       "bestListing": {
        "title": "OP-07 Japanese One Piece Card Game 500 Years in the Future Booster Box Bandai US",
        "url": "https://www.ebay.com/itm/358651093603?_skw=One+Piece+Card+Game+OP-07+500+Years+in+the+Future+Booster+Box+Japanese+sealed&hash=item5381456263:g:8g4AAeSw5zhp~bcm",
@@ -4335,9 +4379,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 42,
     "points": [
      {
@@ -4404,6 +4448,12 @@
       "d": "2026-06-22",
       "p": 153477,
       "n": 4
+     },
+     {
+      "d": "2026-07-01",
+      "p": 123875,
+      "n": 17,
+      "basis": "active"
      }
     ]
    }
@@ -4889,11 +4939,11 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 71,
-      "middle": 95,
+      "low": 72.8,
+      "middle": 89.91,
       "high": 109.97,
-      "sampleSize": 10,
-      "excludedCount": 22,
+      "sampleSize": 11,
+      "excludedCount": 23,
       "bestListing": {
        "title": "ONE PIECE Card Game OP-08 Two Legends Booster Box Japanese Factory Sealed New JP",
        "url": "https://www.ebay.com/itm/800131270252?_skw=One+Piece+Card+Game+OP-08+Two+Legends+Booster+Box+Japanese+sealed&hash=itemba4b8a466c:g:jpEAAeSwlWhqI87U",
@@ -4912,9 +4962,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 27,
     "points": [
      {
@@ -4971,6 +5021,12 @@
       "d": "2026-06-22",
       "p": 131975,
       "n": 5
+     },
+     {
+      "d": "2026-07-01",
+      "p": 139237,
+      "n": 11,
+      "basis": "active"
      }
     ]
    }
@@ -5455,10 +5511,10 @@
       "marketplaceId": "EBAY_US",
       "currency": "USD",
       "low": 129.99,
-      "middle": 184.99,
+      "middle": 140,
       "high": 189.97,
-      "sampleSize": 6,
-      "excludedCount": 14,
+      "sampleSize": 5,
+      "excludedCount": 19,
       "bestListing": {
        "title": "One Piece TCG - PRB-01 Premium Japanese Booster Box",
        "url": "https://www.ebay.com/itm/318397702581?_skw=One+Piece+Card+Game+PRB-01+Premium+Booster+Premium+Booster+Box+Japanese+sealed&hash=item4a21fb61b5:g:ltoAAeSwY41qHljS",
@@ -5477,9 +5533,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 42,
     "points": [
      {
@@ -5541,6 +5597,12 @@
       "d": "2026-06-22",
       "p": 196451,
       "n": 4
+     },
+     {
+      "d": "2026-07-01",
+      "p": 216808,
+      "n": 5,
+      "basis": "active"
      }
     ]
    }
@@ -6027,7 +6089,7 @@
       "low": 104.99,
       "middle": 104.99,
       "high": 124.99,
-      "sampleSize": 16,
+      "sampleSize": 17,
       "excludedCount": 15,
       "bestListing": {
        "title": "[US Seller] Sealed Japanese OP-09 One Piece Card The Four Emperors Booster Box",
@@ -6047,9 +6109,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 19,
     "points": [
      {
@@ -6106,6 +6168,12 @@
       "d": "2026-06-22",
       "p": 218380,
       "n": 3
+     },
+     {
+      "d": "2026-07-01",
+      "p": 162591,
+      "n": 17,
+      "basis": "active"
      }
     ]
    }
@@ -6564,19 +6632,19 @@
       "marketplaceId": "EBAY_US",
       "currency": "USD",
       "low": 95,
-      "middle": 100,
+      "middle": 97.42,
       "high": 124.98,
-      "sampleSize": 9,
+      "sampleSize": 11,
       "excludedCount": 7,
       "bestListing": {
-       "title": "One Piece TCG Japanese Royal Blood (OP10) Booster Box",
-       "url": "https://www.ebay.com/itm/137169100714?_skw=One+Piece+Card+Game+OP-10+Royal+Blood+Booster+Box+Japanese+sealed&hash=item1fefea5faa:g:74UAAeSwZJxpxCpI",
-       "price": 88.5,
+       "title": "Japanese OP-10 Booster Box One Piece TCG Royal Blood",
+       "url": "https://www.ebay.com/itm/186834552923?_skw=One+Piece+Card+Game+OP-10+Royal+Blood+Booster+Box+Japanese+sealed&hash=item2b8035085b:g:j4cAAeSwJg5qO~Hh",
+       "price": 74.99,
        "shipping": 0,
-       "total": 88.5,
+       "total": 74.99,
        "currency": "USD",
        "country": "US",
-       "seller": "bangforyourbucktcginc",
+       "seller": "flipsidegaming",
        "condition": "New/Factory Sealed"
       }
      }
@@ -6586,9 +6654,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 21,
     "points": [
      {
@@ -6635,6 +6703,12 @@
       "d": "2026-06-15",
       "p": 135827,
       "n": 2
+     },
+     {
+      "d": "2026-07-01",
+      "p": 150868,
+      "n": 11,
+      "basis": "active"
      }
     ]
    }
@@ -7067,11 +7141,11 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 99.39,
+      "low": 99.66,
       "middle": 99.99,
       "high": 99.99,
       "sampleSize": 11,
-      "excludedCount": 13,
+      "excludedCount": 20,
       "bestListing": {
        "title": "Sealed Japanese EB-02 Anime 25th Collection Booster Box [US Seller] One Piece",
        "url": "https://www.ebay.com/itm/358659344467?_skw=One+Piece+Card+Game+EB-02+Anime+25th+Collection+Extra+Booster+Box+Japanese+sealed&hash=item5381c34853:g:jkwAAeSwe69p~4s9",
@@ -7090,9 +7164,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 30,
     "points": [
      {
@@ -7144,6 +7218,12 @@
       "d": "2026-06-22",
       "p": 206427,
       "n": 5
+     },
+     {
+      "d": "2026-07-01",
+      "p": 154848,
+      "n": 11,
+      "basis": "active"
      }
     ]
    }
@@ -7668,7 +7748,7 @@
       "middle": 149.99,
       "high": 149.99,
       "sampleSize": 7,
-      "excludedCount": 29,
+      "excludedCount": 31,
       "bestListing": {
        "title": "One Piece Card Game OP-11 A Fist of Divine Speed Booster Box Japanese Sealed",
        "url": "https://www.ebay.com/itm/407023172849?_skw=One+Piece+Card+Game+OP-11+A+Fist+of+Divine+Speed+Booster+Box+Japanese+sealed&hash=item5ec478bcf1:g:gv8AAeSw1fdqO0No",
@@ -7687,9 +7767,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 29,
     "points": [
      {
@@ -7751,6 +7831,12 @@
       "d": "2026-06-22",
       "p": 563523,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 232279,
+      "n": 7,
+      "basis": "active"
      }
     ]
    }
@@ -8135,17 +8221,17 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 100,
+      "low": 95,
       "middle": 100,
       "high": 103.75,
       "sampleSize": 3,
-      "excludedCount": 25,
+      "excludedCount": 40,
       "bestListing": {
        "title": "ONE PIECE Card Game Legacy of the Master OP-12 Booster Box Japanese Sealed NEW",
        "url": "https://www.ebay.com/itm/389543600971?_skw=One+Piece+Card+Game+OP-12+Legacy+of+the+Master+Booster+Box+Japanese+sealed&hash=item5ab29ba34b:g:Xd8AAeSwKvBpeCOW",
-       "price": 100,
+       "price": 95,
        "shipping": 0,
-       "total": 100,
+       "total": 95,
        "currency": "USD",
        "country": "JP",
        "seller": "otakky_tokyo",
@@ -8158,9 +8244,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 23,
     "points": [
      {
@@ -8202,6 +8288,12 @@
       "d": "2026-06-22",
       "p": 158746,
       "n": 3
+     },
+     {
+      "d": "2026-07-01",
+      "p": 154863,
+      "n": 3,
+      "basis": "active"
      }
     ]
    }
@@ -8674,8 +8766,8 @@
       "low": 67.99,
       "middle": 67.99,
       "high": 69,
-      "sampleSize": 22,
-      "excludedCount": 4,
+      "sampleSize": 23,
+      "excludedCount": 6,
       "bestListing": {
        "title": "One Piece Card Game PRB02 The Best Vol.2 Premium Booster Box Japanese Sealed",
        "url": "https://www.ebay.com/itm/298213876020?_skw=One+Piece+Card+Game+PRB-02+Premium+Booster+Premium+Booster+Box+Japanese+sealed&hash=item456eeea134:g:mUMAAeSwPIZp2aAl",
@@ -8694,9 +8786,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 58,
     "points": [
      {
@@ -8763,6 +8855,12 @@
       "d": "2026-06-22",
       "p": 104334,
       "n": 11
+     },
+     {
+      "d": "2026-07-01",
+      "p": 105291,
+      "n": 23,
+      "basis": "active"
      }
     ]
    }
@@ -9168,10 +9266,10 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 129.99,
+      "low": 129.98,
       "middle": 129.99,
       "high": 129.99,
-      "sampleSize": 6,
+      "sampleSize": 7,
       "excludedCount": 3,
       "bestListing": {
        "title": "One Piece Sealed Carrying TCG: His On Will Booster Box (Japanese) OP-13 US",
@@ -9191,9 +9289,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 49,
     "points": [
      {
@@ -9260,6 +9358,12 @@
       "d": "2026-06-22",
       "p": 241726,
       "n": 3
+     },
+     {
+      "d": "2026-07-01",
+      "p": 201306,
+      "n": 7,
+      "basis": "active"
      }
     ]
    }
@@ -9764,7 +9868,7 @@
       "middle": 79.99,
       "high": 79.99,
       "sampleSize": 21,
-      "excludedCount": 10,
+      "excludedCount": 8,
       "bestListing": {
        "title": "US SELLER One Piece Card Game OP-14 Booster Box The Azure Sea’s Japanese",
        "url": "https://www.ebay.com/itm/287417307380?_skw=One+Piece+Card+Game+OP-14+The+Azure+Sea%27s+Seven+Booster+Box+Japanese+sealed&hash=item42eb6810f4:g:4hQAAeSwLodqPKRU",
@@ -9783,9 +9887,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 34,
     "points": [
      {
@@ -9847,6 +9951,12 @@
       "d": "2026-06-22",
       "p": 191831,
       "n": 3
+     },
+     {
+      "d": "2026-07-01",
+      "p": 123875,
+      "n": 21,
+      "basis": "active"
      }
     ]
    }
@@ -10355,9 +10465,9 @@
       "currency": "USD",
       "low": 115.99,
       "middle": 115.99,
-      "high": 144.36,
-      "sampleSize": 16,
-      "excludedCount": 14,
+      "high": 139.99,
+      "sampleSize": 15,
+      "excludedCount": 13,
       "bestListing": {
        "title": "ONE PIECE Card Game Booster Box EB-03 Heroines Edition Japanese Sealed US SELLER",
        "url": "https://www.ebay.com/itm/358720439429?_skw=One+Piece+Card+Game+EB-03+Heroine%27s+Edition+Extra+Booster+Box+Japanese+sealed&hash=item5385678485:g:8RkAAeSwFatqPP8S",
@@ -10376,9 +10486,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 30,
     "points": [
      {
@@ -10445,6 +10555,12 @@
       "d": "2026-06-22",
       "p": 195800,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 179626,
+      "n": 15,
+      "basis": "active"
      }
     ]
    }
@@ -10788,20 +10904,20 @@
       "updated": "2026-07-01",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "low": 108.79,
-      "middle": 108.89,
+      "low": 104.99,
+      "middle": 109.99,
       "high": 117.25,
-      "sampleSize": 7,
-      "excludedCount": 3,
+      "sampleSize": 10,
+      "excludedCount": 5,
       "bestListing": {
-       "title": "OP-15 KAMI’s Island Booster Box JP Sealed One Piece [US SELLER SHIPS NOW!]",
-       "url": "https://www.ebay.com/itm/377305123511?_skw=One+Piece+Card+Game+OP-15+Adventure+on+Kami%27s+Island+Booster+Box+Japanese+sealed&hash=item57d9234ab7:g:fZEAAeSwMCZp8nFi",
-       "price": 108.79,
+       "title": "Japanese OP-15 Booster Box One Piece TCG Adventure on Kami's Island",
+       "url": "https://www.ebay.com/itm/187873178712?_skw=One+Piece+Card+Game+OP-15+Adventure+on+Kami%27s+Island+Booster+Box+Japanese+sealed&hash=item2bbe1d3458:g:7kEAAeSwDkJpgNse",
+       "price": 104.99,
        "shipping": 0,
-       "total": 108.79,
+       "total": 104.99,
        "currency": "USD",
        "country": "US",
-       "seller": "greatestplc",
+       "seller": "flipsidegaming",
        "condition": "New/Factory Sealed"
       }
      }
@@ -10811,9 +10927,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 27,
     "points": [
      {
@@ -10870,6 +10986,12 @@
       "d": "2026-06-22",
       "p": 144730,
       "n": 1
+     },
+     {
+      "d": "2026-07-01",
+      "p": 170334,
+      "n": 10,
+      "basis": "active"
      }
     ]
    }
@@ -10892,7 +11014,7 @@
       "low": 138.45,
       "middle": 149.88,
       "high": 215.4,
-      "sampleSize": 13,
+      "sampleSize": 11,
       "excludedCount": 3,
       "bestListing": {
        "title": "2026 One Piece Card Game OP-16 The Time Of Battle Booster Box Sealed Japanese",
@@ -10910,9 +11032,9 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold (거래완료) · 일본판 단일 부스터박스 주간 중앙값",
-    "note": "케이스·로트·복수박스·중국권 셀러 제외",
-    "updated": "2026-06-29",
+    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
+    "updated": "2026-07-01",
     "sampleSize": 38,
     "points": [
      {
@@ -10954,6 +11076,12 @@
       "d": "2026-06-22",
       "p": 226900,
       "n": 6
+     },
+     {
+      "d": "2026-07-01",
+      "p": 232109,
+      "n": 11,
+      "basis": "active"
      }
     ]
    }

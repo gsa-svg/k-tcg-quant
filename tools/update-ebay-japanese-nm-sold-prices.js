@@ -187,7 +187,7 @@ function analyzeSoldItems(items, setCode, card) {
 
 function appendHistory(existing, snapshot) {
   const cutoff = new Date(snapshot.date);
-  cutoff.setDate(cutoff.getDate() - 90);
+  cutoff.setDate(cutoff.getDate() - 180);
   const history = Array.isArray(existing) ? existing.filter((row) => new Date(row.date) >= cutoff) : [];
   return [...history.filter((row) => row.date !== snapshot.date), snapshot].sort((a, b) => a.date.localeCompare(b.date));
 }

@@ -36,6 +36,7 @@ jobs:
           node --check packs.js
           node --check tools/update-ebay-pack-prices.js
           node --check tools/update-ebay-psa10-active-links.js
+          node --check tools/update-box-series-history.js
           node --check tools/audit-active-listings.js
 
       - name: Update eBay active box links
@@ -45,6 +46,9 @@ jobs:
       - name: Update eBay active PSA10 links
         if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: node tools/update-ebay-psa10-active-links.js
+
+      - name: Append box price history snapshot
+        run: node tools/update-box-series-history.js
 
       - name: Audit active listing quality
         run: node tools/audit-active-listings.js
