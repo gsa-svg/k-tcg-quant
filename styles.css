@@ -745,6 +745,14 @@ h2 {
   color: var(--muted);
 }
 
+.introPanel,
+.packGrid,
+#detail,
+.footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 520px;
+}
+
 .bodyPage {
   max-width: 900px;
   padding: 58px clamp(18px, 4vw, 52px);
