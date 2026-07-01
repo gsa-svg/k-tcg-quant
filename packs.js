@@ -4,7 +4,7 @@ const state = {
   selected: null,
   renderedLang: null,
   view: "hits", // "hits" | "psa"
-  hl: "ko", // display language: "ko" | "en"
+  hl: "en", // display language: "ko" | "en"
 };
 
 function initDisplayLanguage() {
@@ -14,7 +14,7 @@ function initDisplayLanguage() {
   try {
     savedLang = localStorage.getItem("ktcg_hl");
   } catch (e) {}
-  state.hl = urlLang === "en" || urlLang === "ko" ? urlLang : savedLang === "en" ? "en" : "ko";
+  state.hl = urlLang === "en" || urlLang === "ko" ? urlLang : savedLang === "ko" ? "ko" : "en";
 }
 
 function t(ko, en) {
@@ -192,11 +192,11 @@ function updateUrl(replace = false) {
 }
 
 function upsertHreflang(pack) {
-  document.querySelectorAll('link[data-ktcg-hreflang="true"]').forEach((node) => node.remove());
+  document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((node) => node.remove());
   const baseParams = new URLSearchParams();
   baseParams.set("set", pack.key);
   if (state.lang !== "jp") baseParams.set("lang", state.lang);
-  [["ko", ""], ["en", "en"], ["x-default", ""]].forEach(([lang, hl]) => {
+  [["en", "en"], ["ko", "ko"], ["x-default", "en"]].forEach(([lang, hl]) => {
     const params = new URLSearchParams(baseParams);
     if (hl) params.set("hl", hl);
     const link = document.createElement("link");
@@ -814,12 +814,12 @@ function updateSeo(pack) {
   const koName = pack.nameKo || pack.nameEn || pack.code;
   const enName = pack.nameEn || pack.nameKo || pack.code;
   const title = t(
-    `${pack.code} ${koName} ${enName} 부스터팩 시세·히트카드 TOP10 | K-TCG Quant`,
+    `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | K-TCG Quant`,
     `${pack.code} ${enName} Booster Box Price & Top 10 Chase Cards | K-TCG Quant`,
   );
   const description = t(
-    `${pack.code} ${koName}(${enName}) 부스터박스 가격, eBay 시세, TOP10 히트카드, NM, PSA10, PSA 통계를 비교합니다.`,
-    `Compare ${pack.code} ${enName} booster box prices, eBay market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats.`,
+    `${pack.code} ${koName}(${enName}) \uBD80\uC2A4\uD130\uBC15\uC2A4 \uAC00\uACA9, eBay \uC2DC\uC138, TOP10 \uD788\uD2B8\uCE74\uB4DC, NM, PSA10, PSA \uD1B5\uACC4\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.`,
+    `Compare ${pack.code} ${enName} Japanese One Piece booster box prices, eBay sold and active market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats for global collectors.`,
   );
   document.title = title;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
@@ -834,11 +834,16 @@ function updateSeo(pack) {
   const params = new URLSearchParams();
   params.set("set", pack.key);
   if (state.lang !== "jp") params.set("lang", state.lang);
-  if (state.hl === "en") params.set("hl", "en");
+  params.set("hl", state.hl);
   canonical.href = `${SITE_BASE}/packs.html?${params}`;
   document.querySelector('meta[property="og:url"]')?.setAttribute("content", canonical.href);
   document.documentElement.lang = state.hl === "en" ? "en" : "ko";
   document.querySelector('meta[property="og:locale"]')?.setAttribute("content", state.hl === "en" ? "en_US" : "ko_KR");
+  document.querySelectorAll('meta[property="og:locale:alternate"]').forEach((node) => node.remove());
+  const altLocale = document.createElement("meta");
+  altLocale.setAttribute("property", "og:locale:alternate");
+  altLocale.setAttribute("content", state.hl === "en" ? "ko_KR" : "en_US");
+  document.head.appendChild(altLocale);
   upsertHreflang(pack);
   setJsonLd("packStructuredData", {
     "@context": "https://schema.org",
@@ -851,8 +856,29 @@ function updateSeo(pack) {
     isAccessibleForFree: true,
     creator: { "@type": "Organization", name: "K-TCG Quant", url: `${SITE_BASE}/` },
     dateModified: state.data?.updated || undefined,
+    spatialCoverage: ["United States", "Japan", "Singapore", "Malaysia", "Philippines", "Thailand", "Vietnam", "Indonesia"],
     variableMeasured: ["Booster box price", "Top 10 hit cards", "NM price", "PSA10 price", "PSA population"],
-    keywords: [`${pack.code}`, koName, enName, "One Piece Card Game", "booster box price", "원피스 카드게임", "부스터팩 시세", "PSA10", "eBay"],
+    keywords: [
+      `${pack.code}`,
+      koName,
+      enName,
+      "One Piece Card Game",
+      "Japanese booster box price",
+      "One Piece booster box investment",
+      "One Piece sealed box",
+      "PSA 10 population",
+      "eBay sold prices",
+      "TCG Southeast Asia",
+      "Singapore TCG",
+      "Malaysia TCG",
+      "Philippines TCG",
+      "Thailand TCG",
+      "Vietnam TCG",
+      "\uC6D0\uD53C\uC2A4 \uCE74\uB4DC\uAC8C\uC784",
+      "\uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138",
+      "PSA10",
+      "eBay",
+    ],
   });
 }
 
