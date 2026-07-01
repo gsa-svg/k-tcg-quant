@@ -121,6 +121,8 @@ function priceLines(c) {
         <span class="bandRows">${priceBandRows(c.psa10Ebay)}</span>
         <small>${psa10EbaySourceLabel} · 표본 ${c.psa10Ebay.sampleSize}건</small>
       </span>`;
+  } else {
+    h += `<span class="pl psaNone"><i>일본어판 PSA10</i> <small>실거래 기록 없음 · 거래가 드문 카드</small></span>`;
   }
   if (c.englishNmEbay?.sampleSize > 0) {
     h += `
@@ -144,7 +146,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260701terms";
+const DATA_VERSION = "20260701psanone";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
