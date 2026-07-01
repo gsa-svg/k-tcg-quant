@@ -811,11 +811,11 @@ function updateSeo(pack) {
   const enName = pack.nameEn || pack.nameKo || pack.code;
   const title = t(
     `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | OP Box Index`,
-    `${pack.code} ${enName} Booster Box Price & Top 10 Chase Cards | OP Box Index`,
+    `${pack.code} ${enName} One Piece Card Prices & Booster Box Price | OP Box Index`,
   );
   const description = t(
     `${pack.code} ${koName}(${enName}) \uBD80\uC2A4\uD130\uBC15\uC2A4 \uAC00\uACA9, eBay \uC2DC\uC138, TOP10 \uD788\uD2B8\uCE74\uB4DC, NM, PSA10, PSA \uD1B5\uACC4\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.`,
-    `Compare ${pack.code} ${enName} Japanese One Piece booster box prices, eBay sold and active market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats for global collectors.`,
+    `Compare ${pack.code} ${enName} One Piece card prices, Japanese booster box prices, eBay sold and active market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats.`,
   );
   document.title = title;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
@@ -859,6 +859,9 @@ function updateSeo(pack) {
       koName,
       enName,
       "One Piece Card Game",
+      "One Piece card prices",
+      "One Piece card price",
+      "One Piece booster box prices",
       "Japanese booster box price",
       "One Piece booster box investment",
       "One Piece sealed box",
