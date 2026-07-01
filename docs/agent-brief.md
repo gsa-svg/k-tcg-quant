@@ -6,7 +6,7 @@
 - 사용자가 시키면 직접 수정, 검증, 커밋, 푸시까지 한다.
 - 비밀값, `.env`, eBay 키, 캡처는 출력/커밋 금지.
 - 메인 파일: `packs.html`, `packs.js`, `data/onepiece-packs.json`.
-- 배포 URL: `https://gsa-svg.github.io/k-tcg-quant/packs.html`.
+- 배포 URL: `https://opboxindex.com/packs.html`.
 - 테스트:
   - `node --check packs.js`
   - `node --check tools/update-ebay-psa10-prices.js`

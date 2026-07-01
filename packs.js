@@ -148,9 +148,9 @@ const FALLBACK =
 
 const DATA_URLS = [
   "data/onepiece-packs.json",
-  "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
+  "https://opboxindex.com/data/onepiece-packs.json",
 ];
-const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
+const SITE_BASE = "https://opboxindex.com";
 const DATA_VERSION = "20260701psanone";
 
 function withVersion(url) {
@@ -489,7 +489,7 @@ function applyStaticI18n() {
   );
   setHtml(
     ".introPanel",
-    `<strong>K-TCG Quant — 원피스 미개봉 부스터박스 가격·히트카드 리서치</strong>
+    `<strong>OP Box Index — 원피스 미개봉 부스터박스 가격·히트카드 리서치</strong>
       <p>일본어판 원피스 부스터박스별 주요 카드, 박스 거래 흐름, PSA 통계, 저평가/고평가 구간을 빠르게 비교합니다.</p>
       <p class="introHead">볼 수 있는 것</p>
       <ul>
@@ -500,7 +500,7 @@ function applyStaticI18n() {
         <li><b>밸류 구간</b> — 최근 실거래 대비 저평가/고평가 참고 지표</li>
       </ul>
       <p class="introMeta">출처 — TOP10 구성/박스 참고 TCG Quant · 일본판 NM 유유테이/카드러시 · PSA10/박스 eBay · 이미지 TCGplayer · PSA 통계 GemRate. 투자 참고용이며 매수 추천이 아닙니다.</p>`,
-    `<strong>K-TCG Quant — One Piece sealed booster box and chase-card research</strong>
+    `<strong>OP Box Index — One Piece sealed booster box and chase-card research</strong>
       <p>Compare Japanese One Piece booster boxes, key chase cards, box market flow, PSA population stats and valuation ranges.</p>
       <p class="introHead">What you get</p>
       <ul>
@@ -521,7 +521,7 @@ function applyStaticI18n() {
     node.textContent = t("이 페이지에는 Google AdSense 광고가 표시될 수 있습니다.", "This page may show Google AdSense ads.");
   });
   setText(".packSection > .note", "신규 세트는 시세 데이터가 준비되는 대로 반영됩니다. 모든 가격은 참고값입니다.", "New sets appear once price data is ready. All prices are reference values.");
-  setText(".footer p", "K-TCG Quant는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.", "K-TCG Quant is a data-driven research site, not investment advice.");
+  setText(".footer p", "OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.", "OP Box Index is a data-driven research site, not investment advice.");
   const btn = document.querySelector("#displayLangToggle");
   if (btn) btn.textContent = state.hl === "en" ? "한국어" : "EN";
 }
@@ -814,8 +814,8 @@ function updateSeo(pack) {
   const koName = pack.nameKo || pack.nameEn || pack.code;
   const enName = pack.nameEn || pack.nameKo || pack.code;
   const title = t(
-    `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | K-TCG Quant`,
-    `${pack.code} ${enName} Booster Box Price & Top 10 Chase Cards | K-TCG Quant`,
+    `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | OP Box Index`,
+    `${pack.code} ${enName} Booster Box Price & Top 10 Chase Cards | OP Box Index`,
   );
   const description = t(
     `${pack.code} ${koName}(${enName}) \uBD80\uC2A4\uD130\uBC15\uC2A4 \uAC00\uACA9, eBay \uC2DC\uC138, TOP10 \uD788\uD2B8\uCE74\uB4DC, NM, PSA10, PSA \uD1B5\uACC4\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.`,
@@ -848,13 +848,13 @@ function updateSeo(pack) {
   setJsonLd("packStructuredData", {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    name: title.replace(" | K-TCG Quant", ""),
+    name: title.replace(" | OP Box Index", ""),
     description,
     url: canonical.href,
     image: pack.set?.box ? new URL(pack.set.box, location.href).href : undefined,
     inLanguage: state.hl === "en" ? "en-US" : "ko-KR",
     isAccessibleForFree: true,
-    creator: { "@type": "Organization", name: "K-TCG Quant", url: `${SITE_BASE}/` },
+    creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE_BASE}/` },
     dateModified: state.data?.updated || undefined,
     spatialCoverage: ["United States", "Japan", "Singapore", "Malaysia", "Philippines", "Thailand", "Vietnam", "Indonesia"],
     variableMeasured: ["Booster box price", "Top 10 hit cards", "NM price", "PSA10 price", "PSA population"],

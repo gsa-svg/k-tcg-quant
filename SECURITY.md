@@ -1,4 +1,4 @@
-# K-TCG Quant Security Policy
+# OP Box Index Security Policy
 
 ## 핵심 원칙
 

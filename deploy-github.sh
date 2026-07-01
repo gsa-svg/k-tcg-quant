@@ -28,7 +28,7 @@ code=$(curl -s -o "$repoResp" -w "%{http_code}" \
   -H "Authorization: Bearer $GH_TOKEN" \
   -H "Accept: application/vnd.github+json" \
   "$API/user/repos" \
-  -d "{\"name\":\"$REPO\",\"private\":false,\"description\":\"K-TCG Quant MVP\"}")
+  -d "{\"name\":\"$REPO\",\"private\":false,\"description\":\"OP Box Index\"}")
 
 if [ "$code" = "201" ]; then
   echo "   created"

@@ -52,12 +52,13 @@ a {
 
 .brandMark {
   display: grid;
-  width: 40px;
+  width: 46px;
   height: 40px;
   place-items: center;
   background: #1d2431;
   color: var(--accent);
   font-weight: 800;
+  font-size: 13px;
   border-radius: 8px;
 }
 

@@ -1,4 +1,4 @@
-// K-TCG Quant — 데이터는 data/products.json, 환율은 data/fx.json 에서 fetch.
+// OP Box Index — 데이터는 data/products.json, 환율은 data/fx.json 에서 fetch.
 // 모든 카드 메인 가격은 원화(KRW). 원본 통화·전일 환율은 보조줄에 표기.
 // 정적 파일을 file:// 로 열면 fetch가 막히므로 HTTP 서버에서 운영할 것.
 
