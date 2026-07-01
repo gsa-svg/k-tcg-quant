@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260701plain";
+const DATA_VERSION = "20260701terms";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -334,14 +334,14 @@ function soldDemandStats(set) {
   const score = Math.max(0, Math.min(100, Math.round(recentSales * 10 + trend * 22)));
   const label =
     recentSales >= 8 && trend >= 0.15
-      ? "잘 팔림"
+      ? "수요 강세"
       : recentSales >= 5
-        ? "괜찮음"
+        ? "수요 양호"
         : recentSales <= 2
-          ? "뜸함"
+          ? "수요 부진"
           : trend < -0.25
-            ? "식는 중"
-            : "보통";
+            ? "수요 둔화"
+            : "수요 보통";
 
   return { score, label, recentSales, previousSales, trend };
 }
@@ -362,14 +362,14 @@ function supplyPressureStats(set) {
             : 22;
   const label =
     activeCount <= 2
-      ? "매우 귀함"
+      ? "매물 희소"
       : activeCount <= 5
-        ? "귀한 편"
+        ? "매물 부족"
         : activeCount <= 10
-          ? "조금 빠듯"
+          ? "다소 부족"
           : activeCount <= 18
-            ? "보통"
-            : "흔함";
+            ? "매물 보통"
+            : "매물 충분";
 
   return { score, label, activeCount, excludedCount };
 }
@@ -405,24 +405,24 @@ function valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRati
   score = Math.max(0, Math.min(reliabilityRisk ? 88 : 100, Math.round(score)));
   const label =
     score >= 75 && reliabilityRisk
-      ? "싼 편일 수도"
+      ? "저평가 추정"
       : score >= 75
-      ? "지금 싼 편"
+      ? "저평가"
       : score >= 62
-        ? "싼 편일 수도"
+        ? "저평가 추정"
         : score >= 42
           ? "적정가"
           : score >= 28
-            ? "다소 비쌈"
-            : "비쌈";
+            ? "고평가 주의"
+            : "고평가";
   const tone = score >= 62 ? "good" : score >= 42 ? "watch" : "risk";
   const gapText = soldGap == null ? "실거래 비교 없음" : `${soldGap >= 0 ? "+" : ""}${Math.round(soldGap * 100)}%`;
   const gapDirectionText =
     soldGap == null
       ? "실거래 비교 없음"
       : soldGap >= 0
-        ? `최근 실거래가보다 ${Math.round(soldGap * 100)}% 싼`
-        : `최근 실거래가보다 ${Math.abs(Math.round(soldGap * 100))}% 비싼`;
+        ? `최근 실거래가보다 ${Math.round(soldGap * 100)}% 낮은`
+        : `최근 실거래가보다 ${Math.abs(Math.round(soldGap * 100))}% 높은`;
 
   return { score, label, tone, soldGap, gapText, gapDirectionText, current, sold };
 }
@@ -462,8 +462,8 @@ function setAnalytics(set) {
   );
 
   const risks = [];
-  if (supply.score >= 65) risks.push(`매물 ${supply.label}`);
-  if (demand.score >= 70 || demand.score <= 25) risks.push(`판매 ${demand.label}`);
+  if (supply.score >= 82) risks.push(supply.label);
+  if (demand.score <= 25) risks.push(demand.label);
   if (!box) risks.push("박스 가격 없음");
   else if (!box.soldBased) risks.push("실거래가 아님(현재 호가)");
   if ((box?.sampleSize || 0) < 3) risks.push("박스 자료 적음");
@@ -499,11 +499,11 @@ function renderSetAnalytics(set) {
     .join(" · ");
   const supplySentence =
     a.supply.activeCount <= 10
-      ? `지금 eBay에 팔려고 나온 박스가 ${a.supply.activeCount}건뿐입니다. 물량이 적을수록 값이 잘 버팁니다.`
-      : `지금 eBay에 팔려고 나온 박스가 ${a.supply.activeCount}건으로, 물량은 ${a.supply.label} 수준입니다.`;
+      ? `현재 판매 물량이 ${a.supply.activeCount}건으로 많지 않아, 공급이 제한적입니다(물량이 적을수록 가격이 잘 유지됨).`
+      : `현재 판매 물량이 ${a.supply.activeCount}건으로 공급은 넉넉한 편입니다.`;
   const demandSentence =
     a.demand.recentSales > 0
-      ? `최근 4주간 ${a.demand.recentSales}건 팔렸고, 이전 4주보다 ${demandTrend} 흐름이라 '${a.demand.label}' 상태입니다.`
+      ? `최근 4주 판매 ${a.demand.recentSales}건, 이전 4주 대비 ${demandTrend}로 ${a.demand.label} 흐름입니다.`
       : "최근 판매 자료가 적어 수요는 보수적으로 봐야 합니다.";
   const supportSentence =
     a.supportRatio == null
@@ -521,40 +521,40 @@ function renderSetAnalytics(set) {
   return `
     <div class="quantPanel">
       <div class="valuationBanner ${a.valuation.tone}">
-        <span>가격 진단</span>
+        <span>가격 평가</span>
         <strong>${a.valuation.label}<small>${a.valuation.score}/100</small></strong>
         <p>${valuationSentence}</p>
-        <small>지금 박스값 ${a.valuation.current ? fmtKrw(a.valuation.current) : "-"} · 최근 실거래가 ${a.valuation.sold ? fmtKrw(a.valuation.sold) : "-"}</small>
+        <small>현재 박스값 ${a.valuation.current ? fmtKrw(a.valuation.current) : "-"} · 최근 실거래가 ${a.valuation.sold ? fmtKrw(a.valuation.sold) : "-"}</small>
       </div>
       <div class="quantMetric ${scoreClass(a.investmentScore)}">
         <span>투자 매력도</span>
         <strong>${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small></strong>
-        <small>여러 항목을 합친 종합 점수</small>
+        <small>카드값·수요·공급·위험 종합 점수</small>
       </div>
       <div class="quantMetric ${scoreClass(a.cardPowerScore)}">
-        <span>카드값 (박스 대비)</span>
+        <span>카드 지지력</span>
         <strong>${support}</strong>
-        <small>박스 1통 값 대비 인기카드(TOP10) 시세 · 클수록 카드가 비쌈</small>
+        <small>박스값 대비 인기카드(TOP10) 시세 배수 · 높을수록 카드가 박스값을 받침</small>
       </div>
       <div class="quantMetric ${scoreClass(a.liquidityScore)}">
-        <span>자료 충분도</span>
+        <span>데이터 신뢰도</span>
         <strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong>
-        <small>가격 계산에 쓴 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
+        <small>가격 계산에 쓴 표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장</small>
       </div>
       <div class="quantMetric ${pressureClass(a.supply.score)}">
         <span>매물 희소성</span>
         <strong>${a.supply.score}<small>/100 · ${a.supply.label}</small></strong>
-        <small>지금 파는 박스 ${a.supply.activeCount}건 · 적을수록 귀함</small>
+        <small>현재 판매 물량 ${a.supply.activeCount}건 · 적을수록 희소</small>
       </div>
       <div class="quantMetric ${scoreClass(a.demand.score)}">
-        <span>최근 판매 열기</span>
+        <span>수요 강도</span>
         <strong>${a.demand.score}<small>/100 · ${a.demand.label}</small></strong>
-        <small>최근 4주 ${a.demand.recentSales}건 팔림 · 이전 대비 ${demandTrend}</small>
+        <small>최근 4주 판매 ${a.demand.recentSales}건 · 이전 대비 ${demandTrend}</small>
       </div>
       <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}">
-        <span>박스 가격차</span>
+        <span>가격 편차</span>
         <strong>${spread}</strong>
-        <small>같은 박스 최고가·최저가 차이</small>
+        <small>같은 박스의 판매처별 최고·최저가 차이</small>
       </div>
       <div class="analysisSummary">
         <h3>분석 요약</h3>
@@ -565,22 +565,25 @@ function renderSetAnalytics(set) {
         <p>${riskSentence}</p>
       </div>
       <div class="analysisBreakdown">
-        <span><b>매물</b><small>지금 파는 박스 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건 · ${a.supply.label}</small></span>
-        <span><b>판매</b><small>최근 4주 ${a.demand.recentSales}건 · 이전 4주 ${a.demand.previousSales}건 · ${demandTrend}</small></span>
-        <span><b>카드 가치</b><small>인기카드 합산 시세 ${fmtKrw(a.hitPower || 0)} · 박스값의 ${support}</small></span>
+        <span><b>매물</b><small>현재 판매 물량 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건 · ${a.supply.label}</small></span>
+        <span><b>수요</b><small>최근 4주 ${a.demand.recentSales}건 · 이전 4주 ${a.demand.previousSales}건 · ${demandTrend}</small></span>
+        <span><b>카드 지지력</b><small>인기카드 합산 시세 ${fmtKrw(a.hitPower || 0)} · 박스값의 ${support}</small></span>
         <span><b>주의</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span>
+      </div>
+      <div class="riskNote">
+        <b>⚠ 주의사항</b> — 아래 항목은 이 박스 가격을 해석할 때 함께 고려해야 할 리스크·한계입니다.
       </div>
       <div class="riskTags">
         ${a.risks.map((risk) => `<span>${risk}</span>`).join("")}
       </div>
       <p class="quantNote">
-        <b>가격 진단</b> = 지금 박스값이 최근 실거래가보다 싼지·비싼지.
-        <b>투자 매력도</b> = 카드값·판매·물량·위험을 합친 종합 점수(100점 만점, A~D 등급).
-        <b>카드값(박스 대비)</b> = 박스 한 통 값 대비 그 안 인기카드(TOP10) 시세. 클수록 카드가 비쌈.
-        <b>자료 충분도</b> = 가격 계산에 쓴 실제 매물·카드 자료가 얼마나 많은지(많을수록 믿을 만함).
-        <b>매물 희소성</b> = 지금 eBay에 팔려고 나온 물량이 적을수록 높음(귀함).
-        <b>최근 판매 열기</b> = 최근 얼마나 자주 팔렸는지.
-        <b>박스 가격차</b> = 같은 박스인데 파는 곳마다 벌어지는 가격 폭.
+        <b>가격 평가</b> = 최근 실거래가 대비 현재 박스값이 저평가/고평가인지.
+        <b>투자 매력도</b> = 카드값·수요·공급·위험을 합친 종합 점수(100점 만점, A~D 등급).
+        <b>카드 지지력</b> = 박스 한 통 값 대비 그 안 인기카드(TOP10) 시세 배수. 높을수록 카드가 박스값을 받침.
+        <b>데이터 신뢰도</b> = 가격 계산에 쓴 실제 표본(매물·카드) 수. 많을수록 신뢰도 높음.
+        <b>매물 희소성</b> = 지금 시장에 나온 판매 물량. 적을수록 희소.
+        <b>수요 강도</b> = 최근 판매량과 증감 추이.
+        <b>가격 편차</b> = 같은 박스의 판매처별 최고·최저가 차이.
         모두 투자 참고용입니다.${topSources ? ` 주요 반영 카드: ${topSources}.` : ""}
       </p>
     </div>`;
