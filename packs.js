@@ -10,11 +10,7 @@ const state = {
 function initDisplayLanguage() {
   const params = new URLSearchParams(location.search);
   const urlLang = params.get("hl");
-  let savedLang = null;
-  try {
-    savedLang = localStorage.getItem("ktcg_hl");
-  } catch (e) {}
-  state.hl = urlLang === "en" || urlLang === "ko" ? urlLang : savedLang === "ko" ? "ko" : "en";
+  state.hl = urlLang === "ko" ? "ko" : "en";
 }
 
 function t(ko, en) {
