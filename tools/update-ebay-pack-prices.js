@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { isJapaneseSealedBoosterBoxTitle } = require("./ebay-listing-filters");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
@@ -76,11 +77,7 @@ async function searchActiveListings(token, query) {
 }
 
 function isJapaneseSealedBoosterBox(item, code) {
-  const title = item.title || "";
-  const codePattern = new RegExp(code.replace("-", "[- ]?"), "i");
-  const positive = [/one piece/i, codePattern, /booster box|premium booster box|extra booster box|display box|\bbox\b/i, /japanese|jp\b|japan/i];
-  const negative = [/english|korean|chinese|simplified|card lot|single card|single pack|loose pack|booster pack|proxy|digital|empty box|case\b/i];
-  return positive.every((pattern) => pattern.test(title)) && !negative.some((pattern) => pattern.test(title));
+  return isJapaneseSealedBoosterBoxTitle(item.title, code);
 }
 
 function isExcludedSeller(item) {
