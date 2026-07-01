@@ -350,13 +350,13 @@ function setAnalytics(set) {
   const risks = [];
   if (supply.score >= 82) risks.push(supply.label);
   if (demand.score <= 25) risks.push(demand.label);
-  if (!box) risks.push(t("?? ?? ??", "No box price"));
-  else if (!box.soldBased) risks.push(t("???? ??(?? ??)", "Listing price, not sold"));
-  if ((box?.sampleSize || 0) < 3) risks.push(t("?? ?? ??", "Few box samples"));
-  if (spreadRatio != null && spreadRatio > 0.45) risks.push(t("?? ?? ?", "Wide price spread"));
-  if (pricedCards.length < 5) risks.push(t("?? ?? ??", "Few card samples"));
-  if (pricedCards.some((row) => row.market.confidence === "C")) risks.push(t("?? ?? ?? ???", "Some card prices uncertain"));
-  if (!risks.length) risks.push(t("?? ?? ??", "No notable risks"));
+  if (!box) risks.push(t("박스가 없음", "No box price"));
+  else if (!box.soldBased) risks.push(t("호가 기준(실거래 아님)", "Listing price, not sold"));
+  if ((box?.sampleSize || 0) < 3) risks.push(t("박스 표본 부족", "Few box samples"));
+  if (spreadRatio != null && spreadRatio > 0.45) risks.push(t("가격 편차 큼", "Wide price spread"));
+  if (pricedCards.length < 5) risks.push(t("카드 표본 부족", "Few card samples"));
+  if (pricedCards.some((row) => row.market.confidence === "C")) risks.push(t("일부 카드가 불확실", "Some card prices uncertain"));
+  if (!risks.length) risks.push(t("큰 리스크 없음", "No notable risks"));
 
   return { box, soldBox, pricedCards, hitPower, supportRatio, liquidityScore, cardPowerScore, demand, supply, valuation, investmentScore, spreadRatio, risks };
 }

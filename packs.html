@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <!-- Google Analytics 4 (gtag.js) -->
@@ -97,8 +97,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" href="styles.css?v=20260701seo1" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260701seo1" />
+    <link rel="preload" href="styles.css?v=20260701mobile1" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260701mobile1" />
     <style>
       :root {
         --terminal-bg: #0a0c10;
@@ -400,6 +400,17 @@
         .packHero .lead { font-size: 13px; line-height: 1.65; }
         .marketStatus { margin: 10px 12px 0; padding: 9px 10px; gap: 6px 10px; font-size: 10px; }
         .introPanel { margin: 12px 12px 0; padding: 11px 12px; font-size: 12px; }
+        .introPanel p { line-height: 1.55; }
+        .introPanel .introHead { margin-top: 10px; }
+        .introPanel ul { gap: 5px; }
+        .introPanel .introMeta { margin-top: 10px; padding-top: 9px; }
+        .seoPanel { margin: 12px 12px 0; padding: 12px; border-radius: 10px; }
+        .seoPanel h2 { font-size: 20px; line-height: 1.24; margin-bottom: 8px; }
+        .seoPanel > p { margin-bottom: 10px; font-size: 13px; line-height: 1.55; }
+        .seoFaqGrid { grid-template-columns: 1fr; gap: 8px; }
+        .seoFaqGrid article { padding: 10px; border-radius: 8px; }
+        .seoFaqGrid h3 { font-size: 13px; margin-bottom: 5px; }
+        .seoFaqGrid p { font-size: 12px; line-height: 1.45; }
         .langTabs { margin: 12px 12px 0; top: 104px; gap: 6px; flex-wrap: nowrap; }
         .langTab { flex: 1 1 0; min-width: 0; min-height: 38px; padding: 0 8px; justify-content: center; font-size: 12px; }
         .packSection { padding: 14px 12px 0; }
@@ -744,20 +755,11 @@
           grid-column: 1 / -1;
         }
         .introPanel {
-          max-height: 132px;
-          overflow: hidden;
+          max-height: none;
+          overflow: visible;
           position: relative;
         }
-        .introPanel::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 34px;
-          background: linear-gradient(to bottom, rgba(20,23,28,0), rgba(20,23,28,.96));
-          pointer-events: none;
-        }
+        .introPanel::after { display: none; }
         .langTabs {
           overflow-x: auto;
           scrollbar-width: none;
@@ -980,7 +982,7 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260701seo1" defer></script>
+    <script src="packs.js?v=20260701mobile1" defer></script>
 
   </body>
 </html>
