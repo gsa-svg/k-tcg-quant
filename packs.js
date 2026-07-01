@@ -144,7 +144,7 @@ const DATA_URLS = [
   "https://gsa-svg.github.io/k-tcg-quant/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://gsa-svg.github.io/k-tcg-quant";
-const DATA_VERSION = "20260630analysis";
+const DATA_VERSION = "20260701valuation";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -286,6 +286,15 @@ function boxMidKrw(set) {
   return null;
 }
 
+function recentSoldBoxKrw(set) {
+  const points = (set.boxSeries?.points || [])
+    .filter((point) => point?.d && Number.isFinite(point.p))
+    .slice()
+    .sort((a, b) => a.d.localeCompare(b.d));
+  const last = points[points.length - 1];
+  return last ? { value: last.p, date: last.d, sampleSize: last.n || 0 } : null;
+}
+
 function cardComparableKrw(card) {
   if (card.japaneseNmEbay?.sampleSize > 0 && card.japaneseNmEbay.middle != null) {
     return {
@@ -365,9 +374,63 @@ function supplyPressureStats(set) {
   return { score, label, activeCount, excludedCount };
 }
 
+function valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRatio }) {
+  const current = box?.value || null;
+  const sold = soldBox?.value || null;
+  const soldGap = current && sold ? (sold - current) / sold : null;
+  let score = 50;
+
+  if (soldGap != null) {
+    if (soldGap >= 0.25) score += 30;
+    else if (soldGap >= 0.1) score += 18;
+    else if (soldGap <= -0.25) score -= 25;
+    else if (soldGap <= -0.1) score -= 12;
+  }
+
+  if (supportRatio != null) {
+    if (supportRatio >= 6) score += 28;
+    else if (supportRatio >= 3) score += 18;
+    else if (supportRatio >= 1.5) score += 8;
+    else if (supportRatio < 0.8) score -= 14;
+  }
+
+  if (demand.score >= 70) score += 10;
+  else if (demand.score <= 25) score -= 10;
+  if (supply.score >= 65) score += 8;
+  else if (supply.score <= 25) score -= 5;
+  if (spreadRatio != null && spreadRatio > 0.45) score -= 12;
+  if (box && !box.soldBased) score -= 6;
+
+  const reliabilityRisk = (spreadRatio != null && spreadRatio > 0.45) || (box && !box.soldBased);
+  score = Math.max(0, Math.min(reliabilityRisk ? 88 : 100, Math.round(score)));
+  const label =
+    score >= 75 && reliabilityRisk
+      ? "저평가 후보"
+      : score >= 75
+      ? "저평가"
+      : score >= 62
+        ? "저평가 후보"
+        : score >= 42
+          ? "적정 구간"
+          : score >= 28
+            ? "고평가 주의"
+            : "고평가";
+  const tone = score >= 62 ? "good" : score >= 42 ? "watch" : "risk";
+  const gapText = soldGap == null ? "Sold 비교 없음" : `${soldGap >= 0 ? "+" : ""}${Math.round(soldGap * 100)}%`;
+  const gapDirectionText =
+    soldGap == null
+      ? "Sold 비교 없음"
+      : soldGap >= 0
+        ? `최근 Sold보다 ${Math.round(soldGap * 100)}% 낮은`
+        : `최근 Sold보다 ${Math.abs(Math.round(soldGap * 100))}% 높은`;
+
+  return { score, label, tone, soldGap, gapText, gapDirectionText, current, sold };
+}
+
 function setAnalytics(set) {
   const cards = (set.cards || []).slice(0, 10);
   const box = boxMidKrw(set);
+  const soldBox = recentSoldBoxKrw(set);
   const pricedCards = cards
     .map((card) => ({ card, market: cardComparableKrw(card) }))
     .filter((row) => row.market?.value != null)
@@ -390,6 +453,7 @@ function setAnalytics(set) {
   const cardPowerScore = supportRatio == null ? 0 : Math.min(100, Math.round(supportRatio * 24));
   const demand = soldDemandStats(set);
   const supply = supplyPressureStats(set);
+  const valuation = valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRatio });
   const confidencePenalty = pricedCards.filter((row) => row.market.confidence === "C").length * 3;
   const riskPenalty = (spreadRatio != null && spreadRatio > 0.45 ? 12 : 0) + (!box?.soldBased ? 8 : 0) + confidencePenalty;
   const investmentScore = Math.max(
@@ -410,6 +474,7 @@ function setAnalytics(set) {
 
   return {
     box,
+    soldBox,
     pricedCards,
     hitPower,
     supportRatio,
@@ -417,6 +482,7 @@ function setAnalytics(set) {
     cardPowerScore,
     demand,
     supply,
+    valuation,
     investmentScore,
     spreadRatio,
     risks,
@@ -447,9 +513,19 @@ function renderSetAnalytics(set) {
     a.spreadRatio != null && a.spreadRatio > 0.45
       ? `다만 박스 가격차가 ${spread}라 매수가는 Sold와 낮은 Active 호가를 같이 확인해야 합니다.`
       : "가격 분산은 과도하지 않아 현재 표본 안에서는 비교가 비교적 쉽습니다.";
+  const valuationSentence =
+    a.valuation.soldGap == null
+      ? "최근 Sold 기준가가 부족해 밸류 구간은 카드 지지력과 공급·수요 중심으로 계산했습니다."
+      : `현재 박스가는 ${a.valuation.gapDirectionText} 수준입니다.`;
 
   return `
     <div class="quantPanel">
+      <div class="valuationBanner ${a.valuation.tone}">
+        <span>밸류 구간</span>
+        <strong>${a.valuation.label}<small>${a.valuation.score}/100</small></strong>
+        <p>${valuationSentence}</p>
+        <small>현재 ${a.valuation.current ? fmtKrw(a.valuation.current) : "-"} · 최근 Sold ${a.valuation.sold ? fmtKrw(a.valuation.sold) : "-"}</small>
+      </div>
       <div class="quantMetric ${scoreClass(a.investmentScore)}">
         <span>투자 매력도</span>
         <strong>${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small></strong>
@@ -485,6 +561,7 @@ function renderSetAnalytics(set) {
         <p>${demandSentence}</p>
         <p>${supplySentence}</p>
         <p>${supportSentence}</p>
+        <p>${valuationSentence}</p>
         <p>${riskSentence}</p>
       </div>
       <div class="analysisBreakdown">

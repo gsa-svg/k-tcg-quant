@@ -469,6 +469,58 @@
       .quantMetric.good strong { color: var(--accent); }
       .quantMetric.watch strong { color: #f3c74f; }
       .quantMetric.risk strong { color: #ff6683; }
+      .valuationBanner {
+        grid-column: 1 / -1;
+        display: grid;
+        gap: 6px;
+        padding: 13px 14px;
+        border-radius: 10px;
+        border: 1px solid #2b3445;
+        background: #101620;
+      }
+      .valuationBanner.good {
+        border-color: rgba(16,215,160,.42);
+        background: rgba(16,215,160,.08);
+      }
+      .valuationBanner.watch {
+        border-color: rgba(243,199,79,.42);
+        background: rgba(243,199,79,.08);
+      }
+      .valuationBanner.risk {
+        border-color: rgba(255,102,131,.42);
+        background: rgba(255,102,131,.08);
+      }
+      .valuationBanner span {
+        color: #8b94a7;
+        font-size: 11px;
+        font-weight: 950;
+      }
+      .valuationBanner strong {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        color: #eef2ff;
+        font-size: 24px;
+        line-height: 1.05;
+        font-weight: 950;
+      }
+      .valuationBanner.good strong { color: var(--accent); }
+      .valuationBanner.watch strong { color: #f3c74f; }
+      .valuationBanner.risk strong { color: #ff6683; }
+      .valuationBanner strong small {
+        color: inherit;
+        font-size: 12px;
+      }
+      .valuationBanner p {
+        margin: 0;
+        color: #c3cbda;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .valuationBanner > small {
+        color: #8d96a8;
+        font-size: 11px;
+      }
       .analysisSummary {
         grid-column: 1 / -1;
         display: grid;
