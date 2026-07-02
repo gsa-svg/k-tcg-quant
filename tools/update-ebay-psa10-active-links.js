@@ -29,7 +29,7 @@ const env = { ...loadEnv(envPath), ...process.env };
 const clientId = env.EBAY_CLIENT_ID;
 const clientSecret = env.EBAY_CLIENT_SECRET;
 const marketplaceId = env.EBAY_MARKETPLACE_ID || "EBAY_US";
-const searchLimit = env.EBAY_PSA_ACTIVE_SEARCH_LIMIT || env.EBAY_SEARCH_LIMIT || "50";
+const searchLimit = env.EBAY_PSA_ACTIVE_SEARCH_LIMIT || env.EBAY_SEARCH_LIMIT || "100";
 
 function requireCredentials() {
   if (!clientId || !clientSecret) {
@@ -97,7 +97,12 @@ function compact(value) {
 
 function hasNumber(title, number) {
   if (!number) return true;
-  return compact(title).includes(compact(number));
+  const normalizedTitle = compact(title);
+  const normalizedNumber = compact(number);
+  if (normalizedTitle.includes(normalizedNumber)) return true;
+  const match = normalizedNumber.match(/^(OP|EB|PRB|ST)(\d{1,2})(\d{3})$/);
+  if (!match) return false;
+  return normalizedTitle.includes(`${match[1]}${Number(match[2])}${match[3]}`);
 }
 
 function hasConflictingCardNumber(title, expectedNumber) {
@@ -111,14 +116,15 @@ function hasVariantSignal(title, card) {
   if (/signature|stamped|stamp/i.test(name)) return /signature|signed|stamped|stamp/i.test(title);
   if (/manga|comic/i.test(name)) return /manga|comic/i.test(title);
   if (/\bsp\b|special/i.test(name)) return /\bsp\b|special|parallel/i.test(title);
-  if (/parallel|alternate/i.test(name)) return /parallel|alternate|alt\s*art/i.test(title);
+  if (/parallel|alternate/i.test(name)) return /parallel|alternate|alt\s*art|leader\s*parallel|paralle/i.test(title);
   return true;
 }
 
 function isPsa10JapaneseCard(item, setCode, card) {
   const title = item.title || "";
   const number = normalizeNumber(card.number, setCode);
-  const positive = [/one piece/i, /psa\s*10|gem\s*mint\s*10/i, /japanese|japan|jpn/i];
+  const hasJapaneseSignal = /japanese|japan|jpn/i.test(title) || item.itemLocation?.country === "JP";
+  const positive = [/one piece/i, /psa\s*10|gem\s*mint\s*10/i];
   const negative = [
     /psa\s*[1-9]\b(?!0)|psa\s*9|psa\s*8|bgs|cgc|ars|raw|ungraded|proxy|digital/i,
     /english|\beng\b|\ben\b|korean|chinese|simplified/i,
@@ -126,6 +132,7 @@ function isPsa10JapaneseCard(item, setCode, card) {
   ];
   return (
     positive.every((pattern) => pattern.test(title)) &&
+    hasJapaneseSignal &&
     !negative.some((pattern) => pattern.test(title)) &&
     hasNumber(title, number) &&
     !hasConflictingCardNumber(title, number) &&
@@ -200,9 +207,20 @@ async function main() {
   let empty = 0;
 
   for (const { code, card } of targetCards(data, requestedCodes)) {
-    const query = buildQuery(code, card);
-    const result = await searchActiveListings(token, query);
-    const market = analyzeItems(result.itemSummaries || [], code, card);
+    const number = normalizeNumber(card.number, code);
+    const queries = [
+      buildQuery(code, card),
+      ["One Piece", number, "PSA 10", "Japanese"].filter(Boolean).join(" "),
+      ["One Piece", number, card.name, "PSA 10"].filter(Boolean).join(" "),
+    ];
+    let query = queries[0];
+    let market = null;
+    for (const candidateQuery of queries) {
+      const result = await searchActiveListings(token, candidateQuery);
+      market = analyzeItems(result.itemSummaries || [], code, card);
+      query = candidateQuery;
+      if (market.bestListing) break;
+    }
     if (market.bestListing) {
       card.psa10Active = { ...market, query };
       updated += 1;
