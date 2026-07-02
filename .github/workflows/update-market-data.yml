@@ -21,9 +21,9 @@ jobs:
       EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
       EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
       EBAY_MARKETPLACE_ID: EBAY_US
-      EBAY_SEARCH_LIMIT: "50"
-      EBAY_PSA_SEARCH_LIMIT: "50"
-      EBAY_ENGLISH_NM_SEARCH_LIMIT: "50"
+      EBAY_SEARCH_LIMIT: "100"
+      EBAY_PSA_SEARCH_LIMIT: "100"
+      EBAY_ENGLISH_NM_SEARCH_LIMIT: "100"
 
     steps:
       - uses: actions/checkout@v4
@@ -45,33 +45,59 @@ jobs:
 
       - name: Update eBay pack prices
         if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
-        run: node tools/update-ebay-pack-prices.js
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
 
       - name: Update eBay English NM prices
         if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
-        run: node tools/update-ebay-english-nm-prices.js
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-ebay-english-nm-prices.js 2>&1 | tee logs/update-ebay-english-nm-prices.log
 
       - name: Update eBay Japanese NM sold prices
         if: env.EBAY_CLIENT_ID != ''
-        run: node tools/update-ebay-japanese-nm-sold-prices.js --continue-on-error
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-ebay-japanese-nm-sold-prices.js --continue-on-error 2>&1 | tee logs/update-ebay-japanese-nm-sold-prices.log
 
       - name: Append box price history snapshot
-        run: node tools/update-box-series-history.js
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-box-series-history.js 2>&1 | tee logs/update-box-series-history.log
 
       - name: Audit price quality
         run: |
-          node tools/audit-price-quality.js --hide-suspicious-nm
-          node tools/audit-price-quality.js
-          node tools/audit-active-listings.js
+          set -o pipefail
+          mkdir -p logs
+          node tools/audit-price-quality.js --hide-suspicious-nm 2>&1 | tee logs/audit-price-quality-hide.log
+          node tools/audit-price-quality.js 2>&1 | tee logs/audit-price-quality.log
+          node tools/audit-active-listings.js 2>&1 | tee logs/audit-active-listings.log
+
+      - name: Upload update logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-data-update-logs
+          path: |
+            logs/
+            data/price-quality-audit.json
+            data/japanese-nm-sold-audit.json
+            data/active-listing-audit.json
+          if-no-files-found: ignore
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json; then
+          if git diff --quiet data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json
+          git add data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json
           git commit -m "Update market data"
           git push

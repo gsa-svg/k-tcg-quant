@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -118,7 +118,7 @@
         font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
 
-      /* Google AdSense 광고 자리 */
+      /* Google AdSense 愿묎퀬 ?먮━ */
       .adSlot { margin: 14px clamp(16px,4vw,52px) 0; }
       .adSlot.inlineAd { margin: 22px 0 0; }
       .adInner {
@@ -315,7 +315,7 @@
       .bandRow b { color: #eef2ff; font-size: 11px; font-weight: 900; overflow-wrap: anywhere; }
       .bandRow small { color: #737b8e; font-size: 9px; overflow-wrap: anywhere; }
 
-      /* 카드 안 PSA10 eBay 밴드: 좁은 카드폭에서 3열은 줄바꿈으로 깨짐 → 세로 1열로 */
+      /* 移대뱶 ??PSA10 eBay 諛대뱶: 醫곸? 移대뱶??뿉??3?댁? 以꾨컮轅덉쑝濡?源⑥쭚 ???몃줈 1?대줈 */
       .pl.psaEbay .bandRows { grid-template-columns: 1fr; gap: 3px; }
       .pl.psaEbay .bandRow {
         display: grid; grid-template-columns: 38px 1fr; gap: 0 6px;
@@ -325,7 +325,7 @@
       .pl.psaEbay .bandRow b { grid-column: 2; grid-row: 1; font-size: 12px; }
       .pl.psaEbay .bandRow small { grid-column: 2; grid-row: 2; font-size: 10px; }
 
-      /* NM·공식 PSA10 단일 가격줄: 라벨을 머리글로 올리고, 값을 밴드 가격과 같은 열에 들여쓰기(줄맞춤) */
+      /* NM쨌怨듭떇 PSA10 ?⑥씪 媛寃⑹쨪: ?쇰꺼??癒몃━湲濡??щ━怨? 媛믪쓣 諛대뱶 媛寃⑷낵 媛숈? ?댁뿉 ?ㅼ뿬?곌린(以꾨쭪異? */
       .pl.nm, .pl.psa {
         display: grid; grid-template-columns: 38px minmax(0, 1fr);
         column-gap: 6px; row-gap: 1px; align-items: baseline;
@@ -432,7 +432,7 @@
         .packEn { display: none; }
         .detailHead { gap: 12px; }
         .detailBox { width: 82px; height: 112px; border-radius: 6px; }
-        /* 박스 차트 헤더: 좁은 폭에서 라벨이 가격과 겹쳐 줄바꿈 → 세로로 분리 */
+        /* 諛뺤뒪 李⑦듃 ?ㅻ뜑: 醫곸? ??뿉???쇰꺼??媛寃⑷낵 寃뱀퀜 以꾨컮轅????몃줈濡?遺꾨━ */
         .bcHead { flex-direction: column; align-items: flex-start; gap: 2px; }
         .bcHead .bmLabel { font-size: 11px; }
         .bcHead strong { font-size: 15px; }
@@ -765,7 +765,7 @@
       .bcAxis { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; color: #737b8e; font-size: 11px; }
       .boxChart .note { margin-top: 8px; }
 
-      /* 모바일: 좁은 박스 패널(약 247px)에서 3열은 금액이 숫자 중간에 줄바꿈됨 → 세로 1열로 */
+      /* 紐⑤컮?? 醫곸? 諛뺤뒪 ?⑤꼸(??247px)?먯꽌 3?댁? 湲덉븸???レ옄 以묎컙??以꾨컮轅덈맖 ???몃줈 1?대줈 */
       @media (max-width: 560px) {
         .bmRows { grid-template-columns: 1fr; gap: 6px; }
         .bmRows .bandRow {
@@ -950,6 +950,50 @@
       </section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"></div>
 
+      <div class="langTabs" role="group" aria-label="Set category">
+        <button class="langTab active" data-lang="jp">Japanese <small id="statJp"></small></button>
+        <button class="langTab" data-lang="extra">EB / PRB <small id="statExtra"></small></button>
+      </div>
+
+      <section class="packSection">
+        <div class="packGrid" id="packList"></div>
+        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense ad area inline">
+          <div class="adInner" id="adsensePackGridAd">
+            <span class="adLabel">Google AdSense display ad placeholder</span>
+          </div>
+        </aside>
+        <div id="detail"></div>
+        <p class="note">New sets are reflected as soon as price data is ready. All prices are reference data for research only.</p>
+        <nav class="setGuidesNav" aria-label="Set price guides">
+          <h2>Set price guides</h2>
+          <p>Static guides with each set's top chase cards, live box price and buying checklist:</p>
+          <ul>
+            <li><a href="sets/op-01.html">OP-01 Romance Dawn</a></li>
+            <li><a href="sets/op-02.html">OP-02 Paramount War</a></li>
+            <li><a href="sets/op-03.html">OP-03 Pillars of Strength</a></li>
+            <li><a href="sets/op-04.html">OP-04 Kingdoms of Intrigue</a></li>
+            <li><a href="sets/op-05.html">OP-05 Awakening of the New Era</a></li>
+            <li><a href="sets/op-06.html">OP-06 Wings of the Captain</a></li>
+            <li><a href="sets/op-07.html">OP-07 500 Years in the Future</a></li>
+            <li><a href="sets/op-08.html">OP-08 Two Legends</a></li>
+            <li><a href="sets/op-09.html">OP-09 Emperors in the New World</a></li>
+            <li><a href="sets/op-10.html">OP-10 Royal Blood</a></li>
+            <li><a href="sets/op-11.html">OP-11 A Fist of Divine Speed</a></li>
+            <li><a href="sets/op-12.html">OP-12 Legacy of the Master</a></li>
+            <li><a href="sets/op-13.html">OP-13 Carrying on His Will</a></li>
+            <li><a href="sets/op-14.html">OP-14 The Azure Sea's Seven</a></li>
+            <li><a href="sets/op-15.html">OP-15 Adventure on Kami's Island</a></li>
+            <li><a href="sets/eb-01.html">EB-01 Memorial Collection</a></li>
+            <li><a href="sets/eb-02.html">EB-02 Anime 25th Collection</a></li>
+            <li><a href="sets/eb-03.html">EB-03 Heroine's Edition</a></li>
+            <li><a href="sets/prb-01.html">PRB-01 Premium Booster</a></li>
+            <li><a href="sets/prb-02.html">PRB-02 Premium Booster</a></li>
+            <li><a href="sets/index.html"><strong>All set guides</strong></a></li>
+          </ul>
+          <p class="note">Guides: <a href="articles/sealed-box-rules.html">what moves box prices</a> · <a href="articles/reseal-checklist.html">reseal checklist</a> · <a href="articles/japan-vs-english.html">Japanese vs English</a></p>
+        </nav>
+      </section>
+
       <section class="introPanel" aria-label="Site guide">
         <strong>OP Box Index - One Piece card prices and Japanese booster box price research</strong>
         <p>
@@ -990,50 +1034,6 @@
           </article>
         </div>
       </section>
-
-      <div class="langTabs" role="group" aria-label="Set category">
-        <button class="langTab active" data-lang="jp">Japanese <small id="statJp"></small></button>
-        <button class="langTab" data-lang="extra">EB / PRB <small id="statExtra"></small></button>
-      </div>
-
-      <section class="packSection">
-        <div class="packGrid" id="packList"></div>
-        <aside class="adSlot inlineAd adsenseSlot" aria-label="Google AdSense ad area inline">
-          <div class="adInner" id="adsensePackGridAd">
-            <span class="adLabel">Google AdSense display ad placeholder</span>
-          </div>
-        </aside>
-        <div id="detail"></div>
-        <p class="note">New sets are reflected as soon as price data is ready. All prices are reference data for research only.</p>
-        <nav class="setGuidesNav" aria-label="Set price guides">
-          <h2>Set price guides</h2>
-          <p>Static guides with each set's top chase cards, live box price and buying checklist:</p>
-          <ul>
-            <li><a href="sets/op-01.html">OP-01 Romance Dawn</a></li>
-            <li><a href="sets/op-02.html">OP-02 Paramount War</a></li>
-            <li><a href="sets/op-03.html">OP-03 Pillars of Strength</a></li>
-            <li><a href="sets/op-04.html">OP-04 Kingdoms of Intrigue</a></li>
-            <li><a href="sets/op-05.html">OP-05 Awakening of the New Era</a></li>
-            <li><a href="sets/op-06.html">OP-06 Wings of the Captain</a></li>
-            <li><a href="sets/op-07.html">OP-07 500 Years in the Future</a></li>
-            <li><a href="sets/op-08.html">OP-08 Two Legends</a></li>
-            <li><a href="sets/op-09.html">OP-09 Emperors in the New World</a></li>
-            <li><a href="sets/op-10.html">OP-10 Royal Blood</a></li>
-            <li><a href="sets/op-11.html">OP-11 A Fist of Divine Speed</a></li>
-            <li><a href="sets/op-12.html">OP-12 Legacy of the Master</a></li>
-            <li><a href="sets/op-13.html">OP-13 Carrying on His Will</a></li>
-            <li><a href="sets/op-14.html">OP-14 The Azure Sea's Seven</a></li>
-            <li><a href="sets/op-15.html">OP-15 Adventure on Kami's Island</a></li>
-            <li><a href="sets/eb-01.html">EB-01 Memorial Collection</a></li>
-            <li><a href="sets/eb-02.html">EB-02 Anime 25th Collection</a></li>
-            <li><a href="sets/eb-03.html">EB-03 Heroine's Edition</a></li>
-            <li><a href="sets/prb-01.html">PRB-01 Premium Booster</a></li>
-            <li><a href="sets/prb-02.html">PRB-02 Premium Booster</a></li>
-            <li><a href="sets/index.html"><strong>All set guides →</strong></a></li>
-          </ul>
-          <p class="note">Guides: <a href="articles/sealed-box-rules.html">what moves box prices</a> · <a href="articles/reseal-checklist.html">reseal checklist</a> · <a href="articles/japan-vs-english.html">Japanese vs English</a></p>
-        </nav>
-      </section>
     </main>
 
     <footer class="footer">
@@ -1047,6 +1047,5 @@
     </footer>
 
     <script src="packs.js?v=20260702cta" defer></script>
-
   </body>
 </html>

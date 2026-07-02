@@ -1,27 +1,98 @@
-# 자동 업데이트
+# OP Box Index Automation
 
-`.github/workflows/update-market-data.yml`은 매주 월요일 03:00 KST에 시장 데이터를 갱신한다.
+This project updates market data through GitHub Actions and local scripts.
 
-현재 GitHub 푸시 토큰에 `workflow` 권한이 없어서 활성 워크플로우 파일은 원격에 직접 올리지 못했다. 템플릿은 repo에 남겨둔다.
+## Daily Active Listing Refresh
 
-- 실행 주기: 2일마다 03:20 KST
-- 수동 실행: GitHub Actions > `Update market data` > `Run workflow`
-- 주기: 매주 월요일 03:00 KST
-- 주의: PSA10은 eBay Sold 브라우저 검수 기반이라 GitHub Actions에서 Active 호가로 갱신하지 않는다.
-- 가격 품질 검수: `tools/audit-price-quality.js`가 차단급 오매칭을 잡으면 커밋을 막는다.
-- 현재 자동 갱신 대상:
-  - eBay 부스터팩 Active High/Middle/Low
-  - eBay PSA10 Active High/Middle/Low
-- 검증:
-  - `packs.js` 문법
-  - eBay 수집기 문법
-  - PSA10 eBay 이상치 테스트
+Workflow: `.github/workflows/update-active-listings.yml`
 
-GitHub repo Secrets에 아래 값이 있어야 eBay 갱신이 돈다.
+Schedule:
+
+- Every day at 03:00 KST
+- UTC cron: `0 18 * * *`
+
+Purpose:
+
+- Refresh eBay Active booster box links.
+- Refresh eBay Active PSA 10 links.
+- Append a daily box price snapshot.
+- Audit active listing quality.
+- Upload logs and `data/active-listing-audit.json` as a workflow artifact.
+
+Expected outputs:
+
+- `data/onepiece-packs.json`
+- `data/active-listing-audit.json`
+- Workflow artifact: `active-listing-update-logs`
+
+## Weekly Deep Market Refresh
+
+Workflow: `.github/workflows/update-market-data.yml`
+
+Schedule:
+
+- Every Monday at 03:00 KST
+- UTC cron: `0 18 * * 0`
+
+Purpose:
+
+- Refresh eBay pack prices.
+- Refresh English NM references.
+- Refresh Japanese NM sold references where possible.
+- Append box history.
+- Run price quality and active listing audits.
+- Upload logs as a workflow artifact.
+
+Expected outputs:
+
+- `data/onepiece-packs.json`
+- `data/price-quality-audit.json`
+- `data/japanese-nm-sold-audit.json`
+- `data/active-listing-audit.json`
+- Workflow artifact: `market-data-update-logs`
+
+## Required GitHub Secrets
+
+These must exist in GitHub repository secrets:
 
 ```text
 EBAY_CLIENT_ID
 EBAY_CLIENT_SECRET
 ```
 
-Secret이 없으면 검증만 하고 eBay 갱신은 건너뛴다.
+Do not commit these values to the repository.
+
+## Local Manual Run
+
+Use this sequence when a manual refresh is needed:
+
+```powershell
+node tools/update-ebay-pack-prices.js
+node tools/update-ebay-psa10-active-links.js
+node tools/update-box-series-history.js
+node tools/audit-active-listings.js
+```
+
+For the deeper weekly flow:
+
+```powershell
+node tools/update-ebay-pack-prices.js
+node tools/update-ebay-english-nm-prices.js
+node tools/update-ebay-japanese-nm-sold-prices.js --continue-on-error
+node tools/update-box-series-history.js
+node tools/audit-price-quality.js --hide-suspicious-nm
+node tools/audit-price-quality.js
+node tools/audit-active-listings.js
+```
+
+## Quality Rules
+
+The active listing audit fails when:
+
+- A booster box best listing is missing.
+- A booster box listing title fails the sealed Japanese booster box filter.
+- A PSA 10 best listing title fails the Japanese PSA 10 card filter.
+- A stored best listing URL is not an eBay item URL.
+- Active market data is older than `ACTIVE_LISTING_MAX_FRESH_DAYS` days. Default: `3`.
+
+Missing PSA 10 links are allowed when no reliable match exists. A blank field is safer than a wrong price.
