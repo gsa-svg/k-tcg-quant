@@ -168,7 +168,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260702epn";
+const DATA_VERSION = "20260702epn2";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -241,6 +241,7 @@ function ebayLinks(pack) {
       ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("검수 최저 박스", "Verified lowest box")}${bestPrice ? ` · ${bestPrice}` : ""}</a>` : ""}
       <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Sold</a>
       <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Active</a>
+      <span class="paidLinkTag">Paid Link</span>
     </div>`;
 }
 
@@ -256,9 +257,9 @@ function cardBuyLinks(card) {
   if (bestUrl) {
     const price = best.total != null ? triMain(best.total, best.currency).main : "";
     const country = best.country ? ` · ${escapeHtml(best.country)}` : "";
-    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("검수 최저 PSA10", "Verified lowest PSA 10")}${price ? ` · ${price}` : ""}</a><small>${t("배송 포함", "incl. shipping")}${country}</small></div>`;
+    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("검수 최저 PSA10", "Verified lowest PSA 10")}${price ? ` · ${price}` : ""}</a><small>Paid Link · ${t("배송 포함", "incl. shipping")}${country}</small></div>`;
   }
-  return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 검색", "Search PSA 10 listings")}</a><small>${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
+  return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 검색", "Search PSA 10 listings")}</a><small>Paid Link · ${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
 }
 
 function scoreLabel(score) {
@@ -539,6 +540,11 @@ function applyStaticI18n() {
   });
   setText(".packSection > .note", "신규 세트는 시세 데이터가 준비되는 대로 반영됩니다. 모든 가격은 참고값입니다.", "New sets appear once price data is ready. All prices are reference values.");
   setText(".footer p", "OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.", "OP Box Index is a data-driven research site, not investment advice.");
+  setText(
+    ".footer .affDisclosure",
+    "Paid Link: eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다. 구매 비용은 추가되지 않습니다.",
+    "Paid Link: As an eBay Partner, OP Box Index may earn a commission from qualifying purchases made through eBay links, at no extra cost to you.",
+  );
   const btn = document.querySelector("#displayLangToggle");
   if (btn) btn.textContent = state.hl === "en" ? "한국어" : "EN";
 }
@@ -789,7 +795,10 @@ function renderPsaTable(psa) {
 }
 
 function renderDataNotice() {
-  return `<div class="dataNotice"><b>${t("데이터 기준", "Data notes")}</b> ${t("eBay Active는 현재 호가이며 실거래가가 아닙니다. PSA10은 Sold/Completed 표본이 있을 때만 시세로 표시합니다. 일본판 NM은 일본 매장 기준입니다.", "eBay Active shows listing prices, not sold prices. PSA 10 is shown as market data only when Sold/Completed samples exist. Japanese NM is based on Japanese shops.")}</div>`;
+  return `<div class="dataNotice"><b>${t("데이터 기준", "Data notes")}</b> ${t(
+    "eBay Active는 현재 호가이며 실거래가가 아닙니다. 검수 최저 박스와 PSA10 매물 링크는 매일 03:00(KST)에 재검수합니다. Paid Link: eBay 링크를 통해 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다. 판매자, 배송비, 세금, 정품 여부, 재밀봉 리스크는 구매 전 본인이 최종 확인해야 합니다.",
+    "eBay Active shows listing prices, not sold prices. Verified lowest box and PSA 10 listing links are rechecked daily at 03:00 KST. Paid Link: we may earn a commission from qualifying purchases made through eBay links. Buyers must verify seller, shipping, tax, authenticity and reseal risk before purchase.",
+  )}</div>`;
 }
 
 function renderDetail() {
