@@ -739,6 +739,12 @@ h2 {
   color: var(--muted);
 }
 
+.footer .affDisclosure {
+  font-size: 11px;
+  opacity: .75;
+  max-width: 520px;
+}
+
 .footer nav {
   display: flex;
   gap: 18px;

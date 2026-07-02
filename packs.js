@@ -37,6 +37,27 @@ function safeEbayUrl(value) {
   }
 }
 
+// eBay Partner Network(EPN) 추적 파라미터 부착 — 공개 캠페인 ID(비밀 아님)
+const EPN_CAMPID = "5339163744";
+const EPN_ROTATION = "711-53200-19255-0"; // ebay.com(US)
+function epnUrl(value) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    if (!/(^|\.)ebay\./i.test(url.hostname)) return value;
+    if (url.searchParams.get("campid")) return url.href; // 이미 부착됨
+    url.searchParams.set("mkcid", "1");
+    url.searchParams.set("mkrid", EPN_ROTATION);
+    url.searchParams.set("siteid", "0");
+    url.searchParams.set("campid", EPN_CAMPID);
+    url.searchParams.set("toolid", "10001");
+    url.searchParams.set("mkevt", "1");
+    return url.href;
+  } catch (e) {
+    return value;
+  }
+}
+
 function setText(selector, ko, en) {
   const node = document.querySelector(selector);
   if (node) node.textContent = t(ko, en);
@@ -147,7 +168,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260701psanone";
+const DATA_VERSION = "20260702epn";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -213,13 +234,13 @@ function ebayLinks(pack) {
   const q = encodeURIComponent(ebayQueryFor(pack));
   const base = `https://www.ebay.com/sch/i.html?_nkw=${q}`;
   const best = pack.set?.boxMarket?.jp?.ebayActive?.bestListing;
-  const bestUrl = safeEbayUrl(best?.url);
+  const bestUrl = epnUrl(safeEbayUrl(best?.url));
   const bestPrice = best?.total != null ? triMain(best.total, best.currency).main : "";
   return `
     <div class="marketLinks" aria-label="eBay market links">
       ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("검수 최저 박스", "Verified lowest box")}${bestPrice ? ` · ${bestPrice}` : ""}</a>` : ""}
-      <a href="${base}&LH_Sold=1&LH_Complete=1&_sop=13" target="_blank" rel="noopener noreferrer">eBay Sold</a>
-      <a href="${base}&LH_BIN=1&_sop=15" target="_blank" rel="noopener noreferrer">eBay Active</a>
+      <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Sold</a>
+      <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Active</a>
     </div>`;
 }
 
@@ -230,8 +251,8 @@ function cardPsaSearchUrl(card) {
 
 function cardBuyLinks(card) {
   const best = card.psa10Active?.bestListing;
-  const bestUrl = safeEbayUrl(best?.url);
-  const searchUrl = cardPsaSearchUrl(card);
+  const bestUrl = epnUrl(safeEbayUrl(best?.url));
+  const searchUrl = epnUrl(cardPsaSearchUrl(card));
   if (bestUrl) {
     const price = best.total != null ? triMain(best.total, best.currency).main : "";
     const country = best.country ? ` · ${escapeHtml(best.country)}` : "";
