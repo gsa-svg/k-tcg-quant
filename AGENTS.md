@@ -1,0 +1,51 @@
+# OP Box Index — 운영 지침 (모든 에이전트 필독)
+
+이 프로젝트를 열면 **매번, 요청 없이도** 아래를 먼저 확인하고 챙긴다. 사용자는 "내가 모르는 것도 알아서 챙기라"고 명시적으로 요청했다 — 매번 다시 물어보지 말 것.
+
+## 사용자 컨텍스트
+- 비개발자, 짧고 직접적인 한국어 선호. 실제 사장님(1인 운영), 이 사이트로 **수익화**가 목표.
+- **가격 정확도 최우선**: 불확실한 가격은 절대 노출 금지, 숨기는 게 항상 맞다. 추정치를 사실처럼 보여주지 않는다.
+- 계정 생성·결제·GitHub 앱 권한 승인처럼 **영구적 권한을 넘기는 행위는 사용자가 직접** 클릭해야 한다 (분류기가 막는 게 정상 — 우회 시도 금지).
+
+## 사이트 정보
+- 라이브: https://opboxindex.com (GitHub Pages, repo: `gsa-svg/k-tcg-quant`, branch `main`)
+- 메인 페이지: `packs.html` (영문 기본 `?hl=en`, 한글 `?hl=ko`)
+- SEO 세트 가이드: `sets/*.html` (21개, `tools/generate-set-pages.js`로 재생성)
+- 데이터: `data/onepiece-packs.json` (가격/매물, 자동 갱신됨)
+
+## 수익화 상태 (2026-07-02 기준)
+1. **Google AdSense**: 코드 배포됨(`ca-pub-1520891018658006`), `ads.txt` 있음. **승인 대기 중** — 매번 확인해서 승인됐으면 알려주고, 거절되면 사유 확인 후 콘텐츠 보강.
+2. **eBay Partner Network**: campid `5339163744`, `packs.js`의 `epnUrl()`이 모든 eBay 링크에 자동 부착. 대시보드는 partner.ebay.com. **클릭/전환 늘리는 게 최우선 과제.**
+3. **Google Search Console**: URL 접두어 속성 `https://opboxindex.com/`으로 인증 완료(HTML 파일 `googlee0d71bc0695b5651.html` — **절대 삭제 금지**, 지우면 인증 풀림). 사이트맵 제출됨, 색인 요청됨.
+4. **GA4**: `G-P73SE1WVD0`, 전 페이지 배포됨.
+
+## 매번 자동으로 점검할 것 (요청 없어도)
+- [ ] `git log --oneline -10` — 최근 뭐가 바뀌었는지, 워크플로가 정상 커밋했는지
+- [ ] `.github/workflows/` 두 개가 최근에 성공했는지 (`update-active-listings` 매일 03:00 KST, `update-market-data` 매주 월 03:00 KST) — GitHub Actions 탭에서 초록불 확인
+- [ ] `data/onepiece-packs.json`의 `updated` 필드가 오늘/어제 날짜인지 (오래됐으면 워크플로 문제)
+- [ ] eBay 최저가 링크 커버리지: 박스 20/20, PSA10 카드 183/199가 기준선. 크게 떨어지면 `tools/audit-active-listings.js` 결과 확인
+- [ ] AdSense 승인 여부 (사용자가 알려주거나 사이트에 실제 광고가 뜨는지 확인)
+- [ ] Search Console "색인생성 → 페이지" 색인 수 증가 추이, 실적(노출수) 추이
+- [ ] 새 세트(예: OP-16, EB-04) 데이터가 채워졌으면 `node tools/generate-set-pages.js` 재실행 + sitemap 갱신 + 색인 요청
+
+## 다음에 진행할 성장 작업 (우선순위)
+1. **영문 아티클 추가** — `articles/`에 3개뿐. 세트별/주제별 롱테일 키워드 아티클을 늘리면 색인·유입·AdSense 심사에 모두 유리. (예: "OP-05 vs OP-06 which is the better investment", "how PSA population affects One Piece card prices")
+2. **eBay CTA 전환율 계속 개선** — GA4 `outbound_click` 이벤트로 어떤 버튼/문구가 클릭률 높은지 확인 후 반영.
+3. **레딧/커뮤니티 백링크** — 사용자가 직접 공유해야 하는 부분이지만, 공유하기 좋은 형태(요약 카드, 짧은 링크)를 에이전트가 준비해줄 수 있다.
+4. **PSA10 미매칭 16장** — 신뢰할 매칭이 생기기 전까지는 채우지 말 것 (추정 금지 원칙).
+5. **가격 품질 리뷰 항목** — `tools/audit-price-quality.js` review 건수 주기적으로 정리.
+6. **네이버 서치어드바이저** 등록 (국내 유입, 아직 미등록이면 진행).
+
+## 절대 하지 말 것
+- `.env`, eBay API 시크릿, GitHub 토큰을 출력하거나 커밋하지 않는다.
+- `googlee0d71bc0695b5651.html` (GSC 인증 파일) 삭제 금지.
+- 불확실한 가격을 "정상"처럼 보여주지 않는다 — 숨기는 게 항상 우선.
+- GitHub 앱 설치/권한 승인, 결제, 계정 생성 등 영구 권한 행위를 대신 클릭하지 않는다 — 사용자에게 안내만 한다.
+
+## 참고 문서 (자세한 이력)
+- `docs/handoff-2026-07-01-accounts.md` — 도메인 DNS, GA4, GSC, AdSense 계정 세팅 상세
+- `docs/automation.md` — 워크플로 상세
+- `docs/handoff-2026-06-29.md` — 가격 데이터 정합성 작업 이력
+- `docs/ebay-api.md`, `docs/price-data.md` — eBay/가격 로직 상세
+
+새 세션을 시작하는 에이전트는 이 문서를 읽은 뒤, 위 체크리스트를 실제로 실행(git log, workflow 상태 확인 등)하고 이상 있으면 사용자에게 먼저 보고한다. 정상이면 굳이 보고하지 않고 다음 성장 작업으로 넘어간다.
