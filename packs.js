@@ -2,6 +2,7 @@ const state = {
   data: null,
   lang: "jp",
   selected: null,
+  hasExplicitSet: false,
   renderedLang: null,
   view: "hits", // "hits" | "psa"
   hl: "en", // display language: "ko" | "en"
@@ -197,7 +198,7 @@ function setJsonLd(id, data) {
 function updateUrl(replace = false) {
   if (!state.selected) return;
   const params = new URLSearchParams();
-  params.set("set", state.selected);
+  if (state.hasExplicitSet) params.set("set", state.selected);
   if (state.lang !== "jp") params.set("lang", state.lang);
   if (state.view !== "hits") params.set("view", state.view);
   if (state.hl === "en") params.set("hl", "en");
@@ -211,7 +212,7 @@ function updateUrl(replace = false) {
 function upsertHreflang(pack) {
   document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((node) => node.remove());
   const baseParams = new URLSearchParams();
-  baseParams.set("set", pack.key);
+  if (state.hasExplicitSet) baseParams.set("set", pack.key);
   if (state.lang !== "jp") baseParams.set("lang", state.lang);
   [["en", "en"], ["ko", "ko"], ["x-default", "en"]].forEach(([lang, hl]) => {
     const params = new URLSearchParams(baseParams);
@@ -468,6 +469,7 @@ function bindLangTabs() {
     btn.onclick = () => {
       if (state.lang === btn.dataset.lang) return;
       state.lang = btn.dataset.lang;
+      state.hasExplicitSet = true;
       document.querySelectorAll(".langTab").forEach((b) => b.classList.toggle("active", b === btn));
       selectFirstOfLang();
       renderPackGrid();
@@ -718,7 +720,8 @@ function applyRouteState() {
   if (requestedHl === "en" || requestedHl === "ko") state.hl = requestedHl;
   const requestedLang = params.get("lang");
   if (["jp", "extra"].includes(requestedLang)) state.lang = requestedLang;
-  const requestedSet = params.get("set");
+  const requestedSet = (params.get("set") || "").toUpperCase();
+  const initialLang = state.lang;
   let pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
   if (!pack && requestedSet) {
     for (const lang of ["jp", "extra"]) {
@@ -727,8 +730,12 @@ function applyRouteState() {
       if (pack) break;
     }
   }
+  state.hasExplicitSet = Boolean(pack && requestedSet);
   if (pack) state.selected = pack.key;
-  else selectFirstOfLang();
+  else {
+    state.lang = initialLang;
+    selectFirstOfLang();
+  }
   state.view = params.get("view") === "psa" ? "psa" : "hits";
 }
 
@@ -760,6 +767,7 @@ function renderPackGrid() {
     btn.addEventListener("click", () => {
       if (state.selected === btn.dataset.key) return;
       state.selected = btn.dataset.key;
+      state.hasExplicitSet = true;
       renderPackGrid();
       renderDetail();
       updateUrl();
@@ -858,13 +866,20 @@ function updateSeo(pack) {
   if (!pack) return;
   const koName = pack.nameKo || pack.nameEn || pack.code;
   const enName = pack.nameEn || pack.nameKo || pack.code;
-  const title = t(
+  const isSetPage = state.hasExplicitSet;
+  const title = isSetPage ? t(
     `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | OP Box Index`,
     `${pack.code} ${enName} One Piece Card Prices & Booster Box Price | OP Box Index`,
+  ) : t(
+    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7PSA10 \uCE74\uB4DC \uC2DC\uC138\u00B7\uBD80\uC2A4\uD130\uD329 \uC2DC\uC138\uC815\uBCF4 | OP Box Index",
+    "One Piece Booster Box Prices & PSA 10 Card Prices | OP Box Index",
   );
-  const description = t(
+  const description = isSetPage ? t(
     `${pack.code} ${koName}(${enName}) \uBD80\uC2A4\uD130\uBC15\uC2A4 \uAC00\uACA9, eBay \uC2DC\uC138, TOP10 \uD788\uD2B8\uCE74\uB4DC, NM, PSA10, PSA \uD1B5\uACC4\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.`,
     `Compare ${pack.code} ${enName} One Piece card prices, Japanese booster box prices, eBay sold and active market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats.`,
+  ) : t(
+    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138, \uC6D0\uD53C\uC2A4 PSA10 \uCE74\uB4DC \uC2DC\uC138, \uBD80\uC2A4\uD130\uD329 \uC2DC\uC138\uC815\uBCF4, eBay \uCD5C\uC800\uAC00\u00B7\uD310\uB9E4\uC644\uB8CC \uAE30\uC900, \uD788\uD2B8\uCE74\uB4DC TOP10\uACFC PSA \uD1B5\uACC4\uB97C \uD55C \uBC88\uC5D0 \uBE44\uAD50\uD569\uB2C8\uB2E4.",
+    "Track One Piece booster box prices, One Piece PSA 10 card prices, booster pack market data, eBay lowest listings, sold-price trends, Top 10 chase cards and PSA population stats.",
   );
   document.title = title;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);
@@ -877,7 +892,7 @@ function updateSeo(pack) {
     document.head.appendChild(canonical);
   }
   const params = new URLSearchParams();
-  params.set("set", pack.key);
+  if (isSetPage) params.set("set", pack.key);
   if (state.lang !== "jp") params.set("lang", state.lang);
   params.set("hl", state.hl);
   canonical.href = `${SITE_BASE}/packs.html?${params}`;
@@ -896,7 +911,7 @@ function updateSeo(pack) {
     name: title.replace(" | OP Box Index", ""),
     description,
     url: canonical.href,
-    image: pack.set?.box ? new URL(pack.set.box, location.href).href : undefined,
+    image: isSetPage && pack.set?.box ? new URL(pack.set.box, location.href).href : undefined,
     inLanguage: state.hl === "en" ? "en-US" : "ko-KR",
     isAccessibleForFree: true,
     license: `${SITE_BASE}/disclaimer.html#data-license`,
@@ -906,9 +921,7 @@ function updateSeo(pack) {
     spatialCoverage: ["United States", "Japan", "Singapore", "Malaysia", "Philippines", "Thailand", "Vietnam", "Indonesia"],
     variableMeasured: ["Booster box price", "Top 10 hit cards", "NM price", "PSA10 price", "PSA population"],
     keywords: [
-      `${pack.code}`,
-      koName,
-      enName,
+      ...(isSetPage ? [`${pack.code}`, koName, enName] : []),
       "One Piece Card Game",
       "One Piece card prices",
       "One Piece card price",
