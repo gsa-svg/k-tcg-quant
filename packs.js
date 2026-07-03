@@ -899,6 +899,8 @@ function updateSeo(pack) {
     image: pack.set?.box ? new URL(pack.set.box, location.href).href : undefined,
     inLanguage: state.hl === "en" ? "en-US" : "ko-KR",
     isAccessibleForFree: true,
+    license: `${SITE_BASE}/disclaimer.html#data-license`,
+    usageInfo: `${SITE_BASE}/disclaimer.html#data-license`,
     creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE_BASE}/` },
     dateModified: state.data?.updated || undefined,
     spatialCoverage: ["United States", "Japan", "Singapore", "Malaysia", "Philippines", "Thailand", "Vietnam", "Indonesia"],
