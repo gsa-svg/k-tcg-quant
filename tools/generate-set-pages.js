@@ -159,6 +159,13 @@ function setPage(code, prev, next) {
     )
     .join("\n          ");
 
+  const compareLink =
+    code === "OP-05"
+      ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
+      : code === "OP-06"
+        ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
+        : "";
+
   return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
@@ -185,6 +192,8 @@ function setPage(code, prev, next) {
         <li>Check the seller's history, photos of the actual box and shrink-wrap condition to reduce <a href="../articles/reseal-checklist.html">reseal risk</a>.</li>
         <li>Japanese and English boxes price very differently — see <a href="../articles/japan-vs-english.html">Japanese vs English boxes</a>.</li>
         <li>Understand <a href="../articles/sealed-box-rules.html">what actually moves sealed box prices</a> before treating any box as an investment.</li>
+        <li>Chase-card value often tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity.</li>
+        ${compareLink}
       </ul>
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
@@ -223,6 +232,8 @@ function hubPage() {
         <a href="../packs.html?hl=en">Open the live price tracker</a>
         <a href="../articles/sealed-box-rules.html">What moves box prices</a>
         <a href="../articles/reseal-checklist.html">Reseal checklist</a>
+        <a href="../articles/psa-population-and-prices.html">PSA population &amp; prices</a>
+        <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>
       </div>${FOOT}`;
 }
 

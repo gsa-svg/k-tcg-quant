@@ -29,7 +29,7 @@
 - [ ] 새 세트(예: OP-16, EB-04) 데이터가 채워졌으면 `node tools/generate-set-pages.js` 재실행 + sitemap 갱신 + 색인 요청
 
 ## 다음에 진행할 성장 작업 (우선순위)
-1. **영문 아티클 추가** — `articles/`에 3개뿐. 세트별/주제별 롱테일 키워드 아티클을 늘리면 색인·유입·AdSense 심사에 모두 유리. (예: "OP-05 vs OP-06 which is the better investment", "how PSA population affects One Piece card prices")
+1. **영문 아티클 추가** — `articles/`에 5개(2026-07-03 기준, OP-05 vs OP-06·PSA population 2편 추가함). 세트별/주제별 롱테일 키워드 아티클을 계속 늘리면 색인·유입·AdSense 심사에 유리. `tools/generate-set-pages.js`가 세트 페이지에 자동으로 관련 아티클 링크를 심으니, 새 아티클 추가 시 이 스크립트의 링크 목록도 같이 갱신할 것.
 2. **eBay CTA 전환율 계속 개선** — GA4 `outbound_click` 이벤트로 어떤 버튼/문구가 클릭률 높은지 확인 후 반영.
 3. **레딧/커뮤니티 백링크** — 사용자가 직접 공유해야 하는 부분이지만, 공유하기 좋은 형태(요약 카드, 짧은 링크)를 에이전트가 준비해줄 수 있다.
 4. **PSA10 미매칭 16장** — 신뢰할 매칭이 생기기 전까지는 채우지 말 것 (추정 금지 원칙).
