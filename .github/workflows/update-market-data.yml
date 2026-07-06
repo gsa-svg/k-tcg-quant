@@ -43,22 +43,26 @@ jobs:
           node --check tools/audit-active-listings.js
           node tools/test-price-outliers.js
 
+      - name: Require eBay API secrets
+        run: |
+          if [ -z "$EBAY_CLIENT_ID" ] || [ -z "$EBAY_CLIENT_SECRET" ]; then
+            echo "::error::Missing EBAY_CLIENT_ID or EBAY_CLIENT_SECRET repository secret. Market data refresh cannot run safely."
+            exit 1
+          fi
+
       - name: Update eBay pack prices
-        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: |
           set -o pipefail
           mkdir -p logs
           node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
 
       - name: Update eBay English NM prices
-        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: |
           set -o pipefail
           mkdir -p logs
           node tools/update-ebay-english-nm-prices.js 2>&1 | tee logs/update-ebay-english-nm-prices.log
 
       - name: Update eBay Japanese NM sold prices
-        if: env.EBAY_CLIENT_ID != ''
         run: |
           set -o pipefail
           mkdir -p logs

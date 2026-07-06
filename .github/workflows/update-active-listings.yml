@@ -39,15 +39,20 @@ jobs:
           node --check tools/update-box-series-history.js
           node --check tools/audit-active-listings.js
 
+      - name: Require eBay API secrets
+        run: |
+          if [ -z "$EBAY_CLIENT_ID" ] || [ -z "$EBAY_CLIENT_SECRET" ]; then
+            echo "::error::Missing EBAY_CLIENT_ID or EBAY_CLIENT_SECRET repository secret. Active listing refresh cannot run safely."
+            exit 1
+          fi
+
       - name: Update eBay active box links
-        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: |
           set -o pipefail
           mkdir -p logs
           node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
 
       - name: Update eBay active PSA10 links
-        if: env.EBAY_CLIENT_ID != '' && env.EBAY_CLIENT_SECRET != ''
         run: |
           set -o pipefail
           mkdir -p logs
