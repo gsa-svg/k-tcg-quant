@@ -68,7 +68,11 @@
   (Amazon JP Associates — amazon-lottery.html의 Amazon.co.jp 링크 수익화 가능, 라쿠텐 등).
 - 틈새 메모: 일본 '판매자'가 해외(eBay) 시세를 궁금해하는 수요는 존재 — JP 버전 만들 때 셀링포인트.
 
-## TCGplayer 제휴 (2026-07-06 조사, 미가입)
-- TCGplayer 제휴 프로그램 운영 중: Impact.com 경유, **판매가 3.5%**, 첫 클릭 귀속·48시간·장바구니 전체 인정. EPN보다 요율 높음.
-- 적용 계획: "영문판 NM" 표시 자리에 "Buy English version on TCGplayer" 버튼 — 이베이(일본판)와 보완 투트랙.
-- 진행 조건: 사용자가 impact.com 가입 + TCGplayer 프로그램 승인 → 추적 링크 형식 확보 후 에이전트가 통합.
+## TCGplayer 제휴 (Impact.com, 진행 중 — 2026-07-06 업데이트)
+- TCGplayer 제휴: Impact.com 경유, **판매가 3.5%**, 첫 클릭 귀속·48시간·장바구니 전체 인정. EPN보다 요율 높음.
+- **진행 상태**: Impact 계정 가입(kimtt1107@gmail.com), 사이트 소유권 인증 진행 중.
+  - 사이트 인증용 메타태그 **이미 배포됨**: `<meta name="impact-site-verification" value="16e92286-f00c-4878-ba9f-9747912758b6" />` (packs.html·index.html head, 라이브 확인됨). 삭제 금지.
+  - 다음 단계: Impact 대시보드에서 TCGplayer 프로그램 신청→승인 대기→추적링크(Impact deep link) 형식 확보.
+- **통합 계획(승인 후)**: 카드 카드의 "영문판 NM" 표시 자리에 "Buy English version on TCGplayer" 버튼.
+  - packs.js `cardBuyLinks()` 근처에 `tcgplayerUrl()` 헬퍼 추가(epnUrl() 패턴 참고), 영문판 있는 카드에만 노출.
+  - eBay(일본판)와 TCGplayer(영문판) 보완 투트랙. rel="sponsored", affiliate disclosure에 TCGplayer 추가.
