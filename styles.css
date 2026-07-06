@@ -1054,3 +1054,11 @@ h2 {
     font-size: 14px;
   }
 }
+
+/* Article footer: related internal links + affiliate note (SEO 내부링크 강화) */
+.articleFooter { max-width: 760px; margin: 32px auto 48px; padding: 20px clamp(16px,4vw,28px) 0; border-top: 1px solid var(--line, rgba(255,255,255,.08)); }
+.articleFooter .relatedHead { margin: 0 0 10px; font-size: 12px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; color: var(--accent, #10d7a0); }
+.articleFooter .relatedLinks { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 16px; }
+.articleFooter .relatedLinks a { color: var(--muted, #b8c1d4); font-size: 14px; font-weight: 700; }
+.articleFooter .relatedLinks a:hover { color: var(--accent, #10d7a0); }
+.articleFooter .affNote { margin: 0; color: var(--muted, #8d95a7); font-size: 11px; opacity: .8; line-height: 1.6; }
