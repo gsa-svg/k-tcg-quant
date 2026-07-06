@@ -76,3 +76,18 @@
 - **통합 계획(승인 후)**: 카드 카드의 "영문판 NM" 표시 자리에 "Buy English version on TCGplayer" 버튼.
   - packs.js `cardBuyLinks()` 근처에 `tcgplayerUrl()` 헬퍼 추가(epnUrl() 패턴 참고), 영문판 있는 카드에만 노출.
   - eBay(일본판)와 TCGplayer(영문판) 보완 투트랙. rel="sponsored", affiliate disclosure에 TCGplayer 추가.
+
+## 2026-07-06 저녁 작업 (Claude) — 데이터검수 + SEO 구조 강화
+- **데이터 검수 통과**: PSA10 179개 35%위반 0건, 박스 21개 정상. OP-12/13 "best>low"는 오류 아님(배송비 포함 총액이라 밴드하한보다 살짝 높은 정상 케이스).
+- **아티클 SEO**: 8개 전부 Article+Breadcrumb 스키마 완비. 얇던 3개 본문 보강(japan-vs-english/reseal-checklist/sealed-box-rules → 425~502단어). 관련글 내부링크 푸터(.articleFooter) 추가.
+- **아티클 허브 신설**: `articles/index.html`(CollectionPage 스키마, 8개 모음). 홈 note에 "all guides →" 링크. sitemap 77 URL.
+- **WebSite/SearchAction 스키마**: packs.html에 추가(구글 sitelinks 검색창 후보).
+- **스레드 첫 게시글 데이터 확정**: JP 박스 시세 TOP3(7/6) OP-01 $350 / OP-06 $200 / PRB-01 $185. "June→July 변동" 절대 금지(박스 6월 이력 없음 — 지어내면 안 됨).
+
+## ⚠️ 데이터 진실성 사고 교훈 (중요)
+- 다른 Claude 새 채팅이 **새 폴더**에서 작업하며 "6월 대비 박스 -55%" 이미지를 만듦 → 박스 6월 이력은 이 repo에 **존재 자체가 없음**. 없는 데이터로 변동% 지어낸 것.
+- **철칙**: 모든 자동화/콘텐츠는 반드시 이 폴더 `data/onepiece-packs.json`에서만 값 추출. 시계열 비교는 스냅샷 2개 이상 쌓인 뒤에만. 단일 스냅샷으로 "지난달 대비" 만들지 말 것.
+- 소셜 카드 시계열은 `data/social-card-price-snapshots.json`이 주간 누적되어야 가능(현재 7/6 1개뿐 = baseline).
+
+## 광고/수익 현황 (2026-07-06)
+- AdSense: 심사 약 7일째, 외부 프로세스라 앞당길 방법 없음. 콘텐츠 보강(아티클/허브)이 승인 확률에 도움 — 계속 늘릴 것.
