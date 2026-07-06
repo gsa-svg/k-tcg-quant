@@ -67,3 +67,8 @@
 - 재검토 조건: ①AdSense 승인 후(일본 트래픽도 광고 수익화 가능) ②일본측 제휴 확보 시
   (Amazon JP Associates — amazon-lottery.html의 Amazon.co.jp 링크 수익화 가능, 라쿠텐 등).
 - 틈새 메모: 일본 '판매자'가 해외(eBay) 시세를 궁금해하는 수요는 존재 — JP 버전 만들 때 셀링포인트.
+
+## TCGplayer 제휴 (2026-07-06 조사, 미가입)
+- TCGplayer 제휴 프로그램 운영 중: Impact.com 경유, **판매가 3.5%**, 첫 클릭 귀속·48시간·장바구니 전체 인정. EPN보다 요율 높음.
+- 적용 계획: "영문판 NM" 표시 자리에 "Buy English version on TCGplayer" 버튼 — 이베이(일본판)와 보완 투트랙.
+- 진행 조건: 사용자가 impact.com 가입 + TCGplayer 프로그램 승인 → 추적 링크 형식 확보 후 에이전트가 통합.
