@@ -29,13 +29,16 @@
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin />
     <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="OP Box Index — Live One Piece Box &amp; Card Prices" />
     <meta property="og:description" content="Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Top 10 chase cards, sold-price trends and PSA population data. No hype, just data." />
     <meta property="og:url" content="https://opboxindex.com/packs.html?hl=en" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:locale:alternate" content="ko_KR" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -183,6 +186,16 @@
       .introPanel li b { color: #eef2ff; }
       .introPanel .introMeta { margin-top: 13px; padding-top: 11px; border-top: 1px solid #20242e; color: #8d95a7; font-size: 12px; }
       .introPanel code { padding: 1px 5px; border-radius: 5px; background: #1a1e28; color: #aeb7c9; font-size: 11px; }
+      .introMore { margin-top: 10px; }
+      .introMore summary {
+        display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+        color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: .2px;
+        list-style: none;
+      }
+      .introMore summary::-webkit-details-marker { display: none; }
+      .introMore summary::before { content: "▸"; transition: transform .15s ease; }
+      .introMore[open] summary::before { transform: rotate(90deg); }
+      .introMore[open] summary { margin-bottom: 6px; }
 
       .langTabs {
         display: flex; flex-wrap: wrap; gap: 8px; margin: 16px clamp(16px,4vw,52px) 0;
@@ -1005,18 +1018,19 @@
           Use OP Box Index to research One Piece card prices by booster box. Each set page connects Japanese sealed box market data with Top 10 chase cards, PSA 10 price references, NM price references and PSA population stats.
         </p>
 
-        <p class="introHead">What you can compare</p>
-        <ul>
-          <li><b>One Piece booster box prices</b> - eBay Active and Sold flow, high / middle / low bands and recent trend charts.</li>
-          <li><b>One Piece card prices</b> - Japanese NM, Japanese PSA 10 eBay Sold and English NM references where available.</li>
-          <li><b>Top 10 chase cards</b> - the key manga, alternate art, SP and leader cards inside each booster box.</li>
-          <li><b>PSA population stats</b> - PSA 10 / PSA 9 counts and PSA 10 rate for graded cards.</li>
-          <li><b>Valuation signals</b> - reference underpriced / overpriced signals based on box prices and chase-card context.</li>
-        </ul>
-
-        <p class="introMeta">
-          Coverage: Japanese One Piece Card Game booster boxes OP-01 onward, EB / PRB extra packs and major chase cards. Sources include eBay Sold / Active, Yuyu-tei, Cardrush, TCGplayer images, GemRate PSA stats and internal quality checks. Reference only, not investment advice.
-        </p>
+        <details class="introMore">
+          <summary>What you can compare · sources</summary>
+          <ul>
+            <li><b>One Piece booster box prices</b> - eBay Active and Sold flow, high / middle / low bands and recent trend charts.</li>
+            <li><b>One Piece card prices</b> - Japanese NM, Japanese PSA 10 eBay Sold and English NM references where available.</li>
+            <li><b>Top 10 chase cards</b> - the key manga, alternate art, SP and leader cards inside each booster box.</li>
+            <li><b>PSA population stats</b> - PSA 10 / PSA 9 counts and PSA 10 rate for graded cards.</li>
+            <li><b>Valuation signals</b> - reference underpriced / overpriced signals based on box prices and chase-card context.</li>
+          </ul>
+          <p class="introMeta">
+            Coverage: Japanese One Piece Card Game booster boxes OP-01 onward, EB / PRB extra packs and major chase cards. Sources include eBay Sold / Active, Yuyu-tei, Cardrush, TCGplayer images, GemRate PSA stats and internal quality checks. Reference only, not investment advice.
+          </p>
+        </details>
       </section>
 
       <section class="seoPanel" aria-label="One Piece card price keywords">

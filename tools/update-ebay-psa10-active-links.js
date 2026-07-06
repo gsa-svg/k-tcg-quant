@@ -113,10 +113,15 @@ function hasConflictingCardNumber(title, expectedNumber) {
 
 function hasVariantSignal(title, card) {
   const name = `${card.name || ""} ${card.rarity || ""}`;
+  // 프리미엄(망가/수퍼패러렐) 티어 신호 — "Super Rare"(SR 레어도 표기)는 프리미엄이 아님
+  const premiumTitle = /manga|comic|super\s*parall|super\s*alt/i;
   if (/signature|stamped|stamp/i.test(name)) return /signature|signed|stamped|stamp/i.test(title);
-  if (/manga|comic/i.test(name)) return /manga|comic/i.test(title);
-  if (/\bsp\b|special/i.test(name)) return /\bsp\b|special|parallel/i.test(title);
-  if (/parallel|alternate/i.test(name)) return /parallel|alternate|alt\s*art|leader\s*parallel|paralle/i.test(title);
+  if (/manga|comic|\bsuper\b/i.test(name)) return premiumTitle.test(title);
+  // SP는 별도 변형 — 일반 parallel 매물이 섞이지 않게 SP/special 명시 요구 + 프리미엄 배제
+  if (/\bsp\b|special/i.test(name)) return /\bsp\b|special/i.test(title) && !premiumTitle.test(title);
+  // 일반 패러렐/알트아트 — 프리미엄·SP 매물이 저가 행에 붙지 않게 배제
+  if (/parallel|alternate/i.test(name))
+    return /parallel|alternate|alt\s*art|leader\s*parallel|paralle/i.test(title) && !premiumTitle.test(title) && !/\bsp\b/i.test(title);
   return true;
 }
 
@@ -220,6 +225,19 @@ async function main() {
       market = analyzeItems(result.itemSummaries || [], code, card);
       query = candidateQuery;
       if (market.bestListing) break;
+    }
+    // 안전장치: 최저 매물이 판매완료(Sold) 중간값의 35% 미만이면 변형 오매칭 의심 → 버튼 숨김(검색링크로 폴백)
+    if (market?.bestListing && card.psa10Ebay?.soldBased && card.psa10Ebay.middle != null) {
+      const fx = data.fx || {};
+      const toUsd = (v, cur) =>
+        cur === "USD" ? v : cur === "KRW" ? v / (fx.usdKrw || 1388.2) : cur === "JPY" ? (v * (fx.jpyKrw || 9.1)) / (fx.usdKrw || 1388.2) : null;
+      const bestUsd = toUsd(market.bestListing.total, market.currency);
+      const soldUsd = toUsd(card.psa10Ebay.middle, card.psa10Ebay.currency || "KRW");
+      if (bestUsd != null && soldUsd != null && bestUsd < soldUsd * 0.35) {
+        console.log(`  sanity-drop ${code} ${card.number}: best $${bestUsd.toFixed(0)} < 35% of sold-mid $${soldUsd.toFixed(0)}`);
+        market.bestListing = null;
+        market.sampleSize = 0;
+      }
     }
     if (market.bestListing) {
       card.psa10Active = { ...market, query };

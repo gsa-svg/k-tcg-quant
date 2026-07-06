@@ -41,7 +41,10 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${canonical}" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
     <link rel="stylesheet" href="../styles.css" />
     <style>
