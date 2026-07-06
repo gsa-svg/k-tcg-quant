@@ -49,3 +49,14 @@
 - `docs/ebay-api.md`, `docs/price-data.md` — eBay/가격 로직 상세
 
 새 세션을 시작하는 에이전트는 이 문서를 읽은 뒤, 위 체크리스트를 실제로 실행(git log, workflow 상태 확인 등)하고 이상 있으면 사용자에게 먼저 보고한다. 정상이면 굳이 보고하지 않고 다음 성장 작업으로 넘어간다.
+
+## 2026-07-06 추가 사항 (Claude)
+- **배포 실패 대응**: GitHub Pages의 "Deploy to GitHub Pages" 단계가 간헐 실패함(인프라 결함, 콘텐츠 무관).
+  배포 후 반드시 라이브 반영을 curl로 확인하고, 실패 시 `git commit --allow-empty -m "chore: retrigger"` 후 push로 재트리거.
+- **IndexNow 구축됨**: `tools/indexnow-submit.js` — sitemap 전체 URL을 Bing/Naver/Yandex에 즉시 통지.
+  키 파일(루트의 32자리 hex .txt)은 **삭제 금지**. 사이트맵에 URL 추가/대량 갱신 시 이 스크립트 재실행.
+- **og-image.png**: 1200x630 소셜 공유 카드(루트). 전 페이지 og:image + twitter summary_large_image 적용.
+  브랜딩 바뀌면 세션에서 PIL로 재생성(생성 코드는 git log 2026-07-06 커밋 참고).
+- **PSA10 최저가 오매칭 방어**: 두 수집기의 hasVariantSignal 강화(SP↔패러렐↔망가 교차 차단) +
+  활성 수집기에 "Sold 중간값 35% 미만이면 버튼 숨김" 안전장치. 이 로직 완화 금지.
+- **GSC 소유 계정 주의**: Search Console 속성 소유자는 kimtt1107@gmail.com(감자). gsa@whatsong.kr 아님.
