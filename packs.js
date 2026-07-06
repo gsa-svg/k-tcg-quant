@@ -169,7 +169,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260702cta";
+const DATA_VERSION = "20260706seo2";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -530,26 +530,30 @@ function applyStaticI18n() {
     ".introPanel",
     `<strong>OP Box Index — 원피스 미개봉 부스터박스 가격·히트카드 리서치</strong>
       <p>일본어판 원피스 부스터박스별 주요 카드, 박스 거래 흐름, PSA 통계, 저평가/고평가 구간을 빠르게 비교합니다.</p>
-      <p class="introHead">볼 수 있는 것</p>
-      <ul>
-        <li><b>박스 시세</b> — eBay Active와 Sold 흐름, High / Middle / Low</li>
-        <li><b>히트카드 TOP 10</b> — 박스별 고가 카드 이미지, 번호, 레어도</li>
-        <li><b>카드 시세</b> — 일본판 NM, 일본어판 PSA10 eBay Sold, 영문판 NM</li>
-        <li><b>PSA 통계</b> — PSA10·PSA9 수량과 PSA10 비율</li>
-        <li><b>밸류 구간</b> — 최근 실거래 대비 저평가/고평가 참고 지표</li>
-      </ul>
-      <p class="introMeta">출처 — TOP10 구성/박스 참고 TCG Quant · 일본판 NM 유유테이/카드러시 · PSA10/박스 eBay · 이미지 TCGplayer · PSA 통계 GemRate. 투자 참고용이며 매수 추천이 아닙니다.</p>`,
+      <details class="introMore">
+        <summary>볼 수 있는 것 · 출처</summary>
+        <ul>
+          <li><b>박스 시세</b> — eBay Active와 Sold 흐름, High / Middle / Low</li>
+          <li><b>히트카드 TOP 10</b> — 박스별 고가 카드 이미지, 번호, 레어도</li>
+          <li><b>카드 시세</b> — 일본판 NM, 일본어판 PSA10 eBay Sold, 영문판 NM</li>
+          <li><b>PSA 통계</b> — PSA10·PSA9 수량과 PSA10 비율</li>
+          <li><b>밸류 구간</b> — 최근 실거래 대비 저평가/고평가 참고 지표</li>
+        </ul>
+        <p class="introMeta">출처 — TOP10 구성/박스 참고 TCG Quant · 일본판 NM 유유테이/카드러시 · PSA10/박스 eBay · 이미지 TCGplayer · PSA 통계 GemRate. 투자 참고용이며 매수 추천이 아닙니다.</p>
+      </details>`,
     `<strong>OP Box Index — One Piece sealed booster box and chase-card research</strong>
       <p>Compare Japanese One Piece booster boxes, key chase cards, box market flow, PSA population stats and valuation ranges.</p>
-      <p class="introHead">What you get</p>
-      <ul>
-        <li><b>Box prices</b> — eBay Active and Sold flow, High / Middle / Low</li>
-        <li><b>Top 10 chase cards</b> — key card images, numbers and rarities by box</li>
-        <li><b>Card prices</b> — Japanese NM, Japanese PSA 10 eBay Sold and English NM</li>
-        <li><b>PSA stats</b> — PSA 10 / PSA 9 counts and PSA 10 rate</li>
-        <li><b>Valuation range</b> — under/overvaluation signal versus recent sold prices</li>
-      </ul>
-      <p class="introMeta">Sources — TCG Quant for Top 10 / box reference · Yuyu-tei / Cardrush for Japanese NM · eBay for PSA 10 and box market · TCGplayer images · GemRate PSA stats. Reference only, not investment advice.</p>`,
+      <details class="introMore">
+        <summary>What you get · sources</summary>
+        <ul>
+          <li><b>Box prices</b> — eBay Active and Sold flow, High / Middle / Low</li>
+          <li><b>Top 10 chase cards</b> — key card images, numbers and rarities by box</li>
+          <li><b>Card prices</b> — Japanese NM, Japanese PSA 10 eBay Sold and English NM</li>
+          <li><b>PSA stats</b> — PSA 10 / PSA 9 counts and PSA 10 rate</li>
+          <li><b>Valuation range</b> — under/overvaluation signal versus recent sold prices</li>
+        </ul>
+        <p class="introMeta">Sources — TCG Quant for Top 10 / box reference · Yuyu-tei / Cardrush for Japanese NM · eBay for PSA 10 and box market · TCGplayer images · GemRate PSA stats. Reference only, not investment advice.</p>
+      </details>`,
   );
   const jpTab = document.querySelector('.langTab[data-lang="jp"]');
   if (jpTab) jpTab.innerHTML = `${t("일본판", "Japanese")} <small id="statJp"></small>`;
