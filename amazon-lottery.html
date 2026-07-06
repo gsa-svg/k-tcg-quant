@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -25,12 +25,15 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="일본 아마존 TCG 응모 가능 목록 | OP Box Index" />
-    <meta property="og:description" content="일본 Amazon.co.jp TCG 초대판매와 응모 가능 상품 링크를 체크리스트로 정리합니다." />
+    <meta property="og:title" content="Amazon Japan TCG Invite Raffle List | OP Box Index" />
+    <meta property="og:description" content="A checklist of Amazon.co.jp TCG invite-only sales you can request right now — direct product links only, no search-link guesses." />
     <meta property="og:url" content="https://opboxindex.com/amazon-lottery.html" />
+    <link rel="alternate" hreflang="en" href="https://opboxindex.com/amazon-lottery.html" />
+    <link rel="alternate" hreflang="ko" href="https://opboxindex.com/amazon-lottery.html?hl=ko" />
+    <link rel="alternate" hreflang="x-default" href="https://opboxindex.com/amazon-lottery.html" />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>일본 아마존 TCG 응모 가능 목록 | OP Box Index</title>
-    <meta name="description" content="일본 Amazon.co.jp TCG 초대판매와 응모 가능 상품 링크를 체크리스트로 정리합니다." />
+    <title>Amazon Japan TCG Invite Raffle List | OP Box Index</title>
+    <meta name="description" content="A checklist of Amazon.co.jp TCG invite-only sales you can request right now — direct product links only, no search-link guesses." />
     <link rel="stylesheet" href="styles.css" />
     <style>
       main { max-width: 1180px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 28px) 44px; }
@@ -151,78 +154,95 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="packs.html" aria-label="OP Box Index home">
+      <a class="brand" href="packs.html" aria-label="OP Box Index home" data-nav>
         <span class="brandMark">OP</span>
         <span>
           <strong>OP Box Index</strong>
-          <small>원피스 부스터팩 카탈로그</small>
+          <small data-ko="원피스 부스터팩 리서치">One Piece Booster Box Research</small>
         </span>
       </a>
       <nav class="nav" aria-label="Primary navigation">
-        <a href="packs.html">부스터팩</a>
-        <a href="amazon-lottery.html">아마존 응모</a>
-        <a href="about.html">운영원칙</a>
+        <a href="packs.html" data-nav data-ko="부스터팩">Booster Packs</a>
+        <a href="amazon-lottery.html" data-nav data-ko="아마존 응모">Amazon Raffle</a>
+        <a href="about.html" data-ko="운영원칙">Principles</a>
       </nav>
     </header>
 
     <main>
       <div class="lotteryListHead">
-        <h1>응모 가능 목록</h1>
+        <h1 data-ko="응모 가능 목록">Open invite raffles</h1>
         <label class="selectAllWrap">
           <input class="selectAllCheck" id="selectAllEntries" type="checkbox" />
-          <span>전체선택</span>
+          <span data-ko="전체선택">Select all</span>
         </label>
       </div>
-      <p class="lotteryInfo">
-        각 항목 오른쪽 아이콘을 누르면 Amazon.co.jp 상품 페이지가 새 창으로 열립니다.
-        검색 링크는 제외하고, 직접 ASIN이 확인된 상품 페이지만 연결했습니다.
+      <p class="lotteryInfo" data-ko="각 항목 오른쪽 아이콘을 누르면 Amazon.co.jp 상품 페이지가 새 창으로 열립니다. 검색 링크는 제외하고, 직접 ASIN이 확인된 상품 페이지만 연결했습니다.">
+        Tap the arrow on each item to open the Amazon.co.jp product page in a new tab.
+        Only direct, ASIN-verified product pages are listed — no search-link guesses.
       </p>
 
       <section class="entryList" aria-label="Amazon Japan lottery entries">
         <article class="entryItem isNew">
-          <input class="entryCheck" type="checkbox" aria-label="스톰 에메랄드 선택" />
-          <div class="entryTitle"><span class="newBadge">NEW</span><span>스톰 에메랄드</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP928YDZ" target="_blank" rel="noopener noreferrer" aria-label="스톰 에메랄드 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select Storm Emerald" />
+          <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="스톰 에메랄드">Storm Emerald</span></div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP928YDZ" target="_blank" rel="noopener noreferrer" aria-label="Open Storm Emerald">↗</a>
         </article>
         <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="원피스 OP-17 선택" />
-          <div class="entryTitle">원피스 OP-17</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0H43ZX8LK" target="_blank" rel="noopener noreferrer" aria-label="원피스 OP-17 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select One Piece OP-17" />
+          <div class="entryTitle" data-ko="원피스 OP-17">One Piece OP-17</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0H43ZX8LK" target="_blank" rel="noopener noreferrer" aria-label="Open One Piece OP-17">↗</a>
         </article>
         <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="포켓몬 30주년 팩 선택" />
-          <div class="entryTitle">포켓몬 30주년 팩</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCRBL5J" target="_blank" rel="noopener noreferrer" aria-label="포켓몬 30주년 팩 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select Pokemon 30th Anniversary Pack" />
+          <div class="entryTitle" data-ko="포켓몬 30주년 팩">Pokémon 30th Anniversary Pack</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCRBL5J" target="_blank" rel="noopener noreferrer" aria-label="Open Pokemon 30th Anniversary Pack">↗</a>
         </article>
         <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="30주년 에브이 블래키 세트 선택" />
-          <div class="entryTitle">30주년 에브이·블래키 세트</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCM4BCZ" target="_blank" rel="noopener noreferrer" aria-label="30주년 에브이 블래키 세트 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select 30th Anniversary Eevee and Umbreon Set" />
+          <div class="entryTitle" data-ko="30주년 에브이·블래키 세트">30th Anniv. Eevee &amp; Umbreon Set</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCM4BCZ" target="_blank" rel="noopener noreferrer" aria-label="Open 30th Anniversary Eevee and Umbreon Set">↗</a>
         </article>
         <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="건담 EB01 선택" />
-          <div class="entryTitle">건담 EB01</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GTTJ9X7C" target="_blank" rel="noopener noreferrer" aria-label="건담 EB01 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select Gundam EB01" />
+          <div class="entryTitle" data-ko="건담 EB01">Gundam EB01</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GTTJ9X7C" target="_blank" rel="noopener noreferrer" aria-label="Open Gundam EB01">↗</a>
         </article>
         <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="원피스 OP-16 선택" />
-          <div class="entryTitle">원피스 OP-16</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GN5JV7JS" target="_blank" rel="noopener noreferrer" aria-label="원피스 OP-16 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select One Piece OP-16" />
+          <div class="entryTitle" data-ko="원피스 OP-16">One Piece OP-16</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GN5JV7JS" target="_blank" rel="noopener noreferrer" aria-label="Open One Piece OP-16">↗</a>
         </article>
         <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="어비스아이 선택" />
-          <div class="entryTitle">어비스아이</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y" target="_blank" rel="noopener noreferrer" aria-label="어비스아이 열기">↗</a>
+          <input class="entryCheck" type="checkbox" aria-label="Select Abyss Eye" />
+          <div class="entryTitle" data-ko="어비스아이">Abyss Eye</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y" target="_blank" rel="noopener noreferrer" aria-label="Open Abyss Eye">↗</a>
         </article>
       </section>
 
-      <aside class="guidePanel">
-        Amazon.co.jp 계정으로 로그인한 뒤 상품 페이지의 초대 리퀘스트 버튼을 눌러야 합니다.
-        직접 상품 링크가 확인되지 않은 세트는 오탐 방지를 위해 목록에서 제외했습니다.
+      <aside class="guidePanel" data-ko="Amazon.co.jp 계정으로 로그인한 뒤 상품 페이지의 초대 리퀘스트 버튼을 눌러야 합니다. 직접 상품 링크가 확인되지 않은 세트는 오탐 방지를 위해 목록에서 제외했습니다.">
+        Sign in to your Amazon.co.jp account, then press the invite-request button on each product page.
+        Sets without a verified direct product link are left off the list to avoid false leads.
       </aside>
     </main>
 
     <script>
+      // hl=ko 시 한글 스왑 (기본 영문 — 사이트 영문 우선 정책과 일치)
+      (function () {
+        const hl = new URLSearchParams(location.search).get("hl") === "ko" ? "ko" : "en";
+        document.documentElement.lang = hl;
+        if (hl === "ko") {
+          document.querySelectorAll("[data-ko]").forEach((el) => { el.textContent = el.dataset.ko; });
+          document.title = "일본 아마존 TCG 응모 가능 목록 | OP Box Index";
+          const d = document.querySelector('meta[name="description"]');
+          if (d) d.content = "일본 Amazon.co.jp TCG 초대판매와 응모 가능 상품 링크를 체크리스트로 정리합니다.";
+          document.querySelectorAll("[data-nav]").forEach((a) => {
+            const url = new URL(a.getAttribute("href"), location.href);
+            url.searchParams.set("hl", "ko");
+            a.setAttribute("href", url.pathname.split("/").pop() + url.search);
+          });
+        }
+      })();
+
       const selectAll = document.querySelector("#selectAllEntries");
       const checks = [...document.querySelectorAll(".entryCheck")];
       selectAll.addEventListener("change", () => {

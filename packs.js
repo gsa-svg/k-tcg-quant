@@ -519,8 +519,11 @@ function applyStaticI18n() {
   document.body?.classList.toggle("hl-en", state.hl === "en");
   setText(".brand small", "원피스 부스터팩 리서치", "One Piece Booster Box Research");
   setText('.topbar .nav a[href="packs.html"]', "부스터팩", "Booster Packs");
-  setText('.topbar .nav a[href="amazon-lottery.html"]', "아마존 응모", "Amazon Raffle");
+  setText('.topbar .nav a[href^="amazon-lottery.html"]', "아마존 응모", "Amazon Raffle");
   setText('.topbar .nav a[href="about.html"]', "운영원칙", "Principles");
+  // 아마존 응모 페이지로 현재 표시 언어 전달
+  const amazonLink = document.querySelector('.topbar .nav a[href^="amazon-lottery.html"]');
+  if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";
   setHtml(
     ".packHero .lead",
     '부스터박스를 고르면 <strong>박스 시세</strong>, <strong>히트카드 TOP 10</strong>, NM·PSA10 가격과 PSA 통계를 한 화면에서 비교합니다.',
