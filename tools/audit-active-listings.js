@@ -2,7 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { isJapaneseSealedBoosterBoxTitle } = require("./ebay-listing-filters");
+const { isExcludedEbaySellerOrLocation, isJapaneseSealedBoosterBoxTitle } = require("./ebay-listing-filters");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
@@ -155,6 +155,15 @@ function main() {
         url: bestListing.url,
       });
     }
+    if (isExcludedEbaySellerOrLocation(bestListing)) {
+      addIssue(issues, {
+        type: "box",
+        code,
+        reason: "box_best_listing_excluded_seller_or_location",
+        title: bestListing.title,
+        url: bestListing.url,
+      });
+    }
 
     for (const card of set.cards || []) {
       const active = card.psa10Active;
@@ -198,6 +207,18 @@ function main() {
           number: card.number,
           name: card.name,
           reason: "psa10_best_listing_title_failed_filter",
+          title: listing.title,
+          url: listing.url,
+        });
+      }
+      if (isExcludedEbaySellerOrLocation(listing)) {
+        addIssue(issues, {
+          type: "psa10",
+          code,
+          rank: card.rank,
+          number: card.number,
+          name: card.name,
+          reason: "psa10_best_listing_excluded_seller_or_location",
           title: listing.title,
           url: listing.url,
         });

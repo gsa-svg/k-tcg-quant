@@ -2,6 +2,46 @@ function setCodePattern(code) {
   return new RegExp(`\\b${String(code || "").replace("-", "[- ]?")}\\b`, "i");
 }
 
+const excludedLocationCountries = new Set(["CN", "HK", "MO"]);
+const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangzhou|shanghai|beijing|\bcn\b|\bhk\b)/i;
+const excludedSellerUsernames = new Set([
+  // eBay Browse can report these as US inventory even when the seller page is China-based.
+  "jindoutian",
+]);
+
+function firstValue(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function textParts(values) {
+  return values.flatMap((value) => (Array.isArray(value) ? value : [value])).filter(Boolean).join(" ");
+}
+
+function sellerUsername(item) {
+  const seller = item?.seller;
+  if (!seller) return "";
+  if (typeof seller === "string") return seller;
+  return seller.username || "";
+}
+
+function isExcludedEbaySellerOrLocation(item) {
+  const country = firstValue(item?.itemLocation?.country ?? item?.country);
+  const sellerName = sellerUsername(item);
+  const locationText = textParts([
+    item?.itemLocation?.city,
+    item?.itemLocation?.stateOrProvince,
+    item?.itemLocation?.postalCode,
+    item?.location,
+  ]);
+
+  return (
+    excludedLocationCountries.has(country) ||
+    excludedSellerUsernames.has(String(sellerName).toLowerCase()) ||
+    excludedSellerPattern.test(sellerName) ||
+    excludedSellerPattern.test(locationText)
+  );
+}
+
 function isJapaneseSealedBoosterBoxTitle(title, code) {
   const value = String(title || "");
   const positive = [
@@ -21,5 +61,6 @@ function isJapaneseSealedBoosterBoxTitle(title, code) {
 }
 
 module.exports = {
+  isExcludedEbaySellerOrLocation,
   isJapaneseSealedBoosterBoxTitle,
 };

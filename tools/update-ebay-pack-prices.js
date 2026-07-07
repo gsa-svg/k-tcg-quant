@@ -2,14 +2,11 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { isJapaneseSealedBoosterBoxTitle } = require("./ebay-listing-filters");
+const { isExcludedEbaySellerOrLocation, isJapaneseSealedBoosterBoxTitle } = require("./ebay-listing-filters");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
 const envPath = path.join(projectRoot, ".env");
-
-const excludedLocationCountries = new Set(["CN", "HK", "MO"]);
-const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangzhou|shanghai|beijing|\bcn\b|\bhk\b)/i;
 
 function loadEnv(filePath) {
   if (!fs.existsSync(filePath)) return {};
@@ -80,19 +77,6 @@ function isJapaneseSealedBoosterBox(item, code) {
   return isJapaneseSealedBoosterBoxTitle(item.title, code);
 }
 
-function isExcludedSeller(item) {
-  const country = item.itemLocation?.country;
-  const sellerName = item.seller?.username || "";
-  const locationText = [item.itemLocation?.city, item.itemLocation?.stateOrProvince, item.itemLocation?.postalCode]
-    .filter(Boolean)
-    .join(" ");
-  return (
-    excludedLocationCountries.has(country) ||
-    excludedSellerPattern.test(sellerName) ||
-    excludedSellerPattern.test(locationText)
-  );
-}
-
 function percentile(sortedValues, ratio) {
   if (!sortedValues.length) return null;
   const index = Math.min(sortedValues.length - 1, Math.max(0, Math.round((sortedValues.length - 1) * ratio)));
@@ -131,7 +115,7 @@ function analyzeItems(items, code) {
     const currency = item.price?.currency;
     if (!Number.isFinite(value) || !currency) continue;
     if (!isJapaneseSealedBoosterBox(item, code)) continue;
-    if (isExcludedSeller(item)) {
+    if (isExcludedEbaySellerOrLocation(item)) {
       excludedCount += 1;
       continue;
     }

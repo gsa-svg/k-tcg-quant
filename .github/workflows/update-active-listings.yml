@@ -39,6 +39,7 @@ jobs:
           node --check tools/update-box-series-history.js
           node --check tools/update-card-series-history.js
           node --check tools/audit-active-listings.js
+          node tools/test-ebay-listing-filters.js
 
       - name: Require eBay API secrets
         run: |

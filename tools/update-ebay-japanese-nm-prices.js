@@ -2,14 +2,13 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
 const { percentile, removePriceOutliers } = require("./price-outliers");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
 const envPath = path.join(projectRoot, ".env");
 
-const excludedLocationCountries = new Set(["CN", "HK", "MO"]);
-const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangzhou|shanghai|beijing|\bcn\b|\bhk\b)/i;
 const minimumSampleSize = 1;
 const minimumMatchScore = 80;
 
@@ -89,16 +88,7 @@ async function searchActiveListings(token, query) {
 }
 
 function isExcludedSeller(item) {
-  const country = item.itemLocation?.country;
-  const sellerName = item.seller?.username || "";
-  const locationText = [item.itemLocation?.city, item.itemLocation?.stateOrProvince, item.itemLocation?.postalCode]
-    .filter(Boolean)
-    .join(" ");
-  return (
-    excludedLocationCountries.has(country) ||
-    excludedSellerPattern.test(sellerName) ||
-    excludedSellerPattern.test(locationText)
-  );
+  return isExcludedEbaySellerOrLocation(item);
 }
 
 function hasNumber(title, number) {

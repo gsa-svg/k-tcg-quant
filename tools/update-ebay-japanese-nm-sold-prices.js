@@ -2,6 +2,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
 const { percentile, removePriceOutliers } = require("./price-outliers");
 
 const projectRoot = path.resolve(__dirname, "..");
@@ -9,8 +10,6 @@ const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
 const envPath = path.join(projectRoot, ".env");
 const reportPath = path.join(projectRoot, "data", "japanese-nm-sold-audit.json");
 
-const excludedLocationCountries = new Set(["CN", "HK", "MO"]);
-const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangzhou|shanghai|beijing|\bcn\b|\bhk\b)/i;
 const minimumMatchScore = 80;
 
 function loadEnv(filePath) {
@@ -134,9 +133,7 @@ async function searchFindingCompleted(query) {
 }
 
 function isExcludedSoldSeller(item) {
-  const country = item.country?.[0] || "";
-  const location = item.location?.[0] || "";
-  return excludedLocationCountries.has(country) || excludedSellerPattern.test(location);
+  return isExcludedEbaySellerOrLocation(item);
 }
 
 function analyzeSoldItems(items, setCode, card) {
