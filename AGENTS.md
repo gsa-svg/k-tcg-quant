@@ -101,3 +101,14 @@
 ## 지표 자동화 현황 (2026-07-06)
 - **오늘의 박스 딜**: 입력=박스 active(bestListing/middle) → 매일 03:00 워크플로로 갱신됨. 추가 작업 불필요.
 - **PSA10 프리미엄**: 입력=nmJpy(주간 갱신 ✓) + psa10Ebay sold(6/29 멈춤, 위 함정 참고). 값은 유효, 클라이언트 실시간 계산.
+
+## 2026-07-07 Fable 마지막날 — 고도화 기틀 (Opus 완료)
+- **카드 시세 이력 축적 시작**: `tools/update-card-series-history.js` — 카드별 NM·PSA10을 card.series.points에 변화시만 append(180일). 매일 03:00 워크플로에 추가됨. 오늘 시드 195개 뿌림. **2~3주 쌓이면 카드별 추이 그래프 UI 제작 가능**(renderBoxSeries 패턴 복제, points<2면 숨김).
+- **전 세트 비교 랭킹 표**: 홈에 #compareTable — 20박스를 투자매력도 순으로. setAnalytics 실측 지표 재사용. 행 클릭→상세. 연구소 간판 역할 + "best one piece booster box" SEO.
+
+## 다음에 하면 좋을 것 (Fable가 남기는 로드맵)
+1. **카드 추이 그래프 UI**: card.series 데이터가 2~3주 쌓인 뒤. 카드 상세/히트리스트에 미니 스파크라인. renderBoxSeries 함수 참고.
+2. **전 세트 비교를 별도 정적 페이지로**: 지금은 packs.html 내 섹션. SEO 극대화하려면 compare.html 정적 페이지화(단 지표는 클라이언트 계산 유지 — setAnalytics 로직 공유 필요, packs.js 모듈 분리 검토).
+3. **그레이딩 업사이드 랭킹**: PSA10 프리미엄을 전 세트에서 모아 TOP20 페이지. 우리만의 데이터 조합.
+4. **신규 세트 자동 감지**: OP-17 등 데이터 채워지면 generate-set-pages + sitemap + 색인요청 자동화.
+5. **PSA10 sold 갱신 스크립트**: 위 함정 참고. sold 검색하는 검증된 스크립트 신규 제작(active 재사용 금지).
