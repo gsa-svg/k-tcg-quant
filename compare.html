@@ -72,6 +72,11 @@
       .ctScore.sMid { background: rgba(255,219,60,.14); color: var(--terminal-gold); }
       .ctScore.sLow { background: rgba(255,255,255,.06); color: #8d95a7; }
       .compareTable { margin: 18px 0 0; }
+      .ctLegend { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 18px; margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--terminal-line); border-radius: 10px; background: rgba(16,215,160,.04); }
+      .ctLegend div { margin: 0; }
+      .ctLegend dt { color: #eef2ff; font-size: 12px; font-weight: 800; margin: 0 0 2px; }
+      .ctLegend dt em { font-style: normal; color: var(--terminal-teal); font-family: "JetBrains Mono", monospace; font-size: 11px; margin-left: 4px; }
+      .ctLegend dd { margin: 0; color: #aeb7c9; font-size: 12px; line-height: 1.5; }
     </style>
   </head>
   <body>
@@ -97,6 +102,6 @@
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
-    <script src="packs.js?v=20260707split"></script>
+    <script src="packs.js?v=20260707legend"></script>
   </body>
 </html>

@@ -834,6 +834,13 @@ function renderCompareTable() {
 
   const scoreClassLocal = (s) => (s >= 66 ? "sHigh" : s >= 40 ? "sMid" : "sLow");
   const head = `<div class="ctHead"><span class="bmLabel">${t("전 세트 비교 · 투자 매력도 순", "All sets compared · by investment appeal")}</span><small>${t("모든 점수는 실거래·매물 데이터 기반 참고 지표", "All scores are reference signals from live sold/listing data")}</small></div>`;
+  const legend = `<dl class="ctLegend">
+    <div><dt>${t("박스가", "Box price")}</dt><dd>${t("현재 일본판 미개봉 박스 시세(중간값). 'ask'는 실거래가 아닌 판매자 호가 기준.", "Current Japanese sealed box price (median). 'ask' means seller listing price, not a completed sale.")}</dd></div>
+    <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성·데이터 신뢰도를 종합한 점수. 높을수록 데이터상 매력적. 매수 추천이 아닙니다.", "Combined score of card value, demand, scarcity and data confidence. Higher = more appealing on the data. Not buying advice.")}</dd></div>
+    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("박스 안 TOP10 카드 시세 합이 박스가의 몇 배인지. ×2면 상위 카드 가치가 박스값의 약 2배. 봉입률은 비공개라 '까면 이득'을 보장하진 않음.", "How many times the box's top 10 chase-card value covers the box price. ×2 = top cards worth ~2× the box. Pull rates aren't public, so it's not a guaranteed open value.")}</dd></div>
+    <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 판매 건수와 추세. 높을수록 잘 팔리는 박스.", "Recent 4-week sold count and trend. Higher = the box is selling faster.")}</dd></div>
+    <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("현재 시장에 올라온 매물이 얼마나 적은지. 높을수록 지금 구하기 어려움.", "How few boxes are listed right now. Higher = harder to find at the moment.")}</dd></div>
+  </dl>`;
   const thead = `<tr>
     <th>#</th><th class="ctSet">${t("세트", "Set")}</th>
     <th>${t("박스가", "Box price")}</th>
@@ -857,7 +864,7 @@ function renderCompareTable() {
   }).join("");
 
   el.hidden = false;
-  el.innerHTML = `${head}<div class="ctScroll"><table class="ctTable"><thead>${thead}</thead><tbody>${body}</tbody></table></div><p class="note">${t("클릭하면 해당 박스 상세로 이동합니다. 투자 매력도 = 카드값·수요·공급·데이터 신뢰도 종합(0~100). 매수 추천이 아닙니다.", "Click a row to open that box. Investment appeal = card value, demand, supply and data confidence combined (0-100). Not buying advice.")}</p>`;
+  el.innerHTML = `${head}${legend}<div class="ctScroll"><table class="ctTable"><thead>${thead}</thead><tbody>${body}</tbody></table></div><p class="note">${t("클릭하면 해당 박스 상세로 이동합니다. 매수 추천이 아니라 리서치용 참고 지표입니다.", "Click a row to open that box. These are research reference signals, not buying advice.")}</p>`;
 
   el.querySelectorAll("tr[data-code]").forEach((tr) => {
     const go = () => {
