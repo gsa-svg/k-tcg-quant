@@ -64,7 +64,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
   <body>
     <header class="topbar">
       <a class="brand" href="../packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../packs.html?hl=en">Booster Packs</a><a href="index.html">Set Guides</a><a href="../about.html">About</a></nav>
+      <nav class="nav"><a href="../packs.html?hl=en">Booster Packs</a><a href="../compare.html">Compare</a><a href="index.html">Set Guides</a><a href="../about.html">About</a></nav>
     </header>
     <main class="bodyPage">`;
 }
