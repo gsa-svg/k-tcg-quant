@@ -759,6 +759,7 @@ async function load() {
   renderStats();
   renderMarketStatus();
   renderTodayDeals();
+  renderCompareTable();
   renderPackGrid();
   renderDetail();
   updateUrl(true);
@@ -798,6 +799,76 @@ function renderMarketStatus() {
   const boxSamples = sets.reduce((sum, set) => sum + (set.boxMarket?.jp?.ebayActive?.sampleSize || 0), 0);
   const updated = state.data.updated || t("확인중", "checking");
   el.innerHTML = `<span><i></i>Market Live</span><span>Sets ${pricedSets}</span><span>Cards ${cardCount}</span><span>Box Samples ${boxSamples}</span><span>Update ${updated}</span>`;
+}
+
+// 전 세트 비교 랭킹: 20개 박스를 한 표로. 지표는 setAnalytics 실측 계산 재사용(추정 없음).
+// 투자 매력도 내림차순. 박스가 없는 세트는 하단으로. 행 클릭 시 해당 세트 상세로 이동.
+function renderCompareTable() {
+  const el = document.querySelector("#compareTable");
+  if (!el || !state.data) return;
+  const packs = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])]
+    .map((code) => ({ code, set: state.data.sets?.[code] }))
+    .filter((p) => p.set && (p.set.cards || []).length > 0);
+  if (packs.length < 3) { el.hidden = true; return; }
+
+  const rows = packs.map((p) => {
+    const a = setAnalytics(p.set);
+    return {
+      code: p.code,
+      name: p.set.nameEn || p.set.nameKo || p.code,
+      boxKrw: a.box?.value ?? null,
+      boxSold: !!a.box?.soldBased,
+      support: a.supportRatio,
+      invest: a.investmentScore,
+      demand: a.demand,
+      supply: a.supply,
+      samples: a.box?.sampleSize || 0,
+    };
+  }).sort((x, y) => (y.invest - x.invest) || ((y.boxKrw || 0) - (x.boxKrw || 0)));
+
+  const scoreClassLocal = (s) => (s >= 66 ? "sHigh" : s >= 40 ? "sMid" : "sLow");
+  const head = `<div class="ctHead"><span class="bmLabel">${t("전 세트 비교 · 투자 매력도 순", "All sets compared · by investment appeal")}</span><small>${t("모든 점수는 실거래·매물 데이터 기반 참고 지표", "All scores are reference signals from live sold/listing data")}</small></div>`;
+  const thead = `<tr>
+    <th>#</th><th class="ctSet">${t("세트", "Set")}</th>
+    <th>${t("박스가", "Box price")}</th>
+    <th>${t("투자 매력도", "Invest")}</th>
+    <th>${t("카드 지지력", "Card support")}</th>
+    <th>${t("수요", "Demand")}</th>
+    <th>${t("희소성", "Scarcity")}</th></tr>`;
+  const body = rows.map((r, i) => {
+    const box = r.boxKrw != null ? triMain(r.boxKrw, "KRW").main : "–";
+    const boxTag = r.boxKrw != null ? (r.boxSold ? "" : ` <em class="ctListing">${t("호가", "ask")}</em>`) : "";
+    const support = r.support == null ? "–" : `×${r.support.toFixed(1)}`;
+    return `<tr data-code="${r.code}" tabindex="0" role="button">
+      <td class="ctRank">${i + 1}</td>
+      <td class="ctSet"><b>${r.code}</b> <span>${r.name}</span></td>
+      <td class="ctBox">${box}${boxTag}</td>
+      <td><span class="ctScore ${scoreClassLocal(r.invest)}">${r.invest}</span></td>
+      <td class="ctSupport">${support}</td>
+      <td><span class="ctScore ${scoreClassLocal(r.demand.score)}">${r.demand.score}</span></td>
+      <td><span class="ctScore ${scoreClassLocal(r.supply.score)}">${r.supply.score}</span></td>
+    </tr>`;
+  }).join("");
+
+  el.hidden = false;
+  el.innerHTML = `${head}<div class="ctScroll"><table class="ctTable"><thead>${thead}</thead><tbody>${body}</tbody></table></div><p class="note">${t("클릭하면 해당 박스 상세로 이동합니다. 투자 매력도 = 카드값·수요·공급·데이터 신뢰도 종합(0~100). 매수 추천이 아닙니다.", "Click a row to open that box. Investment appeal = card value, demand, supply and data confidence combined (0-100). Not buying advice.")}</p>`;
+
+  el.querySelectorAll("tr[data-code]").forEach((tr) => {
+    const go = () => {
+      const code = tr.dataset.code;
+      const lang = (state.data.extra?.list || []).includes(code) ? "extra" : "jp";
+      if (state.lang !== lang) { state.lang = lang; document.querySelectorAll(".langTab").forEach((b) => b.classList.toggle("active", b.dataset.lang === lang)); }
+      state.selected = code;
+      state.hasExplicitSet = true;
+      renderPackGrid();
+      renderDetail();
+      updateUrl();
+      trackEvent("compare_select", { pack_code: code });
+      document.querySelector("#detail").scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    tr.addEventListener("click", go);
+    tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
 }
 
 // 오늘의 딜: 검수된 최저 매물(배송 포함)이 중간호가보다 3%+ 낮은 박스만. 실측 나눗셈 — 표본 5건 미만 제외(정확도 원칙).
