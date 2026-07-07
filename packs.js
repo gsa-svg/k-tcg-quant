@@ -747,10 +747,17 @@ function renderSourceLegend(set) {
 async function load() {
   initDisplayLanguage();
   bindDisplayLanguage();
+  const isCompareOnly = !document.querySelector("#packList") && document.querySelector("#compareTable");
   try {
     state.data = await fetchPackData();
   } catch (err) {
-    document.querySelector("#packList").innerHTML = `<p class="note">${t("데이터를 불러오지 못했습니다.", "Could not load data.")} (${err.message})</p>`;
+    const target = document.querySelector("#packList") || document.querySelector("#compareTable");
+    if (target) target.innerHTML = `<p class="note">${t("데이터를 불러오지 못했습니다.", "Could not load data.")} (${err.message})</p>`;
+    return;
+  }
+  // 비교 전용 페이지(compare.html): 비교표만 렌더하고 종료
+  if (isCompareOnly) {
+    renderCompareTable();
     return;
   }
   applyRouteState();
@@ -759,7 +766,6 @@ async function load() {
   renderStats();
   renderMarketStatus();
   renderTodayDeals();
-  renderCompareTable();
   renderPackGrid();
   renderDetail();
   updateUrl(true);
@@ -856,6 +862,11 @@ function renderCompareTable() {
   el.querySelectorAll("tr[data-code]").forEach((tr) => {
     const go = () => {
       const code = tr.dataset.code;
+      // 비교 전용 페이지(홈 상세 요소 없음)에서는 홈으로 이동
+      if (!document.querySelector("#detail")) {
+        location.href = `packs.html?set=${code}${state.hl === "ko" ? "&hl=ko" : ""}`;
+        return;
+      }
       const lang = (state.data.extra?.list || []).includes(code) ? "extra" : "jp";
       if (state.lang !== lang) { state.lang = lang; document.querySelectorAll(".langTab").forEach((b) => b.classList.toggle("active", b.dataset.lang === lang)); }
       state.selected = code;
