@@ -412,7 +412,7 @@ function renderBoxSeries(set) {
   const s = set.boxSeries;
   const pts = (s && s.points) || [];
   if (pts.length < 2) return "";
-  const W = 600, H = 190, padL = 8, padR = 14, padT = 14, padB = 8;
+  const W = 600, H = 200, padL = 46, padR = 14, padT = 16, padB = 18;
   const sm = pts.map((p, i) => {
     let sw = 0, sv = 0;
     for (let j = Math.max(0, i - 1); j <= Math.min(pts.length - 1, i + 1); j++) {
@@ -432,7 +432,33 @@ function renderBoxSeries(set) {
   const area = `M${coords[0]} L${coords.slice(1).join(" L")} L${scaleX(xs[xs.length - 1]).toFixed(1)},${H - padB} L${scaleX(xs[0]).toFixed(1)},${H - padB} Z`;
   const last = pts[pts.length - 1];
   const fmtD = (d) => d.slice(5).replace("-", "/");
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 추이 · 최근 6개월 (eBay Sold/Active)", "Box price trend · last 6 months (eBay Sold/Active)")}</span><strong>${triMain(last.p, "KRW").main} <small style="font-weight:400;opacity:.7">${triMain(last.p, "KRW").sub}</small></strong></div><svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="${t("박스 시세 추이 그래프", "Box price trend chart")}"><path d="${area}" class="bcArea"></path><polyline points="${coords.join(" ")}" class="bcLine"></polyline>${coords.map((xy) => { const [x, y] = xy.split(","); return `<circle cx="${x}" cy="${y}" r="3.5" class="bcDot"></circle>`; }).join("")}</svg><div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span>${t("최고", "High")} ${triMain(Math.max(...ys), "KRW").main} · ${t("최저", "Low")} ${triMain(Math.min(...ys), "KRW").main}</span><span>${fmtD(last.d)}</span></div><p class="note">${t("주간 중앙값과 Active 스냅샷을 함께 보존합니다. 표본이 적은 주는 변동이 큽니다. 단일 박스 기준입니다.", "Weekly medians and Active snapshots are retained together. Weeks with few samples swing more. Single box only.")}</p></div>`;
+  // Y축 눈금 3줄: 최저·중간·최고 (달러 라벨 + 점선 그리드)
+  const yTicks = [minY, Math.round((minY + maxY) / 2), maxY].map((v) => ({ v, y: scaleY(v), label: triMain(v, "KRW").main }));
+  const grid = yTicks.map((tk) => `<line x1="${padL}" y1="${tk.y.toFixed(1)}" x2="${W - padR}" y2="${tk.y.toFixed(1)}" class="bcGrid"></line><text x="${padL - 6}" y="${(tk.y + 3.5).toFixed(1)}" class="bcYLabel" text-anchor="end">${tk.label}</text>`).join("");
+  // X축 월 눈금: 월이 바뀌는 첫 포인트마다 세로 눈금 + 라벨
+  const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  let prevMonth = -1;
+  const monthTicks = pts.map((p, i) => {
+    const m = new Date(p.d).getMonth();
+    if (m === prevMonth) return "";
+    prevMonth = m;
+    if (i === 0) return ""; // 시작점 라벨은 하단 축에 이미 있음
+    const x = scaleX(xs[i]).toFixed(1);
+    return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H - padB}" class="bcGridV"></line><text x="${x}" y="${H - padB + 11}" class="bcXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
+  }).join("");
+  // 점: Sold=채움, Active=빈원. 점마다 네이티브 툴팁(날짜·가격·표본).
+  const dots = pts.map((p, i) => {
+    const [x, y] = coords[i].split(",");
+    const isActive = p.basis === "active";
+    const isLast = i === pts.length - 1;
+    const tip = `${fmtD(p.d)} · ${triMain(sm[i], "KRW").main} · ${isActive ? t(`매물 ${p.n}건`, `${p.n} listings`) : t(`판매 ${p.n}건`, `${p.n} sold`)}`;
+    return `<circle cx="${x}" cy="${y}" r="${isLast ? 5 : 3.2}" class="bcDot${isActive ? " bcDotActive" : ""}${isLast ? " bcDotLast" : ""}"><title>${tip}</title></circle>`;
+  }).join("");
+  // 마지막 점 옆 현재가 태그
+  const [lx, ly] = coords[coords.length - 1].split(",").map(Number);
+  const tagX = Math.min(lx, W - padR - 52);
+  const lastTag = `<g class="bcTag"><rect x="${(tagX - 4).toFixed(1)}" y="${(ly - 26).toFixed(1)}" rx="4" width="56" height="17"></rect><text x="${(tagX + 24).toFixed(1)}" y="${(ly - 13.5).toFixed(1)}" text-anchor="middle">${triMain(last.p, "KRW").main}</text></g>`;
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 추이 · 최근 6개월", "Box price trend · last 6 months")}</span><strong>${triMain(last.p, "KRW").main} <small style="font-weight:400;opacity:.7">${triMain(last.p, "KRW").sub}</small></strong></div><svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="${t("박스 시세 추이 그래프", "Box price trend chart")}">${grid}${monthTicks}<path d="${area}" class="bcArea"></path><polyline points="${coords.join(" ")}" class="bcLine"></polyline>${dots}${lastTag}</svg><div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span class="bcLegend"><i class="lgSold"></i>${t("판매 완료(주간 중앙값)", "Sold (weekly median)")}<i class="lgActive"></i>${t("현재 매물 스냅샷", "Active listing snapshot")}</span><span>${fmtD(last.d)}</span></div><p class="note">${t("표본이 적은 주는 변동이 큽니다. 단일 박스·배송 제외 기준. 점에 마우스를 올리면 날짜·가격·표본이 보입니다.", "Weeks with few samples swing more. Single box, excl. shipping. Hover a dot for date, price and sample size.")}</p></div>`;
 }
 
 async function fetchPackData() {
