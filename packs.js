@@ -628,6 +628,17 @@ function priceLines(c) {
   } else {
     h += `<span class="pl psaNone"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <small>${t("Sold 표본 없음", "No sold sample")}</small></span>`;
   }
+  // PSA10 프리미엄: 같은 카드 PSA10 실거래(Sold) ÷ NM 시세. 실측 나눗셈만 — 표본 3건 미만·비정상 배율은 숨김(정확도 원칙).
+  if (c.nmJpy != null && c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3) {
+    const nmK = marketKrw(c.nmJpy, "JPY");
+    const p10K = marketKrw(c.psa10Ebay.middle, c.psa10Ebay.currency || "KRW");
+    if (nmK > 0 && p10K > 0) {
+      const prem = p10K / nmK;
+      if (prem >= 0.8 && prem <= 30) {
+        h += `<span class="pl premium"><i>${t("PSA10 프리미엄", "PSA 10 premium")}</i> <b>×${prem.toFixed(1)}</b> <small>${t(`NM 대비 · Sold ${c.psa10Ebay.sampleSize}건 기준`, `vs NM raw · ${c.psa10Ebay.sampleSize} solds`)}</small></span>`;
+      }
+    }
+  }
   if (c.englishNmEbay?.sampleSize > 0) {
     h += `<span class="pl psaEbay"><i>${t("영문판 NM eBay", "English NM eBay")}</i><span class="bandRows">${priceBandRows(c.englishNmEbay)}</span><small>eBay Active · ${t(`표본 ${c.englishNmEbay.sampleSize}건`, `${c.englishNmEbay.sampleSize} samples`)}</small></span>`;
   }
@@ -721,6 +732,7 @@ async function load() {
   bindDisplayLanguage();
   renderStats();
   renderMarketStatus();
+  renderTodayDeals();
   renderPackGrid();
   renderDetail();
   updateUrl(true);
@@ -760,6 +772,36 @@ function renderMarketStatus() {
   const boxSamples = sets.reduce((sum, set) => sum + (set.boxMarket?.jp?.ebayActive?.sampleSize || 0), 0);
   const updated = state.data.updated || t("확인중", "checking");
   el.innerHTML = `<span><i></i>Market Live</span><span>Sets ${pricedSets}</span><span>Cards ${cardCount}</span><span>Box Samples ${boxSamples}</span><span>Update ${updated}</span>`;
+}
+
+// 오늘의 딜: 검수된 최저 매물(배송 포함)이 중간호가보다 3%+ 낮은 박스만. 실측 나눗셈 — 표본 5건 미만 제외(정확도 원칙).
+function renderTodayDeals() {
+  const el = document.querySelector("#todayDeals");
+  if (!el || !state.data) return;
+  const deals = [];
+  const codes = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])];
+  for (const code of codes) {
+    const set = state.data.sets?.[code];
+    const m = set?.boxMarket?.jp?.ebayActive;
+    const b = m?.bestListing;
+    if (!m || !b || !b.url || m.middle == null || (m.sampleSize || 0) < 5) continue;
+    if (!(b.total < m.middle * 0.97)) continue;
+    deals.push({ code, name: set.nameEn || set.nameKo || code, total: b.total, mid: m.middle, currency: m.currency || "USD", url: b.url, off: 1 - b.total / m.middle, samples: m.sampleSize });
+  }
+  if (!deals.length) { el.hidden = true; el.innerHTML = ""; return; }
+  deals.sort((a, b) => b.off - a.off);
+  const fmt = (v, cur) => (cur === "USD" ? `$${Math.round(v).toLocaleString("en-US")}` : `${Math.round(v).toLocaleString()} ${cur}`);
+  el.hidden = false;
+  el.innerHTML = `
+    <div class="dealsHead"><span>${t("오늘의 박스 딜", "Today's box deals")}</span><small>${t("중간호가 대비 · 배송 포함 · 검수된 매물", "vs mid ask · incl. shipping · verified listings")}</small></div>
+    <div class="dealsRow">${deals.slice(0, 3).map((d) => `
+      <a class="dealCard" href="${epnUrl(d.url)}" target="_blank" rel="noopener noreferrer sponsored">
+        <span class="dealPct">-${Math.round(d.off * 100)}%</span>
+        <span class="dealMeta"><b>${d.code}</b> ${d.name}</span>
+        <span class="dealPrice">${fmt(d.total, d.currency)} <small>${t("중간호가", "mid")} ${fmt(d.mid, d.currency)} · ${t(`표본 ${d.samples}건`, `${d.samples} listings`)}</small></span>
+        <span class="ctaArrow">↗</span>
+      </a>`).join("")}
+    </div>`;
 }
 
 function renderPackGrid() {

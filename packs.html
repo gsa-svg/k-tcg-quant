@@ -548,6 +548,26 @@
         font-style: normal; font-size: 10px; font-weight: 900; letter-spacing: .2px;
         white-space: nowrap;
       }
+      /* 오늘의 박스 딜 스트립 — marketStatus와 좌우 정렬 통일 */
+      .todayDeals { margin: 12px clamp(16px,4vw,52px) 0; }
+      @media (max-width: 640px) { .todayDeals { margin: 12px 12px 0; } }
+      .todayDeals .dealsHead { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
+      .todayDeals .dealsHead span { color: var(--terminal-gold); font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+      .todayDeals .dealsHead small { color: #8d95a7; font-size: 11px; }
+      .todayDeals .dealsRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+      .todayDeals .dealCard {
+        display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px 12px;
+        padding: 12px 14px; border: 1px solid rgba(255,219,60,.25); border-radius: 12px;
+        background: linear-gradient(135deg, rgba(255,219,60,.07), rgba(20,23,28,.9));
+        color: #eef2ff; text-decoration: none;
+      }
+      .todayDeals .dealCard:hover { border-color: var(--terminal-gold); }
+      .todayDeals .dealPct { grid-row: span 2; font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 800; color: var(--terminal-gold); }
+      .todayDeals .dealMeta { font-size: 12px; color: #aeb7c9; } .todayDeals .dealMeta b { color: var(--terminal-teal); margin-right: 4px; }
+      .todayDeals .dealPrice { grid-column: 2; font-size: 15px; font-weight: 800; } .todayDeals .dealPrice small { display: block; font-weight: 500; font-size: 10px; color: #8d95a7; }
+      .todayDeals .ctaArrow { grid-row: span 2; color: var(--terminal-gold); }
+      /* PSA10 프리미엄 라인 */
+      .pl.premium b { color: var(--terminal-gold); }
       .paidLinkTag {
         display: inline-flex; align-items: center; justify-content: center;
         min-height: 34px; padding: 0 9px; border-radius: 9px;
@@ -970,6 +990,7 @@
         </p>
       </section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"></div>
+      <section class="todayDeals" id="todayDeals" aria-label="Today's box deals" hidden></section>
 
       <div class="langTabs" role="group" aria-label="Set category">
         <button class="langTab active" data-lang="jp">Japanese <small id="statJp"></small></button>
@@ -1068,6 +1089,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260706lang" defer></script>
+    <script src="packs.js?v=20260707metrics" defer></script>
   </body>
 </html>
