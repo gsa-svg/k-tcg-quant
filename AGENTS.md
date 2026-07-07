@@ -91,3 +91,13 @@
 
 ## 광고/수익 현황 (2026-07-06)
 - AdSense: 심사 약 7일째, 외부 프로세스라 앞당길 방법 없음. 콘텐츠 보강(아티클/허브)이 승인 확률에 도움 — 계속 늘릴 것.
+
+## ⚠️ PSA10 sold 데이터 갱신 함정 (2026-07-06, 반드시 숙지)
+- `card.psa10Ebay`(soldBased:true) = **PSA10 판매완료 시세** → PSA10 프리미엄 지표의 입력. 6/29 코덱스가 `psa10-sold-audit.json` 방식(커밋 42efabf "Replace PSA10 prices with eBay sold audit")으로 생성. **이걸 정기 갱신하는 워크플로가 현재 없음** → 6/29에 멈춰있음(값 자체는 유효).
+- **`tools/update-ebay-psa10-prices.js`를 워크플로/수동으로 절대 돌리지 말 것.** 이름은 "psa10 가격"이지만 실제로는 `searchActiveListings`(현재 매물)를 검색하고 `soldBased` 필드를 안 만듦 → 돌리면 sold 데이터(138건)를 active로 덮어써 손상시키고 PSA10 프리미엄이 전부 사라짐. (2026-07-06 실제로 돌렸다가 롤백함.)
+- PSA10 sold 자동 갱신이 필요하면: 42efabf의 sold-audit 방식을 재현하는 **검증된 sold 검색 스크립트**를 새로 만들어야 함. active 스크립트 재사용 금지.
+- 참고: `update-ebay-psa10-active-links.js`(active 최저가 링크, psa10Active)는 정상이고 매일 워크플로에 있음 — 이건 별개.
+
+## 지표 자동화 현황 (2026-07-06)
+- **오늘의 박스 딜**: 입력=박스 active(bestListing/middle) → 매일 03:00 워크플로로 갱신됨. 추가 작업 불필요.
+- **PSA10 프리미엄**: 입력=nmJpy(주간 갱신 ✓) + psa10Ebay sold(6/29 멈춤, 위 함정 참고). 값은 유효, 클라이언트 실시간 계산.
