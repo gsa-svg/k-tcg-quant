@@ -11,7 +11,12 @@ const state = {
 function initDisplayLanguage() {
   const params = new URLSearchParams(location.search);
   const urlLang = params.get("hl");
-  state.hl = urlLang === "ko" ? "ko" : "en";
+  // 외국인 무조건 영문 보장: 브라우저 주 언어가 한국어인 경우에만 한글 허용.
+  // (hl=ko URL로 잘못 들어와도 브라우저가 한국어가 아니면 영문으로 강제)
+  const browserKo =
+    (navigator.language || "").toLowerCase().startsWith("ko") ||
+    (navigator.languages || []).some((l) => (l || "").toLowerCase().startsWith("ko"));
+  state.hl = urlLang === "ko" && browserKo ? "ko" : "en";
 }
 
 function t(ko, en) {

@@ -29,6 +29,7 @@
     <meta property="og:description" content="A checklist of Amazon.co.jp TCG invite-only sales you can request right now — direct product links only, no search-link guesses." />
     <meta property="og:url" content="https://opboxindex.com/amazon-lottery.html" />
     <link rel="alternate" hreflang="en" href="https://opboxindex.com/amazon-lottery.html" />
+    <link rel="alternate" hreflang="ko" href="https://opboxindex.com/amazon-lottery.html?hl=ko" />
     <link rel="alternate" hreflang="x-default" href="https://opboxindex.com/amazon-lottery.html" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Amazon Japan TCG Invite Raffle List | OP Box Index</title>
@@ -240,9 +241,10 @@
     </main>
 
     <script>
-      // hl=ko 시 한글 스왑 (기본 영문 — 사이트 영문 우선 정책과 일치)
+      // hl=ko + 브라우저 한국어일 때만 한글. 외국인은 무조건 영문 보장.
       (function () {
-        const hl = new URLSearchParams(location.search).get("hl") === "ko" ? "ko" : "en";
+        const browserKo = (navigator.language || "").toLowerCase().startsWith("ko") || (navigator.languages || []).some((l) => (l || "").toLowerCase().startsWith("ko"));
+        const hl = new URLSearchParams(location.search).get("hl") === "ko" && browserKo ? "ko" : "en";
         document.documentElement.lang = hl;
         if (hl === "ko") {
           document.querySelectorAll("[data-ko]").forEach((el) => { el.textContent = el.dataset.ko; });
