@@ -819,12 +819,26 @@ function renderCompareTable() {
 
   const rows = packs.map((p) => {
     const a = setAnalytics(p.set);
+    // top1 쏠림: 상위 카드 1장이 TOP10 시세 합의 몇 %인지 (50%+ 이면 경고)
+    const vals = a.pricedCards.map((r) => r.market.value);
+    const valSum = vals.reduce((s, v) => s + v, 0);
+    const topShare = valSum > 0 ? vals[0] / valSum : 0;
+    // 최고가 카드의 eBay 실거래(PSA10 sold, 표본 3+) — 모두가 납득하는 sold 기준 값
+    let topSold = null;
+    for (const c of (p.set.cards || []).slice(0, 10)) {
+      if (c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3) {
+        const v = marketKrw(c.psa10Ebay.middle, c.psa10Ebay.currency || "KRW");
+        if (v != null && (!topSold || v > topSold.v)) topSold = { v, num: c.number || "", n: c.psa10Ebay.sampleSize };
+      }
+    }
     return {
       code: p.code,
       name: p.set.nameEn || p.set.nameKo || p.code,
       boxKrw: a.box?.value ?? null,
       boxSold: !!a.box?.soldBased,
       support: a.supportRatio,
+      topShare,
+      topSold,
       invest: a.investmentScore,
       demand: a.demand,
       supply: a.supply,
@@ -837,7 +851,8 @@ function renderCompareTable() {
   const legend = `<dl class="ctLegend">
     <div><dt>${t("박스가", "Box price")}</dt><dd>${t("현재 일본판 미개봉 박스 시세(중간값). 'ask'는 실거래가 아닌 판매자 호가 기준.", "Current Japanese sealed box price (median). 'ask' means seller listing price, not a completed sale.")}</dd></div>
     <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성·데이터 신뢰도를 종합한 점수. 높을수록 데이터상 매력적. 매수 추천이 아닙니다.", "Combined score of card value, demand, scarcity and data confidence. Higher = more appealing on the data. Not buying advice.")}</dd></div>
-    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("박스 안 TOP10 카드 시세 합이 박스가의 몇 배인지. ×2면 상위 카드 가치가 박스값의 약 2배. 봉입률은 비공개라 '까면 이득'을 보장하진 않음.", "How many times the box's top 10 chase-card value covers the box price. ×2 = top cards worth ~2× the box. Pull rates aren't public, so it's not a guaranteed open value.")}</dd></div>
+    <div><dt>${t("최고 카드 실거래", "Top card sold")}</dt><dd>${t("이 박스 히트카드 중 최고가의 eBay 실제 판매가(PSA10, 판매 3건 이상). 호가가 아닌 진짜 팔린 값 — 가장 신뢰할 수 있는 기준.", "The box's highest chase card by actual eBay sold price (PSA 10, 3+ sales). Real completed sales, not asking prices — the most credible number here.")}</dd></div>
+    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("박스 안 TOP10 카드의 '판매자 호가' 합이 박스가의 몇 배인지. 실거래가 아닌 참고치이며, '1장 쏠림' 표시는 카드 한 장이 절반 이상을 차지한다는 뜻. 봉입률 비공개라 개봉 이득 보장 아님.", "How many times the top-10 cards' seller asking prices cover the box price. Reference only (not sold data); 'top-heavy' means a single card makes up over half. Pull rates aren't public — no guaranteed open value.")}</dd></div>
     <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 판매 건수와 추세. 높을수록 잘 팔리는 박스.", "Recent 4-week sold count and trend. Higher = the box is selling faster.")}</dd></div>
     <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("현재 시장에 올라온 매물이 얼마나 적은지. 높을수록 지금 구하기 어려움.", "How few boxes are listed right now. Higher = harder to find at the moment.")}</dd></div>
   </dl>`;
@@ -845,18 +860,22 @@ function renderCompareTable() {
     <th>#</th><th class="ctSet">${t("세트", "Set")}</th>
     <th>${t("박스가", "Box price")}</th>
     <th>${t("투자 매력도", "Invest")}</th>
+    <th>${t("최고 카드 실거래", "Top card sold")}</th>
     <th>${t("카드 지지력", "Card support")}</th>
     <th>${t("수요", "Demand")}</th>
     <th>${t("희소성", "Scarcity")}</th></tr>`;
   const body = rows.map((r, i) => {
     const box = r.boxKrw != null ? triMain(r.boxKrw, "KRW").main : "–";
     const boxTag = r.boxKrw != null ? (r.boxSold ? "" : ` <em class="ctListing">${t("호가", "ask")}</em>`) : "";
-    const support = r.support == null ? "–" : `×${r.support.toFixed(1)}`;
+    const topHeavy = r.support != null && r.topShare > 0.5 ? ` <em class="ctWarn" title="${t("상위 1장이 TOP10 시세 합의 절반 이상 — 한 장 의존 큼", "One card makes up over half of the top-10 value — highly top-heavy")}">${t("1장 쏠림", "top-heavy")}</em>` : "";
+    const support = r.support == null ? "–" : `×${r.support.toFixed(1)}${topHeavy}`;
+    const topSold = r.topSold ? `${triMain(r.topSold.v, "KRW").main} <small class="ctSoldMeta">${r.topSold.num} · PSA10 · ${t(`판매 ${r.topSold.n}건`, `${r.topSold.n} solds`)}</small>` : "–";
     return `<tr data-code="${r.code}" tabindex="0" role="button">
       <td class="ctRank">${i + 1}</td>
       <td class="ctSet"><b>${r.code}</b> <span>${r.name}</span></td>
       <td class="ctBox">${box}${boxTag}</td>
       <td><span class="ctScore ${scoreClassLocal(r.invest)}">${r.invest}</span></td>
+      <td class="ctTopSold">${topSold}</td>
       <td class="ctSupport">${support}</td>
       <td><span class="ctScore ${scoreClassLocal(r.demand.score)}">${r.demand.score}</span></td>
       <td><span class="ctScore ${scoreClassLocal(r.supply.score)}">${r.supply.score}</span></td>
