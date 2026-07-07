@@ -551,28 +551,6 @@
       /* 오늘의 박스 딜 스트립 — marketStatus와 좌우 정렬 통일 */
       .todayDeals { margin: 12px clamp(16px,4vw,52px) 0; }
       @media (max-width: 640px) { .todayDeals { margin: 12px 12px 0; } }
-      /* 전 세트 비교 랭킹 표 */
-      .compareTable { margin: 14px clamp(16px,4vw,52px) 0; padding: 14px 16px; border: 1px solid var(--terminal-line); border-radius: 12px; background: rgba(20,23,28,.72); }
-      @media (max-width: 640px) { .compareTable { margin: 14px 12px 0; padding: 12px 10px; } }
-      .compareTable .ctHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; }
-      .compareTable .ctHead .bmLabel { color: var(--terminal-teal); font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
-      .compareTable .ctHead small { color: #8d95a7; font-size: 11px; }
-      .ctScroll { overflow-x: auto; }
-      .ctTable { width: 100%; border-collapse: collapse; font-size: 13px; }
-      .ctTable th { text-align: right; padding: 6px 8px; color: #737b8e; font-size: 10px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; border-bottom: 1px solid var(--terminal-line); white-space: nowrap; }
-      .ctTable th.ctSet, .ctTable td.ctSet { text-align: left; }
-      .ctTable td { padding: 8px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.05); white-space: nowrap; }
-      .ctTable tr[data-code] { cursor: pointer; }
-      .ctTable tr[data-code]:hover td { background: rgba(16,215,160,.06); }
-      .ctTable tr[data-code]:focus { outline: 2px solid var(--terminal-teal); outline-offset: -2px; }
-      .ctRank { color: #737b8e; font-family: "JetBrains Mono", monospace; }
-      .ctSet b { color: var(--terminal-teal); margin-right: 6px; } .ctSet span { color: #aeb7c9; }
-      .ctBox { font-weight: 700; color: #eef2ff; } .ctListing { font-style: normal; font-size: 9px; color: #f3c74f; margin-left: 3px; }
-      .ctSupport { color: #aeb7c9; font-family: "JetBrains Mono", monospace; }
-      .ctScore { display: inline-block; min-width: 30px; padding: 2px 7px; border-radius: 6px; font-weight: 800; font-family: "JetBrains Mono", monospace; }
-      .ctScore.sHigh { background: rgba(16,215,160,.16); color: var(--terminal-teal); }
-      .ctScore.sMid { background: rgba(255,219,60,.14); color: var(--terminal-gold); }
-      .ctScore.sLow { background: rgba(255,255,255,.06); color: #8d95a7; }
       .todayDeals .dealsHead { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
       .todayDeals .dealsHead span { color: var(--terminal-gold); font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
       .todayDeals .dealsHead small { color: #8d95a7; font-size: 11px; }
