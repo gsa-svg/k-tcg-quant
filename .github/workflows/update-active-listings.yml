@@ -37,6 +37,7 @@ jobs:
           node --check tools/update-ebay-pack-prices.js
           node --check tools/update-ebay-psa10-active-links.js
           node --check tools/update-box-series-history.js
+          node --check tools/update-card-series-history.js
           node --check tools/audit-active-listings.js
 
       - name: Require eBay API secrets
@@ -63,6 +64,12 @@ jobs:
           set -o pipefail
           mkdir -p logs
           node tools/update-box-series-history.js 2>&1 | tee logs/update-box-series-history.log
+
+      - name: Append card price history snapshot
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-card-series-history.js 2>&1 | tee logs/update-card-series-history.log
 
       - name: Audit active listing quality
         run: |
