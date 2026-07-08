@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260708dual";
+const DATA_VERSION = "20260708split";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -422,80 +422,69 @@ function setAnalytics(set) {
   return { box, soldBox, pricedCards, hitPower, supportRatio, liquidityScore, cardPowerScore, demand, supply, valuation, investmentScore, spreadRatio, risks };
 }
 
-function renderBoxSeries(set) {
-  const s = set.boxSeries;
-  const pts = (s && s.points) || [];
-  if (pts.length < 2) return "";
-  // 영문판 이력(boxSeriesEn) — 가격대가 달라(수 배) 오른쪽 별도 축으로 표시
-  const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
-  const hasEn = enPts.length >= 1;
-  const W = 600, H = 200, padL = 46, padR = hasEn ? 50 : 14, padT = 16, padB = 18;
-  const sm = pts.map((p, i) => {
+// 시세 흐름 패널(단일 라인) — 카드 몰라도 읽히게: 라벨 + 현재가 + "N개월간 올랐어요/내렸어요" 결론 + 깨끗한 선
+function renderSeriesPanel(points, opts) {
+  if (!points || points.length < 2) return "";
+  const W = 600, H = 170, padL = 74, padR = 18, padT = 18, padB = 34;
+  const sm = points.map((p, i) => {
     let sw = 0, sv = 0;
-    for (let j = Math.max(0, i - 1); j <= Math.min(pts.length - 1, i + 1); j++) {
-      const w = (pts[j].n || 1) * (j === i ? 1.6 : 1);
-      sw += w; sv += pts[j].p * w;
+    for (let j = Math.max(0, i - 1); j <= Math.min(points.length - 1, i + 1); j++) {
+      const w = (points[j].n || 1) * (j === i ? 1.6 : 1);
+      sw += w; sv += points[j].p * w;
     }
     return Math.round(sv / sw);
   });
-  const xs = pts.map((p) => new Date(p.d).getTime());
-  const ys = sm;
+  const xs = points.map((p) => new Date(p.d).getTime());
   const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const yPad = Math.max(1, (maxY - minY) * 0.12);
-  const scaleX = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
-  const scaleY = (y) => padT + (1 - (y - (minY - yPad)) / Math.max(1, maxY - minY + yPad * 2)) * (H - padT - padB);
-  const coords = xs.map((x, i) => `${scaleX(x).toFixed(1)},${scaleY(ys[i]).toFixed(1)}`);
-  const area = `M${coords[0]} L${coords.slice(1).join(" L")} L${scaleX(xs[xs.length - 1]).toFixed(1)},${H - padB} L${scaleX(xs[0]).toFixed(1)},${H - padB} Z`;
-  const last = pts[pts.length - 1];
-  const fmtD = (d) => d.slice(5).replace("-", "/");
-  // Y축 눈금 3줄: 최저·중간·최고 (달러 라벨 + 점선 그리드)
-  const yTicks = [minY, Math.round((minY + maxY) / 2), maxY].map((v) => ({ v, y: scaleY(v), label: triMain(v, "KRW").main }));
-  const grid = yTicks.map((tk) => `<line x1="${padL}" y1="${tk.y.toFixed(1)}" x2="${W - padR}" y2="${tk.y.toFixed(1)}" class="bcGrid"></line><text x="${padL - 6}" y="${(tk.y + 3.5).toFixed(1)}" class="bcYLabel" text-anchor="end">${tk.label}</text>`).join("");
-  // X축 월 눈금: 월이 바뀌는 첫 포인트마다 세로 눈금 + 라벨
+  const minY = Math.min(...sm), maxY = Math.max(...sm);
+  const yPad = Math.max(1, (maxY - minY) * 0.15);
+  const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
+  const sy = (y) => padT + (1 - (y - (minY - yPad)) / Math.max(1, maxY - minY + yPad * 2)) * (H - padT - padB);
+  const coords = xs.map((x, i) => `${sx(x).toFixed(1)},${sy(sm[i]).toFixed(1)}`);
+  const area = `M${coords[0]} L${coords.slice(1).join(" L")} L${sx(maxX).toFixed(1)},${H - padB} L${sx(minX).toFixed(1)},${H - padB} Z`;
+  // 한 줄 결론: 기간 첫 값 대비 마지막 값 (스무딩 기준, 실측 나눗셈)
+  const chg = (sm[sm.length - 1] - sm[0]) / sm[0];
+  const pct = Math.round(Math.abs(chg) * 100);
+  const months = Math.max(1, Math.round((maxX - minX) / 2592000000));
+  const up = chg >= 0.005, down = chg <= -0.005;
+  const verdict = up
+    ? t(`${months}개월간 ${pct}% 올랐어요`, `up ${pct}% in ${months} mo`)
+    : down
+      ? t(`${months}개월간 ${pct}% 내렸어요`, `down ${pct}% in ${months} mo`)
+      : t(`${months}개월간 보합`, `flat over ${months} mo`);
+  const arrow = up ? "▲" : down ? "▼" : "―";
+  const vCls = up ? "chgUp" : down ? "chgDown" : "chgFlat";
+  // 축: y 최저/최고 2개, x 월 라벨 (큰 글씨)
+  const yTicks = [minY, maxY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 8}" y="${(sy(v) + 5).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
   const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  let prevMonth = -1;
-  const monthTicks = pts.map((p, i) => {
+  let prevMonth = new Date(points[0].d).getMonth();
+  const monthTicks = points.map((p, i) => {
     const m = new Date(p.d).getMonth();
-    if (m === prevMonth) return "";
+    if (m === prevMonth || i === 0) { prevMonth = m; return ""; }
     prevMonth = m;
-    if (i === 0) return ""; // 시작점 라벨은 하단 축에 이미 있음
-    const x = scaleX(xs[i]).toFixed(1);
-    return `<line x1="${x}" y1="${padT}" x2="${x}" y2="${H - padB}" class="bcGridV"></line><text x="${x}" y="${H - padB + 11}" class="bcXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
+    const x = sx(xs[i]).toFixed(1);
+    return `<text x="${x}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
   }).join("");
-  // 점: Sold=채움, Active=빈원. 점마다 네이티브 툴팁(날짜·가격·표본).
-  const dots = pts.map((p, i) => {
-    const [x, y] = coords[i].split(",");
-    const isActive = p.basis === "active";
-    const isLast = i === pts.length - 1;
-    const tip = `${fmtD(p.d)} · ${triMain(sm[i], "KRW").main} · ${isActive ? t(`매물 ${p.n}건`, `${p.n} listings`) : t(`판매 ${p.n}건`, `${p.n} sold`)}`;
-    return `<circle cx="${x}" cy="${y}" r="${isLast ? 5 : 3.2}" class="bcDot${isActive ? " bcDotActive" : ""}${isLast ? " bcDotLast" : ""}"><title>${tip}</title></circle>`;
-  }).join("");
-  // 마지막 점 옆 현재가 태그
   const [lx, ly] = coords[coords.length - 1].split(",").map(Number);
-  const tagX = Math.min(lx, W - padR - 52);
-  const lastTag = `<g class="bcTag"><rect x="${(tagX - 4).toFixed(1)}" y="${(ly - 26).toFixed(1)}" rx="4" width="56" height="17"></rect><text x="${(tagX + 24).toFixed(1)}" y="${(ly - 13.5).toFixed(1)}" text-anchor="middle">${triMain(last.p, "KRW").main}</text></g>`;
-  // 영문판 오버레이 (골드, 오른쪽 축) — 시간축은 일판과 공유, 가격축은 별도
-  let enLayer = "";
-  if (hasEn) {
-    const enXs = enPts.map((p) => new Date(p.d).getTime());
-    const enYs = enPts.map((p) => p.p);
-    let enMin = Math.min(...enYs), enMax = Math.max(...enYs);
-    if (enMin === enMax) { enMin *= 0.9; enMax *= 1.1; }
-    const enPad = Math.max(1, (enMax - enMin) * 0.12);
-    const scaleYEn = (y) => padT + (1 - (y - (enMin - enPad)) / Math.max(1, enMax - enMin + enPad * 2)) * (H - padT - padB);
-    const enCoords = enXs.map((x, i) => `${scaleX(Math.max(minX, Math.min(maxX, x))).toFixed(1)},${scaleYEn(enYs[i]).toFixed(1)}`);
-    const enLine = enPts.length >= 2 ? `<polyline points="${enCoords.join(" ")}" class="bcLineEn"></polyline>` : "";
-    const enDots = enPts.map((p, i) => {
-      const [x, y] = enCoords[i].split(",");
-      const tip = `EN ${fmtD(p.d)} · ${triMain(p.p, "KRW").main} · ${t(`매물 ${p.n}건`, `${p.n} listings`)}`;
-      return `<circle cx="${x}" cy="${y}" r="${i === enPts.length - 1 ? 4.5 : 3}" class="bcDotEn"><title>${tip}</title></circle>`;
-    }).join("");
-    const enTicks = [enMin, Math.round((enMin + enMax) / 2), enMax].map((v) => `<text x="${W - padR + 6}" y="${(scaleYEn(v) + 3.5).toFixed(1)}" class="bcYLabelEn" text-anchor="start">${triMain(v, "KRW").main}</text>`).join("");
-    enLayer = `${enTicks}${enLine}${enDots}`;
+  const lastDot = `<circle cx="${lx}" cy="${ly}" r="6" class="spDot ${opts.cls}"></circle>`;
+  return `<div class="seriesPanel">
+    <div class="spHead"><span><em class="langTag ${opts.tagCls}">${opts.tag}</em><b class="spName">${opts.name}</b></span><span class="spNow">${triMain(points[points.length - 1].p, "KRW").main}<em class="spVerdict ${vCls}">${arrow} ${verdict}</em></span></div>
+    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${opts.name} ${t("시세 흐름", "price trend")}">${yTicks}${monthTicks}<path d="${area}" class="spArea ${opts.cls}"></path><polyline points="${coords.join(" ")}" class="spLine ${opts.cls}"></polyline>${lastDot}</svg>
+  </div>`;
+}
+
+function renderBoxSeries(set) {
+  const jpPts = (set.boxSeries && set.boxSeries.points) || [];
+  if (jpPts.length < 2) return "";
+  const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", name: t("일본판 박스", "Japanese box") });
+  const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
+  let enPanel = "";
+  if (enPts.length >= 2) {
+    enPanel = renderSeriesPanel(enPts, { tag: "EN", tagCls: "langTagEn", cls: "spEn", name: t("영문판 박스", "English box") });
+  } else if (enPts.length === 1) {
+    enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow">${triMain(enPts[0].p, "KRW").main}<em class="spVerdict chgFlat">${t(`${enPts[0].d.slice(5).replace("-", "/")} 추적 시작 — 내일부터 흐름이 그려져요`, `tracking since ${enPts[0].d.slice(5).replace("-", "/")} — trend line starts tomorrow`)}</em></span></div></div>`;
   }
-  const enLegend = hasEn ? `<i class="lgEn"></i>${t("영문판(오른쪽 축)", "English (right axis)")}` : "";
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${hasEn ? t("박스 시세 추이 · 일본판 vs 영문판", "Box price trend · JP vs EN") : t("박스 시세 추이 · 최근 6개월", "Box price trend · last 6 months")}</span><strong><em class="langTag">JP</em> ${triMain(last.p, "KRW").main} <small style="font-weight:400;opacity:.7">${triMain(last.p, "KRW").sub}</small>${hasEn ? ` <em class="langTag langTagEn">EN</em> <span class="enHeadPrice">${triMain(enPts[enPts.length - 1].p, "KRW").main}</span>` : ""}</strong></div><svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="${t("박스 시세 추이 그래프", "Box price trend chart")}">${grid}${monthTicks}<path d="${area}" class="bcArea"></path><polyline points="${coords.join(" ")}" class="bcLine"></polyline>${dots}${lastTag}${enLayer}</svg><div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span class="bcLegend"><i class="lgSold"></i>${t("일본판(왼쪽 축)", "Japanese (left axis)")}<i class="lgActive"></i>${t("매물 스냅샷", "Listing snapshot")}${enLegend}</span><span>${fmtD(last.d)}</span></div><p class="note">${t("일본판·영문판은 가격대가 달라 축을 분리했습니다(왼쪽 JP·오른쪽 EN). 방향 비교용이며, 표본 적은 주는 변동이 큽니다. 점에 마우스를 올리면 상세가 보입니다.", "JP and EN use separate axes (left JP, right EN) because price levels differ — compare direction, not height. Thin-sample weeks swing more. Hover dots for details.")}</p></div>`;
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름 · 일본판과 영문판 따로 보기", "Box price trend · JP and EN, side by side")}</span></div>${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음). eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Each chart shows one edition only (price levels differ too much to overlay). Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
 }
 
 async function fetchPackData() {
