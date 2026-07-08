@@ -7,6 +7,7 @@ const excludedSellerPattern = /(china|chinese|hongkong|hong kong|shenzhen|guangz
 const excludedSellerUsernames = new Set([
   // eBay Browse can report these as US inventory even when the seller page is China-based.
   "jindoutian",
+  "pengsupply", // 2026-07-08 사용자 확인: About=China, EB-02 미국창고 발송으로 위치필터 우회
 ]);
 
 function firstValue(value) {

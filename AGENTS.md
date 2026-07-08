@@ -148,3 +148,13 @@
 - 데이터 기준 원칙 확정: 대표지표=eBay sold, 호가는 ask 라벨 필수
 
 ⚠️ 절대 금지 재확인: `update-ebay-psa10-prices.js` 실행 금지(sold 데이터 파괴), GSC 인증파일·IndexNow 키 삭제 금지, 없는 시계열로 변동% 생성 금지.
+
+## 🐭 중국셀러 두더지게임 대응 절차 (2026-07-08)
+- **왜 재발하나**: eBay API는 판매자 가입국을 안 줌. 중국셀러가 미국 창고(country=US)로 발송하면 위치필터 우회 → **이름 차단 목록**이 유일한 수단이라, 하나 막으면 다음으로 싼 중국셀러가 올라옴(코덱스 jindoutian → pengsupply 재발이 그 사례).
+- **발견 시 1분 처리 절차**:
+  1. `tools/ebay-listing-filters.js`의 `excludedSellerUsernames`에 유저명 추가(소문자, 확인 날짜 주석)
+  2. `node tools/test-ebay-listing-filters.js` 통과 확인
+  3. 해당 세트만 재수집: `node tools/update-ebay-pack-prices.js EB-02` (.env 로드 필요. 이 스크립트는 안전 — psa10-prices와 다름)
+  4. 새 최저가 셀러도 의심되면 `curl https://www.ebay.com/usr/<셀러명>`으로 China 신호 확인
+  5. 커밋·배포
+- 차단 이력: jindoutian(7/7 코덱스), pengsupply(7/8, EB-02)
