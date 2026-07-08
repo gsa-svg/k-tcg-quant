@@ -892,14 +892,20 @@
         }
         .langTabs::-webkit-scrollbar { display: none; }
         .langTab { min-width: 96px; flex: 0 0 auto; }
+        /* 모바일: 이미지 열이 전체 높이를 점유해 왼쪽이 비던 문제 → float로 제목 옆에만 두고 아래는 전폭 사용 */
         .detailHead {
           padding: 12px;
           border-radius: 8px;
+          display: block;
         }
         .detailBox {
           width: 72px;
           height: 98px;
+          float: left;
+          margin: 0 12px 8px 0;
         }
+        .detailInfo { min-width: 0; }
+        .detailInfo .viewTabs { clear: left; }
         .sourceLegend {
           grid-template-columns: 1fr;
           gap: 7px;
