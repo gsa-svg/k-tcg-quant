@@ -35,6 +35,7 @@ jobs:
         run: |
           node --check packs.js
           node --check tools/update-ebay-pack-prices.js
+          node --check tools/update-ebay-english-pack-prices.js
           node --check tools/update-ebay-psa10-active-links.js
           node --check tools/update-box-series-history.js
           node --check tools/update-card-series-history.js
@@ -53,6 +54,12 @@ jobs:
           set -o pipefail
           mkdir -p logs
           node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
+
+      - name: Update eBay English box prices
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-ebay-english-pack-prices.js 2>&1 | tee logs/update-ebay-english-pack-prices.log
 
       - name: Update eBay active PSA10 links
         run: |

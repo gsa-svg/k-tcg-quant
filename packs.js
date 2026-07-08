@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260708clean";
+const DATA_VERSION = "20260708en";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -735,7 +735,28 @@ function renderSetAnalytics(set) {
 function renderBoxMarket(set) {
   const market = set.boxMarket?.jp?.ebayActive;
   if (!market) return `<div class="boxMarket"><div class="bmHead"><span class="bmLabel">${t("일본판 박스 eBay", "Japanese box · eBay")}</span><strong>${t("가격 수집 대기", "Collecting price")}</strong></div></div>`;
-  return `<div class="boxMarket"><div class="bmHead"><span class="bmLabel">${t("일본판 박스 eBay Active", "Japanese box · eBay Active")}</span><small>${market.updated || t("업데이트일 미상", "date unknown")} · ${t(`표본 ${market.sampleSize || 0}건`, `${market.sampleSize || 0} samples`)}${market.excludedCount ? t(` · 제외 ${market.excludedCount}건`, ` · ${market.excludedCount} excluded`) : ""}</small></div><div class="bmRows">${priceBandRows(market)}</div><p>${t("정렬 후 하위/중앙/상위 가격대입니다. 중국권 발송지와 명확한 오탐은 제외합니다.", "Low/mid/high bands after sorting. China-region sellers and obvious mismatches are excluded.")}</p></div>`;
+  // 영문판 박스 밴드 — 표본 3건 이상일 때만 표시(정확도 원칙). 일판 대비 배율은 동일 기준(Active mid) 실측 나눗셈.
+  const en = set.boxMarket?.en?.ebayActive;
+  const enOk = en && en.middle != null && (en.sampleSize || 0) >= 3;
+  let enBlock = "";
+  if (enOk) {
+    const jpMid = marketKrw(market.middle, market.currency);
+    const enMid = marketKrw(en.middle, en.currency);
+    const ratio = jpMid && enMid ? enMid / jpMid : null;
+    enBlock = `<div class="bmHead bmEnHead"><span class="bmLabel">${t("영문판 박스 eBay Active", "English box · eBay Active")}</span><small>${en.updated || ""} · ${t(`표본 ${en.sampleSize}건`, `${en.sampleSize} samples`)}${ratio ? ` · <em class="bmRatio">${t(`일본판의 ×${ratio.toFixed(1)}`, `×${ratio.toFixed(1)} vs Japanese`)}</em>` : ""}</small></div><div class="bmRows">${priceBandRows(en)}</div>`;
+  }
+  return `<div class="boxMarket"><div class="bmHead"><span class="bmLabel">${t("일본판 박스 eBay Active", "Japanese box · eBay Active")}</span><small>${market.updated || t("업데이트일 미상", "date unknown")} · ${t(`표본 ${market.sampleSize || 0}건`, `${market.sampleSize || 0} samples`)}${market.excludedCount ? t(` · 제외 ${market.excludedCount}건`, ` · ${market.excludedCount} excluded`) : ""}</small></div><div class="bmRows">${priceBandRows(market)}</div>${enBlock}<p>${t("정렬 후 하위/중앙/상위 가격대입니다. 중국권 발송지와 명확한 오탐은 제외합니다. 영문판은 제목에 English 명시 매물만 집계합니다.", "Low/mid/high bands after sorting. China-region sellers and obvious mismatches are excluded. English bands count only listings explicitly titled English.")}</p></div>`;
+}
+
+// 영문판 박스 밴드 독립 블록 — 그래프(boxSeries) 유무와 무관하게 상세에 표시. 표본 3건 미만은 숨김(정확도 원칙).
+function renderEnglishBoxBand(set) {
+  const en = set.boxMarket?.en?.ebayActive;
+  if (!en || en.middle == null || (en.sampleSize || 0) < 3) return "";
+  const jp = set.boxMarket?.jp?.ebayActive;
+  const jpMid = jp?.middle != null ? marketKrw(jp.middle, jp.currency) : null;
+  const enMid = marketKrw(en.middle, en.currency);
+  const ratio = jpMid && enMid ? enMid / jpMid : null;
+  return `<div class="boxMarket enBoxMarket"><div class="bmHead"><span class="bmLabel">${t("영문판 박스 eBay Active", "English box · eBay Active")}</span><small>${en.updated || ""} · ${t(`표본 ${en.sampleSize}건`, `${en.sampleSize} samples`)}${ratio ? ` · <em class="bmRatio">${t(`일본판의 ×${ratio.toFixed(1)}`, `×${ratio.toFixed(1)} vs Japanese`)}</em>` : ""}</small></div><div class="bmRows">${priceBandRows(en)}</div><p>${t("제목에 English 명시된 미개봉 박스 매물만 집계. 같은 세트의 영문판·일본판 시장 비교용.", "Counts only sealed listings explicitly titled English. For comparing the English vs Japanese market of the same set.")}</p></div>`;
 }
 
 function renderSourceLegend(set) {
@@ -1030,7 +1051,7 @@ function renderDetail() {
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   const body = state.view === "psa" ? renderPsaTable(set.psa) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderEnglishBoxBand(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();

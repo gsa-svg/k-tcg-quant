@@ -61,7 +61,27 @@ function isJapaneseSealedBoosterBoxTitle(title, code) {
   return positive.every((pattern) => pattern.test(value)) && !negative.some((pattern) => pattern.test(value));
 }
 
+// 영문판 미개봉 부스터박스: 제목에 English 명시 필수(정확도 우선 — 무표기 매물은 일판 혼입 위험으로 제외)
+function isEnglishSealedBoosterBoxTitle(title, code) {
+  const value = String(title || "");
+  const positive = [
+    /one piece/i,
+    setCodePattern(code),
+    /(?:booster|premium booster|extra booster|display)\s+box/i,
+    /english|\beng\b/i,
+  ];
+  const negative = [
+    /japanese|japan|\bjp\b|korean|chinese|simplified/i,
+    /card lot|single card|proxy|digital|empty box|case\b/i,
+    /booster pack|single pack|loose pack|pack bundle|fresh from box|from box/i,
+    /\b(?:[1-9]|1\d|2[0-3])\s*(?:pack|packs|pk)\b/i,
+    /open live|live break|box break|rip\s*ship|break spot|personal break|opened/i,
+  ];
+  return positive.every((pattern) => pattern.test(value)) && !negative.some((pattern) => pattern.test(value));
+}
+
 module.exports = {
   isExcludedEbaySellerOrLocation,
   isJapaneseSealedBoosterBoxTitle,
+  isEnglishSealedBoosterBoxTitle,
 };

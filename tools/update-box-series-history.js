@@ -59,6 +59,25 @@ function main() {
     updated += 1;
   }
 
+  // 영문판 박스 이력 축적 (일판과 동일 구조, boxSeriesEn) — 표본 3건 미만은 신뢰도 낮아 스킵
+  for (const code of codes) {
+    const set = data.sets?.[code];
+    const active = set?.boxMarket?.en?.ebayActive;
+    if (!set || !active || active.middle == null || !active.currency || Number(active.sampleSize || 0) < 3) continue;
+    const middleKrw = marketKrw(Number(active.middle), active.currency, data.fx || {});
+    if (!Number.isFinite(middleKrw)) continue;
+    set.boxSeriesEn = set.boxSeriesEn || {};
+    set.boxSeriesEn.currency = "KRW";
+    set.boxSeriesEn.source = "eBay Active snapshots (English sealed boxes)";
+    set.boxSeriesEn.updated = today;
+    set.boxSeriesEn.points = appendSnapshot(set.boxSeriesEn.points, {
+      d: today,
+      p: middleKrw,
+      n: Number(active.sampleSize || 0),
+      basis: "active",
+    });
+  }
+
   data.updated = today;
   fs.writeFileSync(dataPath, `${JSON.stringify(data, null, 1)}\n`, "utf8");
   console.log(JSON.stringify({ updated, skipped, historyDays }, null, 2));
