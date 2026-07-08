@@ -254,7 +254,7 @@ function ebayLinks(pack) {
   }
   return `
     <div class="marketLinks" aria-label="eBay market links">
-      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("최저가 박스 구매", "Get the lowest box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}</a>` : ""}
+      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}">${t("최저가 박스 구매", "Get the lowest box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(5)} 기준`, `as of ${market.updated.slice(5)}`)}</em>` : ""}</a>` : ""}
       <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Sold</a>
       <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Active</a>
       <span class="paidLinkTag">Paid Link</span>
@@ -282,7 +282,7 @@ function cardBuyLinks(card) {
         dealChip = `<em class="dealChip">${t("최근 실거래가 아래", "below recent sold")}</em>`;
       }
     }
-    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 최저가 구매", "Buy lowest PSA 10")} · <b>${price}</b><span class="ctaArrow">↗</span>${dealChip}</a><small>Paid Link · ${t("검수 완료 · 배송 포함", "verified · incl. shipping")}${country}</small></div>`;
+    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 최저가 구매", "Buy lowest PSA 10")} · <b>${price}</b><span class="ctaArrow">↗</span>${dealChip}</a><small>Paid Link · ${t("검수 완료 · 배송 포함", "verified · incl. shipping")}${country}${card.psa10Active?.updated ? ` · ${t(`${card.psa10Active.updated.slice(5)} 기준`, `as of ${card.psa10Active.updated.slice(5)}`)}` : ""}</small></div>`;
   }
   return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 찾기", "Find PSA 10 listings")}<span class="ctaArrow">↗</span></a><small>Paid Link · ${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
 }
