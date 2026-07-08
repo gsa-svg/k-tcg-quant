@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260708en";
+const DATA_VERSION = "20260708dual";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -252,11 +252,25 @@ function ebayLinks(pack) {
       dealChip = `<em class="dealChip">-${Math.round((1 - b / mid) * 100)}% ${t("중간호가 대비", "vs mid ask")}</em>`;
     }
   }
+  // 영문판 최저가 버튼 — 표본 3건 이상 + 검수된 최저매물 있을 때만 (JP와 명확히 구분 표기)
+  const enMarket = pack.set?.boxMarket?.en?.ebayActive;
+  const enBest = enMarket && (enMarket.sampleSize || 0) >= 3 ? enMarket.bestListing : null;
+  const enBestUrl = epnUrl(safeEbayUrl(enBest?.url));
+  const enBestPrice = enBest?.total != null ? triMain(enBest.total, enBest.currency).main : "";
+  let enDealChip = "";
+  if (enBest?.total != null && enMarket?.middle != null) {
+    const b = marketKrw(enBest.total, enBest.currency);
+    const mid = marketKrw(enMarket.middle, enMarket.currency);
+    if (b != null && mid != null && b < mid * 0.97) {
+      enDealChip = `<em class="dealChip">-${Math.round((1 - b / mid) * 100)}% ${t("중간호가 대비", "vs mid ask")}</em>`;
+    }
+  }
   return `
     <div class="marketLinks" aria-label="eBay market links">
-      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}">${t("최저가 박스 구매", "Get the lowest box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(5)} 기준`, `as of ${market.updated.slice(5)}`)}</em>` : ""}</a>` : ""}
-      <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Sold</a>
-      <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">eBay Active</a>
+      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}"><em class="langTag">JP</em>${t("일본판 최저가 박스", "Lowest JP box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(5)} 기준`, `as of ${market.updated.slice(5)}`)}</em>` : ""}</a>` : ""}
+      ${enBestUrl ? `<a class="featured featuredEn" href="${enBestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${enMarket?.updated || ""} 수집 · 영문판 미개봉 박스`, `Captured ${enMarket?.updated || ""} · English sealed box`)}"><em class="langTag langTagEn">EN</em>${t("영문판 최저가 박스", "Lowest EN box")} · <b>${enBestPrice}</b><span class="ctaArrow">↗</span>${enDealChip}${enMarket?.updated ? `<em class="asOf">${t(`${enMarket.updated.slice(5)} 기준`, `as of ${enMarket.updated.slice(5)}`)}</em>` : ""}</a>` : ""}
+      <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">JP Sold</a>
+      <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">JP Active</a>
       <span class="paidLinkTag">Paid Link</span>
     </div>`;
 }
@@ -412,7 +426,10 @@ function renderBoxSeries(set) {
   const s = set.boxSeries;
   const pts = (s && s.points) || [];
   if (pts.length < 2) return "";
-  const W = 600, H = 200, padL = 46, padR = 14, padT = 16, padB = 18;
+  // 영문판 이력(boxSeriesEn) — 가격대가 달라(수 배) 오른쪽 별도 축으로 표시
+  const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
+  const hasEn = enPts.length >= 1;
+  const W = 600, H = 200, padL = 46, padR = hasEn ? 50 : 14, padT = 16, padB = 18;
   const sm = pts.map((p, i) => {
     let sw = 0, sv = 0;
     for (let j = Math.max(0, i - 1); j <= Math.min(pts.length - 1, i + 1); j++) {
@@ -458,7 +475,27 @@ function renderBoxSeries(set) {
   const [lx, ly] = coords[coords.length - 1].split(",").map(Number);
   const tagX = Math.min(lx, W - padR - 52);
   const lastTag = `<g class="bcTag"><rect x="${(tagX - 4).toFixed(1)}" y="${(ly - 26).toFixed(1)}" rx="4" width="56" height="17"></rect><text x="${(tagX + 24).toFixed(1)}" y="${(ly - 13.5).toFixed(1)}" text-anchor="middle">${triMain(last.p, "KRW").main}</text></g>`;
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 추이 · 최근 6개월", "Box price trend · last 6 months")}</span><strong>${triMain(last.p, "KRW").main} <small style="font-weight:400;opacity:.7">${triMain(last.p, "KRW").sub}</small></strong></div><svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="${t("박스 시세 추이 그래프", "Box price trend chart")}">${grid}${monthTicks}<path d="${area}" class="bcArea"></path><polyline points="${coords.join(" ")}" class="bcLine"></polyline>${dots}${lastTag}</svg><div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span class="bcLegend"><i class="lgSold"></i>${t("판매 완료(주간 중앙값)", "Sold (weekly median)")}<i class="lgActive"></i>${t("현재 매물 스냅샷", "Active listing snapshot")}</span><span>${fmtD(last.d)}</span></div><p class="note">${t("표본이 적은 주는 변동이 큽니다. 단일 박스·배송 제외 기준. 점에 마우스를 올리면 날짜·가격·표본이 보입니다.", "Weeks with few samples swing more. Single box, excl. shipping. Hover a dot for date, price and sample size.")}</p></div>`;
+  // 영문판 오버레이 (골드, 오른쪽 축) — 시간축은 일판과 공유, 가격축은 별도
+  let enLayer = "";
+  if (hasEn) {
+    const enXs = enPts.map((p) => new Date(p.d).getTime());
+    const enYs = enPts.map((p) => p.p);
+    let enMin = Math.min(...enYs), enMax = Math.max(...enYs);
+    if (enMin === enMax) { enMin *= 0.9; enMax *= 1.1; }
+    const enPad = Math.max(1, (enMax - enMin) * 0.12);
+    const scaleYEn = (y) => padT + (1 - (y - (enMin - enPad)) / Math.max(1, enMax - enMin + enPad * 2)) * (H - padT - padB);
+    const enCoords = enXs.map((x, i) => `${scaleX(Math.max(minX, Math.min(maxX, x))).toFixed(1)},${scaleYEn(enYs[i]).toFixed(1)}`);
+    const enLine = enPts.length >= 2 ? `<polyline points="${enCoords.join(" ")}" class="bcLineEn"></polyline>` : "";
+    const enDots = enPts.map((p, i) => {
+      const [x, y] = enCoords[i].split(",");
+      const tip = `EN ${fmtD(p.d)} · ${triMain(p.p, "KRW").main} · ${t(`매물 ${p.n}건`, `${p.n} listings`)}`;
+      return `<circle cx="${x}" cy="${y}" r="${i === enPts.length - 1 ? 4.5 : 3}" class="bcDotEn"><title>${tip}</title></circle>`;
+    }).join("");
+    const enTicks = [enMin, Math.round((enMin + enMax) / 2), enMax].map((v) => `<text x="${W - padR + 6}" y="${(scaleYEn(v) + 3.5).toFixed(1)}" class="bcYLabelEn" text-anchor="start">${triMain(v, "KRW").main}</text>`).join("");
+    enLayer = `${enTicks}${enLine}${enDots}`;
+  }
+  const enLegend = hasEn ? `<i class="lgEn"></i>${t("영문판(오른쪽 축)", "English (right axis)")}` : "";
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${hasEn ? t("박스 시세 추이 · 일본판 vs 영문판", "Box price trend · JP vs EN") : t("박스 시세 추이 · 최근 6개월", "Box price trend · last 6 months")}</span><strong><em class="langTag">JP</em> ${triMain(last.p, "KRW").main} <small style="font-weight:400;opacity:.7">${triMain(last.p, "KRW").sub}</small>${hasEn ? ` <em class="langTag langTagEn">EN</em> <span class="enHeadPrice">${triMain(enPts[enPts.length - 1].p, "KRW").main}</span>` : ""}</strong></div><svg viewBox="0 0 ${W} ${H}" class="bcSvg" role="img" aria-label="${t("박스 시세 추이 그래프", "Box price trend chart")}">${grid}${monthTicks}<path d="${area}" class="bcArea"></path><polyline points="${coords.join(" ")}" class="bcLine"></polyline>${dots}${lastTag}${enLayer}</svg><div class="bcAxis"><span>${fmtD(pts[0].d)}</span><span class="bcLegend"><i class="lgSold"></i>${t("일본판(왼쪽 축)", "Japanese (left axis)")}<i class="lgActive"></i>${t("매물 스냅샷", "Listing snapshot")}${enLegend}</span><span>${fmtD(last.d)}</span></div><p class="note">${t("일본판·영문판은 가격대가 달라 축을 분리했습니다(왼쪽 JP·오른쪽 EN). 방향 비교용이며, 표본 적은 주는 변동이 큽니다. 점에 마우스를 올리면 상세가 보입니다.", "JP and EN use separate axes (left JP, right EN) because price levels differ — compare direction, not height. Thin-sample weeks swing more. Hover dots for details.")}</p></div>`;
 }
 
 async function fetchPackData() {

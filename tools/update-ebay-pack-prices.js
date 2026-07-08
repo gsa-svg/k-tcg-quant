@@ -130,9 +130,11 @@ function analyzeItems(items, code) {
   const currency = Object.entries(grouped).sort((a, b) => b[1].length - a[1].length)[0]?.[0] || "USD";
   const selectedItems = grouped[currency] || [];
   const values = selectedItems.map((item) => item.value).sort((a, b) => a - b);
+  // 최저가 후보: 중간값의 50% 미만은 사기/오기재 의심으로 제외 (정확도 원칙)
+  const median = percentile(values, 0.5);
   const bestListing = selectedItems
     .map((item) => item.listing)
-    .filter((item) => item?.url && item.currency === currency)
+    .filter((item) => item?.url && item.currency === currency && (median == null || item.total >= median * 0.5))
     .sort((a, b) => a.total - b.total)[0] || null;
 
   return {
