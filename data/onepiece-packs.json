@@ -1,7 +1,7 @@
 {
  "_note": "원피스 부스터팩별 TOP 10 히트카드. 데이터·이미지 출처: TCG Quant(tcgquant.com) / 카드·박스 이미지는 TCGplayer CDN. 가격은 USD 시세이며 표시는 토글로 숨김(원화 환산 환율 usdKrw). PSA 인구/보석확률(gem rate)은 GemRate(PSA 집계) 기준.",
  "source": "https://tcgquant.com",
- "updated": "2026-07-07",
+ "updated": "2026-07-08",
  "fx": {
   "date": "2026-07-01",
   "jpyKrw": 9.53,
@@ -11912,40 +11912,19 @@
      "nmJpy": 2480000,
      "rank": 1,
      "psa10Ebay": {
-      "source": "eBay Sold completed search",
+      "source": "eBay Sold completed search (red-variant filtered from 2026-06-29 sold audit)",
       "query": "OP13-118 Monkey D. Luffy 118 Red Manga Alternate Art PSA 10 Japanese",
       "updated": "2026-06-29",
       "marketplaceId": "EBAY_US",
       "currency": "KRW",
-      "low": 4089861,
-      "middle": 5503808,
-      "high": 18509326,
-      "sampleSize": 8,
-      "excludedCount": 0,
-      "outlierCount": 0,
+      "low": 17342901,
+      "middle": 18570717,
+      "high": 22224867,
+      "sampleSize": 3,
+      "excludedCount": 2,
       "soldBased": true
      },
      "nmVenue": "遊々亭",
-     "psa10Active": {
-      "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
-      "marketplaceId": "EBAY_US",
-      "currency": "USD",
-      "sampleSize": 1,
-      "excludedCount": 0,
-      "bestListing": {
-       "title": "One Piece Monkey D. Luffy OP13-118 Manga Alternate Art Japanese PSA 10 Gem Mint",
-       "url": "https://www.ebay.com/itm/287435836852?_skw=One+Piece+Card+Game+OP13-118+Monkey+D.+Luffy+118+Red+Manga+Alternate+Art+PSA+10+Japanese&hash=item42ec82cdb4:g:Wc4AAeSwPtpqR9N7",
-       "price": 3250,
-       "shipping": 9.99,
-       "total": 3259.99,
-       "currency": "USD",
-       "country": "US",
-       "seller": "zandgemporium",
-       "condition": "Graded"
-      },
-      "query": "One Piece Card Game OP13-118 Monkey D. Luffy 118 Red Manga Alternate Art PSA 10 Japanese"
-     },
      "series": {
       "currency": "KRW",
       "source": "Japanese NM (Yuyu-tei/Cardrush) and PSA 10 eBay Sold medians",
@@ -11957,6 +11936,26 @@
         "psa": 5503808
        }
       ]
+     },
+     "psa10Active": {
+      "source": "eBay Browse API item_summary/search",
+      "updated": "2026-07-08",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "sampleSize": 2,
+      "excludedCount": 0,
+      "bestListing": {
+       "title": "PSA 10 Luffy Red OP13-118 Manga Alt Art Carrying on His Will One Piece Card JP",
+       "url": "https://www.ebay.com/itm/226952008407?_skw=One+Piece+OP13-118+PSA+10+Japanese&hash=item34d764d2d7:g:n98AAeSwTIlp0LXg",
+       "price": 27299.95,
+       "shipping": 0,
+       "total": 27299.95,
+       "currency": "USD",
+       "country": "JP",
+       "seller": "japan_world_shop",
+       "condition": "Graded"
+      },
+      "query": "One Piece OP13-118 PSA 10 Japanese"
      }
     },
     {
@@ -11967,26 +11966,6 @@
      "nmJpy": 798000,
      "rank": 2,
      "nmVenue": "遊々亭",
-     "psa10Active": {
-      "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
-      "marketplaceId": "EBAY_US",
-      "currency": "USD",
-      "sampleSize": 2,
-      "excludedCount": 0,
-      "bestListing": {
-       "title": "PSA 10 Ace OP13-119 Manga Alt Art Carrying on His Will One Piece Card Japanese",
-       "url": "https://www.ebay.com/itm/278149478545?_skw=One+Piece+Card+Game+OP13-119+Portgas+D.+Ace+119+Red+Manga+Alternate+Art+PSA+10+Japanese&hash=item40c3003891:g:868AAeSwKVFqRXvh",
-       "price": 1400,
-       "shipping": 0,
-       "total": 1400,
-       "currency": "USD",
-       "country": "US",
-       "seller": "mgsyuki11",
-       "condition": "Graded"
-      },
-      "query": "One Piece Card Game OP13-119 Portgas D. Ace 119 Red Manga Alternate Art PSA 10 Japanese"
-     },
      "series": {
       "currency": "KRW",
       "source": "Japanese NM (Yuyu-tei/Cardrush) and PSA 10 eBay Sold medians",
@@ -11998,6 +11977,26 @@
         "psa": null
        }
       ]
+     },
+     "psa10Active": {
+      "source": "eBay Browse API item_summary/search",
+      "updated": "2026-07-08",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "sampleSize": 1,
+      "excludedCount": 0,
+      "bestListing": {
+       "title": "PSA 10 Portgas D. Ace SEC Red Comic Parallel OP13-119 One Piece Card Japanese",
+       "url": "https://www.ebay.com/itm/366483440262?_skw=One+Piece+Card+Game+OP13-119+Portgas+D.+Ace+119+Red+Manga+Alternate+Art+PSA+10+Japanese&hash=item55541d8286:g:rl4AAeSwQONqMYKm",
+       "price": 9454,
+       "shipping": 0,
+       "total": 9454,
+       "currency": "USD",
+       "country": "JP",
+       "seller": "kahory_jp",
+       "condition": "Graded"
+      },
+      "query": "One Piece Card Game OP13-119 Portgas D. Ace 119 Red Manga Alternate Art PSA 10 Japanese"
      }
     },
     {
@@ -12007,41 +12006,7 @@
      "img": "https://tcgplayer-cdn.tcgplayer.com/product/657411_400w.jpg",
      "nmJpy": 598000,
      "rank": 3,
-     "psa10Ebay": {
-      "source": "eBay Sold completed search",
-      "query": "OP13-120 Sabo 120 Red Manga Alternate Art PSA 10 Japanese",
-      "updated": "2026-06-29",
-      "marketplaceId": "EBAY_US",
-      "currency": "KRW",
-      "low": 1230364,
-      "middle": 1587566,
-      "high": 3625721,
-      "sampleSize": 6,
-      "excludedCount": 0,
-      "outlierCount": 0,
-      "soldBased": true
-     },
      "nmVenue": "遊々亭",
-     "psa10Active": {
-      "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
-      "marketplaceId": "EBAY_US",
-      "currency": "USD",
-      "sampleSize": 3,
-      "excludedCount": 0,
-      "bestListing": {
-       "title": "PSA10 Sabo OP13-120 Manga Alt Art One Piece Card Japanese",
-       "url": "https://www.ebay.com/itm/157741773045?_skw=One+Piece+Card+Game+OP13-120+Sabo+120+Red+Manga+Alternate+Art+PSA+10+Japanese&hash=item24ba2470f5:g:hZsAAeSwz6BpsUH9",
-       "price": 1200,
-       "shipping": 0,
-       "total": 1200,
-       "currency": "USD",
-       "country": "JP",
-       "seller": "chikuwa-japan",
-       "condition": "Graded"
-      },
-      "query": "One Piece Card Game OP13-120 Sabo 120 Red Manga Alternate Art PSA 10 Japanese"
-     },
      "series": {
       "currency": "KRW",
       "source": "Japanese NM (Yuyu-tei/Cardrush) and PSA 10 eBay Sold medians",
@@ -12053,6 +12018,26 @@
         "psa": 1587566
        }
       ]
+     },
+     "psa10Active": {
+      "source": "eBay Browse API item_summary/search",
+      "updated": "2026-07-08",
+      "marketplaceId": "EBAY_US",
+      "currency": "USD",
+      "sampleSize": 1,
+      "excludedCount": 0,
+      "bestListing": {
+       "title": "PSA 10 Sabo Red OP13-120 Manga Alt Art Carrying on His Will One Piece Card Japan",
+       "url": "https://www.ebay.com/itm/147094004172?_skw=One+Piece+Card+Game+OP13-120+Sabo+120+Red+Manga+Alternate+Art+PSA+10+Japanese&hash=item223f7c61cc:g:aYcAAeSwDdBpaIpg",
+       "price": 5999,
+       "shipping": 0,
+       "total": 5999,
+       "currency": "USD",
+       "country": "JP",
+       "seller": "winbludon",
+       "condition": "Graded"
+      },
+      "query": "One Piece Card Game OP13-120 Sabo 120 Red Manga Alternate Art PSA 10 Japanese"
      }
     },
     {
@@ -12079,20 +12064,20 @@
      "nmVenue": "遊々亭",
      "psa10Active": {
       "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
+      "updated": "2026-07-08",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "sampleSize": 8,
+      "sampleSize": 7,
       "excludedCount": 0,
       "bestListing": {
-       "title": "One Piece Monkey D. Luffy OP13-118 Manga Alternate Art Japanese PSA 10 Gem Mint",
-       "url": "https://www.ebay.com/itm/287435836852?_skw=One+Piece+OP13-118+PSA+10+Japanese&hash=item42ec82cdb4:g:Wc4AAeSwPtpqR9N7",
-       "price": 3250,
-       "shipping": 9.99,
-       "total": 3259.99,
+       "title": "PSA 10 Luffy OP13-118 Manga Alt Art Carrying on His Will ONE PIECE Card Japanese",
+       "url": "https://www.ebay.com/itm/226995004826?_skw=One+Piece+OP13-118+PSA+10+Japanese&hash=item34d9f4e59a:g:jvUAAeSwMr9o5Heu",
+       "price": 3899.85,
+       "shipping": 0,
+       "total": 3899.85,
        "currency": "USD",
-       "country": "US",
-       "seller": "zandgemporium",
+       "country": "JP",
+       "seller": "tcg-from-japan",
        "condition": "Graded"
       },
       "query": "One Piece OP13-118 PSA 10 Japanese"
@@ -12120,23 +12105,23 @@
      "nmVenue": "遊々亭",
      "psa10Active": {
       "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
+      "updated": "2026-07-08",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "sampleSize": 10,
+      "sampleSize": 1,
       "excludedCount": 0,
       "bestListing": {
-       "title": "PSA 10 Ace OP13-119 Manga Alt Art Carrying on His Will One Piece Card Japanese",
-       "url": "https://www.ebay.com/itm/278149478545?_skw=One+Piece+OP13-119+PSA+10+Japanese&hash=item40c3003891:g:868AAeSwKVFqRXvh",
-       "price": 1400,
-       "shipping": 0,
-       "total": 1400,
+       "title": "2025 One Piece Op-13-119 Japanese Portgas D Ace Manga Alternate Art PSA 10",
+       "url": "https://www.ebay.com/itm/358735134756?_skw=One+Piece+Card+Game+OP13-119+Portgas+D.+Ace+119+Super+Alternate+Art+PSA+10+Japanese&hash=item538647c024:g:th8AAeSwbf1qTE~~",
+       "price": 1550,
+       "shipping": 5.17,
+       "total": 1555.17,
        "currency": "USD",
        "country": "US",
-       "seller": "mgsyuki11",
+       "seller": "atrynu",
        "condition": "Graded"
       },
-      "query": "One Piece OP13-119 PSA 10 Japanese"
+      "query": "One Piece Card Game OP13-119 Portgas D. Ace 119 Super Alternate Art PSA 10 Japanese"
      },
      "series": {
       "currency": "KRW",
@@ -12175,14 +12160,14 @@
      "nmVenue": "遊々亭",
      "psa10Active": {
       "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
+      "updated": "2026-07-08",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "sampleSize": 1,
+      "sampleSize": 8,
       "excludedCount": 0,
       "bestListing": {
        "title": "PSA10 Sabo OP13-120 Manga Alt Art One Piece Card Japanese",
-       "url": "https://www.ebay.com/itm/157741773045?_skw=One+Piece+Card+Game+OP13-120+Sabo+120+Super+Alternate+Art+PSA+10+Japanese&hash=item24ba2470f5:g:hZsAAeSwz6BpsUH9",
+       "url": "https://www.ebay.com/itm/157741773045?_skw=One+Piece+OP13-120+PSA+10+Japanese&hash=item24ba2470f5:g:hZsAAeSwz6BpsUH9",
        "price": 1200,
        "shipping": 0,
        "total": 1200,
@@ -12191,7 +12176,7 @@
        "seller": "chikuwa-japan",
        "condition": "Graded"
       },
-      "query": "One Piece Card Game OP13-120 Sabo 120 Super Alternate Art PSA 10 Japanese"
+      "query": "One Piece OP13-120 PSA 10 Japanese"
      },
      "series": {
       "currency": "KRW",
@@ -12237,10 +12222,10 @@
      "nmVenue": "遊々亭",
      "psa10Active": {
       "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
+      "updated": "2026-07-08",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
-      "sampleSize": 4,
+      "sampleSize": 5,
       "excludedCount": 0,
       "bestListing": {
        "title": "PSA 10 Ethanbaron V. Nusjuro OP13-080 Alternate Art One Piece JPN",
@@ -12292,7 +12277,7 @@
      "nmVenue": "遊々亭",
      "psa10Active": {
       "source": "eBay Browse API item_summary/search",
-      "updated": "2026-07-06",
+      "updated": "2026-07-08",
       "marketplaceId": "EBAY_US",
       "currency": "USD",
       "sampleSize": 1,

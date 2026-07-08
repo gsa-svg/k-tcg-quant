@@ -109,6 +109,8 @@ function hasVariantSignal(title, card) {
   // 프리미엄(망가/수퍼패러렐) 티어 신호 — "Super Rare"(SR 레어도 표기)는 프리미엄이 아님
   const premiumTitle = /manga|comic|super\s*parall|super\s*alt/i;
   if (/signature|stamped|stamp/i.test(name)) return /signature|signed|stamped|stamp/i.test(title);
+  // Red(레드망가 등) 변형: 제목에 red 명시 필수 — 일반 망가가 레드 행에 붙는 사고 방지 (2026-07-08 OP13-118 실사고)
+  if (/\bred\b/i.test(name)) return /\bred\b/i.test(title) && premiumTitle.test(title);
   if (/manga|comic|\bsuper\b/i.test(name)) return premiumTitle.test(title);
   // SP는 별도 변형 — 일반 parallel 매물이 섞이지 않게 SP/special 명시 요구 + 프리미엄 배제
   if (/\bsp\b|special/i.test(name)) return /\bsp\b|special/i.test(title) && !premiumTitle.test(title);
