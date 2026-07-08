@@ -112,11 +112,11 @@ function hasVariantSignal(title, card) {
   // Red(레드망가 등) 변형: 제목에 red 명시 필수 — 일반 망가가 레드 행에 붙는 사고 방지 (2026-07-08 OP13-118 실사고)
   if (/\bred\b/i.test(name)) return /\bred\b/i.test(title) && premiumTitle.test(title);
   if (/manga|comic|\bsuper\b/i.test(name)) return premiumTitle.test(title);
-  // SP는 별도 변형 — 일반 parallel 매물이 섞이지 않게 SP/special 명시 요구 + 프리미엄 배제
-  if (/\bsp\b|special/i.test(name)) return /\bsp\b|special/i.test(title) && !premiumTitle.test(title);
-  // 일반 패러렐/알트아트 — 프리미엄·SP 매물이 저가 행에 붙지 않게 배제
+  // SP는 별도 변형 — 일반 parallel 매물이 섞이지 않게 SP/special 명시 요구 + 프리미엄 배제 (speci4l = leetspeak 회피 방지)
+  if (/\bsp\b|speci[a4]l/i.test(name)) return /\bsp\b|speci[a4]l/i.test(title) && !premiumTitle.test(title);
+  // 일반 패러렐/알트아트 — 프리미엄·SP·Special 매물이 저가 행에 붙지 않게 배제
   if (/parallel|alternate/i.test(name))
-    return /parallel|alternate|alt\s*art|leader\s*parallel|paralle/i.test(title) && !premiumTitle.test(title) && !/\bsp\b/i.test(title);
+    return /parallel|alternate|alt\s*art|leader\s*parallel|paralle/i.test(title) && !premiumTitle.test(title) && !/\bsp\b|speci[a4]l|red\s*text/i.test(title);
   return true;
 }
 
