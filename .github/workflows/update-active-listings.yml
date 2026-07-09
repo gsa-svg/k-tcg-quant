@@ -36,6 +36,7 @@ jobs:
           node --check packs.js
           node --check tools/update-ebay-pack-prices.js
           node --check tools/update-ebay-english-pack-prices.js
+          node --check tools/backfill-english-box-series.js
           node --check tools/update-ebay-psa10-active-links.js
           node --check tools/update-box-series-history.js
           node --check tools/update-card-series-history.js
@@ -66,6 +67,12 @@ jobs:
           set -o pipefail
           mkdir -p logs
           node tools/update-ebay-psa10-active-links.js 2>&1 | tee logs/update-ebay-psa10-active-links.log
+
+      - name: Refresh English box sold series (Finding API)
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/backfill-english-box-series.js 2>&1 | tee logs/backfill-english-box-series.log || echo "Finding API unavailable - skipping"
 
       - name: Append box price history snapshot
         run: |

@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260708split";
+const DATA_VERSION = "20260708cmp";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -473,6 +473,44 @@ function renderSeriesPanel(points, opts) {
   </div>`;
 }
 
+// 합쳐 보기 — 두 판을 "같은 날 100"으로 정규화한 변화율 비교(주식식). 가격대 차이 문제 없이 방향·폭이 한눈에.
+function renderComparePanel(jpPts, enPts) {
+  // 겹치는 구간: 늦게 시작한 쪽 기준
+  const startD = jpPts[0].d > enPts[0].d ? jpPts[0].d : enPts[0].d;
+  const jp = jpPts.filter((p) => p.d >= startD);
+  const en = enPts.filter((p) => p.d >= startD);
+  if (jp.length < 2 || en.length < 2) return "";
+  const W = 600, H = 190, padL = 64, padR = 18, padT = 18, padB = 34;
+  const idx = (pts) => { const base = pts[0].p; return pts.map((p) => ({ d: p.d, v: (p.p / base) * 100 })); };
+  const jpI = idx(jp), enI = idx(en);
+  const all = [...jpI, ...enI];
+  const xsAll = all.map((p) => new Date(p.d).getTime());
+  const vsAll = all.map((p) => p.v);
+  const minX = Math.min(...xsAll), maxX = Math.max(...xsAll);
+  let minV = Math.min(...vsAll, 100), maxV = Math.max(...vsAll, 100);
+  const vPad = Math.max(1, (maxV - minV) * 0.15);
+  const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
+  const sv = (v) => padT + (1 - (v - (minV - vPad)) / Math.max(1, maxV - minV + vPad * 2)) * (H - padT - padB);
+  const line = (pts, cls) => `<polyline points="${pts.map((p) => `${sx(new Date(p.d).getTime()).toFixed(1)},${sv(p.v).toFixed(1)}`).join(" ")}" class="spLine ${cls}"></polyline>`;
+  const endDot = (pts, cls) => { const p = pts[pts.length - 1]; return `<circle cx="${sx(new Date(p.d).getTime()).toFixed(1)}" cy="${sv(p.v).toFixed(1)}" r="6" class="spDot ${cls}"></circle>`; };
+  const base100 = `<line x1="${padL}" y1="${sv(100).toFixed(1)}" x2="${W - padR}" y2="${sv(100).toFixed(1)}" class="cpBase"></line><text x="${padL - 8}" y="${(sv(100) + 5).toFixed(1)}" class="spYLabel" text-anchor="end">100</text>`;
+  const jpEnd = jpI[jpI.length - 1].v, enEnd = enI[enI.length - 1].v;
+  const fmtChg = (v) => `${v >= 100 ? "+" : ""}${Math.round(v - 100)}%`;
+  const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  let prevM = new Date(startD).getMonth();
+  const months = jp.map((p, i) => {
+    const m = new Date(p.d).getMonth();
+    if (m === prevM || i === 0) { prevM = m; return ""; }
+    prevM = m;
+    return `<text x="${sx(new Date(p.d).getTime()).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
+  }).join("");
+  return `<div class="seriesPanel cpPanel">
+    <div class="spHead"><span><b class="spName">${t("함께 보기 — 같은 날 100에서 출발", "Together — both start at 100")}</b></span><span class="cpEnds"><em class="langTag">JP</em><em class="spVerdict ${jpEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(jpEnd)}</em><em class="langTag langTagEn">EN</em><em class="spVerdict ${enEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(enEnd)}</em></span></div>
+    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${t("일본판 영문판 변화율 비교", "JP vs EN change comparison")}">${base100}${months}${line(jpI, "spJp")}${line(enI, "spEn")}${endDot(jpI, "spJp")}${endDot(enI, "spEn")}</svg>
+    <p class="cpNote">${t("두 선 모두 겹치는 기간의 첫날을 100으로 놓고 변화율만 비교합니다 — 100보다 위면 오른 것, 아래면 내린 것.", "Both lines start at 100 on the first shared day — above 100 means up, below means down.")}</p>
+  </div>`;
+}
+
 function renderBoxSeries(set) {
   const jpPts = (set.boxSeries && set.boxSeries.points) || [];
   if (jpPts.length < 2) return "";
@@ -484,7 +522,8 @@ function renderBoxSeries(set) {
   } else if (enPts.length === 1) {
     enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow">${triMain(enPts[0].p, "KRW").main}<em class="spVerdict chgFlat">${t(`${enPts[0].d.slice(5).replace("-", "/")} 추적 시작 — 내일부터 흐름이 그려져요`, `tracking since ${enPts[0].d.slice(5).replace("-", "/")} — trend line starts tomorrow`)}</em></span></div></div>`;
   }
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름 · 일본판과 영문판 따로 보기", "Box price trend · JP and EN, side by side")}</span></div>${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음). eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Each chart shows one edition only (price levels differ too much to overlay). Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
+  const comparePanel = enPts.length >= 2 ? renderComparePanel(jpPts, enPts) : "";
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${comparePanel}${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음). eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Each chart shows one edition only (price levels differ too much to overlay). Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
 }
 
 async function fetchPackData() {
