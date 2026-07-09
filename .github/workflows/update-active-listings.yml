@@ -2,6 +2,10 @@ name: Update active listing links
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/update-active-listings.yml"
   schedule:
     # Every day at 03:00 KST (18:00 UTC).
     - cron: "0 18 * * *"
