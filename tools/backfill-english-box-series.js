@@ -89,6 +89,7 @@ async function main() {
   const codes = onlyCodes.length ? onlyCodes : [...data.jp.list, ...data.extra.list].filter((c) => data.sets[c]?.nameEn);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - historyDays);
+  const status = { ranAt: new Date().toISOString(), sets: [] };
 
   for (const code of codes) {
     const set = data.sets[code];
@@ -98,10 +99,12 @@ async function main() {
       items = await searchFindingCompleted(buildQuery(code, set));
     } catch (err) {
       console.log(`${code}: Finding 실패 — ${String(err.message).slice(0, 80)}`);
+      status.sets.push({ code, ok: false, error: String(err.message).slice(0, 120) });
       continue;
     }
     // 제목 필터 + 셀러 필터 + 주간 버킷
     const weeks = {};
+    let matched = 0;
     for (const item of items) {
       const title = item.title?.[0] || "";
       if (!isEnglishSealedBoosterBoxTitle(title, code)) continue;
@@ -115,6 +118,7 @@ async function main() {
       if (new Date(end) < cutoff) continue;
       const krw = marketKrw(value, currency, fx);
       if (!Number.isFinite(krw)) continue;
+      matched++;
       const wk = weekStart(end);
       (weeks[wk] = weeks[wk] || []).push(krw);
     }
@@ -125,8 +129,10 @@ async function main() {
       })
       .sort((a, b) => a.d.localeCompare(b.d));
 
+    status.sets.push({ code, ok: true, rawItems: items.length, matchedSold: matched, weeks: soldPoints.length });
+
     if (soldPoints.length < 2) {
-      console.log(`${code} EN: sold 주간 ${soldPoints.length}개 — 표본 부족, 소급 생략`);
+      console.log(`${code} EN: sold 주간 ${soldPoints.length}개(원본 ${items.length}, 매칭 ${matched}) — 표본 부족, 소급 생략`);
       continue;
     }
 
@@ -142,6 +148,11 @@ async function main() {
   }
 
   fs.writeFileSync(dataPath, `${JSON.stringify(data, null, 1)}\n`, "utf8");
+  try {
+    const statusDir = path.join(projectRoot, "logs");
+    if (!fs.existsSync(statusDir)) fs.mkdirSync(statusDir, { recursive: true });
+    fs.writeFileSync(path.join(statusDir, "en-backfill-status.json"), `${JSON.stringify(status, null, 1)}\n`, "utf8");
+  } catch (e) { /* status는 진단용, 실패해도 무시 */ }
   console.log("English box series backfill done.");
 }
 

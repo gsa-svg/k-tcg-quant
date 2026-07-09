@@ -51,12 +51,12 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json; then
-            echo "No EN sold series changes."
-            exit 0
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json
-          git commit -m "Backfill EN box sold series (Finding API, on-demand)"
+          git add data/onepiece-packs.json logs/en-backfill-status.json
+          if git diff --cached --quiet; then
+            echo "No changes (data unchanged, no status file)."
+            exit 0
+          fi
+          git commit -m "Backfill EN box sold series + status (Finding API, on-demand)"
           git push
