@@ -217,3 +217,10 @@
 - **구매 버튼 겹침 해결**: `.buyLink`가 inline-flex(내용폭)이라 좁은 열(167px)보다 넓어져(210px) 옆칸 침범 → `display:flex; width:100%; flex-wrap:wrap; box-sizing:border-box`로 열폭에 맞춰 접히게. dealChip margin-left 제거(gap 사용). 이 구조 되돌리지 말 것.
 - **함께보기(compare) 패널 게이팅**: 겹치는 구간 3점+ & 14일+ 일 때만 렌더(`renderComparePanel` guard). 점 2개=하루치면 '+0% vs +0%' 납작선 나와서 깨져 보임 → 숨김. EN 데이터 2주 쌓이면 자동 등장.
 - **기간 문구**: 25일 미만이면 'N일간', 이상이면 'N개월간'(`renderSeriesPanel`/`renderComparePanel`). 하루치에 '1개월간 보합' 뜨던 오류 수정.
+
+
+## 성장작업 #1: 세트 SEO 페이지 실데이터 심화 (2026-07-09)
+- `tools/generate-set-pages.js` 강화: 세트당 정적 HTML에 **실데이터 구워넣음** — ①요약라인(발매/카드수/PSA젬율) ②박스시세("as of 날짜" $mid·범위·매물수) ③히트카드 10행 **표**(NM생가 + PSA10 sold중앙값/ask, 날짜명시) ④세트별 고유 분석문단 ⑤PSA 그레이딩 섹션 ⑥ItemList 스키마. op-01 기준 10.9KB→16KB(+47%).
+- **정직성**: 가격은 전부 "as of DATE"·sold/ask 라벨. NM=JPY→USD(fx), PSA10=sold(KRW→USD) 우선·없으면 active ask, 둘 다 없으면 "—".
+- **최신 유지**: 매일 워크플로에 `generate-set-pages.js` 재생성 단계 추가 + 커밋에 `sets/ sitemap.xml` 포함 → 박스시세 매일 갱신 반영(=구글 신선도 신호). 값 스테일 걱정 없음(<24h·날짜표기).
+- 다음 성장작업: #2 데이터 랭킹 페이지(PSA10 프리미엄 TOP·그레이딩 업사이드), #3 커뮤니티 공유 카드. [[project-ktcg-quant-mvp]]

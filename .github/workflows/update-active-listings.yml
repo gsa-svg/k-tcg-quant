@@ -44,6 +44,7 @@ jobs:
           node --check tools/update-ebay-psa10-active-links.js
           node --check tools/update-box-series-history.js
           node --check tools/update-card-series-history.js
+          node --check tools/generate-set-pages.js
           node --check tools/audit-active-listings.js
           node tools/test-ebay-listing-filters.js
 
@@ -96,6 +97,12 @@ jobs:
           mkdir -p logs
           node tools/audit-active-listings.js 2>&1 | tee logs/audit-active-listings.log
 
+      - name: Regenerate SEO set pages (bake fresh data)
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
+
       - name: Upload update logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -114,6 +121,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json
-          git commit -m "Update active listing links"
+          git add data/onepiece-packs.json data/active-listing-audit.json sets/ sitemap.xml
+          git commit -m "Update active listing links + regenerate SEO set pages"
           git push

@@ -16,6 +16,39 @@ const slug = (code) => code.toLowerCase();
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+// ---- 실데이터 구워넣기용 헬퍼 (가격은 항상 "as of 날짜"로 정직하게, 매일 재생성으로 최신 유지)
+const FX = data.fx || {};
+const DATA_DATE = data.updated || new Date().toISOString().slice(0, 10);
+const jpyUsd = (jpy) => (Number.isFinite(jpy) && FX.jpyKrw && FX.usdKrw ? (jpy * FX.jpyKrw) / FX.usdKrw : null);
+const krwUsd = (krw) => (Number.isFinite(krw) && FX.usdKrw ? krw / FX.usdKrw : null);
+const toUsd = (val, cur) => (val == null ? null : cur === "USD" ? val : krwUsd(val));
+const usd = (n) => (n == null ? null : "$" + Math.round(n).toLocaleString("en-US"));
+const intl = (n) => (n == null ? "" : Number(n).toLocaleString("en-US"));
+const RARITY = { L: "Leader", SEC: "Secret Rare", SR: "Super Rare", R: "Rare", UC: "Uncommon", C: "Common", SP: "Special", P: "Promo" };
+const rarityLabel = (r) => RARITY[r] || r || "";
+const monthYear = (iso) => {
+  if (!iso) return "";
+  const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : `${m[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};
+// 카드별 표시가: NM(생) + PSA10(sold 우선, 없으면 ask). 불확실하면 null → 표에 "—"
+function cardPrices(c) {
+  const nm = jpyUsd(c.nmJpy);
+  let psa = null, psaKind = "";
+  const sold = c.psa10Ebay;
+  if (sold && sold.soldBased && sold.middle != null) {
+    const v = toUsd(sold.middle, sold.currency);
+    if (v != null) { psa = v; psaKind = "sold"; }
+  }
+  if (psa == null && c.psa10Active && c.psa10Active.bestListing && c.psa10Active.bestListing.total != null) {
+    const bl = c.psa10Active.bestListing;
+    const v = toUsd(bl.total, bl.currency);
+    if (v != null) { psa = v; psaKind = "ask"; }
+  }
+  return { nm, psa, psaKind };
+}
+
 function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
   return `<!doctype html>
 <html lang="en">
@@ -59,6 +92,17 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+      .dataSummary b { color: var(--accent); font-weight: 800; }
+      .chaseTableWrap { overflow-x: auto; margin: 14px 0 6px; }
+      .chaseTable { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .chaseTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+      .chaseTable td:first-child { color: var(--muted); font-variant-numeric: tabular-nums; }
+      .chaseTable .cNum { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+      .chaseTable .psaKind { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+      .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
     </style>
   </head>
   <body>
@@ -155,40 +199,80 @@ function setPage(code, prev, next) {
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   const release = s.release ? `<p class="eyebrow">Released ${esc(s.release)} · Japanese edition</p>` : `<p class="eyebrow">Japanese edition</p>`;
 
-  const chase = cards
-    .map(
-      (c) =>
-        `<li><strong>${esc(c.name)}</strong> — ${esc(c.number || "")}${c.rarity ? ` · ${esc(c.rarity)}` : ""}</li>`,
-    )
-    .join("\n          ");
+  const enc = encodeURIComponent(code);
+
+  // 실데이터 표(구워넣기): 순위·카드·NM(생)·PSA10(sold 우선). 값 없으면 "—"
+  const rows = cards.map((c, i) => {
+    const p = cardPrices(c);
+    return `<tr><td>${i + 1}</td><td><strong>${esc(c.name)}</strong><span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${usd(p.nm) || "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td></tr>`;
+  }).join("\n            ");
+
+  // 세트 요약 라인 (안정 데이터)
+  const summaryBits = [];
+  if (s.release) summaryBits.push(`Released <b>${esc(monthYear(s.release))}</b>`);
+  if (s.cardCount) summaryBits.push(`<b>${esc(String(s.cardCount))}</b> cards`);
+  if (s.psaGem != null) summaryBits.push(`PSA 10 gem rate <b>${esc(String(s.psaGem))}%</b>${s.psaTotal ? ` (${intl(s.psaTotal)} graded)` : ""}`);
+  const summaryLine = summaryBits.length ? `<p class="dataSummary">${summaryBits.join(" · ")}</p>` : "";
+
+  // 박스 시세 구워넣기 (날짜 명시 · 매일 재생성으로 최신 유지)
+  const bm = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
+  let boxLine = "";
+  if (bm && bm.middle != null) {
+    const mid = toUsd(bm.middle, bm.currency), lo = bm.low != null ? toUsd(bm.low, bm.currency) : null, hi = bm.high != null ? toUsd(bm.high, bm.currency) : null;
+    if (mid != null) boxLine = `<p>As of <strong>${esc(bm.updated || DATA_DATE)}</strong>, a sealed ${code} Japanese booster box lists around <strong>${usd(mid)}</strong>${lo != null && hi != null ? ` (typical range ${usd(lo)}–${usd(hi)})` : ""} on eBay${bm.sampleSize ? `, from ${bm.sampleSize} active listings` : ""}. This updates daily — see the <a href="../packs.html?set=${enc}&hl=en">live ${code} tracker</a> for today's number and recent sold prices.</p>`;
+  }
+
+  // 데이터 기반 분석 문단 (세트마다 고유)
+  const top = cards[0], tp = top ? cardPrices(top) : {};
+  const soldCount = cards.filter((c) => c.psa10Ebay && c.psa10Ebay.soldBased).length;
+  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, whose raw Japanese NM copy runs about ${usd(tp.nm)}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}. ${soldCount > 1 ? `${soldCount} of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. ` : ""}${s.psaGem != null ? `Across ${code}, cards grade PSA 10 (gem mint) about <strong>${s.psaGem}%</strong> of the time${s.psaTotal ? ` out of ${intl(s.psaTotal)} graded` : ""} — ${s.psaGem >= 85 ? "a high gem rate, which tends to keep the graded-vs-raw premium modest" : "a moderate gem rate, which keeps clean PSA 10 copies scarce and their premium wide"}.` : ""}` : "";
+
+  // PSA 섹션
+  const psaSection = s.psaGem != null ? `
+      <h2>${code} PSA 10 grading data</h2>
+      <p>${code} ${esc(nameEn)} cards achieve <strong>PSA 10 (gem mint) roughly ${s.psaGem}%</strong> of the time${s.psaTotal ? `, across ${intl(s.psaTotal)} PSA-graded cards` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity.</p>` : "";
 
   const compareLink =
-    code === "OP-05"
+    code === "OP-05" || code === "OP-06"
       ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
-      : code === "OP-06"
-        ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
-        : "";
+      : "";
 
-  return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) })}
+  const cardsLd = `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: `${code} ${nameEn} top chase cards`,
+    itemListElement: cards.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: `${c.name}${c.number ? ` (${c.number})` : ""}` })),
+  })}</script>`;
+
+  return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) + cardsLd })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
         ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" loading="lazy" decoding="async" />` : ""}
         <div>
           <h1>${code} ${esc(nameEn)} — Japanese booster box price &amp; chase cards</h1>
           ${release}
+          ${summaryLine}
         </div>
       </div>
       <p><strong>${code} ${esc(nameEn)}</strong> is tracked daily on OP Box Index using eBay active listings and sold history for the Japanese sealed booster box, plus per-card data for its most valuable pulls. The strongest chase cards in this set include ${esc(top3)} — the cards that effectively set the floor for what a sealed box is worth.</p>
+      ${boxLine}
       ${liveWidget(code)}
       <div class="ctaRow">
-        <a class="primary" href="../packs.html?set=${encodeURIComponent(code)}&hl=en">Open live ${code} tracker</a>
+        <a class="primary" href="../packs.html?set=${enc}&hl=en">Open live ${code} tracker</a>
         <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">Browse ${code} boxes on eBay</a>
       </div>
       <h2>Top 10 chase cards in ${code}</h2>
-      <p>Ranked by market value. Live prices for each card (Japanese NM, PSA 10 sold data and lowest verified eBay listings) are on the <a href="../packs.html?set=${encodeURIComponent(code)}&hl=en">live tracker</a>.</p>
-      <ol class="chaseList">
-          ${chase}
-      </ol>
+      <p>${analysis}</p>
+      <div class="chaseTableWrap">
+        <table class="chaseTable">
+          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th></tr></thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+      <p class="priceNote">NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask"). Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
+      ${psaSection}
       <h2>Before you buy a sealed ${code} box</h2>
       <ul>
         <li>Compare the asking price against recent <strong>sold</strong> prices, not just listings — active prices are often above what boxes actually sell for.</li>

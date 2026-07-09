@@ -27,7 +27,7 @@
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is the current EB-02 Anime 25th Collection booster box price?","acceptedAnswer":{"@type":"Answer","text":"OP Box Index tracks EB-02 Anime 25th Collection Japanese sealed booster box prices daily from eBay active listings and sold history, shown in USD with KRW and JPY conversions. Check the live tracker for today's price band."}},{"@type":"Question","name":"What are the top chase cards in EB-02 Anime 25th Collection?","acceptedAnswer":{"@type":"Answer","text":"The most valuable EB-02 pulls are ranked on this page by market price, including parallel, manga rare and special art cards, with PSA 10 population data where available."}},{"@type":"Question","name":"Is a Japanese EB-02 booster box a good buy?","acceptedAnswer":{"@type":"Answer","text":"That depends on price versus recent sold data, chase-card strength, supply and reseal risk. OP Box Index shows the data signals but does not give investment advice."}}]}</script>
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/packs.html?hl=en"},{"@type":"ListItem","position":2,"name":"Set Guides","item":"https://opboxindex.com/sets/index.html"},{"@type":"ListItem","position":3,"name":"EB-02 Guide","item":"https://opboxindex.com/sets/eb-02.html"}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/packs.html?hl=en"},{"@type":"ListItem","position":2,"name":"Set Guides","item":"https://opboxindex.com/sets/index.html"},{"@type":"ListItem","position":3,"name":"EB-02 Guide","item":"https://opboxindex.com/sets/eb-02.html"}]}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"EB-02 Anime 25th Collection top chase cards","itemListElement":[{"@type":"ListItem","position":1,"name":"Boa Hancock SP (OP07-038)"},{"@type":"ListItem","position":2,"name":"Monkey D. Luffy 061 Manga (EB02-061)"},{"@type":"ListItem","position":3,"name":"Tony TonyChopper SP (OP08-001)"},{"@type":"ListItem","position":4,"name":"Monkey D. Luffy 010 Alternate Art (EB02-010)"},{"@type":"ListItem","position":5,"name":"Yamato SP (OP06-022)"},{"@type":"ListItem","position":6,"name":"Charlotte Pudding SP (OP08-058)"},{"@type":"ListItem","position":7,"name":"Sabo SP (OP05-001)"},{"@type":"ListItem","position":8,"name":"Uta SP (OP06-001)"},{"@type":"ListItem","position":9,"name":"Marco SP (OP08-002)"},{"@type":"ListItem","position":10,"name":"Vinsmoke Reiju SP (OP06-042)"}]}</script>
     <link rel="stylesheet" href="../styles.css" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
@@ -41,6 +41,17 @@
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+      .dataSummary b { color: var(--accent); font-weight: 800; }
+      .chaseTableWrap { overflow-x: auto; margin: 14px 0 6px; }
+      .chaseTable { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .chaseTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+      .chaseTable td:first-child { color: var(--muted); font-variant-numeric: tabular-nums; }
+      .chaseTable .cNum { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+      .chaseTable .psaKind { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+      .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
     </style>
   </head>
   <body>
@@ -55,9 +66,11 @@
         <div>
           <h1>EB-02 Anime 25th Collection — Japanese booster box price &amp; chase cards</h1>
           <p class="eyebrow">Released 2025-05-09 · Japanese edition</p>
+          <p class="dataSummary">Released <b>May 2025</b> · <b>81</b> cards · PSA 10 gem rate <b>87.6%</b> (7,061 graded)</p>
         </div>
       </div>
       <p><strong>EB-02 Anime 25th Collection</strong> is tracked daily on OP Box Index using eBay active listings and sold history for the Japanese sealed booster box, plus per-card data for its most valuable pulls. The strongest chase cards in this set include Boa Hancock SP, Monkey D. Luffy 061 Manga, Tony TonyChopper SP — the cards that effectively set the floor for what a sealed box is worth.</p>
+      <p>As of <strong>2026-07-09</strong>, a sealed EB-02 Japanese booster box lists around <strong>$100</strong> (typical range $100–$100) on eBay, from 6 active listings. This updates daily — see the <a href="../packs.html?set=EB-02&hl=en">live EB-02 tracker</a> for today's number and recent sold prices.</p>
       
       <div class="liveBox" id="livePrice" hidden>
         <span id="lpLabel">Current eBay listing price (mid)</span><br />
@@ -92,19 +105,28 @@
         <a href="https://www.ebay.com/sch/i.html?_nkw=One%20Piece%20Card%20Game%20EB-02%20Anime%2025th%20Collection%20Booster%20Box%20Japanese%20sealed&LH_BIN=1&_sop=15&mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1" target="_blank" rel="noopener noreferrer sponsored">Browse EB-02 boxes on eBay</a>
       </div>
       <h2>Top 10 chase cards in EB-02</h2>
-      <p>Ranked by market value. Live prices for each card (Japanese NM, PSA 10 sold data and lowest verified eBay listings) are on the <a href="../packs.html?set=EB-02&hl=en">live tracker</a>.</p>
-      <ol class="chaseList">
-          <li><strong>Boa Hancock SP</strong> — OP07-038 · L</li>
-          <li><strong>Monkey D. Luffy 061 Manga</strong> — EB02-061 · SEC</li>
-          <li><strong>Tony TonyChopper SP</strong> — OP08-001 · L</li>
-          <li><strong>Monkey D. Luffy 010 Alternate Art</strong> — EB02-010 · L</li>
-          <li><strong>Yamato SP</strong> — OP06-022 · L</li>
-          <li><strong>Charlotte Pudding SP</strong> — OP08-058 · L</li>
-          <li><strong>Sabo SP</strong> — OP05-001 · L</li>
-          <li><strong>Uta SP</strong> — OP06-001 · L</li>
-          <li><strong>Marco SP</strong> — OP08-002 · L</li>
-          <li><strong>Vinsmoke Reiju SP</strong> — OP06-042 · L</li>
-      </ol>
+      <p>The chase in EB-02 is led by <strong>Boa Hancock SP</strong> (Leader), whose raw Japanese NM copy runs about $122 and whose PSA 10 copies list near $4,000. 3 of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. Across EB-02, cards grade PSA 10 (gem mint) about <strong>87.6%</strong> of the time out of 7,061 graded — a high gem rate, which tends to keep the graded-vs-raw premium modest.</p>
+      <div class="chaseTableWrap">
+        <table class="chaseTable">
+          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Boa Hancock SP</strong><span class="cNum">OP07-038 · Leader</span></td><td class="num">$122</td><td class="num">$4,000 <span class="psaKind">ask</span></td></tr>
+            <tr><td>2</td><td><strong>Monkey D. Luffy 061 Manga</strong><span class="cNum">EB02-061 · Secret Rare</span></td><td class="num">$3,680</td><td class="num">$2,465 <span class="psaKind">sold</span></td></tr>
+            <tr><td>3</td><td><strong>Tony TonyChopper SP</strong><span class="cNum">OP08-001 · Leader</span></td><td class="num">$31</td><td class="num">—</td></tr>
+            <tr><td>4</td><td><strong>Monkey D. Luffy 010 Alternate Art</strong><span class="cNum">EB02-010 · Leader</span></td><td class="num">$788</td><td class="num">$2,243 <span class="psaKind">ask</span></td></tr>
+            <tr><td>5</td><td><strong>Yamato SP</strong><span class="cNum">OP06-022 · Leader</span></td><td class="num">$31</td><td class="num">$1,445 <span class="psaKind">ask</span></td></tr>
+            <tr><td>6</td><td><strong>Charlotte Pudding SP</strong><span class="cNum">OP08-058 · Leader</span></td><td class="num">$24</td><td class="num">$1,864 <span class="psaKind">ask</span></td></tr>
+            <tr><td>7</td><td><strong>Sabo SP</strong><span class="cNum">OP05-001 · Leader</span></td><td class="num">$12</td><td class="num">$886 <span class="psaKind">sold</span></td></tr>
+            <tr><td>8</td><td><strong>Uta SP</strong><span class="cNum">OP06-001 · Leader</span></td><td class="num">$37</td><td class="num">$486 <span class="psaKind">sold</span></td></tr>
+            <tr><td>9</td><td><strong>Marco SP</strong><span class="cNum">OP08-002 · Leader</span></td><td class="num">$8</td><td class="num">—</td></tr>
+            <tr><td>10</td><td><strong>Vinsmoke Reiju SP</strong><span class="cNum">OP06-042 · Leader</span></td><td class="num">$18</td><td class="num">$1,769 <span class="psaKind">ask</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="priceNote">NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask"). Figures as of 2026-07-09; live per-card prices on the <a href="../packs.html?set=EB-02&hl=en">tracker</a>.</p>
+      
+      <h2>EB-02 PSA 10 grading data</h2>
+      <p>EB-02 Anime 25th Collection cards achieve <strong>PSA 10 (gem mint) roughly 87.6%</strong> of the time, across 7,061 PSA-graded cards. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity.</p>
       <h2>Before you buy a sealed EB-02 box</h2>
       <ul>
         <li>Compare the asking price against recent <strong>sold</strong> prices, not just listings — active prices are often above what boxes actually sell for.</li>
