@@ -1,0 +1,62 @@
+name: Backfill EN box sold series (on demand)
+
+# 영문판 박스 판매완료(Finding API) 소급 전용. Finding API는 로컬 IP에서 503이라
+# GitHub 러너 IP에서 돌려야 진짜 sold 데이터가 잡힌다. 자기 자신 파일이 push될 때만
+# 발동하므로(경로 필터), 봇이 data 파일을 커밋해도 재발동 루프가 없다.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/backfill-en-now.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backfill-en-now
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EBAY_APP_ID: ${{ secrets.EBAY_CLIENT_ID }}
+      EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify script
+        run: node --check tools/backfill-english-box-series.js
+
+      - name: Backfill EN box sold series
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/backfill-english-box-series.js 2>&1 | tee logs/backfill-en-now.log
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backfill-en-now-log
+          path: logs/backfill-en-now.log
+          if-no-files-found: ignore
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet data/onepiece-packs.json; then
+            echo "No EN sold series changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/onepiece-packs.json
+          git commit -m "Backfill EN box sold series (Finding API, on-demand)"
+          git push
