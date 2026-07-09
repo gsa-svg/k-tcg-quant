@@ -196,3 +196,11 @@
 - **로컬은 정상**: `.env`에 EBAY_CLIENT_ID(37자)·EBAY_CLIENT_SECRET(36자) 존재 → 로컬 Browse API 수집 OK. Finding API(sold)만 로컬 IP 503(별개 이슈).
 - **복구(사용자 액션 필요)**: GitHub → 저장소 Settings → Secrets and variables → Actions 에서 저장소 시크릿 **EBAY_CLIENT_ID**, **EBAY_CLIENT_SECRET** 재등록. 값은 로컬 `.env`의 동일 키. (시크릿 등록은 권한행위라 에이전트가 대신 못 함. 값 출력·커밋 금지.)
 - **복구 후 확인**: `backfill-en-now.yml` 자기발동 재실행 → `logs/en-backfill-status.json`에서 ok:true·weeks 확인. Finding API가 GitHub IP에서도 503이면 sold 소급은 불가 → 영문판 그래프는 매일 active 누적(basis:active, '호가' 라벨)으로 실제화하는 경로로 전환.
+
+
+## 가격 신뢰도: 최저가 = 배송 포함 실착지금액 (2026-07-09 확인)
+- PSA10/박스 "최저가"는 **상품가+실제 배송비 합계**(착지금액)다. eBay 상품 스티커(상품가만)와 비교하면 우리가 비싸 보이지만, 우리가 더 정직한 것. 사고 아님.
+- 사례: OP15-086 Nami Alt PSA10 = 상품 $1,600 + 배송 $297 = **$1,897**. getItem으로 배송비 $297 실제 확인(부풀림 아님). 셀러 chibi_17(JP).
+- 개선: `cardBuyLinks()` small줄에 "상품 $X + 배송 $Y" 분해 표시 추가(오해 방지). 무배송이면 "무료배송".
+- 필터 건전성 확인: eBay "Nami" 저가 매물($10~150)은 전부 **다른 카드**(OP11-054·EB04·ST21·영문판). `isPsa10JapaneseCard`가 정확히 배제 중 → 표본 적어도 오염 아님.
+- ⚠️ 남은 진짜 문제 = **신선도**. 07-06 이후 파이프라인 정지로 품절 매물을 최저가로 걸고 있음(OP15-086 그 매물 현재 OUT_OF_STOCK). eBay 시크릿 복구가 근본 해결 → [[GitHub eBay 시크릿 소실]] 참고.

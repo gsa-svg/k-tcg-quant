@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709btn";
+const DATA_VERSION = "20260709ship";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -296,7 +296,16 @@ function cardBuyLinks(card) {
         dealChip = `<em class="dealChip">${t("최근 실거래가 아래", "below recent sold")}</em>`;
       }
     }
-    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 최저가 구매", "Buy lowest PSA 10")} · <b>${price}</b><span class="ctaArrow">↗</span>${dealChip}</a><small>Paid Link · ${t("검수 완료 · 배송 포함", "verified · incl. shipping")}${country}${card.psa10Active?.updated ? ` · ${t(`${card.psa10Active.updated.slice(5)} 기준`, `as of ${card.psa10Active.updated.slice(5)}`)}` : ""}</small></div>`;
+    // 가격 분해: 상품가 + 배송비 → "$1,897"이 왜 그 금액인지 투명하게(오해 방지)
+    let breakdown = t("검수 완료 · 배송 포함", "verified · incl. shipping");
+    if (best.price != null && Number(best.shipping) > 0) {
+      const item = triMain(best.price, best.currency).main;
+      const ship = triMain(best.shipping, best.currency).main;
+      breakdown = t(`검수 완료 · 상품 ${item} + 배송 ${ship}`, `verified · item ${item} + ship ${ship}`);
+    } else if (best.price != null) {
+      breakdown = t("검수 완료 · 무료배송", "verified · free shipping");
+    }
+    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 최저가 구매", "Buy lowest PSA 10")} · <b>${price}</b><span class="ctaArrow">↗</span>${dealChip}</a><small>Paid Link · ${breakdown}${country}${card.psa10Active?.updated ? ` · ${t(`${card.psa10Active.updated.slice(5)} 기준`, `as of ${card.psa10Active.updated.slice(5)}`)}` : ""}</small></div>`;
   }
   return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 찾기", "Find PSA 10 listings")}<span class="ctaArrow">↗</span></a><small>Paid Link · ${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
 }
