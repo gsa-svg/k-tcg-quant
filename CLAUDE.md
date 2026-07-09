@@ -187,3 +187,12 @@
 - 세트 상세 차트: ①함께 보기(정규화 100, JP/EN 변화율 비교 — 두 판 2점+일 때 자동) ②JP 개별 패널 ③EN 개별 패널(1점이면 대기 문구).
 - EN 과거 이력: `tools/backfill-english-box-series.js`(Finding API sold 주간 중앙값) — **로컬 IP는 503, CI에서만 작동**. 매일 워크플로에 포함(503 스킵 가드). 첫 성공 실행 후 EN 그래프·함께보기 패널이 자동 활성화됨 → **내일(7/9) 아침 확인할 것**.
 - 프리뷰에서 미래 상태 검증할 땐 state.data에 가짜 시리즈 주입→renderDetail()→원복 패턴 사용(배포 데이터 불변).
+
+
+## 🚨 사고: GitHub eBay 시크릿 소실 → 파이프라인 3일 정지 (2026-07-09 발견)
+- **증상**: `update-active-listings`(매일) 워크플로가 07-06 실행(run#6)부터 **연속 실패**. 단계 `Require eBay API secrets`에서 `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET`가 비어(-z) exit 1 → 이후 모든 수집·커밋 스텝 skip. 07-05(run#5)까지는 성공.
+- **영향**: 07-05 이후 박스 active·영문 active·PSA10 링크·박스/카드 이력 누적이 **전부 중단**(데이터 동결). 영문판 sold 백필(`backfill-en-now.yml`)도 같은 이유(App ID 빈값)로 "Missing EBAY_APP_ID" 에러 → 소급 0건.
+- **진단 방법**: 백필 스크립트에 세트별 상태요약(`logs/en-backfill-status.json`) 커밋하게 해서 원인 특정(→ 503 아님, 자격증명 빈값). 워크플로 실행/실패단계는 `api.github.com/repos/gsa-svg/k-tcg-quant/actions/...` 공개 API로 확인(gh CLI·인증 불필요).
+- **로컬은 정상**: `.env`에 EBAY_CLIENT_ID(37자)·EBAY_CLIENT_SECRET(36자) 존재 → 로컬 Browse API 수집 OK. Finding API(sold)만 로컬 IP 503(별개 이슈).
+- **복구(사용자 액션 필요)**: GitHub → 저장소 Settings → Secrets and variables → Actions 에서 저장소 시크릿 **EBAY_CLIENT_ID**, **EBAY_CLIENT_SECRET** 재등록. 값은 로컬 `.env`의 동일 키. (시크릿 등록은 권한행위라 에이전트가 대신 못 함. 값 출력·커밋 금지.)
+- **복구 후 확인**: `backfill-en-now.yml` 자기발동 재실행 → `logs/en-backfill-status.json`에서 ok:true·weeks 확인. Finding API가 GitHub IP에서도 503이면 sold 소급은 불가 → 영문판 그래프는 매일 active 누적(basis:active, '호가' 라벨)으로 실제화하는 경로로 전환.
