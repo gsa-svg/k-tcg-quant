@@ -236,3 +236,9 @@
 - **PSA population(psaGem/psaTotal/psa배열)**: GemRate/PSA pop **수동 임포트 1회**, 갱신 툴 없음 = 멈춤(psaSource 필드 참고). 천천히 변함.
 - **PSA10 sold(card.psa10Ebay)**: 전부 6/29 고정, 갱신 워크플로 없음(위험 스크립트는 봉인).
 - 자동갱신: PSA10 active·NM(주간)·박스(매일)만. → 갱신하려면 (a)GemRate 재수집 자동화 (b)검증된 sold 검색 스크립트 신규 제작 필요. [[project-ktcg-quant-mvp]]
+
+
+## ⚠️ Pages 배포 재트리거 함정 (2026-07-09 실수 교훈)
+- GitHub Pages 배포는 **concurrency로 새 배포가 뜨면 이전 in-progress 배포를 자동 취소**함. 배포 느리다고 **빈 커밋 재트리거를 연속으로 날리면 오히려 진행 중이던 배포가 cancelled 되어 더 늦어짐.**
+- 올바른 대응: push 후 **그냥 기다린다**(오늘처럼 GitHub 혼잡 시 5~10분). 재트리거는 배포가 'cancelled/failure'로 확정된 걸 확인한 뒤에만 1회.
+- 배포 상태 확인: `api.github.com/repos/gsa-svg/k-tcg-quant/actions/workflows/299896261/runs`(pages-build-deployment). head_sha로 어느 커밋이 배포됐는지 확인.
