@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709usship";
+const DATA_VERSION = "20260709ui2";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -485,13 +485,16 @@ function renderSeriesPanel(points, opts) {
   // 한 줄 결론: 기간 첫 값 대비 마지막 값 (스무딩 기준, 실측 나눗셈)
   const chg = (sm[sm.length - 1] - sm[0]) / sm[0];
   const pct = Math.round(Math.abs(chg) * 100);
-  const months = Math.max(1, Math.round((maxX - minX) / 2592000000));
+  // 기간 표기: 25일 미만이면 "N일간", 이상이면 "N개월간" (점 2개=하루치에 '1개월간' 뜨는 오류 방지)
+  const dayspan = (maxX - minX) / 86400000;
+  const perKo = dayspan < 25 ? `${Math.max(1, Math.round(dayspan))}일간` : `${Math.max(1, Math.round(dayspan / 30))}개월간`;
+  const perEn = dayspan < 25 ? `${Math.max(1, Math.round(dayspan))}d` : `${Math.max(1, Math.round(dayspan / 30))} mo`;
   const up = chg >= 0.005, down = chg <= -0.005;
   const verdict = up
-    ? t(`${months}개월간 ${pct}% 올랐어요`, `up ${pct}% in ${months} mo`)
+    ? t(`${perKo} ${pct}% 올랐어요`, `up ${pct}% in ${perEn}`)
     : down
-      ? t(`${months}개월간 ${pct}% 내렸어요`, `down ${pct}% in ${months} mo`)
-      : t(`${months}개월간 보합`, `flat over ${months} mo`);
+      ? t(`${perKo} ${pct}% 내렸어요`, `down ${pct}% in ${perEn}`)
+      : t(`${perKo} 보합`, `flat over ${perEn}`);
   const arrow = up ? "▲" : down ? "▼" : "―";
   const vCls = up ? "chgUp" : down ? "chgDown" : "chgFlat";
   const yTicks = [maxY, minY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 10}" y="${(sy(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
@@ -518,7 +521,9 @@ function renderComparePanel(jpPts, enPts) {
   const smooth = (pts) => { const sv = smoothVals(pts); return pts.map((p, i) => ({ d: p.d, p: sv[i] })); };
   const jp = smooth(jpPts).filter((p) => p.d >= startD);
   const en = smooth(enPts).filter((p) => p.d >= startD);
-  if (jp.length < 2 || en.length < 2) return "";
+  // 겹치는 구간이 충분히 쌓여야 의미있음: 양쪽 3점+ & 14일+ (점 2개 하루치 '+0% vs +0%' 납작선 방지)
+  const overlapDays = jp.length ? (new Date(jp[jp.length - 1].d) - new Date(jp[0].d)) / 86400000 : 0;
+  if (jp.length < 3 || en.length < 3 || overlapDays < 14) return "";
   const W = 600, H = 196, padL = 56, padR = 54, padT = 20, padB = 36;
   const idx = (pts) => { const base = pts[0].p; return pts.map((p) => ({ d: p.d, v: (p.p / base) * 100 })); };
   const jpI = idx(jp), enI = idx(en);

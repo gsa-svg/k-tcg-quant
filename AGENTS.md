@@ -211,3 +211,9 @@
 - 실측 비교(OP15-086 item 366508267519): US=상품$1,375+배송$250 / KR=₩환산·배송0(엉터리) → KR 기준은 eBay가 신뢰값 안 줌. **US가 유일하게 일관된 기준.**
 - eBay 배송료는 **구매자 주소별로 다르게** 계산됨(만인 공통 배송료 없음). 그래서 US 도착가 하나로 통일해 카드 간 동일 잣대 비교. 우리 표시가 = "미국 구매자 총액".
 - UI: `cardBuyLinks()` 배송 라벨을 "미국배송 $X / US ship $X"로 명시(오해 방지). 박스 버튼도 동일 US 기준.
+
+
+## UI 정리 (2026-07-09): 버튼 오버플로 + 함께보기 게이팅
+- **구매 버튼 겹침 해결**: `.buyLink`가 inline-flex(내용폭)이라 좁은 열(167px)보다 넓어져(210px) 옆칸 침범 → `display:flex; width:100%; flex-wrap:wrap; box-sizing:border-box`로 열폭에 맞춰 접히게. dealChip margin-left 제거(gap 사용). 이 구조 되돌리지 말 것.
+- **함께보기(compare) 패널 게이팅**: 겹치는 구간 3점+ & 14일+ 일 때만 렌더(`renderComparePanel` guard). 점 2개=하루치면 '+0% vs +0%' 납작선 나와서 깨져 보임 → 숨김. EN 데이터 2주 쌓이면 자동 등장.
+- **기간 문구**: 25일 미만이면 'N일간', 이상이면 'N개월간'(`renderSeriesPanel`/`renderComparePanel`). 하루치에 '1개월간 보합' 뜨던 오류 수정.
