@@ -224,3 +224,15 @@
 - **정직성**: 가격은 전부 "as of DATE"·sold/ask 라벨. NM=JPY→USD(fx), PSA10=sold(KRW→USD) 우선·없으면 active ask, 둘 다 없으면 "—".
 - **최신 유지**: 매일 워크플로에 `generate-set-pages.js` 재생성 단계 추가 + 커밋에 `sets/ sitemap.xml` 포함 → 박스시세 매일 갱신 반영(=구글 신선도 신호). 값 스테일 걱정 없음(<24h·날짜표기).
 - 다음 성장작업: #2 데이터 랭킹 페이지(PSA10 프리미엄 TOP·그레이딩 업사이드), #3 커뮤니티 공유 카드. [[project-ktcg-quant-mvp]]
+
+
+## 성장작업 #2: PSA10 가치 랭킹 페이지 (2026-07-09)
+- `psa10-ranking.html`(루트, generate-set-pages.js가 생성) — 전 세트 카드를 **PSA10 실거래 sold 값** 기준 TOP30. 클릭→해당 카드 트래커.
+- ⚠️ **멀티플(PSA10÷NM) 안 씀**: NM 원본가가 일부 $0~3로 부실 → ×500 같은 엉터리 나옴. 정확도 우선이라 나눗셈 배제하고 **sold 값 자체로만** 랭킹. (표본 3건+, as-of 날짜 명시)
+- 내부링크: 세트 페이지 PSA섹션 + 허브 + 랭킹→트래커. 사이트맵 등록. 매일 재생성(set-pages와 동일 스텝).
+- 다음: #3 커뮤니티 공유 카드.
+
+## PSA 데이터 갱신 현황 (2026-07-09 사용자 질문 답)
+- **PSA population(psaGem/psaTotal/psa배열)**: GemRate/PSA pop **수동 임포트 1회**, 갱신 툴 없음 = 멈춤(psaSource 필드 참고). 천천히 변함.
+- **PSA10 sold(card.psa10Ebay)**: 전부 6/29 고정, 갱신 워크플로 없음(위험 스크립트는 봉인).
+- 자동갱신: PSA10 active·NM(주간)·박스(매일)만. → 갱신하려면 (a)GemRate 재수집 자동화 (b)검증된 sold 검색 스크립트 신규 제작 필요. [[project-ktcg-quant-mvp]]

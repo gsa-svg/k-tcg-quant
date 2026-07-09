@@ -230,7 +230,7 @@ function setPage(code, prev, next) {
   // PSA 섹션
   const psaSection = s.psaGem != null ? `
       <h2>${code} PSA 10 grading data</h2>
-      <p>${code} ${esc(nameEn)} cards achieve <strong>PSA 10 (gem mint) roughly ${s.psaGem}%</strong> of the time${s.psaTotal ? `, across ${intl(s.psaTotal)} PSA-graded cards` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity.</p>` : "";
+      <p>${code} ${esc(nameEn)} cards achieve <strong>PSA 10 (gem mint) roughly ${s.psaGem}%</strong> of the time${s.psaTotal ? `, across ${intl(s.psaTotal)} PSA-graded cards` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity. See the <a href="../psa10-ranking.html">most valuable One Piece PSA 10 cards</a> across all sets.</p>` : "";
 
   const compareLink =
     code === "OP-05" || code === "OP-06"
@@ -317,11 +317,124 @@ function hubPage() {
       </ul>
       <div class="setNavLinks">
         <a href="../packs.html?hl=en">Open the live price tracker</a>
+        <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
         <a href="../articles/sealed-box-rules.html">What moves box prices</a>
         <a href="../articles/reseal-checklist.html">Reseal checklist</a>
         <a href="../articles/psa-population-and-prices.html">PSA population &amp; prices</a>
         <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>
       </div>${FOOT}`;
+}
+
+// ---- PSA10 가치 랭킹(루트 페이지) — 실거래 sold 값 기준(신뢰 최우선; 나눗셈 멀티플은 NM 부실로 미사용)
+function rankingRows() {
+  const rows = [];
+  for (const code of ORDER) {
+    for (const c of (data.sets[code].cards || [])) {
+      const sold = c.psa10Ebay;
+      if (!(sold && sold.soldBased && sold.middle != null)) continue;
+      const psa = toUsd(sold.middle, sold.currency);
+      const n = sold.sampleSize || 0;
+      if (psa == null || n < 3) continue;
+      rows.push({ code, name: c.name, number: c.number, rarity: c.rarity, psa, n, low: toUsd(sold.low, sold.currency), high: toUsd(sold.high, sold.currency), updated: sold.updated });
+    }
+  }
+  rows.sort((a, b) => b.psa - a.psa);
+  return rows.slice(0, 30);
+}
+
+function rankingPage() {
+  const rows = rankingRows();
+  const asOf = (rows[0] && rows[0].updated) || DATA_DATE;
+  const canonical = `${SITE}/psa10-ranking.html`;
+  const title = `Most Valuable One Piece PSA 10 Cards — Sold Price Ranking | OP Box Index`;
+  const desc = `The most valuable Japanese One Piece TCG cards in PSA 10, ranked by recent eBay sold prices. Real graded-card completed-sale data across every set — no asking-price hype.`;
+  const trs = rows.map((r, i) => `<tr data-code="${esc(r.code)}"><td class="rk">${i + 1}</td><td class="cd"><strong>${esc(r.name)}</strong><span class="sub">${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</span></td><td class="pv">${usd(r.psa)}</td><td class="rg">${r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—"}</td><td class="ns">${r.n}</td></tr>`).join("\n            ");
+  const ld = `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org", "@type": "ItemList",
+    name: "Most valuable One Piece PSA 10 cards",
+    itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.name} (${r.code}${r.number ? " " + r.number : ""}) PSA 10` })),
+  })}</script>
+    <script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org", "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/packs.html?hl=en` },
+      { "@type": "ListItem", position: 2, name: "PSA 10 Value Ranking", item: canonical },
+    ],
+  })}</script>`;
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="${canonical}" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <title>${esc(title)}</title>
+    <meta name="description" content="${esc(desc)}" />
+    <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${esc(title)}" />
+    <meta property="og:description" content="${esc(desc)}" />
+    <meta property="og:url" content="${canonical}" />
+    <meta property="og:image" content="${SITE}/og-image.png" />
+    <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    ${ld}
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
+      .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
+      .rankWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 680px; }
+      .rankTableWrap { overflow-x: auto; margin: 18px 0 8px; }
+      .rankTable { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .rankTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .rankTable td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
+      .rankTable tr[data-code] { cursor: pointer; }
+      .rankTable tr[data-code]:hover td { background: rgba(16,215,160,.06); }
+      .rankTable .rk { color: var(--muted); font-variant-numeric: tabular-nums; }
+      .rankTable .cd .sub { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
+      .rankTable .pv { font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .rankTable .rg, .rankTable .ns { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .methodNote { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .rankWrap .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav"><a href="packs.html?hl=en">Booster Packs</a><a href="compare.html">Compare</a><a href="sets/index.html">Set Guides</a><a href="about.html">About</a></nav>
+    </header>
+    <main class="rankWrap">
+      <p class="eyebrow">PSA 10 Value Ranking</p>
+      <h1>Most valuable One Piece PSA 10 cards</h1>
+      <p class="lead">The highest-value Japanese One Piece TCG cards in PSA 10 gem mint, ranked by recent eBay <strong>sold</strong> prices across every set. Real completed-sale data, minimum 3 sales per card — no asking-price hype.</p>
+      <div class="rankTableWrap">
+        <table class="rankTable">
+          <thead><tr><th>#</th><th>Card</th><th>PSA 10 sold</th><th>Sold range</th><th>Sales</th></tr></thead>
+          <tbody>
+            ${trs}
+          </tbody>
+        </table>
+      </div>
+      <p class="methodNote">Method: PSA 10 median of recent eBay <em>sold</em> listings (Japanese cards), minimum 3 completed sales, as of ${esc(asOf)}. Values in USD. Tap any row for that card's full live tracker. Reflects graded-card sold prices, not raw singles.</p>
+      <div class="setNavLinks"><a href="packs.html?hl=en">Live price tracker</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
+      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you. Prices change; always confirm on eBay before buying. Not investment advice.</p>
+    </main>
+    <footer class="footer">
+      <p>OP Box Index is a data-driven research site, not investment advice.</p>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+    </footer>
+    <script>
+      document.querySelectorAll('.rankTable tr[data-code]').forEach(function (tr) {
+        tr.addEventListener('click', function () { location.href = 'packs.html?set=' + encodeURIComponent(tr.getAttribute('data-code')) + '&hl=en'; });
+      });
+    </script>
+  </body>
+</html>
+`;
 }
 
 // ---- write files
@@ -335,12 +448,14 @@ ORDER.forEach((code, i) => {
 });
 fs.writeFileSync(path.join(outDir, "index.html"), hubPage(), "utf8");
 written++;
+fs.writeFileSync(path.join(ROOT, "psa10-ranking.html"), rankingPage(), "utf8");
+written++;
 
 // ---- sitemap: idempotent insert
 const smPath = path.join(ROOT, "sitemap.xml");
 let sm = fs.readFileSync(smPath, "utf8");
 const today = new Date().toISOString().slice(0, 10);
-const urls = [`${SITE}/sets/index.html`, ...ORDER.map((c) => `${SITE}/sets/${slug(c)}.html`)];
+const urls = [`${SITE}/psa10-ranking.html`, `${SITE}/sets/index.html`, ...ORDER.map((c) => `${SITE}/sets/${slug(c)}.html`)];
 let added = 0;
 for (const u of urls) {
   if (sm.includes(`<loc>${u}</loc>`)) continue;
