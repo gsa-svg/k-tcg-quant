@@ -242,3 +242,10 @@
 - GitHub Pages 배포는 **concurrency로 새 배포가 뜨면 이전 in-progress 배포를 자동 취소**함. 배포 느리다고 **빈 커밋 재트리거를 연속으로 날리면 오히려 진행 중이던 배포가 cancelled 되어 더 늦어짐.**
 - 올바른 대응: push 후 **그냥 기다린다**(오늘처럼 GitHub 혼잡 시 5~10분). 재트리거는 배포가 'cancelled/failure'로 확정된 걸 확인한 뒤에만 1회.
 - 배포 상태 확인: `api.github.com/repos/gsa-svg/k-tcg-quant/actions/workflows/299896261/runs`(pages-build-deployment). head_sha로 어느 커밋이 배포됐는지 확인.
+
+
+## 영문판 두 숫자 모델: 실거래(시세) vs 최저매물(호가) (2026-07-09)
+- 사용자 합의 설계: EN 박스 대표값 = **실거래(sold) 시세**, 구매버튼/매물 = **현재 최저 active(호가)**. 역할 다르니 나란히 표시.
+- 데이터: `set.boxMarket.en.ebaySold = {median,low,high,sampleSize,currency,basis:"sold",source,updated}`. 수동 수집(Finding API 죽어서 자동 불가). OP-13 시드: median $486(범위 $403–535, 18건, 7/9). active low $582 → 매물이 시세 +20%.
+- 렌더: `renderEnglishBoxBand()` 실거래 있으면 2카드(.enTwo emMarket/emAsk)+갭%+범위+설명. 없으면 기존 active 밴드 폴백. 수집 방법: 브라우저로 eBay LH_Sold=1 → 영문 풀박스만(팩·로트·케이스·타국 제외) 중앙값.
+- ⚠️ **남은 불일치**: boxSeriesEn 그래프가 아직 active($605 호가)로 그려짐 → 실거래 블록($486)과 안 맞음. 다음 작업: 그래프도 sold 포인트로 전환(sold 2점+ 쌓이면). 주력 박스는 주기적 수동 sold 갱신 필요.

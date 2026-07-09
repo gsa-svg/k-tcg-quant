@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709nav";
+const DATA_VERSION = "20260709emkt";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -871,9 +871,37 @@ function renderBoxMarket(set) {
 }
 
 // 영문판 박스 밴드 독립 블록 — 그래프(boxSeries) 유무와 무관하게 상세에 표시. 표본 3건 미만은 숨김(정확도 원칙).
+// 두 숫자 모델: "실거래(sold)=시세 대표값" + "현재 최저매물(active)=지금 사는 값". 역할이 다르니 나란히 정직하게.
 function renderEnglishBoxBand(set) {
   const en = set.boxMarket?.en?.ebayActive;
-  if (!en || en.middle == null || (en.sampleSize || 0) < 3) return "";
+  const sold = set.boxMarket?.en?.ebaySold;
+  const hasActive = en && en.middle != null && (en.sampleSize || 0) >= 3;
+  const hasSold = sold && sold.median != null && (sold.sampleSize || 0) >= 3;
+  if (!hasActive && !hasSold) return "";
+
+  // 두 숫자 모델(실거래 있을 때)
+  if (hasSold) {
+    const soldUsd = sold.currency === "USD" ? sold.median : marketKrw(sold.median, sold.currency);
+    const soldMain = triMain(sold.median, sold.currency).main;
+    const range = sold.low != null && sold.high != null ? `${triMain(sold.low, sold.currency).main}–${triMain(sold.high, sold.currency).main}` : "";
+    // 최저 매물(호가): active low 우선, 없으면 middle
+    const askVal = hasActive ? (en.low != null ? en.low : en.middle) : null;
+    const askUsd = askVal != null ? (en.currency === "USD" ? askVal : marketKrw(askVal, en.currency)) : null;
+    const gapPct = askUsd != null && soldUsd ? Math.round((askUsd / soldUsd - 1) * 100) : null;
+    const askCard = hasActive
+      ? `<div class="emCard emAsk"><span class="emLabel">${t("지금 최저 매물", "Lowest listing now")} <em class="emKind">${t("호가", "ask")}</em></span><b class="emVal">${triMain(askVal, en.currency).main}</b><small>${en.updated || ""} · ${t("매일 갱신", "daily")}${gapPct != null ? ` · <em class="${gapPct > 0 ? "emUp" : "emDn"}">${t(`실거래 ${gapPct >= 0 ? "+" : ""}${gapPct}%`, `${gapPct >= 0 ? "+" : ""}${gapPct}% vs sold`)}</em>` : ""}</small></div>`
+      : "";
+    return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("영문판 박스 — 시세 vs 매물", "English box — market vs listing")}</span></div>
+      <div class="emCards">
+        <div class="emCard emMarket"><span class="emLabel">${t("최근 실거래", "Recent sold")} <em class="emKind">eBay sold</em></span><b class="emVal">${soldMain}</b><small>${sold.updated || ""} · ${t(`${sold.sampleSize}건`, `${sold.sampleSize} sales`)} · ${t("시세(대표값)", "market value")}</small></div>
+        ${askCard}
+      </div>
+      ${range ? `<p class="emRange">${t("실거래 범위", "Sold range")} ${range}</p>` : ""}
+      <p class="emNote">${t('"실거래"는 실제 팔린 값(시세), "매물"은 지금 살 수 있는 최저 호가입니다. 매물이 실거래보다 높으면 급하지 않을 때 대기 신호. 영문판 미개봉 박스만 집계.', 'Sold = what actually sold (market value); listing = the cheapest you can buy now. Listings above sold = wait signal if not urgent. English sealed boxes only.')}</p>
+    </div>`;
+  }
+
+  // 실거래 없으면 기존 active 밴드(폴백)
   const jp = set.boxMarket?.jp?.ebayActive;
   const jpMid = jp?.middle != null ? marketKrw(jp.middle, jp.currency) : null;
   const enMid = marketKrw(en.middle, en.currency);

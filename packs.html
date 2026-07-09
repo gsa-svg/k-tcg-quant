@@ -580,6 +580,19 @@
       .bmEnHead { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,.12); }
       .bmRatio { font-style: normal; color: var(--terminal-gold); font-weight: 800; }
       .enBoxMarket { margin-top: 12px; border-color: rgba(80,218,217,.25); }
+      .enTwo .emCards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+      @media (max-width: 520px) { .enTwo .emCards { grid-template-columns: 1fr; } }
+      .emCard { padding: 10px 12px; border: 1px solid var(--line, rgba(255,255,255,.08)); border-radius: 10px; background: rgba(255,255,255,.02); }
+      .emCard.emMarket { border-color: rgba(16,215,160,.45); background: rgba(16,215,160,.06); }
+      .emCard .emLabel { display: block; font-size: 12px; color: var(--muted, #aeb7c9); font-weight: 700; }
+      .emCard .emKind { font-style: normal; font-size: 9px; text-transform: uppercase; letter-spacing: .3px; opacity: .8; margin-left: 3px; padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.06); }
+      .emCard.emMarket .emVal { color: var(--accent, #10d7a0); }
+      .emCard .emVal { display: block; font-size: 24px; font-weight: 900; color: #eef2ff; margin: 2px 0 3px; font-variant-numeric: tabular-nums; }
+      .emCard small { color: var(--muted, #8d95a7); font-size: 11px; }
+      .emCard .emUp { font-style: normal; color: #ff9b6a; font-weight: 800; }
+      .emCard .emDn { font-style: normal; color: var(--accent, #10d7a0); font-weight: 800; }
+      .enTwo .emRange { margin: 8px 0 0; color: var(--muted, #8d95a7); font-size: 12px; }
+      .enTwo .emNote { margin: 6px 0 0; color: var(--muted, #8d95a7); font-size: 11px; line-height: 1.55; }
       /* PSA10 프리미엄 라인 */
       .pl.premium b { color: var(--terminal-gold); }
       .paidLinkTag {
@@ -1162,6 +1175,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260709nav" defer></script>
+    <script src="packs.js?v=20260709emkt" defer></script>
   </body>
 </html>
