@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260708cmp";
+const DATA_VERSION = "20260708cmp2";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -477,10 +477,19 @@ function renderSeriesPanel(points, opts) {
 function renderComparePanel(jpPts, enPts) {
   // 겹치는 구간: 늦게 시작한 쪽 기준
   const startD = jpPts[0].d > enPts[0].d ? jpPts[0].d : enPts[0].d;
-  const jp = jpPts.filter((p) => p.d >= startD);
-  const en = enPts.filter((p) => p.d >= startD);
+  // 개별 패널과 동일한 표본가중 스무딩(3점) — 삐죽거림 제거
+  const smooth = (pts) => pts.map((p, i) => {
+    let sw = 0, sv = 0;
+    for (let j = Math.max(0, i - 1); j <= Math.min(pts.length - 1, i + 1); j++) {
+      const w = (pts[j].n || 1) * (j === i ? 1.6 : 1);
+      sw += w; sv += pts[j].p * w;
+    }
+    return { d: p.d, p: sv / sw };
+  });
+  const jp = smooth(jpPts).filter((p) => p.d >= startD);
+  const en = smooth(enPts).filter((p) => p.d >= startD);
   if (jp.length < 2 || en.length < 2) return "";
-  const W = 600, H = 190, padL = 64, padR = 18, padT = 18, padB = 34;
+  const W = 600, H = 190, padL = 60, padR = 56, padT = 18, padB = 34;
   const idx = (pts) => { const base = pts[0].p; return pts.map((p) => ({ d: p.d, v: (p.p / base) * 100 })); };
   const jpI = idx(jp), enI = idx(en);
   const all = [...jpI, ...enI];
@@ -488,14 +497,23 @@ function renderComparePanel(jpPts, enPts) {
   const vsAll = all.map((p) => p.v);
   const minX = Math.min(...xsAll), maxX = Math.max(...xsAll);
   let minV = Math.min(...vsAll, 100), maxV = Math.max(...vsAll, 100);
-  const vPad = Math.max(1, (maxV - minV) * 0.15);
+  const vPad = Math.max(1.5, (maxV - minV) * 0.15);
   const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
   const sv = (v) => padT + (1 - (v - (minV - vPad)) / Math.max(1, maxV - minV + vPad * 2)) * (H - padT - padB);
   const line = (pts, cls) => `<polyline points="${pts.map((p) => `${sx(new Date(p.d).getTime()).toFixed(1)},${sv(p.v).toFixed(1)}`).join(" ")}" class="spLine ${cls}"></polyline>`;
-  const endDot = (pts, cls) => { const p = pts[pts.length - 1]; return `<circle cx="${sx(new Date(p.d).getTime()).toFixed(1)}" cy="${sv(p.v).toFixed(1)}" r="6" class="spDot ${cls}"></circle>`; };
-  const base100 = `<line x1="${padL}" y1="${sv(100).toFixed(1)}" x2="${W - padR}" y2="${sv(100).toFixed(1)}" class="cpBase"></line><text x="${padL - 8}" y="${(sv(100) + 5).toFixed(1)}" class="spYLabel" text-anchor="end">100</text>`;
+  const fmtChg = (v) => `${v >= 100 ? "+" : "−"}${Math.abs(Math.round(v - 100))}%`;
+  // 선 끝: 점 + 어느 판인지 태그를 바로 옆에 (범례 왕복 불필요)
+  const endMark = (pts, cls, label) => {
+    const p = pts[pts.length - 1];
+    const x = sx(new Date(p.d).getTime()), y = sv(p.v);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" class="spDot ${cls}"></circle><text x="${(x + 11).toFixed(1)}" y="${(y + 5).toFixed(1)}" class="cpEndTag ${cls}">${label}</text>`;
+  };
+  // 세로 눈금: 100 기준선(점선) + 위/아래 %눈금
+  const gridAt = (v, txt, base) => `<line x1="${padL}" y1="${sv(v).toFixed(1)}" x2="${W - padR}" y2="${sv(v).toFixed(1)}" class="${base ? "cpBase" : "spGrid"}"></line><text x="${padL - 8}" y="${(sv(v) + 5).toFixed(1)}" class="spYLabel${base ? " cpYBase" : ""}" text-anchor="end">${txt}</text>`;
+  let grid = gridAt(100, t("시작", "start"), true);
+  if (maxV - 100 >= 2) grid += gridAt(maxV, fmtChg(maxV), false);
+  if (100 - minV >= 2) grid += gridAt(minV, fmtChg(minV), false);
   const jpEnd = jpI[jpI.length - 1].v, enEnd = enI[enI.length - 1].v;
-  const fmtChg = (v) => `${v >= 100 ? "+" : ""}${Math.round(v - 100)}%`;
   const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   let prevM = new Date(startD).getMonth();
   const months = jp.map((p, i) => {
@@ -505,9 +523,9 @@ function renderComparePanel(jpPts, enPts) {
     return `<text x="${sx(new Date(p.d).getTime()).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
   }).join("");
   return `<div class="seriesPanel cpPanel">
-    <div class="spHead"><span><b class="spName">${t("함께 보기 — 같은 날 100에서 출발", "Together — both start at 100")}</b></span><span class="cpEnds"><em class="langTag">JP</em><em class="spVerdict ${jpEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(jpEnd)}</em><em class="langTag langTagEn">EN</em><em class="spVerdict ${enEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(enEnd)}</em></span></div>
-    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${t("일본판 영문판 변화율 비교", "JP vs EN change comparison")}">${base100}${months}${line(jpI, "spJp")}${line(enI, "spEn")}${endDot(jpI, "spJp")}${endDot(enI, "spEn")}</svg>
-    <p class="cpNote">${t("두 선 모두 겹치는 기간의 첫날을 100으로 놓고 변화율만 비교합니다 — 100보다 위면 오른 것, 아래면 내린 것.", "Both lines start at 100 on the first shared day — above 100 means up, below means down.")}</p>
+    <div class="spHead"><span><b class="spName">${t("일본판 vs 영문판 — 누가 더 올랐나", "JP vs EN — which rose more")}</b></span><span class="cpEnds"><em class="langTag">JP</em><em class="spVerdict ${jpEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(jpEnd)}</em><em class="langTag langTagEn">EN</em><em class="spVerdict ${enEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(enEnd)}</em></span></div>
+    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${t("일본판 영문판 변화율 비교", "JP vs EN change comparison")}">${grid}${months}${line(jpI, "spJp")}${line(enI, "spEn")}${endMark(jpI, "spJp", "JP")}${endMark(enI, "spEn", "EN")}</svg>
+    <p class="cpNote">${t("가격대가 달라 그대로 겹칠 수 없어, 같은 날을 출발점(시작)으로 놓고 그 뒤 몇 % 움직였는지만 비교합니다. 점선보다 위면 오른 것, 아래면 내린 것.", "Price levels differ, so both lines share one starting day and show only the % change since. Above the dashed line = up, below = down.")}</p>
   </div>`;
 }
 
