@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709emkt";
+const DATA_VERSION = "20260709sold";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -571,13 +571,16 @@ function renderBoxSeries(set) {
   if (jpPts.length < 2) return "";
   const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
   const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
-  let enPanel = "";
-  if (enPts.length >= 2) {
+  // 영문판 그래프는 2026-08-01부터 표시(7월 실거래를 충분히 모은 뒤). 그 전엔 수집만 하고 "집계중" 안내.
+  const EN_GRAPH_FROM = "2026-08-01";
+  const enReady = new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM && enPts.length >= 2;
+  let enPanel = "", comparePanel = "";
+  if (enReady) {
     enPanel = renderSeriesPanel(enPts, { tag: "EN", tagCls: "langTagEn", cls: "spEn", fill: "#ffdb3c", name: t("영문판 박스", "English box") });
-  } else if (enPts.length === 1) {
-    enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow">${triMain(enPts[0].p, "KRW").main}<em class="spVerdict chgFlat">${t(`${enPts[0].d.slice(5).replace("-", "/")} 추적 시작 — 내일부터 흐름이 그려져요`, `tracking since ${enPts[0].d.slice(5).replace("-", "/")} — trend line starts tomorrow`)}</em></span></div></div>`;
+    comparePanel = renderComparePanel(jpPts, enPts);
+  } else {
+    enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow"><em class="spVerdict chgFlat">${t("8월부터 그래프 표시 — 7월 실거래 집계 중", "Chart live from August — collecting July sold data")}</em></span></div></div>`;
   }
-  const comparePanel = enPts.length >= 2 ? renderComparePanel(jpPts, enPts) : "";
   return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${comparePanel}${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음). eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Each chart shows one edition only (price levels differ too much to overlay). Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
 }
 
@@ -870,43 +873,30 @@ function renderBoxMarket(set) {
   return `<div class="boxMarket"><div class="bmHead"><span class="bmLabel">${t("일본판 박스 eBay Active", "Japanese box · eBay Active")}</span><small>${market.updated || t("업데이트일 미상", "date unknown")} · ${t(`표본 ${market.sampleSize || 0}건`, `${market.sampleSize || 0} samples`)}${market.excludedCount ? t(` · 제외 ${market.excludedCount}건`, ` · ${market.excludedCount} excluded`) : ""}</small></div><div class="bmRows">${priceBandRows(market)}</div>${enBlock}<p>${t("정렬 후 하위/중앙/상위 가격대입니다. 중국권 발송지와 명확한 오탐은 제외합니다. 영문판은 제목에 English 명시 매물만 집계합니다.", "Low/mid/high bands after sorting. China-region sellers and obvious mismatches are excluded. English bands count only listings explicitly titled English.")}</p></div>`;
 }
 
-// 영문판 박스 밴드 독립 블록 — 그래프(boxSeries) 유무와 무관하게 상세에 표시. 표본 3건 미만은 숨김(정확도 원칙).
-// 두 숫자 모델: "실거래(sold)=시세 대표값" + "현재 최저매물(active)=지금 사는 값". 역할이 다르니 나란히 정직하게.
-function renderEnglishBoxBand(set) {
-  const en = set.boxMarket?.en?.ebayActive;
-  const sold = set.boxMarket?.en?.ebaySold;
-  const hasActive = en && en.middle != null && (en.sampleSize || 0) >= 3;
+// 박스 "시세 vs 매물" 두 숫자 모델 — 일판·영문 각 판. 실거래(sold)=대표 시세, 최저매물(active)=지금 사는 값.
+// sold와 ask가 둘 다 있는 판만 표시(정확도 원칙). sold는 수동 수집.
+function boxTwoRow(m, ed) {
+  const sold = m && m.ebaySold, active = m && m.ebayActive;
   const hasSold = sold && sold.median != null && (sold.sampleSize || 0) >= 3;
-  if (!hasActive && !hasSold) return "";
-
-  // 두 숫자 모델(실거래 있을 때)
-  if (hasSold) {
-    const soldUsd = sold.currency === "USD" ? sold.median : marketKrw(sold.median, sold.currency);
-    const soldMain = triMain(sold.median, sold.currency).main;
-    const range = sold.low != null && sold.high != null ? `${triMain(sold.low, sold.currency).main}–${triMain(sold.high, sold.currency).main}` : "";
-    // 최저 매물(호가): active low 우선, 없으면 middle
-    const askVal = hasActive ? (en.low != null ? en.low : en.middle) : null;
-    const askUsd = askVal != null ? (en.currency === "USD" ? askVal : marketKrw(askVal, en.currency)) : null;
-    const gapPct = askUsd != null && soldUsd ? Math.round((askUsd / soldUsd - 1) * 100) : null;
-    const askCard = hasActive
-      ? `<div class="emCard emAsk"><span class="emLabel">${t("지금 최저 매물", "Lowest listing now")} <em class="emKind">${t("호가", "ask")}</em></span><b class="emVal">${triMain(askVal, en.currency).main}</b><small>${en.updated || ""} · ${t("매일 갱신", "daily")}${gapPct != null ? ` · <em class="${gapPct > 0 ? "emUp" : "emDn"}">${t(`실거래 ${gapPct >= 0 ? "+" : ""}${gapPct}%`, `${gapPct >= 0 ? "+" : ""}${gapPct}% vs sold`)}</em>` : ""}</small></div>`
-      : "";
-    return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("영문판 박스 — 시세 vs 매물", "English box — market vs listing")}</span></div>
-      <div class="emCards">
-        <div class="emCard emMarket"><span class="emLabel">${t("최근 실거래", "Recent sold")} <em class="emKind">eBay sold</em></span><b class="emVal">${soldMain}</b><small>${sold.updated || ""} · ${t(`${sold.sampleSize}건`, `${sold.sampleSize} sales`)} · ${t("시세(대표값)", "market value")}</small></div>
-        ${askCard}
-      </div>
-      ${range ? `<p class="emRange">${t("실거래 범위", "Sold range")} ${range}</p>` : ""}
-      <p class="emNote">${t('"실거래"는 실제 팔린 값(시세), "매물"은 지금 살 수 있는 최저 호가입니다. 매물이 실거래보다 높으면 급하지 않을 때 대기 신호. 영문판 미개봉 박스만 집계.', 'Sold = what actually sold (market value); listing = the cheapest you can buy now. Listings above sold = wait signal if not urgent. English sealed boxes only.')}</p>
-    </div>`;
-  }
-
-  // 실거래 없으면 기존 active 밴드(폴백)
-  const jp = set.boxMarket?.jp?.ebayActive;
-  const jpMid = jp?.middle != null ? marketKrw(jp.middle, jp.currency) : null;
-  const enMid = marketKrw(en.middle, en.currency);
-  const ratio = jpMid && enMid ? enMid / jpMid : null;
-  return `<div class="boxMarket enBoxMarket"><div class="bmHead"><span class="bmLabel">${t("영문판 박스 eBay Active", "English box · eBay Active")}</span><small>${en.updated || ""} · ${t(`표본 ${en.sampleSize}건`, `${en.sampleSize} samples`)}${ratio ? ` · <em class="bmRatio">${t(`일본판의 ×${ratio.toFixed(1)}`, `×${ratio.toFixed(1)} vs Japanese`)}</em>` : ""}</small></div><div class="bmRows">${priceBandRows(en)}</div><p>${t("제목에 English 명시된 미개봉 박스 매물만 집계. 같은 세트의 영문판·일본판 시장 비교용.", "Counts only sealed listings explicitly titled English. For comparing the English vs Japanese market of the same set.")}</p></div>`;
+  const askVal = active ? (active.low != null ? active.low : active.middle) : null;
+  const hasAsk = askVal != null && (active.sampleSize || 0) >= 3;
+  if (!hasSold || !hasAsk) return "";
+  const soldUsd = sold.currency === "USD" ? sold.median : marketKrw(sold.median, sold.currency);
+  const askUsd = active.currency === "USD" ? askVal : marketKrw(askVal, active.currency);
+  const gap = soldUsd ? Math.round((askUsd / soldUsd - 1) * 100) : null;
+  const range = sold.low != null && sold.high != null ? `${triMain(sold.low, sold.currency).main}–${triMain(sold.high, sold.currency).main}` : "";
+  return `<div class="emEdition"><div class="emEdHead"><em class="langTag ${ed.tagCls}">${ed.tag}</em><b>${ed.name}</b>${range ? `<small>${t("실거래 범위", "sold range")} ${range}</small>` : ""}</div><div class="emCards">
+      <div class="emCard emMarket"><span class="emLabel">${t("실거래", "Sold")} <em class="emKind">eBay sold</em></span><b class="emVal">${triMain(sold.median, sold.currency).main}</b><small>${sold.updated || ""} · ${t(`${sold.sampleSize}건`, `${sold.sampleSize} sales`)} · ${t("시세", "market")}</small></div>
+      <div class="emCard emAsk"><span class="emLabel">${t("최저 매물", "Lowest listing")} <em class="emKind">${t("호가", "ask")}</em></span><b class="emVal">${triMain(askVal, active.currency).main}</b><small>${active.updated || ""}${gap != null ? ` · <em class="${gap > 0 ? "emUp" : "emDn"}">${t(`실거래 ${gap >= 0 ? "+" : ""}${gap}%`, `${gap >= 0 ? "+" : ""}${gap}% vs sold`)}</em>` : ""}</small></div>
+    </div></div>`;
+}
+function renderBoxTwoNumber(set) {
+  const bm = set.boxMarket || {};
+  const rows =
+    boxTwoRow(bm.jp, { name: t("일본판", "Japanese"), tag: "JP", tagCls: "" }) +
+    boxTwoRow(bm.en, { name: t("영문판", "English"), tag: "EN", tagCls: "langTagEn" });
+  if (!rows) return "";
+  return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("박스 시세 vs 매물", "Box market vs listing")}</span></div>${rows}<p class="emNote">${t('"실거래"는 실제 팔린 값(시세), "매물"은 지금 살 수 있는 최저 호가입니다. 매물이 실거래보다 높으면 급하지 않을 때 대기 신호. 미개봉 박스만 집계.', 'Sold = what actually sold (market); listing = the cheapest you can buy now. Above sold = wait signal if not urgent. Sealed boxes only.')}</p></div>`;
 }
 
 function renderSourceLegend(set) {
@@ -1201,7 +1191,7 @@ function renderDetail() {
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   const body = state.view === "psa" ? renderPsaTable(set.psa) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderEnglishBoxBand(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();

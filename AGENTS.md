@@ -249,3 +249,11 @@
 - 데이터: `set.boxMarket.en.ebaySold = {median,low,high,sampleSize,currency,basis:"sold",source,updated}`. 수동 수집(Finding API 죽어서 자동 불가). OP-13 시드: median $486(범위 $403–535, 18건, 7/9). active low $582 → 매물이 시세 +20%.
 - 렌더: `renderEnglishBoxBand()` 실거래 있으면 2카드(.enTwo emMarket/emAsk)+갭%+범위+설명. 없으면 기존 active 밴드 폴백. 수집 방법: 브라우저로 eBay LH_Sold=1 → 영문 풀박스만(팩·로트·케이스·타국 제외) 중앙값.
 - ⚠️ **남은 불일치**: boxSeriesEn 그래프가 아직 active($605 호가)로 그려짐 → 실거래 블록($486)과 안 맞음. 다음 작업: 그래프도 sold 포인트로 전환(sold 2점+ 쌓이면). 주력 박스는 주기적 수동 sold 갱신 필요.
+
+
+## 전 박스 실거래(sold) 조사 완료 (2026-07-09)
+- **EN sold 20세트 전부** 수집(OP-01~16·EB-01·EB-03·PRB-01·02). 브라우저(Chrome MCP)+javascript_tool 추출기로 eBay 판매완료 median(사분위 p25-p75 범위). RATE=1548.63(fx.usdKrw).
+- **검증**: 20세트 EN sold가 우리 code-aware active와 전부 sane(sold=active의 0.66~1.05×) → 세트 매칭·값 정확 교차확인.
+- **JP는 OP-01만 채택**: 대부분 sold>active로 나옴 = 일본판 초판(1st ed) 프리미엄 오염(영어 검색이 초판 박스를 섞음). 정확도 위해 sold≤active인 OP-01(281 vs 325)만. 나머지 JP는 별도 일본어 쿼리 필요(추후).
+- 추출기 재현: eBay `_nkw={code} booster box&LH_Sold=1&LH_Complete=1&_ipg=240` → `.s-card` 순회, `.su-styled-text.primary`=제목, `.s-card__price`=KRW가. 필터: /booster box/ & !(pack|lot|case|display|sleeve|x\d|...) & 언어(english/japanese) & KRW>200k. JP sold 노이즈 많음 주의.
+- ⚠️ **수동 갱신 필요**: sold 자동화 불가(Finding API 죽음). 주기적(주 1회 등) 이 방법으로 재수집. 8월초 EN 그래프 켜기 전 7월치 몇 번 더 수집 권장.
