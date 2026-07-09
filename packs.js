@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709ui2";
+const DATA_VERSION = "20260709nav";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -672,6 +672,8 @@ function applyStaticI18n() {
   setText('.topbar .nav a[href="packs.html"]', "부스터팩", "Booster Packs");
   setText('.topbar .nav a[href^="amazon-lottery.html"]', "아마존 응모", "Amazon Raffle");
   setText('.topbar .nav a[href="about.html"]', "운영원칙", "Principles");
+  setText('.topbar .nav a[href="psa10-ranking.html"]', "PSA10 랭킹", "Top PSA 10");
+  setText('.topbar .nav a[href="sets/index.html"]', "세트 가이드", "Set Guides");
   // 아마존 응모 페이지로 현재 표시 언어 전달
   const amazonLink = document.querySelector('.topbar .nav a[href^="amazon-lottery.html"]');
   if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";

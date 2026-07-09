@@ -108,7 +108,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
   <body>
     <header class="topbar">
       <a class="brand" href="../packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../packs.html?hl=en">Booster Packs</a><a href="../compare.html">Compare</a><a href="index.html">Set Guides</a><a href="../about.html">About</a></nav>
+      <nav class="nav"><a href="../packs.html?hl=en">Booster Packs</a><a href="../compare.html">Compare</a><a href="../psa10-ranking.html">Top PSA 10</a><a href="index.html">Set Guides</a><a href="../about.html">About</a></nav>
     </header>
     <main class="bodyPage">`;
 }
@@ -405,7 +405,7 @@ function rankingPage() {
   <body>
     <header class="topbar">
       <a class="brand" href="packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="packs.html?hl=en">Booster Packs</a><a href="compare.html">Compare</a><a href="sets/index.html">Set Guides</a><a href="about.html">About</a></nav>
+      <nav class="nav"><a href="packs.html?hl=en">Booster Packs</a><a href="compare.html">Compare</a><a href="psa10-ranking.html" aria-current="page">Top PSA 10</a><a href="sets/index.html">Set Guides</a><a href="about.html">About</a></nav>
     </header>
     <main class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>
