@@ -845,23 +845,23 @@
       .chgDown { background: rgba(255,122,122,.14); color: #ff8f8f; }
       .chgFlat { background: rgba(255,255,255,.08); color: #aeb7c9; }
       .spSvg { display: block; width: 100%; height: auto; }
-      .spGrid { stroke: rgba(255,255,255,.09); stroke-width: 1; stroke-dasharray: 3 4; }
-      .spYLabel, .spXLabel { fill: #8d95a7; font-size: 16px; font-family: "JetBrains Mono", monospace; }
-      .spLine { fill: none; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+      .spGrid { stroke: rgba(255,255,255,.07); stroke-width: 1; stroke-dasharray: 2 5; }
+      .spYLabel, .spXLabel { fill: #7d8698; font-size: 12.5px; font-family: "JetBrains Mono", monospace; letter-spacing: -.2px; }
+      .spLine { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
       .spLine.spJp { stroke: var(--accent); }
       .spLine.spEn { stroke: var(--terminal-gold); }
-      .spArea.spJp { fill: rgba(16,215,160,.10); }
-      .spArea.spEn { fill: rgba(255,219,60,.08); }
       .spDot.spJp { fill: var(--accent); stroke: var(--terminal-bg); stroke-width: 2; }
       .spDot.spEn { fill: var(--terminal-gold); stroke: var(--terminal-bg); stroke-width: 2; }
+      .spHalo.spJp { fill: rgba(16,215,160,.22); } .spHalo.spEn { fill: rgba(255,219,60,.22); }
       .spPending { border-style: dashed; opacity: .9; }
-      .cpPanel { border-color: rgba(255,255,255,.16); }
-      .cpBase { stroke: rgba(255,255,255,.25); stroke-width: 1.5; stroke-dasharray: 5 5; }
+      .cpPanel { border-color: rgba(255,255,255,.14); background: rgba(16,19,26,.55); }
+      .cpBase { stroke: rgba(255,255,255,.28); stroke-width: 1.5; stroke-dasharray: 4 5; }
+      .cpZoneUp { fill: rgba(16,215,160,.05); } .cpZoneDn { fill: rgba(255,122,122,.045); }
       .cpEnds { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-      .cpEndTag { font-family: "JetBrains Mono", monospace; font-size: 15px; font-weight: 800; }
+      .cpEndTag { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 800; }
       .cpEndTag.spJp { fill: #10d7a0; } .cpEndTag.spEn { fill: #ffdb3c; }
       .cpYBase { fill: #aeb7c9; font-weight: 800; }
-      .cpNote { margin: 6px 0 0; color: #8d95a7; font-size: 12px; line-height: 1.5; }
+      .cpNote { margin: 8px 0 0; color: #7d8698; font-size: 12px; line-height: 1.55; }
 
       /* 紐⑤컮?? 醫곸? 諛뺤뒪 ?⑤꼸(??247px)?먯꽌 3?댁? 湲덉븸???レ옄 以묎컙??以꾨컮轅덈맖 ???몃줈 1?대줈 */
       @media (max-width: 560px) {
@@ -1153,6 +1153,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260708cmp2" defer></script>
+    <script src="packs.js?v=20260709curve" defer></script>
   </body>
 </html>

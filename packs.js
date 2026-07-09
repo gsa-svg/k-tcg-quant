@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260708cmp2";
+const DATA_VERSION = "20260709curve";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -422,26 +422,57 @@ function setAnalytics(set) {
   return { box, soldBox, pricedCards, hitPower, supportRatio, liquidityScore, cardPowerScore, demand, supply, valuation, investmentScore, spreadRatio, risks };
 }
 
-// 시세 흐름 패널(단일 라인) — 카드 몰라도 읽히게: 라벨 + 현재가 + "N개월간 올랐어요/내렸어요" 결론 + 깨끗한 선
-function renderSeriesPanel(points, opts) {
-  if (!points || points.length < 2) return "";
-  const W = 600, H = 170, padL = 74, padR = 18, padT = 18, padB = 34;
-  const sm = points.map((p, i) => {
+let __chartUid = 0;
+const MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+// 단조 3차 곡선(Fritsch–Carlson): 데이터 점을 지나되 오버슈트 없이 매끈하게. 각진 꺾은선 → 전문 차트의 핵심.
+function smoothLine(pts) {
+  const n = pts.length;
+  if (n < 2) return "";
+  if (n === 2) return `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}L${pts[1].x.toFixed(1)},${pts[1].y.toFixed(1)}`;
+  const dx = [], dy = [], m = [];
+  for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1].x - pts[i].x; dy[i] = pts[i + 1].y - pts[i].y; m[i] = dy[i] / (dx[i] || 1); }
+  const tg = [m[0]];
+  for (let i = 1; i < n - 1; i++) tg[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+  tg[n - 1] = m[n - 2];
+  for (let i = 0; i < n - 1; i++) {
+    if (m[i] === 0) { tg[i] = 0; tg[i + 1] = 0; }
+    else { const a = tg[i] / m[i], b = tg[i + 1] / m[i], h = Math.hypot(a, b); if (h > 3) { const s = 3 / h; tg[i] = s * a * m[i]; tg[i + 1] = s * b * m[i]; } }
+  }
+  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const x1 = pts[i].x + dx[i] / 3, y1 = pts[i].y + tg[i] * dx[i] / 3;
+    const x2 = pts[i + 1].x - dx[i] / 3, y2 = pts[i + 1].y - tg[i + 1] * dx[i] / 3;
+    d += `C${x1.toFixed(1)},${y1.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${pts[i + 1].x.toFixed(1)},${pts[i + 1].y.toFixed(1)}`;
+  }
+  return d;
+}
+// 표본 가중 3점 스무딩(값) — 표본 적은 날의 튐 완화
+function smoothVals(points) {
+  return points.map((p, i) => {
     let sw = 0, sv = 0;
     for (let j = Math.max(0, i - 1); j <= Math.min(points.length - 1, i + 1); j++) {
       const w = (points[j].n || 1) * (j === i ? 1.6 : 1);
       sw += w; sv += points[j].p * w;
     }
-    return Math.round(sv / sw);
+    return sv / sw;
   });
+}
+
+// 시세 흐름 패널(단일 라인) — 카드 몰라도 읽히게: 라벨 + 현재가 + "N개월간 올랐어요/내렸어요" 결론 + 부드러운 곡선
+function renderSeriesPanel(points, opts) {
+  if (!points || points.length < 2) return "";
+  const W = 600, H = 178, padL = 70, padR = 22, padT = 20, padB = 36;
+  const sm = smoothVals(points).map((v) => Math.round(v));
   const xs = points.map((p) => new Date(p.d).getTime());
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minY = Math.min(...sm), maxY = Math.max(...sm);
-  const yPad = Math.max(1, (maxY - minY) * 0.15);
+  const yPad = Math.max(1, (maxY - minY) * 0.18);
   const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
   const sy = (y) => padT + (1 - (y - (minY - yPad)) / Math.max(1, maxY - minY + yPad * 2)) * (H - padT - padB);
-  const coords = xs.map((x, i) => `${sx(x).toFixed(1)},${sy(sm[i]).toFixed(1)}`);
-  const area = `M${coords[0]} L${coords.slice(1).join(" L")} L${sx(maxX).toFixed(1)},${H - padB} L${sx(minX).toFixed(1)},${H - padB} Z`;
+  const P = xs.map((x, i) => ({ x: sx(x), y: sy(sm[i]) }));
+  const lineD = smoothLine(P);
+  const baseY = (H - padB).toFixed(1);
+  const areaD = `${lineD} L${P[P.length - 1].x.toFixed(1)},${baseY} L${P[0].x.toFixed(1)},${baseY} Z`;
   // 한 줄 결론: 기간 첫 값 대비 마지막 값 (스무딩 기준, 실측 나눗셈)
   const chg = (sm[sm.length - 1] - sm[0]) / sm[0];
   const pct = Math.round(Math.abs(chg) * 100);
@@ -454,22 +485,20 @@ function renderSeriesPanel(points, opts) {
       : t(`${months}개월간 보합`, `flat over ${months} mo`);
   const arrow = up ? "▲" : down ? "▼" : "―";
   const vCls = up ? "chgUp" : down ? "chgDown" : "chgFlat";
-  // 축: y 최저/최고 2개, x 월 라벨 (큰 글씨)
-  const yTicks = [minY, maxY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 8}" y="${(sy(v) + 5).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
-  const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const yTicks = [maxY, minY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 10}" y="${(sy(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
   let prevMonth = new Date(points[0].d).getMonth();
   const monthTicks = points.map((p, i) => {
     const m = new Date(p.d).getMonth();
     if (m === prevMonth || i === 0) { prevMonth = m; return ""; }
     prevMonth = m;
-    const x = sx(xs[i]).toFixed(1);
-    return `<text x="${x}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
+    return `<text x="${sx(xs[i]).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`;
   }).join("");
-  const [lx, ly] = coords[coords.length - 1].split(",").map(Number);
-  const lastDot = `<circle cx="${lx}" cy="${ly}" r="6" class="spDot ${opts.cls}"></circle>`;
+  const lp = P[P.length - 1];
+  const dot = `<circle cx="${lp.x.toFixed(1)}" cy="${lp.y.toFixed(1)}" r="9" class="spHalo ${opts.cls}"></circle><circle cx="${lp.x.toFixed(1)}" cy="${lp.y.toFixed(1)}" r="4.5" class="spDot ${opts.cls}"></circle>`;
+  const uid = "sp" + (++__chartUid);
   return `<div class="seriesPanel">
     <div class="spHead"><span><em class="langTag ${opts.tagCls}">${opts.tag}</em><b class="spName">${opts.name}</b></span><span class="spNow">${triMain(points[points.length - 1].p, "KRW").main}<em class="spVerdict ${vCls}">${arrow} ${verdict}</em></span></div>
-    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${opts.name} ${t("시세 흐름", "price trend")}">${yTicks}${monthTicks}<path d="${area}" class="spArea ${opts.cls}"></path><polyline points="${coords.join(" ")}" class="spLine ${opts.cls}"></polyline>${lastDot}</svg>
+    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${opts.name} ${t("시세 흐름", "price trend")}"><defs><linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${opts.fill}" stop-opacity="0.30"></stop><stop offset="0.9" stop-color="${opts.fill}" stop-opacity="0"></stop></linearGradient></defs>${yTicks}${monthTicks}<path d="${areaD}" fill="url(#${uid})"></path><path d="${lineD}" class="spLine ${opts.cls}"></path>${dot}</svg>
   </div>`;
 }
 
@@ -477,19 +506,11 @@ function renderSeriesPanel(points, opts) {
 function renderComparePanel(jpPts, enPts) {
   // 겹치는 구간: 늦게 시작한 쪽 기준
   const startD = jpPts[0].d > enPts[0].d ? jpPts[0].d : enPts[0].d;
-  // 개별 패널과 동일한 표본가중 스무딩(3점) — 삐죽거림 제거
-  const smooth = (pts) => pts.map((p, i) => {
-    let sw = 0, sv = 0;
-    for (let j = Math.max(0, i - 1); j <= Math.min(pts.length - 1, i + 1); j++) {
-      const w = (pts[j].n || 1) * (j === i ? 1.6 : 1);
-      sw += w; sv += pts[j].p * w;
-    }
-    return { d: p.d, p: sv / sw };
-  });
+  const smooth = (pts) => { const sv = smoothVals(pts); return pts.map((p, i) => ({ d: p.d, p: sv[i] })); };
   const jp = smooth(jpPts).filter((p) => p.d >= startD);
   const en = smooth(enPts).filter((p) => p.d >= startD);
   if (jp.length < 2 || en.length < 2) return "";
-  const W = 600, H = 190, padL = 60, padR = 56, padT = 18, padB = 34;
+  const W = 600, H = 196, padL = 56, padR = 54, padT = 20, padB = 36;
   const idx = (pts) => { const base = pts[0].p; return pts.map((p) => ({ d: p.d, v: (p.p / base) * 100 })); };
   const jpI = idx(jp), enI = idx(en);
   const all = [...jpI, ...enI];
@@ -497,34 +518,36 @@ function renderComparePanel(jpPts, enPts) {
   const vsAll = all.map((p) => p.v);
   const minX = Math.min(...xsAll), maxX = Math.max(...xsAll);
   let minV = Math.min(...vsAll, 100), maxV = Math.max(...vsAll, 100);
-  const vPad = Math.max(1.5, (maxV - minV) * 0.15);
+  const vPad = Math.max(2, (maxV - minV) * 0.18);
   const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
   const sv = (v) => padT + (1 - (v - (minV - vPad)) / Math.max(1, maxV - minV + vPad * 2)) * (H - padT - padB);
-  const line = (pts, cls) => `<polyline points="${pts.map((p) => `${sx(new Date(p.d).getTime()).toFixed(1)},${sv(p.v).toFixed(1)}`).join(" ")}" class="spLine ${cls}"></polyline>`;
+  const toP = (pts) => pts.map((p) => ({ x: sx(new Date(p.d).getTime()), y: sv(p.v) }));
+  const y100 = sv(100);
   const fmtChg = (v) => `${v >= 100 ? "+" : "−"}${Math.abs(Math.round(v - 100))}%`;
-  // 선 끝: 점 + 어느 판인지 태그를 바로 옆에 (범례 왕복 불필요)
+  // 위=초록빛, 아래=붉은빛 아주 옅게 → '위면 오름 / 아래면 내림' 직관 강화
+  const zones = `<rect x="${padL}" y="${padT}" width="${(W - padL - padR).toFixed(1)}" height="${Math.max(0, y100 - padT).toFixed(1)}" class="cpZoneUp"></rect><rect x="${padL}" y="${y100.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${Math.max(0, H - padB - y100).toFixed(1)}" class="cpZoneDn"></rect>`;
+  const base100 = `<line x1="${padL}" y1="${y100.toFixed(1)}" x2="${W - padR}" y2="${y100.toFixed(1)}" class="cpBase"></line><text x="${padL - 10}" y="${(y100 + 4).toFixed(1)}" class="spYLabel cpYBase" text-anchor="end">${t("시작", "start")}</text>`;
+  const tick = (v) => `<line x1="${padL}" y1="${sv(v).toFixed(1)}" x2="${W - padR}" y2="${sv(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 10}" y="${(sv(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${fmtChg(v)}</text>`;
+  let grid = "";
+  if (maxV - 100 >= 2) grid += tick(maxV);
+  if (100 - minV >= 2) grid += tick(minV);
+  const jpEnd = jpI[jpI.length - 1].v, enEnd = enI[enI.length - 1].v;
   const endMark = (pts, cls, label) => {
     const p = pts[pts.length - 1];
     const x = sx(new Date(p.d).getTime()), y = sv(p.v);
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5.5" class="spDot ${cls}"></circle><text x="${(x + 11).toFixed(1)}" y="${(y + 5).toFixed(1)}" class="cpEndTag ${cls}">${label}</text>`;
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" class="spHalo ${cls}"></circle><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="spDot ${cls}"></circle><text x="${(x + 12).toFixed(1)}" y="${(y + 5).toFixed(1)}" class="cpEndTag ${cls}">${label}</text>`;
   };
-  // 세로 눈금: 100 기준선(점선) + 위/아래 %눈금
-  const gridAt = (v, txt, base) => `<line x1="${padL}" y1="${sv(v).toFixed(1)}" x2="${W - padR}" y2="${sv(v).toFixed(1)}" class="${base ? "cpBase" : "spGrid"}"></line><text x="${padL - 8}" y="${(sv(v) + 5).toFixed(1)}" class="spYLabel${base ? " cpYBase" : ""}" text-anchor="end">${txt}</text>`;
-  let grid = gridAt(100, t("시작", "start"), true);
-  if (maxV - 100 >= 2) grid += gridAt(maxV, fmtChg(maxV), false);
-  if (100 - minV >= 2) grid += gridAt(minV, fmtChg(minV), false);
-  const jpEnd = jpI[jpI.length - 1].v, enEnd = enI[enI.length - 1].v;
-  const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   let prevM = new Date(startD).getMonth();
   const months = jp.map((p, i) => {
     const m = new Date(p.d).getMonth();
     if (m === prevM || i === 0) { prevM = m; return ""; }
     prevM = m;
-    return `<text x="${sx(new Date(p.d).getTime()).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, monthNamesEn[m])}</text>`;
+    return `<text x="${sx(new Date(p.d).getTime()).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`;
   }).join("");
+  const jpD = smoothLine(toP(jpI)), enD = smoothLine(toP(enI));
   return `<div class="seriesPanel cpPanel">
     <div class="spHead"><span><b class="spName">${t("일본판 vs 영문판 — 누가 더 올랐나", "JP vs EN — which rose more")}</b></span><span class="cpEnds"><em class="langTag">JP</em><em class="spVerdict ${jpEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(jpEnd)}</em><em class="langTag langTagEn">EN</em><em class="spVerdict ${enEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(enEnd)}</em></span></div>
-    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${t("일본판 영문판 변화율 비교", "JP vs EN change comparison")}">${grid}${months}${line(jpI, "spJp")}${line(enI, "spEn")}${endMark(jpI, "spJp", "JP")}${endMark(enI, "spEn", "EN")}</svg>
+    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${t("일본판 영문판 변화율 비교", "JP vs EN change comparison")}">${zones}${grid}${base100}${months}<path d="${jpD}" class="spLine spJp"></path><path d="${enD}" class="spLine spEn"></path>${endMark(jpI, "spJp", "JP")}${endMark(enI, "spEn", "EN")}</svg>
     <p class="cpNote">${t("가격대가 달라 그대로 겹칠 수 없어, 같은 날을 출발점(시작)으로 놓고 그 뒤 몇 % 움직였는지만 비교합니다. 점선보다 위면 오른 것, 아래면 내린 것.", "Price levels differ, so both lines share one starting day and show only the % change since. Above the dashed line = up, below = down.")}</p>
   </div>`;
 }
@@ -532,11 +555,11 @@ function renderComparePanel(jpPts, enPts) {
 function renderBoxSeries(set) {
   const jpPts = (set.boxSeries && set.boxSeries.points) || [];
   if (jpPts.length < 2) return "";
-  const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", name: t("일본판 박스", "Japanese box") });
+  const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
   const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
   let enPanel = "";
   if (enPts.length >= 2) {
-    enPanel = renderSeriesPanel(enPts, { tag: "EN", tagCls: "langTagEn", cls: "spEn", name: t("영문판 박스", "English box") });
+    enPanel = renderSeriesPanel(enPts, { tag: "EN", tagCls: "langTagEn", cls: "spEn", fill: "#ffdb3c", name: t("영문판 박스", "English box") });
   } else if (enPts.length === 1) {
     enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow">${triMain(enPts[0].p, "KRW").main}<em class="spVerdict chgFlat">${t(`${enPts[0].d.slice(5).replace("-", "/")} 추적 시작 — 내일부터 흐름이 그려져요`, `tracking since ${enPts[0].d.slice(5).replace("-", "/")} — trend line starts tomorrow`)}</em></span></div></div>`;
   }
