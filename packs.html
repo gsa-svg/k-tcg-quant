@@ -527,10 +527,10 @@
         font-size: 12px; font-weight: 900; text-decoration: none;
       }
       .marketLinks a.featured {
-        background: linear-gradient(135deg, #10d7a0 0%, #0fb4d8 100%);
-        border-color: transparent;
-        color: #041209;
-        box-shadow: 0 3px 14px rgba(16,215,160,.28);
+        background: linear-gradient(90deg, rgba(16,215,160,.20), rgba(20,23,28,.92));
+        border-color: rgba(16,215,160,.5);
+        color: #c7f6e7;
+        box-shadow: 0 3px 14px rgba(16,215,160,.16);
         transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
         flex-wrap: wrap; row-gap: 2px; padding: 6px 12px;
         word-break: keep-all; text-align: left; justify-content: flex-start;
@@ -538,11 +538,13 @@
       @media (max-width: 640px) {
         .marketLinks a.featured { width: 100%; }
       }
-      .marketLinks a.featured b { font-size: 14px; margin-left: 4px; }
+      .marketLinks a.featured b { font-size: 14px; margin-left: 4px; color: #23e6ac; }
+      .marketLinks a.featured .ctaArrow { color: #23e6ac; }
+      .marketLinks a.featured .langTag:not(.langTagEn) { background: rgba(16,215,160,.9); color: #04140d; }
       .marketLinks a.featured:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 22px rgba(16,215,160,.45);
-        filter: brightness(1.06);
+        box-shadow: 0 6px 22px rgba(16,215,160,.32);
+        filter: brightness(1.08);
       }
       .ctaArrow { margin-left: 5px; font-weight: 900; transition: transform .15s ease; }
       a:hover .ctaArrow { transform: translate(2px, -2px); }
@@ -1153,6 +1155,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260709curve" defer></script>
+    <script src="packs.js?v=20260709btn" defer></script>
   </body>
 </html>
