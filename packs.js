@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709live";
+const DATA_VERSION = "20260709usship";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -301,7 +301,7 @@ function cardBuyLinks(card) {
     if (best.price != null && Number(best.shipping) > 0) {
       const item = triMain(best.price, best.currency).main;
       const ship = triMain(best.shipping, best.currency).main;
-      breakdown = t(`검수 완료 · 상품 ${item} + 배송 ${ship}`, `verified · item ${item} + ship ${ship}`);
+      breakdown = t(`검수 완료 · 상품 ${item} + 미국배송 ${ship}`, `verified · item ${item} + US ship ${ship}`);
     } else if (best.price != null) {
       breakdown = t("검수 완료 · 무료배송", "verified · free shipping");
     }
