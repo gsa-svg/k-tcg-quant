@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260710seo";
+const DATA_VERSION = "20260710land";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -951,11 +951,12 @@ function applyRouteState() {
   if (["jp", "extra"].includes(requestedLang)) state.lang = requestedLang;
   const requestedSet = (params.get("set") || "").toUpperCase();
   const initialLang = state.lang;
-  let pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
+  const routable = (p) => p.key === requestedSet && ((p.set.cards || []).length > 0 || hasBoxData(p.set));
+  let pack = currentPacks().find(routable);
   if (!pack && requestedSet) {
     for (const lang of ["jp", "extra"]) {
       state.lang = lang;
-      pack = currentPacks().find((p) => p.key === requestedSet && (p.set.cards || []).length > 0);
+      pack = currentPacks().find(routable);
       if (pack) break;
     }
   }
@@ -1110,6 +1111,15 @@ function renderTodayDeals() {
     </div>`;
 }
 
+// 카드가 아직 없어도 박스 시세(sold/active)가 있으면 "박스 시세만" 페이지로 열 수 있다.
+function hasBoxData(set) {
+  const bm = (set && set.boxMarket) || {};
+  return ["jp", "en"].some((k) => {
+    const m = bm[k] || {};
+    return (m.ebaySold && m.ebaySold.median != null) || (m.ebayActive && (m.ebayActive.median != null || m.ebayActive.middle != null));
+  });
+}
+
 function renderPackGrid() {
   const wrap = document.querySelector("#packList");
   if (state.renderedLang === `${state.lang}:${state.hl}` && wrap.children.length) {
@@ -1119,9 +1129,12 @@ function renderPackGrid() {
   state.renderedLang = `${state.lang}:${state.hl}`;
   wrap.innerHTML = currentPacks().map((p) => {
     const has = (p.set.cards || []).length > 0;
+    const boxOnly = !has && hasBoxData(p.set);
+    const clickable = has || boxOnly;
     const active = p.key === state.selected ? " active" : "";
     const box = p.set.box || FALLBACK;
-    return `<button class="packChip${active}${has ? "" : " pending"}" data-key="${p.key}" ${has ? "" : "disabled"}><img class="packBox" src="${box}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${has ? " ready" : ""}">${has ? "TOP 10" : t("준비중", "Coming soon")}</span></span></button>`;
+    const tag = has ? "TOP 10" : boxOnly ? t("박스 시세", "Box price") : t("준비중", "Coming soon");
+    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}><img class="packBox" src="${box}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
   }).join("");
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1196,7 +1209,17 @@ function renderDetail() {
   const set = pack.set;
   const cards = set.cards || [];
   if (!cards.length) {
-    el.innerHTML = `<p class="note">${pack.code} ${packName(pack)} — ${t("아직 카드 데이터가 준비되지 않았습니다.", "Card data is not ready yet.")}</p>`;
+    // 카드 미집계 세트(예: 신규 OP-16)도 박스 시세가 있으면 죽은 페이지가 아니라 박스 시장을 먼저 보여준다.
+    const boxBlocks = `${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}`;
+    const hasBox = /emVal|bmRows|spSvg/.test(boxBlocks);
+    const soon = hasBox
+      ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
+      : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
+    el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
+    el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
+      event.stopPropagation();
+      trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
+    }));
     return;
   }
   const hasPsa = (set.psa || []).length > 0;

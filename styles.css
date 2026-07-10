@@ -657,6 +657,18 @@ h2 {
   font-size: 13px;
 }
 
+.pendingCards {
+  margin: 14px 0 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  background: rgba(16, 215, 160, 0.06);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
 .split {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
