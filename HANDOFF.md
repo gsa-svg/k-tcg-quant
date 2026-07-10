@@ -41,11 +41,17 @@
 - PSA10 sold n>=3 전면 강제(표본<3 26장 숨김). PSA10 카드 sold 상위 8엔트리 7/9 갱신(변형필터 검증됨).
 
 ## 6. 남은 작업 / 다음 우선순위
-1. **[정확도 부채] 카드 PSA10 sold 나머지 ~113장 6/29 고정** — `node tools/psa10-sold-refresh.js` 로 카드별 URL+추출기 얻어 브라우저(browser_batch 3~4장씩)로 갱신. 가치 높은 순. **멀티변형 번호는 보류.** n>=3·기존 대역과 sane만 채택. KRW로 저장(median_usd*fx.usdKrw).
+1. **[정확도 부채] 카드 PSA10 sold** — 상위 9장은 7/10 갱신 완료(6B 참고). 나머지 ~100장은 아직 6/29(대부분 저가·멀티변형). `node tools/psa10-sold-refresh.js`로 URL+추출기 얻어 브라우저(browser_batch navigate+javascript_tool 1장씩)로 갱신. **번호가 유일한 카드만**(멀티변형 보류). n>=3·제목 변형확인만 채택. KRW 저장(median_usd*fx.usdKrw). ※ sold 날짜는 UI에 안 보이므로 신선도는 정확도용(사용자 비가시).
 2. **주 1회 sold 재수집**(박스+카드). 무인 불가 → 세션에서 브라우저로. `box-sold-urls.js`/`psa10-sold-refresh.js` 헬퍼로 빠르게.
 3. **8월초**: 영문판 박스 그래프 자동 활성(코드상 날짜게이트 이미 됨) — 그 전 7월 sold 몇 번 더 수집 권장.
 4. **성장(트래픽)**: 색인은 IndexNow+사이트맵+내부링크 완료. 다음 = 커뮤니티 공유 카드(레딧 r/OnePieceTCG 등), 아티클 추가.
 5. **최대 활용 아이디어**: sold 판매량(수요 신호)·가격 모멘텀(sold 스냅샷 2개+ 후) 지표화.
+
+## 6B. 2026-07-10 B/A/C 패스 (리텐션·데이터·속도) — 캐시값 `20260710b`
+방문자 실측(GA4 authuser=1=kimtt1107): 지난 7일 활성 75명(미국34·한국20), 검색유입 27세션, eBay outbound_click 60회. 서치콘솔: 노출 150·클릭 20·평균순위 7.4. → 리텐션 나쁘지 않음. 아래로 계속 고도화.
+- **B(랜딩 다듬기)**: 카드 0장인 세트(OP-16)가 "준비중" disabled 타일 + 박스 시세도 안 뜨는 죽은 페이지였음. → `renderDetail` 카드없음 분기에서 박스 시세(sold/active) 렌더 + "TOP10 집계중" 안내(`.pendingCards`). `renderPackGrid`는 `hasBoxData()` 있으면 칩 클릭 가능("박스 시세" 태그). `applyRouteState`도 박스만 있는 세트 `?set=` 라우팅 허용. (기존엔 카드 있는 세트만) — `hasBoxData()` 헬퍼 추가.
+- **A(PSA10 sold 완성·정확도)**: 상위 9장 브라우저 eBay 재수집(7/10). 변형필터(vOK) 그대로, 제목 확인, n>=3만 채택. OP13-118·OP09-119·OP07-051·EB03-055·EB03-026·OP01-120·OP11-118·EB03-053·OP01-003. 표본 대폭↑(4→18 등). 실제 냉각 반영(OP09-119 -32%, OP01-003 -43%). **같은번호 멀티변형 15장(OP05-119·EB02-061·OP06-118·EB01-006·OP05-069·OP09-051 등)은 오염 위험으로 보류(6/29 유지)** — 정확도 원칙. 나머지 저가·6/29 카드는 미착수(가치 낮음).
+- **C(속도/모바일)**: 측정 CLS **0**, DOM 130ms, 광고 async·폰트 display=swap·preconnect 이미 양호. FCP~2s는 AdSense 메인스레드(수익원, 손 안 댐). 개선: **데이터 JSON(459KB)을 index/packs/compare.html에서 `<link rel=preload as=fetch>`** → SPA 첫 렌더 앞당김. ⚠️ **preload href의 `?v=`는 DATA_VERSION과 반드시 동기**(안 그러면 이중 다운로드). 버전 bump 스크립트가 `20260710b` 문자열을 전부 치환하므로 같이 갱신됨 — 수동으로 DATA_VERSION만 바꾸지 말 것.
 
 ## 6A. 2026-07-10 SEO · 안정성 패스 (Codex)
 - **홈 URL 정상화**: 기존 `index.html`은 곧바로 `packs.html`로 보내는 리다이렉트 전용 페이지였음. 이제 루트 `/` 자체가 실제 트래커 HTML을 제공한다. 홈 canonical, sitemap의 대표 URL, 브랜드 링크를 모두 `https://opboxindex.com/`으로 통일했다.
