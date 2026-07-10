@@ -257,3 +257,10 @@
 - **JP는 OP-01만 채택**: 대부분 sold>active로 나옴 = 일본판 초판(1st ed) 프리미엄 오염(영어 검색이 초판 박스를 섞음). 정확도 위해 sold≤active인 OP-01(281 vs 325)만. 나머지 JP는 별도 일본어 쿼리 필요(추후).
 - 추출기 재현: eBay `_nkw={code} booster box&LH_Sold=1&LH_Complete=1&_ipg=240` → `.s-card` 순회, `.su-styled-text.primary`=제목, `.s-card__price`=KRW가. 필터: /booster box/ & !(pack|lot|case|display|sleeve|x\d|...) & 언어(english/japanese) & KRW>200k. JP sold 노이즈 많음 주의.
 - ⚠️ **수동 갱신 필요**: sold 자동화 불가(Finding API 죽음). 주기적(주 1회 등) 이 방법으로 재수집. 8월초 EN 그래프 켜기 전 7월치 몇 번 더 수집 권장.
+
+
+## JP sold 전 세트 도입 (2026-07-09) — 시세vs매물 일판까지 완성
+- **일본어 집중 검색**("{code} booster box Japanese sealed" + 제목 코드검증)으로 JP 박스 sold 재수집 → **20세트 커버**(OP-04만 얇아서 스킵). EN도 20세트. 이제 거의 전 박스가 JP+EN 두 숫자.
+- **교훈 정정**: 이전에 "JP sold>active면 오염"이라 배제했는데 **틀렸음** — 그건 "현재 최저매물이 시세보다 싸다=딜 신호"인 정상 케이스. 일본어 검색+코드검증하면 클린. 배제 대신 표시.
+- 가격 floor는 JP용으로 90k KRW(~$58)로 낮춤(JP 박스가 EN보다 쌈). 사분위 범위.
+- ⚠️ sold 자동화 여전히 불가 → 주기 수동 재수집. 추출기: [[전 박스 실거래(sold) 조사 완료]] 참고, JP는 일본어 검색 쓸 것.
