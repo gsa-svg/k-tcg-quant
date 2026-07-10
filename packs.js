@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709jpsold";
+const DATA_VERSION = "20260709acc";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -289,7 +289,7 @@ function cardBuyLinks(card) {
     const country = best.country ? ` · ${escapeHtml(best.country)}` : "";
     // 실데이터 기반 배지: 최저 매물이 최근 실거래(Sold) 중간값보다 낮을 때만 표시
     let dealChip = "";
-    if (best.total != null && card.psa10Ebay?.soldBased && card.psa10Ebay.middle != null) {
+    if (best.total != null && card.psa10Ebay?.soldBased && card.psa10Ebay.middle != null && (card.psa10Ebay.sampleSize || 0) >= 3) {
       const b = marketKrw(best.total, best.currency);
       const sold = marketKrw(card.psa10Ebay.middle, card.psa10Ebay.currency);
       if (b != null && sold != null && b < sold) {
@@ -774,7 +774,7 @@ function priceLines(c) {
     const p = triMain(c.psa10Usd, "USD");
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
     h += `<span class="pl psa"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <b>${p.main}</b> <small>${p.sub}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
-  } else if (c.psa10Ebay?.sampleSize > 0) {
+  } else if ((c.psa10Ebay?.sampleSize || 0) >= 3) {
     h += `<span class="pl psaEbay"><i>${t("일본어판 PSA10 eBay", "Japanese PSA 10 eBay")}</i><span class="bandRows">${priceBandRows(c.psa10Ebay)}</span><small>eBay Sold · ${t(`표본 ${c.psa10Ebay.sampleSize}건`, `${c.psa10Ebay.sampleSize} samples`)}</small></span>`;
   } else {
     h += `<span class="pl psaNone"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <small>${t("Sold 표본 없음", "No sold sample")}</small></span>`;

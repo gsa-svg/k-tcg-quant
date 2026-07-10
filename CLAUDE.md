@@ -278,3 +278,9 @@
 - **빠른 재수집 헬퍼**: `node tools/box-sold-urls.js` → 전 세트 EN(영문검색)·JP(일본어검색) eBay 판매완료 URL + 추출기 출력. 브라우저 browser_batch로 navigate+실행 → boxMarket.[en|jp].ebaySold 갱신. 5분 배치.
 - **채택 기준**: sold=active의 0.5~1.5배 & n>=3 & 사분위 범위 & as-of 날짜. JP는 일본어 검색 필수(영문검색은 초판 프리미엄 섞임).
 - **주기**: 주 1회 권장. UI가 "as of 날짜" 표시하니 스테일해도 정직함. 세션에서 만날 때마다 새로고침(헬퍼로 빠름). (크론 247db825는 세션한정/7일만료라 신뢰 못 함 — 무시 가능.)
+
+
+## 정확도 강화: PSA10 sold n>=3 전면 강제 (2026-07-09)
+- 원칙: 표본 3건 미만 sold는 "시세"처럼 노출 금지(불확실하면 숨김). 감사서 26장이 n<3 sold 노출 중이었음.
+- 수정 위치(전부 n>=3 가드): packs.js 딜칩 비교·psaEbay 밴드(기존 sampleSize>0→>=3)·프리미엄(기존OK)·topSold(기존OK); generate-set-pages cardPrices·rankingRows(기존OK). n<3은 active 폴백 또는 "표본 없음" 표기.
+- ⚠️ 남은 정확도 과제: **카드 PSA10 sold 121장이 6/29 고정(10일+ 낡음)** — 박스처럼 브라우저로 재수집 필요(큰 작업). 랭킹/상위카드 우선 권장. eBay sold 자동화는 불가(브라우저 필수).

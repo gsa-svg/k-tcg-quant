@@ -37,7 +37,7 @@ function cardPrices(c) {
   const nm = jpyUsd(c.nmJpy);
   let psa = null, psaKind = "";
   const sold = c.psa10Ebay;
-  if (sold && sold.soldBased && sold.middle != null) {
+  if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
     const v = toUsd(sold.middle, sold.currency);
     if (v != null) { psa = v; psaKind = "sold"; }
   }
