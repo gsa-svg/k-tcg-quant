@@ -79,7 +79,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../styles.css?v=20260709nav2" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -108,7 +108,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
   <body>
     <header class="topbar">
       <a class="brand" href="../packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../packs.html?hl=en">Booster Packs</a><a href="../compare.html">Compare</a><a href="../psa10-ranking.html">Top PSA 10</a><a href="index.html">Set Guides</a><a href="../about.html">About</a></nav>
+      <nav class="nav"><a href="../packs.html?hl=en">Booster Boxes</a><a href="../compare.html">Compare</a><a href="../psa10-ranking.html">Top PSA 10</a><a href="index.html" aria-current="page">Set Guides</a><a href="../amazon-lottery.html">Amazon Raffle</a><a href="../about.html">About</a></nav>
     </header>
     <main class="bodyPage">`;
 }
@@ -383,7 +383,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260709nav2" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
@@ -405,7 +405,7 @@ function rankingPage() {
   <body>
     <header class="topbar">
       <a class="brand" href="packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="packs.html?hl=en">Booster Packs</a><a href="compare.html">Compare</a><a href="psa10-ranking.html" aria-current="page">Top PSA 10</a><a href="sets/index.html">Set Guides</a><a href="about.html">About</a></nav>
+      <nav class="nav"><a href="packs.html?hl=en">Booster Boxes</a><a href="compare.html">Compare</a><a href="psa10-ranking.html" aria-current="page">Top PSA 10</a><a href="sets/index.html">Set Guides</a><a href="amazon-lottery.html">Amazon Raffle</a><a href="about.html">About</a></nav>
     </header>
     <main class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>

@@ -1,0 +1,47 @@
+name: Generate weekly Threads assets
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Monday 03:40 KST, after the weekly market-data refresh.
+    - cron: "40 18 * * 0"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install pillow
+
+      - name: Generate weekly social assets
+        run: python tools/generate-weekly-threads-assets.py
+
+      - name: Upload weekly assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-threads-assets
+          path: social/weekly/
+          if-no-files-found: error
+
+      - name: Commit snapshot history
+        run: |
+          if git diff --quiet -- data/social-card-price-snapshots.json; then
+            echo "No snapshot changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/social-card-price-snapshots.json
+          git commit -m "chore: update weekly social snapshot"
+          git push

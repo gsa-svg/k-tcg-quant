@@ -94,8 +94,7 @@ a {
   color: #dfe6f7;
 }
 
-.nav a[aria-current="page"],
-.nav a:first-child {
+.nav a[aria-current="page"] {
   background: rgba(16, 215, 160, 0.12);
   border-color: rgba(16, 215, 160, 0.34);
   color: var(--accent);

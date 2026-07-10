@@ -96,3 +96,33 @@ The active listing audit fails when:
 - Active market data is older than `ACTIVE_LISTING_MAX_FRESH_DAYS` days. Default: `3`.
 
 Missing PSA 10 links are allowed when no reliable match exists. A blank field is safer than a wrong price.
+
+## Weekly Threads Asset Generation
+
+Workflow: `.github/workflows/generate-weekly-social-assets.yml`
+
+Schedule:
+
+- Every Monday at 03:40 KST
+- UTC cron: `40 18 * * 0`
+
+Purpose:
+
+- Generate two 1080x1350 Threads-ready image cards.
+- Generate English post copy for the weekly OP Box Index account update.
+- Store weekly Japanese NM card-price snapshots so the next run can calculate real week-over-week movers.
+
+Expected outputs:
+
+- Workflow artifact: `weekly-threads-assets`
+- `data/social-card-price-snapshots.json`
+
+Local manual run:
+
+```powershell
+python tools/generate-weekly-threads-assets.py
+```
+
+Current limitation:
+
+- This workflow generates the image and post text only. Auto-posting to Threads requires a Meta/Threads API token and app approval.

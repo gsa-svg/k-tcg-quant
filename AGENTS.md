@@ -264,3 +264,10 @@
 - **교훈 정정**: 이전에 "JP sold>active면 오염"이라 배제했는데 **틀렸음** — 그건 "현재 최저매물이 시세보다 싸다=딜 신호"인 정상 케이스. 일본어 검색+코드검증하면 클린. 배제 대신 표시.
 - 가격 floor는 JP용으로 90k KRW(~$58)로 낮춤(JP 박스가 EN보다 쌈). 사분위 범위.
 - ⚠️ sold 자동화 여전히 불가 → 주기 수동 재수집. 추출기: [[전 박스 실거래(sold) 조사 완료]] 참고, JP는 일본어 검색 쓸 것.
+
+
+## 네비 활성표시 버그 수정 (2026-07-09)
+- **원인**: styles.css `.nav a:first-child`가 항상 녹색 활성 → 어느 페이지든 첫 항목(Booster Boxes) 고정 점등 + 현재페이지(aria-current)까지 겹쳐 2개 점등. compare에서 둘 다 녹색이던 이유.
+- **수정**: `.nav a:first-child` 제거, `.nav a[aria-current="page"]`만 활성. 페이지마다 정확히 1개.
+- 네비 통일: 생성기(set/ranking) 네비를 Booster Boxes 라벨 + Amazon Raffle 추가 + Set Guides/Top PSA10에 aria-current. 전 페이지 6항목 동일.
+- CSS 변경 반영 위해 styles.css 버전 20260706copy→20260709nav2(전 HTML + 생성기 링크).
