@@ -41,7 +41,10 @@ jobs:
           node --check tools/update-box-series-history.js
           node --check tools/audit-price-quality.js
           node --check tools/audit-active-listings.js
+          node --check tools/audit-seo.js
+          node --check tools/run-with-retry.js
           node tools/test-price-outliers.js
+          node tools/audit-seo.js
 
       - name: Require eBay API secrets
         run: |
@@ -54,13 +57,13 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p logs
-          node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
+          node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
 
       - name: Update eBay English NM prices
         run: |
           set -o pipefail
           mkdir -p logs
-          node tools/update-ebay-english-nm-prices.js 2>&1 | tee logs/update-ebay-english-nm-prices.log
+          node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-ebay-english-nm-prices.js 2>&1 | tee logs/update-ebay-english-nm-prices.log
 
       - name: Update eBay Japanese NM sold prices
         run: |

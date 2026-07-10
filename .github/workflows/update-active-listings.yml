@@ -46,7 +46,10 @@ jobs:
           node --check tools/update-card-series-history.js
           node --check tools/generate-set-pages.js
           node --check tools/audit-active-listings.js
+          node --check tools/audit-seo.js
+          node --check tools/run-with-retry.js
           node tools/test-ebay-listing-filters.js
+          node tools/audit-seo.js
 
       - name: Require eBay API secrets
         run: |
@@ -59,19 +62,19 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p logs
-          node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
+          node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
 
       - name: Update eBay English box prices
         run: |
           set -o pipefail
           mkdir -p logs
-          node tools/update-ebay-english-pack-prices.js 2>&1 | tee logs/update-ebay-english-pack-prices.log
+          node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-ebay-english-pack-prices.js 2>&1 | tee logs/update-ebay-english-pack-prices.log
 
       - name: Update eBay active PSA10 links
         run: |
           set -o pipefail
           mkdir -p logs
-          node tools/update-ebay-psa10-active-links.js 2>&1 | tee logs/update-ebay-psa10-active-links.log
+          node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-ebay-psa10-active-links.js 2>&1 | tee logs/update-ebay-psa10-active-links.log
 
       - name: Refresh English box sold series (Finding API)
         run: |

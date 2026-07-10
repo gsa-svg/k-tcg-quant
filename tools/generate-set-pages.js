@@ -107,8 +107,8 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="../packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../packs.html?hl=en">Booster Boxes</a><a href="../compare.html">Compare</a><a href="../psa10-ranking.html">Top PSA 10</a><a href="index.html" aria-current="page">Set Guides</a><a href="../amazon-lottery.html">Amazon Raffle</a><a href="../about.html">About</a></nav>
+      <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav"><a href="../">Booster Boxes</a><a href="../compare.html">Compare</a><a href="../psa10-ranking.html">Top PSA 10</a><a href="index.html" aria-current="page">Set Guides</a><a href="../amazon-lottery.html">Amazon Raffle</a><a href="../about.html">About</a></nav>
     </header>
     <main class="bodyPage">`;
 }
@@ -230,7 +230,7 @@ function setPage(code, prev, next) {
   // PSA 섹션
   const psaSection = s.psaGem != null ? `
       <h2>${code} PSA 10 grading data</h2>
-      <p>${code} ${esc(nameEn)} cards achieve <strong>PSA 10 (gem mint) roughly ${s.psaGem}%</strong> of the time${s.psaTotal ? `, across ${intl(s.psaTotal)} PSA-graded cards` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity. See the <a href="../psa10-ranking.html">most valuable One Piece PSA 10 cards</a> across all sets.</p>` : "";
+      <p>${code} ${esc(nameEn)} cards achieve <strong>PSA 10 (gem mint) roughly ${s.psaGem}%</strong> of the time${s.psaTotal ? `, across ${intl(s.psaTotal)} PSA-graded cards` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity. Read the <a href="../articles/one-piece-card-price-guide.html">One Piece card price guide</a>, then see the <a href="../psa10-ranking.html">most valuable One Piece PSA 10 cards</a> across all sets.</p>` : "";
 
   const compareLink =
     code === "OP-05" || code === "OP-06"
@@ -316,12 +316,13 @@ function hubPage() {
         ${items}
       </ul>
       <div class="setNavLinks">
-        <a href="../packs.html?hl=en">Open the live price tracker</a>
+        <a href="../">Open the live price tracker</a>
         <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
         <a href="../articles/sealed-box-rules.html">What moves box prices</a>
         <a href="../articles/reseal-checklist.html">Reseal checklist</a>
         <a href="../articles/psa-population-and-prices.html">PSA population &amp; prices</a>
         <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>
+        <a href="../articles/one-piece-card-price-guide.html">Card price guide</a>
       </div>${FOOT}`;
 }
 
@@ -357,7 +358,7 @@ function rankingPage() {
     <script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/packs.html?hl=en` },
+      { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/` },
       { "@type": "ListItem", position: 2, name: "PSA 10 Value Ranking", item: canonical },
     ],
   })}</script>`;
@@ -404,8 +405,8 @@ function rankingPage() {
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="packs.html?hl=en"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="packs.html?hl=en">Booster Boxes</a><a href="compare.html">Compare</a><a href="psa10-ranking.html" aria-current="page">Top PSA 10</a><a href="sets/index.html">Set Guides</a><a href="amazon-lottery.html">Amazon Raffle</a><a href="about.html">About</a></nav>
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav"><a href="./">Booster Boxes</a><a href="compare.html">Compare</a><a href="psa10-ranking.html" aria-current="page">Top PSA 10</a><a href="sets/index.html">Set Guides</a><a href="amazon-lottery.html">Amazon Raffle</a><a href="about.html">About</a></nav>
     </header>
     <main class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>
@@ -420,7 +421,7 @@ function rankingPage() {
         </table>
       </div>
       <p class="methodNote">Method: PSA 10 median of recent eBay <em>sold</em> listings (Japanese cards), minimum 3 completed sales, as of ${esc(asOf)}. Values in USD. Tap any row for that card's full live tracker. Reflects graded-card sold prices, not raw singles.</p>
-      <div class="setNavLinks"><a href="packs.html?hl=en">Live price tracker</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
+      <div class="setNavLinks"><a href="./">Live price tracker</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you. Prices change; always confirm on eBay before buying. Not investment advice.</p>
     </main>
     <footer class="footer">

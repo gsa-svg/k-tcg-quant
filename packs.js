@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260709psa";
+const DATA_VERSION = "20260710seo";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -216,6 +216,17 @@ function updateUrl(replace = false) {
 
 function upsertHreflang(pack) {
   document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((node) => node.remove());
+  if (!state.hasExplicitSet) {
+    [["en", `${SITE_BASE}/`], ["ko", `${SITE_BASE}/?hl=ko`], ["x-default", `${SITE_BASE}/`]].forEach(([lang, href]) => {
+      const link = document.createElement("link");
+      link.rel = "alternate";
+      link.hreflang = lang;
+      link.href = href;
+      link.dataset.ktcgHreflang = "true";
+      document.head.appendChild(link);
+    });
+    return;
+  }
   const baseParams = new URLSearchParams();
   if (state.hasExplicitSet) baseParams.set("set", pack.key);
   if (state.lang !== "jp") baseParams.set("lang", state.lang);
@@ -1241,10 +1252,14 @@ function updateSeo(pack) {
     document.head.appendChild(canonical);
   }
   const params = new URLSearchParams();
-  if (isSetPage) params.set("set", pack.key);
-  if (state.lang !== "jp") params.set("lang", state.lang);
-  params.set("hl", state.hl);
-  canonical.href = `${SITE_BASE}/packs.html?${params}`;
+  if (isSetPage) {
+    params.set("set", pack.key);
+    if (state.lang !== "jp") params.set("lang", state.lang);
+    params.set("hl", state.hl);
+    canonical.href = `${SITE_BASE}/packs.html?${params}`;
+  } else {
+    canonical.href = `${SITE_BASE}/`;
+  }
   document.querySelector('meta[property="og:url"]')?.setAttribute("content", canonical.href);
   document.documentElement.lang = state.hl === "en" ? "en" : "ko";
   document.querySelector('meta[property="og:locale"]')?.setAttribute("content", state.hl === "en" ? "en_US" : "ko_KR");
