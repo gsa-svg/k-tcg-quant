@@ -1,5 +1,6 @@
 name: eBay API diagnostic (on demand)
 # recheck 2026-07-10a
+# recheck 2026-07-10b (secret fixed?)
 # GitHub 러너에서 eBay OAuth/Browse 실제 상태를 뽑아 logs/ebay-diag.json 커밋. 자기 파일 push시 발동(루프 없음).
 
 on:
