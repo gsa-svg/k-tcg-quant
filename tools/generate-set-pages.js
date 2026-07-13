@@ -67,6 +67,9 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0a0c10" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(desc)}" />
     <meta property="og:site_name" content="OP Box Index" />
@@ -373,6 +376,9 @@ function rankingPage() {
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0a0c10" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(desc)}" />
     <meta property="og:site_name" content="OP Box Index" />
