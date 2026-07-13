@@ -458,11 +458,18 @@ let sm = fs.readFileSync(smPath, "utf8");
 const today = new Date().toISOString().slice(0, 10);
 const urls = [`${SITE}/psa10-ranking.html`, `${SITE}/sets/index.html`, ...ORDER.map((c) => `${SITE}/sets/${slug(c)}.html`)];
 let added = 0;
+const bumpLastmod = (u) => {
+  const esc = u.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`(<loc>${esc}</loc>[\\s\\S]*?<lastmod>)[^<]*(</lastmod>)`);
+  if (re.test(sm)) { sm = sm.replace(re, `$1${today}$2`); return true; }
+  return false;
+};
 for (const u of urls) {
-  if (sm.includes(`<loc>${u}</loc>`)) continue;
+  if (bumpLastmod(u)) continue; // refresh existing entry's lastmod to today
   const entry = `  <url><loc>${u}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
   sm = sm.replace("</urlset>", entry + "</urlset>");
   added++;
 }
+bumpLastmod(`${SITE}/`); // home is data-driven — keep it fresh too
 fs.writeFileSync(smPath, sm, "utf8");
 console.log(JSON.stringify({ pagesWritten: written, sitemapAdded: added }));
