@@ -3,8 +3,9 @@ name: Update market data
 on:
   workflow_dispatch:
   schedule:
-    # Every Monday at 03:00 KST (Sunday 18:00 UTC).
-    - cron: "0 18 * * 0"
+    # Every Monday at 05:00 KST (Sunday 20:00 UTC) — staggered 2h after the daily
+    # active-listings run (18:00 UTC) to avoid a same-time push race on onepiece-packs.json.
+    - cron: "0 20 * * 0"
 
 permissions:
   contents: write
