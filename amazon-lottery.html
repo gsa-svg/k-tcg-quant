@@ -118,20 +118,40 @@
         font-size: 12px;
         font-weight: 900;
       }
+      .hotBadge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 0 9px;
+        border-radius: 6px;
+        background: #ff3b30;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .3px;
+      }
+      .entryItem.isHot {
+        border-color: rgba(255, 59, 48, .75);
+        box-shadow: inset 0 0 0 1px rgba(255, 59, 48, .18);
+      }
       .openLink {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 7px;
-        color: #a7abb4;
-        font-size: 24px;
-        font-weight: 600;
+        gap: 6px;
+        height: 38px;
+        padding: 0 16px;
+        border-radius: 8px;
+        background: rgba(255, 153, 0, .14);
+        border: 1px solid rgba(255, 153, 0, .55);
+        color: #ff9f2e;
+        font-size: 14px;
+        font-weight: 800;
+        white-space: nowrap;
+        letter-spacing: .2px;
       }
       .openLink:hover {
-        color: var(--accent);
-        background: rgba(16, 215, 160, .1);
+        background: rgba(255, 153, 0, .26);
+        color: #ffb454;
       }
       .guidePanel {
         margin-top: 16px;
@@ -154,7 +174,7 @@
         }
         .entryCheck,
         .selectAllCheck { width: 20px; height: 20px; }
-        .openLink { width: 30px; height: 30px; font-size: 22px; }
+        .openLink { height: 34px; padding: 0 12px; font-size: 13px; }
       }
     </style>
       <meta name="theme-color" content="#0a0c10" />
@@ -190,105 +210,105 @@
       </p>
 
       <section class="entryList" aria-label="Amazon Japan lottery entries">
-        <article class="entryItem isNew">
-          <input class="entryCheck" type="checkbox" aria-label="Select Storm Emerald" />
-          <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="스톰 에메랄드">Storm Emerald</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP928YDZ?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Storm Emerald">↗</a>
-        </article>
-        <article class="entryItem">
+        <article class="entryItem isHot">
           <input class="entryCheck" type="checkbox" aria-label="Select One Piece OP-17" />
-          <div class="entryTitle" data-ko="원피스 OP-17">One Piece OP-17</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0H43ZX8LK?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open One Piece OP-17">↗</a>
-        </article>
-        <article class="entryItem isNew">
-          <input class="entryCheck" type="checkbox" aria-label="Select One Piece OP-15" />
-          <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="원피스 OP-15">One Piece OP-15</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0G2VKBZML?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open One Piece OP-15">↗</a>
-        </article>
-        <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="Select Pokemon 30th Anniversary Pack" />
-          <div class="entryTitle" data-ko="포켓몬 30주년 팩">Pokémon 30th Anniversary Pack</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCRBL5J?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Pokemon 30th Anniversary Pack">↗</a>
-        </article>
-        <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="Select 30th Anniversary Eevee and Umbreon Set" />
-          <div class="entryTitle" data-ko="30주년 에브이·블래키 세트">30th Anniv. Eevee &amp; Umbreon Set</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCM4BCZ?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Anniversary Eevee and Umbreon Set">↗</a>
-        </article>
-        <article class="entryItem">
-          <input class="entryCheck" type="checkbox" aria-label="Select Gundam EB01" />
-          <div class="entryTitle" data-ko="건담 EB01">Gundam EB01</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GTTJ9X7C?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Gundam EB01">↗</a>
+          <div class="entryTitle"><span class="hotBadge">HOT</span><span data-ko="원피스 OP-17">One Piece OP-17</span></div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0H43ZX8LK?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open One Piece OP-17"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem">
           <input class="entryCheck" type="checkbox" aria-label="Select One Piece OP-16" />
           <div class="entryTitle" data-ko="원피스 OP-16">One Piece OP-16</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GN5JV7JS?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open One Piece OP-16">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GN5JV7JS?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open One Piece OP-16"><span data-ko="응모">Enter</span> ↗</a>
+        </article>
+        <article class="entryItem isNew">
+          <input class="entryCheck" type="checkbox" aria-label="Select One Piece OP-15" />
+          <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="원피스 OP-15">One Piece OP-15</span></div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0G2VKBZML?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open One Piece OP-15"><span data-ko="응모">Enter</span> ↗</a>
+        </article>
+        <article class="entryItem isNew">
+          <input class="entryCheck" type="checkbox" aria-label="Select Storm Emerald" />
+          <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="스톰 에메랄드">Storm Emerald</span></div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP928YDZ?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Storm Emerald"><span data-ko="응모">Enter</span> ↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="Select Pokemon 30th Anniversary Pack" />
+          <div class="entryTitle" data-ko="포켓몬 30주년 팩">Pokémon 30th Anniversary Pack</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCRBL5J?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Pokemon 30th Anniversary Pack"><span data-ko="응모">Enter</span> ↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="Select 30th Anniversary Eevee and Umbreon Set" />
+          <div class="entryTitle" data-ko="30주년 에브이·블래키 세트">30th Anniv. Eevee &amp; Umbreon Set</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCM4BCZ?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Anniversary Eevee and Umbreon Set"><span data-ko="응모">Enter</span> ↗</a>
+        </article>
+        <article class="entryItem">
+          <input class="entryCheck" type="checkbox" aria-label="Select Gundam EB01" />
+          <div class="entryTitle" data-ko="건담 EB01">Gundam EB01</div>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GTTJ9X7C?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Gundam EB01"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem">
           <input class="entryCheck" type="checkbox" aria-label="Select Abyss Eye" />
           <div class="entryTitle" data-ko="어비스아이">Abyss Eye</div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Abyss Eye">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QHQ3Y?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Abyss Eye"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select Starter Set ex Eevee ex" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="스타터 세트 ex 이브이 ex">Starter Set ex — Eevee ex</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9JJ4B7?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Starter Set ex Eevee ex">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9JJ4B7?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Starter Set ex Eevee ex"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select Starter Set ex Zorua and Zoroark ex" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="스타터 세트 ex 조로아＆조로아크 ex">Starter Set ex — Zorua &amp; Zoroark ex</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9FPZJH?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Starter Set ex Zorua and Zoroark ex">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9FPZJH?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Starter Set ex Zorua and Zoroark ex"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select Starter Set ex Sprigatito and Meowscarada ex" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="스타터 세트 ex 냐오하＆마스카ーニャ ex">Starter Set ex — Sprigatito &amp; Meowscarada ex</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QQ1JG?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Starter Set ex Sprigatito and Meowscarada ex">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GP9QQ1JG?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open Starter Set ex Sprigatito and Meowscarada ex"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 1" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 1세대 (이상해씨·파이리·꼬부기)">30th Card Set — Gen 1 · Bulbasaur / Charmander / Squirtle</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCYMRGL?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 1">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCYMRGL?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 1"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 2" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 2세대 (치코리타·브케인·리아코)">30th Card Set — Gen 2 · Chikorita / Cyndaquil / Totodile</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCC7W7Q?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 2">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCC7W7Q?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 2"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 3" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 3세대 (나무지기·아차모·물짱이)">30th Card Set — Gen 3 · Treecko / Torchic / Mudkip</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCX36HP?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 3">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCX36HP?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 3"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 4" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 4세대 (모부기·불꽃숭이·팽도리)">30th Card Set — Gen 4 · Turtwig / Chimchar / Piplup</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCX46KQ?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 4">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCX46KQ?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 4"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 5" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 5세대 (주리비얀·뚜꾸리·수댕이)">30th Card Set — Gen 5 · Snivy / Tepig / Oshawott</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCZ1VDC?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 5">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCZ1VDC?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 5"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 6" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 6세대 (도치마론·푸호꼬·개구마르)">30th Card Set — Gen 6 · Chespin / Fennekin / Froakie</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCSGX8Y?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 6">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCSGX8Y?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 6"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 7" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 7세대 (나몰빼미·냐오불·누리공)">30th Card Set — Gen 7 · Rowlet / Litten / Popplio</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCPF84C?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 7">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCPF84C?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 7"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 8" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 8세대 (흥나숭·염버니·울머기)">30th Card Set — Gen 8 · Grookey / Scorbunny / Sobble</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCTRZ8L?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 8">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCTRZ8L?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 8"><span data-ko="응모">Enter</span> ↗</a>
         </article>
         <article class="entryItem isNew">
           <input class="entryCheck" type="checkbox" aria-label="Select 30th Card Set Gen 9" />
           <div class="entryTitle"><span class="newBadge">NEW</span><span data-ko="30주년 카드세트 9세대 (나오하·뜨아거·꾸왁스)">30th Card Set — Gen 9 · Sprigatito / Fuecoco / Quaxly</span></div>
-          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCT83HB?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 9">↗</a>
+          <a class="openLink" href="https://www.amazon.co.jp/dp/B0GXCT83HB?tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Open 30th Card Set Gen 9"><span data-ko="응모">Enter</span> ↗</a>
         </article>
       </section>
 
