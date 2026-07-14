@@ -193,6 +193,33 @@ function faqLd(code, nameEn) {
   })}</script>`;
 }
 
+// 박스 Product 스키마 (리치결과용). 유효한 가격 있을 때만 방출 — 불완전 Product로 서치콘솔 경고 안 나게.
+function productLd(code, nameEn, s) {
+  const bm = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
+  if (!bm) return "";
+  const lo = bm.low != null ? toUsd(bm.low, bm.currency) : null;
+  const hi = bm.high != null ? toUsd(bm.high, bm.currency) : null;
+  const mid = bm.middle != null ? toUsd(bm.middle, bm.currency) : null;
+  if (mid == null) return "";
+  const img = s.box ? (String(s.box).startsWith("http") ? s.box : SITE + s.box) : `${SITE}/og-image.png`;
+  const offers =
+    lo != null && hi != null && hi >= lo
+      ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(lo), highPrice: Math.round(hi), offerCount: bm.sampleSize || 1, availability: "https://schema.org/InStock", url: `${SITE}/sets/${slug(code)}.html` }
+      : { "@type": "Offer", priceCurrency: "USD", price: Math.round(mid), availability: "https://schema.org/InStock", url: `${SITE}/sets/${slug(code)}.html` };
+  const prod = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: `One Piece Card Game ${code} ${nameEn} Booster Box (Japanese)`,
+    image: [img],
+    description: `Japanese sealed ${code} ${nameEn} One Piece Card Game booster box — live market price from eBay listings and sold history, top chase cards and PSA 10 population data.`,
+    brand: { "@type": "Brand", name: "Bandai" },
+    category: "Trading Card Games",
+    ...(s.release ? { releaseDate: s.release } : {}),
+    offers,
+  };
+  return `<script type="application/ld+json">${JSON.stringify(prod)}</script>`;
+}
+
 function setPage(code, prev, next) {
   const s = data.sets[code];
   const nameEn = s.nameEn || code;
@@ -250,7 +277,7 @@ function setPage(code, prev, next) {
     itemListElement: cards.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: `${c.name}${c.number ? ` (${c.number})` : ""}` })),
   })}</script>`;
 
-  return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) + cardsLd })}
+  return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) + cardsLd + productLd(code, nameEn, s) })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
         ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" loading="lazy" decoding="async" />` : ""}
