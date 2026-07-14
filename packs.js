@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260713f";
+const DATA_VERSION = "20260714a";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -777,6 +777,11 @@ function priceVenueLabel(venue) {
 
 function priceLines(c) {
   let h = "";
+  // 일본 NM 리서치 전 세트(예: OP-16 신작)는 TCGplayer USD 시세를 폴백 표시. 소스 라벨은 정직하게 TCGplayer 명시.
+  if (c.nmJpy == null && c.priceUsd != null) {
+    const p = triMain(c.priceUsd, "USD");
+    return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small>${p.sub} <em>TCGplayer</em></small></span></div>`;
+  }
   if (c.nmJpy != null) {
     const p = triMain(c.nmJpy, "JPY");
     h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small>${p.sub} <em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;

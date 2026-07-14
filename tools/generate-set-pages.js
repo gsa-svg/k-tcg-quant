@@ -34,7 +34,9 @@ const monthYear = (iso) => {
 };
 // 카드별 표시가: NM(생) + PSA10(sold 우선, 없으면 ask). 불확실하면 null → 표에 "—"
 function cardPrices(c) {
-  const nm = jpyUsd(c.nmJpy);
+  let nm = jpyUsd(c.nmJpy);
+  let nmSrc = c.nmJpy != null ? "jp" : null;
+  if (nm == null && typeof c.priceUsd === "number") { nm = c.priceUsd; nmSrc = "tcg"; } // 일본 NM 리서치 전(예: OP-16): TCGplayer USD 시세 폴백, 라벨은 TCG로 정직 표기
   let psa = null, psaKind = "";
   const sold = c.psa10Ebay;
   if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
@@ -46,7 +48,7 @@ function cardPrices(c) {
     const v = toUsd(bl.total, bl.currency);
     if (v != null) { psa = v; psaKind = "ask"; }
   }
-  return { nm, psa, psaKind };
+  return { nm, nmSrc, psa, psaKind };
 }
 
 function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
@@ -82,7 +84,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=20260713f" />
+    <link rel="stylesheet" href="../styles.css?v=20260714a" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -207,7 +209,7 @@ function setPage(code, prev, next) {
   // 실데이터 표(구워넣기): 순위·카드·NM(생)·PSA10(sold 우선). 값 없으면 "—"
   const rows = cards.map((c, i) => {
     const p = cardPrices(c);
-    return `<tr><td>${i + 1}</td><td><strong>${esc(c.name)}</strong><span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${usd(p.nm) || "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td></tr>`;
+    return `<tr><td>${i + 1}</td><td><strong>${esc(c.name)}</strong><span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 라인 (안정 데이터)
@@ -227,8 +229,9 @@ function setPage(code, prev, next) {
 
   // 데이터 기반 분석 문단 (세트마다 고유)
   const top = cards[0], tp = top ? cardPrices(top) : {};
+  const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
   const soldCount = cards.filter((c) => c.psa10Ebay && c.psa10Ebay.soldBased).length;
-  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, whose raw Japanese NM copy runs about ${usd(tp.nm)}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}. ${soldCount > 1 ? `${soldCount} of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. ` : ""}${s.psaGem != null ? `Across ${code}, cards grade PSA 10 (gem mint) about <strong>${s.psaGem}%</strong> of the time${s.psaTotal ? ` out of ${intl(s.psaTotal)} graded` : ""} — ${s.psaGem >= 85 ? "a high gem rate, which tends to keep the graded-vs-raw premium modest" : "a moderate gem rate, which keeps clean PSA 10 copies scarce and their premium wide"}.` : ""}` : "";
+  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}. ${soldCount > 1 ? `${soldCount} of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. ` : ""}${s.psaGem != null ? `Across ${code}, cards grade PSA 10 (gem mint) about <strong>${s.psaGem}%</strong> of the time${s.psaTotal ? ` out of ${intl(s.psaTotal)} graded` : ""} — ${s.psaGem >= 85 ? "a high gem rate, which tends to keep the graded-vs-raw premium modest" : "a moderate gem rate, which keeps clean PSA 10 copies scarce and their premium wide"}.` : ""}` : "";
 
   // PSA 섹션
   const psaSection = s.psaGem != null ? `
@@ -274,7 +277,7 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask"). Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
+      <p class="priceNote">${allTcg ? `NM (raw) = raw ungraded card market price (TCGplayer market, <span title="TCGplayer">TCG</span>). Japanese NM and PSA 10 sold data for this set is still being collected.` : `NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask").`} Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
       ${psaSection}
       <h2>Before you buy a sealed ${code} box</h2>
       <ul>
@@ -390,7 +393,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css?v=20260713f" />
+    <link rel="stylesheet" href="styles.css?v=20260714a" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
