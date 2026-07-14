@@ -113,7 +113,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
   <body>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../">Booster Boxes</a><a href="../compare.html">Compare</a><a href="../psa10-ranking.html">Top PSA 10</a><a href="index.html" aria-current="page">Set Guides</a><a href="../amazon-lottery.html">Amazon Raffle</a><a href="../about.html">About</a></nav>
+      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a><a href="../about.html" data-ko="운영원칙">Principles</a></nav>
     </header>
     <main class="bodyPage">`;
 }
@@ -442,7 +442,7 @@ function rankingPage() {
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="./">Booster Boxes</a><a href="compare.html">Compare</a><a href="psa10-ranking.html" aria-current="page">Top PSA 10</a><a href="sets/index.html">Set Guides</a><a href="amazon-lottery.html">Amazon Raffle</a><a href="about.html">About</a></nav>
+      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a><a href="about.html" data-ko="운영원칙">Principles</a></nav>
     </header>
     <main class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>
