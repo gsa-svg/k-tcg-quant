@@ -1113,6 +1113,11 @@ function renderTodayDeals() {
         <span class="dealPrice">${fmt(d.total, d.currency)} <small>${t("중간호가", "mid")} ${fmt(d.mid, d.currency)} · ${t(`표본 ${d.samples}건`, `${d.samples} listings`)}</small></span>
         <span class="ctaArrow">↗</span>
       </a>`).join("")}
+    </div>
+    <div class="suppliesRow">
+      <span class="suppliesLabel">${t("🛡️ 카드 보호 · 최다판매", "🛡️ Protect your cards · best-sellers")}</span>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=Dragon+Shield+Matte+Standard+Size+Card+Sleeves+100&LH_BIN=1&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("슬리브", "Sleeves")}</span> <span class="supplySub">Dragon Shield Matte</span><span class="ctaArrow">↗</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=Ultra+Pro+Toploaders+3x4+35pt&LH_BIN=1&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("탑로더", "Toploaders")}</span> <span class="supplySub">Ultra Pro 3×4</span><span class="ctaArrow">↗</span></a>
     </div>`;
 }
 
