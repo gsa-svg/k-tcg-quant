@@ -111,9 +111,9 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" href="styles.css?v=20260714c" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260714c" />
-    <link rel="preload" href="data/onepiece-packs.json?v=20260714c" as="fetch" />
+    <link rel="preload" href="styles.css?v=20260714d" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260714d" />
+    <link rel="preload" href="data/onepiece-packs.json?v=20260714d" as="fetch" />
 
     <style>
       :root {
@@ -578,15 +578,17 @@
         color: #eef2ff; text-decoration: none;
       }
       .todayDeals .dealCard:hover { border-color: var(--terminal-gold); }
-      .todayDeals .dealPct { grid-row: span 2; font-family: "JetBrains Mono", monospace; font-size: 22px; font-weight: 800; color: var(--terminal-gold); }
+      .todayDeals .dealPct { grid-row: span 2; display: flex; flex-direction: column; font-family: "JetBrains Mono", monospace; font-size: 24px; font-weight: 800; color: var(--terminal-gold); line-height: 1.02; }
+      .todayDeals .dealPct small { font-size: 9px; font-weight: 700; color: #8d95a7; letter-spacing: .3px; text-transform: uppercase; margin-top: 3px; }
       .todayDeals .dealMeta { font-size: 12px; color: #aeb7c9; } .todayDeals .dealMeta b { color: var(--terminal-teal); margin-right: 4px; }
       .todayDeals .dealPrice { grid-column: 2; font-size: 15px; font-weight: 800; } .todayDeals .dealPrice small { display: block; font-weight: 500; font-size: 10px; color: #8d95a7; }
-      .todayDeals .ctaArrow { grid-row: span 2; color: var(--terminal-gold); }
+      .todayDeals .ctaArrow { grid-row: span 2; color: var(--terminal-gold); font-size: 24px; }
+      .todayDeals .bestTag { padding: 4px 9px; border-radius: 6px; background: rgba(16,215,160,.16); color: var(--terminal-teal); font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 900; letter-spacing: .5px; }
       .todayDeals .suppliesRow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 0; }
       .todayDeals .suppliesLabel { color: var(--terminal-teal); font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; margin-right: 2px; }
-      .todayDeals .supplyCard { display: inline-flex; align-items: baseline; gap: 6px; padding: 8px 12px; border: 1px solid var(--terminal-line); border-radius: 8px; background: rgba(255,219,60,.05); }
+      .todayDeals .supplyCard { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; border: 1px solid var(--terminal-line); border-radius: 8px; background: rgba(255,219,60,.05); }
       .todayDeals .supplyCard:hover { border-color: var(--terminal-gold); }
-      .todayDeals .supplyName { color: #eef2ff; font-weight: 800; font-size: 13px; }
+      .todayDeals .supplyName { color: #eef2ff; font-weight: 800; font-size: 14px; }
       .todayDeals .supplySub { color: #8d95a7; font-size: 11px; }
       .bmEnHead { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,.12); }
       .bmRatio { font-style: normal; color: var(--terminal-gold); font-weight: 800; }
@@ -1186,6 +1188,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260714c" defer></script>
+    <script src="packs.js?v=20260714d" defer></script>
   </body>
 </html>
