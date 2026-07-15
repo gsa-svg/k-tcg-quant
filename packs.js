@@ -815,7 +815,7 @@ function applyStaticI18n() {
       </details>`,
   );
   const jpTab = document.querySelector('.langTab[data-lang="jp"]');
-  if (jpTab) jpTab.innerHTML = `${t("일본판", "Japanese")} <small id="statJp"></small>`;
+  if (jpTab) jpTab.innerHTML = `JP / EN BOX <small id="statJp"></small>`;
   const extraTab = document.querySelector('.langTab[data-lang="extra"]');
   if (extraTab) extraTab.innerHTML = `${t("EB·PRB", "EB / PRB")} <small id="statExtra"></small>`;
   setText("#adsenseTopAd .adLabel", "Google AdSense 광고 자리", "Google AdSense slot");
