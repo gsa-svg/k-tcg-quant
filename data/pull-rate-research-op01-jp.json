@@ -1,0 +1,78 @@
+{
+  "setCode": "OP-01",
+  "setName": "ROMANCE DAWN",
+  "language": "Japanese",
+  "status": "research-only",
+  "publishedToSite": false,
+  "reviewedAt": "2026-07-15",
+  "officialProductFacts": {
+    "cardsPerPack": 6,
+    "baseCardTypes": 121,
+    "parallelCardTypes": 27,
+    "publishedOdds": false,
+    "source": "https://onepiece-cardgame.com/products/boosters/op01.php"
+  },
+  "packagingAssumptions": {
+    "packsPerBox": 24,
+    "boxesPerCase": 12,
+    "status": "third-party-confirmed, not official odds data",
+    "source": "https://onepiececard-letter.com/onepiececard-op01-win/"
+  },
+  "provisionalBoxRanges": [
+    {
+      "rarity": "Super Rare",
+      "perBox": { "min": 3, "max": 4 },
+      "confidence": "low",
+      "source": "https://toreca-begin.jp/box-enclosed-pattern/"
+    },
+    {
+      "rarity": "Rare",
+      "perBox": { "min": 7, "max": 8 },
+      "confidence": "low",
+      "source": "https://toreca-begin.jp/box-enclosed-pattern/"
+    },
+    {
+      "rarity": "Leader",
+      "perBox": { "min": 4, "max": 4 },
+      "confidence": "low",
+      "source": "https://toreca-begin.jp/box-enclosed-pattern/"
+    },
+    {
+      "rarity": "Parallel slot",
+      "perBox": { "min": 0, "max": 1 },
+      "confidence": "low",
+      "source": "https://toreca-begin.jp/box-enclosed-pattern/"
+    },
+    {
+      "rarity": "DON!! Parallel",
+      "perBox": { "min": 1, "max": 1 },
+      "confidence": "low",
+      "source": "https://toreca-begin.jp/box-enclosed-pattern/"
+    }
+  ],
+  "withheld": {
+    "specificCardOdds": true,
+    "mangaShanksOdds": true,
+    "reason": "Secondary sources conflict materially and none provides an auditable sealed-case sample ledger. Claims found range from about 1 per 91-100 boxes to 1 per 15-20 cases (180-240 boxes)."
+  },
+  "conflictingMangaClaims": [
+    {
+      "claim": "about 1 per 91 boxes",
+      "source": "https://torecamap.co.jp/column/op01/"
+    },
+    {
+      "claim": "about 1 per 100 boxes",
+      "source": "https://onepiececard-letter.com/onepiececard-op01-win/"
+    },
+    {
+      "claim": "about 1 per 15-20 cases",
+      "source": "https://toreca-begin.jp/box-enclosed-pattern/"
+    }
+  ],
+  "publishGate": {
+    "minimumIndependentSealedCaseSources": 3,
+    "minimumVerifiedCases": 10,
+    "requiredFields": ["sourceUrl", "caseCount", "boxesOpened", "hitCountsByRarity", "openingDate"],
+    "rule": "Do not publish a specific-card rate until an auditable evidence ledger satisfies every requirement."
+  }
+}
