@@ -973,16 +973,19 @@ function renderPsaWeeklyChart(weekly) {
   const W = 600, H = 178, padL = 30, padR = 10, padT = 16, padB = 26;
   const maxV = Math.max(...pts.map((p) => p.v));
   const niceMax = Math.max(1000, Math.ceil(maxV / 1000) * 1000);
-  const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.min(42, step * 0.58), baseY = H - padB;
+  const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.max(2, step * 0.78), baseY = H - padB;
   const sy = (v) => padT + (1 - v / niceMax) * (H - padT - padB);
   let grid = "";
   for (let g = 0; g <= niceMax; g += 1000) {
     const y = sy(g);
     grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" class="pwGrid"></line><text x="${padL - 6}" y="${(y + 3.5).toFixed(1)}" class="pwYlab" text-anchor="end">${g === 0 ? "0" : g / 1000 + "k"}</text>`;
   }
+  let prevM = -1;
   const bars = pts.map((p, i) => {
-    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d);
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" class="pwBar${i === n - 1 ? " pwLast" : ""}" data-v="${p.v}" data-d="${p.d}"></rect><text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${dt.getMonth() + 1}/${dt.getDate()}</text>`;
+    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d), m = dt.getMonth();
+    let xlab = "";
+    if (m !== prevM) { prevM = m; xlab = `<text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`; }
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" class="pwBar" data-v="${p.v}" data-d="${p.d}"></rect>${xlab}`;
   }).join("");
   const total = pts.reduce((a, b) => a + b.v, 0);
   return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t(`최근 ${n}주 · 합계 ${num(total)}장`, `last ${n} wks · ${num(total)} total`)}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
