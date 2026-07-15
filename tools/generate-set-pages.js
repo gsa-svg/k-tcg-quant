@@ -9,8 +9,9 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
 const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
-// 슬리브 제휴링크(eBay/EPN): 원피스=표준사이즈 → 최다판매 프리미엄 슬리브 Dragon Shield Matte. 특정 매물은 만료되니 best-match 검색링크(상위 판매매물 노출)로.
-const SLEEVE_EBAY = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("Dragon Shield Matte Standard Size Card Sleeves 100")}&LH_BIN=1&_sop=12&${EPN}`;
+// One Piece cards use standard-size sleeves. This listing has verified high sales,
+// but the copy intentionally avoids a permanent "best-selling" claim.
+const SLEEVE_EBAY = `https://www.ebay.com/itm/136768331994?${EPN}`;
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 
 const ORDER = [...data.jp.list, ...data.extra.list].filter((c) => (data.sets[c]?.cards || []).length > 0);
@@ -310,7 +311,7 @@ function setPage(code, prev, next) {
         </table>
       </div>
       <p class="priceNote">${allTcg ? `NM (raw) = raw ungraded card market price (TCGplayer market, <span title="TCGplayer">TCG</span>). Japanese NM and PSA 10 sold data for this set is still being collected.` : `NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask").`} Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
-      <p class="gearRec">💎 <strong>Protect your chase cards.</strong> One Piece cards are standard size (63×88 mm), so premium sleeves fit — the best-selling one is Dragon Shield Matte. <a href="${SLEEVE_EBAY}" target="_blank" rel="noopener noreferrer sponsored">Shop best-selling sleeves on eBay ↗</a></p>
+      <p class="gearRec">💎 <strong>Protect your chase cards.</strong> One Piece cards are standard size (63×88 mm), and Dragon Shield Matte 100 is a widely used premium sleeve. <a href="${SLEEVE_EBAY}" target="_blank" rel="noopener noreferrer sponsored">Shop popular sleeves on eBay ↗</a></p>
       ${psaSection}
       <h2>Before you buy a sealed ${code} box</h2>
       <ul>

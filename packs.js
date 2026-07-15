@@ -1270,9 +1270,9 @@ function renderTodayDeals() {
       </a>`).join("")}
     </div>
     <div class="suppliesRow">
-      <span class="suppliesLabel">${t("🛡️ 카드 보호 · eBay 최다판매", "🛡️ Protect your cards · eBay best-sellers")}</span>
-      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=Dragon+Shield+Matte+Standard+Size+Card+Sleeves+100&LH_BIN=1&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("슬리브", "Sleeves")}</span> <span class="supplySub">Dragon Shield Matte</span><span class="bestTag">BEST</span></a>
-      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=Ultra+Pro+Toploaders+3x4+35pt&LH_BIN=1&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("탑로더", "Toploaders")}</span> <span class="supplySub">Ultra Pro 3×4</span><span class="bestTag">BEST</span></a>
+      <span class="suppliesLabel">${t("🛡️ 카드 보호 · eBay 인기 검증 제품", "🛡️ Protect your cards · verified popular eBay picks")}</span>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/136768331994")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("슬리브", "Sleeves")}</span> <span class="supplySub">Dragon Shield Matte 100</span><span class="bestTag">POPULAR</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/388453013911")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("탑로더", "Toploaders")}</span> <span class="supplySub">Ultra PRO 3×4 35pt</span><span class="bestTag">POPULAR</span></a>
     </div>`;
 }
 
