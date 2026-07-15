@@ -1270,9 +1270,9 @@ function renderTodayDeals() {
       </a>`).join("")}
     </div>
     <div class="suppliesRow">
-      <span class="suppliesLabel">${t("🛡️ 카드 보호 · eBay 인기 검증 제품", "🛡️ Protect your cards · verified popular eBay picks")}</span>
-      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/136768331994")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("슬리브", "Sleeves")}</span> <span class="supplySub">Dragon Shield Matte 100</span><span class="bestTag">POPULAR</span></a>
-      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/388453013911")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("탑로더", "Toploaders")}</span> <span class="supplySub">Ultra PRO 3×4 35pt</span><span class="bestTag">POPULAR</span></a>
+      <span class="suppliesLabel">${t("🛡️ 카드 보호 · TCG 커뮤니티 표준", "🛡️ Protect your cards · TCG community staples")}</span>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/136768331994")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("플레이 슬리브", "Play sleeves")}</span> <span class="supplySub">Dragon Shield Matte 100</span><span class="bestTag">PLAY</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/388453013911")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("보관 탑로더", "Storage toploaders")}</span> <span class="supplySub">Ultra PRO 3×4 35pt</span><span class="bestTag">STORE</span></a>
     </div>`;
 }
 
