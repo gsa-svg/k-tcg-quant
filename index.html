@@ -111,8 +111,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" href="styles.css?v=20260714e" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260714e" />
+    <link rel="preload" href="styles.css?v=20260715b" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260715b" />
 
     <style>
       :root {
@@ -896,6 +896,52 @@
       .cpEndTag.spJp { fill: #10d7a0; } .cpEndTag.spEn { fill: #ffdb3c; }
       .cpYBase { fill: #aeb7c9; font-weight: 800; }
       .cpNote { margin: 8px 0 0; color: #7d8698; font-size: 12px; line-height: 1.55; }
+      /* 인터랙티브 JP vs EN 교차 그래프(그래프4) */
+      .bxLegend { display: flex; gap: 12px; align-items: center; font-family: "JetBrains Mono", monospace; font-size: 12.5px; flex-wrap: wrap; }
+      .bxKey { font-style: normal; color: #c7cede; display: flex; gap: 5px; align-items: center; }
+      .bxKey::before { content: ""; width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+      .bxKeyJp::before { background: var(--accent); } .bxKeyEn::before { background: var(--terminal-gold); }
+      .bxKey b { font-weight: 800; } .bxKey b.chgUp { color: #26d07c; } .bxKey b.chgDown { color: #ff7a7a; }
+      .bxCompare { position: relative; margin: 10px 0 2px; }
+      .bxTip { position: absolute; top: 2px; transform: translateX(-50%); background: #0b0e14; border: 1px solid #2b3342; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; z-index: 6; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.45); white-space: nowrap; }
+      .bxTip b { display: block; color: #eef2ff; margin-bottom: 3px; font-size: 12px; }
+      .bxTip[hidden] { display: none; }
+      .bxTipRow { display: flex; gap: 6px; align-items: center; color: #c7cede; font-family: "JetBrains Mono", monospace; }
+      .bxTip em.bxKeyJp { color: var(--accent); font-style: normal; font-weight: 800; }
+      .bxTip em.bxKeyEn { color: var(--terminal-gold); font-style: normal; font-weight: 800; }
+      .bxPanel { position: relative; margin: 4px 0; }
+      .bxEdLabel { position: absolute; top: 3px; left: 8px; font-size: 10.5px; font-weight: 800; letter-spacing: .3px; padding: 1px 7px; border-radius: 999px; z-index: 2; }
+      .bxEdJp { color: #0b7a58; background: rgba(16,215,160,.16); }
+      .bxEdEn { color: #8a6a00; background: rgba(255,219,60,.20); }
+      .bxSvg { display: block; width: 100%; height: auto; touch-action: pan-y; cursor: crosshair; }
+      .bxCross { stroke: rgba(255,255,255,.42); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; transition: opacity .06s; pointer-events: none; }
+      .bxCross.on { opacity: 1; }
+      .bxDot { stroke: var(--terminal-bg); stroke-width: 2; opacity: 0; pointer-events: none; }
+      .bxDot.on { opacity: 1; }
+      .bxDot.spJp { fill: var(--accent); } .bxDot.spEn { fill: var(--terminal-gold); }
+      .bxAxis { position: relative; height: 15px; margin-top: 1px; }
+      .bxXlab { position: absolute; transform: translateX(-50%); font-size: 11.5px; color: #7d8698; font-family: "JetBrains Mono", monospace; }
+      /* PSA 등급·개봉 패널 */
+      .psaDest .pdSrc { color: #7d8698; font-size: 11.5px; font-weight: 500; }
+      .pdStats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin: 10px 0 4px; }
+      .pdStat { border: 1px solid var(--terminal-line); border-radius: 10px; padding: 9px 11px; background: rgba(20,23,28,.6); }
+      .pdStat span { display: block; color: #7d8698; font-size: 12px; margin-bottom: 3px; }
+      .pdStat b { font-size: 19px; font-weight: 900; color: #eef2ff; font-family: "JetBrains Mono", monospace; }
+      .pdStat b.pdGemBig { color: var(--accent); }
+      .pdTableWrap { overflow-x: auto; margin: 8px 0 2px; }
+      .pdTable { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .pdTable th { text-align: right; color: #7d8698; font-weight: 600; font-size: 11.5px; padding: 4px 8px; border-bottom: 1px solid var(--terminal-line); }
+      .pdTable th:first-child, .pdTable th:nth-child(2) { text-align: left; }
+      .pdTable td { padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.05); }
+      .pdTable td.pdNum, .pdTable td.pdGem { text-align: right; font-family: "JetBrains Mono", monospace; }
+      .pdName { color: #dfe4ee; } .pdName em { color: #7d8698; font-style: normal; font-size: 11.5px; }
+      .pdMut { color: #7d8698; }
+      .pdGem { color: var(--accent); font-weight: 700; }
+      .pdRar { display: inline-block; padding: 1px 6px; border-radius: 5px; background: rgba(255,255,255,.06); color: #aeb7c9; font-size: 10.5px; font-weight: 700; letter-spacing: .3px; }
+      @media (max-width: 560px) {
+        .pdStats { gap: 6px; } .pdStat { padding: 7px 8px; } .pdStat b { font-size: 16px; }
+        .pdTable { font-size: 12px; } .bxLegend { font-size: 11.5px; gap: 8px; }
+      }
 
       /* 紐⑤컮?? 醫곸? 諛뺤뒪 ?⑤꼸(??247px)?먯꽌 3?댁? 湲덉븸???レ옄 以묎컙??以꾨컮轅덈맖 ???몃줈 1?대줈 */
       @media (max-width: 560px) {
@@ -1187,6 +1233,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260714e" defer></script>
+    <script src="packs.js?v=20260715b" defer></script>
   </body>
 </html>

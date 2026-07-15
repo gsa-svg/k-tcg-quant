@@ -577,22 +577,107 @@ function renderComparePanel(jpPts, enPts) {
   </div>`;
 }
 
+// 날짜 라벨(툴팁용)
+function fmtTipDate(d) {
+  const dt = new Date(d);
+  return t(`${dt.getMonth() + 1}월 ${dt.getDate()}일`, `${MONTH_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`);
+}
+
+// 인터랙티브 JP vs EN 교차 그래프 — 위=일본/아래=영문 실제 원화 2단(압축 없음), 마우스/터치 시 날짜·양쪽 가격 툴팁 + 세로 크로스헤어.
+function renderBoxInteractive(set, jpPts, enPts) {
+  const W = 600, H = 132, padL = 66, padR = 14, padT = 14, padB = 8;
+  const allT = [...jpPts, ...enPts].map((p) => new Date(p.d).getTime());
+  const minX = Math.min(...allT), maxX = Math.max(...allT);
+  const sx = (tm) => padL + ((tm - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
+  const uid = ++__chartUid;
+  const panel = (pts, cls, color, gid) => {
+    const ys = pts.map((p) => p.p);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+    const yPad = Math.max(1, (maxY - minY) * 0.16);
+    const sy = (v) => padT + (1 - (v - (minY - yPad)) / Math.max(1, maxY - minY + yPad * 2)) * (H - padT - padB);
+    const P = pts.map((p) => ({ x: +sx(new Date(p.d).getTime()).toFixed(1), y: +sy(p.p).toFixed(1), d: p.d, p: p.p }));
+    const lineD = smoothLine(P);
+    const baseY = (H - padB).toFixed(1);
+    const areaD = `${lineD} L${P[P.length - 1].x},${baseY} L${P[0].x},${baseY} Z`;
+    const yTicks = [maxY, minY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 8}" y="${(sy(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
+    const svg = `<svg viewBox="0 0 ${W} ${H}" class="bxSvg" role="img" aria-label="${cls === "spJp" ? t("일본판 박스 시세 흐름", "Japanese box price trend") : t("영문판 박스 시세 흐름", "English box price trend")}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".26"></stop><stop offset=".92" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs>${yTicks}<path d="${areaD}" fill="url(#${gid})"></path><path d="${lineD}" class="spLine ${cls}"></path><line class="bxCross" x1="${padL}" y1="${padT}" x2="${padL}" y2="${(H - padB).toFixed(1)}"></line><circle class="bxDot ${cls}" r="4.5" cx="${padL}" cy="${padT}"></circle></svg>`;
+    return { P, svg };
+  };
+  const jp = panel(jpPts, "spJp", "#10d7a0", "bxgJ" + uid);
+  const en = panel(enPts, "spEn", "#ffdb3c", "bxgE" + uid);
+  let prevM = -1;
+  const xLabels = jpPts.map((p) => {
+    const dt = new Date(p.d), m = dt.getMonth();
+    if (m === prevM) return "";
+    prevM = m;
+    return `<span class="bxXlab" style="left:${(sx(dt.getTime()) / W * 100).toFixed(2)}%">${t(`${m + 1}월`, MONTH_EN[m])}</span>`;
+  }).join("");
+  const data = { W, jp: jp.P.map((o) => [o.x, o.y, o.d, o.p]), en: en.P.map((o) => [o.x, o.y, o.d, o.p]) };
+  const jpNow = jpPts[jpPts.length - 1].p, enNow = enPts[enPts.length - 1].p;
+  const jpChg = Math.round((jpPts[jpPts.length - 1].p / jpPts[0].p - 1) * 100);
+  const enChg = Math.round((enPts[enPts.length - 1].p / enPts[0].p - 1) * 100);
+  const chgTag = (c) => `<b class="${c >= 0 ? "chgUp" : "chgDown"}">${c >= 0 ? "+" : ""}${c}%</b>`;
+  const src = /Collectr/.test((set.boxSeries && set.boxSeries.source) || "")
+    ? t("Collectr 마켓가(언그레이드) 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Collectr ungraded market. Hover or tap the chart to read the price on any date.")
+    : t("eBay 매물 기준. 그래프에 마우스를 올리면 그날 가격이 나와요.", "eBay listings. Hover the chart for the price on any date.");
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English")}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
+}
+
+// 인터랙티브 그래프에 hover/탭 → 크로스헤어+툴팁 이벤트 연결(innerHTML 렌더 직후 호출)
+function initBoxCharts(root) {
+  (root || document).querySelectorAll(".bxCompare").forEach((box) => {
+    let data;
+    try { data = JSON.parse(box.getAttribute("data-bx")); } catch (e) { return; }
+    const svgJp = box.querySelector('.bxPanel[data-ed="jp"] svg');
+    const svgEn = box.querySelector('.bxPanel[data-ed="en"] svg');
+    if (!svgJp || !svgEn) return;
+    const tip = box.querySelector(".bxTip");
+    const crossJp = svgJp.querySelector(".bxCross"), crossEn = svgEn.querySelector(".bxCross");
+    const dotJp = svgJp.querySelector(".bxDot"), dotEn = svgEn.querySelector(".bxDot");
+    const W = data.W;
+    const near = (arr, vx) => { let bi = 0, bd = 1e9; for (let i = 0; i < arr.length; i++) { const dx = Math.abs(arr[i][0] - vx); if (dx < bd) { bd = dx; bi = i; } } return bi; };
+    const move = (clientX, srcSvg) => {
+      const rect = srcSvg.getBoundingClientRect();
+      const vx = (clientX - rect.left) / Math.max(1, rect.width) * W;
+      const ji = near(data.jp, vx), jx = data.jp[ji][0];
+      const ei = near(data.en, jx);
+      [crossJp, crossEn].forEach((c) => { c.setAttribute("x1", jx); c.setAttribute("x2", jx); c.classList.add("on"); });
+      dotJp.setAttribute("cx", data.jp[ji][0]); dotJp.setAttribute("cy", data.jp[ji][1]); dotJp.classList.add("on");
+      dotEn.setAttribute("cx", data.en[ei][0]); dotEn.setAttribute("cy", data.en[ei][1]); dotEn.classList.add("on");
+      tip.innerHTML = `<b>${fmtTipDate(data.jp[ji][2])}</b><span class="bxTipRow"><em class="bxKeyJp">JP</em> ${triMain(data.jp[ji][3], "KRW").main}</span><span class="bxTipRow"><em class="bxKeyEn">EN</em> ${triMain(data.en[ei][3], "KRW").main}</span>`;
+      tip.hidden = false;
+      const brect = box.getBoundingClientRect();
+      let left = clientX - brect.left;
+      left = Math.max(60, Math.min(brect.width - 60, left));
+      tip.style.left = left + "px";
+    };
+    const leave = () => { tip.hidden = true; [crossJp, crossEn, dotJp, dotEn].forEach((e) => e.classList.remove("on")); };
+    [svgJp, svgEn].forEach((svg) => {
+      svg.addEventListener("pointermove", (e) => move(e.clientX, svg));
+      svg.addEventListener("pointerdown", (e) => move(e.clientX, svg));
+      svg.addEventListener("pointerleave", leave);
+    });
+  });
+}
+
+// 인터랙티브 그래프4(+PSA 패널·밸류패널 대체)를 적용할 세트인지 — 두 판(JP·EN) 시세가 모두 준비된 세트만(현재 OP-13). 나머지 세트는 기존 UI 유지.
+const EN_GRAPH_FROM = "2026-08-01";
+function hasInteractiveBox(set) {
+  const jpPts = (set.boxSeries && set.boxSeries.points) || [];
+  const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
+  if (jpPts.length < 2 || enPts.length < 2) return false;
+  return (set.boxSeriesEn && set.boxSeriesEn.ready) || new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM;
+}
+
 function renderBoxSeries(set) {
   const jpPts = (set.boxSeries && set.boxSeries.points) || [];
   if (jpPts.length < 2) return "";
-  const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
   const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
-  // 영문판 그래프는 2026-08-01부터 표시(7월 실거래를 충분히 모은 뒤). 그 전엔 수집만 하고 "집계중" 안내.
-  const EN_GRAPH_FROM = "2026-08-01";
-  const enReady = enPts.length >= 2 && ((set.boxSeriesEn && set.boxSeriesEn.ready) || new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM);
-  let enPanel = "", comparePanel = "";
-  if (enReady) {
-    enPanel = renderSeriesPanel(enPts, { tag: "EN", tagCls: "langTagEn", cls: "spEn", fill: "#ffdb3c", name: t("영문판 박스", "English box") });
-    comparePanel = renderComparePanel(jpPts, enPts);
-  } else {
-    enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow"><em class="spVerdict chgFlat">${t("8월부터 그래프 표시 — 7월 실거래 집계 중", "Chart live from August — collecting July sold data")}</em></span></div></div>`;
-  }
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${comparePanel}${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음).", "Each chart shows one edition only (price levels differ too much to overlay).")} ${/Collectr/.test((set.boxSeries && set.boxSeries.source) || "") ? t("Collectr 마켓가(언그레이드) 기준.", "Based on Collectr ungraded market prices.") : t("eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
+  // 두 판이 다 준비되면 인터랙티브 교차 그래프(그래프4)로 표시. 그 전엔 수집만 하고 "집계중" 안내.
+  if (hasInteractiveBox(set)) return renderBoxInteractive(set, jpPts, enPts);
+  const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
+  const enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow"><em class="spVerdict chgFlat">${t("8월부터 그래프 표시 — 7월 실거래 집계 중", "Chart live from August — collecting July sold data")}</em></span></div></div>`;
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음).", "Each chart shows one edition only (price levels differ too much to overlay).")} ${/Collectr/.test((set.boxSeries && set.boxSeries.source) || "") ? t("Collectr 마켓가(언그레이드) 기준.", "Based on Collectr ungraded market prices.") : t("eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
 }
 
 async function fetchPackData() {
@@ -871,6 +956,21 @@ function renderSetAnalytics(set) {
     <div class="analysisBreakdown"><span><b>${t("매물", "Supply")}</b><small>${t(`현재 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건`, `${a.supply.activeCount} listed · ${a.supply.excludedCount} excluded`)}</small></span><span><b>${t("수요", "Demand")}</b><small>${t(`최근 4주 ${a.demand.recentSales}건`, `4wk ${a.demand.recentSales}`)}</small></span><span><b>${t("주의", "Watch")}</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span></div>
     <p class="quantNote">${t("모든 지표는 투자 참고용입니다. 가격 표본이 적거나 Active 호가 비중이 크면 보수적으로 해석하세요.", "All signals are for reference only. Treat them conservatively when samples are thin or listings dominate.")}</p>
   </div>`;
+}
+
+const PSA_RAR_SHORT = { "Treasure Rare": "TR", "Secret Rare": "SEC", "Super Rare": "SR", "Alternate Art": "AA", "Manga Alternate Art": "MAA", "Red Manga Alternate Art": "RMA", "Special Alternate Art": "SP", "Wanted Alternate Art": "WAA", "Parallel": "PLL", "Rare": "R", "Leader": "L" };
+function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase(); }
+
+// PSA 등급·개봉 패널 — 우리가 수집한 PSA 인구조사(psa/psaGem/psaTotal) 기반. 캡처(TCG Quant)와 유사 레이아웃이지만 숫자는 우리 데이터.
+function renderPsaDestruction(set) {
+  const rows = set.psa || [];
+  if (!rows.length && set.psaTotal == null) return "";
+  const gem = set.psaGem, total = set.psaTotal, updated = set.psaUpdated || "";
+  const body = rows.map((r) => `<tr><td class="pdName">${r.name} <em>#${r.number}</em></td><td><span class="pdRar">${psaRarShort(r.rarity)}</span></td><td class="pdNum">${num(r.psa10)}</td><td class="pdNum pdMut">${num(r.psa9)}</td><td class="pdNum">${num(r.total)}</td><td class="pdGem">${r.gem}%</td></tr>`).join("");
+  return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사", "Population via PSA")}${updated ? ` · ${updated}` : ""}</small></div>
+    <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total graded")}</span><b>${total != null ? num(total) : "-"}</b></div><div class="pdStat"><span>${t("젬 비율 · PSA10", "Gem rate · PSA10")}</span><b class="pdGemBig">${gem != null ? gem + "%" : "-"}</b></div><div class="pdStat"><span>${t("추적 카드", "Tracked cards")}</span><b>${rows.length}</b></div></div>
+    ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")}</th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
+    <p class="note">${t("PSA 등급 수는 개봉·파괴된 미개봉 박스의 대리 지표입니다(많이 등급될수록 미개봉 공급 감소). 주간 증감 추이는 집계 중.", "PSA grade counts proxy how many sealed boxes were opened (more graded = less sealed supply). Weekly change trend is being collected.")}</p></div>`;
 }
 
 function renderBoxMarket(set) {
@@ -1230,18 +1330,20 @@ function renderDetail() {
       event.stopPropagation();
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
     }));
+    initBoxCharts(el);
     return;
   }
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${hasInteractiveBox(set) ? "" : renderSetAnalytics(set)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${hasInteractiveBox(set) ? renderPsaDestruction(set) : ""}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();
     trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
   }));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card); }));
+  initBoxCharts(el);
 }
 
 function renderStats() {
