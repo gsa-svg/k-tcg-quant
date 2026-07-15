@@ -111,8 +111,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" href="styles.css?v=20260715h" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260715h" />
+    <link rel="preload" href="styles.css?v=20260715i" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260715i" />
 
     <style>
       :root {
@@ -938,16 +938,23 @@
       .pdMut { color: #7d8698; }
       .pdGem { color: var(--accent); font-weight: 700; }
       .pdRar { display: inline-block; padding: 1px 6px; border-radius: 5px; background: rgba(255,255,255,.06); color: #aeb7c9; font-size: 10.5px; font-weight: 700; letter-spacing: .3px; }
-      /* 주간 PSA 등급 증가 막대(청록) */
-      .pwWrap { margin: 12px 0 4px; }
-      .pwHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+      /* 주간 PSA 등급 증가 막대(TCG Quant 스타일: 눈금선+hover 툴팁) */
+      .pwWrap { margin: 14px 0 4px; }
+      .pwHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
       .pwHead b { font-size: 13px; color: #dfe4ee; font-weight: 700; }
       .pwHead small { color: #7d8698; font-size: 11.5px; }
+      .pwChartBox { position: relative; }
       .pwSvg { display: block; width: 100%; height: auto; }
-      .pwBar { fill: #26b4cf; }
-      .pwBar.pwLast { fill: #55d8ea; }
-      .pwVal { fill: #9aa4b6; font-size: 11px; font-family: "JetBrains Mono", monospace; }
+      .pwGrid { stroke: rgba(255,255,255,.06); stroke-width: 1; stroke-dasharray: 2 5; }
+      .pwYlab { fill: #6f7889; font-size: 10.5px; font-family: "JetBrains Mono", monospace; }
       .pwXlab { fill: #7d8698; font-size: 11px; font-family: "JetBrains Mono", monospace; }
+      .pwBar { fill: url(#pwGrad); cursor: pointer; transition: opacity .1s; }
+      .pwBar.pwLast { fill: url(#pwGradLast); }
+      .pwBar.pwBarHover { opacity: .82; }
+      .pwTip { position: absolute; transform: translateX(-50%); background: #0b0e14; border: 1px solid #2b3342; border-radius: 7px; padding: 6px 10px; font-size: 12px; color: #c7cede; z-index: 6; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,.45); }
+      .pwTip b { color: #55d8ea; font-size: 14px; font-weight: 800; }
+      .pwTip span { display: block; color: #7d8698; font-size: 11px; margin-top: 2px; }
+      .pwTip[hidden] { display: none; }
       @media (max-width: 560px) {
         .pdStats { gap: 6px; } .pdStat { padding: 7px 8px; } .pdStat b { font-size: 16px; }
         .pdTable { font-size: 12px; } .bxLegend { font-size: 11.5px; gap: 8px; }
@@ -1243,6 +1250,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260715h" defer></script>
+    <script src="packs.js?v=20260715i" defer></script>
   </body>
 </html>

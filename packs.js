@@ -966,19 +966,51 @@ const PSA_RAR_SHORT = { "Treasure Rare": "TR", "Secret Rare": "SEC", "Super Rare
 function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase(); }
 
 // PSA 등급·개봉 패널 — 우리가 수집한 PSA 인구조사(psa/psaGem/psaTotal) 기반. 캡처(TCG Quant)와 유사 레이아웃이지만 숫자는 우리 데이터.
-// 주간 PSA 등급 증가 막대차트 (청록 톤). 데이터는 주별 신규 등급 수(델타).
+// 주간 PSA 등급 증가 막대차트 (TCG Quant 스타일: y축 눈금선 + hover 툴팁, 청록 그라데이션)
 function renderPsaWeeklyChart(weekly) {
   const pts = (weekly && weekly.points) || [];
   if (pts.length < 2) return "";
-  const W = 600, H = 150, padL = 8, padR = 8, padT = 22, padB = 24;
+  const W = 600, H = 178, padL = 30, padR = 10, padT = 16, padB = 26;
   const maxV = Math.max(...pts.map((p) => p.v));
-  const n = pts.length, step = (W - padL - padR) / n, bw = Math.min(52, step * 0.62), baseY = H - padB;
-  const sy = (v) => padT + (1 - v / (maxV * 1.14)) * (H - padT - padB);
+  const niceMax = Math.max(1000, Math.ceil(maxV / 1000) * 1000);
+  const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.min(42, step * 0.58), baseY = H - padB;
+  const sy = (v) => padT + (1 - v / niceMax) * (H - padT - padB);
+  let grid = "";
+  for (let g = 0; g <= niceMax; g += 1000) {
+    const y = sy(g);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" class="pwGrid"></line><text x="${padL - 6}" y="${(y + 3.5).toFixed(1)}" class="pwYlab" text-anchor="end">${g === 0 ? "0" : g / 1000 + "k"}</text>`;
+  }
   const bars = pts.map((p, i) => {
-    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(0, baseY - y), dt = new Date(p.d);
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2.5" class="pwBar${i === n - 1 ? " pwLast" : ""}"></rect><text x="${cx.toFixed(1)}" y="${(y - 5).toFixed(1)}" class="pwVal" text-anchor="middle">${num(p.v)}</text><text x="${cx.toFixed(1)}" y="${(baseY + 15).toFixed(1)}" class="pwXlab" text-anchor="middle">${dt.getMonth() + 1}/${dt.getDate()}</text>`;
+    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d);
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="3" class="pwBar${i === n - 1 ? " pwLast" : ""}" data-v="${p.v}" data-d="${p.d}"></rect><text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${dt.getMonth() + 1}/${dt.getDate()}</text>`;
   }).join("");
-  return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t("주별 신규 PSA 등급 수", "new PSA grades per week")}</small></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}">${bars}</svg></div>`;
+  const total = pts.reduce((a, b) => a + b.v, 0);
+  return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t(`최근 ${n}주 · 합계 ${num(total)}장`, `last ${n} wks · ${num(total)} total`)}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
+}
+
+// 주간 막대에 hover 툴팁 연결 (renderDetail innerHTML 직후 호출)
+function initPsaWeekly(root) {
+  (root || document).querySelectorAll(".pwChartBox").forEach((box) => {
+    const tip = box.querySelector(".pwTip");
+    if (!tip) return;
+    box.querySelectorAll(".pwBar").forEach((bar) => {
+      const show = () => {
+        const v = +bar.getAttribute("data-v"), dt = new Date(bar.getAttribute("data-d"));
+        tip.innerHTML = `<b>${num(v)}</b> ${t("신규 등급", "new grades")}<span>${t(`${dt.getMonth() + 1}월 ${dt.getDate()}일`, `${MONTH_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`)}</span>`;
+        bar.classList.add("pwBarHover");
+        const br = bar.getBoundingClientRect(), cr = box.getBoundingClientRect();
+        tip.hidden = false;
+        let left = br.left - cr.left + br.width / 2;
+        left = Math.max(54, Math.min(cr.width - 54, left));
+        tip.style.left = left + "px";
+        tip.style.top = Math.max(0, br.top - cr.top - 46) + "px";
+      };
+      const hide = () => { tip.hidden = true; bar.classList.remove("pwBarHover"); };
+      bar.addEventListener("pointerenter", show);
+      bar.addEventListener("pointermove", show);
+      bar.addEventListener("pointerleave", hide);
+    });
+  });
 }
 
 function renderPsaDestruction(set) {
@@ -1364,6 +1396,7 @@ function renderDetail() {
   }));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card); }));
   initBoxCharts(el);
+  initPsaWeekly(el);
 }
 
 function renderStats() {
