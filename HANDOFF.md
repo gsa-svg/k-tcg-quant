@@ -1,7 +1,14 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
 > 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
-> 갱신: 2026-07-10.
+> 갱신: 2026-07-15.
+
+## 0. 2026-07-15 세션 (그래프4 + PSA 패널 + 8/31 예약) — 캐시 `20260715b`
+- **인터랙티브 JP vs EN 박스 그래프(그래프4)**: `renderBoxInteractive`(위=일본/아래=영문 실제 원화 2단 small-multiples, 압축 없음) + `initBoxCharts`(hover/탭 → 날짜+양쪽 가격 툴팁 + 세로 크로스헤어, 바닐라). `hasInteractiveBox(set)`(=JP·EN 시세 둘 다 준비)인 세트만 적용 → **현재 OP-13만**. 나머지 세트는 기존 UI 유지.
+- **PSA 등급·개봉 패널**: `renderPsaDestruction`(우리 `set.psa`/`psaGem`/`psaTotal` 기반, 캡처처럼 총 등급·Gem·체이스표). 인터랙티브 세트(OP-13)에만 표시. **TCG Quant 숫자 복사 안 함**(경쟁사 가공+TCGPlayer혼입).
+- **밸류패널(`renderSetAnalytics`)**: 인터랙티브 세트에선 숨김(그래프4+PSA로 대체), 나머지 세트는 그대로.
+- **8/31 예약작업**(`~/.claude/scheduled-tasks/opbox-aug31-market-data-deploy`): 그때까지 누적된 **공급(eBay active·중국제외)+판매량(eBay sold 90일 스크래핑)+PSA** 를 OP01~16에 TCG Quant식 Market Data 콤보로 반영·배포·보고. ⚠️ **선행조건: GitHub 시크릿 `EBAY_CLIENT_ID/SECRET` 재등록**(7/5부터 비어 공급 자동수집 중단). 안 하면 공급은 현재 스냅샷만.
+- 참고 벤치마크: **tcgquant.com**(공급=eBay+TCGPlayer 시장가±20% 매물수, 판매량=기간별 sold박스수). Collectr API엔 판매량/공급 히스토리 없음(가격만, `marketplace_listings`·`grades_population_history` 빈배열 확인). 방법론만 참고, 숫자는 우리 자체 수집.
 
 ## 1. 한 줄 정체성
 원피스 TCG **부스터박스/카드 시세 리서치 사이트**. eBay 실데이터를 최대한 활용하되 **정확도가 최우선**(불확실하면 숨긴다: 틀린값 노출 < 빈값). 수익화: eBay 제휴(EPN, 켜짐) + AdSense(심사중). 사장님은 비개발자, **짧고 반말**로 소통.
