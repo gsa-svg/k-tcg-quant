@@ -662,10 +662,14 @@ function initBoxCharts(root) {
 
 // 인터랙티브 그래프4(+PSA 패널·밸류패널 대체)를 적용할 세트인지 — 두 판(JP·EN) 시세가 모두 준비된 세트만(현재 OP-13). 나머지 세트는 기존 UI 유지.
 const EN_GRAPH_FROM = "2026-08-01";
+function seriesFam(s) { return /Collectr/i.test(s) ? "collectr" : /eBay/i.test(s) ? "ebay" : "other"; }
 function hasInteractiveBox(set) {
   const jpPts = (set.boxSeries && set.boxSeries.points) || [];
   const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
   if (jpPts.length < 2 || enPts.length < 2) return false;
+  // 비교 그래프는 두 판이 같은 소스일 때만 — eBay JP vs Collectr EN 같은 혼합 비교(오해 유발) 방지.
+  // 8월에 eBay EN이 준비돼 두 판 다 eBay가 되면 자동으로 eBay 비교로 전환됨.
+  if (seriesFam((set.boxSeries && set.boxSeries.source) || "") !== seriesFam((set.boxSeriesEn && set.boxSeriesEn.source) || "")) return false;
   return (set.boxSeriesEn && set.boxSeriesEn.ready) || new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM;
 }
 
