@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260714d";
+const DATA_VERSION = "20260714e";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -584,7 +584,7 @@ function renderBoxSeries(set) {
   const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
   // 영문판 그래프는 2026-08-01부터 표시(7월 실거래를 충분히 모은 뒤). 그 전엔 수집만 하고 "집계중" 안내.
   const EN_GRAPH_FROM = "2026-08-01";
-  const enReady = new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM && enPts.length >= 2;
+  const enReady = enPts.length >= 2 && ((set.boxSeriesEn && set.boxSeriesEn.ready) || new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM);
   let enPanel = "", comparePanel = "";
   if (enReady) {
     enPanel = renderSeriesPanel(enPts, { tag: "EN", tagCls: "langTagEn", cls: "spEn", fill: "#ffdb3c", name: t("영문판 박스", "English box") });
@@ -592,7 +592,7 @@ function renderBoxSeries(set) {
   } else {
     enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow"><em class="spVerdict chgFlat">${t("8월부터 그래프 표시 — 7월 실거래 집계 중", "Chart live from August — collecting July sold data")}</em></span></div></div>`;
   }
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${comparePanel}${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음). eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Each chart shows one edition only (price levels differ too much to overlay). Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${comparePanel}${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음).", "Each chart shows one edition only (price levels differ too much to overlay).")} ${/Collectr/.test((set.boxSeries && set.boxSeries.source) || "") ? t("Collectr 마켓가(언그레이드) 기준.", "Based on Collectr ungraded market prices.") : t("eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
 }
 
 async function fetchPackData() {
