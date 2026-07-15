@@ -3,6 +3,13 @@
 > 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
 > 갱신: 2026-07-15.
 
+## 0B. 2026-07-15 저녁: 전 세트 롤아웃 (OP-13식 업데이트 전면 적용) — 캐시 `20260715q`
+- **Top10 전 세트(21) TCG Quant와 동일**(카드·순서·공식 TCGplayer 1000px 이미지). 기존 카드는 TCGplayer id(또는 정규화 이름) 매칭으로 우리 가격 보존. **신규 17장은 가격 비움**(틀린 값 노출 금지) — 유유테이 NM 수집 대기 목록: scratchpad `merge_applied.txt` 하단.
+- **Collectr 박스시세 주입: JP 21세트 + EN 17세트**(주간 ~6개월, KRW). **16세트 인터랙티브 JP vs EN 그래프 활성.** EN 없는 세트(OP-01 변형모호/OP-07 프리릴만/EB-02/EB-03 박스없음, OP-16은 JP없어 eBay JP 유지) → 단일 그래프 정직 유지.
+- **PSA 패널 전 세트**: psaFull(세트전체 총·gem10·gemRate·OP평균) + 인구 top10 체이스표(합계=gem10 검증됨). **밸류패널(renderSetAnalytics) 전 세트 제거**(함수는 잔존, 미호출). psaWeekly 막대는 OP-13만(시드 데이터 있는 유일 세트) — 다른 세트는 주간 스냅 쌓이면 추가.
+- 수집 방법 기록: TCG Quant SPA는 canvas차트라 top10/PSA는 DOM 추출(tcgq_all.json), Collectr api-v2는 **getcollectr 오리진에서만 fetch 가능**(CORS) → app.getcollectr.com/robots.txt 탭에서 수집(무거운 SPA 페이지는 렌더러 얼음 — 정적 페이지 사용이 핵심). 데이터: scratchpad serdump.txt / tcgq_all.json / merge_all_sets.js(재실행 가능).
+- ⚠️ eBay 워크플로(시크릿 재등록 후)가 boxSeries(JP)를 eBay로 덮으면 소스 불일치로 비교그래프 자동 숨김(가드 정상동작). 8월 EN eBay 준비되면 양쪽 eBay로 전환.
+
 ## 0. 2026-07-15 세션 (그래프4 + PSA 패널 + 8/31 예약) — 캐시 `20260715b`
 - **인터랙티브 JP vs EN 박스 그래프(그래프4)**: `renderBoxInteractive`(위=일본/아래=영문 실제 원화 2단 small-multiples, 압축 없음) + `initBoxCharts`(hover/탭 → 날짜+양쪽 가격 툴팁 + 세로 크로스헤어, 바닐라). `hasInteractiveBox(set)`(=JP·EN 시세 둘 다 준비 **+ 두 판 소스 일치**)인 세트만 적용 → **현재 OP-13만**. 나머지 세트는 기존 UI 유지.
 - **박스 시세 소스 = eBay로 전환 결정(2026-07-15 사용자)**: OP-13은 지금 임시로 **Collectr**(6개월 히스토리, POC). eBay JP는 이미 3.5개월치 있으나 **eBay EN이 아직 얇음(7포인트)** → 8월에 eBay EN 준비되면 자동 eBay 전환. `hasInteractiveBox`에 **소스일치 가드(`seriesFam`)** 추가 = eBay JP vs Collectr EN 같은 혼합 비교 방지(자동수집이 JP만 eBay로 덮어써도 비교 그래프는 두 판 소스 같아질 때까지 숨김). 그래프 하단 출처문구는 `boxSeries.source` 기반 자동 전환(Collectr↔eBay). ⚠️ eBay EN 축적엔 eBay 시크릿 재등록 필수.
