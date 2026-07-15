@@ -111,8 +111,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" href="styles.css?v=20260715g" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260715g" />
+    <link rel="preload" href="styles.css?v=20260715h" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260715h" />
     <style>
       :root {
         --terminal-bg: #0a0c10;
@@ -937,6 +937,16 @@
       .pdMut { color: #7d8698; }
       .pdGem { color: var(--accent); font-weight: 700; }
       .pdRar { display: inline-block; padding: 1px 6px; border-radius: 5px; background: rgba(255,255,255,.06); color: #aeb7c9; font-size: 10.5px; font-weight: 700; letter-spacing: .3px; }
+      /* 주간 PSA 등급 증가 막대(청록) */
+      .pwWrap { margin: 12px 0 4px; }
+      .pwHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+      .pwHead b { font-size: 13px; color: #dfe4ee; font-weight: 700; }
+      .pwHead small { color: #7d8698; font-size: 11.5px; }
+      .pwSvg { display: block; width: 100%; height: auto; }
+      .pwBar { fill: #26b4cf; }
+      .pwBar.pwLast { fill: #55d8ea; }
+      .pwVal { fill: #9aa4b6; font-size: 11px; font-family: "JetBrains Mono", monospace; }
+      .pwXlab { fill: #7d8698; font-size: 11px; font-family: "JetBrains Mono", monospace; }
       @media (max-width: 560px) {
         .pdStats { gap: 6px; } .pdStat { padding: 7px 8px; } .pdStat b { font-size: 16px; }
         .pdTable { font-size: 12px; } .bxLegend { font-size: 11.5px; gap: 8px; }
@@ -1232,6 +1242,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260715g" defer></script>
+    <script src="packs.js?v=20260715h" defer></script>
   </body>
 </html>

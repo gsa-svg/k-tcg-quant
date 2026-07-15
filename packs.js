@@ -966,6 +966,21 @@ const PSA_RAR_SHORT = { "Treasure Rare": "TR", "Secret Rare": "SEC", "Super Rare
 function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase(); }
 
 // PSA 등급·개봉 패널 — 우리가 수집한 PSA 인구조사(psa/psaGem/psaTotal) 기반. 캡처(TCG Quant)와 유사 레이아웃이지만 숫자는 우리 데이터.
+// 주간 PSA 등급 증가 막대차트 (청록 톤). 데이터는 주별 신규 등급 수(델타).
+function renderPsaWeeklyChart(weekly) {
+  const pts = (weekly && weekly.points) || [];
+  if (pts.length < 2) return "";
+  const W = 600, H = 150, padL = 8, padR = 8, padT = 22, padB = 24;
+  const maxV = Math.max(...pts.map((p) => p.v));
+  const n = pts.length, step = (W - padL - padR) / n, bw = Math.min(52, step * 0.62), baseY = H - padB;
+  const sy = (v) => padT + (1 - v / (maxV * 1.14)) * (H - padT - padB);
+  const bars = pts.map((p, i) => {
+    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(0, baseY - y), dt = new Date(p.d);
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2.5" class="pwBar${i === n - 1 ? " pwLast" : ""}"></rect><text x="${cx.toFixed(1)}" y="${(y - 5).toFixed(1)}" class="pwVal" text-anchor="middle">${num(p.v)}</text><text x="${cx.toFixed(1)}" y="${(baseY + 15).toFixed(1)}" class="pwXlab" text-anchor="middle">${dt.getMonth() + 1}/${dt.getDate()}</text>`;
+  }).join("");
+  return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t("주별 신규 PSA 등급 수", "new PSA grades per week")}</small></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}">${bars}</svg></div>`;
+}
+
 function renderPsaDestruction(set) {
   const rows = set.psa || [];
   if (!rows.length && set.psaTotal == null) return "";
@@ -973,8 +988,9 @@ function renderPsaDestruction(set) {
   const body = rows.map((r) => `<tr><td class="pdName">${r.name} <em>#${r.number}</em></td><td><span class="pdRar">${psaRarShort(r.rarity)}</span></td><td class="pdNum">${num(r.psa10)}</td><td class="pdNum pdMut">${num(r.psa9)}</td><td class="pdNum">${num(r.total)}</td><td class="pdGem">${r.gem}%</td></tr>`).join("");
   return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사", "Population via PSA")}${updated ? ` · ${updated}` : ""}</small></div>
     <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total graded")}</span><b>${total != null ? num(total) : "-"}</b></div><div class="pdStat"><span>${t("젬 비율 · PSA10", "Gem rate · PSA10")}</span><b class="pdGemBig">${gem != null ? gem + "%" : "-"}</b></div><div class="pdStat"><span>${t("추적 카드", "Tracked cards")}</span><b>${rows.length}</b></div></div>
+    ${renderPsaWeeklyChart(set.psaWeekly)}
     ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")}</th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
-    <p class="note">${t("PSA 등급 수는 개봉·파괴된 미개봉 박스의 대리 지표입니다(많이 등급될수록 미개봉 공급 감소). 주간 증감 추이는 집계 중.", "PSA grade counts proxy how many sealed boxes were opened (more graded = less sealed supply). Weekly change trend is being collected.")}</p></div>`;
+    <p class="note">${t("아래 Top 10 표는 각 카드가 PSA 등급 받은 수(그레이드 기준)이고, 위 막대는 주별 신규 등급 수입니다. 등급이 늘수록 미개봉 박스가 개봉·파괴된 것 — 미개봉 공급 감소 신호.", "The Top 10 table shows how many of each card were PSA-graded; the bars are new grades per week. More grading means more sealed boxes opened — a proxy for shrinking sealed supply.")}</p></div>`;
 }
 
 function renderBoxMarket(set) {
