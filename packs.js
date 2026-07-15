@@ -426,11 +426,14 @@ function setAnalytics(set) {
   const valuation = valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRatio });
   const confidencePenalty = pricedCards.filter((row) => row.market.confidence === "C").length * 3;
   const riskPenalty = (spreadRatio != null && spreadRatio > 0.45 ? 12 : 0) + (!box?.soldBased ? 8 : 0) + confidencePenalty;
-  const investmentScore = Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.42 + liquidityScore * 0.24 + demand.score * 0.2 + supply.score * 0.14 - riskPenalty)));
+  // Missing sold history must stay neutral. It must never turn into a false demand signal.
+  const demandScore = demand.available ? demand.score : 50;
+  const investmentScore = Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.42 + liquidityScore * 0.24 + demandScore * 0.2 + supply.score * 0.14 - riskPenalty)));
 
   const risks = [];
   if (supply.score >= 82) risks.push(supply.label);
-  if (demand.score <= 25) risks.push(demand.label);
+  if (!demand.available) risks.push(demand.label);
+  else if (demand.score <= 25) risks.push(demand.label);
   if (!box) risks.push(t("박스가 없음", "No box price"));
   else if (!box.soldBased) risks.push(t("호가 기준(실거래 아님)", "Listing price, not sold"));
   if ((box?.sampleSize || 0) < 3) risks.push(t("박스 표본 부족", "Few box samples"));
@@ -902,15 +905,47 @@ function priceLines(c) {
 }
 
 function soldDemandStats(set) {
-  const points = (set.boxSeries?.points || []).filter((point) => point?.d && Number.isFinite(point.n)).slice().sort((a, b) => a.d.localeCompare(b.d));
-  const recent = points.slice(-4);
-  const previous = points.slice(-8, -4);
+  // `basis: active` means listings, not completed sales. Mixing it into demand
+  // was the reason every actively listed box saturated at 100/100.
+  const points = (set.boxSeries?.points || [])
+    .filter((point) => point?.d && Number.isFinite(point.n) && point.basis !== "active")
+    .slice()
+    .sort((a, b) => a.d.localeCompare(b.d));
+  const referenceDate = new Date(`${state.data?.updated || new Date().toISOString().slice(0, 10)}T00:00:00Z`);
+  const toDate = (point) => new Date(`${point.d}T00:00:00Z`);
+  const dayMs = 24 * 60 * 60 * 1000;
+  const recent = points.filter((point) => {
+    const age = (referenceDate - toDate(point)) / dayMs;
+    return age >= 0 && age <= 28;
+  });
+  const previous = points.filter((point) => {
+    const age = (referenceDate - toDate(point)) / dayMs;
+    return age > 28 && age <= 56;
+  });
   const recentSales = recent.reduce((sum, point) => sum + (point.n || 0), 0);
   const previousSales = previous.reduce((sum, point) => sum + (point.n || 0), 0);
   const trend = previousSales > 0 ? (recentSales - previousSales) / previousSales : recentSales > 0 ? 1 : 0;
-  const score = Math.max(0, Math.min(100, Math.round(recentSales * 10 + trend * 22)));
+  const lastSoldDate = points.at(-1)?.d || null;
+  const lastSoldAge = lastSoldDate ? Math.round((referenceDate - new Date(`${lastSoldDate}T00:00:00Z`)) / dayMs) : null;
+  // Weekly sold snapshots can contain several completed-sales samples in one point.
+  // Require a meaningful sold sample count, not an arbitrary number of snapshots.
+  const available = recentSales >= 3 && lastSoldAge != null && lastSoldAge <= 28;
+  if (!available) {
+    return {
+      available: false,
+      score: null,
+      label: t("판매완료 표본 대기", "Sold sample pending"),
+      recentSales,
+      previousSales,
+      trend,
+      lastSoldDate,
+    };
+  }
+  const volumeScore = Math.min(70, 70 * Math.log1p(recentSales) / Math.log(21));
+  const trendScore = previousSales > 0 ? Math.max(0, Math.min(30, 15 + trend * 15)) : 15;
+  const score = Math.round(volumeScore + trendScore);
   const label = recentSales >= 8 && trend >= 0.15 ? t("수요 강세", "Strong demand") : recentSales >= 5 ? t("수요 양호", "Healthy demand") : recentSales <= 2 ? t("수요 부진", "Weak demand") : trend < -0.25 ? t("수요 둔화", "Cooling demand") : t("수요 보통", "Steady demand");
-  return { score, label, recentSales, previousSales, trend };
+  return { available: true, score, label, recentSales, previousSales, trend, lastSoldDate };
 }
 
 function supplyPressureStats(set) {
@@ -929,7 +964,8 @@ function valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRati
   let score = 50;
   if (soldGap != null) score += soldGap >= 0.25 ? 30 : soldGap >= 0.1 ? 18 : soldGap <= -0.25 ? -25 : soldGap <= -0.1 ? -12 : 0;
   if (supportRatio != null) score += supportRatio >= 6 ? 28 : supportRatio >= 3 ? 18 : supportRatio >= 1.5 ? 8 : supportRatio < 0.8 ? -14 : 0;
-  if (demand.score >= 70) score += 10; else if (demand.score <= 25) score -= 10;
+  if (demand.available && demand.score >= 70) score += 10;
+  else if (demand.available && demand.score <= 25) score -= 10;
   if (supply.score >= 65) score += 8; else if (supply.score <= 25) score -= 5;
   if (spreadRatio != null && spreadRatio > 0.45) score -= 12;
   if (box && !box.soldBased) score -= 6;
@@ -947,6 +983,11 @@ function renderSetAnalytics(set) {
   const support = a.supportRatio == null ? "-" : `${a.supportRatio.toFixed(1)}x`;
   const spread = a.spreadRatio == null ? "-" : `${Math.round(a.spreadRatio * 100)}%`;
   const demandTrend = a.demand.trend > 0 ? `+${Math.round(a.demand.trend * 100)}%` : `${Math.round(a.demand.trend * 100)}%`;
+  const demandScore = a.demand.available ? a.demand.score : "-";
+  const demandClass = a.demand.available ? scoreClass(a.demand.score) : "watch";
+  const demandDetail = a.demand.available
+    ? t(`최근 4주 eBay 판매완료 표본 ${a.demand.recentSales}건 · 이전 대비 ${demandTrend}`, `${a.demand.recentSales} eBay sold samples in 4 weeks · ${demandTrend} vs. prior`)
+    : t("eBay 판매완료 표본이 부족하거나 오래되어 점수를 숨깁니다.", "Not scored: eBay sold samples are too thin or stale.");
   const valuationSentence = a.valuation.soldGap == null ? t("최근 Sold 자료가 부족해 카드값·공급·수요 중심으로 봅니다.", "Recent sold data is limited, so the signal leans on card value, supply and demand.") : t(`현재 박스가는 ${a.valuation.gapDirectionText} 수준입니다.`, `The current box price is ${a.valuation.gapDirectionText}.`);
   return `<div class="quantPanel">
     <div class="valuationBanner ${a.valuation.tone}"><span>${t("밸류 구간", "Valuation range")}</span><strong>${a.valuation.label}<small>${a.valuation.score}/100</small></strong><p>${valuationSentence}</p><small>${t("현재", "Current")} ${a.valuation.current ? triMain(a.valuation.current, "KRW").main : "-"} · ${t("최근 Sold", "Recent sold")} ${a.valuation.sold ? triMain(a.valuation.sold, "KRW").main : "-"}</small></div>
@@ -954,10 +995,10 @@ function renderSetAnalytics(set) {
     <div class="quantMetric ${scoreClass(a.cardPowerScore)}"><span>${t("카드 지지력", "Card support")}</span><strong>${support}</strong><small>${t("박스값 대비 TOP10 카드 시세", "Top 10 card value vs. box price")}</small></div>
     <div class="quantMetric ${scoreClass(a.liquidityScore)}"><span>${t("데이터 신뢰도", "Data confidence")}</span><strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong><small>${t(`표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장`, `Samples: ${a.box?.sampleSize || 0} boxes · ${a.pricedCards.length} cards`)}</small></div>
     <div class="quantMetric ${pressureClass(a.supply.score)}"><span>${t("매물 희소성", "Scarcity")}</span><strong>${a.supply.score}<small>/100 · ${a.supply.label}</small></strong><small>${t(`현재 매물 ${a.supply.activeCount}건`, `${a.supply.activeCount} active listings`)}</small></div>
-    <div class="quantMetric ${scoreClass(a.demand.score)}"><span>${t("수요 강도", "Demand")}</span><strong>${a.demand.score}<small>/100 · ${a.demand.label}</small></strong><small>${t(`최근 4주 ${a.demand.recentSales}건 · ${demandTrend}`, `${a.demand.recentSales} sold in 4 weeks · ${demandTrend}`)}</small></div>
+    <div class="quantMetric ${demandClass}"><span>${t("수요 강도", "Demand")}</span><strong>${demandScore}<small>${a.demand.available ? `/100 · ${a.demand.label}` : `· ${a.demand.label}`}</small></strong><small>${demandDetail}</small></div>
     <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}"><span>${t("가격 편차", "Price spread")}</span><strong>${spread}</strong><small>${t("동일 박스 최고·최저가 차이", "High-low gap for the same box")}</small></div>
-    <div class="analysisSummary"><h3>${t("분석 요약", "Analysis summary")}</h3><p>${valuationSentence}</p><p>${t(`최근 4주 판매 ${a.demand.recentSales}건, 이전 대비 ${demandTrend}.`, `${a.demand.recentSales} sold in the last 4 weeks, ${demandTrend} vs. prior.`)}</p><p>${t(`현재 매물 ${a.supply.activeCount}건으로 ${a.supply.label} 상태입니다.`, `${a.supply.activeCount} active listings: ${a.supply.label}.`)}</p><p>${t(`카드 지지력은 박스값의 ${support}입니다.`, `Card support is ${support} of the box price.`)}</p></div>
-    <div class="analysisBreakdown"><span><b>${t("매물", "Supply")}</b><small>${t(`현재 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건`, `${a.supply.activeCount} listed · ${a.supply.excludedCount} excluded`)}</small></span><span><b>${t("수요", "Demand")}</b><small>${t(`최근 4주 ${a.demand.recentSales}건`, `4wk ${a.demand.recentSales}`)}</small></span><span><b>${t("주의", "Watch")}</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span></div>
+    <div class="analysisSummary"><h3>${t("분석 요약", "Analysis summary")}</h3><p>${valuationSentence}</p><p>${demandDetail}</p><p>${t(`현재 매물 ${a.supply.activeCount}건으로 ${a.supply.label} 상태입니다.`, `${a.supply.activeCount} active listings: ${a.supply.label}.`)}</p><p>${t(`카드 지지력은 박스값의 ${support}입니다.`, `Card support is ${support} of the box price.`)}</p></div>
+    <div class="analysisBreakdown"><span><b>${t("매물", "Supply")}</b><small>${t(`현재 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건`, `${a.supply.activeCount} listed · ${a.supply.excludedCount} excluded`)}</small></span><span><b>${t("수요", "Demand")}</b><small>${a.demand.available ? t(`eBay Sold 4주 ${a.demand.recentSales}건`, `eBay Sold 4wk ${a.demand.recentSales}`) : t("판매완료 표본 대기", "Sold sample pending")}</small></span><span><b>${t("주의", "Watch")}</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span></div>
     <p class="quantNote">${t("모든 지표는 투자 참고용입니다. 가격 표본이 적거나 Active 호가 비중이 크면 보수적으로 해석하세요.", "All signals are for reference only. Treat them conservatively when samples are thin or listings dominate.")}</p>
   </div>`;
 }
@@ -1186,7 +1227,7 @@ function renderCompareTable() {
     <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성·데이터 신뢰도를 종합한 점수. 높을수록 데이터상 매력적. 매수 추천이 아닙니다.", "Combined score of card value, demand, scarcity and data confidence. Higher = more appealing on the data. Not buying advice.")}</dd></div>
     <div><dt>${t("최고 카드 실거래", "Top card sold")}</dt><dd>${t("이 박스 히트카드 중 최고가의 eBay 실제 판매가(PSA10, 판매 3건 이상). 호가가 아닌 진짜 팔린 값 — 가장 신뢰할 수 있는 기준.", "The box's highest chase card by actual eBay sold price (PSA 10, 3+ sales). Real completed sales, not asking prices — the most credible number here.")}</dd></div>
     <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("박스 안 TOP10 카드의 '판매자 호가' 합이 박스가의 몇 배인지. 실거래가 아닌 참고치이며, '1장 쏠림' 표시는 카드 한 장이 절반 이상을 차지한다는 뜻. 봉입률 비공개라 개봉 이득 보장 아님.", "How many times the top-10 cards' seller asking prices cover the box price. Reference only (not sold data); 'top-heavy' means a single card makes up over half. Pull rates aren't public — no guaranteed open value.")}</dd></div>
-    <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 판매 건수와 추세. 높을수록 잘 팔리는 박스.", "Recent 4-week sold count and trend. Higher = the box is selling faster.")}</dd></div>
+    <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 eBay 판매완료 표본과 이전 기간 대비 추세. 현재 매물 수는 제외하며, 표본이 부족하면 점수를 숨김.", "Recent 4-week eBay sold samples and trend vs. the prior period. Active listings are excluded; thin samples are not scored.")}</dd></div>
     <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("현재 시장에 올라온 매물이 얼마나 적은지. 높을수록 지금 구하기 어려움.", "How few boxes are listed right now. Higher = harder to find at the moment.")}</dd></div>
   </dl>`;
   const thead = `<tr>
@@ -1210,7 +1251,7 @@ function renderCompareTable() {
       <td><span class="ctScore ${scoreClassLocal(r.invest)}">${r.invest}</span></td>
       <td class="ctTopSold">${topSold}</td>
       <td class="ctSupport">${support}</td>
-      <td><span class="ctScore ${scoreClassLocal(r.demand.score)}">${r.demand.score}</span></td>
+       <td>${r.demand.available ? `<span class="ctScore ${scoreClassLocal(r.demand.score)}">${r.demand.score}</span>` : `<span class="ctScore sMid" title="${t("판매완료 표본 부족 또는 오래됨", "Sold samples are thin or stale")}">–</span>`}</td>
       <td><span class="ctScore ${scoreClassLocal(r.supply.score)}">${r.supply.score}</span></td>
     </tr>`;
   }).join("");
