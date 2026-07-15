@@ -618,7 +618,7 @@ function renderBoxInteractive(set, jpPts, enPts) {
   const enChg = Math.round((enPts[enPts.length - 1].p / enPts[0].p - 1) * 100);
   const chgTag = (c) => `<b class="${c >= 0 ? "chgUp" : "chgDown"}">${c >= 0 ? "+" : ""}${c}%</b>`;
   const src = /Collectr/.test((set.boxSeries && set.boxSeries.source) || "")
-    ? t("Collectr 마켓가(언그레이드) 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Collectr ungraded market. Hover or tap the chart to read the price on any date.")
+    ? t("마켓 시세 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Market price. Hover or tap the chart to read the price on any date.")
     : t("eBay 매물 기준. 그래프에 마우스를 올리면 그날 가격이 나와요.", "eBay listings. Hover the chart for the price on any date.");
   return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English")}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
 }
@@ -681,7 +681,7 @@ function renderBoxSeries(set) {
   if (hasInteractiveBox(set)) return renderBoxInteractive(set, jpPts, enPts);
   const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
   const enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow"><em class="spVerdict chgFlat">${t("8월부터 그래프 표시 — 7월 실거래 집계 중", "Chart live from August — collecting July sold data")}</em></span></div></div>`;
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음).", "Each chart shows one edition only (price levels differ too much to overlay).")} ${/Collectr/.test((set.boxSeries && set.boxSeries.source) || "") ? t("Collectr 마켓가(언그레이드) 기준.", "Based on Collectr ungraded market prices.") : t("eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음).", "Each chart shows one edition only (price levels differ too much to overlay).")} ${/Collectr/.test((set.boxSeries && set.boxSeries.source) || "") ? t("마켓 시세 기준.", "Based on market price.") : t("eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
 }
 
 async function fetchPackData() {
