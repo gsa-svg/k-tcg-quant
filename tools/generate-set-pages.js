@@ -87,7 +87,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=20260716b" />
+    <link rel="stylesheet" href="../styles.css?v=20260716c" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -235,7 +235,8 @@ function setPage(code, prev, next) {
   const title = `${code} ${nameEn} Booster Box Price (Japanese) — Top Chase Cards & PSA Data | OP Box Index`;
   const desc = `Live ${code} ${nameEn} Japanese booster box price from eBay listings and sold data, top 10 chase cards (${top3}), PSA 10 population stats and a pre-purchase checklist.`;
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
-  const release = s.release ? `<p class="eyebrow">Released ${esc(s.release)} · Japanese edition</p>` : `<p class="eyebrow">Japanese edition</p>`;
+  // s.release = 영문(NA)판 발매일. "일본판 페이지인데 Released=EN날짜"로 읽히던 오표기 수정
+  const release = s.release ? `<p class="eyebrow">Japanese edition · EN release ${esc(s.release)}</p>` : `<p class="eyebrow">Japanese edition</p>`;
 
   const enc = encodeURIComponent(code);
 
@@ -247,7 +248,7 @@ function setPage(code, prev, next) {
 
   // 세트 요약 라인 (안정 데이터)
   const summaryBits = [];
-  if (s.release) summaryBits.push(`Released <b>${esc(monthYear(s.release))}</b>`);
+  if (s.release) summaryBits.push(`EN release <b>${esc(monthYear(s.release))}</b>`);
   if (s.cardCount) summaryBits.push(`<b>${esc(String(s.cardCount))}</b> cards`);
   if (s.psaGem != null) summaryBits.push(`PSA 10 gem rate <b>${esc(String(s.psaGem))}%</b>${s.psaTotal ? ` (${intl(s.psaTotal)} graded)` : ""}`);
   const summaryLine = summaryBits.length ? `<p class="dataSummary">${summaryBits.join(" · ")}</p>` : "";
@@ -463,7 +464,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css?v=20260716b" />
+    <link rel="stylesheet" href="styles.css?v=20260716c" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
