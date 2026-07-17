@@ -105,8 +105,8 @@
     <meta name="description" content="Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Top 10 chase cards, sold-price trends and PSA population data. No hype, just data." />
     <link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin />
     <link rel="preconnect" href="https://card.yuyu-tei.jp" crossorigin />
-    <link rel="preload" href="styles.css?v=20260717c" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260717c" />
+    <link rel="preload" href="styles.css?v=20260717d" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260717d" />
 
     <style>
       :root {
@@ -276,7 +276,7 @@
       .hitRar {
         position: absolute; top: 6px; right: 6px; z-index: 2;
         padding: 1px 7px; border-radius: 7px; font-size: 10px; font-weight: 900;
-        color: #fff; background: color-mix(in srgb, var(--c) 75%, #000);
+        color: #fff; background: #10141c; border: 1px solid color-mix(in srgb, var(--c) 65%, #fff);
       }
       .hitCard figcaption { padding: 7px 2px 0; }
       .hitName { display: block; font-weight: 800; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; word-break: keep-all; }
@@ -296,7 +296,7 @@
         display: block; width: auto; margin-bottom: 4px; color: var(--accent);
       }
       .pl small { color: #9aa4b6; }
-      .pl.psaNone { margin-top: 4px; padding-top: 5px; border-top: 1px solid #252b38; opacity: .72; }
+      .pl.psaNone { margin-top: 4px; padding-top: 5px; border-top: 1px solid #252b38; }
       .buyLinks { margin-top: 7px; display: grid; gap: 3px; }
       .buyLinks small { color: #9aa4b6; font-size: 10px; line-height: 1.25; }
       .buyLink {
@@ -323,8 +323,8 @@
       }
       .buyLink .dealChip { margin-left: 0; padding: 1px 6px; font-size: 9px; }
       .buyLink:not(.verified):hover { border-color: rgba(16,215,160,.4); color: var(--accent); }
-      .pl.psaNone > i { display: block; width: auto; margin-bottom: 2px; color: #7a8194; }
-      .pl.psaNone small { color: #6b7281; font-style: italic; }
+      .pl.psaNone > i { display: block; width: auto; margin-bottom: 2px; color: #a5aec0; }
+      .pl.psaNone small { color: #9aa4b6; font-style: italic; }
       .pl small em {
         display: inline-flex; margin-left: 4px; padding: 1px 5px; border-radius: 999px;
         background: #202635; color: #aeb7c9; font-style: normal; font-size: 9px; font-weight: 900;
@@ -334,9 +334,9 @@
         display: grid; gap: 1px; padding: 6px; border-radius: 4px;
         border: 1px solid #252b38; background: #111620;
       }
-      .bandRow i { width: auto; color: #7a8194; font-style: normal; font-size: 9px; font-weight: 900; }
+      .bandRow i { width: auto; color: #a5aec0; font-style: normal; font-size: 9px; font-weight: 900; }
       .bandRow b { color: #eef2ff; font-size: 11px; font-weight: 900; overflow-wrap: anywhere; }
-      .bandRow small { color: #737b8e; font-size: 9px; overflow-wrap: anywhere; }
+      .bandRow small { color: #9aa4b6; font-size: 9px; overflow-wrap: anywhere; }
 
       /* 移대뱶 ??PSA10 eBay 諛대뱶: 醫곸? 移대뱶??뿉??3?댁? 以꾨컮轅덉쑝濡?源⑥쭚 ???몃줈 1?대줈 */
       .pl.psaEbay .bandRows { grid-template-columns: 1fr; gap: 3px; }
@@ -560,8 +560,9 @@
       }
       .featured .asOf { font-style: normal; font-size: 9px; font-weight: 600; opacity: .75; margin-left: 8px; white-space: nowrap; }
       /* 오늘의 박스 딜 스트립 — marketStatus와 좌우 정렬 통일 */
-      .todayDeals { margin: 12px clamp(16px,4vw,52px) 0; }
-      @media (max-width: 640px) { .todayDeals { margin: 12px 12px 0; } }
+      .todayDeals { min-height: 170px; margin: 12px clamp(16px,4vw,52px) 0; }
+      .todayDeals .dealsLoading { margin: 0; padding: 18px; border: 1px solid var(--terminal-line); border-radius: 10px; color: #9aa4b6; font-size: 12px; }
+      @media (max-width: 640px) { .todayDeals { min-height: 280px; margin: 12px 12px 0; } }
       .todayDeals .dealsHead { display: flex; align-items: baseline; gap: 10px; margin: 0 0 8px; }
       .todayDeals .dealsHead span { color: var(--terminal-gold); font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
       .todayDeals .dealsHead small { color: #8d95a7; font-size: 11px; }
@@ -1146,7 +1147,7 @@
         </p>
       </section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"></div>
-      <section class="todayDeals" id="todayDeals" aria-label="Today's box deals" hidden></section>
+      <section class="todayDeals" id="todayDeals" aria-label="Today's box deals" aria-live="polite"><p class="dealsLoading">Checking verified listings…</p></section>
 
       <div class="langTabs" role="group" aria-label="Set category">
         <button class="langTab active" data-lang="jp">JP / EN BOX <small id="statJp"></small></button>
@@ -1256,6 +1257,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260717c" defer></script>
+    <script src="packs.js?v=20260717d" defer></script>
   </body>
 </html>

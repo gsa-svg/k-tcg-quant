@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260717c";
+const DATA_VERSION = "20260717d";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1349,7 +1349,11 @@ function renderTodayDeals() {
     if (!(b.total < m.middle * 0.97)) continue;
     deals.push({ code, name: set.nameEn || set.nameKo || code, total: b.total, mid: m.middle, currency: m.currency || "USD", url: b.url, off: 1 - b.total / m.middle, samples: m.sampleSize });
   }
-  if (!deals.length) { el.hidden = true; el.innerHTML = ""; return; }
+  if (!deals.length) {
+    el.hidden = false;
+    el.innerHTML = `<p class="dealsLoading">${t("오늘은 검증된 할인 매물이 없습니다.", "No verified box deal is available today.")}</p>`;
+    return;
+  }
   deals.sort((a, b) => b.off - a.off);
   const fmt = (v, cur) => (cur === "USD" ? `$${Math.round(v).toLocaleString("en-US")}` : `${Math.round(v).toLocaleString()} ${cur}`);
   el.hidden = false;

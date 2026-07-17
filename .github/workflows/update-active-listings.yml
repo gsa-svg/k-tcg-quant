@@ -47,6 +47,8 @@ jobs:
           node --check tools/update-card-series-history.js
           node --check tools/generate-set-pages.js
           node --check tools/generate-card-pages.js
+          node --check tools/guard-invariants.js
+          node tools/guard-invariants.js
           node --check tools/audit-active-listings.js
           node --check tools/audit-seo.js
           node --check tools/run-with-retry.js
@@ -118,6 +120,12 @@ jobs:
             logs/
             data/active-listing-audit.json
           if-no-files-found: ignore
+
+      - name: Guard invariants (block bad deploys)
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
 
       - name: Commit changes
         run: |

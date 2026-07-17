@@ -7,7 +7,7 @@
 
 ### 현재 상태 스냅샷
 - **배포**: GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
-- **캐시 버전**: `20260717c`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
+- **캐시 버전**: `20260717d`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
 - **야간 자동화**: `.github/workflows/update-active-listings.yml`(매일) — eBay 가격 갱신 → 카드 페이지 → 세트 페이지 순 재생성 → 커밋. 로컬 push가 거부되면: `git pull --rebase`; 꼬이면 `rebase --abort` → `reset --hard origin/main` → 자기 커밋에서 자기 파일만 checkout → 재생성 → push.
 - **트래픽**: GA 활성 54(-28%), 신규 50(-31%), 조회수 477(+7%). 원인 진단 완료(아래 0G): **구글에 미색인**(브랜드 검색조차 0노출). 콘텐츠·리텐션은 정상. SEO 효과는 색인 후 2~6주 걸림 — 그 전 숫자 하락은 정상이라고 사용자에게 이미 설명함.
 - **AdSense**: "가치가 별로 없는 콘텐츠" 거절 → 콘텐츠 보강 완료. **재심사 요청 버튼은 2026-07-30 이후에** (사용자가 누름).
@@ -38,6 +38,7 @@
 - 8/31 예약작업(opbox-aug31): 공급/판매/PSA 누적 → Market Data 콤보 롤아웃 + eBay 시리즈 전환(boxSeriesEbay 승격).
 
 ### 금지·주의 (실수 잦은 순)
+- **🛡️ 모든 수정 후 `node tools/guard-invariants.js` 필수 — FAIL이면 푸시 금지.** 과거 사고 5유형(canonical 스왑·버전 엇갈림·시리즈 덮어쓰기·소스명 노출·검증파일 삭제)을 기계 검사. 야간 워크플로도 커밋 직전 같은 가드로 불량 배포 차단, 실패 시 GitHub이 gsa@whatsong.kr로 실패 메일 발송. 시리즈 소스 기준선은 tools/series-source-manifest.json — 정당한 전환(8/31 eBay 승격 등) 때만 의도적으로 갱신.
 - **정확도 최우선**: 틀린 숫자보다 빈칸. 카드 가격은 **변형(variant) 매칭 엄수**(망가/패러렐/SP 다 다른 카드). 봉입률 등 근거 없는 수치 게시 금지.
 - **외부 소스명 공개 금지**(영구 규칙): Collectr 등 업체명을 사이트/공개 JSON/클라이언트 코드에 쓰면 안 됨. 라벨은 "Weekly ungraded market (JP/EN-NA)", 필드 `marketProductId`. tools/update-box-series-history.js의 wm-시리즈 보호 로직(boxSeriesEbay 우회 축적) 건드리지 말 것.
 - **스크래핑 금지**: TCGplayer/PriceCharting/CardLadder 가격 수집 금지(공식 상품 이미지는 OK). `tools/update-ebay-psa10-prices.js` 절대 실행 금지. variantOK/hasVariantSignal 완화 금지.
