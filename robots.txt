@@ -3,30 +3,50 @@ Allow: /
 Disallow: /data/
 Disallow: /docs/
 Disallow: /tools/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Googlebot
 Allow: /
 Allow: /data/
 Disallow: /docs/
 Disallow: /tools/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Yeti
 Allow: /
 Allow: /data/
 Disallow: /docs/
 Disallow: /tools/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: NaverBot
 Allow: /
 Allow: /data/
 Disallow: /docs/
 Disallow: /tools/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Bingbot
 Allow: /
 Allow: /data/
 Disallow: /docs/
 Disallow: /tools/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 # AI answer/search bots — ALLOWED: they fetch pages to cite in ChatGPT/Perplexity/Claude
 # answers and AI search, which drives referral traffic + brand exposure.

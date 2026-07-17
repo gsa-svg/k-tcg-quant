@@ -44,10 +44,10 @@ function main() {
       continue;
     }
 
-    // Collectr 시리즈(임시 표시용, 2026-07 사용자 결정)는 절대 덮지 않는다 —
+    // 주간 시세 시리즈(임시 표시용, 2026-07 사용자 결정)는 절대 덮지 않는다 —
     // eBay 스냅샷은 boxSeriesEbay에 병행 축적해 8월 eBay 전환 때 승격.
-    const jpIsCollectr = /Collectr/i.test(set.boxSeries?.source || "");
-    const jpTarget = jpIsCollectr ? (set.boxSeriesEbay = set.boxSeriesEbay || {}) : (set.boxSeries = set.boxSeries || {});
+    const jpIsWm = /Weekly ungraded/i.test(set.boxSeries?.source || "");
+    const jpTarget = jpIsWm ? (set.boxSeriesEbay = set.boxSeriesEbay || {}) : (set.boxSeries = set.boxSeries || {});
     jpTarget.currency = "KRW";
     jpTarget.source = "eBay Sold weekly medians plus eBay Active snapshots";
     jpTarget.note = "Sold history is retained when available; current updates append eBay Active middle-price snapshots.";
@@ -69,9 +69,9 @@ function main() {
     if (!set || !active || active.middle == null || !active.currency || Number(active.sampleSize || 0) < 3) continue;
     const middleKrw = marketKrw(Number(active.middle), active.currency, data.fx || {});
     if (!Number.isFinite(middleKrw)) continue;
-    // EN도 동일: Collectr EN 시리즈는 보존, eBay 스냅샷은 boxSeriesEnEbay에 병행 축적
-    const enIsCollectr = /Collectr/i.test(set.boxSeriesEn?.source || "");
-    const enTarget = enIsCollectr ? (set.boxSeriesEnEbay = set.boxSeriesEnEbay || {}) : (set.boxSeriesEn = set.boxSeriesEn || {});
+    // EN도 동일: 주간 시세 EN 시리즈는 보존, eBay 스냅샷은 boxSeriesEnEbay에 병행 축적
+    const enIsWm = /Weekly ungraded/i.test(set.boxSeriesEn?.source || "");
+    const enTarget = enIsWm ? (set.boxSeriesEnEbay = set.boxSeriesEnEbay || {}) : (set.boxSeriesEn = set.boxSeriesEn || {});
     enTarget.currency = "KRW";
     enTarget.source = "eBay Active snapshots (English sealed boxes)";
     enTarget.updated = today;
