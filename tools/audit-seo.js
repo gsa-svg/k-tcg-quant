@@ -53,7 +53,7 @@ function checkSitemap() {
   const sitemap = read("sitemap.xml");
   requireMatch(sitemap, /<loc>https:\/\/opboxindex\.com\/<\/loc>/, "root canonical URL", "sitemap.xml");
   // 홈 중복 변형(sitemap 등재)은 canonical 클러스터 오염 원인(2026-07 홈 노출 0 사고) — 재발 방지
-  if (/<loc>[^<]*(index\.html|packs\.html)[^<]*<\/loc>/.test(sitemap)) errors.push("sitemap.xml: duplicate homepage variant (index.html/packs.html) must not be listed");
+  if (/<loc>https:\/\/opboxindex\.com\/(index\.html|packs\.html)/.test(sitemap)) errors.push("sitemap.xml: duplicate homepage variant (/index.html or /packs.html) must not be listed");
   const urls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1].replace(/&amp;/g, "&"));
   for (const url of urls) {
     const pathname = new URL(url).pathname;
