@@ -5,6 +5,7 @@
 
 ## 0E. 2026-07-17 오후: 자율 최적화 패스 — 캐시 `20260717a`
 - **🚨 야간 워크플로가 Collectr 시리즈 오염** → 수리 완료. update-box-series-history.js가 boxSeries/boxSeriesEn의 source를 eBay로 덮고 active 포인트를 덧붙임(그래프 스파이크+라벨 오류). **툴 패치**: source에 Collectr 포함 시 eBay 스냅샷을 `boxSeriesEbay`/`boxSeriesEnEbay`에 병행 축적(8월 전환 때 승격), Collectr 시리즈는 불가침. 오염분은 serdump.txt로 원복(37시리즈), eBay 포인트 74개는 병행필드로 이관.
+- **주간 리포트 루틴(월요일)**: `node tools/generate-weekly-report.js && node tools/generate-feed.js && node tools/indexnow-submit.js` → 허브 카드(articles/index.html) 최신호로 교체 → 커밋.
 - **RSS 피드**: feed.xml + tools/generate-feed.js(아티클 추가 시 재실행). 홈/트래커/아티클 허브에 link rel=alternate.
 - **아티클별 OG 이미지**: og/*.png 6종(tools/make_og_images.py) — 5개 신규 아티클+compare에 연결.
 - **UI 폴리시**: 딜칩 9px→10.5px, bxEdLabel·pdRar 10.5→11px, pwHead 모바일 줄바꿈 허용. 375px 감사: 오버플로0·bleed0·탭타겟OK.
