@@ -137,4 +137,22 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ sitemap.xml
           git commit -m "Update active listing links + regenerate SEO set/card pages"
-          git push
+          # A content edit can land while this long-running collector is working.
+          # Rebase generated data onto the latest main instead of losing the run.
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Push failed after 3 attempts. Generated data was not published."
+              exit 1
+            fi
+            echo "Push raced with another commit; rebasing before retry $((attempt + 1))/3."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Generated files conflict with newer main. Manual review required."
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
