@@ -1073,3 +1073,17 @@ h2 {
 .articleFooter .relatedLinks a { color: var(--muted, #b8c1d4); font-size: 14px; font-weight: 700; }
 .articleFooter .relatedLinks a:hover { color: var(--accent, #10d7a0); }
 .articleFooter .affNote { margin: 0; color: var(--muted, #8d95a7); font-size: 11px; opacity: .8; line-height: 1.6; }
+
+/* 리텐션: 지난 방문 이후 변동 배너 + 워치리스트 */
+#sinceLast { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; padding: 9px 12px; border: 1px solid rgba(80,218,217,.3); background: rgba(80,218,217,.06); border-radius: 12px; font-size: 13px; }
+#sinceLast .slvHead { color: #50dad9; font-weight: 800; }
+#sinceLast .slvChip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,.14); background: rgba(20,23,28,.6); color: #eef2ff; border-radius: 9px; padding: 4px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 30px; }
+#sinceLast .slvChip:hover { border-color: #50dad9; }
+#sinceLast .slvAvg { color: #9aa4b6; margin-left: auto; font-size: 12px; }
+#sinceLast b.up { color: #10d7a0; }
+#sinceLast b.down { color: #ff7d7d; }
+.watchBtn { display: inline-flex; align-items: center; min-height: 34px; margin: 2px 0 8px; padding: 0 12px; border-radius: 9px; border: 1px dashed rgba(255,255,255,.25); background: transparent; color: #9aa4b6; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.watchBtn:hover { border-color: #50dad9; color: #50dad9; }
+.watchBtn.on { border-style: solid; border-color: rgba(80,218,217,.5); background: rgba(80,218,217,.08); color: #50dad9; }
+.packChip { position: relative; }
+.packChip .pinMark { position: absolute; top: 6px; right: 8px; font-size: 13px; z-index: 2; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }

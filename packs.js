@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260717b";
+const DATA_VERSION = "20260717c";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1140,6 +1140,7 @@ async function load() {
   renderStats();
   renderMarketStatus();
   renderTodayDeals();
+  renderSinceLastVisit();
   renderPackGrid();
   renderDetail();
   updateUrl(true);
@@ -1169,6 +1170,57 @@ function applyRouteState() {
     selectFirstOfLang();
   }
   state.view = params.get("view") === "psa" ? "psa" : "hits";
+}
+
+// 리텐션: 워치리스트(핀) + "지난 방문 이후 변동" — localStorage 기반, 서버 불필요
+const WATCH_KEY = "opbx_watch", SEEN_KEY = "opbx_lastseen";
+function watchList() { try { return JSON.parse(localStorage.getItem(WATCH_KEY)) || []; } catch (e) { return []; } }
+function watchHas(code) { return watchList().includes(code); }
+function watchToggle(code) {
+  const w = watchList(); const i = w.indexOf(code);
+  if (i >= 0) w.splice(i, 1); else w.push(code);
+  try { localStorage.setItem(WATCH_KEY, JSON.stringify(w)); } catch (e) {}
+  trackEvent("watch_toggle", { pack_code: code, on: i < 0 });
+}
+function selectPack(code) {
+  state.lang = (state.data.extra?.list || []).includes(code) ? "extra" : "jp";
+  state.selected = code;
+  state.hasExplicitSet = true;
+  renderPackGrid();
+  renderDetail();
+  updateUrl();
+  document.querySelector("#detail")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function renderSinceLastVisit() {
+  const anchor = document.querySelector("#todayDeals") || document.querySelector("#packList");
+  if (!anchor || !state.data) return;
+  const updated = state.data.updated || "";
+  const codes = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])];
+  const now = {};
+  for (const code of codes) { const m = boxMidKrw(state.data.sets?.[code] || {}); if (m && m.value != null) now[code] = m.value; }
+  let prev = null; try { prev = JSON.parse(localStorage.getItem(SEEN_KEY)); } catch (e) {}
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify({ d: updated, p: now })); } catch (e) {}
+  if (!prev || !prev.d || prev.d === updated || !prev.p) return;
+  const watch = watchList();
+  const moves = [];
+  for (const code of Object.keys(now)) {
+    const a = prev.p[code], b = now[code];
+    if (!a || b == null) continue;
+    moves.push({ code, pct: (b / a - 1) * 100, watched: watch.includes(code) });
+  }
+  if (!moves.length) return;
+  const avg = moves.reduce((s, m) => s + m.pct, 0) / moves.length;
+  const top = [...moves]
+    .sort((x, y) => (y.watched ? 1 : 0) - (x.watched ? 1 : 0) || Math.abs(y.pct) - Math.abs(x.pct))
+    .slice(0, 3)
+    .filter((m) => m.watched || Math.abs(m.pct) >= 0.5);
+  if (!top.length && Math.abs(avg) < 0.5) return;
+  const f = (p) => `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
+  let el = document.querySelector("#sinceLast");
+  if (!el) { el = document.createElement("div"); el.id = "sinceLast"; anchor.parentNode.insertBefore(el, anchor); }
+  el.innerHTML = `<span class="slvHead">${t(`지난 방문 이후 (${prev.d})`, `Since your last visit (${prev.d})`)}</span>${top.map((m) => `<button class="slvChip" data-key="${m.code}">${m.watched ? "📌 " : ""}${m.code} <b class="${m.pct >= 0 ? "up" : "down"}">${f(m.pct)}</b></button>`).join("")}<span class="slvAvg">${t("시장 평균", "market avg")} <b class="${avg >= 0 ? "up" : "down"}">${f(avg)}</b></span>`;
+  el.querySelectorAll(".slvChip").forEach((btn) => btn.addEventListener("click", () => selectPack(btn.dataset.key)));
+  trackEvent("since_last_visit", { prev_date: prev.d, movers: top.length });
 }
 
 function renderMarketStatus() {
@@ -1329,19 +1381,21 @@ function hasBoxData(set) {
 
 function renderPackGrid() {
   const wrap = document.querySelector("#packList");
-  if (state.renderedLang === `${state.lang}:${state.hl}` && wrap.children.length) {
+  const cacheKey = `${state.lang}:${state.hl}:${watchList().join(",")}`;
+  if (state.renderedLang === cacheKey && wrap.children.length) {
     wrap.querySelectorAll(".packChip").forEach((btn) => btn.classList.toggle("active", btn.dataset.key === state.selected));
     return;
   }
-  state.renderedLang = `${state.lang}:${state.hl}`;
-  wrap.innerHTML = currentPacks().map((p) => {
+  state.renderedLang = cacheKey;
+  const ordered = [...currentPacks()].sort((a, b) => (watchHas(b.key) ? 1 : 0) - (watchHas(a.key) ? 1 : 0));
+  wrap.innerHTML = ordered.map((p) => {
     const has = (p.set.cards || []).length > 0;
     const boxOnly = !has && hasBoxData(p.set);
     const clickable = has || boxOnly;
     const active = p.key === state.selected ? " active" : "";
     const box = p.set.box || FALLBACK;
     const tag = has ? "TOP 10" : boxOnly ? t("박스 시세", "Box price") : t("준비중", "Coming soon");
-    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}><img class="packBox" src="${box}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
+    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" src="${box}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
   }).join("");
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -1433,8 +1487,9 @@ function renderDetail() {
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><button id="watchBtn" class="watchBtn${watchHas(pack.key) ? " on" : ""}" type="button">${watchHas(pack.key) ? t("📌 관심 등록됨 — 재방문 시 변동 표시", "📌 Watching — changes shown on your next visit") : t("☆ 관심 등록 (재방문 시 가격 변동 알림)", "☆ Watch this box (see its move next visit)")}</button><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
+  el.querySelector("#watchBtn")?.addEventListener("click", () => { watchToggle(pack.key); renderPackGrid(); renderDetail(); });
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();
     trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });

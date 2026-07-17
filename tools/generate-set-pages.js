@@ -91,7 +91,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=20260717b" />
+    <link rel="stylesheet" href="../styles.css?v=20260717c" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -313,6 +313,38 @@ function setPage(code, prev, next) {
       <p>PSA's population report acts as a destruction meter for sealed supply: every graded card came out of an opened pack. Between ${esc(wk[0].d)} and ${esc(lastW.d)}, collectors added <strong>${intl(sum)}</strong> new ${code} grades — peaking at <strong>${intl(pk.v)}</strong> cards in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `All-time, the set counts <strong>${intl(s.psaFull.total)}</strong> graded cards.` : ""} Sustained grading volume while the box price holds is the pattern sealed collectors look for: supply burning while demand stays. The weekly bar chart on the <a href="../packs.html?set=${enc}&hl=en">tracker page</a> extends every week, and our <a href="../articles/psa-grading-vs-sealed-supply-2026.html">grading-vs-supply report</a> compares all 21 sets.</p>`;
   }
 
+  // 구매의도 verdict — 전부 실데이터 파생 분기, 매일 재생성으로 월 표기 자동 갱신
+  let verdict = "";
+  {
+    const pts = (s.boxSeries && s.boxSeries.points) || [];
+    if (pts.length >= 8) {
+      const vFirst = krwUsd(pts[0].p), vLast = krwUsd(pts[pts.length - 1].p);
+      const vPeak = Math.max(...pts.map((p) => krwUsd(p.p)));
+      const dd = vPeak > 0 ? Math.round(((vPeak - vLast) / vPeak) * 100) : 0;
+      const chg = vFirst > 0 ? Math.round(((vLast - vFirst) / vFirst) * 100) : 0;
+      const tp0 = cards.length ? cardPrices(cards[0]) : {};
+      const topNm = tp0.nm != null ? tp0.nm : null;
+      const mult = topNm && vLast ? topNm / vLast : null;
+      const nowLabel = monthYear(DATA_DATE) || "today";
+      let priceRead;
+      if (dd >= 20) priceRead = `Today's buyer pays about <strong>${dd}% below the tracked peak</strong> (${usd(vPeak)} → ${usd(vLast)}) — the market has already corrected, which removes the worst-case of buying the top.`;
+      else if (chg >= 15 && dd < 10) priceRead = `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window) — the market has rewarded holders, and a buyer today is paying for that momentum to continue.`;
+      else priceRead = `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window — neither crashed nor running.`;
+      const chaseRead = mult != null
+        ? (mult >= 3
+          ? ` The chase math is lottery-shaped: the top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so a box's expected value concentrates in a few low-odds hits.`
+          : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price — value here is spread across the top-10 table rather than one jackpot card.`)
+        : "";
+      const gemRead = s.psaGem != null
+        ? ` On the grading side, the set's ${s.psaGem}% PSA 10 gem rate ${s.psaGem >= 85 ? "keeps graded supply plentiful — raw chase copies, not slabs, carry the scarcity" : "keeps true gem copies scarce, supporting graded premiums"}.`
+        : "";
+      verdict = `
+      <h2>Is ${/^[OE]/.test(code) ? "an" : "a"} ${code} booster box worth buying? (${esc(nowLabel)})</h2>
+      <p>${priceRead}${chaseRead}${gemRead}</p>
+      <p>What the data cannot tell you: future reprints, banlist shifts, or your own luck. We publish the signals — price trajectory, opening rate, PSA population — and leave the decision to you. This is research, not investment advice; before paying up for any sealed box, run the <a href="../articles/reseal-checklist.html">reseal checklist</a>.</p>`;
+    }
+  }
+
   const compareLink =
     code === "OP-05" || code === "OP-06"
       ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
@@ -355,6 +387,7 @@ function setPage(code, prev, next) {
       <p class="priceNote">${allTcg ? `NM (raw) = raw ungraded card market price (TCGplayer market, <span title="TCGplayer">TCG</span>). Japanese NM and PSA 10 sold data for this set is still being collected.` : `NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask").`} Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
       <p class="gearRec">💎 <strong>Protect your chase cards.</strong> One Piece cards are standard size (63×88 mm), and Dragon Shield Matte 100 is a widely used premium sleeve. <a href="${SLEEVE_EBAY}" target="_blank" rel="noopener noreferrer sponsored">Shop popular sleeves on eBay ↗</a></p>
       ${trajectory}
+      ${verdict}
       ${momentum}
       ${psaSection}
       <h2>Before you buy a sealed ${code} box</h2>
@@ -477,7 +510,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css?v=20260717b" />
+    <link rel="stylesheet" href="styles.css?v=20260717c" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
