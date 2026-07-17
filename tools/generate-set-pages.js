@@ -399,6 +399,11 @@ function hubPage() {
       <ul class="chaseList">
         ${items}
       </ul>
+      <h2>Upcoming sets</h2>
+      <ul class="chaseList">
+        <li><a href="op-17.html"><strong>OP-17 The World's Strongest Warriors</strong></a> — JP Aug 22 / EN Aug 28, 2026. Release facts + pre-order data from the last three launches.</li>
+        <li><a href="eb-05.html"><strong>EB-05 Heroines Edition vol.2</strong></a> — October 2026. What EB-03's tracked +50% climb predicts.</li>
+      </ul>
       <div class="setNavLinks">
         <a href="../">Open the live price tracker</a>
         <a href="../cards/">Individual card price pages</a>
