@@ -44,13 +44,16 @@ function main() {
       continue;
     }
 
-    set.boxSeries = set.boxSeries || {};
-    set.boxSeries.currency = "KRW";
-    set.boxSeries.source = "eBay Sold weekly medians plus eBay Active snapshots";
-    set.boxSeries.note = "Sold history is retained when available; current updates append eBay Active middle-price snapshots.";
-    set.boxSeries.updated = today;
-    set.boxSeries.sampleSize = Math.max(Number(set.boxSeries.sampleSize || 0), Number(active.sampleSize || 0));
-    set.boxSeries.points = appendSnapshot(set.boxSeries.points, {
+    // Collectr 시리즈(임시 표시용, 2026-07 사용자 결정)는 절대 덮지 않는다 —
+    // eBay 스냅샷은 boxSeriesEbay에 병행 축적해 8월 eBay 전환 때 승격.
+    const jpIsCollectr = /Collectr/i.test(set.boxSeries?.source || "");
+    const jpTarget = jpIsCollectr ? (set.boxSeriesEbay = set.boxSeriesEbay || {}) : (set.boxSeries = set.boxSeries || {});
+    jpTarget.currency = "KRW";
+    jpTarget.source = "eBay Sold weekly medians plus eBay Active snapshots";
+    jpTarget.note = "Sold history is retained when available; current updates append eBay Active middle-price snapshots.";
+    jpTarget.updated = today;
+    jpTarget.sampleSize = Math.max(Number(jpTarget.sampleSize || 0), Number(active.sampleSize || 0));
+    jpTarget.points = appendSnapshot(jpTarget.points, {
       d: today,
       p: middleKrw,
       n: Number(active.sampleSize || 0),
@@ -66,11 +69,13 @@ function main() {
     if (!set || !active || active.middle == null || !active.currency || Number(active.sampleSize || 0) < 3) continue;
     const middleKrw = marketKrw(Number(active.middle), active.currency, data.fx || {});
     if (!Number.isFinite(middleKrw)) continue;
-    set.boxSeriesEn = set.boxSeriesEn || {};
-    set.boxSeriesEn.currency = "KRW";
-    set.boxSeriesEn.source = "eBay Active snapshots (English sealed boxes)";
-    set.boxSeriesEn.updated = today;
-    set.boxSeriesEn.points = appendSnapshot(set.boxSeriesEn.points, {
+    // EN도 동일: Collectr EN 시리즈는 보존, eBay 스냅샷은 boxSeriesEnEbay에 병행 축적
+    const enIsCollectr = /Collectr/i.test(set.boxSeriesEn?.source || "");
+    const enTarget = enIsCollectr ? (set.boxSeriesEnEbay = set.boxSeriesEnEbay || {}) : (set.boxSeriesEn = set.boxSeriesEn || {});
+    enTarget.currency = "KRW";
+    enTarget.source = "eBay Active snapshots (English sealed boxes)";
+    enTarget.updated = today;
+    enTarget.points = appendSnapshot(enTarget.points, {
       d: today,
       p: middleKrw,
       n: Number(active.sampleSize || 0),

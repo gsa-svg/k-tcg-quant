@@ -3,6 +3,13 @@
 > 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
 > 갱신: 2026-07-15.
 
+## 0E. 2026-07-17 오후: 자율 최적화 패스 — 캐시 `20260717a`
+- **🚨 야간 워크플로가 Collectr 시리즈 오염** → 수리 완료. update-box-series-history.js가 boxSeries/boxSeriesEn의 source를 eBay로 덮고 active 포인트를 덧붙임(그래프 스파이크+라벨 오류). **툴 패치**: source에 Collectr 포함 시 eBay 스냅샷을 `boxSeriesEbay`/`boxSeriesEnEbay`에 병행 축적(8월 전환 때 승격), Collectr 시리즈는 불가침. 오염분은 serdump.txt로 원복(37시리즈), eBay 포인트 74개는 병행필드로 이관.
+- **RSS 피드**: feed.xml + tools/generate-feed.js(아티클 추가 시 재실행). 홈/트래커/아티클 허브에 link rel=alternate.
+- **아티클별 OG 이미지**: og/*.png 6종(tools/make_og_images.py) — 5개 신규 아티클+compare에 연결.
+- **UI 폴리시**: 딜칩 9px→10.5px, bxEdLabel·pdRar 10.5→11px, pwHead 모바일 줄바꿈 허용. 375px 감사: 오버플로0·bleed0·탭타겟OK.
+- 중국셀러 대응은 0D 참조 — verify-best-sellers.js 주간 실행(브라우저 필요).
+
 ## 0D. 2026-07-17: 중국·홍콩 위장창고 다계정망 전수 소탕 — 캐시 `20260716e`
 - **발견**: US창고 발송으로 위치필터를 우회하는 중국/홍콩 셀러망이 박스 최저가를 잠식. 차단하면 같은 물건이 다른 계정으로 재등장(OP-05 $151.89 5계정, OP-14 $79.9 홍콩 8계정 등). eBay Browse API의 itemLocation은 창고(US)라 못 잡음.
 - **검증법 확립**: eBay 피드백 프로필(`ebay.com/fdbk/feedback_profile/{id}`)의 "Member since ... in <국가>" — **반드시 브라우저에서**(Node fetch엔 JS껍데기만 옴). 세션 브라우저 탭에서 `window.__vf([...])` 패턴으로 일괄 확인.

@@ -768,10 +768,18 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10014264,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 232295
+     },
+     {
+      "d": "2026-01-14",
+      "p": 241586
+     },
      {
       "d": "2026-01-21",
       "p": 216808
@@ -875,22 +883,8 @@
      {
       "d": "2026-07-12",
       "p": 484721
-     },
-     {
-      "d": "2026-07-15",
-      "p": 542021,
-      "n": 22,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 542021,
-      "n": 23,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 23
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
@@ -994,6 +988,25 @@
       "v": 629
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 542021,
+      "n": 22,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 542021,
+      "n": 23,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-02": {
@@ -1707,10 +1720,14 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10014419,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-13",
+      "p": 174995
+     },
      {
       "d": "2026-01-21",
       "p": 170349
@@ -1814,30 +1831,24 @@
      {
       "d": "2026-07-12",
       "p": 210614
-     },
-     {
-      "d": "2026-07-15",
-      "p": 309711,
-      "n": 14,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 309711,
-      "n": 14,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 14
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 455866,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 607063
+     },
+     {
+      "d": "2026-01-14",
+      "p": 698432
+     },
      {
       "d": "2026-01-21",
       "p": 717016
@@ -1941,18 +1952,6 @@
      {
       "d": "2026-07-14",
       "p": 927629
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1393752,
-      "n": 10,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1393752,
-      "n": 10,
-      "basis": "active"
      }
     ]
    },
@@ -1997,6 +1996,44 @@
       "v": 247
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 309711,
+      "n": 14,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 309711,
+      "n": 14,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1393752,
+      "n": 10,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1393752,
+      "n": 10,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-03": {
@@ -2709,10 +2746,18 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10014575,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 139377
+     },
+     {
+      "d": "2026-01-14",
+      "p": 150217
+     },
      {
       "d": "2026-01-20",
       "p": 157960
@@ -2816,30 +2861,24 @@
      {
       "d": "2026-07-11",
       "p": 230746
-     },
-     {
-      "d": "2026-07-15",
-      "p": 264738,
-      "n": 7,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 264738,
-      "n": 7,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 7
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 477176,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 717016
+     },
+     {
+      "d": "2026-01-14",
+      "p": 904400
+     },
      {
       "d": "2026-01-21",
       "p": 958602
@@ -2943,18 +2982,6 @@
      {
       "d": "2026-07-14",
       "p": 825420
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1036033,
-      "n": 12,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1036033,
-      "n": 12,
-      "basis": "active"
      }
     ]
    },
@@ -2999,6 +3026,44 @@
       "v": 152
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 264738,
+      "n": 7,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 264738,
+      "n": 7,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1036033,
+      "n": 12,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1036033,
+      "n": 12,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-04": {
@@ -3671,10 +3736,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10014731,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 126988
+     },
+     {
+      "d": "2026-01-13",
+      "p": 142474
+     },
      {
       "d": "2026-01-21",
       "p": 156412
@@ -3778,30 +3851,24 @@
      {
       "d": "2026-07-11",
       "p": 167252
-     },
-     {
-      "d": "2026-07-15",
-      "p": 185836,
-      "n": 3,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 185836,
-      "n": 4,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 4
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 485833,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 628744
+     },
+     {
+      "d": "2026-01-14",
+      "p": 732502
+     },
      {
       "d": "2026-01-21",
       "p": 808385
@@ -3905,18 +3972,6 @@
      {
       "d": "2026-07-14",
       "p": 783607
-     },
-     {
-      "d": "2026-07-15",
-      "p": 851747,
-      "n": 17,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 851747,
-      "n": 16,
-      "basis": "active"
      }
     ]
    },
@@ -3961,6 +4016,44 @@
       "v": 240
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 185836,
+      "n": 3,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 185836,
+      "n": 4,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 851747,
+      "n": 17,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 851747,
+      "n": 16,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-05": {
@@ -4686,10 +4779,18 @@
    },
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10014882,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 195127
+     },
+     {
+      "d": "2026-01-13",
+      "p": 213711
+     },
      {
       "d": "2026-01-21",
       "p": 271010
@@ -4793,30 +4894,24 @@
      {
       "d": "2026-07-13",
       "p": 252427
-     },
-     {
-      "d": "2026-07-15",
-      "p": 241416,
-      "n": 11,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 241416,
-      "n": 13,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 13
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 498734,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 1299301
+     },
+     {
+      "d": "2026-01-14",
+      "p": 1438677
+     },
      {
       "d": "2026-01-21",
       "p": 1579603
@@ -4920,18 +5015,6 @@
      {
       "d": "2026-07-14",
       "p": 1838224
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1858356,
-      "n": 24,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1858356,
-      "n": 24,
-      "basis": "active"
      }
     ]
    },
@@ -4976,6 +5059,44 @@
       "v": 800
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 241416,
+      "n": 11,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 241416,
+      "n": 13,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1858356,
+      "n": 24,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1858356,
+      "n": 24,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-06": {
@@ -5713,10 +5834,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10015121,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 113050
+     },
+     {
+      "d": "2026-01-14",
+      "p": 126988
+     },
      {
       "d": "2026-01-21",
       "p": 144023
@@ -5820,30 +5949,24 @@
      {
       "d": "2026-07-12",
       "p": 153314
-     },
-     {
-      "d": "2026-07-15",
-      "p": 314356,
-      "n": 7,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 314356,
-      "n": 7,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 7
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 515080,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 428971
+     },
+     {
+      "d": "2026-01-14",
+      "p": 487818
+     },
      {
       "d": "2026-01-21",
       "p": 514145
@@ -5947,18 +6070,6 @@
      {
       "d": "2026-07-14",
       "p": 594674
-     },
-     {
-      "d": "2026-07-15",
-      "p": 774300,
-      "n": 13,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 774300,
-      "n": 13,
-      "basis": "active"
      }
     ]
    },
@@ -6003,6 +6114,44 @@
       "v": 502
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 314356,
+      "n": 7,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 314356,
+      "n": 7,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 774300,
+      "n": 13,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 774300,
+      "n": 13,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "EB-01": {
@@ -6712,10 +6861,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10015570,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 139377
+     },
+     {
+      "d": "2026-01-14",
+      "p": 130085
+     },
      {
       "d": "2026-01-21",
       "p": 137828
@@ -6819,30 +6976,24 @@
      {
       "d": "2026-07-11",
       "p": 179641
-     },
-     {
-      "d": "2026-07-15",
-      "p": 278738,
-      "n": 10,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 278738,
-      "n": 10,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 10
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 521161,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 1280717
+     },
+     {
+      "d": "2026-01-14",
+      "p": 1268328
+     },
      {
       "d": "2026-01-21",
       "p": 1268328
@@ -6946,18 +7097,6 @@
      {
       "d": "2026-07-14",
       "p": 1330273
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1509914,
-      "n": 9,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1509914,
-      "n": 8,
-      "basis": "active"
      }
     ]
    },
@@ -7002,6 +7141,44 @@
       "v": 119
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 278738,
+      "n": 10,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 278738,
+      "n": 10,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1509914,
+      "n": 9,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1509914,
+      "n": 8,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-07": {
@@ -7706,10 +7883,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10015746,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 78980
+     },
+     {
+      "d": "2026-01-14",
+      "p": 88272
+     },
      {
       "d": "2026-01-20",
       "p": 92918
@@ -7813,22 +7998,8 @@
      {
       "d": "2026-07-12",
       "p": 126988
-     },
-     {
-      "d": "2026-07-15",
-      "p": 123875,
-      "n": 16,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 123875,
-      "n": 17,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 17
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
@@ -7932,6 +8103,25 @@
       "v": 637
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 123875,
+      "n": 16,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 123875,
+      "n": 17,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-08": {
@@ -8649,10 +8839,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10016039,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 72786
+     },
+     {
+      "d": "2026-01-14",
+      "p": 75883
+     },
      {
       "d": "2026-01-21",
       "p": 85175
@@ -8756,30 +8954,24 @@
      {
       "d": "2026-07-12",
       "p": 131634
-     },
-     {
-      "d": "2026-07-15",
-      "p": 154848,
-      "n": 9,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 154848,
-      "n": 9,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 9
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 542504,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 241586
+     },
+     {
+      "d": "2026-01-14",
+      "p": 267913
+     },
      {
       "d": "2026-01-21",
       "p": 314372
@@ -8883,18 +9075,6 @@
      {
       "d": "2026-07-14",
       "p": 360831
-     },
-     {
-      "d": "2026-07-15",
-      "p": 431882,
-      "n": 22,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 431882,
-      "n": 21,
-      "basis": "active"
      }
     ]
    },
@@ -8939,6 +9119,44 @@
       "v": 636
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 154848,
+      "n": 9,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 154848,
+      "n": 9,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 431882,
+      "n": 22,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 431882,
+      "n": 21,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "PRB-01": {
@@ -9626,10 +9844,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10018481,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 105307
+     },
+     {
+      "d": "2026-01-14",
+      "p": 117696
+     },
      {
       "d": "2026-01-21",
       "p": 122342
@@ -9733,30 +9959,24 @@
      {
       "d": "2026-07-11",
       "p": 224551
-     },
-     {
-      "d": "2026-07-15",
-      "p": 286481,
-      "n": 14,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 286481,
-      "n": 15,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 15
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 545399,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 1334919
+     },
+     {
+      "d": "2026-01-12",
+      "p": 1392218
+     },
      {
       "d": "2026-01-21",
       "p": 1401510
@@ -9860,18 +10080,6 @@
      {
       "d": "2026-07-11",
       "p": 1539338
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1856807,
-      "n": 8,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1780909,
-      "n": 9,
-      "basis": "active"
      }
     ]
    },
@@ -9916,6 +10124,44 @@
       "v": 435
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 286481,
+      "n": 14,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 286481,
+      "n": 15,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1856807,
+      "n": 8,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1780909,
+      "n": 9,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-09": {
@@ -10632,10 +10878,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10018321,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 114599
+     },
+     {
+      "d": "2026-01-14",
+      "p": 133182
+     },
      {
       "d": "2026-01-21",
       "p": 125439
@@ -10739,30 +10993,24 @@
      {
       "d": "2026-07-12",
       "p": 176544
-     },
-     {
-      "d": "2026-07-15",
-      "p": 294224,
-      "n": 12,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 292892,
-      "n": 13,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 13
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 563834,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 792899
+     },
+     {
+      "d": "2026-01-14",
+      "p": 1029839
+     },
      {
       "d": "2026-01-21",
       "p": 992672
@@ -10866,18 +11114,6 @@
      {
       "d": "2026-07-14",
       "p": 1060812
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1238904,
-      "n": 21,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1238904,
-      "n": 20,
-      "basis": "active"
      }
     ]
    },
@@ -10922,6 +11158,44 @@
       "v": 993
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 294224,
+      "n": 12,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 292892,
+      "n": 13,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1238904,
+      "n": 21,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1238904,
+      "n": 20,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-10": {
@@ -11624,10 +11898,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10024032,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 80529
+     },
+     {
+      "d": "2026-01-14",
+      "p": 83626
+     },
      {
       "d": "2026-01-21",
       "p": 86723
@@ -11731,30 +12013,24 @@
      {
       "d": "2026-07-13",
       "p": 123890
-     },
-     {
-      "d": "2026-07-15",
-      "p": 161971,
-      "n": 16,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 162637,
-      "n": 18,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 18
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 586671,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 249329
+     },
+     {
+      "d": "2026-01-14",
+      "p": 291142
+     },
      {
       "d": "2026-01-21",
       "p": 342247
@@ -11858,18 +12134,6 @@
      {
       "d": "2026-07-14",
       "p": 374768
-     },
-     {
-      "d": "2026-07-15",
-      "p": 410387,
-      "n": 25,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 416581,
-      "n": 24,
-      "basis": "active"
      }
     ]
    },
@@ -11914,6 +12178,44 @@
       "v": 692
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 161971,
+      "n": 16,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 162637,
+      "n": 18,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 410387,
+      "n": 25,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 416581,
+      "n": 24,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "EB-02": {
@@ -12539,10 +12841,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10025146,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 97564
+     },
+     {
+      "d": "2026-01-14",
+      "p": 111501
+     },
      {
       "d": "2026-01-21",
       "p": 125439
@@ -12646,22 +12956,8 @@
      {
       "d": "2026-07-13",
       "p": 167252
-     },
-     {
-      "d": "2026-07-15",
-      "p": 209050,
-      "n": 9,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 209050,
-      "n": 9,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 9
+    ]
    },
    "boxSource": "Amazon.co.jp (Japanese sealed box, bg-removed)",
    "psaFull": {
@@ -12704,6 +13000,25 @@
       "v": 383
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 209050,
+      "n": 9,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 209050,
+      "n": 9,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-11": {
@@ -13483,10 +13798,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10026900,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 108404
+     },
+     {
+      "d": "2026-01-14",
+      "p": 116147
+     },
      {
       "d": "2026-01-21",
       "p": 144023
@@ -13590,30 +13913,24 @@
      {
       "d": "2026-07-12",
       "p": 185836
-     },
-     {
-      "d": "2026-07-15",
-      "p": 232279,
-      "n": 5,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 232279,
-      "n": 5,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 5
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 620180,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 515694
+     },
+     {
+      "d": "2026-01-14",
+      "p": 695335
+     },
      {
       "d": "2026-01-21",
       "p": 676751
@@ -13717,18 +14034,6 @@
      {
       "d": "2026-07-14",
       "p": 836260
-     },
-     {
-      "d": "2026-07-15",
-      "p": 1006610,
-      "n": 13,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 1084026,
-      "n": 13,
-      "basis": "active"
      }
     ]
    },
@@ -13773,6 +14078,44 @@
       "v": 1170
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 232279,
+      "n": 5,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 232279,
+      "n": 5,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 1006610,
+      "n": 13,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 1084026,
+      "n": 13,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-12": {
@@ -14441,10 +14784,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10028215,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 82077
+     },
+     {
+      "d": "2026-01-14",
+      "p": 86723
+     },
      {
       "d": "2026-01-21",
       "p": 92918
@@ -14548,30 +14899,24 @@
      {
       "d": "2026-07-13",
       "p": 113050
-     },
-     {
-      "d": "2026-07-15",
-      "p": 178092,
-      "n": 5,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 178092,
-      "n": 6,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 6
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 628346,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 281851
+     },
+     {
+      "d": "2026-01-14",
+      "p": 326761
+     },
      {
       "d": "2026-01-21",
       "p": 328310
@@ -14675,18 +15020,6 @@
      {
       "d": "2026-07-14",
       "p": 411936
-     },
-     {
-      "d": "2026-07-15",
-      "p": 439888,
-      "n": 23,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 441360,
-      "n": 24,
-      "basis": "active"
      }
     ]
    },
@@ -14731,6 +15064,44 @@
       "v": 1423
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 178092,
+      "n": 5,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 178092,
+      "n": 6,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 439888,
+      "n": 23,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 441360,
+      "n": 24,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "PRB-02": {
@@ -15351,10 +15722,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10029368,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 89821
+     },
+     {
+      "d": "2026-01-14",
+      "p": 78980
+     },
      {
       "d": "2026-01-21",
       "p": 85175
@@ -15458,30 +15837,24 @@
      {
       "d": "2026-07-13",
       "p": 119245
-     },
-     {
-      "d": "2026-07-15",
-      "p": 119059,
-      "n": 10,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 119059,
-      "n": 10,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 10
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 628452,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 464589
+     },
+     {
+      "d": "2026-01-14",
+      "p": 507951
+     },
      {
       "d": "2026-01-21",
       "p": 512597
@@ -15585,18 +15958,6 @@
      {
       "d": "2026-07-14",
       "p": 613257
-     },
-     {
-      "d": "2026-07-15",
-      "p": 650425,
-      "n": 16,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 650425,
-      "n": 15,
-      "basis": "active"
      }
     ]
    },
@@ -15641,6 +16002,44 @@
       "v": 1169
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 119059,
+      "n": 10,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 119059,
+      "n": 10,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 650425,
+      "n": 16,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 650425,
+      "n": 15,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-13": {
@@ -16252,10 +16651,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10030025,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 120793
+     },
+     {
+      "d": "2026-01-14",
+      "p": 136279
+     },
      {
       "d": "2026-01-21",
       "p": 140925
@@ -16359,30 +16766,24 @@
      {
       "d": "2026-07-12",
       "p": 202871
-     },
-     {
-      "d": "2026-07-15",
-      "p": 387127,
-      "n": 3,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 387127,
-      "n": 3,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 3
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 628352,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 665911
+     },
+     {
+      "d": "2026-01-14",
+      "p": 811482
+     },
      {
       "d": "2026-01-21",
       "p": 819225
@@ -16486,18 +16887,6 @@
      {
       "d": "2026-07-12",
       "p": 765023
-     },
-     {
-      "d": "2026-07-15",
-      "p": 929178,
-      "n": 11,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 929178,
-      "n": 13,
-      "basis": "active"
      }
     ]
    },
@@ -16543,6 +16932,44 @@
     "opDiff": -1.3,
     "updated": "2026-07-15",
     "source": "PSA population"
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 387127,
+      "n": 3,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 387127,
+      "n": 3,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 929178,
+      "n": 11,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 929178,
+      "n": 13,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-14": {
@@ -17327,10 +17754,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10032211,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 97564
+     },
+     {
+      "d": "2026-01-14",
+      "p": 109953
+     },
      {
       "d": "2026-01-21",
       "p": 105307
@@ -17434,30 +17869,24 @@
      {
       "d": "2026-07-12",
       "p": 136279
-     },
-     {
-      "d": "2026-07-15",
-      "p": 123875,
-      "n": 30,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 123875,
-      "n": 31,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 31
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 665598,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 365477
+     },
+     {
+      "d": "2026-01-14",
+      "p": 396449
+     },
      {
       "d": "2026-01-21",
       "p": 408838
@@ -17561,18 +17990,6 @@
      {
       "d": "2026-07-14",
       "p": 380963
-     },
-     {
-      "d": "2026-07-15",
-      "p": 447554,
-      "n": 24,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 464574,
-      "n": 23,
-      "basis": "active"
      }
     ]
    },
@@ -17617,6 +18034,44 @@
       "v": 2442
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 123875,
+      "n": 30,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 123875,
+      "n": 31,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 447554,
+      "n": 24,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 464574,
+      "n": 23,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "EB-03": {
@@ -18413,10 +18868,18 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10033433,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
+     {
+      "d": "2026-01-07",
+      "p": 130085
+     },
+     {
+      "d": "2026-01-14",
+      "p": 139377
+     },
      {
       "d": "2026-01-21",
       "p": 123890
@@ -18520,22 +18983,8 @@
      {
       "d": "2026-07-12",
       "p": 195127
-     },
-     {
-      "d": "2026-07-15",
-      "p": 179626,
-      "n": 21,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 179626,
-      "n": 21,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 21
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
@@ -18639,6 +19088,25 @@
       "v": 1018
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 179626,
+      "n": 21,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 179626,
+      "n": 21,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-15": {
@@ -19208,9 +19676,9 @@
    "nmSource": "遊々亭 single-card listing",
    "boxSeries": {
     "currency": "KRW",
-    "source": "eBay Sold weekly medians plus eBay Active snapshots",
+    "source": "Collectr ungraded market (JP)",
     "collectrProductId": 10034824,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "points": [
      {
       "d": "2026-02-25",
@@ -19295,28 +19763,14 @@
      {
       "d": "2026-07-13",
       "p": 151766
-     },
-     {
-      "d": "2026-07-15",
-      "p": 168785,
-      "n": 10,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 168785,
-      "n": 11,
-      "basis": "active"
      }
-    ],
-    "note": "Sold history is retained when available; current updates append eBay Active middle-price snapshots.",
-    "sampleSize": 11
+    ]
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 682057,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
      {
@@ -19398,18 +19852,6 @@
      {
       "d": "2026-07-14",
       "p": 390255
-     },
-     {
-      "d": "2026-07-15",
-      "p": 418130,
-      "n": 11,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 448623,
-      "n": 11,
-      "basis": "active"
      }
     ]
    },
@@ -19548,6 +19990,44 @@
       "v": 717
      }
     ]
+   },
+   "boxSeriesEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 168785,
+      "n": 10,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 168785,
+      "n": 11,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 418130,
+      "n": 11,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 448623,
+      "n": 11,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   },
   "OP-16": {
@@ -20056,9 +20536,9 @@
    },
    "boxSeriesEn": {
     "currency": "KRW",
-    "source": "eBay Active snapshots (English sealed boxes)",
+    "source": "Collectr ungraded market (EN/NA)",
     "collectrProductId": 689336,
-    "updated": "2026-07-16",
+    "updated": "2026-07-15",
     "ready": true,
     "points": [
      {
@@ -20116,18 +20596,6 @@
      {
       "d": "2026-07-14",
       "p": 291142
-     },
-     {
-      "d": "2026-07-15",
-      "p": 371671,
-      "n": 20,
-      "basis": "active"
-     },
-     {
-      "d": "2026-07-16",
-      "p": 371671,
-      "n": 20,
-      "basis": "active"
      }
     ]
    },
@@ -20193,6 +20661,25 @@
       "v": 38
      }
     ]
+   },
+   "boxSeriesEnEbay": {
+    "currency": "KRW",
+    "source": "eBay Active snapshots",
+    "points": [
+     {
+      "d": "2026-07-15",
+      "p": 371671,
+      "n": 20,
+      "basis": "active"
+     },
+     {
+      "d": "2026-07-16",
+      "p": 371671,
+      "n": 20,
+      "basis": "active"
+     }
+    ],
+    "updated": "2026-07-16"
    }
   }
  },
