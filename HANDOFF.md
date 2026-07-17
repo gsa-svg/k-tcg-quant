@@ -3,6 +3,16 @@
 > 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
 > 갱신: 2026-07-15.
 
+## 0G. 2026-07-17 밤: 트래픽 회복 패스 — 캐시 `20260717c`
+- **진단(워크플로 6에이전트)**: GA 활성유저 -28%의 원인은 콘텐츠가 아니라 **구글 SERP 부재** — 16개 쿼리+브랜드검색 'opboxindex'까지 0노출. 조회수는 +7%(리텐션 정상). 인덱싱/권위가 병목.
+- **인덱싱 버그 수정**: 사이트맵의 packs.html?set=* 42개 URL이 전부 canonical=홈 선언 상태였음 → 제거(113→71). sets/*.html이 인덱싱 대상.
+- **프리릴리즈 페이지**: sets/op-17.html(JP 8/22·EN 8/28 공식검증 + OP-14/15/16 발매전후 실측: OP-16 예약$220→발매$139→저점$123→현재$150, "발매 2~6주 후가 저점" 데이터 결론) · sets/eb-05.html(10월 공식, EB-03 +50% 전례). SERP가 소형 샵블로그뿐인 급상승 쿼리 선점.
+- **구매의도 섹션**: 세트 생성기에 "Is an X booster box worth buying? (월 자동갱신)" verdict — 낙폭/모멘텀/체이스배수/젬레이트 실데이터 분기. "is op-13 good investment" 정확일치 SERP 결과 1개뿐.
+- **JP vs EN 아티클**: 정확일치 타이틀 + 실측 갭 표 10세트(+25% OP-16 ~ +641% EB-01, 신세트일수록 갭 축소 = OP-17 동시발매 논지).
+- **리텐션(packs.js)**: `opbx_watch`(관심 박스 핀, detail 패널 토글, 그리드 최상단+📌) + `opbx_lastseen`(방문 스냅샷) → 재방문 시 "Since your last visit" 변동 배너(관심세트 우선, 시장평균). GA 이벤트 watch_toggle/since_last_visit.
+- **사용자 액션 필요(계정)**: GSC 색인 확인+주요 URL 색인요청, Bing Webmaster 등록(GSC 가져오기), Naver Search Advisor 확인, 커뮤니티 첫 포스팅(차주 예정 — 신규유입 최대 레버).
+- 백로그: 카드 이미지 셀프호스팅+이미지 사이트맵, 차트 이미지 내보내기 버튼/임베드, 주간 CSV 자료실(백링크 자석), 주간 숏폼 클립, /ja/ 섹션.
+
 ## 0F. 2026-07-17 저녁: 인기 카드 개별 페이지 (롱테일 SEO)
 - **cards/*.html 24장 + cards/index.html 허브** — NM가 상위 24 유니크 카드(번호+변형명 dedupe, 홈세트 우선). 생성기 `tools/generate-card-pages.js`: NM(¥/$)·PSA10(sold/ask 라벨)·PSA 인구표(10/9/8이하 점유율)·그레이딩 경제성(프리미엄 배수별 분기 산문)·가격 체크포인트 표·변형검증 가이드·FAQ/Article/Breadcrumb 스키마. 전부 실데이터 파생, 추정치 0.
 - **크로스링크**: 세트페이지 체이스 표 카드명 → 카드페이지 링크(cards/card-map.json 경유), sets/index·psa10-ranking 관련링크에 허브 추가. 사이트맵 25 URL 추가(총 113), IndexNow 전송됨.
