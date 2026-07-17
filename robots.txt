@@ -70,6 +70,14 @@ Allow: /
 User-agent: Claude-User
 Allow: /
 
+# ClaudeBot builds the index behind Claude's web search — allowing it makes the site
+# discoverable/citable inside Claude answers (accepting possible training use).
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
 # Social link-preview crawlers — ALLOWED so Threads / Facebook / Instagram render
 # rich link cards when we share the site.
 User-agent: FacebookBot
@@ -80,9 +88,6 @@ Allow: /
 
 # Training-only scrapers — BLOCKED (bulk-harvest for model training, no exposure benefit).
 User-agent: GPTBot
-Disallow: /
-
-User-agent: ClaudeBot
 Disallow: /
 
 User-agent: anthropic-ai
