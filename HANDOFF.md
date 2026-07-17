@@ -1,7 +1,49 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
-> 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
-> 갱신: 2026-07-15.
+> 새 세션/에이전트(Codex 등)가 이어받을 때 **이 문서의 START 섹션부터** 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
+> 갱신: 2026-07-17 밤.
+
+## START — 현재 상태·다음 작업 (2026-07-17 밤 기준)
+
+### 현재 상태 스냅샷
+- **배포**: GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
+- **캐시 버전**: `20260717c`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
+- **야간 자동화**: `.github/workflows/update-active-listings.yml`(매일) — eBay 가격 갱신 → 카드 페이지 → 세트 페이지 순 재생성 → 커밋. 로컬 push가 거부되면: `git pull --rebase`; 꼬이면 `rebase --abort` → `reset --hard origin/main` → 자기 커밋에서 자기 파일만 checkout → 재생성 → push.
+- **트래픽**: GA 활성 54(-28%), 신규 50(-31%), 조회수 477(+7%). 원인 진단 완료(아래 0G): **구글에 미색인**(브랜드 검색조차 0노출). 콘텐츠·리텐션은 정상. SEO 효과는 색인 후 2~6주 걸림 — 그 전 숫자 하락은 정상이라고 사용자에게 이미 설명함.
+- **AdSense**: "가치가 별로 없는 콘텐츠" 거절 → 콘텐츠 보강 완료. **재심사 요청 버튼은 2026-07-30 이후에** (사용자가 누름).
+- **페이지 구성**: 홈/packs(SPA) · compare · psa10-ranking · sets/*.html 23개(+op-17, eb-05 프리릴리즈) · cards/*.html 24개+허브 · articles 16편 · 주간리포트 파이프라인 · RSS(feed.xml) · og/*.png.
+
+### 다음 작업 백로그 (우선순위순, 근거 포함 — 위에서부터 하면 됨)
+1. **OP-16 "30일 후" 아티클** — 6/12 발매 30일 경과. 우리 실측 시리즈(4/27~) + admiral 망가 3장 카드페이지(cards/op16-063/065/073) 재료 완비. "op-16 box worth it/restock" 검색 수요 있음.
+2. **세트별 "Top 10 chase cards" 라운드업 아티클 템플릿** — "op16 chase cards" 같은 세트단위 쿼리에 우리는 개별 카드페이지만 있고 라운드업이 없음. 생성기 하나 만들어 최근 세트(OP-16→OP-15→OP-13)부터. 기존 카드페이지로 내부링크.
+3. **evergreen "Why One Piece box prices are falling — live tracker" 고정 URL** — 하락장 공포 쿼리를 TCGPlayer 월간포스트가 먹는 중. 주간리포트 파이프라인(tools/generate-weekly-report.js)에서 고정 URL 하나를 매주 갱신하는 방식으로. 세트별 고점대비 낙폭 표.
+4. **카드 이미지 셀프호스팅 + 이미지 사이트맵** — 현재 cards/*.html 이미지가 전부 TCGplayer CDN 핫링크(끊기면 25페이지 전멸 + 이미지검색 트래픽이 tcgplayer로 감). /img/cards/{slug}.webp로 받아서 생성기 경로 교체 + sitemap에 image:image.
+5. **차트 내보내기 버튼 + /embed/** — packs.js 캔버스 차트에 "이미지 저장"(canvas.toBlob, opboxindex.com 워터마크) 버튼. 커뮤니티가 스크린샷으로 소통하므로 유저가 배포자가 됨.
+6. **주간 CSV 자료실(/free-data.html)** — 세트별 JP/EN 박스가·30일 변동·PSA10 톱카드 집계 CSV 주간 공개(출처링크 요구). 백링크 자석. ⚠️ eBay 원시 리스팅 덤프 금지, 파생 집계만.
+7. **카드 페이지 타이틀 쿼리 매칭** — tools/generate-card-pages.js title을 "[이름] ([번호]) PSA 10 Price & Population — {월 자동}"로 (figoca가 이 패턴으로 소형사이트인데 1위 먹음).
+8. **ST-31~36 스타터덱 짧은 아티클** — 7/31 발매, 그 주 검색 스파이크. 단명이라 낮은 공수로.
+9. **캐터리스트 캘린더 페이지** — 확정 일정(ST 7/31 → OP-17 8/22·28 → EB-05 10월)과 영향받는 박스 링크. 주간리포트와 같이 갱신.
+10. **/ja/ 섹션** (공수 큼) — 일본 셀러의 "해외(eBay) 상장가" 수요는 무경쟁. 상위 5세트+아티클 1편, 정적 페이지+hreflang(클라이언트 토글 방식 금지).
+
+### 매주 루틴 (월요일)
+1. `node tools/generate-weekly-report.js && node tools/generate-feed.js` → articles/index.html 허브 카드 최신호 교체 → 커밋/푸시 → `node tools/indexnow-submit.js`
+2. **판매자 국가 재검증**: `node tools/verify-best-sellers.js`로 대상 추출 → 브라우저에서 `ebay.com/fdbk/feedback_profile/{id}` 열어 "Member since ... in <국가>" 확인(Node fetch로는 안 됨, JS 셸만 옴) → 중국/홍콩이면 tools/ebay-listing-filters.js의 excludedSellerUsernames에 추가(현재 21계정).
+3. **PSA 주간 막대 append**: 7/22부터는 psaFull 스냅샷 대비 자체 계산으로 psaWeekly에 추가. (7/15 막대는 사용자의 TCGQ 호버값 대기 중.)
+4. 소셜 자산은 이미 자동생성됨(social/weekly/) — 포스팅은 사용자가 함.
+
+### 사용자 대기/예정 (내가 못 하는 것 — 재촉만)
+- **GSC**: sitemap 재제출 + 주요 10페이지 색인요청 (제일 급함, 요청해둠)
+- **Bing Webmaster Tools** 등록(GSC 가져오기 한 번) + **Naver Search Advisor** 확인
+- **차주 Reddit/Threads 첫 포스팅** — 글감: `social/community-drafts-2026-07-17.md` (이 세션에서 저장). 사용자가 요청하면 지원.
+- 8/31 예약작업(opbox-aug31): 공급/판매/PSA 누적 → Market Data 콤보 롤아웃 + eBay 시리즈 전환(boxSeriesEbay 승격).
+
+### 금지·주의 (실수 잦은 순)
+- **정확도 최우선**: 틀린 숫자보다 빈칸. 카드 가격은 **변형(variant) 매칭 엄수**(망가/패러렐/SP 다 다른 카드). 봉입률 등 근거 없는 수치 게시 금지.
+- **외부 소스명 공개 금지**(영구 규칙): Collectr 등 업체명을 사이트/공개 JSON/클라이언트 코드에 쓰면 안 됨. 라벨은 "Weekly ungraded market (JP/EN-NA)", 필드 `marketProductId`. tools/update-box-series-history.js의 wm-시리즈 보호 로직(boxSeriesEbay 우회 축적) 건드리지 말 것.
+- **스크래핑 금지**: TCGplayer/PriceCharting/CardLadder 가격 수집 금지(공식 상품 이미지는 OK). `tools/update-ebay-psa10-prices.js` 절대 실행 금지. variantOK/hasVariantSignal 완화 금지.
+- **삭제 금지 파일**: googlee0d71bc0695b5651.html, naver933a...html, IndexNow 키 .txt(3d439f302e46fc08f76ddba4eee3726f.txt), impact-site-verification 메타, .env(로컬 eBay 키).
+- **콘솔 cp949**: 한글/이모지 print 깨짐 → 결과는 UTF-8 파일로 쓰고 Read로 확인.
+- 사용자와는 **짧은 반말 한국어**. 개발자 아님 — 개발 판단은 알아서 하되 결과·이유를 쉽게 보고. 시키지 않은 개선도 능동적으로(단, 위 금지사항 안에서).
 
 ## 0G. 2026-07-17 밤: 트래픽 회복 패스 — 캐시 `20260717c`
 - **진단(워크플로 6에이전트)**: GA 활성유저 -28%의 원인은 콘텐츠가 아니라 **구글 SERP 부재** — 16개 쿼리+브랜드검색 'opboxindex'까지 0노출. 조회수는 +7%(리텐션 정상). 인덱싱/권위가 병목.
