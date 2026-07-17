@@ -45,6 +45,14 @@
 - **콘솔 cp949**: 한글/이모지 print 깨짐 → 결과는 UTF-8 파일로 쓰고 Read로 확인.
 - 사용자와는 **짧은 반말 한국어**. 개발자 아님 — 개발 판단은 알아서 하되 결과·이유를 쉽게 보고. 시키지 않은 개선도 능동적으로(단, 위 금지사항 안에서).
 
+## 0H. 2026-07-17 심야: 홈 노출 0 사고 — canonical 스왑 진단·수정 — 캐시 `20260717d`
+- **증상**: GSC 실적에서 홈(/)이 7/1~7/7 노출79·클릭9·순위6.3 → **7/8부터 노출 0**. GA 활성유저 -28%의 직접 원인.
+- **진단**(GSC 직접 확인): 수동조치 없음. 사이트 전체 노출은 유지되는데 packs.html?hl=en이 노출 94회로 최다 — **구글이 중복 클러스터(/, packs.html, ?hl=, ?set=)의 canonical을 /에서 packs.html 변형으로 스왑**. 원인: 사이트맵에 packs.html?set= 42개 등재(7/7 제출) + 전 페이지 브랜드로고가 packs.html?hl=en으로 링크 → 내부 신호가 packs.html에 몰림.
+- **수정**: ①사이트맵 42개 제거(0G) ②**전 사이트 내부링크 홈 통일**(brand/nav/브레드크럼 스키마/절대URL, 79개 파일+생성기 2개: packs.html?hl=en→/ , ?hl=ko→/?hl=ko; **?set= 딥링크는 기능이라 유지**) ③audit-seo에 재발방지 검사(사이트맵에 /index.html·/packs.html 등재 시 에러) ④GSC 홈 재크롤 요청.
+- **회복 관찰법**: GSC 실적→페이지에서 / 노출이 돌아오는지 (수일~2주). packs.html?hl=en 노출이 /로 넘어오면 성공.
+- GSC 소유권: gsa@whatsong.kr로 인증됨(google1d76c313bd3d0b59.html — 삭제금지). 색인요청 실행: /, sets/op-17, cards/, articles/japan-vs-english, sets/eb-05. 색인요청 쿼터 하루 ~10개.
+- Bing Webmaster: 미등록 — 사용자 구글SSO 클릭 대기. llms.txt 추가, robots에서 ClaudeBot/Claude-SearchBot 허용(AI 인용 목적).
+
 ## 0G. 2026-07-17 밤: 트래픽 회복 패스 — 캐시 `20260717c`
 - **진단(워크플로 6에이전트)**: GA 활성유저 -28%의 원인은 콘텐츠가 아니라 **구글 SERP 부재** — 16개 쿼리+브랜드검색 'opboxindex'까지 0노출. 조회수는 +7%(리텐션 정상). 인덱싱/권위가 병목.
 - **인덱싱 버그 수정**: 사이트맵의 packs.html?set=* 42개 URL이 전부 canonical=홈 선언 상태였음 → 제거(113→71). sets/*.html이 인덱싱 대상.
