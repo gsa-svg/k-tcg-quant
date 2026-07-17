@@ -17,6 +17,10 @@ const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.
 const ORDER = [...data.jp.list, ...data.extra.list].filter((c) => (data.sets[c]?.cards || []).length > 0);
 const slug = (code) => code.toLowerCase();
 
+// 개별 카드 페이지 슬러그 맵(있을 때만 링크) — tools/generate-card-pages.js 산출물
+let CARD_MAP = {};
+try { CARD_MAP = JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8")); } catch (e) {}
+
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // ---- 실데이터 구워넣기용 헬퍼 (가격은 항상 "as of 날짜"로 정직하게, 매일 재생성으로 최신 유지)
@@ -241,9 +245,12 @@ function setPage(code, prev, next) {
   const enc = encodeURIComponent(code);
 
   // 실데이터 표(구워넣기): 순위·카드·NM(생)·PSA10(sold 우선). 값 없으면 "—"
+  // 개별 카드 페이지가 있으면 이름에 링크 (cards/card-map.json — generate-card-pages.js 산출물)
   const rows = cards.map((c, i) => {
     const p = cardPrices(c);
-    return `<tr><td>${i + 1}</td><td><strong>${esc(c.name)}</strong><span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td></tr>`;
+    const cardHref = CARD_MAP[(c.number || "") + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")];
+    const nameCell = cardHref ? `<a href="../cards/${cardHref}"><strong>${esc(c.name)}</strong></a>` : `<strong>${esc(c.name)}</strong>`;
+    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 라인 (안정 데이터)
@@ -394,6 +401,7 @@ function hubPage() {
       </ul>
       <div class="setNavLinks">
         <a href="../">Open the live price tracker</a>
+        <a href="../cards/">Individual card price pages</a>
         <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
         <a href="../articles/sealed-box-rules.html">What moves box prices</a>
         <a href="../articles/reseal-checklist.html">Reseal checklist</a>
@@ -501,7 +509,7 @@ function rankingPage() {
         </table>
       </div>
       <p class="methodNote">Method: PSA 10 median of recent eBay <em>sold</em> listings (Japanese cards), minimum 3 completed sales, as of ${esc(asOf)}. Values in USD. Tap any row for that card's full live tracker. Reflects graded-card sold prices, not raw singles.</p>
-      <div class="setNavLinks"><a href="./">Live price tracker</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
+      <div class="setNavLinks"><a href="./">Live price tracker</a><a href="cards/">Individual card price pages</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you. Prices change; always confirm on eBay before buying. Not investment advice.</p>
     </main>
     <footer class="footer">
