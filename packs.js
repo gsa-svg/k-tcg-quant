@@ -1379,6 +1379,12 @@ function hasBoxData(set) {
   });
 }
 
+function boxThumbnail(src) {
+  return typeof src === "string" && src.includes("/card-img/box/")
+    ? src.replace("/card-img/box/", "/card-img/box/thumb/")
+    : src;
+}
+
 function renderPackGrid() {
   const wrap = document.querySelector("#packList");
   const cacheKey = `${state.lang}:${state.hl}:${watchList().join(",")}`;
@@ -1394,8 +1400,9 @@ function renderPackGrid() {
     const clickable = has || boxOnly;
     const active = p.key === state.selected ? " active" : "";
     const box = p.set.box || FALLBACK;
+    const thumbnail = boxThumbnail(box);
     const tag = has ? "TOP 10" : boxOnly ? t("박스 시세", "Box price") : t("준비중", "Coming soon");
-    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" src="${box}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
+    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" src="${thumbnail}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${box}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
   }).join("");
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
     btn.addEventListener("click", () => {

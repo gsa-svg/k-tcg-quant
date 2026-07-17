@@ -6,7 +6,7 @@
     <meta name="impact-site-verification" value="16e92286-f00c-4878-ba9f-9747912758b6" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <!-- Google Analytics 4 (gtag.js) -->
@@ -105,12 +105,6 @@
     <meta name="description" content="Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Top 10 chase cards, sold-price trends and PSA population data. No hype, just data." />
     <link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin />
     <link rel="preconnect" href="https://card.yuyu-tei.jp" crossorigin />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
     <link rel="preload" href="styles.css?v=20260717c" as="style" />
     <link rel="stylesheet" href="styles.css?v=20260717c" />
     <style>
@@ -124,7 +118,7 @@
       }
       body {
         background: var(--terminal-bg);
-        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       main { max-width: 1200px; margin: 0 auto; }
       .eyebrow, .packCode, .marketStatus, .pl i, .pl b, .hitPrice, .bandRow b, .bandRow small,
@@ -147,7 +141,7 @@
         color: #7a8194; font-size: 12px; font-weight: 800; letter-spacing: .5px;
       }
       .adLabel::before { content: "AD"; padding: 1px 6px; border-radius: 5px; background: #1a1e28; color: #aeb5c8; font-size: 10px; }
-      .adDisclosure { margin: 6px 2px 0; color: #6b7281; font-size: 11px; }
+      .adDisclosure { margin: 6px 2px 0; color: #9aa4b6; font-size: 11px; }
       .adsenseSlot .adInner { min-height: 120px; }
 
       .packHero {
@@ -224,6 +218,7 @@
         display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 12px; margin-top: 14px;
       }
+      .packGrid:empty { min-height: 340px; }
       .packChip {
         display: flex; gap: 12px; padding: 10px; text-align: left;
         border: 1px solid var(--terminal-line); border-radius: 6px; background: var(--terminal-panel);
@@ -284,11 +279,11 @@
       }
       .hitCard figcaption { padding: 7px 2px 0; }
       .hitName { display: block; font-weight: 800; font-size: 13px; line-height: 1.25; overflow-wrap: anywhere; word-break: keep-all; }
-      .hitNo { display: block; margin-top: 2px; color: #737b8e; font-size: 11px; letter-spacing: .3px; }
+      .hitNo { display: block; margin-top: 2px; color: #9aa4b6; font-size: 11px; letter-spacing: .3px; }
       .hitPrice { display: block; margin-top: 3px; color: var(--accent); font-weight: 900; font-size: 14px; }
       .priceLines { margin-top: 6px; display: grid; gap: 3px; }
       .pl { font-size: 12px; color: #c7cdda; line-height: 1.25; }
-      .pl i { display: inline-block; width: 44px; font-style: normal; font-weight: 800; font-size: 10px; color: #7a8194; }
+      .pl i { display: inline-block; width: 44px; font-style: normal; font-weight: 800; font-size: 10px; color: #a5aec0; }
       .pl b { font-weight: 900; color: #eef2ff; }
       .pl.base b { color: #f3c74f; }
       .pl.nm b { color: #eef2ff; }
@@ -299,10 +294,10 @@
       .pl.psaEbay > i {
         display: block; width: auto; margin-bottom: 4px; color: var(--accent);
       }
-      .pl small { color: #737b8e; }
+      .pl small { color: #9aa4b6; }
       .pl.psaNone { margin-top: 4px; padding-top: 5px; border-top: 1px solid #252b38; opacity: .72; }
       .buyLinks { margin-top: 7px; display: grid; gap: 3px; }
-      .buyLinks small { color: #737b8e; font-size: 10px; line-height: 1.25; }
+      .buyLinks small { color: #9aa4b6; font-size: 10px; line-height: 1.25; }
       .buyLink {
         display: flex; align-items: center; justify-content: center;
         flex-wrap: wrap; gap: 1px 5px;
@@ -452,6 +447,7 @@
         .langTab { flex: 1 1 0; min-width: 0; min-height: 38px; padding: 0 8px; justify-content: center; font-size: 12px; }
         .packSection { padding: 14px 12px 0; }
         .packGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .packGrid:empty { min-height: 720px; }
         .packChip { gap: 8px; padding: 8px; border-radius: 6px; }
         .packBox { width: 46px; height: 62px; border-radius: 5px; }
         .packCode { font-size: 11px; }
@@ -596,7 +592,7 @@
       .emCard { padding: 10px 12px; border: 1px solid var(--line, rgba(255,255,255,.08)); border-radius: 10px; background: rgba(255,255,255,.02); }
       .emCard.emMarket { border-color: rgba(16,215,160,.45); background: rgba(16,215,160,.06); }
       .emCard .emLabel { display: block; font-size: 12px; color: var(--muted, #aeb7c9); font-weight: 700; }
-      .emCard .emKind { font-style: normal; font-size: 9px; text-transform: uppercase; letter-spacing: .3px; opacity: .8; margin-left: 3px; padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.06); }
+      .emCard .emKind { color: #aeb7c9; font-style: normal; font-size: 9px; text-transform: uppercase; letter-spacing: .3px; opacity: 1; margin-left: 3px; padding: 1px 5px; border-radius: 5px; background: rgba(255,255,255,.08); }
       .emCard.emMarket .emVal { color: var(--accent, #10d7a0); }
       .emCard .emVal { display: block; font-size: 24px; font-weight: 900; color: #eef2ff; margin: 2px 0 3px; font-variant-numeric: tabular-nums; }
       .emCard small { color: var(--muted, #8d95a7); font-size: 11px; }
@@ -1123,8 +1119,8 @@
   </head>
   <body>
     <header class="topbar">
-      <a class="brand" href="./" aria-label="OP Box Index home">
-        <span class="brandMark">OP</span>
+      <a class="brand" href="./">
+        <span class="brandMark" aria-hidden="true">OP</span>
         <span>
           <strong>OP Box Index</strong>
           <small>One Piece booster box index</small>

@@ -196,7 +196,7 @@ function faqLd(code, nameEn) {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/packs.html?hl=en` },
+      { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/` },
       { "@type": "ListItem", position: 2, name: "Set Guides", item: `${SITE}/sets/index.html` },
       { "@type": "ListItem", position: 3, name: `${code} Guide`, item: `${SITE}/sets/${slug(code)}.html` },
     ],
