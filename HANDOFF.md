@@ -3,6 +3,11 @@
 > 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
 > 갱신: 2026-07-15.
 
+## 0F. 2026-07-17 저녁: 인기 카드 개별 페이지 (롱테일 SEO)
+- **cards/*.html 24장 + cards/index.html 허브** — NM가 상위 24 유니크 카드(번호+변형명 dedupe, 홈세트 우선). 생성기 `tools/generate-card-pages.js`: NM(¥/$)·PSA10(sold/ask 라벨)·PSA 인구표(10/9/8이하 점유율)·그레이딩 경제성(프리미엄 배수별 분기 산문)·가격 체크포인트 표·변형검증 가이드·FAQ/Article/Breadcrumb 스키마. 전부 실데이터 파생, 추정치 0.
+- **크로스링크**: 세트페이지 체이스 표 카드명 → 카드페이지 링크(cards/card-map.json 경유), sets/index·psa10-ranking 관련링크에 허브 추가. 사이트맵 25 URL 추가(총 113), IndexNow 전송됨.
+- **야간 워크플로 통합**: update-active-listings.yml이 card-pages → set-pages 순으로 재생성+커밋 → PSA10 가격 매일 갱신됨. NM은 수동 주입 시에만 변동(슬러그 안정).
+
 ## 0E. 2026-07-17 오후: 자율 최적화 패스 — 캐시 `20260717a`
 - **🚨 야간 워크플로가 Collectr 시리즈 오염** → 수리 완료. update-box-series-history.js가 boxSeries/boxSeriesEn의 source를 eBay로 덮고 active 포인트를 덧붙임(그래프 스파이크+라벨 오류). **툴 패치**: source에 Collectr 포함 시 eBay 스냅샷을 `boxSeriesEbay`/`boxSeriesEnEbay`에 병행 축적(8월 전환 때 승격), Collectr 시리즈는 불가침. 오염분은 serdump.txt로 원복(37시리즈), eBay 포인트 74개는 병행필드로 이관.
 - **주간 리포트 루틴(월요일)**: `node tools/generate-weekly-report.js && node tools/generate-feed.js && node tools/indexnow-submit.js` → 허브 카드(articles/index.html) 최신호로 교체 → 커밋.
