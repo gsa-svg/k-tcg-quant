@@ -20,6 +20,8 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const slugify = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70);
 const DATA_DATE = d.updated || new Date().toISOString().slice(0, 10);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MON_LABEL = (() => { const dt = new Date(DATA_DATE); return Number.isNaN(dt.getTime()) ? "" : `${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`; })();
 
 // ---- 후보 수집 + 중복 변형 제거(번호+정규화이름 기준; 홈세트 우선)
 const seen = new Map();
@@ -107,7 +109,8 @@ for (const { code, set: s, card: c } of cands) {
       <p class="srcNoteA">PSA population report for this exact variant. Population only grows — every new PSA 10 adds supply pressure on the graded price.</p>` : ""}`;
   }
 
-  const title = `${c.name} (${c.number}) Price — Japanese NM & PSA 10 | OP Box Index`;
+  // 타이틀은 실제 검색 문구("<카드> psa 10 price") 매칭 + 월 표기 자동 갱신(야간 재생성)
+  const title = `${c.name} (${c.number}) PSA 10 Price & Population — ${MON_LABEL} | OP Box Index`;
   const desc = `${c.name} ${c.number} current prices: raw Japanese NM ${jpy(c.nmJpy)} (about ${usd(nmUsd)})${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} near ${usd(p10.v)}` : ""}${pop ? `, PSA population ${intl(pop.total)} (${pop.gem}% gem rate)` : ""}. Variant-verified, updated ${DATA_DATE}.`;
 
   const faq = [
