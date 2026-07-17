@@ -3,6 +3,14 @@
 > 새 세션/에이전트(Codex 등)가 이어받을 때 이 문서를 먼저 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
 > 갱신: 2026-07-15.
 
+## 0D. 2026-07-17: 중국·홍콩 위장창고 다계정망 전수 소탕 — 캐시 `20260716e`
+- **발견**: US창고 발송으로 위치필터를 우회하는 중국/홍콩 셀러망이 박스 최저가를 잠식. 차단하면 같은 물건이 다른 계정으로 재등장(OP-05 $151.89 5계정, OP-14 $79.9 홍콩 8계정 등). eBay Browse API의 itemLocation은 창고(US)라 못 잡음.
+- **검증법 확립**: eBay 피드백 프로필(`ebay.com/fdbk/feedback_profile/{id}`)의 "Member since ... in <국가>" — **반드시 브라우저에서**(Node fetch엔 JS껍데기만 옴). 세션 브라우저 탭에서 `window.__vf([...])` 패턴으로 일괄 확인.
+- **결과**: bestListing 셀러 42개 전원 검증, 중국/홍콩 **19계정 차단**(greatestplc·wzxc2024·chuangxinhe·ajwu2024·dcfonew·dndy2024·obtr2024·onpiececard·newcardscoming·ygmvtion·wonder5136·goldencardstore·pokem_57·sunnystore24·paparazzir·fuyistore + OP-14망 vasettler·vcbbox·vbzeckon·vedesh·gromance·vdcontion·bloonymary·dihssease). 차단 후 실최저가 정상화(OP-07 $79→$110, OP-05 $152→$238, OP-14 $80→$125 — 그 대역 전체가 위장망이었음).
+- **주간 루틴**: `tools/verify-best-sellers.js`가 대상 목록 추출(단 fdbk fetch는 Node에서 차단 → 세션 브라우저로 확인 필요). 주 1회 실행 권장. 신규 차단은 `tools/ebay-listing-filters.js` excludedSellerUsernames에 사유와 함께 추가 후 수집기 재실행.
+- OP-13 JP는 현재 미개봉 매물 0건(정직하게 버튼 미표시), OP-11 JP kept=2로 얇음.
+- 기타 결정: 팩 시뮬레이터 아이디어 폐기(봉입률 공식 근거 없음 — 정확도 원칙), 코멘트/별점은 트래픽 주500+ 이후 재검토.
+
 ## 0C. 2026-07-16: 애드센스 "가치가 별로 없는 콘텐츠" 거절 대응 — 캐시 `20260716b`
 - **거절 원인 진단**: compare.html 정적 텍스트 92단어(봇에겐 빈 페이지), 세트페이지 22개 템플릿 중복, 아티클 얇음(~560단어), 도메인 3주 신생.
 - **조치**: ①compare.html 정적 산문+7월 스냅샷 표(~650단어) ②세트페이지에 세트별 고유 데이터 섹션 2개 추가(6개월 시세 궤적·주간 등급 모멘텀, 생성기 tools/generate-set-pages.js — ~940단어/페이지) ③데이터 리포트 아티클 2편(각 1,300단어: japanese-vs-english-box-price-data-2026.html, psa-grading-vs-sealed-supply-2026.html — 수치 전부 우리 실데이터, scratchpad article_stats.json에서 추출) ④about.html E-E-A-T(출처·정확도정책·운영자·갱신주기·정정 연락처 gsa@whatsong.kr) ⑤홈 7월 데이터 다이제스트+OP-16 가이드 링크 누락 수정. SEO 감사 통과.
