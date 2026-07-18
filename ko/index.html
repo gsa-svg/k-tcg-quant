@@ -41,6 +41,8 @@
       .koBoard td.nm { color: #9aa4b6; }
       .rpDot { display: inline-block; background: rgba(255,125,60,.15); color: #ff9d6c; border-radius: 6px; padding: 1px 7px; font-weight: 700; font-size: 12px; }
       .rpNone { color: #6a7182; font-size: 12px; }
+      .fromDate { display: block; font-size: 10px; color: #7d8698; font-weight: 400; }
+      .koBoard td.code a { color: #50dad9; text-decoration: none; font-weight: 700; }
       .owMeter { display: flex; gap: 8px; align-items: flex-end; height: 120px; max-width: 520px; margin: 12px 0; }
       .owBar { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 4px; }
       .owBar span { width: 100%; background: #ff7d3c; opacity: .6; border-radius: 4px 4px 0 0; min-height: 6px; }
@@ -89,176 +91,176 @@
 
       <section aria-label="전 세트 시세표">
         <h2>전 세트 박스 시세표 (원화)</h2>
-        <p class="koNote">변동률은 <strong>2026년 1월 대비</strong>입니다(발매일 대비 아님). 정가 대비 배수 = 현재 시세 ÷ 발매 정가.</p>
+        <p class="koNote">변동률은 각 세트의 <strong>추적 시작일 대비</strong>입니다(발매일 대비 아님 — 대부분 2026-01-07부터 추적, 기준일은 행마다 표기). 정가 대비 배수 = 현재 시세 ÷ 발매 정가. 세트 코드를 누르면 세트별 상세 시세로 갑니다.</p>
         <div style="overflow-x:auto">
         <table class="koBoard">
-          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>박스 시세</th><th>1월 대비</th><th>정가 대비</th><th class="l">재판</th></tr></thead>
+          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>박스 시세</th><th>기준일 대비</th><th>정가 대비</th><th class="l">재판</th></tr></thead>
           <tbody>
 <tr>
-    <td class="code">OP-01</td>
+    <td class="code"><a href="op-01.html">OP-01</a></td>
     <td class="nm">로맨스 던</td>
     <td class="num">484,721원</td>
-    <td class="num up">+108.7%</td>
+    <td class="num up">+108.7%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×10.7</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-02</td>
+    <td class="code"><a href="op-02.html">OP-02</a></td>
     <td class="nm">정상결전</td>
     <td class="num">210,614원</td>
-    <td class="num up">+20.4%</td>
+    <td class="num up">+20.4%<small class="fromDate">2026-01-13 대비</small></td>
     <td class="num">×4.7</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-03</td>
+    <td class="code"><a href="op-03.html">OP-03</a></td>
     <td class="nm">강대한 적</td>
     <td class="num">230,746원</td>
-    <td class="num up">+65.6%</td>
+    <td class="num up">+65.6%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×5.1</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-04</td>
+    <td class="code"><a href="op-04.html">OP-04</a></td>
     <td class="nm">모략의 왕국</td>
     <td class="num">167,252원</td>
-    <td class="num up">+31.7%</td>
+    <td class="num up">+31.7%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3.3</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-05</td>
+    <td class="code"><a href="op-05.html">OP-05</a></td>
     <td class="nm">신시대의 주역</td>
     <td class="num">252,427원</td>
-    <td class="num up">+29.4%</td>
+    <td class="num up">+29.4%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×5</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-06</td>
+    <td class="code"><a href="op-06.html">OP-06</a></td>
     <td class="nm">쌍벽의 패자</td>
     <td class="num">153,314원</td>
-    <td class="num up">+35.6%</td>
+    <td class="num up">+35.6%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3</td>
     <td class="rp"><span class="rpDot" title="2024-04-12 MediaWorld reprint (再販) shipment">재판 1회</span></td>
   </tr>
 <tr>
-    <td class="code">OP-07</td>
+    <td class="code"><a href="op-07.html">OP-07</a></td>
     <td class="nm">500년 후의 미래</td>
     <td class="num">126,988원</td>
-    <td class="num up">+60.8%</td>
+    <td class="num up">+60.8%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×2.5</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-08</td>
+    <td class="code"><a href="op-08.html">OP-08</a></td>
     <td class="nm">두 개의 전설</td>
     <td class="num">131,634원</td>
-    <td class="num up">+80.9%</td>
+    <td class="num up">+80.9%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×2.6</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-09</td>
+    <td class="code"><a href="op-09.html">OP-09</a></td>
     <td class="nm">새로운 황제</td>
     <td class="num">176,544원</td>
-    <td class="num up">+54.1%</td>
+    <td class="num up">+54.1%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3.5</td>
     <td class="rp"><span class="rpDot" title="2024-10 Bandai Namco shop 再販 pre-order lottery; page now 404 (medium confidence)">재판 1회</span></td>
   </tr>
 <tr>
-    <td class="code">OP-10</td>
+    <td class="code"><a href="op-10.html">OP-10</a></td>
     <td class="nm">왕족의 혈통</td>
     <td class="num">123,890원</td>
-    <td class="num up">+53.8%</td>
+    <td class="num up">+53.8%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×2.5</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-11</td>
+    <td class="code"><a href="op-11.html">OP-11</a></td>
     <td class="nm">신속의 권</td>
     <td class="num">185,836원</td>
-    <td class="num up">+71.4%</td>
+    <td class="num up">+71.4%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3.7</td>
     <td class="rp"><span class="rpDot" title="2025-06-28 MediaWorld reprint (再販) carton, ship date">재판 1회</span></td>
   </tr>
 <tr>
-    <td class="code">OP-12</td>
+    <td class="code"><a href="op-12.html">OP-12</a></td>
     <td class="nm">거장의 유산</td>
     <td class="num">113,050원</td>
-    <td class="num up">+37.7%</td>
+    <td class="num up">+37.7%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×2.2</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-13</td>
+    <td class="code"><a href="op-13.html">OP-13</a></td>
     <td class="nm">계승되는 의지</td>
     <td class="num">202,871원</td>
-    <td class="num up">+67.9%</td>
+    <td class="num up">+67.9%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×4</td>
     <td class="rp"><span class="rpDot" title="2025-09 Project Core 再販 decided late Sept 2025 / 2025-11 あみあみ Nov 2025 再販 pre-order (定価)">재판 2회</span></td>
   </tr>
 <tr>
-    <td class="code">OP-14</td>
+    <td class="code"><a href="op-14.html">OP-14</a></td>
     <td class="nm">푸른 바다의 칠인</td>
     <td class="num">136,279원</td>
-    <td class="num up">+39.7%</td>
+    <td class="num up">+39.7%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×2.7</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-15</td>
+    <td class="code"><a href="op-15.html">OP-15</a></td>
     <td class="nm">카미의 섬의 모험</td>
     <td class="num">151,766원</td>
-    <td class="num down">-12.5%</td>
+    <td class="num down">-12.5%<small class="fromDate">2026-02-25 대비</small></td>
     <td class="num">×3</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">OP-16</td>
+    <td class="code"><a href="op-16.html">OP-16</a></td>
     <td class="nm">결전의 시간</td>
     <td class="num">232,109원</td>
-    <td class="num down">-31.9%</td>
+    <td class="num down">-31.9%<small class="fromDate">2026-04-27 대비</small></td>
     <td class="num">×4.6</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">EB-01</td>
+    <td class="code"><a href="eb-01.html">EB-01</a></td>
     <td class="nm">메모리얼 컬렉션</td>
     <td class="num">179,641원</td>
-    <td class="num up">+28.9%</td>
+    <td class="num up">+28.9%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3.6</td>
     <td class="rp"><span class="rpDot" title="2024-08-28 MediaWorld reprint (再販) run ship date">재판 1회</span></td>
   </tr>
 <tr>
-    <td class="code">EB-02</td>
+    <td class="code"><a href="eb-02.html">EB-02</a></td>
     <td class="nm">애니메이션 25주년 컬렉션</td>
     <td class="num">167,252원</td>
-    <td class="num up">+71.4%</td>
+    <td class="num up">+71.4%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3.3</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">EB-03</td>
+    <td class="code"><a href="eb-03.html">EB-03</a></td>
     <td class="nm">히로인 에디션</td>
     <td class="num">195,127원</td>
-    <td class="num up">+50.0%</td>
+    <td class="num up">+50.0%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×3.9</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
 <tr>
-    <td class="code">PRB-01</td>
+    <td class="code"><a href="prb-01.html">PRB-01</a></td>
     <td class="nm">프리미엄 부스터 vol.1</td>
     <td class="num">224,551원</td>
-    <td class="num up">+113.2%</td>
+    <td class="num up">+113.2%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×4.3</td>
     <td class="rp"><span class="rpDot" title=" MediaWorld reprint (再販) listing; exact date not distinct">재판 1회</span></td>
   </tr>
 <tr>
-    <td class="code">PRB-02</td>
+    <td class="code"><a href="prb-02.html">PRB-02</a></td>
     <td class="nm">프리미엄 부스터 vol.2</td>
     <td class="num">119,245원</td>
-    <td class="num up">+32.8%</td>
+    <td class="num up">+32.8%<small class="fromDate">2026-01-07 대비</small></td>
     <td class="num">×2.3</td>
     <td class="rp"><span class="rpNone">재판 기록 없음</span></td>
   </tr>
