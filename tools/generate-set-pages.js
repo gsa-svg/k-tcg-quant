@@ -20,6 +20,9 @@ const slug = (code) => code.toLowerCase();
 // 개별 카드 페이지 슬러그 맵(있을 때만 링크) — tools/generate-card-pages.js 산출물
 let CARD_MAP = {};
 try { CARD_MAP = JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8")); } catch (e) {}
+// 검증된 세트 팩트(정가·재판) — data/set-facts.json (연구 워크플로 산출, 나이틀리 불변)
+let SET_FACTS = { sets: {} };
+try { SET_FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -348,6 +351,25 @@ function setPage(code, prev, next) {
     }
   }
 
+  // 재판 이력 + 정가 대비 배수 — 검증된 팩트(data/set-facts.json). 반다이는 세트별 재판 미발표.
+  let reprintBlock = "";
+  {
+    const sf = (SET_FACTS.sets && SET_FACTS.sets[code]) || null;
+    if (sf && sf.jpMsrpYen) {
+      const msrpUsd = FX.jpyKrw && FX.usdKrw ? Math.round((sf.jpMsrpYen * FX.jpyKrw) / FX.usdKrw) : null;
+      const pts2 = (s.boxSeries && s.boxSeries.points) || [];
+      const nowU = pts2.length ? krwUsd(pts2[pts2.length - 1].p) : null;
+      const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
+      const recs = sf.reprintRecords || [];
+      const rpLine = recs.length
+        ? `We found <strong>${recs.length}</strong> dated reprint record${recs.length > 1 ? "s" : ""} for ${code} from Japanese retailers/distributors: ${recs.map((r) => `${r.date ? esc(r.date) : "date n/a"} (<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${esc(r.kind)}</a>)`).join(", ")}.`
+        : `We found no dated reprint record for ${code} in our sources — which means none surfaced, not that it was never reprinted.`;
+      reprintBlock = `
+      <h2>Reprints &amp; original price</h2>
+      <p>${code} launched at a Japanese MSRP of <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd})${mult ? `. At today's market price that is roughly <strong>${mult}x its original retail</strong>` : ""}. <strong>On reprints:</strong> Bandai does not publish per-set reprint announcements for the One Piece Card Game, so there is no official count. ${rpLine} See the full board on the <a href="../market.html">market index page</a>.</p>`;
+    }
+  }
+
   const compareLink =
     code === "OP-05" || code === "OP-06"
       ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
@@ -420,6 +442,7 @@ function setPage(code, prev, next) {
       <p class="gearRec">💎 <strong>Protect your chase cards.</strong> One Piece cards are standard size (63×88 mm), and Dragon Shield Matte 100 is a widely used premium sleeve. <a href="${SLEEVE_EBAY}" target="_blank" rel="noopener noreferrer sponsored">Shop popular sleeves on eBay ↗</a></p>
       ${trajectory}
       ${verdict}
+      ${reprintBlock}
       ${momentum}
       ${psaSection}
       <h2>Before you buy a sealed ${code} box</h2>

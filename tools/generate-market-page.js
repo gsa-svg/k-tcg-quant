@@ -31,7 +31,9 @@ const rows = board.map((b, i) => {
   // base가 기준일과 다르면(후발 세트) 실제 시작일을 정직하게 표기 — "Jan 대비"로 오해 방지
   const lateNote = b.baseDate !== BASE_DATE ? `<span class="fromDate" title="tracked from ${b.baseDate}">from ${monLbl(b.baseDate)}</span>` : "";
   const basisLabel = b.launchTracked ? `<span class="basisTag" title="tracked from actual release">launch</span>` : "";
-  return `<tr><td class="num">${i + 1}</td><td><a href="sets/${b.code.toLowerCase()}.html">${b.code}</a> <span class="bName">${esc(b.nameEn)}</span></td><td class="num">$${b.baseUsd.toLocaleString()}${lateNote}</td><td class="num">$${b.nowUsd.toLocaleString()}</td><td class="num ${cls}">${b.changePct >= 0 ? "+" : ""}${b.changePct}% ${basisLabel}</td></tr>`;
+  const msrpCell = b.vsMsrp ? `${b.vsMsrp}x <span class="fromDate">$${b.msrpUsd} MSRP</span>` : "—";
+  const rpCell = b.reprints ? `<span class="rpDot" title="dated reprint evidence on record">${b.reprints}</span>` : "<span class='rpNone'>—</span>";
+  return `<tr><td class="num">${i + 1}</td><td><a href="sets/${b.code.toLowerCase()}.html">${b.code}</a> <span class="bName">${esc(b.nameEn)}</span></td><td class="num">$${b.baseUsd.toLocaleString()}${lateNote}</td><td class="num">$${b.nowUsd.toLocaleString()}</td><td class="num ${cls}">${b.changePct >= 0 ? "+" : ""}${b.changePct}% ${basisLabel}</td><td class="num">${msrpCell}</td><td class="num">${rpCell}</td></tr>`;
 }).join("");
 
 const bmax = Math.max(...m.weeks.map((w) => w.v));
@@ -42,12 +44,14 @@ const keyFacts = [
   `Over the past week the index moved ${up ? "+" : ""}${idx.weekChangePct}%.`,
   m.latestWeek ? `In the week of ${esc(m.latestWeek.d)}, collectors sent <strong>${m.latestWeek.v.toLocaleString()}</strong> One Piece cards to PSA (${m.wowPct >= 0 ? "+" : ""}${m.wowPct}% vs the prior week); ${m.allTimeGraded.toLocaleString()} have been graded all-time.` : "",
   `The strongest set since January is ${board[0].code} (${board[0].changePct >= 0 ? "+" : ""}${board[0].changePct}%); the weakest is ${board[board.length - 1].code} (${board[board.length - 1].changePct}%).`,
+  (() => { const top = [...board].filter((b) => b.vsMsrp).sort((a, b) => b.vsMsrp - a.vsMsrp)[0]; return top ? `Measured against original Japanese retail MSRP, ${top.code} now trades at <strong>${top.vsMsrp}x</strong> its launch price ($${top.msrpUsd} MSRP → $${top.nowUsd}).` : ""; })(),
 ].filter(Boolean);
 
 const faq = [
   { q: "What is the OPBX Index?", a: `It is a free equal-weight index of ${mi.constituents.length} Japanese One Piece Card Game booster boxes, based to 100 on January 7, 2026. Each day it averages every constituent box's price relative to its January 7 value. As of ${idx.asOf} it is ${idx.value.toFixed(1)} — ${idx.sinceBasePct >= 0 ? "up" : "down"} ${Math.abs(idx.sinceBasePct)}% since January. Sets first tracked after that date (${mi.constituents.length < 21 ? d.jp.list.concat(d.extra.list).filter((c) => d.sets[c] && !mi.constituents.includes(c) && (d.sets[c].boxSeries || {}).points) .join(", ") : "none"}) are shown individually but excluded from the index.` },
   { q: "What is the Opening Meter?", a: m.latestWeek ? `It counts how many One Piece cards were newly graded by PSA each week — a proxy for how fast sealed product is being opened. In the week of ${m.latestWeek.d}, ${m.latestWeek.v.toLocaleString()} cards were graded. Rising grading volume while box prices hold is the supply-burn pattern sealed collectors watch for.` : "A weekly count of newly PSA-graded One Piece cards." },
-  { q: "Why is the change measured 'since January', not since launch?", a: `Our daily price tracking began in January 2026. Only a few sets (currently OP-16) were tracked from their actual release, so for every other set we honestly label changes 'since January' rather than claiming a launch-to-now figure we did not measure.` },
+  { q: "Why is the change measured 'since January', not since launch?", a: `Our daily price tracking began in January 2026. Only a few sets (currently OP-16) were tracked from their actual release, so for every other set we honestly label changes 'since January' rather than claiming a launch-to-now figure we did not measure. For a true since-launch comparison we use the 'vs MSRP' column, which divides the current price by each set's official Japanese launch MSRP.` },
+  { q: "How many times has each set been reprinted?", a: `Bandai does not publish per-set reprint announcements for the One Piece Card Game, so a definitive count does not exist. What we can show is dated reprint evidence from retailers and distributors (e.g. MediaWorld and other Japanese shops listing 再販 batches with ship dates). The 'Reprints' column counts those dated records; a dash means none were found in our sources, not that a set was never reprinted. Each set page links the sources.` },
 ];
 const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
 const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "OPBX One Piece booster box market index", description: `Daily equal-weight price index of ${mi.constituents.length} Japanese One Piece booster boxes, plus weekly PSA grading volume.`, creator: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, dateModified: mi.updated, isAccessibleForFree: true, url: SITE + "/market.html" });
@@ -91,6 +95,8 @@ const html = `<!doctype html>
       .mBoard .bName { color: #7d8698; font-size: 12px; }
       .basisTag { font-size: 9px; background: rgba(80,218,217,.15); color: #50dad9; padding: 1px 5px; border-radius: 5px; text-transform: uppercase; }
       .fromDate { display: block; font-size: 10px; color: #7d8698; }
+      .rpDot { display: inline-block; min-width: 18px; background: rgba(255,125,60,.15); color: #ff9d6c; border-radius: 6px; padding: 1px 6px; font-weight: 800; }
+      .rpNone { color: #4a4f59; }
       .owMeter { display: flex; gap: 8px; align-items: flex-end; height: 120px; max-width: 520px; margin: 12px 0; }
       .owBar { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 4px; }
       .owBar span { width: 100%; background: #ff7d3c; opacity: .6; border-radius: 4px 4px 0 0; min-height: 6px; }
@@ -122,8 +128,8 @@ const html = `<!doctype html>
 
       <h2>Every set since January 2026</h2>
       <p>Ranked by price change since our tracking began (Jan 7, 2026 — not since each set's launch, which we did not track for older sets). Tap a set for its full page.</p>
-      <div style="overflow-x:auto;"><table class="mBoard"><thead><tr><th class="num">#</th><th>Set</th><th class="num">Start price</th><th class="num">Now</th><th class="num">Change</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <p class="mNote">Start price is each set's value on Jan 7, 2026 unless a "from [month]" note shows a later date (sets we began tracking after January). A "launch" tag means we tracked that set from its actual release, so its change is a true since-launch figure.</p>
+      <div style="overflow-x:auto;"><table class="mBoard"><thead><tr><th class="num">#</th><th>Set</th><th class="num">Start price</th><th class="num">Now</th><th class="num">Change</th><th class="num" title="current market price ÷ Japanese launch MSRP">vs MSRP</th><th class="num" title="dated reprint records found">Reprints</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="mNote">Start price is each set's value on Jan 7, 2026 unless a "from [month]" note shows a later date. "launch" tag = tracked from actual release. <strong>vs MSRP</strong> = current market price divided by the official Japanese launch MSRP (¥4,752 box for OP-01–03, ¥5,280 for OP-04–EB, ¥5,500 for PRB) — an honest since-launch multiple, though the current figure is the international/eBay market price while MSRP is Japanese retail. <strong>Reprints</strong> = count of dated reprint records we found; Bandai does not publish per-set reprint announcements, so these come from retailer/distributor listings (see each set page). A dash means none on record, not "never reprinted."</p>
 
       <h2>FAQ</h2>
       ${faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("")}

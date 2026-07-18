@@ -84,6 +84,10 @@ for (const [k, kind] of Object.entries(manifest)) {
     if (!mi.index || !Array.isArray(mi.index.series) || mi.index.series.length < 5) errors.push("D2: 지수 시계열 부족");
     if (!mi.board || mi.board.length < 15) errors.push(`D2: 성적표 부족 (${mi.board ? mi.board.length : 0})`);
     if (!mi.meter || !mi.meter.latestWeek) errors.push("D2: 개봉 미터 없음");
+    // 정가·재판 팩트: 성적표에 msrp 배수가 대부분 있어야 함(set-facts.json 로드 확인)
+    const withMsrp = (mi.board || []).filter((b) => b.vsMsrp).length;
+    if (withMsrp < 15) errors.push(`D2: 정가 배수(vsMsrp) 부족 (${withMsrp}) — data/set-facts.json 로드 실패 의심`);
+    if (!mi.reprints || typeof mi.reprints.bandaiAnnounces !== "boolean") errors.push("D2: 재판 데이터(reprints) 없음");
     // market.html에 구운 지수값이 데이터와 일치해야 함(엇갈리면 stale)
     if (exists("market.html") && v != null) {
       const baked = (read("market.html").match(/class="big">([\d.]+)</) || [])[1];
@@ -121,7 +125,7 @@ for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.t
 }
 
 // ── F1. 삭제 금지 파일 존재 확인
-for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "naver933afc5e4330d8e58701ba45b0319b4a.html", "3d439f302e46fc08f76ddba4eee3726f.txt", "robots.txt", "sitemap.xml", "llms.txt"]) {
+for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "naver933afc5e4330d8e58701ba45b0319b4a.html", "3d439f302e46fc08f76ddba4eee3726f.txt", "robots.txt", "sitemap.xml", "llms.txt", "data/set-facts.json"]) {
   if (!exists(f)) errors.push(`F1: 필수 파일 삭제됨: ${f}`);
 }
 

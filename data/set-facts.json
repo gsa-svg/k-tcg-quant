@@ -1,0 +1,41 @@
+{
+  "_note": "Verified official facts per set (MSRP) + reprint evidence. Source-of-truth, curated by research workflow wf_3c7f8892-4b7 (2026-07-18). NOT overwritten by nightly eBay pipeline. MSRP = Japanese retail 定価 (税込). Bandai does NOT publish per-set reprint announcements, so reprintRecords are dated retailer/distributor/official-shop evidence, each with a source; kind marks who reported it.",
+  "bandaiAnnouncesReprints": false,
+  "msrpByPack": { "note": "OP-01~03 = ¥198/pack ×24; OP-04~EB = ¥220/pack ×24; PRB = ¥550/pack ×10. Revision: ¥198→¥220 from May 2023 (OP-04)." },
+  "sets": {
+    "OP-01": { "jpMsrpYen": 4752, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-02": { "jpMsrpYen": 4752, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-03": { "jpMsrpYen": 4752, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-04": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-05": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-06": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [
+      { "date": "2024-04-12", "kind": "retailer", "source": "https://mediaworld.co.jp/products/13917666000", "note": "MediaWorld reprint (再販) shipment" }
+    ] },
+    "OP-07": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-08": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-09": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [
+      { "date": "2024-10", "kind": "official-shop", "source": "https://bandainamco-am.co.jp/official_shop/onepiece-cardgame/topics/20241015.html", "note": "Bandai Namco shop 再販 pre-order lottery; page now 404 (medium confidence)" }
+    ] },
+    "OP-10": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-11": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [
+      { "date": "2025-06-28", "kind": "retailer", "source": "https://store.shopping.yahoo.co.jp/media-world/13919422000.html", "note": "MediaWorld reprint (再販) carton, ship date" }
+    ] },
+    "OP-12": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-13": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [
+      { "date": "2025-09", "kind": "retailer", "source": "https://x.com/project_core01/status/1962758610142003216", "note": "Project Core 再販 decided late Sept 2025" },
+      { "date": "2025-11", "kind": "retailer", "source": "https://meli-melo.blog.jp/archives/1082825737.html", "note": "あみあみ Nov 2025 再販 pre-order (定価)" }
+    ] },
+    "OP-14": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-15": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "OP-16": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "EB-01": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [
+      { "date": "2024-08-28", "kind": "distributor", "source": "https://mediaworld.co.jp/products/13917881000", "note": "MediaWorld reprint (再販) run ship date" }
+    ] },
+    "EB-02": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "EB-03": { "jpMsrpYen": 5280, "packsPerBox": 24, "reprintRecords": [] },
+    "PRB-01": { "jpMsrpYen": 5500, "packsPerBox": 10, "reprintRecords": [
+      { "date": "", "kind": "distributor", "source": "https://mediaworld.co.jp/products/13918549000", "note": "MediaWorld reprint (再販) listing; exact date not distinct" }
+    ] },
+    "PRB-02": { "jpMsrpYen": 5500, "packsPerBox": 10, "reprintRecords": [] }
+  }
+}

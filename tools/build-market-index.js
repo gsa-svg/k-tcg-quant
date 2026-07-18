@@ -13,6 +13,10 @@ const ROOT = path.join(__dirname, "..");
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const FX = d.fx || {};
 const usd = (krw) => (FX.usdKrw ? krw / FX.usdKrw : null);
+const yenUsd = (yen) => (FX.jpyKrw && FX.usdKrw ? (yen * FX.jpyKrw) / FX.usdKrw : null);
+// 검증된 세트 팩트(정가·재판) — 나이틀리에 안 지워지는 소스 파일
+let FACTS = { sets: {}, bandaiAnnouncesReprints: false };
+try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
 const BASE = "2026-01-07";
 // 발매 시점부터 실제 추적한 세트만(감사 결과). 나머지는 1월 시작이라 "발매 대비" 주장 금지.
 const LAUNCH_TRACKED = new Set(["OP-16"]); // OP-17부터 자동 추가 예정
@@ -62,14 +66,21 @@ for (const c of codes) {
   const firstV = base != null ? base : p[0].p;
   const firstD = base != null ? BASE : p[0].d;
   const lastV = p[p.length - 1].p;
+  const f = (FACTS.sets && FACTS.sets[c]) || {};
+  const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
+  const nowUsd = usd(lastV);
   board.push({
     code: c,
     nameEn: d.sets[c].nameEn || c,
     baseUsd: Math.round(usd(firstV)),
     baseDate: firstD,
-    nowUsd: Math.round(usd(lastV)),
+    nowUsd: Math.round(nowUsd),
     changePct: Math.round((lastV / firstV - 1) * 1000) / 10,
     launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
+    msrpYen: f.jpMsrpYen || null,
+    msrpUsd: msrpUsd != null ? Math.round(msrpUsd) : null,
+    vsMsrp: msrpUsd && nowUsd ? Math.round((nowUsd / msrpUsd) * 10) / 10 : null, // 정가 대비 배수
+    reprints: (f.reprintRecords || []).length,
   });
 }
 board.sort((a, b) => b.changePct - a.changePct);
@@ -83,6 +94,7 @@ const out = {
   index: { value: latest.v, asOf: latest.d, weekChangePct, sinceBasePct, series: indexSeries },
   meter: { latestWeek: meterLatest, weeks: meterWeeks, wowPct: meterWoW, allTimeGraded },
   board,
+  reprints: { bandaiAnnounces: FACTS.bandaiAnnouncesReprints === true, bySet: FACTS.sets || {} },
 };
 // 메인 JSON에 통합(단일 소스·단일 버전 — 별도 파일의 버전 엇갈림 사고 방지)
 const mainPath = path.join(ROOT, "data", "onepiece-packs.json");
