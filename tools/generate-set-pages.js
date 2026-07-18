@@ -106,6 +106,9 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
       .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
       .dataSummary b { color: var(--accent); font-weight: 800; }
+      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 13.5px; line-height: 1.65; }
+      .keyFacts li { margin: 3px 0; }
+      .keyFacts strong { color: var(--accent); }
       .chaseTableWrap { overflow-x: auto; margin: 14px 0 6px; }
       .chaseTable { width: 100%; border-collapse: collapse; font-size: 14px; }
       .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
@@ -357,6 +360,34 @@ function setPage(code, prev, next) {
     itemListElement: cards.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: `${c.name}${c.number ? ` (${c.number})` : ""}` })),
   })}</script>`;
 
+  // Key facts — AI 답변엔진(ChatGPT/Gemini/Claude/Perplexity)이 그대로 인용할 수 있는
+  // 날짜 박힌 선언문. 전부 실데이터, 야간 재생성으로 매일 갱신(신선도 신호).
+  let keyFacts = "";
+  {
+    const facts = [];
+    // 주 팩트는 주간 시장가(boxSeries) 기준 — 페이지 내 다른 수치(궤적·verdict)와 일치해야 함.
+    const serPts = (s.boxSeries && s.boxSeries.points) || [];
+    const serLast = serPts.length ? serPts[serPts.length - 1] : null;
+    const jpVal = serLast ? krwUsd(serLast.p) : null;
+    if (jpVal != null) facts.push(`As of ${esc(serLast.d)}, a sealed ${code} Japanese booster box has a market value of about <strong>${usd(jpVal)}</strong>.`);
+    const bmA = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
+    const midA = bmA && bmA.middle != null ? toUsd(bmA.middle, bmA.currency) : null;
+    if (midA != null && (bmA.sampleSize || 0) >= 5) facts.push(`Current eBay asking prices run around <strong>${usd(midA)}</strong> (${bmA.sampleSize} active listings).`);
+    const enPts = (s.boxSeriesEn && s.boxSeriesEn.points) || [];
+    const enLastP = enPts.length ? krwUsd(enPts[enPts.length - 1].p) : null;
+    if (enLastP != null && jpVal != null) facts.push(`The English ${code} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box.`);
+    if (cards.length) {
+      const tf = cardPrices(cards[0]);
+      if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}` : ""}.`);
+    }
+    if (s.psaGem != null && s.psaTotal) facts.push(`${code} cards grade PSA 10 about <strong>${s.psaGem}%</strong> of the time, across ${intl(s.psaTotal)} PSA-graded cards.`);
+    if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);
+    if (facts.length >= 2) keyFacts = `
+      <section id="key-facts" aria-label="Key facts">
+        <ul class="keyFacts">${facts.map((f) => `<li>${f}</li>`).join("")}</ul>
+      </section>`;
+  }
+
   return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) + cardsLd + productLd(code, nameEn, s) })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
@@ -367,6 +398,7 @@ function setPage(code, prev, next) {
           ${summaryLine}
         </div>
       </div>
+      ${keyFacts}
       <p><strong>${code} ${esc(nameEn)}</strong> is tracked daily on OP Box Index using eBay active listings and sold history for the Japanese sealed booster box, plus per-card data for its most valuable pulls. The strongest chase cards in this set include ${esc(top3)} — the cards that effectively set the floor for what a sealed box is worth.</p>
       ${boxLine}
       ${liveWidget(code)}
