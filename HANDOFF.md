@@ -3,6 +3,15 @@
 > 새 세션/에이전트(Codex 등)가 이어받을 때 **이 문서의 START 섹션부터** 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
 > 갱신: 2026-07-19.
 
+## 2026-07-19 업데이트 — 모바일 성능·SEO 안전 최적화
+
+- **검색 신호 불변**: canonical, robots, sitemap, hreflang, 제목·본문·가격 데이터는 변경하지 않음. `audit-seo` 오류·경고 0, `audit-ai-discovery` OK, guard 80페이지 OK.
+- **모바일 성능**: 메인 CSS 요청을 GA4·AdSense보다 먼저 시작하도록 `<head>` 순서 조정. 같은 Lighthouse 조건에서 Performance 57→79, LCP 7.8초→3.9초. SEO 100, 접근성 100 유지.
+- **접근성 오류 제거**: 시장지표 링크 2개의 실제 텍스트를 덮던 `aria-label` 삭제. Lighthouse `label-content-name-mismatch` 해소.
+- **전수 검증**: 공개 HTML 80개, JSON-LD 215개 파싱, 깨진 내부링크 0. 로컬 필터·가격 이상치·가격 품질 테스트 모두 통과.
+- **캐시 버전**: `20260719a`. `packs.js`의 `DATA_VERSION`, 모든 HTML `?v=`, 3개 생성기 상수를 동시에 범프함. 다음 변경도 반드시 `guard-invariants.js` 통과 후 배포.
+- **남은 Best Practices 77**: AdSense 제3자 쿠키·브라우저 진단 경고가 원인. 광고 제거 외에는 해소 불가하므로 수익화를 지키기 위해 유지.
+
 ## 2026-07-19 업데이트 — AI 검색 노출 안전 패스
 
 - **Google SEO 신호 불변**: 홈 canonical `/`, sitemap 대표 URL, Googlebot 규칙, 공개 HTML은 변경하지 않음. 이전 canonical 스왑 사고를 피하려고 AI 봇 설정만 수정.
@@ -14,7 +23,7 @@
 
 ## 2026-07-18 업데이트 — 오늘 한 것 + 다음 작업 (여기부터 읽기)
 
-**오늘 완료(전부 push·guard 통과, 캐시버전 `20260718e`):**
+**오늘 완료(전부 push·guard 통과, 캐시버전 `20260719a`):**
 1. **네비 통일 + 재발방지** — Market Index 링크가 articles 전체·op-17·eb-05 등 19개 페이지 네비에서 누락(눌러 이동하면 사라지던 버그) → 전 80페이지 통일. 생성기 3곳(card/weekly-report/set) 템플릿도 수정. **guard-invariants.js에 N1 검사 추가**: 네비 보유 페이지는 6개 라벨(부스터박스/비교/PSA10/마켓지수/세트가이드/아마존) 전부 필수, 누락 시 FAIL→배포차단(data-ko 라벨 기준).
 2. **SEO/애드센스** — privacy.html 124→766단어(제3자쿠키/DART/광고옵트아웃3종/GA옵트아웃/제휴고지/GDPR·CCPA/아동/연락처 = 애드센스 재심사 대비). set/market/eb-05 생성기 타이틀 90~110→63~74자, 설명 250~290→~150자로 정상화(키워드는 앞 유지).
 3. **한국어 정적 허브 `/ko/` 신설(유입 핵심)** — 기존 data-ko JS스왑은 네이버 Yeti(JS 미실행)에 안 보이고 `/?hl=ko`는 canonical이 /로 가 구글 미색인이었음. `tools/generate-ko-pages.js`가 검증된 onepiece-packs.json에서 **정적 한국어 HTML** 생성(21세트 원화 시세표+정가배수+재판+OPBOX지수+개봉미터+FAQ, 스키마 포함). 사이트맵 등재·hreflang(`/ko/`↔`market.html`)·IndexNow 제출·야간워크플로 편입·guard PUBLIC_HTML에 `ko` 포함. 홈 canonical/hreflang은 사고예방 위해 미변경. **사용자가 네이버 카페에 붙일 URL = opboxindex.com/ko/.** 상세: 메모리 project-opbox-korean-seo.
@@ -32,7 +41,7 @@
 
 ### 현재 상태 스냅샷
 - **배포**: GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
-- **캐시 버전**: `20260718e`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
+- **캐시 버전**: `20260719a`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
 - **야간 자동화**: `.github/workflows/update-active-listings.yml`(매일) — eBay 가격 갱신 → 카드 페이지 → 세트 페이지 순 재생성 → 커밋. 로컬 push가 거부되면: `git pull --rebase`; 꼬이면 `rebase --abort` → `reset --hard origin/main` → 자기 커밋에서 자기 파일만 checkout → 재생성 → push.
 - **트래픽**: GA 활성 54(-28%), 신규 50(-31%), 조회수 477(+7%). 원인 진단 완료(아래 0G): **구글에 미색인**(브랜드 검색조차 0노출). 콘텐츠·리텐션은 정상. SEO 효과는 색인 후 2~6주 걸림 — 그 전 숫자 하락은 정상이라고 사용자에게 이미 설명함.
 - **AdSense**: "가치가 별로 없는 콘텐츠" 거절 → 콘텐츠 보강 완료. **재심사 요청 버튼은 2026-07-30 이후에** (사용자가 누름).
