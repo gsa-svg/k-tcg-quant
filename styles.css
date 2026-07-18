@@ -1126,3 +1126,7 @@ h2 {
 
 /* 재판 배지 출처 표기 */
 .setBadge.reprint .rpSrc { font-size: 9px; font-weight: 700; opacity: .7; border-left: 1px solid rgba(255,125,60,.4); padding-left: 5px; margin-left: 1px; }
+
+/* 재판 기록 없음 배지(회색, 조사했으나 못 찾음 — 빈칸 대신 명시) */
+.setBadge.reprintNone { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.13); color: #8b93a1; cursor: help; }
+.setBadge.reprintNone:hover { background: rgba(255,255,255,.09); color: #aeb7c9; }

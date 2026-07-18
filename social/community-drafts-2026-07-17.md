@@ -68,3 +68,33 @@ OP-17 drops Aug 22 (JP) / Aug 28 (EN). The data says: wait for the dip. 📊 opb
 - 중국/홍콩 위장창고 셀러 21계정 차단 — "최저가 검수" 신뢰 포인트로 쓸 수 있음.
 - PSA 인구는 매주 갱신, 세트 21개 전부 추적.
 - 수치 출처 질문엔: eBay sold(최소 3건)/Japanese retail/PSA population, 추정치 없음.
+
+---
+
+## E. Threads 응모 라운드업 (2026-07-18 — 네이버 카페 실증 후, 사용자 요청 톤)
+
+> 배경: 네이버 카페에 응모 안내 → 실시간 15명(전원 한국) 유입 성공. 한국은 아마존재팬 직배송 정상(검증됨). 미국만 2025 de minimis 폐지로 관세 절차 추가. 나라별 다를 수 있음만 가볍게 표기.
+
+**🇰🇷 한국어 (메인 — 카페에서 먹힌 각도)**
+일본 포켓몬 30주년, 원피스 부스터 박스 아마존 재팬 응모 다들 하셨어요? 🎴
+
+지금 열려있는 응모(초대제)를 우리 사이트에 싹 모아놨어요. 클릭 한 번이면 상품 페이지로 바로 이동 👇
+
+⚠️ 배송·응모 조건은 나라마다 다를 수 있으니 각자 확인!
+
+opboxindex.com/amazon-lottery.html
+
+다들 신청하고 꼭 당첨되시길 🍀
+#포켓몬카드 #원피스카드 #아마존재팬 #TCG #일본직구
+
+**🌐 영어 (글로벌 — 미국 관세 캐비엇 포함)**
+Did you enter the Amazon Japan raffles for the Pokémon 30th Anniversary sets and One Piece booster boxes? 🎴
+
+We rounded up every open invite raffle in one place — one tap to each product page 👇
+
+⚠️ Shipping/eligibility varies by country (the US has extra customs steps since 2025).
+
+opboxindex.com/amazon-lottery.html
+
+Good luck — hope you all get picked! 🍀
+#onepiececard #pokemoncards #tcg

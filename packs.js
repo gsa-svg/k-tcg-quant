@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260718d";
+const DATA_VERSION = "20260718e";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1511,17 +1511,26 @@ function renderDataNotice() {
 // 이는 유통사/리테일러 출하 기록 — "공식"으로 표기하지 않는다(정확도).
 function setBadges(code) {
   const mi = state.data && state.data.marketIndex;
-  if (!mi) return "";
-  const bySet = (mi.reprints && mi.reprints.bySet && mi.reprints.bySet[code]) || {};
+  if (!mi || !mi.reprints || !mi.reprints.bySet) return "";
+  const bySet = mi.reprints.bySet[code];
+  if (!bySet) return ""; // 조사 안 된 세트(예: 신규)는 표시 안 함 — 모르는 걸 아는 척 안 함
+  const href = `sets/${code.toLowerCase()}.html${state.hl === "ko" ? "?hl=ko" : ""}`;
   const recs = bySet.reprintRecords || [];
-  if (!recs.length) return "";
-  const ym = (dstr) => (dstr ? dstr.slice(0, 7).replace("-", ".") : t("날짜미상", "n/a"));
-  const dates = recs.map((r) => ym(r.date)).join(", ");
-  const tip = t(
-    `유통사·리테일러 재판(再販) 출하 기록 ${recs.length}건: ${dates}. 반다이는 세트별 재판을 공식 발표하지 않습니다.`,
-    `${recs.length} retailer/distributor reprint (再販) shipment record(s): ${dates}. Bandai does not officially announce per-set reprints.`
+  if (recs.length) {
+    const ym = (dstr) => (dstr ? dstr.slice(0, 7).replace("-", ".") : t("날짜미상", "n/a"));
+    const dates = recs.map((r) => ym(r.date)).join(", ");
+    const tip = t(
+      `유통사·리테일러 재판(再販) 출하 기록 ${recs.length}건: ${dates}. 반다이는 세트별 재판을 공식 발표하지 않습니다.`,
+      `${recs.length} retailer/distributor reprint (再販) shipment record(s): ${dates}. Bandai does not officially announce per-set reprints.`
+    ).replace(/"/g, "'");
+    return `<span class="setBadges"><a class="setBadge reprint" href="${href}" title="${tip}">${t("재판", "Reprint")} ${dates} <span class="rpSrc">${t("유통사", "retailer")}</span></a></span>`;
+  }
+  // 기록 없음 — 조사했으나 못 찾음(빈칸으로 안 두고 명시). "재판 안 됨"이 아님을 툴팁으로 분명히.
+  const tipNone = t(
+    `우리 소스에서 날짜 있는 재판(再販) 기록을 찾지 못함. 반다이는 세트별 재판을 공식 발표하지 않으므로 '재판된 적 없음'을 뜻하지는 않습니다.`,
+    `No dated reprint (再販) record found in our sources. Bandai does not officially announce per-set reprints, so this does NOT mean the set was never reprinted.`
   ).replace(/"/g, "'");
-  return `<span class="setBadges"><a class="setBadge reprint" href="sets/${code.toLowerCase()}.html${state.hl === "ko" ? "?hl=ko" : ""}" title="${tip}">${t("재판", "Reprint")} ${dates} <span class="rpSrc">${t("유통사", "retailer")}</span></a></span>`;
+  return `<span class="setBadges"><a class="setBadge reprintNone" href="${href}" title="${tipNone}">${t("재판 기록 없음", "No reprint on record")}</a></span>`;
 }
 
 function renderDetail() {
