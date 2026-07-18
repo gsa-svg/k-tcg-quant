@@ -24,7 +24,7 @@ function walkHtml(dirs) {
   }
   return out;
 }
-const PUBLIC_HTML = walkHtml(["", "sets", "cards", "articles"]);
+const PUBLIC_HTML = walkHtml(["", "sets", "cards", "articles", "ko"]);
 
 // ── V1. 캐시 버전 일관성: packs.js DATA_VERSION == 모든 ?v= 문자열
 const packsJs = read("packs.js");

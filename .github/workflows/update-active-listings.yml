@@ -49,6 +49,7 @@ jobs:
           node --check tools/generate-card-pages.js
           node --check tools/build-market-index.js
           node --check tools/generate-market-page.js
+          node --check tools/generate-ko-pages.js
           node --check tools/guard-invariants.js
           node tools/guard-invariants.js
           node --check tools/audit-active-listings.js
@@ -114,6 +115,7 @@ jobs:
           node tools/generate-market-page.js 2>&1 | tee logs/generate-market-page.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
+          node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
 
       - name: Upload update logs
         if: always()

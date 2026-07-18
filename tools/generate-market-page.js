@@ -85,6 +85,8 @@ const html = `<!doctype html>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/market.html" />
+    <link rel="alternate" hreflang="en" href="${SITE}/market.html" />
+    <link rel="alternate" hreflang="ko" href="${SITE}/ko/" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <title>One Piece Booster Box Market Index &amp; Opening Meter | OPBOX Index</title>
     <meta name="description" content="The OPBOX Index tracks the Japanese One Piece booster box market in one number (Jan 2026 = 100), now ${idx.value.toFixed(1)} (${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since January). Free, updated daily." />
@@ -134,6 +136,7 @@ const html = `<!doctype html>
     <main class="bodyPage">
       <p class="eyebrow" ${da("마켓 지수")}>Market Index</p>
       <h1 ${da("OPBOX 지수 — 원피스 박스 시장 전체를 숫자 하나로")}>OPBOX Index — the whole One Piece box market in one number</h1>
+      <p style="margin:2px 0 10px"><a href="ko/" style="color:#50dad9;font-weight:700;text-decoration:none" ${da("🇰🇷 한국어 시세 페이지 — 전 세트 원화 시세·재판·개봉 지수 →")}>🇰🇷 한국어 시세 페이지 (원화) →</a></p>
       <section aria-label="Key facts"><ul class="keyFacts">${keyFacts.map((f) => `<li ${da(f.ko)}>${f.en}</li>`).join("")}</ul></section>
 
       <div class="ixHero"><span class="big">${idx.value.toFixed(1)}</span><span class="ixChg ${up ? "up" : "down"}" ${da(`${up ? "▲ +" : "▼ "}${idx.weekChangePct}% 이번 주`)}>${up ? "▲ +" : "▼ "}${idx.weekChangePct}% this week</span><span style="color:#9aa4b6;font-size:14px;" ${da(`2026-01-07 대비 ${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}%`)}>${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since Jan 7, 2026</span></div>
