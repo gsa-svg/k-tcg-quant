@@ -79,6 +79,28 @@ for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.t
   if (/collectr/i.test(read(f))) errors.push(`S1: ${f} 에 외부 소스명 노출 (Weekly ungraded market 라벨 사용)`);
 }
 
+// ── S2. AI/검색 접근성 보호 — 구글·Bing·AI 답변엔진 접근을 실수로 막으면 배포 차단
+{
+  const robots = read("robots.txt");
+  // 전면 차단(Disallow: /) 금지 — 어떤 그룹에서든
+  const groups = robots.split(/\n\s*\n/);
+  for (const g of groups) {
+    const ua = (g.match(/User-agent:\s*(\S+)/) || [])[1];
+    if (!ua) continue;
+    if (/^Disallow:\s*\/\s*$/m.test(g) && !["GPTBot", "anthropic-ai", "CCBot", "Bytespider", "Applebot-Extended", "Amazonbot"].includes(ua))
+      errors.push(`S2: robots.txt에서 ${ua} 전면 차단됨 — 훈련 전용 봇 외에는 금지`);
+  }
+  // AI 답변/검색 봇 허용 그룹이 반드시 존재해야 함
+  for (const bot of ["OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-User", "ClaudeBot", "Google-Extended", "Bingbot", "Googlebot"]) {
+    if (!new RegExp(`User-agent:\\s*${bot}`).test(robots)) errors.push(`S2: robots.txt에 ${bot} 그룹이 사라짐 (AI/검색 접근성)`);
+  }
+  if (!robots.includes("Sitemap: https://opboxindex.com/sitemap.xml")) errors.push("S2: robots.txt에 Sitemap 선언 누락");
+  // 주요 페이지에 noindex가 끼어들면 안 됨
+  for (const f of ["index.html", "sets/op-16.html", "cards/index.html", "articles/index.html"]) {
+    if (/<meta[^>]+robots[^>]+noindex/i.test(read(f))) errors.push(`S2: ${f} 에 noindex — 검색/AI 노출 차단됨`);
+  }
+}
+
 // ── F1. 삭제 금지 파일 존재 확인
 for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "naver933afc5e4330d8e58701ba45b0319b4a.html", "3d439f302e46fc08f76ddba4eee3726f.txt", "robots.txt", "sitemap.xml", "llms.txt"]) {
   if (!exists(f)) errors.push(`F1: 필수 파일 삭제됨: ${f}`);

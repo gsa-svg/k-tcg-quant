@@ -78,6 +78,18 @@ Allow: /
 User-agent: Claude-SearchBot
 Allow: /
 
+# Gemini grounding/answers — allowed so Google's AI can use and cite our pages.
+User-agent: Google-Extended
+Allow: /
+
+# xAI Grok fetchers — allowed. Any AI agent not named here is covered by the
+# default "User-agent: *" allow group at the top (only internal dirs blocked).
+User-agent: GrokBot
+Allow: /
+
+User-agent: xAI-Crawler
+Allow: /
+
 # Social link-preview crawlers — ALLOWED so Threads / Facebook / Instagram render
 # rich link cards when we share the site.
 User-agent: FacebookBot
