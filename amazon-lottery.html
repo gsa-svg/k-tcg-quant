@@ -139,6 +139,8 @@
       .brandBrowseRow { display: flex; gap: 10px; flex-wrap: wrap; }
       .brandBtn { display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 16px 0 13px; border-radius: 12px; background: rgba(255, 153, 0, .1); border: 1px solid rgba(255, 153, 0, .45); color: #ff9f2e; font-size: 14px; font-weight: 800; text-decoration: none; }
       .brandBtn:hover { background: rgba(255, 153, 0, .18); }
+      .brandBtn.onepiece { background: rgba(80, 218, 217, .1); border-color: rgba(80, 218, 217, .45); color: #63e3e2; }
+      .brandBtn.onepiece:hover { background: rgba(80, 218, 217, .18); }
       .brandIcon { display: inline-flex; }
       .brandArrow { margin-left: 2px; opacity: .8; }
       .openLink {
@@ -219,6 +221,11 @@
       <section class="brandBrowse" aria-label="Browse brands on Amazon">
         <p class="brandBrowseHead" data-ko="아마존에서 브랜드별 상품을 둘러보세요 (개별 응모가 아닌 목록 페이지)">Browse a brand's products on Amazon (a listing page, not an individual raffle)</p>
         <div class="brandBrowseRow">
+          <a class="brandBtn onepiece" href="https://www.amazon.co.jp/s?k=one+piece+card+game&amp;tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Browse One Piece card products on Amazon Japan">
+            <span class="brandIcon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+            <span data-ko="원피스 카드 상품 보러가기">One Piece products</span>
+            <span class="brandArrow" aria-hidden="true">↗</span>
+          </a>
           <a class="brandBtn" href="https://www.amazon.co.jp/mh?sf=F1&amp;s=B0F9KJGGZ5&amp;tag=opboxindex-22" target="_blank" rel="sponsored noopener noreferrer" aria-label="Browse Pokemon products on Amazon Japan">
             <span class="brandIcon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
             <span data-ko="포켓몬 상품 보러가기">Pokémon products</span>
