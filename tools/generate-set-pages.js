@@ -242,8 +242,8 @@ function setPage(code, prev, next) {
   const cards = (s.cards || []).slice(0, 10);
   const top3 = cards.slice(0, 3).map((c) => c.name).join(", ");
   const canonical = `${SITE}/sets/${slug(code)}.html`;
-  const title = `${code} ${nameEn} Booster Box Price (Japanese) — Top Chase Cards & PSA Data | OP Box Index`;
-  const desc = `Live ${code} ${nameEn} Japanese booster box price from eBay listings and sold data, top 10 chase cards (${top3}), PSA 10 population stats and a pre-purchase checklist.`;
+  const title = `${code} ${nameEn} Booster Box Price (Japanese) | OP Box Index`;
+  const desc = `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   // s.release = 영문(NA)판 발매일. "일본판 페이지인데 Released=EN날짜"로 읽히던 오표기 수정
   const release = s.release ? `<p class="eyebrow">Japanese edition · EN release ${esc(s.release)}</p>` : `<p class="eyebrow">Japanese edition</p>`;

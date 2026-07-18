@@ -86,8 +86,8 @@ const html = `<!doctype html>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/market.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <title>OPBOX Index — Live One Piece Booster Box Market Index &amp; Opening Meter | OP Box Index</title>
-    <meta name="description" content="The OPBOX Index tracks the whole Japanese One Piece booster box market in one number (Jan 2026 = 100), now ${idx.value.toFixed(1)} (${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since January). Plus the Opening Meter (weekly PSA grading volume) and every set's performance — free, updated daily." />
+    <title>One Piece Booster Box Market Index &amp; Opening Meter | OPBOX Index</title>
+    <meta name="description" content="The OPBOX Index tracks the Japanese One Piece booster box market in one number (Jan 2026 = 100), now ${idx.value.toFixed(1)} (${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since January). Free, updated daily." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="OPBOX Index — One Piece Booster Box Market Index" />
