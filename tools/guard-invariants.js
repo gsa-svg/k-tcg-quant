@@ -73,6 +73,25 @@ for (const [k, kind] of Object.entries(manifest)) {
   if (kind === "wm" && !/Weekly ungraded/i.test(src)) errors.push(`D1: ${code}.${key}.source="${src}" — wm 시리즈가 덮어써짐(eBay 스냅샷은 ${key}Ebay로 가야 함)`);
 }
 
+// ── D2. 마켓 인덱스 정합성(build-market-index.js 산출) — 이상값이면 배포 차단
+{
+  const mi = data.marketIndex;
+  if (!mi) errors.push("D2: data.marketIndex 없음 (build-market-index.js 미실행)");
+  else {
+    const v = mi.index && mi.index.value;
+    if (!(v > 50 && v < 1000)) errors.push(`D2: 지수값 이상 (${v}) — 계산 오류 의심`);
+    if (!Array.isArray(mi.constituents) || mi.constituents.length < 10) errors.push(`D2: 구성종목 부족 (${mi.constituents ? mi.constituents.length : 0})`);
+    if (!mi.index || !Array.isArray(mi.index.series) || mi.index.series.length < 5) errors.push("D2: 지수 시계열 부족");
+    if (!mi.board || mi.board.length < 15) errors.push(`D2: 성적표 부족 (${mi.board ? mi.board.length : 0})`);
+    if (!mi.meter || !mi.meter.latestWeek) errors.push("D2: 개봉 미터 없음");
+    // market.html에 구운 지수값이 데이터와 일치해야 함(엇갈리면 stale)
+    if (exists("market.html") && v != null) {
+      const baked = (read("market.html").match(/class="big">([\d.]+)</) || [])[1];
+      if (baked && Math.abs(parseFloat(baked) - v) > 0.05) errors.push(`D2: market.html 구운값 ${baked} ≠ 데이터 ${v} (재생성 필요)`);
+    }
+  }
+}
+
 // ── S1. 외부 소스명 공개 금지 (영구 규칙)
 for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.txt", "feed.xml"]) {
   if (!exists(f)) continue;

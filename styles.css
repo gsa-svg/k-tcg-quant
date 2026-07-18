@@ -1092,3 +1092,26 @@ h2 {
 .watchBtn.on { border-style: solid; border-color: rgba(80,218,217,.5); background: rgba(80,218,217,.08); color: #50dad9; }
 .packChip { position: relative; }
 .packChip .pinMark { position: absolute; top: 6px; right: 8px; font-size: 13px; z-index: 2; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+
+/* OPBX 마켓 인덱스 + 개봉 미터 (홈 hero) */
+.mktIndexWrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 4px; }
+@media (max-width: 560px) { .mktIndexWrap { grid-template-columns: 1fr; } }
+.mktCard { display: block; padding: 14px 16px 12px; border: 1px solid var(--line, rgba(255,255,255,.1)); border-radius: 14px; background: rgba(20,23,28,.5); text-decoration: none; color: inherit; transition: border-color .15s; }
+.mktCard:hover { border-color: rgba(80,218,217,.45); }
+.mktHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.mktLabel { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 800; letter-spacing: .3px; color: #c8cfdb; text-transform: uppercase; }
+.mktLabel i { width: 8px; height: 8px; border-radius: 50%; background: #50dad9; display: inline-block; }
+.mktLabel i.flame { width: 9px; height: 11px; border-radius: 50% 50% 50% 50%/60% 60% 40% 40%; background: #ff7d3c; }
+.mktInfo { width: 17px; height: 17px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); color: #9aa4b6; font-size: 11px; line-height: 15px; text-align: center; cursor: help; }
+.mktBig { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.mktBig b { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.5px; }
+.mktUnit { font-size: 13px; color: #9aa4b6; }
+.mktChg { font-size: 12.5px; font-weight: 800; padding: 2px 9px; border-radius: 7px; }
+.mktChg.up, .mktFoot .up { color: #10d7a0; } .mktChg.up { background: rgba(16,215,160,.12); }
+.mktChg.down, .mktFoot .down { color: #ff7d7d; } .mktChg.down { background: rgba(255,125,125,.12); }
+.mktSpark { width: 100%; height: 38px; margin: 6px 0 2px; display: block; }
+.mktBars { display: flex; gap: 4px; align-items: flex-end; height: 38px; margin: 6px 0 2px; }
+.mktBars span { flex: 1; background: #ff7d3c; opacity: .55; border-radius: 3px 3px 0 0; min-height: 4px; }
+.mktBars span:last-child { opacity: 1; }
+.mktFoot { margin: 4px 0 0; font-size: 12px; color: #9aa4b6; display: flex; align-items: center; gap: 5px; }
+.mktArrow { margin-left: auto; color: #50dad9; font-weight: 800; }
