@@ -80,9 +80,10 @@ for (const { code, set: s, card: c } of cands) {
   const ebayRaw = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} ${c.name} Japanese`)}&_sop=15&${EPN}`;
   const ebayPsa = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} PSA 10 Japanese`)}&_sop=15&${EPN}`;
 
-  // 시리즈(가격 이력) 표
+  // 시리즈(가격 이력) 표 — 체크포인트가 2개 이상 쌓인 카드만 표시(1점짜리 무의미한 표 방지).
+  // ※ 2026-07-14 이전 초기 수집은 변형매칭 미성숙으로 오염되어 폐기됨(그 이후부터 신뢰 축적).
   const ser = (c.series && c.series.points || []).filter((p) => p.nm != null || p.psa != null);
-  const serRows = ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(krwUsd(p.nm)) : "—"}</td><td class="num">${p.psa != null ? usd(krwUsd(p.psa)) : "—"}</td></tr>`).join("");
+  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(krwUsd(p.nm)) : "—"}</td><td class="num">${p.psa != null ? usd(krwUsd(p.psa)) : "—"}</td></tr>`).join("") : "";
 
   // 그레이딩 경제성(전부 실데이터 파생 — 추정치 없음)
   let gradeSection = "";
