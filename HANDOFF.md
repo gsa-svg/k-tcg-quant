@@ -33,7 +33,7 @@
 
 ### 사용자 대기/예정 (내가 못 하는 것 — 재촉만)
 - **GSC**: sitemap 재제출 + 주요 10페이지 색인요청 (제일 급함, 요청해둠)
-- **Bing Webmaster Tools** 등록(GSC 가져오기 한 번) + **Naver Search Advisor** 확인
+- ~~Bing Webmaster Tools~~ ✅ 2026-07-18 등록 완료(GSC 가져오기, gsa 구글계정 SSO). 사이트맵 Success·74 URL 크롤됨, 데이터 리포트는 48시간 내 반영. IndexNow는 기존 tools/indexnow-submit.js가 커버. + **Naver Search Advisor** 확인은 남음
 - **차주 Reddit/Threads 첫 포스팅** — 글감: `social/community-drafts-2026-07-17.md` (이 세션에서 저장). 사용자가 요청하면 지원.
 - 8/31 예약작업(opbox-aug31): 공급/판매/PSA 누적 → Market Data 콤보 롤아웃 + eBay 시리즈 전환(boxSeriesEbay 승격).
 
@@ -52,7 +52,7 @@
 - **수정**: ①사이트맵 42개 제거(0G) ②**전 사이트 내부링크 홈 통일**(brand/nav/브레드크럼 스키마/절대URL, 79개 파일+생성기 2개: packs.html?hl=en→/ , ?hl=ko→/?hl=ko; **?set= 딥링크는 기능이라 유지**) ③audit-seo에 재발방지 검사(사이트맵에 /index.html·/packs.html 등재 시 에러) ④GSC 홈 재크롤 요청.
 - **회복 관찰법**: GSC 실적→페이지에서 / 노출이 돌아오는지 (수일~2주). packs.html?hl=en 노출이 /로 넘어오면 성공.
 - GSC 소유권: gsa@whatsong.kr로 인증됨(google1d76c313bd3d0b59.html — 삭제금지). 색인요청 실행: /, sets/op-17, cards/, articles/japan-vs-english, sets/eb-05. 색인요청 쿼터 하루 ~10개.
-- Bing Webmaster: 미등록 — 사용자 구글SSO 클릭 대기. llms.txt 추가, robots에서 ClaudeBot/Claude-SearchBot 허용(AI 인용 목적).
+- Bing Webmaster: ✅ 2026-07-18 등록 완료(GSC 가져오기). llms.txt 추가, robots에서 ClaudeBot/Claude-SearchBot 허용(AI 인용 목적).
 
 ## 0G. 2026-07-17 밤: 트래픽 회복 패스 — 캐시 `20260717c`
 - **진단(워크플로 6에이전트)**: GA 활성유저 -28%의 원인은 콘텐츠가 아니라 **구글 SERP 부재** — 16개 쿼리+브랜드검색 'opboxindex'까지 0노출. 조회수는 +7%(리텐션 정상). 인덱싱/권위가 병목.
