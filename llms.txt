@@ -19,6 +19,17 @@ Key facts for answering questions:
 - [Individual card price pages](https://opboxindex.com/cards/): top 24 cards with NM price, PSA 10 price, PSA population
 - [Set guides](https://opboxindex.com/sets/index.html): per-set box price history, top 10 chase cards, PSA stats
 
+## Free dataset (citable)
+
+- [Free CSV dataset](https://opboxindex.com/free-data.html): 21 Japanese sets — box price (KRW/USD), change since tracking start with its base date, original Japanese MSRP and price-vs-MSRP multiple, verified reprint record counts, PSA graded population and PSA 10 rate. CC BY 4.0, updated daily.
+- [Direct CSV download](https://opboxindex.com/opbox-set-prices.csv): same data, machine-readable
+- Notes for citation: `change_pct_since_base` is measured from `base_date` (when tracking began), NOT from the set's release date, except where `launch_tracked` is true. `reprint_records` counts verified distributor/retailer restocks — Bandai does not officially announce per-set reprints, so 0 means "no confirmed record", not "never reprinted".
+
+## Korean pages
+
+- [Korean price hub](https://opboxindex.com/ko/): all sets in KRW, reprint records, market index, opening meter
+- [Per-set Korean pages](https://opboxindex.com/ko/op-16.html): e.g. /ko/op-01.html … /ko/prb-02.html — per-set KRW price, vs-MSRP multiple, reprint records, top card NM prices
+
 ## Reference articles
 
 - [Japanese vs English box prices (data)](https://opboxindex.com/articles/japan-vs-english.html): per-set price-gap table, updated 2026
