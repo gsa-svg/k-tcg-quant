@@ -1,13 +1,29 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
 > 새 세션/에이전트(Codex 등)가 이어받을 때 **이 문서의 START 섹션부터** 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
-> 갱신: 2026-07-17 밤.
+> 갱신: 2026-07-18 밤.
+
+## 2026-07-18 업데이트 — 오늘 한 것 + 다음 작업 (여기부터 읽기)
+
+**오늘 완료(전부 push·guard 통과, 캐시버전 `20260718e`):**
+1. **네비 통일 + 재발방지** — Market Index 링크가 articles 전체·op-17·eb-05 등 19개 페이지 네비에서 누락(눌러 이동하면 사라지던 버그) → 전 80페이지 통일. 생성기 3곳(card/weekly-report/set) 템플릿도 수정. **guard-invariants.js에 N1 검사 추가**: 네비 보유 페이지는 6개 라벨(부스터박스/비교/PSA10/마켓지수/세트가이드/아마존) 전부 필수, 누락 시 FAIL→배포차단(data-ko 라벨 기준).
+2. **SEO/애드센스** — privacy.html 124→766단어(제3자쿠키/DART/광고옵트아웃3종/GA옵트아웃/제휴고지/GDPR·CCPA/아동/연락처 = 애드센스 재심사 대비). set/market/eb-05 생성기 타이틀 90~110→63~74자, 설명 250~290→~150자로 정상화(키워드는 앞 유지).
+3. **한국어 정적 허브 `/ko/` 신설(유입 핵심)** — 기존 data-ko JS스왑은 네이버 Yeti(JS 미실행)에 안 보이고 `/?hl=ko`는 canonical이 /로 가 구글 미색인이었음. `tools/generate-ko-pages.js`가 검증된 onepiece-packs.json에서 **정적 한국어 HTML** 생성(21세트 원화 시세표+정가배수+재판+OPBOX지수+개봉미터+FAQ, 스키마 포함). 사이트맵 등재·hreflang(`/ko/`↔`market.html`)·IndexNow 제출·야간워크플로 편입·guard PUBLIC_HTML에 `ko` 포함. 홈 canonical/hreflang은 사고예방 위해 미변경. **사용자가 네이버 카페에 붙일 URL = opboxindex.com/ko/.** 상세: 메모리 project-opbox-korean-seo.
+4. **카드 시세이력 오염 정리(정확도)** — 초기수집(7/7~7/10)이 변형매칭 미성숙으로 엉뚱한 저가를 긁어 카드페이지 "최근 시세" 표에 $3→$1,500식 불가능한 점프가 라이브 노출됨. 7/14 이전 체크포인트 237개(185장) 폐기, 표는 2점 이상일 때만 표시(generate-card-pages). 현 수집기는 검증된 nmJpy 파생이라 앞으로 오염 불가.
+
+**다음 작업 — 카드 top10 시세 "변동" 그래프 (사용자 요청, 지금은 데이터 대기):**
+- **막힌 이유**: 카드 변동데이터는 `card.series.points`에 매일 밤 축적(`tools/update-card-series-history.js`)되나 **깨끗한 건 7/14부터라 카드당 아직 1점**. NM은 nmJpy 파생이라 매일 동일(2~3개월 갱신때만 변동), **PSA10(eBay sold)만 주간 변동** → 의미있는 선은 **3~4주 뒤**.
+- **배선 버그(그때 같이 고칠 것)**: SPA 카드차트 `historyChart`(packs.js ~1459)는 `card.japaneseNmEbay.history`를 읽는데 **그 필드는 0건** → 항상 빈상태. 축적되는 실데이터는 `card.series`이므로 **historyChart를 card.series로 연결**해야 개별카드 변동선이 뜸. 그 후 **top10 통합 변동 뷰**(psa10-ranking 확장 or 신규) 추가.
+- **지금 당장 가능한 대안**: "현재 top10 시세" 스냅샷은 정확함(psa10-ranking.html이 PSA10 실거래로 랭킹 중) → 막대/카드 시각화 보강은 오늘도 가능.
+- **한국어 확장 백로그**: `/ko/op-16` 등 세트별 한국어 페이지("op-16 시세" 롱테일 — 생성기 구조 이미 있음).
+
+> ⚠️ 불변: 수정 후 반드시 `node tools/guard-invariants.js` OK 확인 후 push(FAIL이면 push 금지). 로컬 push 거부되면 아래 START의 야간충돌 대응 참고(reset --hard origin/main → 소스변경만 재적용 → 정리스크립트 재실행 → 재생성 → push). 정확도 최우선(틀린값보단 빈칸).
 
 ## START — 현재 상태·다음 작업 (2026-07-17 밤 기준)
 
 ### 현재 상태 스냅샷
 - **배포**: GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
-- **캐시 버전**: `20260718a`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
+- **캐시 버전**: `20260718e`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
 - **야간 자동화**: `.github/workflows/update-active-listings.yml`(매일) — eBay 가격 갱신 → 카드 페이지 → 세트 페이지 순 재생성 → 커밋. 로컬 push가 거부되면: `git pull --rebase`; 꼬이면 `rebase --abort` → `reset --hard origin/main` → 자기 커밋에서 자기 파일만 checkout → 재생성 → push.
 - **트래픽**: GA 활성 54(-28%), 신규 50(-31%), 조회수 477(+7%). 원인 진단 완료(아래 0G): **구글에 미색인**(브랜드 검색조차 0노출). 콘텐츠·리텐션은 정상. SEO 효과는 색인 후 2~6주 걸림 — 그 전 숫자 하락은 정상이라고 사용자에게 이미 설명함.
 - **AdSense**: "가치가 별로 없는 콘텐츠" 거절 → 콘텐츠 보강 완료. **재심사 요청 버튼은 2026-07-30 이후에** (사용자가 누름).
