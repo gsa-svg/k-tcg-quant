@@ -1115,3 +1115,11 @@ h2 {
 .mktBars span:last-child { opacity: 1; }
 .mktFoot { margin: 4px 0 0; font-size: 12px; color: #9aa4b6; display: flex; align-items: center; gap: 5px; }
 .mktArrow { margin-left: auto; color: #50dad9; font-weight: 800; }
+
+/* 상세 헤더 배지: 정가 대비 + 재판 기록 */
+.setBadges { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; flex-wrap: wrap; }
+.setBadge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 7px; text-decoration: none; white-space: nowrap; }
+.setBadge b { font-weight: 800; }
+.setBadge.msrp { background: rgba(80,218,217,.12); color: #7fe3e2; border: 1px solid rgba(80,218,217,.3); cursor: help; }
+.setBadge.reprint { background: rgba(255,125,60,.13); color: #ff9d6c; border: 1px solid rgba(255,125,60,.35); }
+.setBadge.reprint:hover { background: rgba(255,125,60,.22); }

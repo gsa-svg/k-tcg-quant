@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260718b";
+const DATA_VERSION = "20260718c";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1507,6 +1507,28 @@ function renderDataNotice() {
   )}</div>`;
 }
 
+// 상세 헤더 배지: 정가 대비 배수 + 재판 기록(유통사·리테일러; 반다이 미발표라 "공식" 표기 안 함)
+function setBadges(code) {
+  const mi = state.data && state.data.marketIndex;
+  if (!mi) return "";
+  const brow = (mi.board || []).find((b) => b.code === code);
+  const bySet = (mi.reprints && mi.reprints.bySet && mi.reprints.bySet[code]) || {};
+  const recs = bySet.reprintRecords || [];
+  const chips = [];
+  if (brow && brow.vsMsrp) {
+    chips.push(`<span class="setBadge msrp" title="${t("공식 일본 발매 정가($" + brow.msrpUsd + ") 대비 현재 시장가", "current market price vs official Japanese launch MSRP ($" + brow.msrpUsd + ")")}">${t("정가 대비", "vs MSRP")} <b>${brow.vsMsrp}x</b></span>`);
+  }
+  if (recs.length) {
+    const dates = recs.map((r) => r.date || t("날짜미상", "n/a")).join(", ");
+    const tip = t(
+      `재판 기록 ${recs.length}건 (유통사·리테일러): ${dates}. 반다이는 세트별 재판을 공식 발표하지 않음.`,
+      `${recs.length} dated reprint record(s) from retailers/distributors: ${dates}. Bandai does not officially announce per-set reprints.`
+    ).replace(/"/g, "'");
+    chips.push(`<a class="setBadge reprint" href="sets/${code.toLowerCase()}.html${state.hl === "ko" ? "?hl=ko" : ""}" title="${tip}">${t("재판 기록", "Reprints")} <b>${recs.length}</b></a>`);
+  }
+  return chips.length ? `<span class="setBadges">${chips.join("")}</span>` : "";
+}
+
 function renderDetail() {
   const pack = currentPacks().find((p) => p.key === state.selected);
   const el = document.querySelector("#detail");
@@ -1521,7 +1543,7 @@ function renderDetail() {
     const soon = hasBox
       ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
       : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
-    el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
+    el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
     el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
       event.stopPropagation();
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
@@ -1532,7 +1554,7 @@ function renderDetail() {
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · Booster Box</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><button id="watchBtn" class="watchBtn${watchHas(pack.key) ? " on" : ""}" type="button">${watchHas(pack.key) ? t("📌 관심 등록됨 — 재방문 시 변동 표시", "📌 Watching — changes shown on your next visit") : t("☆ 관심 등록 (재방문 시 가격 변동 알림)", "☆ Watch this box (see its move next visit)")}</button><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><button id="watchBtn" class="watchBtn${watchHas(pack.key) ? " on" : ""}" type="button">${watchHas(pack.key) ? t("📌 관심 등록됨 — 재방문 시 변동 표시", "📌 Watching — changes shown on your next visit") : t("☆ 관심 등록 (재방문 시 가격 변동 알림)", "☆ Watch this box (see its move next visit)")}</button><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelector("#watchBtn")?.addEventListener("click", () => { watchToggle(pack.key); renderPackGrid(); renderDetail(); });
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
