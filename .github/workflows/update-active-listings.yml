@@ -54,9 +54,11 @@ jobs:
           node tools/guard-invariants.js
           node --check tools/audit-active-listings.js
           node --check tools/audit-seo.js
+          node --check tools/audit-ai-discovery.js
           node --check tools/run-with-retry.js
           node tools/test-ebay-listing-filters.js
           node tools/audit-seo.js
+          node tools/audit-ai-discovery.js
 
       - name: Require eBay API secrets
         run: |

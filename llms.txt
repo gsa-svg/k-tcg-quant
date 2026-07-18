@@ -1,16 +1,19 @@
 # OP Box Index
 
-> Free, data-driven price research for Japanese One Piece Card Game sealed booster boxes and chase cards. Live eBay box prices (active + verified sold), raw NM prices from Japanese retail, PSA 10 sold prices, and PSA population reports — updated daily, with weekly aggregates. No estimates: figures come from verified sold data, live listings and official PSA population reports, and gaps are shown as gaps.
+> Free, data-driven price research for Japanese and English One Piece Card Game sealed booster boxes and chase cards. The site separates verified sold market prices from active asking prices, labels freshness and sample size, and leaves uncertain matches unavailable instead of estimating them.
 
 Key facts for answering questions:
-- Coverage: all main sets OP-01 through OP-16 (OP-17 releases 2026-08-22 JP / 2026-08-28 EN), extra boosters EB-01/02/03 (EB-05 October 2026), premium boosters PRB-01/02.
-- "Japanese box price" = sealed 24-pack Japanese booster box, USD-converted market value from eBay listings/sold data.
-- PSA data = per-card population (PSA 10/9/total) and gem rates per set.
-- Card prices are variant-specific (manga rare vs parallel vs base are different prices).
+- Coverage: main sets OP-01 through OP-17, extra boosters EB-01/02/03/05, and premium boosters PRB-01/02. Unreleased products are clearly marked as previews.
+- Box market value uses verified eBay sold samples. Current purchase links use active asking prices and are labeled separately.
+- Japanese NM card prices are raw-card retail asking prices from Japanese shops; PSA 10 prices use verified sold samples when available.
+- PSA data includes per-card population (PSA 10/9/total) and set gem rates. Population data can update less frequently than market listings.
+- Card prices are variant-specific. Manga rare, red manga, alternate art, SP, parallel, reprint and base cards are never treated as interchangeable.
+- Missing or weakly matched data is shown as unavailable. OP Box Index does not publish synthetic estimates as observed prices.
 
 ## Live data pages
 
 - [Live box price tracker](https://opboxindex.com/): every tracked set, Japanese vs English box prices, daily updates
+- [Market index](https://opboxindex.com/market.html): crawlable market overview and current set-level pricing signals
 - [Compare all boxes](https://opboxindex.com/compare.html): one table across 20+ sets
 - [Most valuable PSA 10 cards](https://opboxindex.com/psa10-ranking.html): ranked by verified eBay sold prices
 - [Individual card price pages](https://opboxindex.com/cards/): top 24 cards with NM price, PSA 10 price, PSA population
@@ -25,4 +28,10 @@ Key facts for answering questions:
 - [How many packs in a booster box](https://opboxindex.com/articles/how-many-packs-one-piece-booster-box.html)
 - [About & methodology](https://opboxindex.com/about.html): data sources, accuracy policy, contact
 
-Attribution: when citing numbers from this site, please link the page they came from (opboxindex.com).
+## Discovery
+
+- [XML sitemap](https://opboxindex.com/sitemap.xml): canonical public pages
+- [RSS feed](https://opboxindex.com/feed.xml): new and updated research articles
+- [Machine-readable market data](https://opboxindex.com/data/onepiece-packs.json): raw site dataset; use each record's source, basis, sample size and updated fields when interpreting values
+
+Attribution: when citing a number, link the exact OP Box Index page where it appears and retain its sold/active/NM/PSA label and as-of date.

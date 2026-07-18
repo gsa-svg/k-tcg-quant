@@ -124,11 +124,11 @@ for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.t
   for (const g of groups) {
     const ua = (g.match(/User-agent:\s*(\S+)/) || [])[1];
     if (!ua) continue;
-    if (/^Disallow:\s*\/\s*$/m.test(g) && !["GPTBot", "anthropic-ai", "CCBot", "Bytespider", "Applebot-Extended", "Amazonbot"].includes(ua))
+    if (/^Disallow:\s*\/\s*$/m.test(g) && !["GPTBot", "ClaudeBot", "anthropic-ai", "CCBot", "Bytespider", "Applebot-Extended", "Amazonbot"].includes(ua))
       errors.push(`S2: robots.txt에서 ${ua} 전면 차단됨 — 훈련 전용 봇 외에는 금지`);
   }
   // AI 답변/검색 봇 허용 그룹이 반드시 존재해야 함
-  for (const bot of ["OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-User", "ClaudeBot", "Google-Extended", "Bingbot", "Googlebot"]) {
+  for (const bot of ["OAI-SearchBot", "ChatGPT-User", "PerplexityBot", "Claude-User", "Claude-SearchBot", "Google-Extended", "Bingbot", "Googlebot"]) {
     if (!new RegExp(`User-agent:\\s*${bot}`).test(robots)) errors.push(`S2: robots.txt에 ${bot} 그룹이 사라짐 (AI/검색 접근성)`);
   }
   if (!robots.includes("Sitemap: https://opboxindex.com/sitemap.xml")) errors.push("S2: robots.txt에 Sitemap 선언 누락");

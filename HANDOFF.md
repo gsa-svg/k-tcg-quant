@@ -1,7 +1,16 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
 > 새 세션/에이전트(Codex 등)가 이어받을 때 **이 문서의 START 섹션부터** 읽고, 상세는 **CLAUDE.md / AGENTS.md** 참고.
-> 갱신: 2026-07-18 밤.
+> 갱신: 2026-07-19.
+
+## 2026-07-19 업데이트 — AI 검색 노출 안전 패스
+
+- **Google SEO 신호 불변**: 홈 canonical `/`, sitemap 대표 URL, Googlebot 규칙, 공개 HTML은 변경하지 않음. 이전 canonical 스왑 사고를 피하려고 AI 봇 설정만 수정.
+- **AI 검색/인용 허용**: `OAI-SearchBot`, `ChatGPT-User`, `Claude-User`, `Claude-SearchBot`, `Google-Extended`가 공개 페이지와 `/data/`를 읽을 수 있음. `/docs/`, `/tools/`, `HANDOFF.md`, `AGENTS.md`, `SECURITY.md`는 차단.
+- **학습봇 분리**: Anthropic 공식 정의에 따라 `ClaudeBot`은 학습용이라 차단. Claude 검색/사용자 요청 접근은 위 두 전용 봇으로 계속 허용. `GPTBot` 차단도 유지하며 OpenAI 검색 노출에는 영향 없음.
+- **AI용 설명 최신화**: `llms.txt`에 JP/EN 범위, sold와 active의 차이, NM/PSA 의미, 변형 구분, 결측 숨김 원칙, market/sitemap/RSS/raw data 링크를 명시.
+- **재발방지 검사**: `tools/audit-ai-discovery.js` 신설. 검색/검색요청 봇 허용, 내부문서 차단, 학습봇 차단, 루트 canonical sitemap 유지, llms 핵심 링크를 검사. 일일·주간 워크플로 시작 시 자동 실행. `guard-invariants.js`의 오래된 ClaudeBot 분류도 공식 기준으로 교정.
+- **검증**: `audit-ai-discovery` OK, `audit-seo` 오류·경고 0, `guard-invariants` OK(80페이지), `git diff --check` 통과.
 
 ## 2026-07-18 업데이트 — 오늘 한 것 + 다음 작업 (여기부터 읽기)
 

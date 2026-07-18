@@ -53,13 +53,29 @@ Disallow: /CLAUDE.md
 Disallow: /AGENTS.md
 Disallow: /SECURITY.md
 
-# AI answer/search bots — ALLOWED: they fetch pages to cite in ChatGPT/Perplexity/Claude
-# answers and AI search, which drives referral traffic + brand exposure.
+# AI answer/search and user-requested retrieval bots. Public pages and the
+# machine-readable market data are available; internal operating files are not.
 User-agent: OAI-SearchBot
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: ChatGPT-User
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: PerplexityBot
 Allow: /
@@ -69,18 +85,38 @@ Allow: /
 
 User-agent: Claude-User
 Allow: /
-
-# ClaudeBot builds the index behind Claude's web search — allowing it makes the site
-# discoverable/citable inside Claude answers (accepting possible training use).
-User-agent: ClaudeBot
-Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Claude-SearchBot
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
-# Gemini grounding/answers — allowed so Google's AI can use and cite our pages.
+# Gemini grounding and Google AI features. This does not change Google Search
+# inclusion or ranking; the Googlebot rules above remain the search controls.
 User-agent: Google-Extended
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 # xAI Grok fetchers — allowed. Any AI agent not named here is covered by the
 # default "User-agent: *" allow group at the top (only internal dirs blocked).
@@ -100,6 +136,11 @@ Allow: /
 
 # Training-only scrapers — BLOCKED (bulk-harvest for model training, no exposure benefit).
 User-agent: GPTBot
+Disallow: /
+
+# Anthropic model-training crawler. Claude search and user-requested retrieval
+# remain allowed above through Claude-SearchBot and Claude-User.
+User-agent: ClaudeBot
 Disallow: /
 
 User-agent: anthropic-ai

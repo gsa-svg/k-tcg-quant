@@ -49,10 +49,12 @@ jobs:
           node --check tools/generate-ko-pages.js
           node --check tools/guard-invariants.js
           node --check tools/audit-seo.js
+          node --check tools/audit-ai-discovery.js
           node --check tools/run-with-retry.js
           node tools/test-price-outliers.js
           node tools/test-price-quality-audit.js
           node tools/audit-seo.js
+          node tools/audit-ai-discovery.js
 
       - name: Require eBay API secrets
         run: |
@@ -103,6 +105,7 @@ jobs:
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
           node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
           node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
+          node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
 
       - name: Upload update logs
         if: always()
