@@ -1123,3 +1123,6 @@ h2 {
 .setBadge.msrp { background: rgba(80,218,217,.12); color: #7fe3e2; border: 1px solid rgba(80,218,217,.3); cursor: help; }
 .setBadge.reprint { background: rgba(255,125,60,.13); color: #ff9d6c; border: 1px solid rgba(255,125,60,.35); }
 .setBadge.reprint:hover { background: rgba(255,125,60,.22); }
+
+/* 재판 배지 출처 표기 */
+.setBadge.reprint .rpSrc { font-size: 9px; font-weight: 700; opacity: .7; border-left: 1px solid rgba(255,125,60,.4); padding-left: 5px; margin-left: 1px; }
