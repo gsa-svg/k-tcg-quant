@@ -60,6 +60,10 @@ function psa10Of(card) {
   return null;
 }
 
+// 셀프호스팅 이미지 맵(tools/fetch-card-images.js 산출). 없으면 원본 CDN URL로 폴백.
+const IMG_MAP = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "img", "cards", "map.json"), "utf8")); } catch { return {}; } })();
+const localImg = (slug, fallback) => (IMG_MAP[slug] ? `${SITE}/${IMG_MAP[slug]}` : (fallback || null));
+
 const CARDS_DIR = path.join(ROOT, "cards");
 fs.mkdirSync(CARDS_DIR, { recursive: true });
 
@@ -72,6 +76,8 @@ for (const { code, set: s, card: c } of cands) {
   const slug = slugify(c.number + "-" + c.name);
   const fname = slug + ".html";
   const canonical = `${SITE}/cards/${fname}`;
+  const imgAbs = localImg(slug, c.img);
+  const imgRel = IMG_MAP[slug] ? `../${IMG_MAP[slug]}` : (c.img || null);
   const setSlug = code.toLowerCase();
   const boxPts = s.boxSeries && s.boxSeries.points || [];
   const boxUsd = boxPts.length ? krwUsd(boxPts[boxPts.length - 1].p) : null;
@@ -120,7 +126,7 @@ for (const { code, set: s, card: c } of cands) {
     { q: `Which exact printing is this price for?`, a: `This page tracks the "${c.name}" printing only. Other printings of ${c.number} trade at very different prices, so match the artwork and finish exactly before comparing a listing to these numbers.` },
   ];
   const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
-  const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Article", headline: `${c.name} (${c.number}) price guide`, description: desc, image: c.img || `${SITE}/og-image.png`, datePublished: "2026-07-17", dateModified: DATA_DATE, inLanguage: "en-US", mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, author: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, publisher: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, isAccessibleForFree: true });
+  const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Article", headline: `${c.name} (${c.number}) price guide`, description: desc, image: imgAbs || `${SITE}/og-image.png`, datePublished: "2026-07-17", dateModified: DATA_DATE, inLanguage: "en-US", mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, author: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, publisher: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, isAccessibleForFree: true });
   const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
     { "@type": "ListItem", position: 1, name: "OP Box Index", item: SITE + "/" },
     { "@type": "ListItem", position: 2, name: "Card prices", item: SITE + "/cards/" },
@@ -149,7 +155,7 @@ for (const { code, set: s, card: c } of cands) {
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="${esc(c.img || SITE + "/og-image.png")}" />
+    <meta property="og:image" content="${esc(imgAbs || SITE + "/og-image.png")}" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${artLd}</script>
     <script type="application/ld+json">${faqLd}</script>
@@ -185,7 +191,7 @@ for (const { code, set: s, card: c } of cands) {
       <p class="eyebrow"><a href="index.html" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
       <h1>${esc(c.name)} <small style="color:#7d8698;font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
       <div class="cardHero">
-        ${c.img ? `<img src="${esc(c.img)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" loading="eager" decoding="async" />` : ""}
+        ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" loading="eager" decoding="async" />` : ""}
         <div style="flex:1;min-width:260px;">
           <div class="priceCards">
             <div class="pc hl"><span>Japanese NM (raw)</span><b>${usd(nmUsd)}</b><small>${jpy(c.nmJpy)} · Japanese retail${c.nmVenue ? "" : ""} · as of ${esc(DATA_DATE)}</small></div>
@@ -226,7 +232,7 @@ for (const { code, set: s, card: c } of cands) {
 `;
   fs.writeFileSync(path.join(CARDS_DIR, fname), html);
   written.push(fname);
-  hubItems.push({ slug: fname, name: c.name, number: c.number, code, usd: Math.round(nmUsd), img: c.img });
+  hubItems.push({ slug: fname, name: c.name, number: c.number, code, usd: Math.round(nmUsd), img: imgRel ? imgRel.replace("../", "") : c.img });
 }
 
 // 세트 페이지가 체이스 표에 링크 걸 수 있게 슬러그 맵 출력 (generate-set-pages.js가 읽음)

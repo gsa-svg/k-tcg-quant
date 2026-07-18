@@ -47,6 +47,7 @@ jobs:
           node --check tools/update-card-series-history.js
           node --check tools/generate-set-pages.js
           node --check tools/generate-card-pages.js
+          node --check tools/fetch-card-images.js
           node --check tools/build-market-index.js
           node --check tools/generate-market-page.js
           node --check tools/generate-ko-pages.js
@@ -116,6 +117,7 @@ jobs:
           mkdir -p logs
           node tools/build-market-index.js 2>&1 | tee logs/build-market-index.log
           node tools/generate-market-page.js 2>&1 | tee logs/generate-market-page.log
+          node tools/fetch-card-images.js 2>&1 | tee logs/fetch-card-images.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
@@ -139,7 +141,7 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ market.html free-data.html opbox-set-prices.csv sitemap.xml; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ market.html free-data.html opbox-set-prices.csv sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
