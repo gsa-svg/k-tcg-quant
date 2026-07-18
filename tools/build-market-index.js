@@ -1,4 +1,4 @@
-// OPBX 마켓 인덱스 + 개봉 미터 + 성적표 계산기 → data/market-index.json
+// OPBOX 마켓 인덱스 + 개봉 미터 + 성적표 계산기 → data/market-index.json
 // 방법론(고정, 페이지에 그대로 공개):
 //  - 지수: 2026-01-07 = 100 기준, 그날 가격이 있는 세트만 구성종목(=18). 등가중,
 //    각 세트 price(t)/price(base) 평균 ×100. 결측일은 직전값 carry-forward.

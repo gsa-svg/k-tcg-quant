@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260718a";
+const DATA_VERSION = "20260718b";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1224,7 +1224,7 @@ function renderSinceLastVisit() {
   trackEvent("since_last_visit", { prev_date: prev.d, movers: top.length });
 }
 
-// OPBX 마켓 인덱스 + 개봉 미터 (data.marketIndex, tools/build-market-index.js 산출)
+// OPBOX 마켓 인덱스 + 개봉 미터 (data.marketIndex, tools/build-market-index.js 산출)
 function sparkPath(series, w, h) {
   const vals = series.map((p) => p.v);
   const min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
@@ -1242,8 +1242,8 @@ function renderMarketIndex() {
   const bmax = bars.length ? Math.max(...bars.map((b) => b.v)) : 1;
   el.hidden = false;
   el.innerHTML = `
-    <a class="mktCard mktIndex" href="market.html${state.hl === "ko" ? "?hl=ko" : ""}" aria-label="${t("OPBX 지수 상세", "OPBX index details")}">
-      <div class="mktHead"><span class="mktLabel"><i></i>${t("OPBX 지수", "OPBX Index")}</span><span class="mktInfo" title="${t("일판 박스 18개 등가중 · 2026-01-07 = 100", "18 Japanese boxes, equal-weight · Jan 7 2026 = 100")}">?</span></div>
+    <a class="mktCard mktIndex" href="market.html${state.hl === "ko" ? "?hl=ko" : ""}" aria-label="${t("OPBOX 지수 상세", "OPBOX index details")}">
+      <div class="mktHead"><span class="mktLabel"><i></i>${t("OPBOX 지수", "OPBOX Index")}</span><span class="mktInfo" title="${t("일판 박스 18개 등가중 · 2026-01-07 = 100", "18 Japanese boxes, equal-weight · Jan 7 2026 = 100")}">?</span></div>
       <div class="mktBig"><b>${idx.value.toFixed(1)}</b><span class="mktChg ${up ? "up" : "down"}">${wkTxt}</span></div>
       <svg class="mktSpark" viewBox="0 0 200 40" preserveAspectRatio="none" role="img" aria-label="${t("지수 추이", "index trend")}"><polyline points="${sparkPath(idx.series, 200, 40)}" fill="none" stroke="${up ? "#10d7a0" : "#ff7d7d"}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
       <p class="mktFoot">${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% ${t("1월 이후", "since Jan")} · ${t("매일 갱신", "updated daily")} <span class="mktArrow">→</span></p>

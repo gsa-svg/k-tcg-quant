@@ -1,10 +1,10 @@
-// market.html 생성 — OPBX 지수 + 개봉 미터 + 전세트 성적표(1월 이후). 숫자 구워넣기(SEO/AI).
+// market.html 생성 — OPBOX 지수 + 개봉 미터 + 전세트 성적표(1월 이후). 숫자 구워넣기(SEO/AI).
 // data.marketIndex 필요 → tools/build-market-index.js를 먼저 실행. Run: node tools/generate-market-page.js
 const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
-const CACHE = "20260718a";
+const CACHE = "20260718b";
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const mi = d.marketIndex;
 if (!mi) { console.error("marketIndex 없음 — build-market-index.js 먼저 실행"); process.exit(1); }
@@ -19,7 +19,7 @@ function lineChart(series, w, h, pad) {
   const y = (v) => h - pad - ((v - min) / span) * (h - pad * 2);
   const pts = series.map((p, i) => `${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ");
   const gridV = [min, (min + max) / 2, max].map((v) => `<line x1="${pad}" y1="${y(v).toFixed(1)}" x2="${w - pad}" y2="${y(v).toFixed(1)}" stroke="rgba(255,255,255,.06)"/><text x="${pad - 4}" y="${(y(v) + 3).toFixed(1)}" text-anchor="end" fill="#7d8698" font-size="10">${Math.round(v)}</text>`).join("");
-  return `<svg viewBox="0 0 ${w} ${h}" class="ixChart" role="img" aria-label="OPBX index history"><line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="rgba(255,255,255,.12)"/>${gridV}<polyline points="${pts}" fill="none" stroke="#50dad9" stroke-width="2"/></svg>`;
+  return `<svg viewBox="0 0 ${w} ${h}" class="ixChart" role="img" aria-label="OPBOX index history"><line x1="${pad}" y1="${h - pad}" x2="${w - pad}" y2="${h - pad}" stroke="rgba(255,255,255,.12)"/>${gridV}<polyline points="${pts}" fill="none" stroke="#50dad9" stroke-width="2"/></svg>`;
 }
 const first = idx.series[0], last = idx.series[idx.series.length - 1];
 
@@ -40,7 +40,7 @@ const bmax = Math.max(...m.weeks.map((w) => w.v));
 const meterBars = m.weeks.map((w) => `<div class="owBar"><span style="height:${Math.round((w.v / bmax) * 100)}%"></span><small>${w.d.slice(5)}</small></div>`).join("");
 
 const keyFacts = [
-  `The OPBX Index — an equal-weight index of ${mi.constituents.length} Japanese One Piece booster boxes (Jan 7, 2026 = 100) — stands at <strong>${idx.value.toFixed(1)}</strong> as of ${esc(idx.asOf)}, ${idx.sinceBasePct >= 0 ? "up" : "down"} <strong>${Math.abs(idx.sinceBasePct)}%</strong> since January.`,
+  `The OPBOX Index — an equal-weight index of ${mi.constituents.length} Japanese One Piece booster boxes (Jan 7, 2026 = 100) — stands at <strong>${idx.value.toFixed(1)}</strong> as of ${esc(idx.asOf)}, ${idx.sinceBasePct >= 0 ? "up" : "down"} <strong>${Math.abs(idx.sinceBasePct)}%</strong> since January.`,
   `Over the past week the index moved ${up ? "+" : ""}${idx.weekChangePct}%.`,
   m.latestWeek ? `In the week of ${esc(m.latestWeek.d)}, collectors sent <strong>${m.latestWeek.v.toLocaleString()}</strong> One Piece cards to PSA (${m.wowPct >= 0 ? "+" : ""}${m.wowPct}% vs the prior week); ${m.allTimeGraded.toLocaleString()} have been graded all-time.` : "",
   `The strongest set since January is ${board[0].code} (${board[0].changePct >= 0 ? "+" : ""}${board[0].changePct}%); the weakest is ${board[board.length - 1].code} (${board[board.length - 1].changePct}%).`,
@@ -48,13 +48,13 @@ const keyFacts = [
 ].filter(Boolean);
 
 const faq = [
-  { q: "What is the OPBX Index?", a: `It is a free equal-weight index of ${mi.constituents.length} Japanese One Piece Card Game booster boxes, based to 100 on January 7, 2026. Each day it averages every constituent box's price relative to its January 7 value. As of ${idx.asOf} it is ${idx.value.toFixed(1)} — ${idx.sinceBasePct >= 0 ? "up" : "down"} ${Math.abs(idx.sinceBasePct)}% since January. Sets first tracked after that date (${mi.constituents.length < 21 ? d.jp.list.concat(d.extra.list).filter((c) => d.sets[c] && !mi.constituents.includes(c) && (d.sets[c].boxSeries || {}).points) .join(", ") : "none"}) are shown individually but excluded from the index.` },
+  { q: "What is the OPBOX Index?", a: `It is a free equal-weight index of ${mi.constituents.length} Japanese One Piece Card Game booster boxes, based to 100 on January 7, 2026. Each day it averages every constituent box's price relative to its January 7 value. As of ${idx.asOf} it is ${idx.value.toFixed(1)} — ${idx.sinceBasePct >= 0 ? "up" : "down"} ${Math.abs(idx.sinceBasePct)}% since January. Sets first tracked after that date (${mi.constituents.length < 21 ? d.jp.list.concat(d.extra.list).filter((c) => d.sets[c] && !mi.constituents.includes(c) && (d.sets[c].boxSeries || {}).points) .join(", ") : "none"}) are shown individually but excluded from the index.` },
   { q: "What is the Opening Meter?", a: m.latestWeek ? `It counts how many One Piece cards were newly graded by PSA each week — a proxy for how fast sealed product is being opened. In the week of ${m.latestWeek.d}, ${m.latestWeek.v.toLocaleString()} cards were graded. Rising grading volume while box prices hold is the supply-burn pattern sealed collectors watch for.` : "A weekly count of newly PSA-graded One Piece cards." },
   { q: "Why is the change measured 'since January', not since launch?", a: `Our daily price tracking began in January 2026. Only a few sets (currently OP-16) were tracked from their actual release, so for every other set we honestly label changes 'since January' rather than claiming a launch-to-now figure we did not measure. For a true since-launch comparison we use the 'vs MSRP' column, which divides the current price by each set's official Japanese launch MSRP.` },
   { q: "How many times has each set been reprinted?", a: `Bandai does not publish per-set reprint announcements for the One Piece Card Game, so a definitive count does not exist. What we can show is dated reprint evidence from retailers and distributors (e.g. MediaWorld and other Japanese shops listing 再販 batches with ship dates). The 'Reprints' column counts those dated records; a dash means none were found in our sources, not that a set was never reprinted. Each set page links the sources.` },
 ];
 const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
-const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "OPBX One Piece booster box market index", description: `Daily equal-weight price index of ${mi.constituents.length} Japanese One Piece booster boxes, plus weekly PSA grading volume.`, creator: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, dateModified: mi.updated, isAccessibleForFree: true, url: SITE + "/market.html" });
+const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "OPBOX One Piece booster box market index", description: `Daily equal-weight price index of ${mi.constituents.length} Japanese One Piece booster boxes, plus weekly PSA grading volume.`, creator: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, dateModified: mi.updated, isAccessibleForFree: true, url: SITE + "/market.html" });
 
 const html = `<!doctype html>
 <html lang="en">
@@ -67,11 +67,11 @@ const html = `<!doctype html>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/market.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <title>OPBX Index — Live One Piece Booster Box Market Index &amp; Opening Meter | OP Box Index</title>
-    <meta name="description" content="The OPBX Index tracks the whole Japanese One Piece booster box market in one number (Jan 2026 = 100), now ${idx.value.toFixed(1)} (${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since January). Plus the Opening Meter (weekly PSA grading volume) and every set's performance — free, updated daily." />
+    <title>OPBOX Index — Live One Piece Booster Box Market Index &amp; Opening Meter | OP Box Index</title>
+    <meta name="description" content="The OPBOX Index tracks the whole Japanese One Piece booster box market in one number (Jan 2026 = 100), now ${idx.value.toFixed(1)} (${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since January). Plus the Opening Meter (weekly PSA grading volume) and every set's performance — free, updated daily." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="OPBX Index — One Piece Booster Box Market Index" />
+    <meta property="og:title" content="OPBOX Index — One Piece Booster Box Market Index" />
     <meta property="og:description" content="The whole JP booster box market in one number, now ${idx.value.toFixed(1)}. Free, updated daily." />
     <meta property="og:url" content="${SITE}/market.html" />
     <meta property="og:image" content="${SITE}/og/og-set-list.png" />
@@ -114,7 +114,7 @@ const html = `<!doctype html>
     </header>
     <main class="bodyPage">
       <p class="eyebrow">Market Index</p>
-      <h1>OPBX Index — the whole One Piece box market in one number</h1>
+      <h1>OPBOX Index — the whole One Piece box market in one number</h1>
       <section aria-label="Key facts"><ul class="keyFacts">${keyFacts.map((f) => `<li>${f}</li>`).join("")}</ul></section>
 
       <div class="ixHero"><span class="big">${idx.value.toFixed(1)}</span><span class="ixChg ${up ? "up" : "down"}">${up ? "▲ +" : "▼ "}${idx.weekChangePct}% this week</span><span style="color:#9aa4b6;font-size:14px;">${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since Jan 7, 2026</span></div>
