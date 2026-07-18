@@ -7,7 +7,7 @@
 
 ### 현재 상태 스냅샷
 - **배포**: GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
-- **캐시 버전**: `20260717d`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
+- **캐시 버전**: `20260718a`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
 - **야간 자동화**: `.github/workflows/update-active-listings.yml`(매일) — eBay 가격 갱신 → 카드 페이지 → 세트 페이지 순 재생성 → 커밋. 로컬 push가 거부되면: `git pull --rebase`; 꼬이면 `rebase --abort` → `reset --hard origin/main` → 자기 커밋에서 자기 파일만 checkout → 재생성 → push.
 - **트래픽**: GA 활성 54(-28%), 신규 50(-31%), 조회수 477(+7%). 원인 진단 완료(아래 0G): **구글에 미색인**(브랜드 검색조차 0노출). 콘텐츠·리텐션은 정상. SEO 효과는 색인 후 2~6주 걸림 — 그 전 숫자 하락은 정상이라고 사용자에게 이미 설명함.
 - **AdSense**: "가치가 별로 없는 콘텐츠" 거절 → 콘텐츠 보강 완료. **재심사 요청 버튼은 2026-07-30 이후에** (사용자가 누름).
@@ -45,6 +45,14 @@
 - **삭제 금지 파일**: googlee0d71bc0695b5651.html, naver933a...html, IndexNow 키 .txt(3d439f302e46fc08f76ddba4eee3726f.txt), impact-site-verification 메타, .env(로컬 eBay 키).
 - **콘솔 cp949**: 한글/이모지 print 깨짐 → 결과는 UTF-8 파일로 쓰고 Read로 확인.
 - 사용자와는 **짧은 반말 한국어**. 개발자 아님 — 개발 판단은 알아서 하되 결과·이유를 쉽게 보고. 시키지 않은 개선도 능동적으로(단, 위 금지사항 안에서).
+
+## 0I. 2026-07-18: OPBX 마켓 인덱스 + 개봉 미터 + 성적표 (market.html) — 캐시 `20260718a`
+- **정확도 감사 먼저**: 21세트 중 발매 시점부터 추적한 건 OP-14/15/16/PRB-02뿐(나머지 1월 시작). 그래서 "발매 대비"는 대부분 거짓 → 지수·성적표는 전부 "1월 7일 이후"로만 표기. 성적표 각 행에 실제 base 날짜("from Apr 27" 등) 명시, launch 태그는 진짜 발매추적 세트(OP-16)만.
+- **OPBX 지수**: `tools/build-market-index.js` → data.marketIndex(메인 JSON 통합, 단일 소스·단일 버전). 등가중, 2026-01-07 가격 있는 18세트=100 기준, 현재 157.4(+57.4%, 주 -0.8%). 후발 OP-02/15/16은 지수 제외·개별표시. `tools/generate-market-page.js` → market.html(숫자 구움, Dataset+FAQ 스키마, Key Facts). packs.js `renderMarketIndex`(홈 hero 카드).
+- **개봉 미터**: 전세트 psaWeekly 합산 최근주(17,526, WoW+30.4%), 누적 608,756.
+- **가드 D2**: 지수 범위(50~1000)·구성종목·시계열·성적표·미터·market.html 구운값 일치 검사. 이상 시 배포 차단.
+- **파이프라인**: 야간 워크플로에 build-market-index→generate-market-page 추가(매일 자동 갱신). market.html 커밋 대상 추가, 사이트맵 등록.
+- **★재판(再販) 이력 미완**: "공식 발표된 재판 N회(날짜+소스)" 표시가 목표. 조사 워크플로(wf_822ae1b3-e7e) 작성됨 but 세션한도로 실패. 리셋 후 재실행→어드버서리얼 검증→**사용자 눈으로 확인 후에만 게시**(외부 클레임=최고 위험, 자동게시 금지). 재판 필드는 세트페이지 verdict 옆 칩으로.
 
 ## 0H. 2026-07-17 심야: 홈 노출 0 사고 — canonical 스왑 진단·수정 — 캐시 `20260717d`
 - **증상**: GSC 실적에서 홈(/)이 7/1~7/7 노출79·클릭9·순위6.3 → **7/8부터 노출 0**. GA 활성유저 -28%의 직접 원인.
