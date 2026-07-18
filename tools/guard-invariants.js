@@ -61,6 +61,20 @@ for (const m of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
   if (!exists(rel)) errors.push(`C3: sitemap URL의 실파일 없음: ${m[1]}`);
 }
 
+// ── N1. 메인 네비 일관성: 모든 nav 보유 페이지는 6개 링크를 전부 가져야 함.
+//    (반복 사고: Compare 등 눌렀을 때 Market Index가 사라지는 페이지 존재 → 링크 누락 차단)
+//    상대경로가 폴더마다 달라서(../market.html vs market.html) data-ko 라벨로 판정한다.
+const NAV_REQUIRED = ["부스터 박스", "비교", "PSA10 랭킹", "마켓 지수", "세트 가이드", "아마존 응모"];
+for (const f of PUBLIC_HTML) {
+  const html = read(f);
+  const navM = html.match(/<nav class="nav"[^>]*>([\s\S]*?)<\/nav>/);
+  if (!navM) continue; // 네비 없는 페이지는 검사 대상 아님
+  const nav = navM[1];
+  for (const label of NAV_REQUIRED) {
+    if (!nav.includes(`data-ko="${label}"`)) errors.push(`N1: ${f} 메인 네비에 "${label}" 링크 누락 (6개 링크 전부 필요)`);
+  }
+}
+
 // ── D1. 시세 시리즈 보호: 기준 매니페스트(2026-07-17 검증 상태)와 대조.
 // wm였던 시리즈가 eBay로 바뀌거나 사라지면 = 야간봇 덮어쓰기 재발 → 실패.
 // 정당하게 새 세트를 추가/전환할 땐 매니페스트를 의도적으로 갱신할 것(tools/series-source-manifest.json).
