@@ -135,13 +135,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ market.html sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ market.html sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ market.html sitemap.xml
           git commit -m "Update active listing links + regenerate SEO set/card pages"
           # A content edit can land while this long-running collector is working.
           # Rebase generated data onto the latest main instead of losing the run.

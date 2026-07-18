@@ -42,9 +42,16 @@ jobs:
           node --check tools/update-box-series-history.js
           node --check tools/audit-price-quality.js
           node --check tools/audit-active-listings.js
+          node --check tools/build-market-index.js
+          node --check tools/generate-market-page.js
+          node --check tools/generate-card-pages.js
+          node --check tools/generate-set-pages.js
+          node --check tools/generate-ko-pages.js
+          node --check tools/guard-invariants.js
           node --check tools/audit-seo.js
           node --check tools/run-with-retry.js
           node tools/test-price-outliers.js
+          node tools/test-price-quality-audit.js
           node tools/audit-seo.js
 
       - name: Require eBay API secrets
@@ -86,6 +93,17 @@ jobs:
           node tools/audit-price-quality.js 2>&1 | tee logs/audit-price-quality.log
           node tools/audit-active-listings.js 2>&1 | tee logs/audit-active-listings.log
 
+      - name: Regenerate SEO pages with fresh market data
+        run: |
+          set -o pipefail
+          node tools/build-market-index.js 2>&1 | tee logs/build-market-index.log
+          node tools/generate-market-page.js 2>&1 | tee logs/generate-market-page.log
+          node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
+          node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
+          node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
+          node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
+          node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
+
       - name: Upload update logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -100,12 +118,27 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json; then
+          if git diff --quiet data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ market.html sitemap.xml; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json
+          git add data/onepiece-packs.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ market.html sitemap.xml
           git commit -m "Update market data"
-          git push
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Push failed after 3 attempts. Fresh market pages were not published."
+              exit 1
+            fi
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Generated files conflict with newer main. Manual review required."
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done

@@ -125,12 +125,12 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세·재판·개봉 지수 | OP Box Index</title>
-    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률, 정가 대비 배수, 재판 기록, 개봉 지수까지 한눈에. 실거래 기반, 추정 아님." />
+    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률, 정가 대비 배수, 재판 기록, 개봉 지수까지 한눈에. 실거래 및 검증된 매물 기반." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:title" content="원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세" />
-    <meta property="og:description" content="일본판 원피스 박스 전 세트 원화 시세·정가 대비 배수·재판 기록. 실거래 기반, 매일 갱신." />
+    <meta property="og:description" content="일본판 원피스 박스 전 세트 원화 시세·정가 대비 배수·재판 기록. 실거래 및 검증된 매물 기반, 매일 갱신." />
     <meta property="og:url" content="${SITE}/ko/" />
     <meta property="og:image" content="${SITE}/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -183,7 +183,7 @@ const html = `<!doctype html>
     <main class="bodyPage">
       <p class="eyebrow">한국어 · 일본판 시세</p>
       <h1>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세</h1>
-      <p class="koNote">일본판 원피스 카드게임 부스터박스 전 세트의 <strong>실거래·매물 기반</strong> 원화 시세입니다. 매일 갱신되며, 추정가가 아닙니다. 기준일 ${esc(DATA_DATE)}.</p>
+      <p class="koNote">일본판 원피스 카드게임 부스터박스 전 세트의 <strong>실거래·검증된 매물 기반</strong> 원화 시세입니다. 기준과 출처가 확인된 값만 표시하며 매일 갱신합니다. 기준일 ${esc(DATA_DATE)}.</p>
 
       <section aria-label="OPBOX 지수">
         <h2>OPBOX 지수 — 시장 전체를 숫자 하나로</h2>
@@ -239,6 +239,10 @@ ${tableRows}
 
       <p class="koNote">데이터: 이베이 실거래·매물 집계, PSA 인구 리포트, 반다이 공식 발매 정보. 환율 ₩${fx.usdKrw}/$ (${esc(fx.date)}). 마지막 갱신 ${esc(DATA_DATE)}. 시세는 참고용이며 투자·구매 판단의 책임은 본인에게 있습니다.</p>
     </main>
+    <footer class="footer">
+      <p>OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
+      <nav aria-label="정책 안내"><a href="../about.html">About</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
+    </footer>
   </body>
 </html>
 `;

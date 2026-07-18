@@ -166,17 +166,27 @@ function auditJapaneseNmEbay(issues, code, card) {
   }
 }
 
-function hideBlockedNm(data, issues) {
-  const blockedNmKeys = new Set(
+const hideableNmReviewReasons = new Set([
+  "japanese_nm_less_than_4_percent_of_english_reference",
+]);
+
+function shouldHideNmIssue(issue) {
+  if (issue.field !== "nmJpy") return false;
+  if (issue.severity === "block") return true;
+  return issue.severity === "review" && hideableNmReviewReasons.has(issue.reason);
+}
+
+function hideSuspiciousNm(data, issues) {
+  const suspiciousNmKeys = new Set(
     issues
-      .filter((issue) => issue.severity === "block" && issue.field === "nmJpy")
+      .filter(shouldHideNmIssue)
       .map((issue) => `${issue.code}|${issue.rank}|${issue.number}|${issue.name}`),
   );
 
   for (const [code, set] of Object.entries(data.sets || {})) {
     for (const card of set.cards || []) {
       const key = `${code}|${card.rank}|${card.number || null}|${card.name || ""}`;
-      if (!blockedNmKeys.has(key)) continue;
+      if (!suspiciousNmKeys.has(key)) continue;
       delete card.nmJpy;
       delete card.nmVenue;
       delete card.nmSourceUrl;
@@ -202,7 +212,7 @@ function main() {
   }
 
   if (shouldHideSuspiciousNm) {
-    hideBlockedNm(data, issues);
+    hideSuspiciousNm(data, issues);
     data.updated = new Date().toISOString().slice(0, 10);
     fs.writeFileSync(dataPath, `${JSON.stringify(data, null, 1)}\n`, "utf8");
   }
@@ -226,4 +236,6 @@ function main() {
   }
 }
 
-main();
+if (require.main === module) main();
+
+module.exports = { shouldHideNmIssue };
