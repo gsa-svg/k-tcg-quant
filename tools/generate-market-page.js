@@ -129,7 +129,7 @@ const html = `<!doctype html>
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small ${da("부스터박스 리서치")}>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" ${da("부스터 박스")}>Booster Boxes</a><a href="compare.html" ${da("비교")}>Compare</a><a href="psa10-ranking.html" ${da("PSA10 랭킹")}>Top PSA 10</a><a href="sets/index.html" ${da("세트 가이드")}>Set Guides</a><a href="market.html" aria-current="page" ${da("마켓 지수")}>Market Index</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" ${da("부스터 박스")}>Booster Boxes</a><a href="compare.html" ${da("비교")}>Compare</a><a href="psa10-ranking.html" ${da("PSA10 랭킹")}>Top PSA 10</a><a href="market.html" aria-current="page" ${da("마켓 지수")}>Market Index</a><a href="sets/index.html" ${da("세트 가이드")}>Set Guides</a><a href="amazon-lottery.html" ${da("아마존 응모")}>Amazon Raffle</a></nav>
     </header>
     <main class="bodyPage">
       <p class="eyebrow" ${da("마켓 지수")}>Market Index</p>
