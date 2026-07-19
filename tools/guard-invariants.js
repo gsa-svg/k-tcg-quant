@@ -143,8 +143,89 @@ for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "
   if (!exists(f)) errors.push(`F1: 필수 파일 삭제됨: ${f}`);
 }
 
+// ── H1. hreflang 정합성 — 2026-07-19 사고: 홈이 "한국어판=/?hl=ko"로 선언해
+//    파라미터 변형(packs.html?hl=)을 우리가 정당화 → 홈 노출이 변형들로 갈라짐.
+//    규칙: (a)hreflang 타겟에 ?hl= 파라미터 금지 (b)타겟은 실재 파일 (c)ko↔en 상호확인.
+{
+  const hrefOf = (html) => [...html.matchAll(/<link rel="alternate" hreflang="([a-z-]+)" href="([^"]+)"/g)].map((m) => ({ lang: m[1], url: m[2] }));
+  const toRel = (u) => {
+    let p;
+    try { p = new URL(u).pathname; } catch { return null; }
+    return p === "/" ? "index.html" : decodeURIComponent(p.slice(1)) + (p.endsWith("/") ? "index.html" : "");
+  };
+  const declared = new Map(); // rel파일 -> {lang:url}
+  // canonical이 자기 자신이 아닌 페이지(예: 홈 별칭 packs.html)는 언어신호를 canonical 대상이 대표하므로 제외
+  const selfCanonical = (f, html) => {
+    const m = html.match(/rel="canonical" href="([^"]+)"/);
+    if (!m) return true;
+    const rel = toRel(m[1]);
+    return rel === f || rel === null;
+  };
+  for (const f of PUBLIC_HTML) {
+    const html = read(f);
+    if (!selfCanonical(f, html)) continue;
+    const list = hrefOf(html);
+    if (!list.length) continue;
+    const map = {};
+    for (const { lang, url } of list) {
+      if (/[?&]hl=/.test(url)) errors.push(`H1: ${f} hreflang ${lang} 이 파라미터 변형을 가리킴 (${url}) — 실 디렉터리 URL만 허용`);
+      const rel = toRel(url);
+      if (rel && !exists(rel)) errors.push(`H1: ${f} hreflang ${lang} 타겟 파일 없음 (${url})`);
+      map[lang] = url;
+    }
+    declared.set(f, map);
+  }
+  // 상호확인: A가 B를 ko/en으로 지목하면 B도 A를 되가리켜야 구글이 인정
+  for (const [f, map] of declared) {
+    for (const [lang, url] of Object.entries(map)) {
+      if (lang === "x-default") continue;
+      const rel = toRel(url);
+      if (!rel || rel === f || !declared.has(rel)) continue; // 자기참조·미선언 페이지는 대상 아님
+      const back = declared.get(rel);
+      const pointsBack = Object.values(back).some((u) => { const r = toRel(u); return r === f; });
+      if (!pointsBack) errors.push(`H1: ${f} → ${rel} (${lang}) 단방향 hreflang — 상대가 되가리키지 않음`);
+    }
+  }
+}
+
+// ── L1. 구조화 데이터(JSON-LD) 파싱 유효성 — 깨진 스키마는 리치결과·AI 인용에서 통째로 무시됨
+for (const f of PUBLIC_HTML) {
+  for (const m of read(f).matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    try { JSON.parse(m[1]); } catch (e) { errors.push(`L1: ${f} JSON-LD 파싱 실패 (${e.message.slice(0, 60)})`); }
+  }
+}
+
+// ── I1. 이미지 외부 핫링크 금지 — 2026-07-19: 카드 이미지 48건이 외부 CDN 직링크라
+//    이미지검색 유입을 남에게 주고, CDN이 끊기면 페이지가 통째로 깨짐. 자체 호스팅만 허용.
+for (const f of PUBLIC_HTML) {
+  for (const m of read(f).matchAll(/<img[^>]+src="(https?:\/\/[^"]+)"/g)) {
+    if (!/^https?:\/\/opboxindex\.com\//.test(m[1])) errors.push(`I1: ${f} 외부 이미지 핫링크 (${m[1].slice(0, 60)}) — /img/ 또는 /card-img/ 로 자체 호스팅할 것`);
+  }
+}
+
+// ── R1. 홈 정적 렌더 보장 — 2026-07-19: 홈 시세표가 JS 전용이라 JS 미실행 크롤러/AI가
+//    가격을 못 읽었음. 홈은 색인된 핵심 자산이므로 JS 없이도 최소 본문·가격이 있어야 함.
+for (const f of ["index.html", "packs.html"]) {
+  if (!exists(f)) continue;
+  const body = read(f).replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ");
+  const text = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const prices = (text.match(/\$[0-9][0-9,]{2,}/g) || []).length;
+  if (text.length < 4000) errors.push(`R1: ${f} JS 없는 본문이 ${text.length}자 — 정적 콘텐츠 부족(4000자 이상 필요)`);
+  if (prices < 8) errors.push(`R1: ${f} JS 없는 본문의 가격 표기가 ${prices}개 — 정적 시세표 누락 의심(8개 이상 필요)`);
+}
+
+// ── T1. 데이터 신선도 — 야간 파이프라인이 조용히 죽으면 구데이터가 계속 서빙됨
+{
+  const upd = data.updated;
+  if (!upd) errors.push("T1: data.updated 없음");
+  else {
+    const days = Math.round((Date.now() - new Date(upd + "T00:00:00Z").getTime()) / 86400000);
+    if (days > 4) errors.push(`T1: 데이터가 ${days}일 경과 (${upd}) — 야간 파이프라인 점검 필요`);
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1"] }));
