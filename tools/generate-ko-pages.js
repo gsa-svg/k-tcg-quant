@@ -122,7 +122,7 @@ const html = `<!doctype html>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/ko/" />
     <link rel="alternate" hreflang="ko" href="${SITE}/ko/" />
-    <link rel="alternate" hreflang="en" href="${SITE}/market.html" />
+    <link rel="alternate" hreflang="en" href="${SITE}/" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세·재판·개봉 지수 | OP Box Index</title>

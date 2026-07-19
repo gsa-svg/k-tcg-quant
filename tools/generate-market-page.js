@@ -85,8 +85,6 @@ const html = `<!doctype html>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/market.html" />
-    <link rel="alternate" hreflang="en" href="${SITE}/market.html" />
-    <link rel="alternate" hreflang="ko" href="${SITE}/ko/" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <title>One Piece Booster Box Market Index &amp; Opening Meter | OPBOX Index</title>
     <meta name="description" content="The OPBOX Index tracks the Japanese One Piece booster box market in one number (Jan 2026 = 100), now ${idx.value.toFixed(1)} (${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% since January). Free, updated daily." />
