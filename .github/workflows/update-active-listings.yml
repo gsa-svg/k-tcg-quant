@@ -48,6 +48,7 @@ jobs:
           node --check tools/generate-set-pages.js
           node --check tools/generate-card-pages.js
           node --check tools/fetch-card-images.js
+          node --check tools/fetch-box-images.js
           node --check tools/build-market-index.js
           node --check tools/generate-market-page.js
           node --check tools/generate-ko-pages.js
@@ -117,6 +118,7 @@ jobs:
           mkdir -p logs
           node tools/build-market-index.js 2>&1 | tee logs/build-market-index.log
           node tools/generate-market-page.js 2>&1 | tee logs/generate-market-page.log
+          node tools/fetch-box-images.js 2>&1 | tee logs/fetch-box-images.log
           node tools/fetch-card-images.js 2>&1 | tee logs/fetch-card-images.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
@@ -141,13 +143,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ market.html free-data.html opbox-set-prices.csv sitemap.xml; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ card-img/ market.html free-data.html opbox-set-prices.csv sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ market.html free-data.html opbox-set-prices.csv sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ card-img/ market.html free-data.html opbox-set-prices.csv sitemap.xml
           git commit -m "Update active listing links + regenerate SEO set/card pages"
           # A content edit can land while this long-running collector is working.
           # Rebase generated data onto the latest main instead of losing the run.
