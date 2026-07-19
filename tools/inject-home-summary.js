@@ -30,6 +30,53 @@ const tr = rows.map((b) => {
 }).join("\n");
 
 const idx = mi.index;
+
+// ── 홈은 현재 사실상 유일하게 색인된 페이지 → 검색어 표면적을 최대한 넓힌다.
+// 답변은 전부 검증된 데이터에서 파생(추정 금지). 값이 없으면 그 항목을 만들지 않는다.
+const byMsrp = [...rows].filter((b) => b.vsMsrp).sort((a, b) => b.vsMsrp - a.vsMsrp);
+const byPrice = [...rows].filter((b) => b.nowUsd != null).sort((a, b) => b.nowUsd - a.nowUsd);
+const cheapest = byPrice[byPrice.length - 1];
+const priciest = byPrice[0];
+const nameOf = (c) => (d.sets[c] || {}).nameEn || c;
+
+const faqs = [
+  {
+    q: "How much is a One Piece booster box?",
+    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${cheapest.code} ${nameOf(cheapest.code)}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}), as of ${DATA_DATE}. Prices come from real completed sales and verified active listings, updated daily. The table above lists all ${rows.length} sets.`,
+  },
+  {
+    q: "Which One Piece booster box is the most valuable?",
+    a: `${priciest.code} ${nameOf(priciest.code)} is the most expensive sealed Japanese box we track at about ${usd(priciest.nowUsd)}${byMsrp.length ? `. Measured against original Japanese retail price, ${byMsrp[0].code} trades at roughly ${byMsrp[0].vsMsrp}x its launch MSRP` : ""}.`,
+  },
+  {
+    q: "Are One Piece booster boxes going up or down in price?",
+    a: `The OPBOX Index — an equal-weight index of ${mi.constituents.length} Japanese booster boxes based to 100 on January 7, 2026 — is at ${idx.value.toFixed(1)}, ${idx.sinceBasePct >= 0 ? "up" : "down"} ${Math.abs(idx.sinceBasePct)}% since January and ${idx.weekChangePct >= 0 ? "up" : "down"} ${Math.abs(idx.weekChangePct)}% over the past week. Individual sets move differently; see the change column above.`,
+  },
+  {
+    q: "Is a One Piece booster box worth buying sealed?",
+    a: `It depends on the set. Sets trading at a high multiple of their original retail price have already priced in scarcity, while recently released sets are closer to MSRP. We publish each set's current price, its change since we began tracking it, and its multiple versus the original Japanese MSRP so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.`,
+  },
+  {
+    q: "Where can I check One Piece card and booster box prices for free?",
+    a: `This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and the market index, or download the full per-set dataset as a CSV under a CC BY 4.0 licence at /free-data.html.`,
+  },
+];
+const faqLd = JSON.stringify({
+  "@context": "https://schema.org", "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+});
+const dsLd = JSON.stringify({
+  "@context": "https://schema.org", "@type": "Dataset",
+  name: "One Piece booster box prices (Japanese sets)",
+  description: `Daily prices for ${rows.length} Japanese One Piece Card Game booster boxes with change since tracking start, original MSRP multiple, reprint records and PSA population.`,
+  url: "https://opboxindex.com/free-data.html",
+  license: "https://creativecommons.org/licenses/by/4.0/",
+  isAccessibleForFree: true, dateModified: DATA_DATE,
+  creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" },
+  distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: "https://opboxindex.com/opbox-set-prices.csv" }],
+});
+const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n          ");
+
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
           <h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2>
@@ -44,6 +91,12 @@ ${tr}
           </div>
           <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="market.html">Market index</a> · <a href="ko/">한국어 시세</a></p>
         </section>
+        <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
+          <h2>One Piece booster box prices — common questions</h2>
+          ${faqHtml}
+        </section>
+        <script type="application/ld+json">${faqLd}</script>
+        <script type="application/ld+json">${dsLd}</script>
         ${END}`;
 
 let touched = 0;

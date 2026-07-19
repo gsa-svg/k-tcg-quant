@@ -1143,3 +1143,7 @@ h2 {
 .homeSummaryTable td a { color: #50dad9; text-decoration: none; font-weight: 700; }
 .homeSummaryTable .up { color: #10d7a0; }
 .homeSummaryTable .down { color: #ff7d7d; }
+.homeFaqWrap { margin: 22px 0; max-width: 780px; }
+.homeFaq { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
+.homeFaq summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14.5px; }
+.homeFaq p { color: #9aa4b6; font-size: 13.5px; line-height: 1.7; margin: 2px 0 10px; }
