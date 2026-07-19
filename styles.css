@@ -1130,3 +1130,16 @@ h2 {
 /* 재판 기록 없음 배지(회색, 조사했으나 못 찾음 — 빈칸 대신 명시) */
 .setBadge.reprintNone { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.13); color: #8b93a1; cursor: help; }
 .setBadge.reprintNone:hover { background: rgba(255,255,255,.09); color: #aeb7c9; }
+
+/* 홈 정적 시세 요약 — JS 없이도 읽히는 표(AI/검색봇 인용용). tools/inject-home-summary.js 가 내용 생성 */
+.homeSummary { margin: 26px 0 8px; }
+.homeSummary h2 { font-size: 19px; margin: 0 0 8px; }
+.homeSummary > p { color: #9aa4b6; font-size: 13.5px; line-height: 1.7; max-width: 780px; }
+.homeSummaryTable { width: 100%; max-width: 780px; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
+.homeSummaryTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; }
+.homeSummaryTable th:nth-child(1), .homeSummaryTable th:nth-child(2) { text-align: left; }
+.homeSummaryTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+.homeSummaryTable td.num { text-align: right; white-space: nowrap; }
+.homeSummaryTable td a { color: #50dad9; text-decoration: none; font-weight: 700; }
+.homeSummaryTable .up { color: #10d7a0; }
+.homeSummaryTable .down { color: #ff7d7d; }
