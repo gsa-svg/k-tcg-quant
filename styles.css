@@ -1147,3 +1147,16 @@ h2 {
 .homeFaq { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
 .homeFaq summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14.5px; }
 .homeFaq p { color: #9aa4b6; font-size: 13.5px; line-height: 1.7; margin: 2px 0 10px; }
+/* 아마존 응모 가이드 — 해외 유저 질문 대응 섹션 */
+.raffleGuide { max-width: 780px; margin: 28px 0 8px; }
+.raffleGuide h2 { font-size: 19px; margin: 22px 0 8px; }
+.raffleGuide p { color: #9aa4b6; font-size: 14px; line-height: 1.75; }
+.raffleGuide p.note { font-size: 13px; opacity: .9; }
+.raffleSteps { color: #9aa4b6; font-size: 14px; line-height: 1.8; padding-left: 22px; }
+.raffleSteps li, .raffleTips li { margin: 6px 0; }
+.raffleTips { color: #9aa4b6; font-size: 14px; line-height: 1.75; padding-left: 20px; }
+.raffleGuide strong { color: #cfd6e4; }
+.raffleGuide a { color: #50dad9; }
+.raffleGuide .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
+.raffleGuide .faqItem summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14.5px; }
+.raffleGuide .faqItem p { margin: 2px 0 10px; font-size: 13.5px; }
