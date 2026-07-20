@@ -22,7 +22,18 @@
 const ALLOWED_ORIGINS = ["https://opboxindex.com", "https://www.opboxindex.com"];
 const WINDOW_MIN = 180; // 3시간
 const MAX_ITEMS = 5;
-const CACHE_SECONDS = 60;
+const CACHE_SECONDS = 90;
+const MIN_CONTESTED = 3;  // 입찰 붙은 게 이만큼 있으면 무입찰 매물은 아예 빼고 경쟁 중인 것만 보여준다
+
+// 후보 풀을 넓히기 위한 검색어. 3시간 창은 좁아서 검색어 2개로는 입찰 붙은 매물이 2~3건밖에 안 잡혔다.
+// ⚠️ 개수를 늘리면 eBay 호출량이 비례해 늘어난다. 캐시 90초 × 검색어 4개 = 최악 하루 약 3,840회
+//    (Browse API 기본 한도 5,000/일 안쪽). 검색어를 더 늘리려면 CACHE_SECONDS 도 같이 올릴 것.
+const QUERIES = [
+  "One Piece Card Game",
+  "One Piece Card Game Japanese booster",
+  "One Piece TCG",
+  "ワンピースカードゲーム",
+];
 
 // 제외 지역 — 가품/오배송 신고 이력이 많아 시세 계산에서도 빼는 곳
 const EXCLUDED_COUNTRIES = new Set(["CN", "HK"]);
@@ -87,7 +98,7 @@ async function buildDeals(env, ctx) {
   const seen = new Set();
   const pool = [];
 
-  for (const q of ["One Piece Card Game", "One Piece Card Game Japanese booster"]) {
+  for (const q of QUERIES) {
     for (const it of await search(token, q)) {
       const id = it.itemId;
       const title = it.title || "";
@@ -125,12 +136,19 @@ async function buildDeals(env, ctx) {
     ((b.sellerFeedback ?? 0) - (a.sellerFeedback ?? 0)) ||
     (a.minutesLeft - b.minutesLeft));
 
+  // 입찰이 붙은 매물이 충분하면 무입찰 매물은 빼고 경쟁 중인 것만 보여준다.
+  // 입찰 = 실제 구매 의사의 직접 증거. 아무도 안 건드린 매물로 자리를 채우면 목록이 묽어진다.
+  // 다만 시간대에 따라 경쟁 매물이 아예 없을 수 있으니, 그땐 임박 순으로라도 채운다.
+  const contested = pool.filter((p) => p.bidCount > 0);
+  const items = (contested.length >= MIN_CONTESTED ? contested : pool).slice(0, MAX_ITEMS);
+
   return {
     generatedAt: new Date().toISOString(),
     windowMinutes: WINDOW_MIN,
     candidates: pool.length,
-    items: pool.slice(0, MAX_ITEMS),
-    note: "Live eBay auctions ending within 3 hours. Bids shown are current, not final sale prices.",
+    contested: contested.length,
+    items,
+    note: "Live eBay auctions ending within 3 hours, prioritising listings with active bids. Bids shown are current, not final sale prices.",
   };
 }
 

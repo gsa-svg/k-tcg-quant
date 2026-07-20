@@ -1,0 +1,64 @@
+name: Collect auction market
+
+# 경매 시장 관측 — 하루 4회.
+# 왜 야간 워크플로에 안 넣나: 한 번 스캔하면 "종료 6시간 이내" 구간만 잡힌다. 하루 한 번이면
+# 24시간 중 6시간만 보게 되므로 가격 표본이 얇다. 6시간 간격으로 돌려 하루를 덮는다.
+# data/auction-market.json 은 이 워크플로가 단독으로 소유한다 — 다른 워크플로가 같이 쓰면 충돌한다.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 6시간 간격 (KST 05:00 / 11:00 / 17:00 / 23:00)
+    - cron: "0 20,2,8,14 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect-auction-market
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+      EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+      EBAY_MARKETPLACE_ID: EBAY_US
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Collect
+        run: node tools/collect-auction-market.js
+
+      - name: Guard
+        run: node tools/guard-invariants.js
+
+      - name: Commit changes
+        run: |
+          if git diff --quiet data/auction-market.json; then
+            echo "No auction market changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/auction-market.json
+          git commit -m "Collect auction market snapshot"
+          # 야간 워크플로나 사람 커밋과 겹칠 수 있다. 실패하면 리베이스 후 재시도.
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Push failed after 3 attempts."
+              exit 1
+            fi
+            echo "Push raced; rebasing before retry $((attempt + 1))/3."
+            git pull --rebase
+          done

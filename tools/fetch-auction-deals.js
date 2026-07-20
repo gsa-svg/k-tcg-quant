@@ -21,6 +21,15 @@ const envPath = path.join(ROOT, ".env");
 
 const WINDOW_MIN = 180; // 3시간
 const MAX_ITEMS = 5;
+const MIN_CONTESTED = 3;  // 입찰 붙은 게 이만큼 있으면 무입찰 매물은 빼고 경쟁 중인 것만 보여준다
+// ⚠️ worker/auction-deals-worker.js 의 QUERIES 와 동일하게 유지할 것. 한쪽만 고치면
+//    사이트에 보이는 목록과 우리가 쌓는 통계의 모집단이 어긋난다.
+const QUERIES = [
+  "One Piece Card Game",
+  "One Piece Card Game Japanese booster",
+  "One Piece TCG",
+  "ワンピースカードゲーム",
+];
 
 function loadEnv(p) {
   if (!fs.existsSync(p)) return {};
@@ -73,7 +82,7 @@ function categorize(title) {
   const seen = new Set();
   const pool = [];
 
-  for (const q of ["One Piece Card Game", "One Piece Card Game Japanese booster"]) {
+  for (const q of QUERIES) {
     for (const it of await search(tok, q)) {
       const id = it.itemId;
       if (!id || seen.has(id)) continue;
@@ -111,12 +120,15 @@ function categorize(title) {
     ((b.sellerFeedback ?? 0) - (a.sellerFeedback ?? 0)) ||
     (a.minutesLeft - b.minutesLeft));
 
+  // 표시용 선별 — worker 와 동일 규칙. 입찰 붙은 게 충분하면 무입찰은 제외한다.
+  const contestedPool = pool.filter((p) => p.bidCount > 0);
   const out = {
     generatedAt: new Date().toISOString(),
     windowMinutes: WINDOW_MIN,
-    note: "Live eBay auctions ending within 3 hours. Ranked by active bids, then seller size, then time left. Sellers and locations excluded from our price data are excluded here too. Auctions end continuously — always check the listing for current status.",
+    note: "Live eBay auctions ending within 3 hours, prioritising listings with active bids. Ranked by bids, then seller size, then time left. Sellers and locations excluded from our price data are excluded here too. Auctions end continuously — always check the listing for current status.",
     candidates: pool.length,
-    items: pool.slice(0, MAX_ITEMS),
+    contested: contestedPool.length,
+    items: (contestedPool.length >= MIN_CONTESTED ? contestedPool : pool).slice(0, MAX_ITEMS),
   };
   fs.writeFileSync(outPath, JSON.stringify(out, null, 1) + "\n", "utf8");
 
