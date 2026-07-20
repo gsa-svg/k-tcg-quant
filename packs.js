@@ -174,12 +174,15 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260720c";
+const DATA_VERSION = "20260720d";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
 // 설치는 worker/SETUP.md 참고.
 const AUCTION_RELAY = "https://opbox-deals.gsa-834.workers.dev/";
+const AUCTION_REFRESH_MS = 90000;   // 재요청 간격. 중계기 캐시(60초)보다 길게 — 더 자주 불러도 같은 값이다.
+const AUCTION_TICK_MS = 30000;      // 남은시간 다시 그리는 주기(네트워크 없음)
+const auctionFeed = { data: null, at: 0, timer: null, bound: false };
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1467,10 +1470,35 @@ function renderLiveAuctions() {
         "Ranked by bids, then seller size, then time left. Sellers and locations excluded from our price data are excluded here too. Auctions end continuously — check the listing for current status.")}</p>`;
   };
 
-  fetch(AUCTION_RELAY, { cache: "no-store" })
+  const load = () => fetch(AUCTION_RELAY, { cache: "no-store" })
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-    .then((data) => { if (data && !data.error) paint(data); else hide(); })
+    .then((data) => {
+      if (!data || data.error) return hide();
+      auctionFeed.data = data;
+      auctionFeed.at = Date.now();
+      paint(data);
+    })
     .catch(hide);
+
+  load();
+
+  // 열어둔 채로도 살아있게: 30초마다 남은시간만 다시 그리고(네트워크 X),
+  // 90초 지나면 새로 받아온다. 중계기 캐시가 60초라 그보다 자주 불러봐야 같은 값이다.
+  // 백그라운드 탭에서는 아예 쉰다 — 안 보는 화면 때문에 할당량을 쓸 이유가 없다.
+  clearInterval(auctionFeed.timer);
+  auctionFeed.timer = setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    if (Date.now() - auctionFeed.at >= AUCTION_REFRESH_MS) load();
+    else if (auctionFeed.data) paint(auctionFeed.data);   // 종료된 건 여기서 목록에서 빠진다
+  }, AUCTION_TICK_MS);
+
+  // 다른 탭 갔다 돌아왔을 때 낡은 값을 그대로 보여주지 않도록 즉시 갱신
+  if (!auctionFeed.bound) {
+    auctionFeed.bound = true;
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && Date.now() - auctionFeed.at >= AUCTION_REFRESH_MS) load();
+    });
+  }
 }
 
 // 카드가 아직 없어도 박스 시세(sold/active)가 있으면 "박스 시세만" 페이지로 열 수 있다.
