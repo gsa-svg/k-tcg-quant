@@ -172,6 +172,33 @@ function summarize(rows) {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  // ── 정산 감시목록 적재.
+  // 여기서 본 경매 중 곧 끝나는 것들을 기록해두면, settle-auctions.js 가 종료 후 다시 조회해
+  // 진짜 낙찰가를 가져온다. 스캔이 6시간마다이므로 다음 스캔 전에 끝날 것들을 모두 담아야 한다
+  // (여유 1시간). 감시목록에 없으면 그 경매의 낙찰가는 영원히 못 얻는다.
+  const WATCH_HORIZON_MIN = 420;   // 7시간
+  const watchPath = path.join(ROOT, "data", "auction-watch.json");
+  let watch;
+  try { watch = JSON.parse(fs.readFileSync(watchPath, "utf8")); } catch { watch = { pending: [] }; }
+  const pend = new Map(watch.pending.map((w) => [w.id, w]));
+  let added = 0;
+  for (const r of rows) {
+    if (r.minsLeft == null || r.minsLeft <= 0 || r.minsLeft > WATCH_HORIZON_MIN) continue;
+    if (pend.has(r.id)) continue;
+    // 세트도 카드번호도 못 딴 건 나중에 어디에도 못 붙이므로 담지 않는다(조회 예산 절약).
+    if (!r.set && !r.cardId) continue;
+    pend.set(r.id, {
+      id: r.id,
+      endsAt: new Date(Date.now() + r.minsLeft * 60000).toISOString(),
+      kind: r.kind, set: r.set, cardId: r.cardId,
+    });
+    added++;
+  }
+  watch.pending = [...pend.values()];
+  watch.updated = new Date().toISOString();
+  watch.note = "Auctions we saw running and intend to re-read after they close, so we can record the real winning bid. Populated by collect-auction-market.js, drained by settle-auctions.js.";
+  fs.writeFileSync(watchPath, JSON.stringify(watch) + "\n", "utf8");
+
   let out;
   try { out = JSON.parse(fs.readFileSync(outPath, "utf8")); } catch { out = { points: [] }; }
   const prior = out.points.find((p) => p.d === today);
@@ -252,6 +279,6 @@ function summarize(rows) {
   console.log(JSON.stringify({
     run: point.runs, scanned: point.scanned, totalReported, unclassified: point.unclassified,
     contested: point.contested, sets: Object.keys(setStats).length,
-    priceSamples: priceObs.length, topCard: topCards[0] || null,
+    priceSamples: priceObs.length, watchAdded: added, watchPending: watch.pending.length,
   }));
 })();

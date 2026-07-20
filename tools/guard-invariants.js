@@ -264,31 +264,44 @@ for (const f of ["index.html", "packs.html"]) {
 //    fetch-auction-deals.js 가 만든 data/auction-deals.json 이 워크플로 커밋 목록에 없어
 //    작업트리에 미스테이징 변경이 남았고, 푸시 충돌 시 `git rebase` 가 "unstaged changes"로
 //    실패해 야간 배포가 통째로 죽었다. 같은 유형으로 data/price-quality-audit.json 도 누락돼 있었다.
+// 2026-07-20 2차: 워크플로가 늘어나면서 이 검사가 야간 파일 하나만 보고 있다는 게 드러났다.
+// 새 워크플로(경매 수집·정산)는 검사 밖이었다 — 같은 사고가 그대로 재현될 자리였다. 전 워크플로로 넓힌다.
 {
-  const wf = ".github/workflows/update-active-listings.yml";
-  if (exists(wf)) {
-    const y = read(wf);
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  const CURATED = new Set(["set-facts.json"]);   // 사람이 관리하는 읽기 전용 — 산출물이 아님
+  const dataFiles = fs.existsSync(path.join(ROOT, "data"))
+    ? fs.readdirSync(path.join(ROOT, "data")).filter((n) => n.endsWith(".json"))
+    : [];
+
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const y = read(`.github/workflows/${wf}`);
     const addLine = (y.match(/git add ([^\n]+)/) || [])[1] || "";
     const diffLine = (y.match(/git diff --quiet ([^\n]+?);\s*then/) || [])[1] || "";
+    if (!addLine && !diffLine) continue;    // 커밋하지 않는 워크플로는 대상 아님
+
     // 두 목록이 어긋나면 "변경은 감지되는데 커밋은 안 되는" 구멍이 생긴다.
-    const norm = (t) => t.trim().split(/\s+/).filter(Boolean).sort().join(" ");
+    // `--` 는 경로 구분자일 뿐 대상 목록이 아니다. 빼고 비교하지 않으면 오탐이 난다.
+    const norm = (t) => t.trim().split(/\s+/).filter((x) => x && x !== "--").sort().join(" ");
     if (addLine && diffLine && norm(addLine) !== norm(diffLine)) {
-      errors.push("W1: 워크플로의 git diff 목록과 git add 목록 불일치 — 커밋 누락 구멍");
+      errors.push(`W1: ${wf} 의 git diff 목록과 git add 목록 불일치 — 커밋 누락 구멍`);
     }
-    // 야간에 실행되는 도구가 기록하는 data/*.json 은 전부 커밋 목록에 있어야 한다.
-    const nightlyTools = [...y.matchAll(/node tools\/([a-z0-9-]+\.js)/g)].map((m) => m[1]);
-    const src = [...new Set(nightlyTools)]
+
+    // 이 워크플로가 돌리는 도구가 기록하는 data/*.json 은 전부 커밋 목록에 있어야 한다.
+    const tools = [...y.matchAll(/node tools\/([a-z0-9-]+\.js)/g)].map((m) => m[1]);
+    const src = [...new Set(tools)]
       .filter((f) => exists(`tools/${f}`))
       .map((f) => read(`tools/${f}`))
       .join("\n");
-    // 사람이 관리하는 읽기 전용 데이터 — 야간이 건드리지 않으므로 커밋 목록에 있으면 안 된다.
-    // (도구가 "읽기"만 해도 파일명은 소스에 등장하므로 이름만으로는 산출물과 구분이 안 된다)
-    const CURATED = new Set(["set-facts.json"]);
-    for (const f of fs.readdirSync(path.join(ROOT, "data")).filter((n) => n.endsWith(".json"))) {
+    if (!src) continue;
+    for (const f of dataFiles) {
       if (CURATED.has(f)) continue;
-      if (!src.includes(`"${f}"`)) continue;   // 야간 도구가 언급조차 안 하면 대상 아님
+      // 도구가 "쓰는" 파일만 대상 — 읽기만 하는 파일도 소스에 이름이 나오므로 writeFileSync 로 판별한다.
+      const writes = new RegExp(`writeFileSync\\([^)]*${f.replace(/[.]/g, "\\.")}`).test(src)
+        || new RegExp(`"${f.replace(/[.]/g, "\\.")}"[^\\n]*\\n?[^\\n]*writeFileSync`).test(src)
+        || (src.includes(`"${f}"`) && /writeFileSync/.test(src) && new RegExp(`Path[^\\n]*"${f.replace(/[.]/g, "\\.")}"`).test(src));
+      if (!writes) continue;
       if (!addLine.includes(`data/${f}`)) {
-        errors.push(`W1: data/${f} 는 야간 산출물인데 워크플로 커밋 목록에 없음 — rebase 실패를 유발함`);
+        errors.push(`W1: data/${f} 는 ${wf} 의 산출물인데 커밋 목록에 없음 — rebase 실패를 유발함`);
       }
     }
   }

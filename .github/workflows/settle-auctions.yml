@@ -1,27 +1,26 @@
-name: Collect auction market
+name: Settle auctions
 
-# 경매 시장 관측 — 하루 4회.
-# 왜 야간 워크플로에 안 넣나: 한 번 스캔하면 "종료 6시간 이내" 구간만 잡힌다. 하루 한 번이면
-# 24시간 중 6시간만 보게 되므로 가격 표본이 얇다. 6시간 간격으로 돌려 하루를 덮는다.
-# data/auction-market.json data/auction-watch.json 은 이 워크플로가 단독으로 소유한다 — 다른 워크플로가 같이 쓰면 충돌한다.
+# 종료된 경매를 다시 조회해 실제 낙찰가를 기록한다.
+# 왜 자주 돌리나: 종료 항목의 조회 가능 기간이 보장되어 있지 않다. 끝난 직후에 읽어야 안전하다.
+# 2시간 간격이면 어떤 경매든 종료 2시간 안에 정산된다(재시도 여유는 GIVE_UP_HOURS=30).
+# data/auction-sold.json / auction-watch.json 은 이 워크플로와 collect-auction-market 만 쓴다.
 
 on:
   workflow_dispatch:
   schedule:
-    # 6시간 간격 (KST 05:00 / 11:00 / 17:00 / 23:00)
-    - cron: "0 20,2,8,14 * * *"
+    - cron: "15 */2 * * *"
 
 permissions:
   contents: write
 
 concurrency:
-  group: collect-auction-market
+  group: settle-auctions
   cancel-in-progress: false
 
 jobs:
-  collect:
+  settle:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
       EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
@@ -34,23 +33,22 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Collect
-        run: node tools/collect-auction-market.js
+      - name: Settle
+        run: node tools/settle-auctions.js
 
       - name: Guard
         run: node tools/guard-invariants.js
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/auction-market.json data/auction-watch.json; then
-            echo "No auction market changes."
+          if git diff --quiet data/auction-sold.json data/auction-watch.json; then
+            echo "Nothing settled."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-market.json data/auction-watch.json
-          git commit -m "Collect auction market snapshot"
-          # 야간 워크플로나 사람 커밋과 겹칠 수 있다. 실패하면 리베이스 후 재시도.
+          git add data/auction-sold.json data/auction-watch.json
+          git commit -m "Settle completed auctions"
           for attempt in 1 2 3; do
             if git push; then
               exit 0
