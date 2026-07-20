@@ -14,7 +14,7 @@
 - 데이터: `data/onepiece-packs.json` (가격/매물, 자동 갱신됨)
 
 ## 수익화 상태 (2026-07-02 기준)
-1. **Google AdSense**: 코드 배포됨(`ca-pub-1520891018658006`), `ads.txt` 있음. **승인 대기 중** — 매번 확인해서 승인됐으면 알려주고, 거절되면 사유 확인 후 콘텐츠 보강.
+1. **Google AdSense**: 코드 배포됨(`ca-pub-1520891018658006`), `ads.txt` 있음. **2026-07-16 "가치가 별로 없는 콘텐츠"로 거절됨. 콘텐츠 보강 완료, 2026-07-30 이후 재심사 요청 예정.** 그전에는 성급하게 재신청하지 않는다.
 2. **eBay Partner Network**: campid `5339163744`, `packs.js`의 `epnUrl()`이 모든 eBay 링크에 자동 부착. 대시보드는 partner.ebay.com. **클릭/전환 늘리는 게 최우선 과제.**
 3. **Google Search Console**: URL 접두어 속성 `https://opboxindex.com/`으로 인증 완료(HTML 파일 `googlee0d71bc0695b5651.html` — **절대 삭제 금지**, 지우면 인증 풀림). 사이트맵 제출됨, 색인 요청됨.
 4. **GA4**: `G-P73SE1WVD0`, 전 페이지 배포됨.

@@ -85,10 +85,23 @@ for (const [code, set] of Object.entries(data.sets || {})) {
     jpRelistRate: jp?.supplySignals?.relistRate ?? null,     // % 재등록 = 안 팔려서 다시 올림
     jpOfferRate: jp?.supplySignals?.bestOfferRate ?? null,   // % 가격협상 허용 = 정가에 못 파는 정도
     jpCountryMix: jp?.supplySignals?.countryMix ?? null,
+    // 시장 구조 — 소급 불가한 값이라 용도가 확정되기 전이라도 축적한다
+    jpTotalListed: jp?.totalResults ?? null,                    // 필터 전 전체 매물수(시장 규모)
+    jpSellers: jp?.supplySignals?.uniqueSellers ?? null,        // 고유 셀러 수
+    jpTop3Share: jp?.supplySignals?.top3SellerShare ?? null,    // % 상위3셀러 점유 = 호가 장악도
+    jpFreeShip: jp?.supplySignals?.freeShipRate ?? null,
+    jpDiscount: jp?.supplySignals?.discountRate ?? null,        // % 할인표시 = 셀러가 내리는 중
+    jpSellerFeedback: jp?.supplySignals?.medianSellerFeedback ?? null,
     enAgeDays: en?.supplySignals?.medianAgeDays ?? null,
     enRelistRate: en?.supplySignals?.relistRate ?? null,
     enOfferRate: en?.supplySignals?.bestOfferRate ?? null,
     enCountryMix: en?.supplySignals?.countryMix ?? null,
+    enTotalListed: en?.totalResults ?? null,
+    enSellers: en?.supplySignals?.uniqueSellers ?? null,
+    enTop3Share: en?.supplySignals?.top3SellerShare ?? null,
+    enFreeShip: en?.supplySignals?.freeShipRate ?? null,
+    enDiscount: en?.supplySignals?.discountRate ?? null,
+    enSellerFeedback: en?.supplySignals?.medianSellerFeedback ?? null,
   };
 
   series.sets[code] = series.sets[code] || { points: [] };
