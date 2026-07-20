@@ -138,20 +138,16 @@ function supplySignals(items) {
     relistRate: rate(relist),      // % — 높을수록 안 팔리고 재등록 중
     bestOfferRate: rate(offers),   // % — 높을수록 정가에 못 파는 중
     // ── 시장 구조 신호(전부 Browse 응답에 이미 오던 값. 소급 불가라 지금부터 축적)
-    uniqueSellers: (() => { const s = new Set(items.map((i) => i.seller && i.seller.username).filter(Boolean)); return s.size || null; })(),
+    uniqueSellers: (() => { const s = new Set(items.map((i) => (i.raw && i.raw.seller || {}).username).filter(Boolean)); return s.size || null; })(),
     top3SellerShare: (() => {
-      const c = {}; items.forEach((i) => { const u = i.seller && i.seller.username; if (u) c[u] = (c[u] || 0) + 1; });
+      const c = {}; items.forEach((i) => { const u = (i.raw && i.raw.seller || {}).username; if (u) c[u] = (c[u] || 0) + 1; });
       const v = Object.values(c).sort((a, b) => b - a); if (!v.length) return null;
       const n = v.reduce((a, b) => a + b, 0);
       return Number((v.slice(0, 3).reduce((a, b) => a + b, 0) / n * 100).toFixed(1)); // % — 높을수록 소수 셀러가 매물 장악
     })(),
-    freeShipRate: (() => {
-      const f = items.filter((i) => { const s = i.shippingOptions && i.shippingOptions[0]; return s && Number(s.shippingCost && s.shippingCost.value) === 0; }).length;
-      return items.length ? Number((f / items.length * 100).toFixed(1)) : null;
-    })(),
-    discountRate: items.length ? Number((items.filter((i) => i.marketingPrice).length / items.length * 100).toFixed(1)) : null, // % 할인표시 매물 = 셀러가 내리는 중
+    discountRate: items.length ? Number((items.filter((i) => i.raw && i.raw.marketingPrice).length / items.length * 100).toFixed(1)) : null, // % 할인표시 매물 = 셀러가 내리는 중
     medianSellerFeedback: (() => {
-      const a = items.map((i) => i.seller && i.seller.feedbackScore).filter(Number.isFinite).sort((x, y) => x - y);
+      const a = items.map((i) => (i.raw && i.raw.seller || {}).feedbackScore).filter(Number.isFinite).sort((x, y) => x - y);
       return a.length ? a[Math.floor(a.length / 2)] : null;
     })(),
     countryMix: country,

@@ -157,6 +157,54 @@ function listingSnapshot(item) {
   };
 }
 
+// 매물 집계 신호 — 실거래(sold) API가 Limited Release라 못 쓰는 대신,
+// "재등록률·매물 나이·협상 허용률"로 판매 부진을 간접 측정한다.
+//  - relistRate: itemCreationDate ≠ itemOriginDate → 안 팔려서 다시 올린 매물 비율
+//  - medianAgeDays: 현재 매물이 며칠째 걸려 있는지(중앙값) → 회전율
+//  - bestOfferRate: 가격 협상을 받는 매물 비율 → 정가에 못 파는 정도
+//  - countryMix: 공급 출처 구성(제외 대상 포함 전 원본 기준은 별도 excludedCount)
+function supplySignals(items) {
+  const now = Date.now();
+  const ages = [], relist = [], offers = [], country = {};
+  for (const it of items) {
+    const raw = it.raw || {};
+    if (raw.itemCreationDate) {
+      const d = Date.parse(raw.itemCreationDate);
+      if (Number.isFinite(d)) ages.push(Math.max(0, Math.round((now - d) / 86400000)));
+      if (raw.itemOriginDate) {
+        const o = Date.parse(raw.itemOriginDate);
+        // 최초 등록일과 현재 등록일이 하루 넘게 차이나면 재등록으로 본다
+        if (Number.isFinite(o)) relist.push(Math.abs(d - o) > 86400000 ? 1 : 0);
+      }
+    }
+    if (Array.isArray(raw.buyingOptions)) offers.push(raw.buyingOptions.includes("BEST_OFFER") ? 1 : 0);
+    const c = raw.itemLocation && raw.itemLocation.country;
+    if (c) country[c] = (country[c] || 0) + 1;
+  }
+  const med = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); const m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2); };
+  const rate = (a) => (a.length ? Number((a.reduce((x, y) => x + y, 0) / a.length * 100).toFixed(1)) : null);
+  return {
+    medianAgeDays: med(ages),
+    relistRate: rate(relist),      // % — 높을수록 안 팔리고 재등록 중
+    bestOfferRate: rate(offers),   // % — 높을수록 정가에 못 파는 중
+    // ── 시장 구조 신호(전부 Browse 응답에 이미 오던 값. 소급 불가라 지금부터 축적)
+    uniqueSellers: (() => { const s = new Set(items.map((i) => (i.raw && i.raw.seller || {}).username).filter(Boolean)); return s.size || null; })(),
+    top3SellerShare: (() => {
+      const c = {}; items.forEach((i) => { const u = (i.raw && i.raw.seller || {}).username; if (u) c[u] = (c[u] || 0) + 1; });
+      const v = Object.values(c).sort((a, b) => b - a); if (!v.length) return null;
+      const n = v.reduce((a, b) => a + b, 0);
+      return Number((v.slice(0, 3).reduce((a, b) => a + b, 0) / n * 100).toFixed(1)); // % — 높을수록 소수 셀러가 매물 장악
+    })(),
+    discountRate: items.length ? Number((items.filter((i) => i.raw && i.raw.marketingPrice).length / items.length * 100).toFixed(1)) : null, // % 할인표시 매물 = 셀러가 내리는 중
+    medianSellerFeedback: (() => {
+      const a = items.map((i) => (i.raw && i.raw.seller || {}).feedbackScore).filter(Number.isFinite).sort((x, y) => x - y);
+      return a.length ? a[Math.floor(a.length / 2)] : null;
+    })(),
+    countryMix: country,
+    sampleForSignals: items.length,
+  };
+}
+
 function analyzeItems(items, setCode, card) {
   const kept = [];
   let excludedCount = 0;
@@ -167,7 +215,8 @@ function analyzeItems(items, setCode, card) {
       continue;
     }
     const listing = listingSnapshot(item);
-    if (listing) kept.push(listing);
+    // raw(원본 아이템)는 매물 나이·재등록률 계산용. 저장되는 bestListing에서는 아래에서 제거한다.
+    if (listing) kept.push({ ...listing, raw: item });
   }
   const currency = Object.entries(
     kept.reduce((acc, item) => {
@@ -183,7 +232,10 @@ function analyzeItems(items, setCode, card) {
     currency,
     sampleSize: selected.length,
     excludedCount,
-    bestListing: selected[0] || null,
+    // raw 는 신호 계산 전용이므로 저장 전에 떼어낸다(데이터 파일 비대화 방지)
+    bestListing: selected[0] ? (({ raw, ...rest }) => rest)(selected[0]) : null,
+    // 카드 단위 수요 대용 신호 — 박스와 동일 기준(매물 나이·재등록률·협상허용률·셀러집중도)
+    supplySignals: supplySignals(selected),
   };
 }
 

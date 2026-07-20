@@ -89,7 +89,6 @@ for (const [code, set] of Object.entries(data.sets || {})) {
     jpTotalListed: jp?.totalResults ?? null,                    // 필터 전 전체 매물수(시장 규모)
     jpSellers: jp?.supplySignals?.uniqueSellers ?? null,        // 고유 셀러 수
     jpTop3Share: jp?.supplySignals?.top3SellerShare ?? null,    // % 상위3셀러 점유 = 호가 장악도
-    jpFreeShip: jp?.supplySignals?.freeShipRate ?? null,
     jpDiscount: jp?.supplySignals?.discountRate ?? null,        // % 할인표시 = 셀러가 내리는 중
     jpSellerFeedback: jp?.supplySignals?.medianSellerFeedback ?? null,
     enAgeDays: en?.supplySignals?.medianAgeDays ?? null,
@@ -99,7 +98,6 @@ for (const [code, set] of Object.entries(data.sets || {})) {
     enTotalListed: en?.totalResults ?? null,
     enSellers: en?.supplySignals?.uniqueSellers ?? null,
     enTop3Share: en?.supplySignals?.top3SellerShare ?? null,
-    enFreeShip: en?.supplySignals?.freeShipRate ?? null,
     enDiscount: en?.supplySignals?.discountRate ?? null,
     enSellerFeedback: en?.supplySignals?.medianSellerFeedback ?? null,
   };
