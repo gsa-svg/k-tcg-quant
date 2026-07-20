@@ -9,7 +9,7 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="stylesheet" href="styles.css?v=20260719d" />
+    <link rel="stylesheet" href="styles.css?v=20260720b" />
     <!-- Google Analytics 4 (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>
@@ -584,6 +584,23 @@
       .todayDeals .supplyCard:hover { border-color: var(--terminal-gold); }
       .todayDeals .supplyName { color: #eef2ff; font-weight: 800; font-size: 14px; }
       .todayDeals .supplySub { color: #8d95a7; font-size: 11px; }
+      .liveAuctions { margin: 12px clamp(16px,4vw,52px) 0; }
+      .liveAuctions[hidden] { display: none; }
+      .liveAuctions .aucHead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin: 0 0 8px; }
+      .liveAuctions .aucHead span { color: var(--terminal-teal); font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; }
+      .liveAuctions .aucHead small { color: #8d95a7; font-size: 11px; }
+      .liveAuctions .aucList { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+      .liveAuctions .aucRow { min-width: 0; }
+      .liveAuctions .aucRow a { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--terminal-line); border-radius: 8px; }
+      .liveAuctions .aucRow a:hover { border-color: var(--terminal-teal); }
+      .liveAuctions .aucLeft { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; }
+      .liveAuctions .aucKind { flex: none; padding: 3px 7px; border-radius: 5px; background: rgba(80,218,217,.14); color: var(--terminal-teal); font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 900; letter-spacing: .4px; text-transform: uppercase; }
+      .liveAuctions .aucTitle { flex: 1 1 auto; min-width: 0; color: #cfd6e6; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .liveAuctions .aucRight { flex: none; text-align: right; }
+      .liveAuctions .aucBid { display: block; font-family: "JetBrains Mono", monospace; font-size: 15px; font-weight: 800; color: #eef2ff; }
+      .liveAuctions .aucSub { display: block; font-size: 10.5px; color: #8d95a7; }
+      .liveAuctions .aucNote { margin: 8px 0 0; color: #7d8698; font-size: 10.5px; line-height: 1.5; }
+      @media (max-width: 640px) { .liveAuctions { margin: 12px 12px 0; } .liveAuctions .aucTitle { font-size: 12px; } }
       .bmEnHead { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,.12); }
       .bmRatio { font-style: normal; color: var(--terminal-gold); font-weight: 800; }
       .enBoxMarket { margin-top: 12px; border-color: rgba(80,218,217,.25); }
@@ -1147,6 +1164,8 @@
       <section class="mktIndexWrap" id="marketIndexHero" aria-label="Market index"></section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"></div>
       <section class="todayDeals" id="todayDeals" aria-label="Today's box deals" aria-live="polite"><p class="dealsLoading">Checking verified listings…</p></section>
+      <!-- 실시간 경매. 중계기가 응답할 때만 나타난다 (worker/SETUP.md) -->
+      <section class="liveAuctions" id="liveAuctions" aria-label="eBay auctions ending soon" aria-live="polite" hidden></section>
 
       <div class="langTabs" role="group" aria-label="Set category">
         <button class="langTab active" data-lang="jp">JP / EN BOX <small id="statJp"></small></button>
@@ -1303,6 +1322,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260719d" defer></script>
+    <script src="packs.js?v=20260720b" defer></script>
   </body>
 </html>

@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
-const CACHE = "20260719d";
+const CACHE = "20260720b";
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const mi = d.marketIndex;
 if (!mi) { console.error("marketIndex 없음 — build-market-index.js 먼저 실행"); process.exit(1); }

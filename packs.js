@@ -174,7 +174,12 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260719d";
+const DATA_VERSION = "20260720b";
+
+// 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
+// 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
+// 설치는 worker/SETUP.md 참고.
+const AUCTION_RELAY = "";
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1141,6 +1146,7 @@ async function load() {
   renderMarketIndex();
   renderMarketStatus();
   renderTodayDeals();
+  renderLiveAuctions();
   renderSinceLastVisit();
   renderPackGrid();
   renderDetail();
@@ -1406,6 +1412,65 @@ function renderTodayDeals() {
       <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/136768331994")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("플레이 슬리브", "Play sleeves")}</span> <span class="supplySub">Dragon Shield Matte 100</span><span class="bestTag">PLAY</span></a>
       <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/388453013911")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("보관 탑로더", "Storage toploaders")}</span> <span class="supplySub">Ultra PRO 3×4 35pt</span><span class="bestTag">STORE</span></a>
     </div>`;
+}
+
+// 종료 임박 경매 — 중계기에서 실시간으로 받아온다.
+//
+// 왜 실시간인가: 경매는 시시각각 끝난다. 하루 한 번 구운 정적 목록은 방문자가 볼 때쯤 이미
+// 끝나 있을 확률이 높다. 끝난 경매를 "임박"이라 띄우는 건 틀린 숫자를 띄우는 것과 같다.
+// 그래서 중계기가 없거나 실패하면 **섹션을 아예 숨긴다**. 낡은 목록을 보여주느니 안 보여준다.
+//
+// 남은시간은 서버 값(minutesLeft)을 믿지 않고 endsAt으로 매번 다시 계산한다.
+// 중계기 응답이 최대 60초 캐시되므로 그대로 쓰면 최대 1분 어긋난다.
+function renderLiveAuctions() {
+  const el = document.querySelector("#liveAuctions");
+  if (!el) return;
+  if (!AUCTION_RELAY) { el.hidden = true; return; }
+
+  const hide = () => { el.hidden = true; el.innerHTML = ""; };
+
+  const paint = (data) => {
+    const now = Date.now();
+    const items = (data.items || [])
+      .map((it) => ({ ...it, mins: Math.round((Date.parse(it.endsAt) - now) / 60000) }))
+      .filter((it) => Number.isFinite(it.mins) && it.mins > 0);   // 이미 끝난 건 버린다
+    if (!items.length) return hide();
+
+    const money = (v, cur) => (v == null ? "—" : cur === "USD" ? `$${Math.round(v).toLocaleString("en-US")}` : `${Math.round(v).toLocaleString()} ${cur}`);
+    const left = (m) => (m >= 60 ? t(`${Math.floor(m / 60)}시간 ${m % 60}분`, `${Math.floor(m / 60)}h ${m % 60}m`) : t(`${m}분`, `${m}m`));
+    const kindLabel = { box: t("박스", "Box"), pack: t("팩", "Pack"), card: t("카드", "Card") };
+    const stamp = new Date(data.generatedAt).toLocaleTimeString(state.hl === "ko" ? "ko-KR" : "en-US", { hour: "2-digit", minute: "2-digit" });
+
+    el.hidden = false;
+    el.innerHTML = `
+      <div class="aucHead">
+        <span>${t("종료 임박 경매", "Auctions ending soon")}</span>
+        <small>${t("eBay · 3시간 이내 종료 · 현재 입찰가(낙찰가 아님)", "eBay · ending within 3 hours · current bids, not final prices")} · ${stamp}</small>
+      </div>
+      <ul class="aucList">${items.map((it) => `
+        <li class="aucRow">
+          <a href="${epnUrl(it.url)}" target="_blank" rel="noopener noreferrer sponsored">
+            <span class="aucLeft">
+              <span class="aucKind">${kindLabel[it.kind] || it.kind}</span>
+              <span class="aucTitle">${escapeHtml(it.title)}</span>
+            </span>
+            <span class="aucRight">
+              <span class="aucBid">${money(it.currentBid, it.currency)}</span>
+              <span class="aucSub">${it.contested
+                ? t(`입찰 ${it.bidCount}건`, `${it.bidCount} bid${it.bidCount === 1 ? "" : "s"}`)
+                : t("입찰 없음", "no bids yet")} · ${left(it.mins)}</span>
+            </span>
+          </a>
+        </li>`).join("")}</ul>
+      <p class="aucNote">${t(
+        "입찰 수 → 판매자 규모 → 임박 순. 시세 계산에서 제외한 판매자·지역은 여기서도 제외합니다. 경매는 계속 종료되니 실제 상태는 매물 페이지에서 확인하세요.",
+        "Ranked by bids, then seller size, then time left. Sellers and locations excluded from our price data are excluded here too. Auctions end continuously — check the listing for current status.")}</p>`;
+  };
+
+  fetch(AUCTION_RELAY, { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+    .then((data) => { if (data && !data.error) paint(data); else hide(); })
+    .catch(hide);
 }
 
 // 카드가 아직 없어도 박스 시세(sold/active)가 있으면 "박스 시세만" 페이지로 열 수 있다.
