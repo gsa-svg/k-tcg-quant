@@ -119,7 +119,7 @@ function analyzeItems(items, code) {
       excludedCount += 1;
       continue;
     }
-    kept.push({ value, currency, listing: listingSnapshot(item) });
+    kept.push({ value, currency, listing: listingSnapshot(item), itemId: item.itemId || item.legacyItemId || "" });
   }
 
   const grouped = kept.reduce((acc, item) => {
@@ -145,6 +145,8 @@ function analyzeItems(items, code) {
     sampleSize: values.length,
     excludedCount,
     bestListing,
+    // 공급 시계열(신규등록/소멸 산출)용 — tools/update-supply-series.js 가 전일과 대조한다.
+    itemIds: selectedItems.map((it) => it.itemId).filter(Boolean),
   };
 }
 

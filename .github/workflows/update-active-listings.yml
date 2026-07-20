@@ -45,6 +45,7 @@ jobs:
           node --check tools/update-ebay-psa10-active-links.js
           node --check tools/update-box-series-history.js
           node --check tools/update-card-series-history.js
+          node --check tools/update-supply-series.js
           node --check tools/generate-set-pages.js
           node --check tools/generate-card-pages.js
           node --check tools/fetch-card-images.js
@@ -107,6 +108,12 @@ jobs:
           mkdir -p logs
           node tools/update-card-series-history.js 2>&1 | tee logs/update-card-series-history.log
 
+      - name: Append supply series (listing counts + new/gone)
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/update-supply-series.js 2>&1 | tee logs/update-supply-series.log
+
       - name: Audit active listing quality
         run: |
           set -o pipefail
@@ -145,13 +152,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ card-img/ market.html index.html packs.html free-data.html opbox-set-prices.csv sitemap.xml; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/supply-series.json data/listing-ids.json sets/ cards/ ko/ img/ card-img/ market.html index.html packs.html free-data.html opbox-set-prices.csv sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json sets/ cards/ ko/ img/ card-img/ market.html index.html packs.html free-data.html opbox-set-prices.csv sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json data/supply-series.json data/listing-ids.json sets/ cards/ ko/ img/ card-img/ market.html index.html packs.html free-data.html opbox-set-prices.csv sitemap.xml
           git commit -m "Update active listing links + regenerate SEO set/card pages"
           # A content edit can land while this long-running collector is working.
           # Rebase generated data onto the latest main instead of losing the run.
