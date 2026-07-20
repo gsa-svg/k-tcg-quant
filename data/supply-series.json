@@ -1,6 +1,6 @@
 {
  "updated": "2026-07-20",
- "note": "Daily eBay active-listing supply per set, with the median price of listings that appeared or disappeared. 'gone' means the listing left the active list (sold OR delisted OR expired) — the eBay Browse API cannot distinguish these, so it is never reported as a sale. null = no prior-day snapshot to compare against.",
+ "note": "Daily eBay active-listing supply and demand-proxy signals per set (median listing age, relist rate, best-offer rate, seller country mix). None of these are sales figures: eBay does not expose sold data at this access tier. with the median price of listings that appeared or disappeared. 'gone' means the listing left the active list (sold OR delisted OR expired) — the eBay Browse API cannot distinguish these, so it is never reported as a sale. null = no prior-day snapshot to compare against.",
  "sets": {
   "OP-01": {
    "points": [
@@ -17,7 +17,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -36,7 +44,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -55,7 +71,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -74,7 +98,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -93,7 +125,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -112,7 +152,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -131,7 +179,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -150,7 +206,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -169,7 +233,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -188,7 +260,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -207,7 +287,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -226,7 +314,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -245,7 +341,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -264,7 +368,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -283,7 +395,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -302,7 +422,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -321,7 +449,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -340,7 +476,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -359,7 +503,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -378,7 +530,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   },
@@ -397,7 +557,15 @@
      "jpNewPrice": null,
      "jpGonePrice": null,
      "enNewPrice": null,
-     "enGonePrice": null
+     "enGonePrice": null,
+     "jpAgeDays": null,
+     "jpRelistRate": null,
+     "jpOfferRate": null,
+     "jpCountryMix": null,
+     "enAgeDays": null,
+     "enRelistRate": null,
+     "enOfferRate": null,
+     "enCountryMix": null
     }
    ]
   }

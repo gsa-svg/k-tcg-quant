@@ -80,6 +80,15 @@ for (const [code, set] of Object.entries(data.sets || {})) {
     enNew: dEn.added, enGone: dEn.gone,
     jpNewPrice: dJp.addedPrice, jpGonePrice: dJp.gonePrice, // 신규/소멸 매물의 중앙 가격(USD)
     enNewPrice: dEn.addedPrice, enGonePrice: dEn.gonePrice,
+    // 수요 대용 신호 — 실거래 API가 막혀 있어 "안 팔리고 있음"을 간접 측정한다(판매량 아님)
+    jpAgeDays: jp?.supplySignals?.medianAgeDays ?? null,     // 매물이 걸려 있는 일수(중앙값)
+    jpRelistRate: jp?.supplySignals?.relistRate ?? null,     // % 재등록 = 안 팔려서 다시 올림
+    jpOfferRate: jp?.supplySignals?.bestOfferRate ?? null,   // % 가격협상 허용 = 정가에 못 파는 정도
+    jpCountryMix: jp?.supplySignals?.countryMix ?? null,
+    enAgeDays: en?.supplySignals?.medianAgeDays ?? null,
+    enRelistRate: en?.supplySignals?.relistRate ?? null,
+    enOfferRate: en?.supplySignals?.bestOfferRate ?? null,
+    enCountryMix: en?.supplySignals?.countryMix ?? null,
   };
 
   series.sets[code] = series.sets[code] || { points: [] };
@@ -91,7 +100,7 @@ for (const [code, set] of Object.entries(data.sets || {})) {
 }
 
 series.updated = today;
-series.note = "Daily eBay active-listing supply per set, with the median price of listings that appeared or disappeared. 'gone' means the listing left the active list (sold OR delisted OR expired) — the eBay Browse API cannot distinguish these, so it is never reported as a sale. null = no prior-day snapshot to compare against.";
+series.note = "Daily eBay active-listing supply and demand-proxy signals per set (median listing age, relist rate, best-offer rate, seller country mix). None of these are sales figures: eBay does not expose sold data at this access tier. with the median price of listings that appeared or disappeared. 'gone' means the listing left the active list (sold OR delisted OR expired) — the eBay Browse API cannot distinguish these, so it is never reported as a sale. null = no prior-day snapshot to compare against.";
 
 fs.writeFileSync(idsPath, JSON.stringify(nextIds) + "\n", "utf8");
 fs.writeFileSync(seriesPath, JSON.stringify(series, null, 1) + "\n", "utf8");
