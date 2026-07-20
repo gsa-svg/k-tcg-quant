@@ -294,8 +294,31 @@ for (const f of ["index.html", "packs.html"]) {
   }
 }
 
+// ── X1. 외부로 fetch 하는 주소는 CSP connect-src 에 있어야 한다 — 2026-07-20 실사고.
+// 경매 중계기를 붙였는데 connect-src 에 안 넣어서 브라우저가 조용히 막았다. 서버는 200을 주고
+// 콘솔에도 CSP 위반은 우리 코드 에러로 안 잡히니, 위젯이 "그냥 안 보이는" 형태로 실패했다.
+// 새 외부 엔드포인트를 붙일 때마다 같은 함정이 있으므로 자동 검사한다.
+{
+  const js = exists("packs.js") ? read("packs.js") : "";
+  // packs.js 안의 절대 https 주소 중 fetch 대상이 될 수 있는 상수들
+  const relays = [...js.matchAll(/const\s+\w*RELAY\w*\s*=\s*"(https:\/\/[^"]+)"/g)].map((m) => m[1]);
+  for (const url of relays) {
+    let origin;
+    try { origin = new URL(url).origin; } catch { continue; }
+    for (const page of ["index.html", "packs.html"]) {
+      if (!exists(page)) continue;
+      const html = read(page);
+      if (!/Content-Security-Policy/i.test(html)) continue;   // CSP 없는 페이지는 대상 아님
+      const connect = (html.match(/connect-src ([^;"]+)/) || [])[1] || "";
+      if (!connect.includes(origin)) {
+        errors.push(`X1: ${page} 의 CSP connect-src 에 ${origin} 없음 — 브라우저가 조용히 차단함`);
+      }
+    }
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "P1", "W1"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "P1", "W1", "X1"] }));
