@@ -43,8 +43,11 @@ function checkHome() {
   ["index.html", "packs.html"].forEach(requiredPageChecks);
   for (const [file, content] of [["index.html", home], ["packs.html", packs]]) {
     requireMatch(content, /<link\s+rel="canonical"\s+href="https:\/\/opboxindex\.com\/"\s*\/>/i, "root canonical", file);
-    requireMatch(content, /"@type":"WebSite","name":"OP Box Index","alternateName":"OPBoxIndex","url":"https:\/\/opboxindex\.com\/"/i, "WebSite name schema", file);
-    requireMatch(content, /"@type":"Organization","name":"OP Box Index"/i, "Organization schema", file);
+    // 키 순서에 의존하지 않게 타입·필수필드를 각각 확인(브랜드 엔티티 스키마는 @id/sameAs/knowsAbout 등으로 확장됨)
+    requireMatch(content, /"@type":"WebSite"/i, "WebSite schema", file);
+    requireMatch(content, /"@type":"Organization"/i, "Organization schema", file);
+    requireMatch(content, /"name":"OP Box Index"/i, "brand name in schema", file);
+    requireMatch(content, /"alternateName":\s*(?:\[[^\]]*"OPBoxIndex"|"OPBoxIndex")/i, "brand alternateName", file);
     if (/"@type":"SearchAction"/i.test(content)) errors.push(`${file}: SearchAction is declared without a working site search`);
   }
 }
