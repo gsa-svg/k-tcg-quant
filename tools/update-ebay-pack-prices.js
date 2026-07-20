@@ -145,8 +145,12 @@ function analyzeItems(items, code) {
     sampleSize: values.length,
     excludedCount,
     bestListing,
-    // 공급 시계열(신규등록/소멸 산출)용 — tools/update-supply-series.js 가 전일과 대조한다.
-    itemIds: selectedItems.map((it) => it.itemId).filter(Boolean),
+    // 공급 시계열용 — tools/update-supply-series.js 가 전일과 대조해 신규등록/소멸과 그 가격대를 낸다.
+    // id→가격(배송비 포함 총액)으로 저장해야 "어느 가격대의 매물이 빠졌는지"를 알 수 있다.
+    itemPrices: selectedItems.reduce((acc, it) => {
+      if (it.itemId && it.listing && it.listing.total != null) acc[it.itemId] = it.listing.total;
+      return acc;
+    }, {}),
   };
 }
 

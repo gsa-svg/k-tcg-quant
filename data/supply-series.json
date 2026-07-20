@@ -1,6 +1,6 @@
 {
  "updated": "2026-07-20",
- "note": "Daily eBay active-listing supply per set. 'gone' means the listing disappeared (sold OR delisted) — eBay Browse API cannot distinguish the two, so this is never labelled as a sale. null = no prior-day snapshot to compare.",
+ "note": "Daily eBay active-listing supply per set, with the median price of listings that appeared or disappeared. 'gone' means the listing left the active list (sold OR delisted OR expired) — the eBay Browse API cannot distinguish these, so it is never reported as a sale. null = no prior-day snapshot to compare against.",
  "sets": {
   "OP-01": {
    "points": [
@@ -13,7 +13,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -28,7 +32,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -43,7 +51,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -58,7 +70,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -73,7 +89,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -88,7 +108,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -103,7 +127,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -118,7 +146,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -133,7 +165,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -148,7 +184,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -163,7 +203,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -178,7 +222,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -193,7 +241,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -208,7 +260,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -223,7 +279,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -238,7 +298,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -253,7 +317,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -268,7 +336,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -283,7 +355,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -298,7 +374,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   },
@@ -313,7 +393,11 @@
      "jpNew": null,
      "jpGone": null,
      "enNew": null,
-     "enGone": null
+     "enGone": null,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null
     }
    ]
   }
