@@ -14,6 +14,13 @@ const attrEsc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/"/g, "&qu
 const da = (ko) => `data-ko="${attrEsc(ko)}"`;
 const idx = mi.index, m = mi.meter, board = mi.board;
 const up = idx.weekChangePct >= 0;
+const meterIsStale = m.isStale === true;
+const meterStatusEn = meterIsStale
+  ? `Historical snapshot · verified through ${m.updated || m.latestWeek?.d}`
+  : `Weekly snapshot · verified ${m.updated || m.latestWeek?.d}`;
+const meterStatusKo = meterIsStale
+  ? `과거 스냅샷 · ${m.updated || m.latestWeek?.d}까지 검증`
+  : `주간 스냅샷 · ${m.updated || m.latestWeek?.d} 검증`;
 
 // 지수 라인차트
 function lineChart(series, w, h, pad) {
@@ -49,8 +56,8 @@ const keyFacts = [
     ko: `OPBOX 지수 — 일본판 원피스 부스터박스 ${mi.constituents.length}개의 등가중 지수(2026-01-07 = 100) — 는 ${esc(idx.asOf)} 기준 <strong>${idx.value.toFixed(1)}</strong>로, 1월 대비 <strong>${Math.abs(idx.sinceBasePct)}%</strong> ${idx.sinceBasePct >= 0 ? "상승" : "하락"}.` },
   { en: `Over the past week the index moved ${sgn(idx.weekChangePct)}${idx.weekChangePct}%.`,
     ko: `지난 한 주간 지수는 ${sgn(idx.weekChangePct)}${idx.weekChangePct}% 움직였습니다.` },
-  m.latestWeek ? { en: `In the week of ${esc(m.latestWeek.d)}, collectors sent <strong>${m.latestWeek.v.toLocaleString()}</strong> One Piece cards to PSA (${sgn(m.wowPct)}${m.wowPct}% vs the prior week); ${m.allTimeGraded.toLocaleString()} have been graded all-time.`,
-    ko: `${esc(m.latestWeek.d)} 주간 수집가들이 원피스 카드 <strong>${m.latestWeek.v.toLocaleString()}</strong>장을 PSA에 등급 신청(전주 대비 ${sgn(m.wowPct)}${m.wowPct}%). 누적 ${m.allTimeGraded.toLocaleString()}장 등급 완료.` } : null,
+  m.latestWeek ? { en: `${meterIsStale ? "Our last verified snapshot shows" : "In the latest verified week,"} <strong>${m.latestWeek.v.toLocaleString()}</strong> One Piece cards graded in the week of ${esc(m.latestWeek.d)} (${sgn(m.wowPct)}${m.wowPct}% vs the prior week).`,
+    ko: `${meterIsStale ? "마지막 검증 스냅샷 기준" : "최근 검증 주간 기준"} ${esc(m.latestWeek.d)} 주간 원피스 카드 <strong>${m.latestWeek.v.toLocaleString()}</strong>장 등급 완료(전주 대비 ${sgn(m.wowPct)}${m.wowPct}%).` } : null,
   { en: `The strongest set since January is ${board[0].code} (${sgn(board[0].changePct)}${board[0].changePct}%); the weakest is ${board[board.length - 1].code} (${board[board.length - 1].changePct}%).`,
     ko: `1월 이후 최강 세트는 ${board[0].code}(${sgn(board[0].changePct)}${board[0].changePct}%), 최약 세트는 ${board[board.length - 1].code}(${board[board.length - 1].changePct}%).` },
   topMsrp ? { en: `Measured against original Japanese retail MSRP, ${topMsrp.code} now trades at <strong>${topMsrp.vsMsrp}x</strong> its launch price ($${topMsrp.msrpUsd} MSRP → $${topMsrp.nowUsd}).`,
@@ -63,8 +70,8 @@ const faq = [
     a: `It is a free equal-weight index of ${mi.constituents.length} Japanese One Piece Card Game booster boxes, based to 100 on January 7, 2026. Each day it averages every constituent box's price relative to its January 7 value. As of ${idx.asOf} it is ${idx.value.toFixed(1)} — ${idx.sinceBasePct >= 0 ? "up" : "down"} ${Math.abs(idx.sinceBasePct)}% since January. Sets first tracked after that date (${excludedList}) are shown individually but excluded from the index.`,
     aKo: `일본판 원피스 카드게임 부스터박스 ${mi.constituents.length}개를 등가중으로 묶은 무료 지수로, 2026년 1월 7일을 100으로 잡습니다. 매일 각 구성종목의 1월 7일 대비 가격을 평균냅니다. ${idx.asOf} 기준 ${idx.value.toFixed(1)}로, 1월 대비 ${Math.abs(idx.sinceBasePct)}% ${idx.sinceBasePct >= 0 ? "상승" : "하락"}했습니다. 그 날짜 이후에 추적을 시작한 세트(${excludedList})는 개별 표시하되 지수 계산에서는 제외합니다.` },
   { q: "What is the Opening Meter?", qKo: "개봉 미터가 뭔가요?",
-    a: m.latestWeek ? `It counts how many One Piece cards were newly graded by PSA each week — a proxy for how fast sealed product is being opened. In the week of ${m.latestWeek.d}, ${m.latestWeek.v.toLocaleString()} cards were graded. Rising grading volume while box prices hold is the supply-burn pattern sealed collectors watch for.` : "A weekly count of newly PSA-graded One Piece cards.",
-    aKo: m.latestWeek ? `매주 PSA에 새로 등급받은 원피스 카드 수를 집계한 것으로, 봉인 박스가 얼마나 빨리 개봉되는지를 보여주는 지표입니다. ${m.latestWeek.d} 주간에는 ${m.latestWeek.v.toLocaleString()}장이 등급받았습니다. 박스 가격이 유지되는 가운데 등급 물량이 늘어나는 것은 미개봉 수집가들이 주목하는 '공급 소진' 패턴입니다.` : "매주 PSA에 새로 등급받은 원피스 카드 수." },
+    a: m.latestWeek ? `It counts how many One Piece cards were newly graded by PSA each week — a proxy for how fast sealed product is being opened. The latest verified week is ${m.latestWeek.d}, when ${m.latestWeek.v.toLocaleString()} cards were graded. ${meterIsStale ? "This is a historical snapshot, not a current live reading." : "Recent weeks may revise as PSA processing completes."}` : "A weekly count of newly PSA-graded One Piece cards.",
+    aKo: m.latestWeek ? `매주 PSA에 새로 등급받은 원피스 카드 수를 집계해 봉인 제품의 개봉 속도를 보는 참고 지표입니다. 최근 검증 주간은 ${m.latestWeek.d}이며 ${m.latestWeek.v.toLocaleString()}장이 등급받았습니다. ${meterIsStale ? "현재 실시간 수치가 아닌 과거 스냅샷입니다." : "PSA 처리 완료에 따라 최근 주 수치는 수정될 수 있습니다."}` : "매주 PSA에 새로 등급받은 원피스 카드 수." },
   { q: "Why is the change measured 'since January', not since launch?", qKo: "왜 '발매 대비'가 아니라 '1월 이후'로 재나요?",
     a: `Our daily price tracking began in January 2026. Only a few sets (currently OP-16) were tracked from their actual release, so for every other set we honestly label changes 'since January' rather than claiming a launch-to-now figure we did not measure. For a true since-launch comparison we use the 'vs MSRP' column, which divides the current price by each set's official Japanese launch MSRP.`,
     aKo: `우리의 일별 가격 추적은 2026년 1월에 시작했습니다. 실제 발매 시점부터 추적한 세트는 몇 개(현재 OP-16)뿐이라, 나머지 세트는 측정하지 않은 '발매~현재' 수치를 주장하는 대신 정직하게 '1월 이후'로 표기합니다. 진짜 발매 대비 비교는 'vs MSRP'(정가 대비) 컬럼을 쓰는데, 이는 현재 가격을 각 세트의 공식 일본 발매 정가로 나눈 값입니다.` },
@@ -124,6 +131,7 @@ const html = `<!doctype html>
       .keyFacts { margin: 14px 0; padding: 12px 16px 12px 30px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 720px; font-size: 13.5px; line-height: 1.65; }
       .keyFacts strong { color: #50dad9; }
       .mNote { color: #7d8698; font-size: 12.5px; max-width: 720px; margin: 6px 0 14px; }
+      .meterStatus { display: inline-flex; margin: 2px 0 8px; padding: 5px 9px; border: 1px solid rgba(255,194,92,.45); border-radius: 7px; background: rgba(255,194,92,.08); color: #ffc25c; font-size: 11px; font-weight: 800; }
     </style>
   </head>
   <body>
@@ -142,9 +150,10 @@ const html = `<!doctype html>
       <p class="mNote" ${da(`일본판 부스터박스 ${mi.constituents.length}개 등가중 지수. 2026-01-07 = 100. ${idx.asOf} 기준. 그 이후 추적 시작 세트는 개별 표시하되 지수 제외. 결측일은 직전값 유지. 투자 조언 아님.`)}>${esc(mi.method)} Jan 7, 2026 = 100. As of ${esc(idx.asOf)}. Not investment advice.</p>
 
       <h2 id="opening" ${da("개봉 미터 — 박스가 뜯기는 속도")}>Opening Meter — how fast product is being ripped</h2>
-      <p ${da(m.latestWeek ? `등급받은 카드는 모두 봉인 팩에서 나왔으므로, 주간 PSA 등급 물량은 원피스 박스가 얼마나 빨리 개봉되는지를 실시간으로 보여줍니다. <strong>${esc(m.latestWeek.d)}</strong> 주간에 <strong>${m.latestWeek.v.toLocaleString()}</strong>장이 등급받았습니다${m.wowPct != null ? ` — 전주 대비 ${Math.abs(m.wowPct)}% ${m.wowPct >= 0 ? "증가" : "감소"}` : ""}. 누적으로 우리가 추적하는 세트에서 <strong>${m.allTimeGraded.toLocaleString()}</strong>장이 PSA 등급을 받았습니다.` : "")}>Every graded card came out of a sealed pack, so weekly PSA grading volume is a live read on how fast One Piece product is being opened. ${m.latestWeek ? `In the week of <strong>${esc(m.latestWeek.d)}</strong>, <strong>${m.latestWeek.v.toLocaleString()}</strong> cards were graded${m.wowPct != null ? ` — ${m.wowPct >= 0 ? "up" : "down"} ${Math.abs(m.wowPct)}% from the week before` : ""}. All-time, <strong>${m.allTimeGraded.toLocaleString()}</strong> One Piece cards have been PSA-graded across the sets we track.` : ""}</p>
+      <span class="meterStatus" ${da(meterStatusKo)}>${esc(meterStatusEn)}</span>
+      <p ${da(m.latestWeek ? `주간 PSA 등급 물량은 봉인 제품의 개봉 속도를 보는 참고 지표입니다. ${meterIsStale ? "현재 자동 수집이 연결되지 않아 마지막 검증 스냅샷을 표시합니다." : "최근 검증 스냅샷입니다."} <strong>${esc(m.latestWeek.d)}</strong> 주간에 <strong>${m.latestWeek.v.toLocaleString()}</strong>장이 등급받았습니다${m.wowPct != null ? ` — 전주 대비 ${Math.abs(m.wowPct)}% ${m.wowPct >= 0 ? "증가" : "감소"}` : ""}.` : "")}>Weekly PSA grading volume is a proxy for how quickly sealed One Piece product is being opened. ${meterIsStale ? "Automatic PSA population collection is not connected, so this section shows the last verified snapshot rather than a live reading." : "This is the latest verified weekly snapshot."} ${m.latestWeek ? `In the week of <strong>${esc(m.latestWeek.d)}</strong>, <strong>${m.latestWeek.v.toLocaleString()}</strong> cards were graded${m.wowPct != null ? ` — ${m.wowPct >= 0 ? "up" : "down"} ${Math.abs(m.wowPct)}% from the week before` : ""}.` : ""}</p>
       <div class="owMeter">${meterBars}</div>
-      <p class="mNote" ${da("전 세트 합산 주간 신규 PSA 등급 수. 등급에는 처리 시차가 있어 최근 주는 이후 상향 조정될 수 있습니다.")}>Weekly new PSA grades, summed across all tracked sets. Grading has a turnaround lag, so recent weeks may revise up.</p>
+      <p class="mNote" ${da("전 세트 합산 주간 신규 PSA 등급 수. 수동 검증 스냅샷이며, 새 원본이 검증되기 전에는 기존 값을 유지합니다.")}>Weekly new PSA grades summed across all tracked sets. Manually verified snapshot; values remain unchanged until a new source snapshot passes review.</p>
 
       <h2 ${da("2026년 1월 이후 전 세트")}>Every set since January 2026</h2>
       <p ${da("추적 시작(2026-01-07) 이후 가격 변동순 정렬 — 구세트는 발매 시점을 추적하지 못했으므로 발매 대비가 아닙니다. 세트를 누르면 전체 페이지로.")}>Ranked by price change since our tracking began (Jan 7, 2026 — not since each set's launch, which we did not track for older sets). Tap a set for its full page.</p>

@@ -55,6 +55,17 @@ const meterWeeks = wkDates.map((t) => ({ d: t, v: weekTotals[t] }));
 const meterLatest = meterWeeks[meterWeeks.length - 1] || null;
 const meterPrev = meterWeeks[meterWeeks.length - 2] || null;
 const meterWoW = meterLatest && meterPrev ? Math.round((meterLatest.v / meterPrev.v - 1) * 1000) / 10 : null;
+const meterUpdated = codes
+  .map((c) => d.sets[c]?.psaWeekly?.updated)
+  .filter(Boolean)
+  .sort()
+  .at(-1) || meterLatest?.d || null;
+const meterAgeDays = meterLatest
+  ? Math.max(0, Math.floor((Date.parse(`${latest.d}T00:00:00Z`) - Date.parse(`${meterLatest.d}T00:00:00Z`)) / 864e5))
+  : null;
+// PSA weekly figures are manually verified snapshots. Once they trail the live
+// market index by more than ten days, the UI must present them as historical.
+const meterIsStale = meterAgeDays == null || meterAgeDays > 10;
 let allTimeGraded = 0;
 for (const c of codes) { const s = d.sets[c]; if (s && s.psaFull && s.psaFull.total) allTimeGraded += s.psaFull.total; }
 
@@ -92,7 +103,16 @@ const out = {
   method: `Equal-weight index of ${constituents.length} Japanese booster boxes with a tracked price on ${BASE} (=100). Sets first tracked after that date (${excluded.join(", ")}) are shown individually but excluded from the index. Prices carry forward on days without a new reading.`,
   constituents,
   index: { value: latest.v, asOf: latest.d, weekChangePct, sinceBasePct, series: indexSeries },
-  meter: { latestWeek: meterLatest, weeks: meterWeeks, wowPct: meterWoW, allTimeGraded },
+  meter: {
+    latestWeek: meterLatest,
+    weeks: meterWeeks,
+    wowPct: meterWoW,
+    allTimeGraded,
+    updated: meterUpdated,
+    ageDays: meterAgeDays,
+    isStale: meterIsStale,
+    basis: "manually verified PSA population weekly deltas",
+  },
   board,
   reprints: { bandaiAnnounces: FACTS.bandaiAnnouncesReprints === true, bySet: FACTS.sets || {} },
 };

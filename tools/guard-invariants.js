@@ -98,6 +98,11 @@ for (const [k, kind] of Object.entries(manifest)) {
     if (!mi.index || !Array.isArray(mi.index.series) || mi.index.series.length < 5) errors.push("D2: 지수 시계열 부족");
     if (!mi.board || mi.board.length < 15) errors.push(`D2: 성적표 부족 (${mi.board ? mi.board.length : 0})`);
     if (!mi.meter || !mi.meter.latestWeek) errors.push("D2: 개봉 미터 없음");
+    if (mi.meter?.isStale && exists("market.html")) {
+      const marketHtml = read("market.html");
+      if (!marketHtml.includes("Historical snapshot")) errors.push("D2: 오래된 개봉 미터가 historical snapshot으로 표시되지 않음");
+      if (marketHtml.includes("is a live read")) errors.push("D2: 오래된 개봉 미터를 live read라고 잘못 표시함");
+    }
     // 정가·재판 팩트: 성적표에 msrp 배수가 대부분 있어야 함(set-facts.json 로드 확인)
     const withMsrp = (mi.board || []).filter((b) => b.vsMsrp).length;
     if (withMsrp < 15) errors.push(`D2: 정가 배수(vsMsrp) 부족 (${withMsrp}) — data/set-facts.json 로드 실패 의심`);
