@@ -49,9 +49,16 @@ const sinceBasePct = Math.round((latest.v - 100) * 10) / 10;
 
 // ── 개봉 미터(psaWeekly 전세트 합산)
 const weekTotals = {};
-for (const c of codes) { const wk = (d.sets[c] && d.sets[c].psaWeekly && d.sets[c].psaWeekly.points) || []; for (const p of wk) weekTotals[p.d] = (weekTotals[p.d] || 0) + p.v; }
+const weekCoverage = {};
+for (const c of codes) {
+  const wk = (d.sets[c] && d.sets[c].psaWeekly && d.sets[c].psaWeekly.points) || [];
+  for (const p of wk) {
+    weekTotals[p.d] = (weekTotals[p.d] || 0) + p.v;
+    weekCoverage[p.d] = (weekCoverage[p.d] || 0) + 1;
+  }
+}
 const wkDates = Object.keys(weekTotals).sort();
-const meterWeeks = wkDates.map((t) => ({ d: t, v: weekTotals[t] }));
+const meterWeeks = wkDates.map((t) => ({ d: t, v: weekTotals[t], n: weekCoverage[t] }));
 const meterLatest = meterWeeks[meterWeeks.length - 1] || null;
 const meterPrev = meterWeeks[meterWeeks.length - 2] || null;
 const meterWoW = meterLatest && meterPrev ? Math.round((meterLatest.v / meterPrev.v - 1) * 1000) / 10 : null;

@@ -108,6 +108,7 @@ else {
   const verifiedPsa = JSON.parse(read("data/gemrate-psa-history.json"));
   const codes = [...(data.jp?.list || []), ...(data.extra?.list || [])];
   const weeklyThrough = verifiedPsa.weeklyThrough;
+  const retainedDates = verifiedPsa.retainedWeeklyDates || [];
   for (const code of codes) {
     const sourceSet = verifiedPsa.sets?.[code];
     const liveSet = data.sets?.[code];
@@ -119,6 +120,18 @@ else {
     }
     if (!Array.isArray(points) || points.length < 4 || points.at(-1)?.d !== weeklyThrough) {
       errors.push(`D3: ${code} weekly PSA graph does not reach ${weeklyThrough}`);
+    }
+    const sourcePoints = (sourceSet.weekly || []).map((point) => ({ d: point.d, v: point.grades }));
+    if (JSON.stringify(points || []) !== JSON.stringify(sourcePoints)) {
+      errors.push(`D3: ${code} weekly PSA graph differs from the verified source`);
+    }
+    const pointDates = new Set((points || []).map((point) => point.d));
+    const correctionDates = new Set((verifiedPsa.corrections?.[code] || []).map((entry) => entry.date));
+    const firstDate = points?.[0]?.d;
+    for (const date of retainedDates) {
+      if (firstDate && date >= firstDate && !pointDates.has(date) && !correctionDates.has(date)) {
+        errors.push(`D3: ${code} retained PSA week ${date} was deleted`);
+      }
     }
     if (points?.some((point) => !Number.isFinite(point.v) || point.v < 0)) {
       errors.push(`D3: ${code} weekly PSA graph contains an invalid value`);
@@ -232,15 +245,19 @@ for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "
     }
     declared.set(f, map);
   }
-  // 상호확인: A가 B를 ko/en으로 지목하면 B도 A를 되가리켜야 구글이 인정
+  // 상호확인: A가 B를 ko/en으로 지목하면 B도 A를 되가리켜야 구글이 인정.
+  // ※ 2026-07-21 사각지대 수정: 상대가 hreflang 을 "아예 선언 안 한" 경우도 실패다.
+  //    과거엔 !declared.has(rel) 로 skip 해서, ko 세트페이지가 en 을 가리키는데 en 쪽이 침묵하는
+  //    단방향(=구글이 무시)을 놓쳤다. 우리가 관리하는 페이지(PUBLIC_HTML)면 되가림 부재를 잡는다.
   for (const [f, map] of declared) {
     for (const [lang, url] of Object.entries(map)) {
       if (lang === "x-default") continue;
       const rel = toRel(url);
-      if (!rel || rel === f || !declared.has(rel)) continue; // 자기참조·미선언 페이지는 대상 아님
-      const back = declared.get(rel);
-      const pointsBack = Object.values(back).some((u) => { const r = toRel(u); return r === f; });
-      if (!pointsBack) errors.push(`H1: ${f} → ${rel} (${lang}) 단방향 hreflang — 상대가 되가리키지 않음`);
+      if (!rel || rel === f) continue;            // 자기참조는 대상 아님
+      if (!PUBLIC_HTML.includes(rel)) continue;   // 우리가 관리하지 않는 외부/미존재 페이지는 대상 아님
+      const back = declared.get(rel);             // undefined = 상대가 hreflang 미선언
+      const pointsBack = back && Object.values(back).some((u) => toRel(u) === f);
+      if (!pointsBack) errors.push(`H1: ${f} → ${rel} (${lang}) 단방향 hreflang — 상대가 되가리키지 않음(미선언 포함)`);
     }
   }
 }
@@ -389,8 +406,45 @@ for (const f of ["index.html", "packs.html"]) {
   }
 }
 
+// ── I2. cards/ 하위 페이지의 로컬 이미지 경로는 img/ 로 시작하면 안 된다 — 2026-07-21 실사고.
+//    generate-card-pages 가 허브 썸네일 경로에서 "../" 를 벗겨 24장이 전부 /cards/img/... 404 났다.
+//    cards/ 깊이에서 로컬 이미지는 ../img/ 또는 루트절대 /img/ 여야 한다.
+for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
+  for (const m of read(f).matchAll(/<img[^>]+src="([^"]+)"/g)) {
+    const src = m[1];
+    if (/^(https?:|data:|\/)/.test(src)) continue;   // 절대URL·data·루트절대는 OK
+    if (src.startsWith("img/")) errors.push(`I2: ${f} 이미지 src="${src}" 가 img/ 로 시작 — cards/ 에서 /cards/img/ 로 해석돼 404 (../img/ 또는 /img/ 필요)`);
+  }
+}
+
+// ── P2. TCGplayer 폴백 이상치(트롤/오매칭 밈가격)가 세트 페이지에 새어나가지 않았는지 검증 — 2026-07-21 실사고.
+//    데이터에서 고립 스파이크(세트 2등의 2배 초과 & $3,000 초과)를 재도출해, 그 반올림 표시가가
+//    렌더된 세트 페이지에 나타나면 억제 실패로 본다. (예: EB-02 $6,969.69, OP-09 $6,720)
+{
+  const pk = JSON.parse(read("data/onepiece-packs.json"));
+  for (const [code, s] of Object.entries(pk.sets || {})) {
+    const page = `sets/${code.toLowerCase()}.html`;
+    if (!exists(page)) continue;
+    const vals = (s.cards || []).slice(0, 10)
+      .filter((c) => c.nmJpy == null && typeof c.priceUsd === "number")
+      .map((c) => c.priceUsd).sort((a, b) => b - a);
+    const bad = [];
+    for (let i = 0; i < vals.length; i++) {
+      const next = vals.find((v) => v < vals[i]);
+      if (next != null && vals[i] > 3000 && vals[i] > next * 2) bad.push(vals[i]);
+      else break;
+    }
+    if (!bad.length) continue;
+    const html = read(page);
+    for (const v of bad) {
+      const shown = "$" + Math.round(v).toLocaleString("en-US");
+      if (html.includes(shown)) errors.push(`P2: ${page} 에 이상치 폴백가 ${shown} 노출 — 밈/트롤 가격 억제 실패 (markTcgOutliers 확인)`);
+    }
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "T2", "P1", "W1", "X1"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));

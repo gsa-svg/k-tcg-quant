@@ -3,7 +3,7 @@
   "basis": "GemRate public full-set PSA population trend",
   "collectedAt": "2026-07-20",
   "weeklyThrough": "2026-07-15",
-  "note": "Only the latest four consecutive Wednesday-to-Wednesday deltas are retained. The 2026-06-10 regression and 2026-06-17 correction were excluded as upstream cumulative-data anomalies.",
+  "note": "Append-only verified Wednesday-to-Wednesday GemRate full-set PSA deltas. Retained dates must never be deleted. Declared upstream corrections remain visible as gaps instead of estimated values.",
   "sets": {
     "OP-01": {
       "year": 2022,
@@ -16,6 +16,27 @@
         "gemRate": 90.2
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 221,
+          "gems": 182,
+          "totalGrades": 54083,
+          "totalGems": 48883
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 312,
+          "gems": 265,
+          "totalGrades": 54395,
+          "totalGems": 49148
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 295,
+          "gems": 258,
+          "totalGrades": 54690,
+          "totalGems": 49406
+        },
         {
           "d": "2026-06-24",
           "grades": 248,
@@ -58,6 +79,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 89,
+          "gems": 68,
+          "totalGrades": 26710,
+          "totalGems": 24085
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 114,
+          "gems": 94,
+          "totalGrades": 26824,
+          "totalGems": 24179
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 187,
+          "gems": 153,
+          "totalGrades": 27011,
+          "totalGems": 24332
+        },
+        {
           "d": "2026-06-24",
           "grades": 88,
           "gems": 70,
@@ -98,6 +140,27 @@
         "gemRate": 88.2
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 65,
+          "gems": 55,
+          "totalGrades": 23277,
+          "totalGems": 20541
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 104,
+          "gems": 91,
+          "totalGrades": 23381,
+          "totalGems": 20632
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 158,
+          "gems": 139,
+          "totalGrades": 23539,
+          "totalGems": 20771
+        },
         {
           "d": "2026-06-24",
           "grades": 69,
@@ -140,6 +203,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 130,
+          "gems": 112,
+          "totalGrades": 29511,
+          "totalGems": 27049
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 135,
+          "gems": 118,
+          "totalGrades": 29646,
+          "totalGems": 27167
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 142,
+          "gems": 120,
+          "totalGrades": 29788,
+          "totalGems": 27287
+        },
+        {
           "d": "2026-06-24",
           "grades": 138,
           "gems": 105,
@@ -180,6 +264,13 @@
         "gemRate": 88.9
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 518,
+          "gems": 433,
+          "totalGrades": 64224,
+          "totalGems": 57280
+        },
         {
           "d": "2026-06-24",
           "grades": 444,
@@ -222,6 +313,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 470,
+          "gems": 398,
+          "totalGrades": 33503,
+          "totalGems": 30519
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 651,
+          "gems": 544,
+          "totalGrades": 34154,
+          "totalGems": 31063
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 583,
+          "gems": 491,
+          "totalGrades": 34737,
+          "totalGems": 31554
+        },
+        {
           "d": "2026-06-24",
           "grades": 457,
           "gems": 408,
@@ -262,6 +374,27 @@
         "gemRate": 93.2
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 61,
+          "gems": 53,
+          "totalGrades": 11342,
+          "totalGems": 10609
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 77,
+          "gems": 59,
+          "totalGrades": 11419,
+          "totalGems": 10668
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 94,
+          "gems": 84,
+          "totalGrades": 11513,
+          "totalGems": 10752
+        },
         {
           "d": "2026-06-24",
           "grades": 56,
@@ -304,6 +437,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 240,
+          "gems": 209,
+          "totalGrades": 31603,
+          "totalGems": 29408
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 266,
+          "gems": 242,
+          "totalGrades": 31869,
+          "totalGems": 29650
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 322,
+          "gems": 275,
+          "totalGrades": 32191,
+          "totalGems": 29925
+        },
+        {
           "d": "2026-06-24",
           "grades": 262,
           "gems": 234,
@@ -344,6 +498,27 @@
         "gemRate": 92.7
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 159,
+          "gems": 135,
+          "totalGrades": 20413,
+          "totalGems": 19009
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 206,
+          "gems": 182,
+          "totalGrades": 20619,
+          "totalGems": 19191
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 279,
+          "gems": 244,
+          "totalGrades": 20898,
+          "totalGems": 19435
+        },
         {
           "d": "2026-06-24",
           "grades": 206,
@@ -386,6 +561,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 542,
+          "gems": 456,
+          "totalGrades": 37717,
+          "totalGems": 33065
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 664,
+          "gems": 548,
+          "totalGrades": 38381,
+          "totalGems": 33613
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 646,
+          "gems": 515,
+          "totalGrades": 39027,
+          "totalGems": 34128
+        },
+        {
           "d": "2026-06-24",
           "grades": 397,
           "gems": 355,
@@ -426,6 +622,27 @@
         "gemRate": 89.8
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 709,
+          "gems": 599,
+          "totalGrades": 59825,
+          "totalGems": 53859
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 880,
+          "gems": 757,
+          "totalGrades": 60705,
+          "totalGems": 54616
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 945,
+          "gems": 819,
+          "totalGrades": 61650,
+          "totalGems": 55435
+        },
         {
           "d": "2026-06-24",
           "grades": 678,
@@ -468,6 +685,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 221,
+          "gems": 172,
+          "totalGrades": 11849,
+          "totalGems": 10539
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 257,
+          "gems": 223,
+          "totalGrades": 12106,
+          "totalGems": 10762
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 258,
+          "gems": 220,
+          "totalGrades": 12364,
+          "totalGems": 10982
+        },
+        {
           "d": "2026-06-24",
           "grades": 204,
           "gems": 184,
@@ -508,6 +746,27 @@
         "gemRate": 89.2
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 135,
+          "gems": 120,
+          "totalGrades": 7776,
+          "totalGems": 6967
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 198,
+          "gems": 173,
+          "totalGrades": 7974,
+          "totalGems": 7140
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 232,
+          "gems": 197,
+          "totalGrades": 8206,
+          "totalGems": 7337
+        },
         {
           "d": "2026-06-24",
           "grades": 207,
@@ -550,6 +809,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 367,
+          "gems": 301,
+          "totalGrades": 23616,
+          "totalGems": 19575
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 598,
+          "gems": 514,
+          "totalGrades": 24214,
+          "totalGems": 20089
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 533,
+          "gems": 461,
+          "totalGrades": 24747,
+          "totalGems": 20550
+        },
+        {
           "d": "2026-06-24",
           "grades": 412,
           "gems": 353,
@@ -590,6 +870,27 @@
         "gemRate": 86.2
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 255,
+          "gems": 217,
+          "totalGrades": 10759,
+          "totalGems": 9285
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 380,
+          "gems": 325,
+          "totalGrades": 11139,
+          "totalGems": 9610
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 319,
+          "gems": 275,
+          "totalGrades": 11458,
+          "totalGems": 9885
+        },
         {
           "d": "2026-06-24",
           "grades": 252,
@@ -632,6 +933,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 600,
+          "gems": 517,
+          "totalGrades": 12416,
+          "totalGems": 10834
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 685,
+          "gems": 605,
+          "totalGrades": 13101,
+          "totalGems": 11439
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 644,
+          "gems": 545,
+          "totalGrades": 13745,
+          "totalGems": 11984
+        },
+        {
           "d": "2026-06-24",
           "grades": 495,
           "gems": 439,
@@ -672,6 +994,27 @@
         "gemRate": 85.5
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 1159,
+          "gems": 974,
+          "totalGrades": 32464,
+          "totalGems": 27869
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 1606,
+          "gems": 1363,
+          "totalGrades": 34070,
+          "totalGems": 29232
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 1309,
+          "gems": 1111,
+          "totalGrades": 35379,
+          "totalGems": 30343
+        },
         {
           "d": "2026-06-24",
           "grades": 1229,
@@ -714,6 +1057,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 552,
+          "gems": 489,
+          "totalGrades": 8993,
+          "totalGems": 7790
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 706,
+          "gems": 596,
+          "totalGrades": 9699,
+          "totalGems": 8386
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 531,
+          "gems": 449,
+          "totalGrades": 10230,
+          "totalGems": 8835
+        },
+        {
           "d": "2026-06-24",
           "grades": 473,
           "gems": 399,
@@ -755,6 +1119,27 @@
       },
       "weekly": [
         {
+          "d": "2026-06-03",
+          "grades": 634,
+          "gems": 540,
+          "totalGrades": 13812,
+          "totalGems": 12026
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 844,
+          "gems": 732,
+          "totalGrades": 14656,
+          "totalGems": 12758
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 672,
+          "gems": 574,
+          "totalGrades": 15328,
+          "totalGems": 13332
+        },
+        {
           "d": "2026-06-24",
           "grades": 606,
           "gems": 524,
@@ -795,6 +1180,27 @@
         "gemRate": 93.6
       },
       "weekly": [
+        {
+          "d": "2026-06-03",
+          "grades": 215,
+          "gems": 206,
+          "totalGrades": 2194,
+          "totalGems": 2073
+        },
+        {
+          "d": "2026-06-10",
+          "grades": 557,
+          "gems": 528,
+          "totalGrades": 2751,
+          "totalGems": 2601
+        },
+        {
+          "d": "2026-06-17",
+          "grades": 354,
+          "gems": 319,
+          "totalGrades": 3105,
+          "totalGems": 2920
+        },
         {
           "d": "2026-06-24",
           "grades": 406,
@@ -866,5 +1272,27 @@
         }
       ]
     }
+  },
+  "historyStart": "2026-06-03",
+  "retainedWeeklyDates": [
+    "2026-06-03",
+    "2026-06-10",
+    "2026-06-17",
+    "2026-06-24",
+    "2026-07-01",
+    "2026-07-08",
+    "2026-07-15"
+  ],
+  "corrections": {
+    "OP-05": [
+      {
+        "date": "2026-06-10",
+        "reason": "GemRate upstream cumulative total reset from 64,755 to 73; omitted rather than estimated."
+      },
+      {
+        "date": "2026-06-17",
+        "reason": "Weekly delta crosses the OP-05 upstream reset and recovery; omitted rather than estimated."
+      }
+    ]
   }
 }

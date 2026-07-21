@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
-const CACHE = "20260721psa";
+const CACHE = "20260721psahist";
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const mi = d.marketIndex;
 if (!mi) { console.error("marketIndex 없음 — build-market-index.js 먼저 실행"); process.exit(1); }
@@ -47,7 +47,7 @@ const rows = board.map((b, i) => {
 }).join("");
 
 const bmax = Math.max(...m.weeks.map((w) => w.v));
-const meterBars = m.weeks.map((w) => `<div class="owBar"><span style="height:${Math.round((w.v / bmax) * 100)}%"></span><small>${w.d.slice(5)}</small></div>`).join("");
+const meterBars = m.weeks.map((w) => `<div class="owBar" title="${w.v.toLocaleString()} grades · ${w.n || 0} sets"><span style="height:${Math.round((w.v / bmax) * 100)}%"></span><small>${w.d.slice(5)}</small></div>`).join("");
 
 const topMsrp = [...board].filter((b) => b.vsMsrp).sort((a, b) => b.vsMsrp - a.vsMsrp)[0];
 const sgn = (n) => (n >= 0 ? "+" : "");

@@ -232,7 +232,9 @@ for (const { code, set: s, card: c } of cands) {
 `;
   fs.writeFileSync(path.join(CARDS_DIR, fname), html);
   written.push(fname);
-  hubItems.push({ slug: fname, name: c.name, number: c.number, code, usd: Math.round(nmUsd), img: imgRel ? imgRel.replace("../", "") : c.img });
+  // 허브(cards/index.html)도 개별 카드 페이지와 같은 cards/ 깊이라 ../ 를 유지해야 한다.
+  // (과거 .replace("../","") 로 벗겨서 허브 썸네일 24개가 전부 /cards/img/... 404 났음 — 2026-07-21 감사)
+  hubItems.push({ slug: fname, name: c.name, number: c.number, code, usd: Math.round(nmUsd), img: imgRel || c.img });
 }
 
 // 세트 페이지가 체이스 표에 링크 걸 수 있게 슬러그 맵 출력 (generate-set-pages.js가 읽음)

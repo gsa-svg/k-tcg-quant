@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260721psa";
+const DATA_VERSION = "20260721psahist";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -520,9 +520,9 @@ function renderSeriesPanel(points, opts) {
   const arrow = up ? "▲" : down ? "▼" : "―";
   const vCls = up ? "chgUp" : down ? "chgDown" : "chgFlat";
   const yTicks = [maxY, minY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 10}" y="${(sy(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
-  let prevMonth = new Date(points[0].d).getMonth();
+  let prevMonth = new Date(points[0].d).getUTCMonth();
   const monthTicks = points.map((p, i) => {
-    const m = new Date(p.d).getMonth();
+    const m = new Date(p.d).getUTCMonth();
     if (m === prevMonth || i === 0) { prevMonth = m; return ""; }
     prevMonth = m;
     return `<text x="${sx(xs[i]).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`;
@@ -573,9 +573,9 @@ function renderComparePanel(jpPts, enPts) {
     const x = sx(new Date(p.d).getTime()), y = sv(p.v);
     return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" class="spHalo ${cls}"></circle><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="spDot ${cls}"></circle><text x="${(x + 12).toFixed(1)}" y="${(y + 5).toFixed(1)}" class="cpEndTag ${cls}">${label}</text>`;
   };
-  let prevM = new Date(startD).getMonth();
+  let prevM = new Date(startD).getUTCMonth();
   const months = jp.map((p, i) => {
-    const m = new Date(p.d).getMonth();
+    const m = new Date(p.d).getUTCMonth();
     if (m === prevM || i === 0) { prevM = m; return ""; }
     prevM = m;
     return `<text x="${sx(new Date(p.d).getTime()).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`;
@@ -591,7 +591,7 @@ function renderComparePanel(jpPts, enPts) {
 // 날짜 라벨(툴팁용)
 function fmtTipDate(d) {
   const dt = new Date(d);
-  return t(`${dt.getMonth() + 1}월 ${dt.getDate()}일`, `${MONTH_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`);
+  return t(`${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`, `${MONTH_EN[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`);
 }
 
 // 인터랙티브 JP vs EN 교차 그래프 — 위=일본/아래=영문 실제 원화 2단(압축 없음), 마우스/터치 시 날짜·양쪽 가격 툴팁 + 세로 크로스헤어.
@@ -618,7 +618,7 @@ function renderBoxInteractive(set, jpPts, enPts) {
   const en = panel(enPts, "spEn", "#ffdb3c", "bxgE" + uid);
   let prevM = -1;
   const xLabels = jpPts.map((p) => {
-    const dt = new Date(p.d), m = dt.getMonth();
+    const dt = new Date(p.d), m = dt.getUTCMonth();
     if (m === prevM) return "";
     prevM = m;
     return `<span class="bxXlab" style="left:${(sx(dt.getTime()) / W * 100).toFixed(2)}%">${t(`${m + 1}월`, MONTH_EN[m])}</span>`;
@@ -1032,13 +1032,13 @@ function renderPsaWeeklyChart(weekly) {
   }
   let prevM = -1;
   const bars = pts.map((p, i) => {
-    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d), m = dt.getMonth();
+    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d), m = dt.getUTCMonth();
     let xlab = "";
     if (m !== prevM) { prevM = m; xlab = `<text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`; }
     return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" class="pwBar" data-v="${p.v}" data-d="${p.d}"></rect>${xlab}`;
   }).join("");
   const total = pts.reduce((a, b) => a + b.v, 0);
-  return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t(`${new Date(pts[0].d).getMonth() + 1}월부터 주별 신규 등급`, `weekly new grades since ${MONTH_EN[new Date(pts[0].d).getMonth()]}`)}${weekly.allTimeTotal ? t(` · 전체 누적 ${num(weekly.allTimeTotal)}장`, ` · ${num(weekly.allTimeTotal)} graded all-time`) : ""}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
+  return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t(`${new Date(pts[0].d).getUTCMonth() + 1}월부터 주별 신규 등급`, `weekly new grades since ${MONTH_EN[new Date(pts[0].d).getUTCMonth()]}`)}${weekly.allTimeTotal ? t(` · 전체 누적 ${num(weekly.allTimeTotal)}장`, ` · ${num(weekly.allTimeTotal)} graded all-time`) : ""}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
 }
 
 // 주간 막대에 hover 툴팁 연결 (renderDetail innerHTML 직후 호출)
@@ -1049,7 +1049,7 @@ function initPsaWeekly(root) {
     box.querySelectorAll(".pwBar").forEach((bar) => {
       const show = () => {
         const v = +bar.getAttribute("data-v"), dt = new Date(bar.getAttribute("data-d"));
-        tip.innerHTML = `<b>${num(v)}</b> ${t("신규 등급", "new grades")}<span>${t(`${dt.getMonth() + 1}월 ${dt.getDate()}일`, `${MONTH_EN[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()}`)}</span>`;
+        tip.innerHTML = `<b>${num(v)}</b> ${t("신규 등급", "new grades")}<span>${t(`${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`, `${MONTH_EN[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`)}</span>`;
         bar.classList.add("pwBarHover");
         const br = bar.getBoundingClientRect(), cr = box.getBoundingClientRect();
         tip.hidden = false;

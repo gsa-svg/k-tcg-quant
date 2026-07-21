@@ -42,11 +42,34 @@ const monthYear = (iso) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso : `${m[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 };
+// TCGplayer 단일 리스팅 폴백가(priceUsd)의 이상치 표시.
+// 왜: priceUsd 는 변형매칭 미확정(variantOK undefined) 단일 호가라 트롤/오매칭 값이 섞인다.
+// 실제 라이브 사고(2026-07-21 감사): EB-02 Boa Hancock $6,969.69(69 밈), OP-09 Gol D. Roger $6,720.
+// 세트 안에서 혼자 튀는 스파이크(2등의 2배 초과 & $3,000 초과)만 억제한다 — 정상 체이스카드는 보존.
+// 원칙: "빈 칸이 틀린 숫자보다 낫다". 억제된 카드는 NM 열이 "—" 로 나간다.
+function markTcgOutliers(cards) {
+  const vals = cards
+    .filter((c) => c.nmJpy == null && typeof c.priceUsd === "number")
+    .map((c) => c.priceUsd)
+    .sort((a, b) => b - a);
+  const bad = new Set();
+  // 위에서부터: 현재 최고가가 (다음 서로 다른 값의 2배 & $3,000) 을 넘으면 고립 스파이크로 판정하고 계속.
+  for (let i = 0; i < vals.length; i++) {
+    const next = vals.find((v) => v < vals[i]);
+    if (next != null && vals[i] > 3000 && vals[i] > next * 2) bad.add(vals[i]);
+    else break;
+  }
+  for (const c of cards) {
+    if (c.nmJpy == null && typeof c.priceUsd === "number" && bad.has(c.priceUsd)) c._tcgOutlier = true;
+  }
+}
+
 // 카드별 표시가: NM(생) + PSA10(sold 우선, 없으면 ask). 불확실하면 null → 표에 "—"
 function cardPrices(c) {
   let nm = jpyUsd(c.nmJpy);
   let nmSrc = c.nmJpy != null ? "jp" : null;
-  if (nm == null && typeof c.priceUsd === "number") { nm = c.priceUsd; nmSrc = "tcg"; } // 일본 NM 리서치 전(예: OP-16): TCGplayer USD 시세 폴백, 라벨은 TCG로 정직 표기
+  // priceUsd 폴백은 이상치(트롤/오매칭)면 버린다 — markTcgOutliers 가 세트 단위로 표시해 둔다.
+  if (nm == null && typeof c.priceUsd === "number" && !c._tcgOutlier) { nm = c.priceUsd; nmSrc = "tcg"; } // 일본 NM 리서치 전(예: OP-16): TCGplayer USD 시세 폴백, 라벨은 TCG로 정직 표기
   let psa = null, psaKind = "";
   const sold = c.psa10Ebay;
   if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
@@ -61,7 +84,12 @@ function cardPrices(c) {
   return { nm, nmSrc, psa, psaKind };
 }
 
-function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
+function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref = "" }) {
+  // hreflang 은 반드시 양방향이어야 구글이 인정한다. ko 짝이 있을 때만, en(자기)·ko·x-default 를 함께 선언.
+  // (ko 페이지는 이미 en 을 가리키는데 en 쪽이 침묵해서 단방향으로 무시되던 문제 — 2026-07-21 감사)
+  const hreflang = koHref
+    ? `\n    <link rel="alternate" hreflang="en" href="${canonical}" />\n    <link rel="alternate" hreflang="ko" href="${koHref}" />\n    <link rel="alternate" hreflang="x-default" href="${canonical}" />`
+    : "";
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -77,7 +105,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     </script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
-    <link rel="canonical" href="${canonical}" />
+    <link rel="canonical" href="${canonical}" />${hreflang}
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -94,7 +122,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=20260721psa" />
+    <link rel="stylesheet" href="../styles.css?v=20260721psahist" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -245,6 +273,7 @@ function setPage(code, prev, next) {
   const fullPsaTotal = s.psaFull?.total ?? s.psaTotal;
   const nameEn = s.nameEn || code;
   const cards = (s.cards || []).slice(0, 10);
+  markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
   const top3 = cards.slice(0, 3).map((c) => c.name).join(", ");
   const canonical = `${SITE}/sets/${slug(code)}.html`;
   const title = `${code} ${nameEn} Booster Box Price (Japanese) | OP Box Index`;
@@ -415,10 +444,13 @@ function setPage(code, prev, next) {
       </section>`;
   }
 
-  return `${head({ title, desc, canonical, extraLd: faqLd(code, nameEn) + cardsLd + productLd(code, nameEn, s) })}
+  // ko 짝이 실제로 존재할 때만 hreflang 을 건다(eb-05·op-17 처럼 ko 없는 얼리페이지는 제외).
+  const koHref = fs.existsSync(path.join(ROOT, "ko", `${slug(code)}.html`)) ? `${SITE}/ko/${slug(code)}.html` : "";
+
+  return `${head({ title, desc, canonical, koHref, extraLd: faqLd(code, nameEn) + cardsLd + productLd(code, nameEn, s) })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
-        ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" loading="lazy" decoding="async" />` : ""}
+        ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" width="132" height="184" loading="eager" fetchpriority="high" decoding="async" />` : ""}
         <div>
           <h1>${code} ${esc(nameEn)} — Japanese booster box price &amp; chase cards</h1>
           ${release}
@@ -570,7 +602,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css?v=20260721psa" />
+    <link rel="stylesheet" href="styles.css?v=20260721psahist" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
