@@ -207,8 +207,11 @@ function liveWidget(code) {
       </script>`;
 }
 
-function faqLd(code, nameEn) {
-  const q = [
+// FAQ Q&A — JSON-LD 와 화면 렌더가 반드시 같은 텍스트를 써야 한다.
+// 구글은 본문에 없는 FAQPage 구조화데이터를 스팸으로 취급하고(리치결과는 2023년 폐지),
+// 숨긴 FAQ 는 이득 0·리스크만 있다. 그래서 한 소스에서 뽑아 양쪽에 쓴다 — 2026-07-21 감사.
+function faqItems(code, nameEn) {
+  return [
     {
       q: `What is the current ${code} ${nameEn} booster box price?`,
       a: `OP Box Index tracks ${code} ${nameEn} Japanese sealed booster box prices daily from eBay active listings and sold history, shown in USD with KRW and JPY conversions. Check the live tracker for today's price band.`,
@@ -222,6 +225,19 @@ function faqLd(code, nameEn) {
       a: `That depends on price versus recent sold data, chase-card strength, supply and reseal risk. OP Box Index shows the data signals but does not give investment advice.`,
     },
   ];
+}
+
+// 화면에 보이는 FAQ 섹션 — faqLd 와 동일 Q&A. 구조화데이터와 본문 일치를 보장.
+function faqHtml(code, nameEn) {
+  return `
+      <section class="setFaq" aria-label="${esc(`${code} ${nameEn} frequently asked questions`)}">
+        <h2>${code} ${esc(nameEn)} — frequently asked questions</h2>
+        ${faqItems(code, nameEn).map((x) => `<details><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join("\n        ")}
+      </section>`;
+}
+
+function faqLd(code, nameEn) {
+  const q = faqItems(code, nameEn);
   return `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -496,6 +512,7 @@ function setPage(code, prev, next) {
         <li>Chase-card value often tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity.</li>
         ${compareLink}
       </ul>
+      ${faqHtml(code, nameEn)}
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
         <a href="index.html">All set guides</a>

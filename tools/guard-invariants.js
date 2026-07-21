@@ -275,6 +275,21 @@ for (const f of PUBLIC_HTML) {
   }
 }
 
+// ── L2. 숨긴 FAQ 금지 — FAQPage 구조화데이터의 질문은 본문(스크립트 제외)에도 보여야 한다.
+//    구글은 본문에 없는 FAQPage 를 스팸으로 취급하고(FAQ 리치결과는 2023년 폐지, 이득 0), 애드센스에도 악재.
+//    2026-07-21 감사: 세트 23페이지가 JSON-LD 에만 FAQ 를 담아 화면엔 안 보이던 상태.
+for (const f of PUBLIC_HTML) {
+  const html = read(f);
+  const visible = html.replace(/<script[\s\S]*?<\/script>/g, "");
+  for (const m of html.matchAll(/"@type"\s*:\s*"FAQPage"[\s\S]*?<\/script>/g)) {
+    for (const qm of m[0].matchAll(/"@type"\s*:\s*"Question"\s*,\s*"name"\s*:\s*"((?:[^"\\]|\\.)*)"/g)) {
+      const q = qm[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+      const probe = q.slice(0, 40);   // 앞 40자만 대조(HTML 이스케이프 차이 회피)
+      if (probe && !visible.includes(probe)) { errors.push(`L2: ${f} FAQPage 질문이 본문에 없음(숨긴 FAQ): "${probe}…"`); break; }
+    }
+  }
+}
+
 // ── I1. 이미지 외부 핫링크 금지 — 2026-07-19: 카드 이미지 48건이 외부 CDN 직링크라
 //    이미지검색 유입을 남에게 주고, CDN이 끊기면 페이지가 통째로 깨짐. 자체 호스팅만 허용.
 for (const f of PUBLIC_HTML) {
@@ -453,4 +468,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "S1", "S2", "F1", "H1", "L1", "L2", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
