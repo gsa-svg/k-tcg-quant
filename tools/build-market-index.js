@@ -111,7 +111,7 @@ const out = {
     updated: meterUpdated,
     ageDays: meterAgeDays,
     isStale: meterIsStale,
-    basis: "manually verified PSA population weekly deltas",
+    basis: "verified PSA population weekly deltas",
   },
   board,
   reprints: { bandaiAnnounces: FACTS.bandaiAnnouncesReprints === true, bySet: FACTS.sets || {} },

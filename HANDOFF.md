@@ -228,3 +228,11 @@
 - `diagnosing-bugs`: eBay 워크플로가 재시도 후에도 실패할 때만, 로그 기반으로 원인을 분리할 때 사용.
 - `browser:control-in-app-browser`: 모바일 390px와 배포 후 실제 DOM/canonical을 확인할 때 사용.
 - `handoff`: 다음 세션으로 넘길 때 현재 상태를 짧은 임시 인수인계로 남길 때 사용.
+# 2026-07-21 Codex - PSA Opening Meter weekly pipeline
+
+- Added `tools/update-psa-weekly-history.js` and `data/psa-population-snapshots.json`.
+- The 2026-07-15 verified cumulative total (608,756 across 21 sets) is now preserved as the baseline. The previous 2026-07-08 cumulative snapshot was overwritten before this pipeline existed, so the 07-15 weekly delta must not be fabricated.
+- When every set's `psaFull.total` advances with one common verified date 6-8 days after the prior snapshot, the script calculates per-set deltas and appends the next `psaWeekly.points` bar automatically.
+- Duplicate dates are no-ops; changed data on an already stored date, cumulative regressions, mixed dates, and non-weekly intervals fail closed.
+- The Monday market workflow runs the updater, commits the snapshot archive, and performs a final freshness check. If the upstream cumulative PSA source is older than 8 days, Actions now fails visibly instead of silently publishing a frozen "live" meter.
+- Important remaining source limitation: the repository still has no approved automatic PSA/GemRate cumulative collector. PSA's unauthenticated public API quota is not sufficient for all sets, and the historical data was manually imported. Do not scrape TCG Quant or invent weekly totals. Connect an approved PSA population source before calling the meter fully unattended.

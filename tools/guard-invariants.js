@@ -79,6 +79,20 @@ for (const f of PUBLIC_HTML) {
 // wm였던 시리즈가 eBay로 바뀌거나 사라지면 = 야간봇 덮어쓰기 재발 → 실패.
 // 정당하게 새 세트를 추가/전환할 땐 매니페스트를 의도적으로 갱신할 것(tools/series-source-manifest.json).
 const data = JSON.parse(read("data/onepiece-packs.json"));
+if (!exists("data/psa-population-snapshots.json")) errors.push("D2: PSA cumulative snapshot archive missing");
+else {
+  const psaArchive = JSON.parse(read("data/psa-population-snapshots.json"));
+  const latestPsaSnapshot = Array.isArray(psaArchive.snapshots) ? psaArchive.snapshots.at(-1) : null;
+  if (!latestPsaSnapshot) errors.push("D2: PSA cumulative snapshot archive is empty");
+  else {
+    for (const code of [...(data.jp?.list || []), ...(data.extra?.list || [])]) {
+      const source = data.sets?.[code]?.psaFull;
+      if (latestPsaSnapshot.date === source?.updated && latestPsaSnapshot.sets?.[code] !== source?.total) {
+        errors.push(`D2: ${code} current PSA total differs from stored ${latestPsaSnapshot.date} snapshot`);
+      }
+    }
+  }
+}
 const manifest = JSON.parse(read("tools/series-source-manifest.json"));
 for (const [k, kind] of Object.entries(manifest)) {
   const [code, key] = k.split("|");
