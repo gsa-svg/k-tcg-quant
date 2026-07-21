@@ -396,7 +396,12 @@ function setPage(code, prev, next) {
       const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
       const recs = sf.reprintRecords || [];
       const rpLine = recs.length
-        ? `We found <strong>${recs.length}</strong> dated reprint record${recs.length > 1 ? "s" : ""} for ${code} from Japanese retailers/distributors: ${recs.map((r) => `${r.date ? esc(r.date) : "date n/a"} (<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${esc(r.kind)}</a>)`).join(", ")}.`
+        ? `We found <strong>${recs.length}</strong> dated reprint record${recs.length > 1 ? "s" : ""} for ${code} from Japanese retailers/distributors: ${recs.map((r) => {
+            // 소스 URL 이 살아있는 http 링크일 때만 클릭 링크. 죽은/빈 소스는 출처명만 텍스트로(죽은 링크 노출 방지 — 2026-07-21 감사).
+            const live = typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead;
+            const label = live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${esc(r.kind)}</a>` : esc(r.kind);
+            return `${r.date ? esc(r.date) : "date n/a"} (${label})`;
+          }).join(", ")}.`
         : `We found no dated reprint record for ${code} in our sources — which means none surfaced, not that it was never reprinted.`;
       reprintBlock = `
       <h2>Reprints &amp; original price</h2>

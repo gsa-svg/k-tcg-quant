@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
+const { isPsa10JapaneseCardListing } = require("./ebay-psa10-listing-filter");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
@@ -84,62 +85,6 @@ function isExcludedSeller(item) {
   return isExcludedEbaySellerOrLocation(item);
 }
 
-function compact(value) {
-  return String(value || "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
-}
-
-function hasNumber(title, number) {
-  if (!number) return true;
-  const normalizedTitle = compact(title);
-  const normalizedNumber = compact(number);
-  if (normalizedTitle.includes(normalizedNumber)) return true;
-  const match = normalizedNumber.match(/^(OP|EB|PRB|ST)(\d{1,2})(\d{3})$/);
-  if (!match) return false;
-  return normalizedTitle.includes(`${match[1]}${Number(match[2])}${match[3]}`);
-}
-
-function hasConflictingCardNumber(title, expectedNumber) {
-  const expected = compact(expectedNumber);
-  const found = title.match(/\b(?:OP|EB|PRB|ST)\s*-?\s*\d{1,2}\s*-?\s*\d{3}\b/gi) || [];
-  return found.map(compact).some((number) => number !== expected);
-}
-
-function hasVariantSignal(title, card) {
-  const name = `${card.name || ""} ${card.rarity || ""}`;
-  // 프리미엄(망가/수퍼패러렐) 티어 신호 — "Super Rare"(SR 레어도 표기)는 프리미엄이 아님
-  const premiumTitle = /manga|comic|super\s*parall|super\s*alt/i;
-  if (/signature|stamped|stamp/i.test(name)) return /signature|signed|stamped|stamp/i.test(title);
-  // Red(레드망가 등) 변형: 제목에 red 명시 필수 — 일반 망가가 레드 행에 붙는 사고 방지 (2026-07-08 OP13-118 실사고)
-  if (/\bred\b/i.test(name)) return /\bred\b/i.test(title) && premiumTitle.test(title);
-  if (/manga|comic|\bsuper\b/i.test(name)) return premiumTitle.test(title);
-  // SP는 별도 변형 — 일반 parallel 매물이 섞이지 않게 SP/special 명시 요구 + 프리미엄 배제 (speci4l = leetspeak 회피 방지)
-  if (/\bsp\b|speci[a4]l/i.test(name)) return /\bsp\b|speci[a4]l/i.test(title) && !premiumTitle.test(title);
-  // 일반 패러렐/알트아트 — 프리미엄·SP·Special 매물이 저가 행에 붙지 않게 배제
-  if (/parallel|alternate/i.test(name))
-    return /parallel|alternate|alt\s*art|leader\s*parallel|paralle/i.test(title) && !premiumTitle.test(title) && !/\bsp\b|speci[a4]l|red\s*text/i.test(title);
-  return true;
-}
-
-function isPsa10JapaneseCard(item, setCode, card) {
-  const title = item.title || "";
-  const number = normalizeNumber(card.number, setCode);
-  const hasJapaneseSignal = /japanese|japan|jpn/i.test(title) || item.itemLocation?.country === "JP";
-  const positive = [/one piece/i, /psa\s*10|gem\s*mint\s*10/i];
-  const negative = [
-    /psa\s*[1-9]\b(?!0)|psa\s*9|psa\s*8|bgs|cgc|ars|raw|ungraded|proxy|digital/i,
-    /english|\beng\b|\ben\b|korean|chinese|simplified/i,
-    /lot of|bundle|repack|booster|box|case/i,
-  ];
-  return (
-    positive.every((pattern) => pattern.test(title)) &&
-    hasJapaneseSignal &&
-    !negative.some((pattern) => pattern.test(title)) &&
-    hasNumber(title, number) &&
-    !hasConflictingCardNumber(title, number) &&
-    hasVariantSignal(title, card)
-  );
-}
-
 function listingSnapshot(item) {
   const price = Number(item.price?.value);
   const shipping = Number(item.shippingOptions?.[0]?.shippingCost?.value || 0);
@@ -209,7 +154,7 @@ function analyzeItems(items, setCode, card) {
   const kept = [];
   let excludedCount = 0;
   for (const item of items) {
-    if (!isPsa10JapaneseCard(item, setCode, card)) continue;
+    if (!isPsa10JapaneseCardListing(item, setCode, card)) continue;
     if (isExcludedSeller(item)) {
       excludedCount += 1;
       continue;

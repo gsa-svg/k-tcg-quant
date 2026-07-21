@@ -160,7 +160,7 @@ for (const { code, set: s, card: c } of cands) {
     <script type="application/ld+json">${artLd}</script>
     <script type="application/ld+json">${faqLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
-    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../styles.css?v=20260721psahist" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .cardHero { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 6px; }
@@ -269,7 +269,7 @@ const hub = `<!doctype html>
     <meta property="og:url" content="${SITE}/cards/" />
     <meta property="og:image" content="${SITE}/og-image.png" />
     <script type="application/ld+json">${hubLd}</script>
-    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../styles.css?v=20260721psahist" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .cardGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 18px; }

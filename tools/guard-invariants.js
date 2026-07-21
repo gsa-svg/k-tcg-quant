@@ -32,8 +32,14 @@ const ver = (packsJs.match(/DATA_VERSION = "([^"]+)"/) || [])[1];
 if (!ver) errors.push("V1: packs.js에서 DATA_VERSION을 찾지 못함");
 else {
   for (const f of PUBLIC_HTML) {
-    for (const m of read(f).matchAll(/\?v=([0-9a-z]+)/g)) {
+    const html = read(f);
+    for (const m of html.matchAll(/\?v=([0-9a-z]+)/g)) {
       if (m[1] !== ver) { errors.push(`V1: ${f} 의 ?v=${m[1]} ≠ DATA_VERSION ${ver} (동시 범프 안 됨)`); break; }
+    }
+    // V1b: styles.css·packs.js 참조에 ?v= 가 아예 없으면 캐시버스팅 사각지대 — 배포 직후 최대 10분 stale.
+    // (2026-07-21 감사: 48개 페이지가 무버전 참조였고 V1 이 무버전을 통과시키는 구조적 구멍이었다)
+    for (const m of html.matchAll(/(?:href|src)="[^"]*(styles\.css|packs\.js)"/g)) {
+      errors.push(`V1: ${f} 의 ${m[1]} 참조에 ?v= 누락 — 캐시버스팅 사각지대`);
     }
   }
 }
