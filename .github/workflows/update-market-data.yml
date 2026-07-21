@@ -111,6 +111,7 @@ jobs:
       - name: Regenerate SEO pages with fresh market data
         run: |
           set -o pipefail
+          node tools/compact-series.js 2>&1 | tee logs/compact-series.log
           node tools/build-market-index.js 2>&1 | tee logs/build-market-index.log
           node tools/generate-market-page.js 2>&1 | tee logs/generate-market-page.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log

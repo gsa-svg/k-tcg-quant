@@ -3,7 +3,7 @@
 // 카드별 시세 이력 축적: 각 카드의 NM(일본판)·PSA10 Sold 중간값을 KRW로 정규화해
 // card.series.points 에 "값이 바뀐 날만" append (박스 update-box-series-history.js 자매 스크립트).
 // - 값이 전 포인트와 동일하면 스킵 → 파일 비대화 방지 (NM/PSA10은 주간 갱신이라 매일 돌려도 주 1회만 기록됨).
-// - 180일 초과 포인트는 잘라냄.
+// - 보존은 compact-series.js 가 담당(다년 티어링). 여기 컷은 런어웨이 백스톱일 뿐.
 // Run: node tools/update-card-series-history.js
 
 const fs = require("node:fs");
@@ -11,7 +11,8 @@ const path = require("node:path");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
-const historyDays = 180;
+// 과거 180 이면 compact 가 티어링하기 전에 오래된 점을 지워 다년 카드 이력이 안 쌓였다 — 2026-07-21 감사.
+const historyDays = 3650;
 
 function marketKrw(value, currency, fx) {
   if (!Number.isFinite(value)) return null;

@@ -5,7 +5,9 @@ const path = require("node:path");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
-const historyDays = 180;
+// 런어웨이 백스톱일 뿐, 실보존은 compact-series.js 가 담당한다(최근120일 일단위+주단위+월단위 다년 보존).
+// 과거 180 이면 compact 가 티어링하기 전에 오래된 점을 지워 다년 이력이 쌓이지 않았다 — 2026-07-21 감사.
+const historyDays = 3650;
 
 function marketKrw(value, currency, fx) {
   if (!Number.isFinite(value)) return null;
