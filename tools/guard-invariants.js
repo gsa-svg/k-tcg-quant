@@ -101,6 +101,31 @@ for (const [k, kind] of Object.entries(manifest)) {
   if (kind === "wm" && !/Weekly ungraded/i.test(src)) errors.push(`D1: ${code}.${key}.source="${src}" — wm 시리즈가 덮어써짐(eBay 스냅샷은 ${key}Ebay로 가야 함)`);
 }
 
+// D3. Full-set PSA imports must remain complete and internally consistent.
+// This prevents the legacy chase-card subset from silently replacing set totals.
+if (!exists("data/gemrate-psa-history.json")) errors.push("D3: verified full-set PSA history source missing");
+else {
+  const verifiedPsa = JSON.parse(read("data/gemrate-psa-history.json"));
+  const codes = [...(data.jp?.list || []), ...(data.extra?.list || [])];
+  const weeklyThrough = verifiedPsa.weeklyThrough;
+  for (const code of codes) {
+    const sourceSet = verifiedPsa.sets?.[code];
+    const liveSet = data.sets?.[code];
+    const full = liveSet?.psaFull;
+    const points = liveSet?.psaWeekly?.points;
+    if (!sourceSet || !full) { errors.push(`D3: ${code} full-set PSA source or live data missing`); continue; }
+    if (full.total !== sourceSet.latest?.totalGrades || full.gems !== sourceSet.latest?.totalGems) {
+      errors.push(`D3: ${code} full-set PSA totals differ from verified source`);
+    }
+    if (!Array.isArray(points) || points.length < 4 || points.at(-1)?.d !== weeklyThrough) {
+      errors.push(`D3: ${code} weekly PSA graph does not reach ${weeklyThrough}`);
+    }
+    if (points?.some((point) => !Number.isFinite(point.v) || point.v < 0)) {
+      errors.push(`D3: ${code} weekly PSA graph contains an invalid value`);
+    }
+  }
+}
+
 // ── D2. 마켓 인덱스 정합성(build-market-index.js 산출) — 이상값이면 배포 차단
 {
   const mi = data.marketIndex;
@@ -368,4 +393,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "T2", "P1", "W1", "X1"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "S1", "S2", "F1", "H1", "L1", "I1", "R1", "T1", "T2", "P1", "W1", "X1"] }));

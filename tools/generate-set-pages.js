@@ -94,7 +94,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "" }) {
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=20260720d" />
+    <link rel="stylesheet" href="../styles.css?v=20260721psa" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -169,7 +169,8 @@ function liveWidget(code) {
               if (lo != null && hi != null) meta.push("Range $" + Math.round(lo).toLocaleString("en-US") + " – $" + Math.round(hi).toLocaleString("en-US"));
               if (m.sampleSize) meta.push(m.sampleSize + " listings");
               meta.push("Updated " + (m.updated || d.updated || ""));
-              if (s.psaGem != null) meta.push("Set PSA10 rate " + s.psaGem + "%");
+              var fullRate = s.psaFull && s.psaFull.gemRate != null ? s.psaFull.gemRate : s.psaGem;
+              if (fullRate != null) meta.push("Full-set PSA10 rate " + fullRate + "%");
               document.getElementById("lpMeta").textContent = meta.join(" · ");
               document.getElementById("livePrice").hidden = false;
             })
@@ -238,6 +239,10 @@ function productLd(code, nameEn, s) {
 
 function setPage(code, prev, next) {
   const s = data.sets[code];
+  // Full-set GemRate totals are the canonical set-level PSA figures. The legacy
+  // psaGem/psaTotal fields only summarize the tracked chase-card subset.
+  const fullPsaRate = s.psaFull?.gemRate ?? s.psaGem;
+  const fullPsaTotal = s.psaFull?.total ?? s.psaTotal;
   const nameEn = s.nameEn || code;
   const cards = (s.cards || []).slice(0, 10);
   const top3 = cards.slice(0, 3).map((c) => c.name).join(", ");
@@ -263,7 +268,7 @@ function setPage(code, prev, next) {
   const summaryBits = [];
   if (s.release) summaryBits.push(`EN release <b>${esc(monthYear(s.release))}</b>`);
   if (s.cardCount) summaryBits.push(`<b>${esc(String(s.cardCount))}</b> cards`);
-  if (s.psaGem != null) summaryBits.push(`PSA 10 gem rate <b>${esc(String(s.psaGem))}%</b>${s.psaTotal ? ` (${intl(s.psaTotal)} graded)` : ""}`);
+  if (fullPsaRate != null) summaryBits.push(`Full-set PSA 10 gem rate <b>${esc(String(fullPsaRate))}%</b>${fullPsaTotal ? ` (${intl(fullPsaTotal)} graded)` : ""}`);
   const summaryLine = summaryBits.length ? `<p class="dataSummary">${summaryBits.join(" · ")}</p>` : "";
 
   // 박스 시세 구워넣기 (날짜 명시 · 매일 재생성으로 최신 유지)
@@ -278,12 +283,12 @@ function setPage(code, prev, next) {
   const top = cards[0], tp = top ? cardPrices(top) : {};
   const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
   const soldCount = cards.filter((c) => c.psa10Ebay && c.psa10Ebay.soldBased).length;
-  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}. ${soldCount > 1 ? `${soldCount} of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. ` : ""}${s.psaGem != null ? `Across ${code}, cards grade PSA 10 (gem mint) about <strong>${s.psaGem}%</strong> of the time${s.psaTotal ? ` out of ${intl(s.psaTotal)} graded` : ""} — ${s.psaGem >= 85 ? "a high gem rate, which tends to keep the graded-vs-raw premium modest" : "a moderate gem rate, which keeps clean PSA 10 copies scarce and their premium wide"}.` : ""}` : "";
+  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}. ${soldCount > 1 ? `${soldCount} of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. ` : ""}${fullPsaRate != null ? `Across the full ${code} set, cards grade PSA 10 (gem mint) about <strong>${fullPsaRate}%</strong> of the time${fullPsaTotal ? ` out of ${intl(fullPsaTotal)} graded` : ""} — ${fullPsaRate >= 85 ? "a high gem rate, which tends to keep the graded-vs-raw premium modest" : "a moderate gem rate, which keeps clean PSA 10 copies scarce and their premium wide"}.` : ""}` : "";
 
   // PSA 섹션
-  const psaSection = s.psaGem != null ? `
+  const psaSection = fullPsaRate != null ? `
       <h2>${code} PSA 10 grading data</h2>
-      <p>${code} ${esc(nameEn)} cards achieve <strong>PSA 10 (gem mint) roughly ${s.psaGem}%</strong> of the time${s.psaTotal ? `, across ${intl(s.psaTotal)} PSA-graded cards` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity. Read the <a href="../articles/one-piece-card-price-guide.html">One Piece card price guide</a>, then see the <a href="../psa10-ranking.html">most valuable One Piece PSA 10 cards</a> across all sets.</p>` : "";
+      <p>Across the full ${code} ${esc(nameEn)} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10${fullPsaTotal ? `, across ${intl(fullPsaTotal)} total grades` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity. Read the <a href="../articles/one-piece-card-price-guide.html">One Piece card price guide</a>, then see the <a href="../psa10-ranking.html">most valuable One Piece PSA 10 cards</a> across all sets.</p>` : "";
 
   // 6개월 박스 시세 궤적 (세트별 고유 수치 — boxSeries 주간 시리즈 기반)
   let trajectory = "";
@@ -341,8 +346,8 @@ function setPage(code, prev, next) {
           ? ` The chase math is lottery-shaped: the top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so a box's expected value concentrates in a few low-odds hits.`
           : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price — value here is spread across the top-10 table rather than one jackpot card.`)
         : "";
-      const gemRead = s.psaGem != null
-        ? ` On the grading side, the set's ${s.psaGem}% PSA 10 gem rate ${s.psaGem >= 85 ? "keeps graded supply plentiful — raw chase copies, not slabs, carry the scarcity" : "keeps true gem copies scarce, supporting graded premiums"}.`
+      const gemRead = fullPsaRate != null
+        ? ` On the grading side, the full set's ${fullPsaRate}% PSA 10 gem rate ${fullPsaRate >= 85 ? "keeps graded supply plentiful — raw chase copies, not slabs, carry the scarcity" : "keeps true gem copies scarce, supporting graded premiums"}.`
         : "";
       verdict = `
       <h2>Is ${/^[OE]/.test(code) ? "an" : "a"} ${code} booster box worth buying? (${esc(nowLabel)})</h2>
@@ -402,7 +407,7 @@ function setPage(code, prev, next) {
       const tf = cardPrices(cards[0]);
       if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}` : ""}.`);
     }
-    if (s.psaGem != null && s.psaTotal) facts.push(`${code} cards grade PSA 10 about <strong>${s.psaGem}%</strong> of the time, across ${intl(s.psaTotal)} PSA-graded cards.`);
+    if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
     if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);
     if (facts.length >= 2) keyFacts = `
       <section id="key-facts" aria-label="Key facts">
@@ -565,7 +570,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css?v=20260720d" />
+    <link rel="stylesheet" href="styles.css?v=20260721psa" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }

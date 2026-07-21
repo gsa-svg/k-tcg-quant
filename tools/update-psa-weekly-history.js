@@ -40,7 +40,7 @@ function readCumulativeSnapshot(data) {
   const date = [...dates][0];
   return {
     date,
-    source: "Verified PSA population cumulative totals",
+    source: "Verified full-set PSA population cumulative totals",
     total: Object.values(sets).reduce((sum, value) => sum + value, 0),
     sets,
   };
@@ -58,8 +58,9 @@ function applySnapshot(data, archive, current) {
 
   const previous = snapshots.at(-1);
   const nextArchive = {
-    version: 1,
-    note: "Verified cumulative PSA population snapshots. Weekly bars are calculated only from consecutive 6-8 day snapshots.",
+    version: archive.version || 1,
+    basis: archive.basis || "verified-full-set-psa-population",
+    note: archive.note || "Verified full-set cumulative PSA population snapshots. Weekly bars are calculated only from consecutive 6-8 day snapshots.",
     snapshots: [...snapshots, current].sort((a, b) => a.date.localeCompare(b.date)).slice(-historyWeeks),
   };
 
@@ -95,7 +96,7 @@ function applySnapshot(data, archive, current) {
     if (!Number.isInteger(previousTotal)) {
       set.psaWeekly = {
         ...weekly,
-        source: "Verified PSA population weekly deltas",
+        source: "Verified full-set PSA population weekly deltas",
         updated: current.date,
         allTimeTotal: total,
         points,
@@ -108,7 +109,7 @@ function applySnapshot(data, archive, current) {
 
     set.psaWeekly = {
       ...weekly,
-      source: "Verified PSA population weekly deltas",
+      source: "Verified full-set PSA population weekly deltas",
       updated: current.date,
       allTimeTotal: total,
       points: [...points.filter((point) => point.d !== current.date), { d: current.date, v: delta }]

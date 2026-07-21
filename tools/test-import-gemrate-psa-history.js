@@ -1,0 +1,45 @@
+#!/usr/bin/env node
+
+const assert = require("node:assert/strict");
+const { applyGemRateHistory } = require("./import-gemrate-psa-history");
+
+function sourceSet(totalGrades, totalGems) {
+  return {
+    url: "https://www.gemrate.com/set-population-trend?grader=psa&year=2026&category=tcg-cards&set_name=fixture",
+    latest: { date: "2026-07-20", totalGrades, totalGems },
+    weekly: [
+      { d: "2026-06-24", grades: 10, gems: 8 },
+      { d: "2026-07-01", grades: 12, gems: 10 },
+      { d: "2026-07-08", grades: 14, gems: 11 },
+      { d: "2026-07-15", grades: 16, gems: 13 },
+    ],
+  };
+}
+
+const data = {
+  jp: { list: ["OP-01"] },
+  extra: { list: ["EB-01"] },
+  sets: { "OP-01": {}, "EB-01": {} },
+};
+const source = {
+  collectedAt: "2026-07-20",
+  weeklyThrough: "2026-07-15",
+  sets: {
+    "OP-01": sourceSet(100, 90),
+    "EB-01": sourceSet(50, 40),
+  },
+};
+
+const snapshot = applyGemRateHistory(data, source);
+assert.equal(snapshot.total, 150);
+assert.equal(data.sets["OP-01"].psaFull.total, 100);
+assert.equal(data.sets["OP-01"].psaFull.gems, 90);
+assert.equal(data.sets["OP-01"].psaFull.gemRate, 90);
+assert.equal(data.sets["OP-01"].psaFull.opAvg, 86.7);
+assert.deepEqual(data.sets["OP-01"].psaWeekly.points.at(-1), { d: "2026-07-15", v: 16 });
+assert.throws(
+  () => applyGemRateHistory({ ...data, jp: { list: ["OP-01", "OP-02"] } }, source),
+  /coverage mismatch/,
+);
+
+console.log("GemRate PSA history import tests passed");

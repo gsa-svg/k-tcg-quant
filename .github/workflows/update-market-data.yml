@@ -41,6 +41,7 @@ jobs:
           node --check tools/update-ebay-japanese-nm-sold-prices.js
           node --check tools/update-box-series-history.js
           node --check tools/update-psa-weekly-history.js
+          node --check tools/import-gemrate-psa-history.js
           node --check tools/audit-price-quality.js
           node --check tools/audit-active-listings.js
           node --check tools/build-market-index.js
@@ -55,6 +56,7 @@ jobs:
           node tools/test-price-outliers.js
           node tools/test-price-quality-audit.js
           node tools/test-update-psa-weekly-history.js
+          node tools/test-import-gemrate-psa-history.js
           node tools/audit-seo.js
           node tools/audit-ai-discovery.js
 

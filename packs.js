@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260720d";
+const DATA_VERSION = "20260721psa";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1021,7 +1021,8 @@ function renderPsaWeeklyChart(weekly) {
   if (pts.length < 2) return "";
   const W = 600, H = 178, padL = 30, padR = 10, padT = 16, padB = 26;
   const maxV = Math.max(...pts.map((p) => p.v));
-  const niceMax = Math.max(1000, Math.ceil(maxV / 1000) * 1000);
+  const scaleStep = maxV <= 100 ? 10 : maxV <= 1000 ? 100 : 1000;
+  const niceMax = Math.max(scaleStep, Math.ceil(maxV / scaleStep) * scaleStep);
   const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.max(2, step * 0.78), baseY = H - padB;
   const sy = (v) => padT + (1 - v / niceMax) * (H - padT - padB);
   let grid = "";
@@ -1069,10 +1070,11 @@ function renderPsaDestruction(set) {
   const rows = set.psa || [];
   if (!rows.length && set.psaTotal == null && !set.psaFull) return "";
   const gem = set.psaGem, total = set.psaTotal, full = set.psaFull, updated = (set.psaFull && set.psaFull.updated) || set.psaUpdated || "";
+  const fullGems = full ? (full.gems != null ? full.gems : full.gem10) : null;
   const body = rows.map((r) => `<tr><td class="pdName">${r.name} <em>#${r.number}</em></td><td><span class="pdRar">${psaRarShort(r.rarity)}</span></td><td class="pdNum">${num(r.psa10)}</td><td class="pdNum pdMut">${num(r.psa9)}</td><td class="pdNum">${num(r.total)}</td><td class="pdGem">${r.gem}%</td></tr>`).join("");
   return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사 · 세트 전체", "Population via PSA · full set")}${updated ? ` · ${updated}` : ""}</small></div>
-    <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("Top 10 PSA 10", "Top 10 · PSA 10")}</span><b class="pdGemBig">${full ? num(full.gem10) : "-"}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("상위 10장 젬민트 수", "top-10 gem count")}</small></div><div class="pdStat"><span>${t("Top 10 젬 확률", "Top 10 · Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("PSA 10 나올 확률", "chance of PSA 10")}${full && full.opAvg != null ? ` · ${t("OP평균", "OP avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
-    <p class="note" style="margin:7px 0 2px;">${t(`세트 전체는 <b>${full ? num(full.total) : "-"}장</b> 등급됐고, 그중 대표 <b>상위 10장</b>은 <b>${full ? full.gemRate : "-"}%</b> 확률로 PSA 10이 나와요. 아래 막대는 우리가 주별로 모은 등급 추이예요.`, `The whole set has <b>${full ? num(full.total) : "-"}</b> graded; the <b>top 10 cards</b> hit PSA 10 about <b>${full ? full.gemRate : "-"}%</b> of the time. The bars below are our week-by-week trend.`)}</p>
+    <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
+    <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다. 아래 막대는 같은 전체 세트 기준의 주별 신규 등급 수예요.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10. The bars use the same full-set basis for weekly new grades.`)}</p>
     ${renderPsaWeeklyChart(set.psaWeekly)}
     ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")}</th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
     <p class="note">${t("아래 Top 10 표는 각 카드가 PSA 등급 받은 수(그레이드 기준)이고, 위 막대는 주별 신규 등급 수입니다. 등급이 늘수록 미개봉 박스가 개봉·파괴된 것 — 미개봉 공급 감소 신호.", "The Top 10 table shows how many of each card were PSA-graded; the bars are new grades per week. More grading means more sealed boxes opened — a proxy for shrinking sealed supply.")}</p></div>`;
@@ -1651,7 +1653,9 @@ function renderDetail() {
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>` + renderHitList(cards);
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`세트 평균 PSA10 비율 ${set.psaGem ?? "-"}% · 누적 ${num(set.psaTotal)}장`, `Set average PSA10 rate ${set.psaGem ?? "-"}% · ${num(set.psaTotal)} graded total`)}</p>` : ""}</div></div>${body}`;
+  const fullPsaRate = set.psaFull?.gemRate ?? set.psaGem ?? "-";
+  const fullPsaTotal = set.psaFull?.total ?? set.psaTotal;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();
