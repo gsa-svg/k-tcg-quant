@@ -164,6 +164,13 @@
       .introMore[open] summary::before { transform: rotate(90deg); }
       .introMore[open] summary { margin-bottom: 6px; }
 
+      /* 홈 하단 긴 섹션 접기 — 내용은 DOM 유지(SEO/AI 그대로), 화면만 짧게 */
+      .homeCollapse > summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; }
+      .homeCollapse > summary::-webkit-details-marker { display: none; }
+      .homeCollapse > summary::before { content: "▸"; color: var(--accent); transition: transform .15s ease; }
+      .homeCollapse[open] > summary::before { transform: rotate(90deg); }
+      .homeCollapse > summary h2, .homeCollapse > summary h3 { margin: 0; display: inline; }
+
       .langTabs {
         display: flex; flex-wrap: wrap; gap: 8px; margin: 16px clamp(16px,4vw,52px) 0;
         position: sticky; top: 64px; z-index: 12; padding: 8px 0;
@@ -1182,12 +1189,14 @@
           <p class="note">Updated 2026-07-20 · FX ₩1548.63/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="market.html">Market index</a> · <a href="ko/">한국어 시세</a></p>
         </section>
         <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
-          <h2>One Piece booster box prices — common questions</h2>
+          <details class="homeCollapse">
+          <summary><h2>One Piece booster box prices — common questions</h2></summary>
           <details class="homeFaq"><summary>How much is a One Piece booster box?</summary><p>Sealed Japanese One Piece booster boxes currently range from about $73 (OP-12 Legacy of the Master) to $313 (OP-01 Romance Dawn), as of 2026-07-20. Prices come from real completed sales and verified active listings, updated daily. The table above lists all 21 sets.</p></details>
           <details class="homeFaq"><summary>Which One Piece booster box is the most valuable?</summary><p>OP-01 Romance Dawn is the most expensive sealed Japanese box we track at about $313. Measured against original Japanese retail price, OP-01 trades at roughly 10.7x its launch MSRP.</p></details>
           <details class="homeFaq"><summary>Are One Piece booster boxes going up or down in price?</summary><p>The OPBOX Index — an equal-weight index of 18 Japanese booster boxes based to 100 on January 7, 2026 — is at 157.4, up 57.4% since January and up 0% over the past week. Individual sets move differently; see the change column above.</p></details>
           <details class="homeFaq"><summary>Is a One Piece booster box worth buying sealed?</summary><p>It depends on the set. Sets trading at a high multiple of their original retail price have already priced in scarcity, while recently released sets are closer to MSRP. We publish each set's current price, its change since we began tracking it, and its multiple versus the original Japanese MSRP so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.</p></details>
           <details class="homeFaq"><summary>Where can I check One Piece card and booster box prices for free?</summary><p>This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and the market index, or download the full per-set dataset as a CSV under a CC BY 4.0 licence at /free-data.html.</p></details>
+          </details>
         </section>
         <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much is a One Piece booster box?","acceptedAnswer":{"@type":"Answer","text":"Sealed Japanese One Piece booster boxes currently range from about $73 (OP-12 Legacy of the Master) to $313 (OP-01 Romance Dawn), as of 2026-07-20. Prices come from real completed sales and verified active listings, updated daily. The table above lists all 21 sets."}},{"@type":"Question","name":"Which One Piece booster box is the most valuable?","acceptedAnswer":{"@type":"Answer","text":"OP-01 Romance Dawn is the most expensive sealed Japanese box we track at about $313. Measured against original Japanese retail price, OP-01 trades at roughly 10.7x its launch MSRP."}},{"@type":"Question","name":"Are One Piece booster boxes going up or down in price?","acceptedAnswer":{"@type":"Answer","text":"The OPBOX Index — an equal-weight index of 18 Japanese booster boxes based to 100 on January 7, 2026 — is at 157.4, up 57.4% since January and up 0% over the past week. Individual sets move differently; see the change column above."}},{"@type":"Question","name":"Is a One Piece booster box worth buying sealed?","acceptedAnswer":{"@type":"Answer","text":"It depends on the set. Sets trading at a high multiple of their original retail price have already priced in scarcity, while recently released sets are closer to MSRP. We publish each set's current price, its change since we began tracking it, and its multiple versus the original Japanese MSRP so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices."}},{"@type":"Question","name":"Where can I check One Piece card and booster box prices for free?","acceptedAnswer":{"@type":"Answer","text":"This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and the market index, or download the full per-set dataset as a CSV under a CC BY 4.0 licence at /free-data.html."}}]}</script>
         <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece booster box prices (Japanese sets)","description":"Daily prices for 21 Japanese One Piece Card Game booster boxes with change since tracking start, original MSRP multiple, reprint records and PSA population.","url":"https://opboxindex.com/free-data.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-07-20","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-set-prices.csv"}]}</script>
@@ -1245,7 +1254,8 @@
       </section>
 
       <section class="seoPanel" aria-label="One Piece card price keywords">
-        <h2>One Piece card prices, PSA 10 prices and booster box market data</h2>
+        <details class="homeCollapse">
+        <summary><h2>One Piece card prices, PSA 10 prices and booster box market data</h2></summary>
         <p>
           Search by set to compare One Piece card prices with the booster box that contains them. OP Box Index is built for collectors researching Japanese One Piece booster box prices, PSA 10 chase-card prices, manga rare prices and eBay sold-price trends.
         </p>
@@ -1263,6 +1273,7 @@
             <p>Focus on Japanese One Piece Card Game boxes and cards first, with English prices used as comparison data where useful. See <a href="articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM card prices</a>.</p>
           </article>
         </div>
+        </details>
       </section>
     </main>
 

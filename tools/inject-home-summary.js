@@ -92,8 +92,10 @@ ${tr}
           <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="market.html">Market index</a> · <a href="ko/">한국어 시세</a></p>
         </section>
         <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
-          <h2>One Piece booster box prices — common questions</h2>
+          <details class="homeCollapse">
+          <summary><h2>One Piece booster box prices — common questions</h2></summary>
           ${faqHtml}
+          </details>
         </section>
         <script type="application/ld+json">${faqLd}</script>
         <script type="application/ld+json">${dsLd}</script>
