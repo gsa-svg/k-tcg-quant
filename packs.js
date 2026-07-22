@@ -174,15 +174,26 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260721psahist";
+const DATA_VERSION = "20260721e";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
 // 설치는 worker/SETUP.md 참고.
 const AUCTION_RELAY = "https://opbox-deals.gsa-834.workers.dev/";
 const AUCTION_REFRESH_MS = 90000;   // 재요청 간격. 중계기 캐시(60초)보다 길게 — 더 자주 불러도 같은 값이다.
-const AUCTION_TICK_MS = 30000;      // 남은시간 다시 그리는 주기(네트워크 없음)
-const auctionFeed = { data: null, at: 0, timer: null, bound: false };
+const AUCTION_TICK_MS = 30000;      // 목록 재정렬·종료건 제거 주기(네트워크 없음)
+const AUCTION_SEC_MS = 1000;        // 카운트다운 초 갱신(텍스트만, 네트워크 없음)
+const auctionFeed = { data: null, at: 0, timer: null, tick: null, bound: false };
+
+// 경매 남은시간 — endsAt 으로 매초 재계산. 1시간 이상은 "1시간 23분", 미만은 MM:SS 로 째깍.
+function aucTimeLeft(endsAt) {
+  const ms = Date.parse(endsAt) - Date.now();
+  if (!(ms > 0)) return t("종료", "ended");
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  if (h > 0) return t(`${h}시간 ${m}분`, `${h}h ${m}m`);
+  return `${m}:${String(ss).padStart(2, "0")}`;
+}
 
 function withVersion(url) {
   return `${url}${url.includes("?") ? "&" : "?"}v=${DATA_VERSION}`;
@@ -1442,7 +1453,6 @@ function renderLiveAuctions() {
     if (!items.length) return hide();
 
     const money = (v, cur) => (v == null ? "—" : cur === "USD" ? `$${Math.round(v).toLocaleString("en-US")}` : `${Math.round(v).toLocaleString()} ${cur}`);
-    const left = (m) => (m >= 60 ? t(`${Math.floor(m / 60)}시간 ${m % 60}분`, `${Math.floor(m / 60)}h ${m % 60}m`) : t(`${m}분`, `${m}m`));
     const kindLabel = { box: t("박스", "Box"), pack: t("팩", "Pack"), card: t("카드", "Card") };
     const stamp = new Date(data.generatedAt).toLocaleTimeString(state.hl === "ko" ? "ko-KR" : "en-US", { hour: "2-digit", minute: "2-digit" });
 
@@ -1463,7 +1473,7 @@ function renderLiveAuctions() {
               <span class="aucBid">${money(it.currentBid, it.currency)}</span>
               <span class="aucSub">${it.contested
                 ? t(`입찰 ${it.bidCount}건`, `${it.bidCount} bid${it.bidCount === 1 ? "" : "s"}`)
-                : t("입찰 없음", "no bids yet")} · ${left(it.mins)}</span>
+                : t("입찰 없음", "no bids yet")} · <span class="aucTime" data-ends="${escapeHtml(it.endsAt)}">${aucTimeLeft(it.endsAt)}</span></span>
             </span>
           </a>
         </li>`).join("")}</ul>
@@ -1493,6 +1503,18 @@ function renderLiveAuctions() {
     if (Date.now() - auctionFeed.at >= AUCTION_REFRESH_MS) load();
     else if (auctionFeed.data) paint(auctionFeed.data);   // 종료된 건 여기서 목록에서 빠진다
   }, AUCTION_TICK_MS);
+
+  // 매초 카운트다운 — 남은시간 텍스트만 갱신(재렌더·네트워크 없이 저렴). 1분 미만은 빨갛게 강조.
+  clearInterval(auctionFeed.tick);
+  auctionFeed.tick = setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    el.querySelectorAll(".aucTime[data-ends]").forEach((sp) => {
+      const ends = sp.getAttribute("data-ends");
+      sp.textContent = aucTimeLeft(ends);
+      const ms = Date.parse(ends) - Date.now();
+      sp.classList.toggle("aucUrgent", ms > 0 && ms < 60000);
+    });
+  }, AUCTION_SEC_MS);
 
   // 다른 탭 갔다 돌아왔을 때 낡은 값을 그대로 보여주지 않도록 즉시 갱신
   if (!auctionFeed.bound) {
