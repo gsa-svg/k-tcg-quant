@@ -42,10 +42,25 @@ function collectorScript() {
   return `(async()=>{const PAGES=${JSON.stringify(pages)};const grab=async(u)=>{let html;try{html=await fetch(u,{credentials:'include'}).then(r=>r.text());}catch(e){return{robot:false,err:String(e),items:[]};}if(/Pardon our interruption|Checking your browser|captcha/i.test(html.slice(0,4000)))return{robot:true,items:[]};const doc=new DOMParser().parseFromString(html,'text/html');const out=[];for(const c of doc.querySelectorAll('.s-card,li.s-item')){const a=c.querySelector('a[href*="/itm/"]');const m=a&&(a.getAttribute('href')||'').match(/\\/itm\\/(\\d+)/);if(!m||m[1]==='123456')continue;const t=((c.querySelector('.su-styled-text.primary')||c.querySelector('.s-item__title'))?.textContent||'').replace(/New Listing/ig,'').trim();if(!/booster box/i.test(t))continue;const d=((c.querySelector('.s-card__caption,.s-item__caption'))?.textContent||'').trim();const pTxt=((c.querySelector('.s-card__price,.s-item__price'))?.textContent||'').trim();const p=pTxt.replace(/,/g,'').match(/([\\d.]+)/);if(!t||!d||!p)continue;out.push({id:m[1],t:t.slice(0,140),d:d.slice(0,32),k:parseFloat(p[1]),cur:/KRW|\\u20a9/.test(pTxt)?'KRW':/\\$/.test(pTxt)?'USD':'OTHER'});}return{robot:false,items:out};};const out={collectedAt:new Date().toISOString().slice(0,10),pages:[]};let robots=0;for(const pg of PAGES){const r=await grab(pg.url);if(r.robot)robots++;out.pages.push({code:pg.code,query:pg.query,items:r.items});await new Promise(z=>setTimeout(z,700));}out.robots=robots;out.totalItems=out.pages.reduce((a,p)=>a+p.items.length,0);return JSON.stringify(out);})()`;
 }
 
-module.exports = { rows, EXTRACTOR, collectorScript };
+// 배치 수집 셋업(--setup): 브라우저에 상태·헬퍼를 심는다. 42페이지를 한 번에 긁으면 CDP 45초
+// 타임아웃에 걸리므로, 10페이지씩 나눠 window.__opDump 에 누적한 뒤 파일로 내려받는다.
+// tool 반환값은 잘리므로(대용량 exfil 불가) 결과 전달은 반드시 Blob 다운로드로 한다.
+// 사용법(브라우저 javascript_tool):
+//   1) <setup 스크립트>            → 'ready'
+//   2) await window.__runBatch(0,10)  … (10,10) (20,10) (30,12) 순차           → 진행 요약
+//   3) window.__opDownload('opbox-box-sold-YYYY-MM-DD.json')                    → Downloads 에 저장
+// 그 뒤 노드에서 그 파일을 box-sold-ingest.js 에 투입.
+function setupScript() {
+  const codes = [...data.jp.list, ...data.extra.list].filter((c) => data.sets[c]);
+  return `(()=>{const CODES=${JSON.stringify(codes)};const q=s=>encodeURIComponent(s).replace(/%20/g,'+');const mk=kw=>'https://www.ebay.com/sch/i.html?_nkw='+q(kw)+'&LH_Sold=1&LH_Complete=1&_ipg=240&_sop=13';const P=[];for(const c of CODES){const prb=c.startsWith('PRB');P.push({code:c,query:'jp',url:mk(prb?'One Piece '+c+' Premium Booster box Japanese':'One Piece '+c+' booster box Japanese sealed')});P.push({code:c,query:'en',url:mk(prb?'One Piece '+c+' Premium Booster box':'One Piece '+c+' booster box')});}window.__PAGES=P;window.__opDump={collectedAt:new Date().toISOString().slice(0,10),pages:[]};window.__grab=async u=>{let h;try{h=await fetch(u,{credentials:'include'}).then(r=>r.text());}catch(e){return{robot:false,items:[]};}if(/Pardon our interruption|Checking your browser|captcha/i.test(h.slice(0,4000)))return{robot:true,items:[]};const doc=new DOMParser().parseFromString(h,'text/html');const out=[];for(const c of doc.querySelectorAll('.s-card,li.s-item')){const a=c.querySelector('a[href*="/itm/"]');const m=a&&(a.getAttribute('href')||'').match(/\\/itm\\/(\\d+)/);if(!m||m[1]==='123456')continue;const t=((c.querySelector('.su-styled-text.primary')||c.querySelector('.s-item__title'))?.textContent||'').replace(/New Listing/ig,'').trim();if(!/booster box/i.test(t))continue;const d=((c.querySelector('.s-card__caption,.s-item__caption'))?.textContent||'').trim();const pT=((c.querySelector('.s-card__price,.s-item__price'))?.textContent||'').trim();const p=pT.replace(/,/g,'').match(/([\\d.]+)/);if(!t||!d||!p)continue;out.push({id:m[1],t:t.slice(0,140),d:d.slice(0,32),k:parseFloat(p[1]),cur:/KRW|\\u20a9/.test(pT)?'KRW':/\\$/.test(pT)?'USD':'OTHER'});}return{robot:false,items:out};};window.__runBatch=async(s,n)=>{const e=Math.min(s+n,window.__PAGES.length);let rob=0;for(let i=s;i<e;i++){const pg=window.__PAGES[i];const r=await window.__grab(pg.url);if(r.robot)rob++;window.__opDump.pages.push({code:pg.code,query:pg.query,items:r.items});await new Promise(z=>setTimeout(z,550));}return JSON.stringify({done:window.__opDump.pages.length,of:window.__PAGES.length,robots:rob,items:window.__opDump.pages.reduce((a,p)=>a+p.items.length,0)});};window.__opDownload=fn=>{const seen=new Set(),uniq=[];for(const p of window.__opDump.pages){const k=p.code+'/'+p.query;if(seen.has(k))continue;seen.add(k);uniq.push(p);}const full=JSON.stringify({collectedAt:window.__opDump.collectedAt,pages:uniq});const b=new Blob([full],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return JSON.stringify({saved:fn,bytes:full.length,pages:uniq.length,items:uniq.reduce((x,p)=>x+p.items.length,0)});};return 'ready:'+window.__PAGES.length+' pages';})()`;
+}
+
+module.exports = { rows, EXTRACTOR, collectorScript, setupScript };
 
 if (require.main === module) {
-  if (process.argv.includes("--collector")) {
+  if (process.argv.includes("--setup")) {
+    console.log(setupScript());
+  } else if (process.argv.includes("--collector")) {
     console.log(collectorScript());
   } else if (process.argv.includes("--json")) {
     console.log(JSON.stringify({ rows, extractor: EXTRACTOR }, null, 1));
