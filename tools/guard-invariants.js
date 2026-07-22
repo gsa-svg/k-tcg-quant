@@ -179,6 +179,91 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── Q1. 다수량(lot) 개당가 규칙 — 2026-07-22. "3박스 낙찰 총액"이 1박스 가격으로 오염되지 않아야 한다.
+//    경매(tools/lot-quantity.js)와 브라우저 sold 수집(box-sold-urls.js 추출기)이 같은 규칙으로 동작하는지
+//    함정 제목(세트코드 13, 연도, 케이스, 복수형)까지 실제로 실행해 검증한다.
+{
+  const { parseLotQuantity } = require("./lot-quantity");
+  const lotCases = [
+    ["One Piece OP-13 Booster Box Japanese Sealed", "box", 1],        // 세트코드 13(하이픈)이 수량이면 안 됨
+    ["One Piece Card Game OP 13 Booster Box Japanese Sealed", "box", 1], // 공백형 OP 13 — 레드팀 확정 버그
+    ["One Piece OP 05 Booster Box English", "box", 1],                // 공백형 OP 05
+    ["ST 21 One Piece box sealed Japanese", "box", 1],               // 공백형 ST 21
+    ["One Piece Card Game OP05 Booster Box 2023", "box", 1],          // 연도가 수량으로 잡히면 안 됨
+    ["One Piece Romance Dawn OP-01 Japanese 1 Box", "box", 1],
+    ["One Piece OP-01 Booster Box - 24 Packs Japanese Sealed", "box", 1], // 박스가 담는 24팩 → 수량 아님
+    ["OP-13 booster box x3 Japanese", "box", 3],
+    ["3 Booster Boxes One Piece OP-08 Sealed", "box", 3],
+    ["ワンピースカードゲーム OP-13 2BOX 未開封", "box", 2],
+    ["Set of 2 One Piece PRB-01 Premium Booster Box", "box", 2],
+    ["One Piece Booster Boxes OP-09 Sealed Japanese", "box", null],   // 개수 없는 복수형 — 모름
+    ["One Piece OP-01 Booster Box Case Sealed", "box", null],         // 케이스 — 개수 불명
+    ["One Piece OP-13 Sealed Case 12 boxes", "box", 12],              // 개수 명시된 케이스는 나눔
+    ["10 Booster Packs One Piece OP-05 Japanese", "pack", 10],        // 팩 묶음 — 레드팀 확정 버그
+    ["3 Packs One Piece Card Game OP-08 Sealed", "pack", 3],
+    ["One Piece OP-09 Booster Packs Japanese", "pack", null],         // 개수 없는 팩 복수형 — 모름
+    ["Monkey D Luffy OP01-003 Alt Art x4", "card", 4],
+    ["One Piece card lot 50+ cards", "card", null],
+    ["Shanks OP01-120 Manga Alt Art PSA 10", "card", 1],
+  ];
+  for (const [title, kind, want] of lotCases) {
+    const got = parseLotQuantity(title, kind);
+    if (got !== want) errors.push(`Q1: lot-quantity "${title}" → ${JSON.stringify(got)} (기대 ${JSON.stringify(want)})`);
+  }
+
+  // sold 원장 판정(box-sold-ingest.judgeItem)도 같은 규칙인지 — 함정 케이스를 실제 실행해 확인.
+  try {
+    const { judgeItem } = require("./box-sold-ingest");
+    const R = data.fx.usdKrw;
+    const it = (t, k, cur, d) => ({ id: "1", t, k, cur: cur || "KRW", d: d || "Sold  Jul 20, 2026" });
+    const ingestCases = [
+      // [항목, 기대: rec.unit(USD, ±0.01) 또는 drop 이유 문자열, 기대 에디션]
+      [it("One Piece OP-13 Booster Box Japanese Sealed", 200000), 200000 / R, "jp"],
+      [it("One Piece Card Game OP-13 Booster Box Japanese Sealed", 200000), 200000 / R, "jp"], // "Card Game" 박스 유지
+      [it("One Piece OP-13 Booster Box - 24 Packs Japanese Sealed", 250000), 250000 / R, "jp"], // "24 Packs" 박스 유지
+      [it("OP-13 booster box Japanese x2", 380000), 190000 / R, "jp"],                       // 개당가 나눔
+      [it("3 Booster Boxes OP-13 Japanese Sealed", 540000), 180000 / R, "jp"],
+      [it("One Piece OP-13 Booster Box English Sealed", 210, "USD"), 210, "en"],             // USD 표기
+      [it("One Piece OP-13 Booster Boxes Japanese", 500000), "uncountable-lot"],             // 개수 불명 복수형
+      [it("One Piece OP-13 Booster Box Case Japanese", 2000000), "bad-word"],                // 케이스
+      [it("Sleeved Boosters Double Pack Set (OP 13,14,16) Japanese", 385240), "not-booster-box"],
+      [it("One Piece OP-13 OP-14 Booster Box Japanese", 400000), "cross-set"],               // 멀티세트
+      [it("One Piece OP-13 Booster Box Sealed", 200000), "no-language"],                     // 언어 미표기
+      [it("One Piece OP-13 Booster Box Japanese", 50000), "price-out-of-range"],             // 팩 가격대
+      [it("One Piece OP-13 Booster Box Japanese", 200000, "KRW", "no date here"), "bad-date"],
+    ];
+    for (const [item, want, wantEd] of ingestCases) {
+      const r = judgeItem(item, "OP-13", R);
+      if (typeof want === "string") {
+        if (r.drop !== want) errors.push(`Q1: ingest "${item.t}" → ${r.drop || "통과"} (기대 drop ${want})`);
+      } else if (!r.rec || Math.abs(r.rec.unit - want) > 0.01 || r.ed !== wantEd) {
+        errors.push(`Q1: ingest "${item.t}" → ${JSON.stringify(r.rec ? { unit: r.rec.unit, ed: r.ed } : r)} (기대 unit ${want.toFixed(2)} ed ${wantEd})`);
+      }
+    }
+  } catch (e) {
+    errors.push(`Q1: ingest 판정 실행 실패 — ${e.message}`);
+  }
+}
+
+// ── D6. 박스 SOLD 원장(ledger) 무결성 — 판매 1건=1레코드, append-only 저장소.
+//    id 중복(이중 계상), 단가/수량 이상, 날짜 형식 오류가 들어오면 주간 집계 전체가 오염된다.
+if (exists("data/box-sold-ledger.json")) {
+  const lg = JSON.parse(read("data/box-sold-ledger.json"));
+  if (!/append-only|never modified/i.test(lg.note || "")) errors.push("D6: ledger note 에 append-only 고지 누락");
+  const ids = new Set();
+  for (const [code, eds] of Object.entries(lg.sets || {})) {
+    for (const ed of ["jp", "en"]) {
+      for (const r of (eds || {})[ed] || []) {
+        if (!r.id || ids.has(r.id)) { errors.push(`D6: ${code}.${ed} id 누락/중복 (${r.id})`); break; }
+        ids.add(r.id);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(r.d || "")) { errors.push(`D6: ${code}.${ed} ${r.id} 날짜 형식 이상 (${r.d})`); break; }
+        if (!(Number.isFinite(r.unit) && r.unit > 0 && r.unit <= 5000)) { errors.push(`D6: ${code}.${ed} ${r.id} unit 이상 (${r.unit})`); break; }
+        if (!(Number.isInteger(r.qty) && r.qty >= 1 && r.qty <= 24)) { errors.push(`D6: ${code}.${ed} ${r.id} qty 이상 (${r.qty})`); break; }
+      }
+    }
+  }
+}
+
 // ── D2. 마켓 인덱스 정합성(build-market-index.js 산출) — 이상값이면 배포 차단
 {
   const mi = data.marketIndex;
@@ -522,4 +607,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "Q1", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));

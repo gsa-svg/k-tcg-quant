@@ -18,6 +18,7 @@
 // Run: node tools/settle-auctions.js
 const fs = require("fs");
 const path = require("path");
+const { parseLotQuantity, unitPrice } = require("./lot-quantity");
 
 const ROOT = path.join(__dirname, "..");
 const watchPath = path.join(ROOT, "data", "auction-watch.json");
@@ -99,14 +100,26 @@ const med = (a) => {
       ? Math.round((Date.parse(j.itemEndDate) - Date.parse(j.itemCreationDate)) / 86400000)
       : null;
 
+    // 다수량(lot) 처리: "3 boxes"/"x2" 는 개수로 나눠 개당가를 만들고, case/lot 처럼 개수를
+    // 셀 수 없으면 qty=null → 개당가 없음(가격 통계에서 제외). 3박스 낙찰 총액이 1박스
+    // 가격으로 섞이는 오염을 막는다. 제목도 남겨 나중에 재검증할 수 있게 한다.
+    const qty = parseLotQuantity(j.title || "", w.kind);
+    const total = Number.isFinite(price) && sold !== false ? Number(price.toFixed(2)) : null;
+    // 판(에디션): 제목에 명시된 경우만. 없으면 null — 추측하지 않는다. (JP/EN 분리 집계용)
+    const ed = /english|\beng\b/i.test(j.title || "") ? "en" : /japanese|japan\b/i.test(j.title || "") ? "jp" : null;
+
     settled.push({
       d: new Date(Date.parse(w.endsAt)).toISOString().slice(0, 10),
       id: w.id,
       kind: w.kind,
       set: w.set,
       cardId: w.cardId,
+      ed,
+      title: j.title || "",
       sold,
-      price: Number.isFinite(price) && sold !== false ? Number(price.toFixed(2)) : null,
+      price: total,
+      qty,
+      unitPrice: qty != null && total != null ? unitPrice(total, qty) : null,
       currency: j.currentBidPrice?.currency || j.price?.currency || "USD",
       srcCurrency: j.currentBidPrice?.convertedFromCurrency || null,
       bids,
@@ -136,15 +149,18 @@ const med = (a) => {
 
   // ── 일별 집계 재계산 (개별 기록에서 다시 만든다 — 집계와 원본이 어긋날 여지를 없앤다)
   const days = [...new Set(out.sales.map((s) => s.d))];
+  // 가격 집계는 "개당가" 기준. qty 필드가 있는 새 기록은 unitPrice(수량 모름이면 null→제외),
+  // qty 필드가 없는 과거 기록은 종전대로 price 를 쓴다(45일 롤링이라 자연 소멸).
+  const perUnit = (r) => ("qty" in r ? r.unitPrice : r.price);
   const agg = (rows) => {
-    const soldRows = rows.filter((r) => r.sold === true && Number.isFinite(r.price));
+    const soldRows = rows.filter((r) => r.sold === true && Number.isFinite(perUnit(r)));
     const decided = rows.filter((r) => r.sold !== null);      // 팔림/유찰이 확정된 것만 낙찰률 분모
     return {
       n: rows.length,
-      sold: soldRows.length,
+      sold: rows.filter((r) => r.sold === true).length,
       sellThrough: decided.length ? Number((decided.filter((r) => r.sold).length / decided.length * 100).toFixed(1)) : null,
-      medPrice: med(soldRows.map((r) => r.price)),
-      maxPrice: soldRows.length ? Math.max(...soldRows.map((r) => r.price)) : null,
+      medPrice: med(soldRows.map(perUnit)),
+      maxPrice: soldRows.length ? Math.max(...soldRows.map(perUnit)) : null,
       medBids: med(soldRows.map((r) => r.bids)),
     };
   };
@@ -160,6 +176,8 @@ const med = (a) => {
       d,
       ...agg(rows),
       byKind: Object.fromEntries(["box", "pack", "card"].map((k) => [k, agg(rows.filter((r) => r.kind === k))])),
+      // 박스는 판(JP/EN)별로도 집계 — 제목에 판 표기가 있는 것만(ed null 은 어느 쪽에도 안 넣음).
+      boxByEd: Object.fromEntries(["jp", "en"].map((e) => [e, agg(rows.filter((r) => r.kind === "box" && r.ed === e))])),
       bySet,
     };
   });
@@ -167,7 +185,7 @@ const med = (a) => {
   const priorDaily = (out.daily || []).filter((p) => p.d >= cutDaily && !days.includes(p.d));
   out.daily = [...priorDaily, ...daily].sort((a, b) => a.d.localeCompare(b.d));
 
-  out.note = "Completed eBay auction results for One Piece Card Game items. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Sellers and locations excluded from our price data are excluded here too.";
+  out.note = "Completed eBay auction results for One Piece Card Game items. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.";
   out.updated = new Date(now).toISOString();
   fs.writeFileSync(soldPath, JSON.stringify(out) + "\n", "utf8");
 
@@ -177,7 +195,7 @@ const med = (a) => {
     settled: settled.length,
     failed: failedIds.size,
     soldConfirmed: soldNow.length,
-    medPrice: med(soldNow.map((s) => s.price)),
+    medPrice: med(soldNow.map((s) => s.unitPrice)),
     pendingLeft: watch.pending.length,
     totalSales: out.sales.length,
   }));

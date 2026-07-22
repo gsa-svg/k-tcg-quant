@@ -17,6 +17,7 @@
 const fs = require("fs");
 const path = require("path");
 const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
+const { parseLotQuantity } = require("./lot-quantity");
 
 const ROOT = path.join(__dirname, "..");
 const outPath = path.join(ROOT, "data", "auction-market.json");
@@ -155,11 +156,15 @@ function summarize(rows) {
         const bid = Number(it.currentBidPrice?.value);
         const { set, cardId } = classify(title);
         const endsAt = it.itemEndDate ? Date.parse(it.itemEndDate) : NaN;
+        const kind = categorize(title);
         rows.push({
           id,
-          kind: categorize(title),
+          kind,
           set,
           cardId,
+          // 다수량(lot) 수량. "3 boxes"→3(개당가=총액÷3), case/lot 등 개수 불명→null(가격 통계 제외).
+          // 출품량(n) 집계에는 그대로 포함 — 가격만 오염 방지.
+          qty: parseLotQuantity(title, kind),
           bidCount: Number.isFinite(it.bidCount) ? it.bidCount : 0,
           bid: Number.isFinite(bid) ? bid : null,
           minsLeft: Number.isFinite(endsAt) ? Math.round((endsAt - Date.now()) / 60000) : null,
@@ -213,15 +218,22 @@ function summarize(rows) {
     if (r.minsLeft == null || r.minsLeft > PRICE_WINDOW_MIN) continue;
     if (!Number.isFinite(r.bid)) continue;
     // 같은 경매를 또 봤다면 더 나중 값(더 수렴한 값)으로 갱신한다.
-    obs.set(r.id, { id: r.id, kind: r.kind, set: r.set, cardId: r.cardId, bid: r.bid, bidCount: r.bidCount });
+    obs.set(r.id, { id: r.id, kind: r.kind, set: r.set, cardId: r.cardId, qty: r.qty, bid: r.bid, bidCount: r.bidCount });
   }
   const priceObs = [...obs.values()];
 
   // 출품량은 "지금 몇 건이 돌고 있나"라 시점 스냅샷이다(누적이 아님) — 마지막 스캔 값을 쓴다.
   // 가격은 위에서 만든 당일 누적 표본에서 계산한다. 둘의 성격이 다르므로 분리해 둔다.
+  // 가격은 "개당가": 다수량이면 총액÷수량, 수량 불명(qty null)이면 표본에서 제외.
+  // 당일 앞선 실행이 남긴 qty 없는 관측은 종전대로 bid 그대로 쓴다(다음 날부터 전부 qty 있음).
+  const unitBid = (o) => {
+    if (!Number.isFinite(o.bid)) return null;
+    if (!("qty" in o)) return o.bid;
+    return o.qty == null ? null : Number((o.bid / o.qty).toFixed(2));
+  };
   const priceOf = (sel) => {
-    const s = priceObs.filter(sel);
-    return { nPrice: s.length, medBid: med(s.map((o) => o.bid)), maxBid: s.length ? Math.max(...s.map((o) => o.bid)) : null };
+    const s = priceObs.filter(sel).map(unitBid).filter(Number.isFinite);
+    return { nPrice: s.length, medBid: med(s), maxBid: s.length ? Math.max(...s) : null };
   };
   const counts = (rs) => ({
     n: rs.length,
@@ -263,7 +275,7 @@ function summarize(rows) {
     topCards,
     priceObs,                                               // 당일 누적 원표본. 날이 바뀌면 아래에서 제거된다.
   };
-  out.note = "Daily sample of live One Piece Card Game auctions on eBay: how many are running by set and item type, how many have attracted bids, and the median current bid. Bids are live, not final sale prices — eBay does not expose completed-sale data at this access tier. Sellers and locations excluded from our price data are excluded here too. Set and card codes are parsed from listing titles; titles we cannot classify confidently are counted under 'unclassified' rather than guessed. Price figures (medBid) are measured only on auctions ending within 6 hours that already have bids, because a freshly listed auction still shows its opening price, not its value; nPrice reports how many listings each price is based on. This is a sample, not a census: boxes and packs are sampled with dedicated queries, so the box/pack/card split is not a market share figure — compare each category against its own history, not against the others.";
+  out.note = "Daily sample of live One Piece Card Game auctions on eBay: how many are running by set and item type, how many have attracted bids, and the median current bid. Bids are live, not final sale prices — eBay does not expose completed-sale data at this access tier. Sellers and locations excluded from our price data are excluded here too. Set and card codes are parsed from listing titles; titles we cannot classify confidently are counted under 'unclassified' rather than guessed. Price figures (medBid) are measured only on auctions ending within 6 hours that already have bids, because a freshly listed auction still shows its opening price, not its value; nPrice reports how many listings each price is based on. This is a sample, not a census: boxes and packs are sampled with dedicated queries, so the box/pack/card split is not a market share figure — compare each category against its own history, not against the others. Price figures are per unit: multi-item lots are divided by the quantity parsed from the title, and listings whose quantity cannot be determined (case/lot/bulk) are excluded from price samples while still counted in listing volume.";
   out.updated = today;
   out.points = [...out.points.filter((p) => p.d !== today), point]
     .sort((a, b) => a.d.localeCompare(b.d))
