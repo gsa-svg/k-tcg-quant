@@ -70,4 +70,21 @@ function isPsa10JapaneseCardListing(item, setCode, card) {
     && hasVariantSignal(title, card);
 }
 
-module.exports = { hasVariantSignal, isPsa10JapaneseCardListing, normalizeNumber };
+// 문자열(제목·Set 속성 등)에서 세트 코드를 뽑는다. "ONE PIECE PRB01-PREMIUM BOOSTER..." → "PRB-01".
+function setCodeFromText(text) {
+  const m = String(text || "").toUpperCase().match(/\b(OP|EB|PRB|ST)\s*-?\s*0*(\d{1,2})\b/);
+  return m ? `${m[1]}-${String(m[2]).padStart(2, "0")}` : null;
+}
+
+// 교차세트 오매칭 판별 — 2026-07-22 실사고.
+// PRB(프리미엄 부스터)·EB 재판은 원본 카드 번호(예: OP01-024)를 제목에 그대로 달기 때문에,
+// 번호 매칭만으로는 OP-01 원본 알트아트와 PRB-01 재판 알트아트를 구분할 수 없다.
+// getItem 의 Set 속성이 유일하게 믿을 수 있는 신호다. 매물 Set 이 카드 세트와 명백히 다르면 true.
+// (Set 을 못 읽으면 null → false 로 두어 정상 매물을 과잉 제거하지 않는다.)
+function listingSetConflicts(setAspect, cardSetCode) {
+  const listingSet = setCodeFromText(setAspect);
+  const cardSet = String(cardSetCode || "").toUpperCase();
+  return !!(listingSet && cardSet && listingSet !== cardSet);
+}
+
+module.exports = { hasVariantSignal, isPsa10JapaneseCardListing, normalizeNumber, setCodeFromText, listingSetConflicts };

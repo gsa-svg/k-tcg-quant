@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
-const { isPsa10JapaneseCardListing } = require("./ebay-psa10-listing-filter");
+const { isPsa10JapaneseCardListing, listingSetConflicts } = require("./ebay-psa10-listing-filter");
 
 const projectRoot = path.resolve(__dirname, "..");
 const dataPath = path.join(projectRoot, "data", "onepiece-packs.json");
@@ -179,9 +179,24 @@ function analyzeItems(items, setCode, card) {
     excludedCount,
     // raw 는 신호 계산 전용이므로 저장 전에 떼어낸다(데이터 파일 비대화 방지)
     bestListing: selected[0] ? (({ raw, ...rest }) => rest)(selected[0]) : null,
+    bestId: selected[0]?.raw?.itemId || null,   // Set 속성 교차검증용 eBay itemId (저장 안 함)
     // 카드 단위 수요 대용 신호 — 박스와 동일 기준(매물 나이·재등록률·협상허용률·셀러집중도)
     supplySignals: supplySignals(selected),
   };
+}
+
+// 선택된 최저 매물의 Set 속성 조회 — 교차세트(PRB 재판 등) 오매칭 판별용.
+async function fetchSetAspect(token, itemId) {
+  try {
+    const r = await fetch(`https://api.ebay.com/buy/browse/v1/item/${encodeURIComponent(itemId)}`,
+      { headers: { Authorization: `Bearer ${token}`, "X-EBAY-C-MARKETPLACE-ID": marketplaceId } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const setA = (j.localizedAspects || []).find((a) => /^set$/i.test(a.name));
+    return setA ? setA.value : null;
+  } catch {
+    return null;
+  }
 }
 
 function targetCards(data, requestedCodes) {
@@ -227,6 +242,16 @@ async function main() {
       const soldUsd = toUsd(card.psa10Ebay.middle, card.psa10Ebay.currency || "KRW");
       if (bestUsd != null && soldUsd != null && bestUsd < soldUsd * 0.35) {
         console.log(`  sanity-drop ${code} ${card.number}: best $${bestUsd.toFixed(0)} < 35% of sold-mid $${soldUsd.toFixed(0)}`);
+        market.bestListing = null;
+        market.sampleSize = 0;
+      }
+    }
+    // 교차세트 방어(2026-07-22 실사고): 최저 매물의 Set 속성이 카드 세트와 다르면 버린다.
+    // PRB/EB 재판은 원본 번호(OP01-024)를 제목에 달아 제목필터로는 못 걸러지고, Set 속성으로만 판별된다.
+    if (market?.bestListing && market.bestId) {
+      const setAspect = await fetchSetAspect(token, market.bestId);
+      if (listingSetConflicts(setAspect, code)) {
+        console.log(`  set-mismatch ${code} ${card.number}: listing Set="${setAspect}" ≠ ${code} — drop (재판 오매칭)`);
         market.bestListing = null;
         market.sampleSize = 0;
       }
