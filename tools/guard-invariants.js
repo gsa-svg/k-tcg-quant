@@ -107,6 +107,15 @@ for (const [k, kind] of Object.entries(manifest)) {
   if (kind === "wm" && !/Weekly ungraded/i.test(src)) errors.push(`D1: ${code}.${key}.source="${src}" — wm 시리즈가 덮어써짐(eBay 스냅샷은 ${key}Ebay로 가야 함)`);
 }
 
+// D4. 보존된 과거 시리즈 옆에 최신 eBay 병행 시계열이 있으면 화면도 반드시 읽어야 한다.
+// 2026-07-22 사고: 수집은 당일까지 정상인데 화면이 7/12 과거 필드만 읽어 그래프가 멈춰 보였음.
+const hasParallelBoxSeries = Object.values(data.sets || {}).some((set) =>
+  (set.boxSeriesEbay?.points?.length || 0) >= 2 && (set.boxSeriesEnEbay?.points?.length || 0) >= 2
+);
+if (hasParallelBoxSeries && (!packsJs.includes("set.boxSeriesEbay") || !packsJs.includes("set.boxSeriesEnEbay"))) {
+  errors.push("D4: 최신 eBay 병행 시계열이 있지만 packs.js가 이를 읽지 않음 — 그래프 날짜 동결 재발");
+}
+
 // D3. Full-set PSA imports must remain complete and internally consistent.
 // This prevents the legacy chase-card subset from silently replacing set totals.
 if (!exists("data/gemrate-psa-history.json")) errors.push("D3: verified full-set PSA history source missing");

@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260722b";
+const DATA_VERSION = "20260722c";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -611,7 +611,7 @@ function fmtTipDate(d) {
 }
 
 // 인터랙티브 JP vs EN 교차 그래프 — 위=일본/아래=영문 실제 원화 2단(압축 없음), 마우스/터치 시 날짜·양쪽 가격 툴팁 + 세로 크로스헤어.
-function renderBoxInteractive(set, jpPts, enPts) {
+function renderBoxInteractive(set, jpPts, enPts, options = {}) {
   const W = 600, H = 132, padL = 66, padR = 14, padT = 14, padB = 8;
   const allT = [...jpPts, ...enPts].map((p) => new Date(p.d).getTime());
   const minX = Math.min(...allT), maxX = Math.max(...allT);
@@ -644,10 +644,12 @@ function renderBoxInteractive(set, jpPts, enPts) {
   const jpChg = Math.round((jpPts[jpPts.length - 1].p / jpPts[0].p - 1) * 100);
   const enChg = Math.round((enPts[enPts.length - 1].p / enPts[0].p - 1) * 100);
   const chgTag = (c) => `<b class="${c >= 0 ? "chgUp" : "chgDown"}">${c >= 0 ? "+" : ""}${c}%</b>`;
-  const src = /Weekly ungraded/.test((set.boxSeries && set.boxSeries.source) || "")
+  const source = options.source || (set.boxSeries && set.boxSeries.source) || "";
+  const title = options.title || t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English");
+  const src = /Weekly ungraded/.test(source)
     ? t("마켓 시세 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Market price. Hover or tap the chart to read the price on any date.")
-    : t("eBay 매물 기준. 그래프에 마우스를 올리면 그날 가격이 나와요.", "eBay listings. Hover the chart for the price on any date.");
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English")}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
+    : t("eBay 현재 매물 중간값 기준. 실거래가가 아니며 표본이 적은 날은 변동이 클 수 있습니다.", "Based on median current eBay listings, not sold prices. Thin-sample days may swing more.");
+  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${title}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
 }
 
 // 인터랙티브 그래프에 hover/탭 → 크로스헤어+툴팁 이벤트 연결(innerHTML 렌더 직후 호출)
@@ -704,6 +706,25 @@ function renderBoxSeries(set) {
   const jpPts = (set.boxSeries && set.boxSeries.points) || [];
   if (jpPts.length < 2) return "";
   const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
+  const liveJpPts = (set.boxSeriesEbay && set.boxSeriesEbay.points) || [];
+  const liveEnPts = (set.boxSeriesEnEbay && set.boxSeriesEnEbay.points) || [];
+  const hasLivePair = liveJpPts.length >= 2 && liveEnPts.length >= 2;
+
+  // 과거 6개월 시세와 현재 eBay 호가는 기준이 달라 한 선으로 연결하지 않는다.
+  // 최신 추적을 먼저 보여주고, 기존 히스토리는 그대로 보존해 별도 차트로 제공한다.
+  if (hasLivePair) {
+    const live = renderBoxInteractive(set, liveJpPts, liveEnPts, {
+      source: "eBay Active snapshots",
+      title: t("최신 eBay 매물 흐름 · 일본판 vs 영문판", "Current eBay listing trend · JP vs EN"),
+    });
+    const archive = enPts.length >= 2
+      ? renderBoxInteractive(set, jpPts, enPts, {
+          source: (set.boxSeries && set.boxSeries.source) || "Weekly ungraded market",
+          title: t("이전 6개월 시세 기록 · 일본판 vs 영문판", "Previous 6-month market history · JP vs EN"),
+        })
+      : "";
+    return `${live}${archive}`;
+  }
   // 두 판이 다 준비되면 인터랙티브 교차 그래프(그래프4)로 표시. 그 전엔 수집만 하고 "집계중" 안내.
   if (hasInteractiveBox(set)) return renderBoxInteractive(set, jpPts, enPts);
   const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
