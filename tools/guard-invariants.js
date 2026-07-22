@@ -311,6 +311,26 @@ if (exists("data/tag-grading-history.json")) {
   }
 }
 
+// ── D8. CGC 그레이딩 주간 이력 무결성 — 박스별 총 그레이딩수, append-only.
+if (exists("data/cgc-grading-history.json")) {
+  const cg = JSON.parse(read("data/cgc-grading-history.json"));
+  if (cg.grader !== "cgc") errors.push("D8: cgc-grading-history.grader 가 cgc 가 아님");
+  if (!/cgc/i.test(cg.note || "") || !/append-only/i.test(cg.note || "")) errors.push("D8: note 에 cgc·append-only 고지 누락");
+  for (const [code, eds] of Object.entries(cg.sets || {})) {
+    for (const ed of ["jp", "en"]) {
+      const arr = (eds || {})[ed];
+      if (!Array.isArray(arr)) continue;
+      let prev = "";
+      for (const p of arr) {
+        if (!p || typeof p.d !== "string") { errors.push(`D8: ${code}.${ed} 날짜 없는 점`); break; }
+        if (p.d <= prev) { errors.push(`D8: ${code}.${ed} 날짜 역행/중복 (${prev}→${p.d}) — append-only 위반`); break; }
+        if (!(Number.isInteger(p.total) && p.total > 0)) { errors.push(`D8: ${code}.${ed} ${p.d} total 이상`); break; }
+        prev = p.d;
+      }
+    }
+  }
+}
+
 // ── D6. 박스 SOLD 원장(ledger) 무결성 — 판매 1건=1레코드, append-only 저장소.
 //    id 중복(이중 계상), 단가/수량 이상, 날짜 형식 오류가 들어오면 주간 집계 전체가 오염된다.
 if (exists("data/box-sold-ledger.json")) {
@@ -673,4 +693,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
