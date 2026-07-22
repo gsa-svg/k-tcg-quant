@@ -267,6 +267,50 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── Q3. TAG pop 세트명 → 박스 매핑. 오매핑되면 박스별 그레이딩 집계·고등급 확률이 통째로 틀린다.
+{
+  const { matchBox } = require("./tag-classify");
+  const cases = [
+    ["One Piece Romance Dawn Japanese Alternate Art", "OP-01", "jp"],
+    ["One Piece Romance Dawn", "OP-01", "en"],
+    ["One Piece Two Legends Alternate Art", "OP-08", "en"],
+    ["One Piece Extra Booster Memorial Collection Japanese", "EB-01", "jp"],
+    ["One Piece Extra Booster Anime 25th Collection Japanese", "EB-02", "jp"],
+    ["One Piece Extra Booster Heroines Edition Alternate Art", "EB-03", "en"],
+    ["One Piece Premium Booster The Best Japanese Alternate Art", "PRB-01", "jp"],
+    ["One Piece Premium Booster The Best Vol. 2 Alternate Art", "PRB-02", "en"],   // Vol.2 먼저 매칭
+    ["One Piece Premium Card Collection 25th Edition Japanese", null, null],       // 부스터박스 아님 → 매핑 없음
+    ["One Piece 2nd Anniversary Set Japanese Alternate Art", null, null],
+  ];
+  for (const [name, code, ed] of cases) {
+    const m = matchBox(name);
+    const got = m ? `${m.code}/${m.ed}` : "null";
+    const want = code ? `${code}/${ed}` : "null";
+    if (got !== want) errors.push(`Q3: TAG matchBox "${name}" → ${got} (기대 ${want})`);
+  }
+}
+
+// ── D7. TAG 그레이딩 주간 이력 무결성 — append-only, total>0, 0<=gem<=total.
+if (exists("data/tag-grading-history.json")) {
+  const tg = JSON.parse(read("data/tag-grading-history.json"));
+  if (tg.grader !== "tag") errors.push("D7: tag-grading-history.grader 가 tag 가 아님");
+  if (!/tag/i.test(tg.note || "") || !/append-only/i.test(tg.note || "")) errors.push("D7: note 에 tag·append-only 고지 누락");
+  for (const [code, eds] of Object.entries(tg.sets || {})) {
+    for (const ed of ["jp", "en"]) {
+      const arr = (eds || {})[ed];
+      if (!Array.isArray(arr)) continue;
+      let prev = "";
+      for (const p of arr) {
+        if (!p || typeof p.d !== "string") { errors.push(`D7: ${code}.${ed} 날짜 없는 점`); break; }
+        if (p.d <= prev) { errors.push(`D7: ${code}.${ed} 날짜 역행/중복 (${prev}→${p.d}) — append-only 위반`); break; }
+        if (!(Number.isInteger(p.total) && p.total > 0)) { errors.push(`D7: ${code}.${ed} ${p.d} total 이상`); break; }
+        if (!(Number.isInteger(p.gem) && p.gem >= 0 && p.gem <= p.total)) { errors.push(`D7: ${code}.${ed} ${p.d} gem 이상`); break; }
+        prev = p.d;
+      }
+    }
+  }
+}
+
 // ── D6. 박스 SOLD 원장(ledger) 무결성 — 판매 1건=1레코드, append-only 저장소.
 //    id 중복(이중 계상), 단가/수량 이상, 날짜 형식 오류가 들어오면 주간 집계 전체가 오염된다.
 if (exists("data/box-sold-ledger.json")) {
@@ -629,4 +673,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "Q1", "Q2", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
