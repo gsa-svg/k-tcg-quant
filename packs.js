@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260722a";
+const DATA_VERSION = "20260722b";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1710,19 +1710,26 @@ function updateSeo(pack) {
   const koName = pack.nameKo || pack.nameEn || pack.code;
   const enName = pack.nameEn || pack.nameKo || pack.code;
   const isSetPage = state.hasExplicitSet;
+  const isHomePage = /\/(?:index\.html)?$/.test(location.pathname);
   const title = isSetPage ? t(
     `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | OP Box Index`,
     `${pack.code} ${enName} One Piece Card Prices & Booster Box Price | OP Box Index`,
-  ) : t(
+  ) : isHomePage ? t(
     "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7PSA10 \uCE74\uB4DC \uC2DC\uC138\u00B7\uBD80\uC2A4\uD130\uD329 \uC2DC\uC138\uC815\uBCF4 | OP Box Index",
-    "One Piece Booster Box Prices & PSA 10 Card Prices | OP Box Index",
+    "OP Box Index \u2014 Live One Piece Box & Card Prices",
+  ) : t(
+    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC804 \uC138\uD2B8 \uC2DC\uC138 \uCD94\uC801 | OP Box Index",
+    "One Piece Booster Box Tracker \u2014 Live Prices by Set | OP Box Index",
   );
   const description = isSetPage ? t(
     `${pack.code} ${koName}(${enName}) \uBD80\uC2A4\uD130\uBC15\uC2A4 \uAC00\uACA9, eBay \uC2DC\uC138, TOP10 \uD788\uD2B8\uCE74\uB4DC, NM, PSA10, PSA \uD1B5\uACC4\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.`,
     `Compare ${pack.code} ${enName} One Piece card prices, Japanese booster box prices, eBay sold and active market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats.`,
-  ) : t(
+  ) : isHomePage ? t(
     "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138, \uC6D0\uD53C\uC2A4 PSA10 \uCE74\uB4DC \uC2DC\uC138, \uBD80\uC2A4\uD130\uD329 \uC2DC\uC138\uC815\uBCF4, eBay \uCD5C\uC800\uAC00\u00B7\uD310\uB9E4\uC644\uB8CC \uAE30\uC900, \uD788\uD2B8\uCE74\uB4DC TOP10\uACFC PSA \uD1B5\uACC4\uB97C \uD55C \uBC88\uC5D0 \uBE44\uAD50\uD569\uB2C8\uB2E4.",
-    "Track One Piece booster box prices, One Piece PSA 10 card prices, booster pack market data, eBay lowest listings, sold-price trends, Top 10 chase cards and PSA population stats.",
+    "Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Compare Top 10 chase cards, sold-price trends and PSA population data.",
+  ) : t(
+    "OP-01\uBD80\uD130 EB\u00B7PRB\uAE4C\uC9C0 \uC77C\uBCF8\uC5B4\uD310\u00B7\uC601\uBB38\uD310 \uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC804 \uC138\uD2B8\uC758 \uC2E4\uAC70\uB798, \uCD5C\uC800 \uB9E4\uBB3C\uACFC \uAC00\uACA9 \uCD94\uC774\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.",
+    "Browse every tracked One Piece booster box by set, with Japanese and English prices, verified eBay listings, sold-price history and chase-card data.",
   );
   document.title = title;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);

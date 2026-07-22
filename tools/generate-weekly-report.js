@@ -70,7 +70,7 @@ const html = `<!doctype html>
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${canonical}" />
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "One Piece box market weekly: ${asOf}", "description": ${JSON.stringify(desc)}, "image": "${SITE}/og/og-compare.png", "datePublished": "${new Date().toISOString().slice(0, 10)}", "dateModified": "${new Date().toISOString().slice(0, 10)}", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "${canonical}"}, "author": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "publisher": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "isAccessibleForFree": true}</script>
-    <link rel="stylesheet" href="../styles.css?v=20260722a" />
+    <link rel="stylesheet" href="../styles.css?v=20260722b" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .dataTable { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 14px; }
