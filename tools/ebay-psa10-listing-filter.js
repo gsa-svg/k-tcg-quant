@@ -50,6 +50,45 @@ function hasVariantSignal(title, card) {
   return !treasureSignal.test(title);
 }
 
+// 카드명에서 캐릭터 토큰(들) 추출 — 번호·변형어를 걷어낸 4글자+ 단어들.
+// camelCase 분리(EdwardNewgate→edward newgate, TonyChopper→tony chopper), 괄호 제거로 "Sakazuki (Manga)"도 처리.
+// 변형어 + 불용어(the/one/new 등). 3글자 캐릭터명(Ace/Kid/Law/Uta)은 살리되 흔한 단어는 뺀다.
+const VARIANT_WORDS = /^(sp|special|parallel|paralle|manga|comic|alternate|alt|art|super|gold|golden|silver|red|leader|stamped|signature|signed|wanted|poster|treasure|rare|edition|foil|holo|japanese|jpn|gem|mint|game|the|one|new|and|for|with|his|her|its|dead|mans|drawn)$/i;
+function characterTokens(cardName) {
+  const cleaned = String(cardName || "")
+    .replace(/\b(?:OP|EB|PRB|ST)\s*-?\s*\d{1,2}\s*-?\s*\d{3}\b/gi, " ")   // 카드번호
+    .replace(/\b\d+\b/g, " ")                                             // 숫자
+    .replace(/([a-z])([A-Z])/g, "$1 $2")                                  // camelCase 분리
+    .replace(/[()[\].,\-!/]/g, " ");
+  return cleaned.split(/\s+/).map((w) => w.toLowerCase()).filter((w) => w.length >= 3 && !VARIANT_WORDS.test(w));
+}
+
+// 매물 제목에 카드의 캐릭터가 들어있나 — 카드 토큰 중 하나라도 (공백/기호 제거한) 제목에 포함되면 통과.
+// "하나라도" 규칙은 붙은이름·띄어쓰기 차이 오탐을 막는다. 토큰을 못 뽑으면 통과(과잉제거 방지).
+function characterMatches(title, card) {
+  const tokens = characterTokens(card.name);
+  if (!tokens.length) return true;
+  const norm = String(title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return tokens.some((t) => norm.includes(t));
+}
+
+// 색상 하위변형(금·은·레드) 충돌. 카드와 매물의 색이 명백히 어긋나면 다른 카드다.
+const COLORS = [["red", /\bred\b/i], ["gold", /\bgold(en)?\b|金/i], ["silver", /\bsilver\b|銀/i]];
+function colorConflict(title, card) {
+  const cardColors = COLORS.filter(([, re]) => re.test(card.name || "")).map(([n]) => n);
+  const titleColors = COLORS.filter(([, re]) => re.test(title)).map(([n]) => n);
+  // 1) 양쪽 다 색 지정인데 서로 다름 (카드 gold ↔ 매물 silver) → 확실히 다른 카드.
+  if (cardColors.length && titleColors.length && !cardColors.some((c) => titleColors.includes(c))) return true;
+  // 2) 카드는 무색인데 매물이 '레드'(OPTCG에서 항상 별도 프리미엄) 또는 'gold letters/parallel'(별도 프리미엄)이면 다른 카드.
+  //    단순 'silver' 포일은 SP 표준 표기일 수 있어 제외(Buggy Silver SP 등 정상 오탐 방지).
+  //    카드가 색 지정인데 매물이 무색인 경우는 여기서 판단 안 함(생NM 가격 규칙에 위임 — Gold Stamped Signature 오탐 방지).
+  if (!cardColors.length) {
+    if (/\bred\b/i.test(title)) return true;
+    if (/\bgold\s*(letters|parallel|foil)\b/i.test(title)) return true;
+  }
+  return false;
+}
+
 function isPsa10JapaneseCardListing(item, setCode, card) {
   const title = item?.title || "";
   const number = normalizeNumber(card.number, setCode);
@@ -67,7 +106,9 @@ function isPsa10JapaneseCardListing(item, setCode, card) {
     && !negative.some((pattern) => pattern.test(title))
     && hasNumber(title, number)
     && !hasConflictingCardNumber(title, number)
-    && hasVariantSignal(title, card);
+    && hasVariantSignal(title, card)
+    && characterMatches(title, card)   // 캐릭터(성) 불일치 차단 (2026-07-22: Luffy 카드에 Perona 매물 등)
+    && !colorConflict(title, card);    // 금·은·레드 하위변형 충돌 차단
 }
 
 // 문자열(제목·Set 속성 등)에서 세트 코드를 뽑는다. "ONE PIECE PRB01-PREMIUM BOOSTER..." → "PRB-01".
@@ -87,4 +128,4 @@ function listingSetConflicts(setAspect, cardSetCode) {
   return !!(listingSet && cardSet && listingSet !== cardSet);
 }
 
-module.exports = { hasVariantSignal, isPsa10JapaneseCardListing, normalizeNumber, setCodeFromText, listingSetConflicts };
+module.exports = { hasVariantSignal, isPsa10JapaneseCardListing, normalizeNumber, setCodeFromText, listingSetConflicts, characterTokens, characterMatches, colorConflict };

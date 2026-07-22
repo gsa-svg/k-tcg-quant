@@ -2,7 +2,7 @@
 
 const assert = require("node:assert/strict");
 const { isExcludedEbaySellerOrLocation, isJapaneseSealedBoosterBoxTitle } = require("./ebay-listing-filters");
-const { isPsa10JapaneseCardListing, setCodeFromText, listingSetConflicts } = require("./ebay-psa10-listing-filter");
+const { isPsa10JapaneseCardListing, setCodeFromText, listingSetConflicts, characterMatches, colorConflict } = require("./ebay-psa10-listing-filter");
 
 assert.equal(
   isJapaneseSealedBoosterBoxTitle("Sealed Japanese EB-02 Anime 25th Collection Booster Box [US Seller] One Piece", "EB-02"),
@@ -90,5 +90,18 @@ assert.equal(
   false,
   "Missing Set aspect must not over-reject (keep, do not guess)",
 );
+
+// 캐릭터명 불일치(2026-07-22 실사고): Luffy 카드에 Perona 매물이 물림.
+assert.equal(characterMatches("PSA 10 Perona Leader Parallel EB02-010 One Piece Anime 25th Gold", { name: "Monkey D. Luffy 010 Alternate Art" }), false, "Luffy 카드에 Perona 매물 → 거부");
+assert.equal(characterMatches("PSA 10 Monkey D. Luffy SEC OP05-119 Japanese Gem Mint", { name: "Monkey D. Luffy" }), true, "Luffy 카드에 Luffy 매물 → 통과");
+assert.equal(characterMatches("2024 One Piece Rob Lucci OP09-093 Special Alt Art PSA 10", { name: "Marshall D. Teach SP Silver" }), false, "Teach 카드에 Rob Lucci 매물 → 거부");
+
+// 색상 하위변형 충돌: gold↔silver 직접충돌, red/gold-letters(별도 프리미엄) vs 무색 카드.
+assert.equal(colorConflict("PSA 10 Luffy Silver OP05-119 SEC", { name: "Monkey D. Luffy 119 SP Gold" }), true, "카드 gold ↔ 매물 silver → 충돌");
+assert.equal(colorConflict("PSA 10 Sabo SEC Red Comic Parallel OP13-120", { name: "Sabo 120 Super Alternate Art" }), true, "무색 카드에 Red 매물 → 충돌");
+assert.equal(colorConflict("PSA10 Tony Tony Chopper OP08-001 Leader Parallel Gold Letters EB02", { name: "Tony TonyChopper 001 Parallel" }), true, "무색 카드에 Gold Letters 매물 → 충돌");
+// 정상(오탐 방지): Gold Stamped Signature 카드에 색 미표기 서명 매물, Silver 포일 SP 는 유지.
+assert.equal(colorConflict("PSA 10 Monkey D. Luffy ST01-012 Eiichiro Oda Signature", { name: "Monkey D. Luffy 012 Alternate Art Gold Stamped Signature" }), false, "카드 gold·매물 무색(서명) → 오탐 금지");
+assert.equal(colorConflict("PSA 10 Buggy OP09-051 R Silver SP Alt Art", { name: "Buggy OP09 051 SP" }), false, "무색 카드에 Silver 포일 SP → 오탐 금지");
 
 console.log("eBay listing filter tests passed");

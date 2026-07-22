@@ -246,6 +246,20 @@ async function main() {
         market.sampleSize = 0;
       }
     }
+    // 생NM 하한(2026-07-22 실사고): 감정 PSA10 은 생카드(NM)보다 비싸야 정상. nmJpy(유유테이 검증값)가
+    // 있는 카드에서 활성가가 생NM의 35% 미만이면 더 싼 다른 변형에 물린 것 → 숨김.
+    // (priceUsd 폴백은 밈/트롤가라 신뢰 낮아 제외. 임계 0.35는 정상 저평가 매물 OP13-119 등은 살리는 수준.)
+    if (market?.bestListing && card.nmJpy != null) {
+      const fx = data.fx || {};
+      const bestUsd = market.currency === "USD" ? market.bestListing.total
+        : market.currency === "KRW" ? market.bestListing.total / (fx.usdKrw || 1388.2) : null;
+      const rawUsd = (card.nmJpy * (fx.jpyKrw || 9.1)) / (fx.usdKrw || 1388.2);
+      if (bestUsd != null && rawUsd > 0 && bestUsd < rawUsd * 0.35) {
+        console.log(`  raw-drop ${code} ${card.number}: PSA10 $${bestUsd.toFixed(0)} < 35% of raw-NM $${rawUsd.toFixed(0)} (변형 오매칭)`);
+        market.bestListing = null;
+        market.sampleSize = 0;
+      }
+    }
     // 교차세트 방어(2026-07-22 실사고): 최저 매물의 Set 속성이 카드 세트와 다르면 버린다.
     // PRB/EB 재판은 원본 번호(OP01-024)를 제목에 달아 제목필터로는 못 걸러지고, Set 속성으로만 판별된다.
     if (market?.bestListing && market.bestId) {
