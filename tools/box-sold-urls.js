@@ -32,15 +32,26 @@ const rows = ORDER.map((code) => {
 // 광고 카드(id 123456)와 제목/날짜/가격이 빠진 카드만 거른다. 2026-07-22 실DOM(s-card + su-styled-text) 확인됨.
 const EXTRACTOR = `(()=>{const out=[];for(const c of document.querySelectorAll('.s-card,li.s-item')){const a=c.querySelector('a[href*="/itm/"]');const m=a&&a.href.match(/\\/itm\\/(\\d+)/);if(!m||m[1]==='123456')continue;const t=((c.querySelector('.su-styled-text.primary')||c.querySelector('.s-item__title'))?.textContent||'').replace(/New Listing/ig,'').trim();const d=((c.querySelector('.s-card__caption,.s-item__caption'))?.textContent||'').trim();const pTxt=((c.querySelector('.s-card__price,.s-item__price'))?.textContent||'').trim();const p=pTxt.replace(/,/g,'').match(/([\\d.]+)/);if(!t||!d||!p)continue;out.push({id:m[1],t:t.slice(0,140),d,k:parseFloat(p[1]),cur:/KRW|\\u20a9/.test(pTxt)?'KRW':/\\$/.test(pTxt)?'USD':'OTHER'});}return JSON.stringify({n:out.length,items:out});})()`;
 
-module.exports = { rows, EXTRACTOR };
+// 자립 브라우저 수집기(--collector): 페이지 이동 없이 in-page fetch(credentials:include)로
+// 전 세트 EN/JP sold 페이지를 긁어 덤프 JSON을 통째로 반환한다. 사용자 실브라우저 탭 하나에서
+// javascript_tool 한 번으로 실행 → 반환 문자열을 dump.json 으로 저장 → box-sold-ingest.js 에 투입.
+// URL을 코드에 박아 넣어 브라우저가 세트목록을 몰라도 되게 한다. 로봇페이지는 robot:true로 표시하고 건너뛴다.
+function collectorScript() {
+  const pages = [];
+  for (const r of rows) { pages.push({ code: r.code, query: "jp", url: r.jpUrl }); pages.push({ code: r.code, query: "en", url: r.enUrl }); }
+  return `(async()=>{const PAGES=${JSON.stringify(pages)};const grab=async(u)=>{let html;try{html=await fetch(u,{credentials:'include'}).then(r=>r.text());}catch(e){return{robot:false,err:String(e),items:[]};}if(/Pardon our interruption|Checking your browser|captcha/i.test(html.slice(0,4000)))return{robot:true,items:[]};const doc=new DOMParser().parseFromString(html,'text/html');const out=[];for(const c of doc.querySelectorAll('.s-card,li.s-item')){const a=c.querySelector('a[href*="/itm/"]');const m=a&&(a.getAttribute('href')||'').match(/\\/itm\\/(\\d+)/);if(!m||m[1]==='123456')continue;const t=((c.querySelector('.su-styled-text.primary')||c.querySelector('.s-item__title'))?.textContent||'').replace(/New Listing/ig,'').trim();if(!/booster box/i.test(t))continue;const d=((c.querySelector('.s-card__caption,.s-item__caption'))?.textContent||'').trim();const pTxt=((c.querySelector('.s-card__price,.s-item__price'))?.textContent||'').trim();const p=pTxt.replace(/,/g,'').match(/([\\d.]+)/);if(!t||!d||!p)continue;out.push({id:m[1],t:t.slice(0,140),d:d.slice(0,32),k:parseFloat(p[1]),cur:/KRW|\\u20a9/.test(pTxt)?'KRW':/\\$/.test(pTxt)?'USD':'OTHER'});}return{robot:false,items:out};};const out={collectedAt:new Date().toISOString().slice(0,10),pages:[]};let robots=0;for(const pg of PAGES){const r=await grab(pg.url);if(r.robot)robots++;out.pages.push({code:pg.code,query:pg.query,items:r.items});await new Promise(z=>setTimeout(z,700));}out.robots=robots;out.totalItems=out.pages.reduce((a,p)=>a+p.items.length,0);return JSON.stringify(out);})()`;
+}
+
+module.exports = { rows, EXTRACTOR, collectorScript };
 
 if (require.main === module) {
-  if (process.argv.includes("--json")) {
+  if (process.argv.includes("--collector")) {
+    console.log(collectorScript());
+  } else if (process.argv.includes("--json")) {
     console.log(JSON.stringify({ rows, extractor: EXTRACTOR }, null, 1));
   } else {
     console.log(`# 박스 sold 수집 계획 (${rows.length} 세트) — 데이터 기준일: ${data.updated}`);
-    console.log(`# 절차: 각 URL로 navigate → EXTRACTOR 실행 → 덤프 파일로 모아 box-sold-ingest.js 에 넣는다.`);
+    console.log(`# 빠른 경로: node tools/box-sold-urls.js --collector 를 브라우저 javascript_tool 로 1회 실행 → 반환 JSON을 dump.json 으로 저장 → node tools/box-sold-ingest.js dump.json`);
     for (const r of rows) console.log(`${r.code}\tEN ${r.enUrl}\n\tJP ${r.jpUrl}`);
-    console.log(`\n# 수집기:\n${EXTRACTOR}`);
   }
 }
