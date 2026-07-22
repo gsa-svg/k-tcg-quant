@@ -1,6 +1,6 @@
 name: Update active listing links
 # rerun 2026-07-10 (secret fixed)
-# rerun 2026-07-22: 07-21 cron이 Verify scripts 문법오류로 실패 → 감사 후 14개 스크립트 전부 node --check 통과 확인, 강제 재실행으로 시세 갱신
+# rerun 2026-07-22: audit-seo 가 eb-05·op-17 의 FAQ 스키마 누락으로 실패(숨긴 FAQ 정리 때 제거됨) → 보이는 FAQ+스키마 복원 후 재실행
 
 on:
   workflow_dispatch:
