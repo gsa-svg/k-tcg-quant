@@ -83,12 +83,8 @@ async function search(tok, q, offset) {
 }
 
 // ── 분류 ─────────────────────────────────────────────────────────────
-// 박스/팩/카드. "booster box" 와 "booster pack" 이 한 제목에 같이 나오는 경우가 있어 박스를 먼저 본다.
-function categorize(title) {
-  if (/booster\s*box|display\s*box|carton|\bcase\b/i.test(title)) return "box";
-  if (/booster\s*pack|\d+\s*packs?\b|sealed\s*pack/i.test(title)) return "pack";
-  return "card";
-}
+// box/carton/pack/card 판정은 공용 모듈(가드 Q2가 검증). 여기선 그걸 그대로 쓴다.
+const { categorize } = require("./auction-classify");
 
 // 세트 코드: OP-06 / OP06 / EB-01 / PRB-01 / ST-21 형태를 모두 받아 정규화한다.
 // 카드번호(OP06-093)가 있으면 거기서 세트를 딴다 — 제목에 세트명이 따로 없어도 정확하다.
@@ -242,9 +238,15 @@ function summarize(rows) {
   });
 
   const byKind = {};
-  for (const k of ["box", "pack", "card"]) {
+  for (const k of ["box", "carton", "pack", "card"]) {
     byKind[k] = { ...counts(rows.filter((r) => r.kind === k)), ...priceOf((o) => o.kind === k) };
   }
+  // 박스는 "부스터박스 갯수"별로 세분: single(1개) / multi(2개 이상 묶음). 카톤은 위 carton 으로 별도.
+  const boxRows = rows.filter((r) => r.kind === "box");
+  byKind.box.byQty = {
+    single: { ...counts(boxRows.filter((r) => r.qty === 1)), ...priceOf((o) => o.kind === "box" && o.qty === 1) },
+    multi: { ...counts(boxRows.filter((r) => Number.isFinite(r.qty) && r.qty > 1)), ...priceOf((o) => o.kind === "box" && Number.isFinite(o.qty) && o.qty > 1) },
+  };
 
   const setStats = {};
   for (const s of new Set(rows.filter((r) => r.set).map((r) => r.set))) {
@@ -253,7 +255,8 @@ function summarize(rows) {
     setStats[s] = {
       ...counts(rs),
       ...priceOf((o) => o.set === s),
-      byKind: Object.fromEntries(["box", "pack", "card"].map((k) => [k, rs.filter((r) => r.kind === k).length])),
+      byKind: Object.fromEntries(["box", "carton", "pack", "card"].map((k) => [k, rs.filter((r) => r.kind === k).length])),
+      boxByQty: { single: rs.filter((r) => r.kind === "box" && r.qty === 1).length, multi: rs.filter((r) => r.kind === "box" && Number.isFinite(r.qty) && r.qty > 1).length },
     };
   }
 

@@ -245,6 +245,28 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── Q2. 경매 매물 분류 — "박스 통계는 무조건 부스터박스만". 팩·더블팩이 box 로 새거나
+//    카톤(박스 여러개)이 box 로 잡히면 거래량 왜곡. 함정 제목으로 실제 실행해 검증.
+{
+  const { categorize } = require("./auction-classify");
+  const cat = [
+    ["One Piece OP-13 Booster Box Japanese Sealed", "box"],
+    ["One Piece 3 Booster Boxes OP-08 Sealed", "box"],                 // 다수박스도 box(갯수는 qty에서)
+    ["One Piece OP-05 Double Pack Set Sealed", "pack"],                // 더블팩 = 팩, box 아님
+    ["One Piece OP-11 Booster Pack Japanese", "pack"],
+    ["One Piece OP-07 24 Packs Sealed", "pack"],
+    ["One Piece OP-01 Booster Box Carton Sealed (12 boxes)", "carton"],// 카톤 = box 아님
+    ["One Piece OP-05 Sealed Case of 12 Booster Box", "carton"],       // 케이스 = carton
+    ["One Piece OP-06 Full Case Booster Box English", "carton"],
+    ["Monkey D Luffy OP01-120 Manga PSA 10", "card"],
+    ["One Piece OP-13 Display Box Japanese", "box"],
+  ];
+  for (const [title, want] of cat) {
+    const got = categorize(title);
+    if (got !== want) errors.push(`Q2: categorize "${title}" → ${got} (기대 ${want}) — 박스 통계 오염 위험`);
+  }
+}
+
 // ── D6. 박스 SOLD 원장(ledger) 무결성 — 판매 1건=1레코드, append-only 저장소.
 //    id 중복(이중 계상), 단가/수량 이상, 날짜 형식 오류가 들어오면 주간 집계 전체가 오염된다.
 if (exists("data/box-sold-ledger.json")) {
@@ -607,4 +629,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "Q1", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "Q1", "Q2", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));

@@ -175,9 +175,10 @@ const med = (a) => {
     return {
       d,
       ...agg(rows),
-      byKind: Object.fromEntries(["box", "pack", "card"].map((k) => [k, agg(rows.filter((r) => r.kind === k))])),
-      // 박스는 판(JP/EN)별로도 집계 — 제목에 판 표기가 있는 것만(ed null 은 어느 쪽에도 안 넣음).
+      byKind: Object.fromEntries(["box", "carton", "pack", "card"].map((k) => [k, agg(rows.filter((r) => r.kind === k))])),
+      // 박스는 판(JP/EN)별 + 갯수(single/multi)별로도 집계. carton 은 위 byKind.carton 으로 분리됨 — box 에 안 섞임.
       boxByEd: Object.fromEntries(["jp", "en"].map((e) => [e, agg(rows.filter((r) => r.kind === "box" && r.ed === e))])),
+      boxByQty: { single: agg(rows.filter((r) => r.kind === "box" && r.qty === 1)), multi: agg(rows.filter((r) => r.kind === "box" && Number.isFinite(r.qty) && r.qty > 1)) },
       bySet,
     };
   });
