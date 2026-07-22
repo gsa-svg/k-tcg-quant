@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260721e";
+const DATA_VERSION = "20260721f";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -184,6 +184,11 @@ const AUCTION_REFRESH_MS = 90000;   // 재요청 간격. 중계기 캐시(60초)
 const AUCTION_TICK_MS = 30000;      // 목록 재정렬·종료건 제거 주기(네트워크 없음)
 const AUCTION_SEC_MS = 1000;        // 카운트다운 초 갱신(텍스트만, 네트워크 없음)
 const auctionFeed = { data: null, at: 0, timer: null, tick: null, bound: false };
+
+// eBay 썸네일 — 원본은 s-l1600(대형)이라 목록엔 s-l140(소형)로 받아 대역폭 절약. 실패 시 img은 onerror로 제거.
+function aucThumbUrl(u) {
+  return typeof u === "string" ? u.replace(/\/s-l\d+/, "/s-l140") : u;
+}
 
 // 경매 남은시간 — endsAt 으로 매초 재계산. 1시간 이상은 "1시간 23분", 미만은 MM:SS 로 째깍.
 function aucTimeLeft(endsAt) {
@@ -1466,6 +1471,7 @@ function renderLiveAuctions() {
         <li class="aucRow">
           <a href="${epnUrl(it.url)}" target="_blank" rel="noopener noreferrer sponsored">
             <span class="aucLeft">
+              ${it.image ? `<img class="aucThumb" src="${escapeHtml(aucThumbUrl(it.image))}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ""}
               <span class="aucKind">${kindLabel[it.kind] || it.kind}</span>
               <span class="aucTitle">${escapeHtml(it.title)}</span>
             </span>

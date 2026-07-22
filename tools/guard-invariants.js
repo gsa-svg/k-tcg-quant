@@ -410,6 +410,18 @@ for (const f of ["index.html", "packs.html"]) {
       }
     }
   }
+
+  // X1b: 경매 위젯이 eBay 썸네일을 넣으면 CSP img-src 에 i.ebayimg.com 이 있어야 한다 — 2026-07-21.
+  //      ※ 이미지 URL 은 런타임 릴레이 데이터라 packs.js 에 도메인 문자열이 없다. 기능 마커(aucThumb)로 감지한다.
+  if (/aucThumb/.test(js)) {
+    for (const page of ["index.html", "packs.html"]) {
+      if (!exists(page)) continue;
+      const html = read(page);
+      if (!/Content-Security-Policy/i.test(html)) continue;
+      const imgSrc = (html.match(/img-src ([^;"]+)/) || [])[1] || "";
+      if (!imgSrc.includes("i.ebayimg.com")) errors.push(`X1: ${page} 의 CSP img-src 에 i.ebayimg.com 없음 — 경매 썸네일이 조용히 안 뜸`);
+    }
+  }
 }
 
 // ── T2. 방문자 페이로드 상한 — 2026-07-20. 시계열은 소급 못 지우니 방치하면 무한히 큰다.
