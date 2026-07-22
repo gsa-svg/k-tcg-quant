@@ -154,6 +154,28 @@ else {
   }
 }
 
+// ── D5. 박스 SOLD 주간 시계열(append-only) 무결성 — 2026-07-22 차트 데이터 레이어.
+//    이 파일은 실거래(sold) 축적본이라 조작·역행이 곧 허위 데이터다. 내부 정합성만 검사(파일 없으면 스킵).
+if (exists("data/box-sold-series.json")) {
+  const bs = JSON.parse(read("data/box-sold-series.json"));
+  if (bs.basis !== "sold") errors.push("D5: box-sold-series.basis 가 'sold' 가 아님 — active/추정 혼입 금지");
+  if (!/sold/i.test(bs.note || "") || !/append/i.test(bs.note || "")) errors.push("D5: box-sold-series.note 에 sold·append-only 고지 누락");
+  for (const [code, eds] of Object.entries(bs.sets || {})) {
+    for (const ed of ["jp", "en"]) {
+      const arr = (eds || {})[ed];
+      if (!Array.isArray(arr)) continue;
+      let prev = "";
+      for (const p of arr) {
+        if (!p || typeof p.d !== "string") { errors.push(`D5: ${code}.${ed} 날짜 없는 점`); break; }
+        if (p.d <= prev) { errors.push(`D5: ${code}.${ed} 날짜 역행/중복 (${prev}→${p.d}) — append-only 위반`); break; }
+        if (!(typeof p.median === "number" && p.median > 0)) { errors.push(`D5: ${code}.${ed} ${p.d} median 이상`); break; }
+        if (p.n != null && (!Number.isInteger(p.n) || p.n < 0)) { errors.push(`D5: ${code}.${ed} ${p.d} n(판매수) 이상`); break; }
+        prev = p.d;
+      }
+    }
+  }
+}
+
 // ── D2. 마켓 인덱스 정합성(build-market-index.js 산출) — 이상값이면 배포 차단
 {
   const mi = data.marketIndex;
@@ -497,4 +519,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D5", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
