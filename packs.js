@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260722c";
+const DATA_VERSION = "20260722d";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -646,9 +646,9 @@ function renderBoxInteractive(set, jpPts, enPts, options = {}) {
   const chgTag = (c) => `<b class="${c >= 0 ? "chgUp" : "chgDown"}">${c >= 0 ? "+" : ""}${c}%</b>`;
   const source = options.source || (set.boxSeries && set.boxSeries.source) || "";
   const title = options.title || t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English");
-  const src = /Weekly ungraded/.test(source)
+  const src = options.note || (/Weekly ungraded/.test(source)
     ? t("마켓 시세 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Market price. Hover or tap the chart to read the price on any date.")
-    : t("eBay 현재 매물 중간값 기준. 실거래가가 아니며 표본이 적은 날은 변동이 클 수 있습니다.", "Based on median current eBay listings, not sold prices. Thin-sample days may swing more.");
+    : t("eBay 현재 매물 중간값 기준. 실거래가가 아니며 표본이 적은 날은 변동이 클 수 있습니다.", "Based on median current eBay listings, not sold prices. Thin-sample days may swing more."));
   return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${title}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
 }
 
@@ -702,6 +702,15 @@ function hasInteractiveBox(set) {
   return (set.boxSeriesEn && set.boxSeriesEn.ready) || new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM;
 }
 
+function mergeSeriesPoints(historyPoints, currentPoints) {
+  const pointsByDate = new Map();
+  [...historyPoints, ...currentPoints].forEach((point) => {
+    if (!point || !point.d || !Number.isFinite(Number(point.p))) return;
+    pointsByDate.set(point.d, point);
+  });
+  return [...pointsByDate.values()].sort((a, b) => a.d.localeCompare(b.d));
+}
+
 function renderBoxSeries(set) {
   const jpPts = (set.boxSeries && set.boxSeries.points) || [];
   if (jpPts.length < 2) return "";
@@ -710,20 +719,17 @@ function renderBoxSeries(set) {
   const liveEnPts = (set.boxSeriesEnEbay && set.boxSeriesEnEbay.points) || [];
   const hasLivePair = liveJpPts.length >= 2 && liveEnPts.length >= 2;
 
-  // 과거 6개월 시세와 현재 eBay 호가는 기준이 달라 한 선으로 연결하지 않는다.
-  // 최신 추적을 먼저 보여주고, 기존 히스토리는 그대로 보존해 별도 차트로 제공한다.
   if (hasLivePair) {
-    const live = renderBoxInteractive(set, liveJpPts, liveEnPts, {
-      source: "eBay Active snapshots",
-      title: t("최신 eBay 매물 흐름 · 일본판 vs 영문판", "Current eBay listing trend · JP vs EN"),
+    const mergedJpPts = mergeSeriesPoints(jpPts, liveJpPts);
+    const mergedEnPts = mergeSeriesPoints(enPts, liveEnPts);
+    return renderBoxInteractive(set, mergedJpPts, mergedEnPts, {
+      source: "Weekly ungraded market followed by eBay Active snapshots",
+      title: t("박스 시세 흐름 · 일본판 vs 영문판", "Box price trend · Japanese vs English"),
+      note: t(
+        "7월 12일까지는 기존 주간 시세 기록, 이후는 eBay 현재 매물 중간값입니다. 기준이 바뀌는 구간은 변동폭이 크게 보일 수 있습니다.",
+        "History through July 12 uses the previous weekly market series; later points use median current eBay listings. The source transition can appear as a larger move."
+      ),
     });
-    const archive = enPts.length >= 2
-      ? renderBoxInteractive(set, jpPts, enPts, {
-          source: (set.boxSeries && set.boxSeries.source) || "Weekly ungraded market",
-          title: t("이전 6개월 시세 기록 · 일본판 vs 영문판", "Previous 6-month market history · JP vs EN"),
-        })
-      : "";
-    return `${live}${archive}`;
   }
   // 두 판이 다 준비되면 인터랙티브 교차 그래프(그래프4)로 표시. 그 전엔 수집만 하고 "집계중" 안내.
   if (hasInteractiveBox(set)) return renderBoxInteractive(set, jpPts, enPts);
