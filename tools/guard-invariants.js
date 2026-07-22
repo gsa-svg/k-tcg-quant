@@ -107,13 +107,16 @@ for (const [k, kind] of Object.entries(manifest)) {
   if (kind === "wm" && !/Weekly ungraded/i.test(src)) errors.push(`D1: ${code}.${key}.source="${src}" — wm 시리즈가 덮어써짐(eBay 스냅샷은 ${key}Ebay로 가야 함)`);
 }
 
-// D4. 보존된 과거 시리즈 옆에 최신 eBay 병행 시계열이 있으면 화면도 반드시 읽어야 한다.
-// 2026-07-22 사고: 수집은 당일까지 정상인데 화면이 7/12 과거 필드만 읽어 그래프가 멈춰 보였음.
-const hasParallelBoxSeries = Object.values(data.sets || {}).some((set) =>
-  (set.boxSeriesEbay?.points?.length || 0) >= 2 && (set.boxSeriesEnEbay?.points?.length || 0) >= 2
-);
-if (hasParallelBoxSeries && (!packsJs.includes("set.boxSeriesEbay") || !packsJs.includes("set.boxSeriesEnEbay"))) {
-  errors.push("D4: 최신 eBay 병행 시계열이 있지만 packs.js가 이를 읽지 않음 — 그래프 날짜 동결 재발");
+// D4. 2026-07-22 결정: 여러 소스(주간 시장시리즈 + eBay 매물 중간값)를 이어 붙이던 박스 "트렌드/이력" 차트는
+//     소스 전환 지점에 가짜 급등이 생겨 신뢰할 수 없다 → 의도적으로 숨긴다. 신뢰 그래프는 우리가 직접 모은
+//     eBay 실거래(sold, box-sold-series.json)만으로 데이터가 충분히 쌓인 뒤 렌더한다.
+//     재발 방지: (1) renderBoxSeries 의 정직한 '실거래 수집중' 플레이스홀더가 유지되어야 하고,
+//               (2) active(매물) 중간값을 sold/이력으로 오인시키는 혼합소스 트렌드 안내가 되살아나면 안 된다.
+if (!/boxChartPending/.test(packsJs)) {
+  errors.push("D4: renderBoxSeries 의 정직한 '실거래 수집중' 플레이스홀더(boxChartPending)가 사라짐 — 혼합소스 트렌드차트 재도입 위험");
+}
+if (/source transition can appear as a larger move/i.test(packsJs)) {
+  errors.push("D4: 혼합소스(시장→eBay매물) 트렌드 차트 안내가 되살아남 — active 중간값을 sold 이력으로 오인시킬 수 있음");
 }
 
 // D3. Full-set PSA imports must remain complete and internally consistent.
@@ -519,4 +522,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D5", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));

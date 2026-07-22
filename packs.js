@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260722d";
+const DATA_VERSION = "20260722e";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -711,31 +711,16 @@ function mergeSeriesPoints(historyPoints, currentPoints) {
   return [...pointsByDate.values()].sort((a, b) => a.d.localeCompare(b.d));
 }
 
-function renderBoxSeries(set) {
-  const jpPts = (set.boxSeries && set.boxSeries.points) || [];
-  if (jpPts.length < 2) return "";
-  const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
-  const liveJpPts = (set.boxSeriesEbay && set.boxSeriesEbay.points) || [];
-  const liveEnPts = (set.boxSeriesEnEbay && set.boxSeriesEnEbay.points) || [];
-  const hasLivePair = liveJpPts.length >= 2 && liveEnPts.length >= 2;
-
-  if (hasLivePair) {
-    const mergedJpPts = mergeSeriesPoints(jpPts, liveJpPts);
-    const mergedEnPts = mergeSeriesPoints(enPts, liveEnPts);
-    return renderBoxInteractive(set, mergedJpPts, mergedEnPts, {
-      source: "Weekly ungraded market followed by eBay Active snapshots",
-      title: t("박스 시세 흐름 · 일본판 vs 영문판", "Box price trend · Japanese vs English"),
-      note: t(
-        "7월 12일까지는 기존 주간 시세 기록, 이후는 eBay 현재 매물 중간값입니다. 기준이 바뀌는 구간은 변동폭이 크게 보일 수 있습니다.",
-        "History through July 12 uses the previous weekly market series; later points use median current eBay listings. The source transition can appear as a larger move."
-      ),
-    });
-  }
-  // 두 판이 다 준비되면 인터랙티브 교차 그래프(그래프4)로 표시. 그 전엔 수집만 하고 "집계중" 안내.
-  if (hasInteractiveBox(set)) return renderBoxInteractive(set, jpPts, enPts);
-  const jpPanel = renderSeriesPanel(jpPts, { tag: "JP", tagCls: "", cls: "spJp", fill: "#10d7a0", name: t("일본판 박스", "Japanese box") });
-  const enPanel = `<div class="seriesPanel spPending"><div class="spHead"><span><em class="langTag langTagEn">EN</em><b class="spName">${t("영문판 박스", "English box")}</b></span><span class="spNow"><em class="spVerdict chgFlat">${t("8월부터 그래프 표시 — 7월 실거래 집계 중", "Chart live from August — collecting July sold data")}</em></span></div></div>`;
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${t("박스 시세 흐름", "Box price trend")}</span></div>${jpPanel}${enPanel}<p class="note">${t("각 그래프는 그 판의 흐름만 보여줍니다(가격대가 달라 한 그래프에 겹치지 않음).", "Each chart shows one edition only (price levels differ too much to overlay).")} ${/Weekly ungraded/.test((set.boxSeries && set.boxSeries.source) || "") ? t("마켓 시세 기준.", "Based on market price.") : t("eBay 매물 중간값 기준, 표본 적은 날은 변동이 큽니다.", "Based on eBay listing medians; thin-sample days swing more.")}</p></div>`;
+// 2026-07-22 결정: 기존 박스 트렌드 차트(주간 시장시리즈 + eBay 매물호가 병합)는 소스 전환 지점에
+// 가짜 급등이 생겨 신뢰할 수 없다. 사용자 방침 — "우리 자체 eBay 실거래(sold)만 단일 기준으로 쌓아 보여준다".
+// 그 sold 시계열(data/box-sold-series.json, append-box-sold-series.js)이 충분히 쌓이기 전까지 차트는 숨기고,
+// 왜 비어있는지 정직하게 고지한다. (현재 최저가 CTA 는 renderBoxMarket 에서 별도로 계속 표시됨)
+function renderBoxSeries() {
+  return `<div class="boxChart boxChartPending"><div class="bcHead"><span class="bmLabel">${t("박스 가격 이력", "Box price history")}</span></div>` +
+    `<p class="note">${t(
+      "믿을 수 있는 단일 기준 그래프를 위해, 여러 소스를 섞는 대신 <strong>우리가 직접 모은 eBay 실거래(sold) 가격</strong>만 쌓고 있습니다. 데이터가 충분히 모이면 주간 실거래가와 판매량을 여기에 표시합니다. 현재 최저 매물가는 위 구매 버튼에서 확인하세요.",
+      "For a chart you can trust on one consistent basis, we're building a history from <strong>our own verified eBay sold prices</strong> rather than mixing sources. Weekly sold prices and volume will appear here once enough data accumulates. The current lowest listing is shown in the buy button above."
+    )}</p></div>`;
 }
 
 async function fetchPackData() {
