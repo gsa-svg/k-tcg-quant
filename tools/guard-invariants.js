@@ -659,6 +659,17 @@ for (const f of ["index.html", "packs.html"]) {
       if (!imgSrc.includes("i.ebayimg.com")) errors.push(`X1: ${page} 의 CSP img-src 에 i.ebayimg.com 없음 — 경매 썸네일이 조용히 안 뜸`);
     }
   }
+  // X1c: 카드 이미지를 반다이 일본판(onepiece-cardgame.com)으로 쓰므로 CSP img-src 에 그 도메인이 있어야 한다 — 2026-07-23.
+  //      데이터(onepiece-packs.json)에 일본판 이미지 URL 이 하나라도 있으면 SPA 페이지 CSP 에 도메인 필수.
+  if (JSON.stringify(data).includes("onepiece-cardgame.com")) {
+    for (const page of ["index.html", "packs.html"]) {
+      if (!exists(page)) continue;
+      const html = read(page);
+      if (!/Content-Security-Policy/i.test(html)) continue;
+      const imgSrc = (html.match(/img-src ([^;"]+)/) || [])[1] || "";
+      if (!imgSrc.includes("onepiece-cardgame.com")) errors.push(`X1: ${page} 의 CSP img-src 에 onepiece-cardgame.com 없음 — 일본판 카드 이미지가 조용히 차단됨`);
+    }
+  }
 }
 
 // ── T2. 방문자 페이로드 상한 — 2026-07-20. 시계열은 소급 못 지우니 방치하면 무한히 큰다.
