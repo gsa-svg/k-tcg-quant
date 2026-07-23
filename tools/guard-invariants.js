@@ -331,6 +331,18 @@ if (exists("data/cgc-grading-history.json")) {
   }
 }
 
+// ── D9. 카드 경매 집계(auction-card-stats) 정합성 — 파생 스냅샷이라 이상값이면 카드 페이지가 틀린다.
+if (exists("data/auction-card-stats.json")) {
+  const cs = JSON.parse(read("data/auction-card-stats.json"));
+  if (!/per-card/i.test(cs.note || "") || !/auction-sold/i.test(cs.note || "")) errors.push("D9: note 에 파생 출처(auction-sold) 고지 누락");
+  for (const [id, c] of Object.entries(cs.cards || {})) {
+    if (!(Number.isInteger(c.sold) && c.sold >= 3)) { errors.push(`D9: ${id} sold(${c.sold}) 표본 기준 미달 노출`); break; }
+    if (c.medPrice != null && !(c.medPrice > 0)) { errors.push(`D9: ${id} medPrice 이상 (${c.medPrice})`); break; }
+    if (c.sellThrough != null && !(c.sellThrough >= 0 && c.sellThrough <= 100)) { errors.push(`D9: ${id} sellThrough 이상 (${c.sellThrough})`); break; }
+    if (c.low != null && c.high != null && c.low > c.high) { errors.push(`D9: ${id} low>high`); break; }
+  }
+}
+
 // ── D6. 박스 SOLD 원장(ledger) 무결성 — 판매 1건=1레코드, append-only 저장소.
 //    id 중복(이중 계상), 단가/수량 이상, 날짜 형식 오류가 들어오면 주간 집계 전체가 오염된다.
 if (exists("data/box-sold-ledger.json")) {
@@ -693,4 +705,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));

@@ -36,18 +36,21 @@ jobs:
       - name: Settle
         run: node tools/settle-auctions.js
 
+      - name: Card auction stats
+        run: node tools/auction-card-stats.js
+
       - name: Guard
         run: node tools/guard-invariants.js
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/auction-sold.json data/auction-watch.json; then
+          if git diff --quiet data/auction-sold.json data/auction-watch.json data/auction-card-stats.json; then
             echo "Nothing settled."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-sold.json data/auction-watch.json
+          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json
           git commit -m "Settle completed auctions"
           for attempt in 1 2 3; do
             if git push; then
