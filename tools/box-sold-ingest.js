@@ -118,7 +118,7 @@ function main(dumpFile) {
         data.sets[code].boxMarket[ed] = data.sets[code].boxMarket[ed] || {};
         data.sets[code].boxMarket[ed].ebaySold = {
           median: Math.round(med(units)), low: Math.round(q(units, 0.25)), high: Math.round(q(units, 0.75)),
-          sampleSize: units.length, basis: "sold", updated: today,
+          sampleSize: units.length, basis: "sold", currency: "USD", updated: today,
         };
       }
     }

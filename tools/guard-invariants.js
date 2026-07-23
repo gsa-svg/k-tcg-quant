@@ -157,6 +157,18 @@ else {
   }
 }
 
+// ── D5b. boxMarket.ebaySold 는 median 이 있으면 currency 가 반드시 있어야 한다.
+//    2026-07-23 사고: box-sold-ingest 가 currency 를 빼먹어 화면이 "Sold $0.00"으로 표시됨(triMain이 통화 없이 0 렌더).
+for (const [code, sset] of Object.entries(data.sets || {})) {
+  const bm = sset.boxMarket || {};
+  for (const ed of ["jp", "en"]) {
+    const s = bm[ed] && bm[ed].ebaySold;
+    if (!s || s.median == null) continue;
+    if (!s.currency) errors.push(`D5b: ${code}.${ed}.ebaySold median 있는데 currency 없음 — 화면 $0.00 표시 위험`);
+    if (!(typeof s.median === "number" && s.median > 0)) errors.push(`D5b: ${code}.${ed}.ebaySold median 이상 (${s.median})`);
+  }
+}
+
 // ── D5. 박스 SOLD 주간 시계열(append-only) 무결성 — 2026-07-22 차트 데이터 레이어.
 //    이 파일은 실거래(sold) 축적본이라 조작·역행이 곧 허위 데이터다. 내부 정합성만 검사(파일 없으면 스킵).
 if (exists("data/box-sold-series.json")) {
@@ -705,4 +717,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
