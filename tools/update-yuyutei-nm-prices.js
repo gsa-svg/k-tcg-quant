@@ -37,38 +37,60 @@ function parseYuyuteiProducts(html) {
   return products.filter((product) => product.number && Number.isFinite(product.priceJpy));
 }
 
-function chooseBestProduct(products, card) {
-  const cardNumber = (card.number || "").replace(/^#/, "").toUpperCase();
-  const candidates = products.filter((product) => product.number.toUpperCase() === cardNumber);
-  if (!candidates.length) return null;
-
-  return candidates
-    .map((product) => ({ product, score: scoreProduct(product, card) }))
-    .sort((a, b) => b.score - a.score || b.product.priceJpy - a.product.priceJpy)[0].product;
+// 변형 등급 — 유유테이 일본어 라벨 기준(가장 구체적부터). 실측 라벨(2026-07-23):
+//  (レッドスーパーパラレル)=red · (スーパーパラレル)=super · (金パラレル)=gold · (銀パラレル)=silver · (手配書)=wanted · (パラレル)=parallel · 괄호없음=base
+function yuyuTier(product) {
+  const s = `${product.name} ${product.alt}`;
+  if (/レッド.*スーパーパラレル/.test(s)) return "red";
+  if (/スーパーパラレル/.test(s)) return "super";
+  if (/金パラレル|ゴールド/.test(s)) return "gold";
+  if (/銀パラレル|シルバー/.test(s)) return "silver";
+  if (/手配書/.test(s)) return "wanted";
+  if (/パラレル/.test(s)) return "parallel";
+  return "base";
+}
+// 우리 카드 이름 → 같은 등급 체계. manga/comic 는 슈퍼파라렐을 뜻함(유유테이엔 별도 'manga' 등급 없음).
+function cardTier(card) {
+  const s = `${card.name || ""} ${card.rarity || ""}`.toLowerCase();
+  if (/red\s*(manga|super|parallel)/.test(s)) return "red";
+  if (/super\s*(alt|alternate|parallel)|\bmanga\b|comic/.test(s)) return "super";
+  if (/\bgold\b/.test(s)) return "gold";
+  if (/\bsilver\b/.test(s)) return "silver";
+  if (/wanted/.test(s)) return "wanted";
+  if (/parallel/.test(s)) return "parallel";
+  if (/alternate|\balt\b/.test(s)) return "alt";   // base/parallel 애매 — 아래 폴백에서만 처리
+  return "base";
 }
 
-function scoreProduct(product, card) {
-  const cardText = `${card.name || ""} ${card.rarity || ""}`.toLowerCase();
-  const productText = `${product.alt} ${product.name}`.toLowerCase();
-  let score = product.priceJpy;
+const PROX = Math.log(3);   // 기존값 대비 3배 이내 후보만 인정(그 이상은 값이 이동했거나 기존이 틀린 것 → 스킵+수동).
 
-  if (/manga|comic|wanted|signature|gold/.test(cardText) && /スーパーパラレル|パラレル|金|漫画|手配書/.test(productText)) {
-    score += 1_000_000;
+// 한 카드번호에 속한 우리 카드들 ↔ 유유테이 후보들을 매칭.
+// 핵심: top10 카드는 대부분 파라렐/chase라 base가 아니다. 변형 가격은 자릿수로 갈리므로,
+//       "기존 nmJpy(대략 맞는 값)와 가장 근접한 후보"에 배정하면 변형이 정확히 갈린다(중복번호도 자연분리).
+//       기존값 없는 카드만 이름→등급 매칭. 확신 없으면 배정 안 함(기존값 보존 + 수동플래그).
+// 반환: Map(ourCard -> product).
+function assignByNumber(ourCards, cands) {
+  const res = new Map();
+  const used = new Set();
+  // 1) 기존값 있는 카드: (카드,후보) 근접쌍을 로그비 오름차순으로 그리디 배정(1:1, 3배 초과는 배정 안 함).
+  const pairs = [];
+  for (const c of ourCards) {
+    if (!(c.nmJpy > 0)) continue;
+    for (const p of cands) pairs.push({ card: c, product: p, r: Math.abs(Math.log(p.priceJpy / c.nmJpy)) });
   }
-  if (/sp|special/.test(cardText) && /sp|スペシャル|パラレル/.test(productText)) {
-    score += 500_000;
+  pairs.sort((a, b) => a.r - b.r);
+  for (const { card, product, r } of pairs) {
+    if (res.has(card) || used.has(product) || r > PROX) continue;
+    res.set(card, product); used.add(product);
   }
-  if (/parallel|alternate|alt/.test(cardText) && /パラレル/.test(productText)) {
-    score += 250_000;
+  // 2) 기존값 없는 카드: 이름→등급 정확일치가 유일할 때만.
+  for (const c of ourCards) {
+    if (res.has(c) || c.nmJpy > 0) continue;
+    const t = cardTier(c);
+    const ms = cands.filter((p) => !used.has(p) && yuyuTier(p) === t);
+    if (ms.length === 1) { res.set(c, ms[0]); used.add(ms[0]); }
   }
-  if (/leader|\bl\b/.test(cardText) && /リーダー|l /.test(productText)) {
-    score += 75_000;
-  }
-  if (/box topper/.test(cardText) && /ボックス|box|パラレル/.test(productText)) {
-    score += 75_000;
-  }
-
-  return score;
+  return res;
 }
 
 async function fetchProducts(code) {
@@ -101,19 +123,29 @@ async function main() {
     let updated = 0;
     let missed = 0;
 
+    // 카드번호별로 묶어 등급매칭(같은 번호에 base/파라렐/슈퍼 등 변형이 여럿 → 정확히 배정).
+    const byNumber = new Map();
     for (const card of set.cards) {
-      const selected = chooseBestProduct(products, card);
-      if (!selected) {
-        missed += 1;
-        continue;
-      }
-
-      card.nmJpy = selected.priceJpy;
-      card.nmVenue = "遊々亭";
-      card.nmSourceUrl = url;
-      card.nmStock = selected.stockText;
-      updated += 1;
+      const num = (card.number || "").replace(/^#/, "").toUpperCase();
+      if (!num) continue;
+      (byNumber.get(num) || byNumber.set(num, []).get(num)).push(card);
     }
+    const ambiguous = [];
+    for (const [num, ourCards] of byNumber) {
+      const cands = products.filter((p) => p.number.toUpperCase() === num);
+      if (!cands.length) { missed += ourCards.length; continue; }
+      const picks = assignByNumber(ourCards, cands);
+      for (const card of ourCards) {
+        const selected = picks.get(card);
+        if (!selected) { missed += 1; if (cands.length > 1) ambiguous.push(`${num} "${(card.name || "").slice(0, 24)}" (기존 ¥${card.nmJpy ?? "-"})`); continue; }
+        card.nmJpy = selected.priceJpy;
+        card.nmVenue = "遊々亭";
+        card.nmSourceUrl = url;
+        card.nmStock = selected.stockText;
+        updated += 1;
+      }
+    }
+    if (ambiguous.length) console.log(`  [수동검토 필요] ${code}: ${ambiguous.join(" · ")}`);
 
     set.priced = true;
     set.nmSource = "遊々亭 single-card listing";
@@ -122,7 +154,7 @@ async function main() {
   }
 
   data.updated = new Date().toISOString().slice(0, 10);
-  fs.writeFileSync(dataPath, `${JSON.stringify(data, null, 1)}\n`, "utf8");
+  fs.writeFileSync(dataPath, `${JSON.stringify(data)}\n`, "utf8");
 
   const missedTotal = summary.reduce((sum, row) => sum + row.missed, 0);
   if (missedTotal) {
