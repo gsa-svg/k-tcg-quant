@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260722e";
+const DATA_VERSION = "20260724a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1442,8 +1442,8 @@ function renderTodayDeals() {
     </div>
     <div class="suppliesRow">
       <span class="suppliesLabel">${t("🛡️ 카드 보호 · TCG 커뮤니티 표준", "🛡️ Protect your cards · TCG community staples")}</span>
-      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/136768331994")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("플레이 슬리브", "Play sleeves")}</span> <span class="supplySub">Dragon Shield Matte 100</span><span class="bestTag">PLAY</span></a>
-      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/itm/388453013911")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("보관 탑로더", "Storage toploaders")}</span> <span class="supplySub">Ultra PRO 3×4 35pt</span><span class="bestTag">STORE</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=card+sleeves&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("플레이 슬리브", "Play sleeves")}</span> <span class="supplySub">${t("카드 슬리브 전체 보기", "Browse card sleeves")}</span><span class="bestTag">PLAY</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=card+toploaders&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("보관 탑로더", "Storage toploaders")}</span> <span class="supplySub">${t("탑로더 전체 보기", "Browse toploaders")}</span><span class="bestTag">STORE</span></a>
     </div>`;
 }
 
