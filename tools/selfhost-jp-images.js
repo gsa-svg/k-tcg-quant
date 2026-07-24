@@ -44,4 +44,6 @@ async function fetchBuf(url) {
   const files = fs.readdirSync(outDir).filter((f) => f.endsWith(".webp"));
   const totalKB = Math.round(files.reduce((a, f) => a + fs.statSync(path.join(outDir, f)).size, 0) / 1024);
   console.log(JSON.stringify({ converted, kept, failed, webpFiles: files.length, totalKB }));
+  // 실패가 있으면 실패 종료(자동화에서 감지되게). 실패 카드는 원본 URL 유지라 재실행 안전.
+  if (failed > 0) process.exitCode = 1;
 })();

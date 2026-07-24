@@ -55,6 +55,11 @@ function ingest(dump) {
       let rows = byKey.get(`${code}|${num}|${tier}`) || [];
       if (!rows.length) continue;
       if (rows.length > 1) {
+        // (tagSet, grades) 완전 동일 행은 이중 방문 중복 → 1개로 dedupe(합산하면 2배 계상, 리뷰 확정버그).
+        const seenDup = new Set();
+        rows = rows.filter((r) => { const k = r.tagSet + "|" + JSON.stringify(r.grades); if (seenDup.has(k)) return false; seenDup.add(k); return true; });
+      }
+      if (rows.length > 1) {
         // TAG 는 같은 세트를 연도 그룹 중복으로 나눠 담기도 한다(실측: OP13-118 Manga가 13+19 두 그룹).
         // 라벨이 전부 동일할 때만 합산(같은 변형의 분할 그룹). 라벨이 다르면 진짜 모호 → 스킵.
         const labels = new Set(rows.map((r) => r.tagSet));
@@ -77,9 +82,16 @@ function ingest(dump) {
       appended++;
     }
   }
+  // 빈/부분 덤프 보호(리뷰 확정버그): 아무것도 못 담았고 같은날짜 스킵도 없으면 = 수집 실패(페이지 구조 변화 등)
+  // → 파일 안 건드리고 실패 종료. updated 가 조용히 전진해 "수집된 척" 하는 걸 막는다.
+  if (appended === 0 && skippedDate === 0) {
+    console.error(JSON.stringify({ error: "EMPTY_INGEST — 덤프에서 매칭 0건, 이력 파일 미변경(수집 실패 의심)" }));
+    process.exitCode = 1;
+    return { appended: 0, skippedDate: 0, ambiguous, error: "empty" };
+  }
   hist.note = "Weekly TAG grade distribution for our tracked top-10 One Piece chase cards (Japanese printings), matched by card number + variant tier taken from the TAG set name. Each point stores cumulative counts per grade (1..10, 10P). Append-only; ambiguous matches are skipped rather than guessed.";
   hist.grader = "tag";
-  hist.updated = d;
+  hist.updated = appended > 0 ? d : hist.updated;
   fs.writeFileSync(histPath, JSON.stringify(hist) + "\n", "utf8");
   return { appended, skippedDate, ambiguous: ambiguous.slice(0, 10), cards: Object.values(hist.sets).reduce((a, s) => a + Object.keys(s).length, 0) };
 }

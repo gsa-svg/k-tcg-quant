@@ -66,7 +66,7 @@ if (require.main === module) {
     console.log(JSON.stringify({ rows, extractor: EXTRACTOR }, null, 1));
   } else {
     console.log(`# 박스 sold 수집 계획 (${rows.length} 세트) — 데이터 기준일: ${data.updated}`);
-    console.log(`# 빠른 경로: node tools/box-sold-urls.js --collector 를 브라우저 javascript_tool 로 1회 실행 → 반환 JSON을 dump.json 으로 저장 → node tools/box-sold-ingest.js dump.json`);
+    console.log(`# 표준 경로: --setup 배치(10페이지씩, CDP 45초 타임아웃 회피). --collector 단일샷은 세트가 늘어 타임아웃 위험 — 소규모 테스트 전용.`);
     for (const r of rows) console.log(`${r.code}\tEN ${r.enUrl}\n\tJP ${r.jpUrl}`);
   }
 }

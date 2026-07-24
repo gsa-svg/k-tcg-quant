@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260724a";
+const DATA_VERSION = "20260724b";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -777,9 +777,11 @@ function renderHitList(cards) {
   const cells = cards
     .map((c, index) => {
       const color = rarityColor[c.rarity] || "#8d95a7";
-      const img = c.img || FALLBACK;
+      // 그리드: 자체호스팅 일본판 webp(c.image, 장당 ~95KB) 우선 · 라이트박스 확대는 고해상 원본(imageJpSrc/imageEn) 우선
+      const img = c.image || c.img || FALLBACK;
+      const zoomImg = c.imageJpSrc || c.imageEn || img;
       return `
-        <figure class="hitCard" data-card-index="${index}" data-img="${img}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
+        <figure class="hitCard" data-card-index="${index}" data-img="${zoomImg}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
           <div class="hitThumb">
             <span class="hitRank">${c.rank}</span>
             ${c.rarity ? `<span class="hitRar" style="--c:${color}">${c.rarity}</span>` : ""}

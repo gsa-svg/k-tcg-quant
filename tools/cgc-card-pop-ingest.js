@@ -19,16 +19,17 @@ const ROOT = path.join(__dirname, "..");
 const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
 const histPath = path.join(ROOT, "data", "cgc-card-pop.json");
 
+// 우리 카드명 → 변형 tier. 순서 중요(리뷰 확정버그 2건 반영 2026-07-24):
+//  - box topper 분기 없던 탓에 "Boa Hancock Box Topper"가 base 로 오염 → boxtopper 신설
+//  - /silver/ 가 캐릭터명 "Silvers Rayleigh" 에 걸림 → \bsilver\b + super/manga 판정을 먼저
 function ourTier(name) {
   const s = String(name || "").toLowerCase();
   if (/red\s*(manga|super|alt|parallel)/.test(s)) return "red";
   if (/stamped|signature/.test(s)) return "signature";
-  if (/sp\s*gold|gold(?!\s*stamped)/.test(s) && /\bsp\b|gold/.test(s) && /gold/.test(s)) {
-    if (/silver/.test(s)) return "silver";
-    if (/\bgold\b/.test(s)) return "gold";
-  }
-  if (/silver/.test(s)) return "silver";
+  if (/box\s*topper/.test(s)) return "boxtopper";
   if (/super\s*(alt|alternate|parallel)|\bmanga\b|comic/.test(s)) return "super";
+  if (/\bgold\b/.test(s)) return "gold";
+  if (/\bsilver\b/.test(s)) return "silver";
   if (/\bsp\b/.test(s)) return "sp";
   if (/wanted/.test(s)) return "wanted";
   if (/parallel|alternate|\balt\b/.test(s)) return "alt";
@@ -44,6 +45,7 @@ function cgcTier(label) {
     return "sp";
   }
   if (/manga\s*alt\.?\s*(art|parallel)|manga.*parallel/.test(s)) return "super";
+  if (/box\s*topper/.test(s)) return "boxtopper";
   if (/wanted/.test(s)) return "wanted";
   if (/alt\.?\s*art|parallel/.test(s)) return "alt";  // "Alt. Art"(마침표 포함, 실측) 도 매칭
   return "base";
@@ -89,9 +91,15 @@ function ingest(dump) {
       appended++;
     }
   }
+  // 빈/부분 덤프 보호(리뷰 확정버그): 매칭 0건 + 같은날짜 스킵 0건이면 수집 실패로 보고 파일 미변경·실패 종료.
+  if (appended === 0 && skippedDate === 0) {
+    console.error(JSON.stringify({ error: "EMPTY_INGEST — 덤프에서 매칭 0건, 이력 파일 미변경(수집 실패 의심)" }));
+    process.exitCode = 1;
+    return { appended: 0, skippedDate: 0, unmatched: unmatched.slice(0, 12), error: "empty" };
+  }
   hist.note = "Weekly CGC grade distribution for our tracked top-10 One Piece chase cards (Japanese printings), matched by card number + variant tier from the public CGC population report. Each point stores the cumulative count per grade (Perfect 10 / Pristine 10 / Gem Mint 10 / 9.5 ...). Append-only; ambiguous variant matches are skipped rather than guessed.";
   hist.grader = "cgc";
-  hist.updated = d;
+  hist.updated = appended > 0 ? d : hist.updated;
   fs.writeFileSync(histPath, JSON.stringify(hist) + "\n", "utf8");
   return { appended, skippedDate, unmatched: unmatched.slice(0, 12), cards: Object.values(hist.sets).reduce((a, s) => a + Object.keys(s).length, 0) };
 }

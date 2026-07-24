@@ -376,6 +376,9 @@ if (exists("data/auction-card-stats.json")) {
     [() => tagTier("One Piece Romance Dawn Japanese Special Alternate Art"), "sp"],   // TAG SP 표기 실측
     [() => tagTier("One Piece Romance Dawn Japanese Alternate Art"), "alt"],
     [() => tagTier("One Piece Carrying On His Will Japanese"), "base"],
+    [() => ourTier("Boa Hancock Box Topper"), "boxtopper"],                        // base 오염 사고(2026-07-24) 재발 방지
+    [() => ourTier("Silvers Rayleigh Parallel Manga"), "super"],                   // 캐릭터명 'Silvers'≠silver 변형
+    [() => ourTier("Marshall D. Teach SP Silver"), "silver"],                      // 진짜 silver 는 여전히 silver
   ];
   for (const [fn, want] of cases) {
     let got; try { got = fn(); } catch (e) { got = "ERR:" + e.message; }
