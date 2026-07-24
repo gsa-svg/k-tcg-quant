@@ -320,7 +320,9 @@ ${cardRows}
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
-    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <!-- 2026-07-24 애드센스 재심사 대비 임시 noindex: 한국어 세트 상세는 고유 서술이 없어 "얇은 대량 유사페이지"
+         판정 위험(감사 확정 이슈). 세트별 한국어 해설을 채우면 index,follow 로 되돌릴 것. 허브(/ko/)는 유지. -->
+    <meta name="robots" content="noindex,follow" />
     <link rel="canonical" href="${canonical}" />
     <link rel="alternate" hreflang="ko" href="${canonical}" />
     ${enHref ? `<link rel="alternate" hreflang="en" href="${SITE}/sets/${slug}.html" />` : ""}
@@ -405,20 +407,17 @@ for (const b of rows) {
   written.push(`ko/${slug}.html`);
 }
 
-// 사이트맵 idempotent 등재(/ko/{slug}.html)
+// 사이트맵: 한국어 세트 상세는 noindex(2026-07-24 임시) → 사이트맵에서 제거하고 허브(/ko/)만 유지.
+//      noindex 페이지를 사이트맵에 두면 GSC 가 "제출됨+색인안됨" 모순으로 계속 표시한다.
 {
   const smPath = path.join(ROOT, "sitemap.xml");
   let sm = fs.readFileSync(smPath, "utf8");
-  let added = 0;
-  for (const rel of written) {
-    const loc = `${SITE}/${rel}`;
-    if (sm.includes(`<loc>${loc}</loc>`)) continue;
-    const slug = rel.replace("ko/", "").replace(".html", "");
-    const enAlt = fs.existsSync(path.join(ROOT, "sets", `${slug}.html`)) ? `\n    <xhtml:link rel="alternate" hreflang="en" href="${SITE}/sets/${slug}.html" />` : "";
-    const block = `  <url>\n    <loc>${loc}</loc>\n    <xhtml:link rel="alternate" hreflang="ko" href="${loc}" />${enAlt}\n    <lastmod>${DATA_DATE}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-    sm = sm.replace("</urlset>", block + "</urlset>");
-    added++;
-  }
-  if (added) fs.writeFileSync(smPath, sm, "utf8");
-  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapAdded: added, index: idx.value }));
+  let removed = 0;
+  const dropLocs = new Set(written.map((rel) => `<loc>${SITE}/${rel}</loc>`));
+  sm = sm.replace(/[ \t]*<url>[\s\S]*?<\/url>\r?\n?/g, (block) => {
+    for (const loc of dropLocs) if (block.includes(loc)) { removed++; return ""; }
+    return block;
+  });
+  fs.writeFileSync(smPath, sm, "utf8");
+  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed, index: idx.value }));
 }
