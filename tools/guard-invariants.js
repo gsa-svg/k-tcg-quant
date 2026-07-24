@@ -355,6 +355,51 @@ if (exists("data/auction-card-stats.json")) {
   }
 }
 
+// ── Q4. 그레이더 카드매칭 변형(tier) 규칙 — "카드번호만 보고 매칭" 사고(유유테이/eBay top10) 재발 금지.
+//    CGC/TAG 실측 라벨 코퍼스로 ourTier/cgcTier/tagTier 를 실제 실행해 검증. 번호+변형 둘 다 맞아야 기록된다.
+{
+  const { ourTier, cgcTier } = require("./cgc-card-pop-ingest");
+  const { tagTier } = require("./tag-card-pop-ingest");
+  const cases = [
+    [() => ourTier("Monkey D. Luffy 118 Red Manga Alternate Art"), "red"],
+    [() => ourTier("Monkey D. Luffy 118 Super Alternate Art"), "super"],
+    [() => ourTier("Kuzan Manga"), "super"],
+    [() => ourTier("Shanks OP09-004 Gold Parallel"), "gold"],
+    [() => ourTier("Boa Hancock SP"), "sp"],
+    [() => cgcTier("Monkey D. Luffy (2025) Red Manga Alt. Art SEC"), "red"],
+    [() => cgcTier("Monkey D. Luffy (2025) Manga Alt. Art Parallel SEC"), "super"],
+    [() => cgcTier("Roronoa Zoro (2022) (Map Text Box) Alt. Art L"), "alt"],          // 마침표 "Alt. Art" 실측
+    [() => cgcTier("Boa Hancock (2025) Foil Parallel L"), "sp"],                      // EB SP = Foil Parallel 실측
+    [() => cgcTier("Shanks (2025) SP Ver. (SP next to number) Silver SR"), "silver"],
+    [() => tagTier("One Piece Carrying On His Will Japanese Manga Alternate Art"), "super"],
+    [() => tagTier("One Piece Carrying On His Will Japanese Red Manga Alternate Art"), "red"],
+    [() => tagTier("One Piece Romance Dawn Japanese Special Alternate Art"), "sp"],   // TAG SP 표기 실측
+    [() => tagTier("One Piece Romance Dawn Japanese Alternate Art"), "alt"],
+    [() => tagTier("One Piece Carrying On His Will Japanese"), "base"],
+  ];
+  for (const [fn, want] of cases) {
+    let got; try { got = fn(); } catch (e) { got = "ERR:" + e.message; }
+    if (got !== want) errors.push(`Q4: tier 매칭 회귀 — ${fn.toString().slice(10, 80)} → ${got} (기대 ${want})`);
+  }
+}
+
+// ── D11. TAG 카드별 등급분포 이력 무결성 — top10 카드 매칭본, append-only (D10 과 동형).
+if (exists("data/tag-card-pop.json")) {
+  const tp = JSON.parse(read("data/tag-card-pop.json"));
+  if (tp.grader !== "tag") errors.push("D11: tag-card-pop.grader 가 tag 가 아님");
+  if (!/append-only/i.test(tp.note || "")) errors.push("D11: note 에 append-only 고지 누락");
+  for (const [code, cards] of Object.entries(tp.sets || {})) {
+    for (const [key, arr] of Object.entries(cards || {})) {
+      let prev = "";
+      for (const p of arr || []) {
+        if (!p || typeof p.d !== "string" || p.d <= prev) { errors.push(`D11: ${code} ${key} 날짜 이상/역행`); break; }
+        if (!(Number.isInteger(p.total) && p.total > 0)) { errors.push(`D11: ${code} ${key} ${p.d} total 이상`); break; }
+        prev = p.d;
+      }
+    }
+  }
+}
+
 // ── D10. CGC 카드별 등급분포 이력 무결성 — top10 카드 매칭본, append-only.
 if (exists("data/cgc-card-pop.json")) {
   const cp = JSON.parse(read("data/cgc-card-pop.json"));
@@ -747,4 +792,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
