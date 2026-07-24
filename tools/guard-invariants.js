@@ -355,6 +355,25 @@ if (exists("data/auction-card-stats.json")) {
   }
 }
 
+// ── D10. CGC 카드별 등급분포 이력 무결성 — top10 카드 매칭본, append-only.
+if (exists("data/cgc-card-pop.json")) {
+  const cp = JSON.parse(read("data/cgc-card-pop.json"));
+  if (cp.grader !== "cgc") errors.push("D10: cgc-card-pop.grader 가 cgc 가 아님");
+  if (!/append-only/i.test(cp.note || "")) errors.push("D10: note 에 append-only 고지 누락");
+  for (const [code, cards] of Object.entries(cp.sets || {})) {
+    for (const [key, arr] of Object.entries(cards || {})) {
+      let prev = "";
+      for (const p of arr || []) {
+        if (!p || typeof p.d !== "string" || p.d <= prev) { errors.push(`D10: ${code} ${key} 날짜 이상/역행`); break; }
+        if (!(Number.isInteger(p.total) && p.total > 0)) { errors.push(`D10: ${code} ${key} ${p.d} total 이상`); break; }
+        const sum = Object.values(p.g || {}).reduce((a, v) => a + (Number(v) || 0), 0);
+        if (sum > p.total) { errors.push(`D10: ${code} ${key} ${p.d} 등급합(${sum})>total(${p.total})`); break; }
+        prev = p.d;
+      }
+    }
+  }
+}
+
 // ── D6. 박스 SOLD 원장(ledger) 무결성 — 판매 1건=1레코드, append-only 저장소.
 //    id 중복(이중 계상), 단가/수량 이상, 날짜 형식 오류가 들어오면 주간 집계 전체가 오염된다.
 if (exists("data/box-sold-ledger.json")) {
@@ -728,4 +747,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "Q1", "Q2", "Q3", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
