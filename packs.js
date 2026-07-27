@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727gs";
+const DATA_VERSION = "20260727cg";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1074,8 +1074,8 @@ function renderGraderTable(set) {
       name: t("CGC 그레이딩", "CGC grading"),
       cols: [
         { h: t("누적 등급", "Total graded"), get: (e) => num(e.total) },
-        { h: t("프리스틴 10", "Pristine 10"), get: (e) => (e.pristine10 != null ? num(e.pristine10) : "&mdash;") },
         { h: t("젬 민트 10", "Gem Mint 10"), get: (e) => (e.gemMint10 != null ? num(e.gemMint10) : "&mdash;") },
+        { h: t("프리스틴 10", "Pristine 10"), get: (e) => (e.pristine10 != null ? num(e.pristine10) : "&mdash;") },
       ],
       note: t(
         "CGC는 만점을 프리스틴 10과 젬 민트 10으로 나눕니다 — 프리스틴이 더 엄격한 위쪽 등급입니다. PSA 10 하나와 직접 비교할 수 없습니다.",
