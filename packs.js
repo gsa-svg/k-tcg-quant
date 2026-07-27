@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727psap";
+const DATA_VERSION = "20260727nb2";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1046,84 +1046,8 @@ function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/
 
 // PSA 등급·개봉 패널 — 우리가 수집한 PSA 인구조사(psa/psaGem/psaTotal) 기반. 캡처(TCG Quant)와 유사 레이아웃이지만 숫자는 우리 데이터.
 // 주간 PSA 등급 증가 막대차트 (TCG Quant 스타일: y축 눈금선 + hover 툴팁, 청록 그라데이션)
-function renderPsaWeeklyChart(weekly) {
-  const pts = (weekly && weekly.points) || [];
-  if (pts.length < 2) return "";
-  const W = 600, H = 178, padL = 34, padR = 10, padT = 16, padB = 26;
-  const maxV = Math.max(...pts.map((p) => p.v));
-  const scaleStep = maxV <= 100 ? 10 : maxV <= 1000 ? 100 : 1000;
-  const niceMax = Math.max(scaleStep, Math.ceil(maxV / scaleStep) * scaleStep);
-  const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.max(1.5, step * 0.78), baseY = H - padB;
-  const sy = (v) => padT + (1 - v / niceMax) * (H - padT - padB);
-  // 눈금은 항상 0~최대를 4등분한다. 1000 고정 간격이면 소형 세트(주 수십장)는 선이 한 줄만 나오고
-  // 발매 직후 대형 세트는 선이 빽빽해진다 — 세트마다 규모가 10배 넘게 차이나서 고정 간격은 못 쓴다.
-  const ylab = (v) => (v === 0 ? "0" : niceMax >= 10000 ? Math.round(v / 1000) + "k" : v >= 1000 ? +(v / 1000).toFixed(1) + "k" : String(Math.round(v)));
-  let grid = "";
-  for (let i = 0; i <= 4; i += 1) {
-    const g = (niceMax / 4) * i, y = sy(g);
-    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" class="pwGrid"></line><text x="${padL - 6}" y="${(y + 3.5).toFixed(1)}" class="pwYlab" text-anchor="end">${ylab(g)}</text>`;
-  }
-  // 눈금 라벨 밀도: 18개월치가 들어오면 매달 찍을 자리가 없다. 26주가 넘으면 분기달만 찍고
-  // 1월에는 연도를 붙여 어느 해인지 알 수 있게 한다.
-  const quarterly = pts.length > 26;
-  let prevM = -1;
-  const bars = pts.map((p, i) => {
-    const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d), m = dt.getUTCMonth();
-    let xlab = "";
-    if (m !== prevM) {
-      prevM = m;
-      if (!quarterly || m % 3 === 0) {
-        const txt = m === 0 ? t(`${dt.getUTCFullYear()}년`, `Jan '${String(dt.getUTCFullYear()).slice(2)}`) : t(`${m + 1}월`, MONTH_EN[m]);
-        xlab = `<text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${txt}</text>`;
-      }
-    }
-    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" class="pwBar" data-v="${p.v}" data-d="${p.d}"></rect>${xlab}`;
-  }).join("");
-  // 최근 4주 대 직전 4주 = 채점 모멘텀. 주 단위 막대는 들쭉날쭉해서 추세를 눈으로 읽기 어렵다.
-  // 8주가 안 되면(신규 세트) 비교 자체가 성립하지 않으니 아예 표시하지 않는다.
-  const sum = (a) => a.reduce((x, p) => x + p.v, 0);
-  let momentum = "";
-  if (pts.length >= 8) {
-    const recent = sum(pts.slice(-4)), prior = sum(pts.slice(-8, -4));
-    const pct = prior > 0 ? Math.round(((recent - prior) / prior) * 100) : null;
-    const dir = pct == null ? "" : pct < 0 ? "down" : pct > 0 ? "up" : "flat";
-    momentum = `<div class="pwMomo"><span class="pwMomoLbl">${t("최근 4주", "Past 4 weeks")}</span><b>${num(recent)}</b><span class="pwMomoLbl">${t("등급", "graded")}</span><span class="pwMomoVs">${t(`직전 ${num(prior)}`, `vs ${num(prior)} prior`)}</span>${pct == null ? "" : `<span class="pwMomoPct pw-${dir}">${dir === "down" ? "↓" : dir === "up" ? "↑" : "→"} ${Math.abs(pct)}% ${t("모멘텀", "momentum")}</span>`}</div>`;
-  }
-  const firstD = new Date(pts[0].d);
-  // 주간 집계는 2025-12-03부터만 게시한다. 그 이전 구간은 의도적으로 싣지 않으므로
-  // "데이터가 없는 것"이 아니라 "제공 범위 밖"이라고 분명히 적는다.
-  const since = t(`${firstD.getUTCFullYear()}년 ${firstD.getUTCMonth() + 1}월 ${firstD.getUTCDate()}일부터 집계 (이전 주간 기록은 제공하지 않습니다)`,
-    `tracked from ${MONTH_EN[firstD.getUTCMonth()]} ${firstD.getUTCDate()}, ${firstD.getUTCFullYear()} (earlier weeks not published)`);
-  return `<div class="pwWrap">${momentum}<div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${since}${weekly.allTimeTotal ? t(` · 전체 누적 ${num(weekly.allTimeTotal)}장`, ` · ${num(weekly.allTimeTotal)} graded all-time`) : ""}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
-}
-
-// 주간 막대에 hover 툴팁 연결 (renderDetail innerHTML 직후 호출)
-function initPsaWeekly(root) {
-  (root || document).querySelectorAll(".pwChartBox").forEach((box) => {
-    const tip = box.querySelector(".pwTip");
-    if (!tip) return;
-    box.querySelectorAll(".pwBar").forEach((bar) => {
-      const show = () => {
-        const v = +bar.getAttribute("data-v"), dt = new Date(bar.getAttribute("data-d"));
-        tip.innerHTML = `<b>${num(v)}</b> ${t("신규 등급", "new grades")}<span>${t(`${dt.getUTCFullYear()}년 ${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`, `${MONTH_EN[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`)}</span>`;
-        bar.classList.add("pwBarHover");
-        const br = bar.getBoundingClientRect(), cr = box.getBoundingClientRect();
-        tip.hidden = false;
-        let left = br.left - cr.left + br.width / 2;
-        left = Math.max(54, Math.min(cr.width - 54, left));
-        tip.style.left = left + "px";
-        tip.style.top = Math.max(0, br.top - cr.top - 46) + "px";
-      };
-      const hide = () => { tip.hidden = true; bar.classList.remove("pwBarHover"); };
-      bar.addEventListener("pointerenter", show);
-      bar.addEventListener("pointermove", show);
-      bar.addEventListener("pointerleave", hide);
-    });
-  });
-}
-
-// 판(일본판/영문판)별 누적 등급 수. 세트에 따라 영문판이 일본판의 2배인 경우도 있어
-// 한쪽만 보면 시장의 절반을 못 본다. 합산은 하지 않는다 — 젬률이 뜻을 잃기 때문.
+// 판(일본판/영문판)별 누적 등급 + 최근 주간 증감. 세트에 따라 영문판이 일본판의 2배인
+// 경우도 있어 한쪽만 보면 시장의 절반을 못 본다. 합산은 하지 않는다 — 젬률이 뜻을 잃는다.
 // 영문판 미발매 세트는 행을 만들되 "-" 로 비운다(0 으로 적으면 "0장 채점"으로 읽힌다).
 function renderEditionTable(set) {
   const jp = set.psaFull, en = set.psaFullEn;
@@ -1148,10 +1072,9 @@ function renderPsaDestruction(set) {
   return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사 · 세트 전체", "Population via PSA · full set")}${updated ? ` · ${updated}` : ""}</small></div>
     <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
     ${renderEditionTable(set)}
-    <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다. 아래 막대는 같은 전체 세트 기준의 주별 신규 등급 수예요.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10. The bars use the same full-set basis for weekly new grades.`)}</p>
-    ${renderPsaWeeklyChart(set.psaWeekly)}
-    ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")}</th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
-    <p class="note">${t("아래 Top 10 표는 각 카드가 PSA 등급 받은 수(그레이드 기준)이고, 위 막대는 주별 신규 등급 수입니다. 등급이 늘수록 미개봉 박스가 개봉·파괴된 것 — 미개봉 공급 감소 신호.", "The Top 10 table shows how many of each card were PSA-graded; the bars are new grades per week. More grading means more sealed boxes opened — a proxy for shrinking sealed supply.")}</p></div>`;
+    <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10.`)}</p>
+    ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")} <em class="pdEd">${t("일본판", "JP")}</em></th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
+    <p class="note">${t("Top 10 표는 각 카드가 PSA 등급 받은 수(그레이드 기준)이며 <b>일본판 기준</b>입니다. 등급이 늘수록 미개봉 박스가 개봉·파괴된 것 — 미개봉 공급 감소 신호. 세트 전체 누적은 위 표에서 일본판·영문판을 따로 볼 수 있어요.", "The Top 10 table shows how many of each card were PSA-graded, <b>Japanese printings only</b>. More grading means more sealed boxes opened — a proxy for shrinking sealed supply. Full-set totals are split by edition in the table above.")}</p></div>`;
 }
 
 function renderBoxMarket(set) {
@@ -1749,7 +1672,6 @@ function renderDetail() {
   }));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card); }));
   initBoxCharts(el);
-  initPsaWeekly(el);
 }
 
 function renderStats() {

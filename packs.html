@@ -9,7 +9,7 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://www.onepiece-cardgame.com https://i.ebayimg.com https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://opbox-deals.gsa-834.workers.dev https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="stylesheet" href="styles.css?v=20260727psap" />
+    <link rel="stylesheet" href="styles.css?v=20260727nb2" />
     <!-- Google Analytics 4 (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>
@@ -929,11 +929,6 @@
       .pdGem { color: var(--accent); font-weight: 700; }
       .pdRar { display: inline-block; padding: 1px 6px; border-radius: 5px; background: rgba(255,255,255,.06); color: #aeb7c9; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
       /* 주간 PSA 등급 증가 막대(TCG Quant 스타일: 눈금선+hover 툴팁) */
-      .pwWrap { margin: 14px 0 4px; }
-      .pwHead { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; row-gap: 2px; }
-      .pwHead b { font-size: 13px; color: #dfe4ee; font-weight: 700; }
-      .pwHead small { color: #7d8698; font-size: 11.5px; }
-      .pwMomo { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; padding: 8px 11px; margin-bottom: 8px; border: 1px solid var(--terminal-line); border-radius: 8px; background: rgba(255,255,255,.02); }
       .edWrap { margin: 10px 0 2px; overflow-x: auto; }
       .edTable { width: 100%; border-collapse: collapse; font-size: 12.5px; }
       .edTable th { text-align: right; padding: 5px 8px; color: #7d8698; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; border-bottom: 1px solid var(--terminal-line); }
@@ -946,27 +941,8 @@
       .edGem { color: #55d8ea; font-weight: 700; }
       .edNone { color: #6f7889; font-weight: 400; font-family: inherit; font-size: 11.5px; }
       .edAdd { color: #4ad9a4; }
+      .pdEd { font-style: normal; margin-left: 5px; padding: 1px 5px; border-radius: 4px; background: rgba(85,216,234,.14); color: #55d8ea; font-size: 9.5px; font-weight: 800; letter-spacing: .3px; vertical-align: middle; }
       .edFoot { margin: 5px 0 0; color: #6f7889; font-size: 11px; }
-      .pwMomo b { font-family: "JetBrains Mono", monospace; font-size: 15px; font-weight: 800; color: #eef2ff; }
-      .pwMomoLbl { color: #7d8698; font-size: 11.5px; }
-      .pwMomoVs { color: #9aa3b4; font-size: 11.5px; margin-left: 2px; }
-      .pwMomoPct { margin-left: auto; font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 800; letter-spacing: .2px; }
-      .pwMomoPct.pw-down { color: #ff7a7a; }
-      .pwMomoPct.pw-up { color: #55d8ea; }
-      .pwMomoPct.pw-flat { color: #7d8698; }
-      @media (max-width: 640px) { .pwMomo { gap: 4px; padding: 7px 9px; } .pwMomoPct { margin-left: 0; flex-basis: 100%; } }
-      .pwChartBox { position: relative; }
-      .pwSvg { display: block; width: 100%; height: auto; }
-      .pwGrid { stroke: rgba(255,255,255,.06); stroke-width: 1; stroke-dasharray: 2 5; }
-      .pwYlab { fill: #6f7889; font-size: 10.5px; font-family: "JetBrains Mono", monospace; }
-      .pwXlab { fill: #7d8698; font-size: 11px; font-family: "JetBrains Mono", monospace; }
-      .pwBar { fill: url(#pwGrad); cursor: pointer; transition: opacity .1s; }
-      .pwBar.pwLast { fill: url(#pwGradLast); }
-      .pwBar.pwBarHover { opacity: .82; }
-      .pwTip { position: absolute; transform: translateX(-50%); background: #0b0e14; border: 1px solid #2b3342; border-radius: 7px; padding: 6px 10px; font-size: 12px; color: #c7cede; z-index: 6; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,.45); }
-      .pwTip b { color: #55d8ea; font-size: 14px; font-weight: 800; }
-      .pwTip span { display: block; color: #7d8698; font-size: 11px; margin-top: 2px; }
-      .pwTip[hidden] { display: none; }
       @media (max-width: 560px) {
         .pdStats { gap: 6px; } .pdStat { padding: 7px 8px; } .pdStat b { font-size: 16px; }
         .pdTable { font-size: 12px; } .bxLegend { font-size: 11.5px; gap: 8px; }
@@ -1316,6 +1292,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260727psap" defer></script>
+    <script src="packs.js?v=20260727nb2" defer></script>
   </body>
 </html>

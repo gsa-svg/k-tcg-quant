@@ -826,8 +826,26 @@ for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
   }
 }
 
+// ── J1. packs.js 안에서 호출하는 render*/init* 함수가 실제로 선언돼 있는지 — 2026-07-27 실사고.
+//    죽은 차트 코드를 블록으로 잘라내다 그 사이에 있던 renderEditionTable 까지 함께 지웠다.
+//    문법은 통과하고(정의되지 않은 이름은 실행 시점에야 터진다) 가드도 통과했지만,
+//    세트 상세가 통째로 빈 화면이 됐다. SPA 를 실행하지 않는 가드는 이걸 못 보므로 이름만 대조한다.
+{
+  const js = read("packs.js");
+  const declared = new Set([...js.matchAll(/(?:^|\n)\s*(?:async\s+)?function\s+(\w+)/g)].map((m) => m[1]));
+  for (const m of js.matchAll(/\b((?:render|init|build)[A-Z]\w*)\s*\(/g)) {
+    const name = m[1];
+    if (declared.has(name)) continue;
+    // 선언과 함께 쓰이는 형태(const x = function ...)나 메서드 호출(.renderX()) 은 제외
+    const idx = m.index;
+    if (/[.\w$]$/.test(js.slice(Math.max(0, idx - 1), idx))) continue;
+    if (new RegExp(`(?:const|let|var)\\s+${name}\\s*=`).test(js)) continue;
+    errors.push(`J1: packs.js 가 ${name}() 를 호출하는데 선언이 없음 — 렌더가 런타임에 통째로 죽는다`);
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1"] }));
