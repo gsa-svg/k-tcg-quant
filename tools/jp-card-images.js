@@ -16,6 +16,12 @@ const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
 const EN = "https://en.onepiece-cardgame.com/images/cardlist/card/";
 const JP = "https://www.onepiece-cardgame.com/images/cardlist/card/";
 const SUFFIXES = ["", "_p1", "_p2", "_p3", "_p4", "_p5", "_p6"];
+// Exact-art variants verified against the preserved English card artwork.
+// These overrides prevent perceptual hashing from selecting a similar reprint.
+const VARIANT_OVERRIDES = new Map([
+  ["OP01-001", "_p2"],
+  ["OP01-016", "_p2"],
+]);
 const MAXD = 95;     // 최저 해밍거리 상한
 const MINGAP = 12;   // 1등-2등 격차 하한(확신)
 
@@ -46,11 +52,14 @@ async function main() {
   for (const code of codes) {
     for (const card of data.sets[code].cards) {
       const num = (card.number || "").replace(/^#/, "").toUpperCase();
-      const cur = card.image || card.img || "";
-      if (!num || !cur || /onepiece-cardgame\.com/.test(cur)) continue;   // 이미 일본판이면 스킵
-      const refBuf = await fetchBuf(cur);
+      // Match against the preserved English artwork. card.image may already
+      // contain a previously selected Japanese variant and cannot be trusted
+      // as the reference for a subsequent audit.
+      const ref = card.imageEn || card.img || "";
+      if (!num || !ref) continue;
+      const refBuf = await fetchBuf(ref);
       if (!refBuf) { flags.push(`${num} 현재이미지 로드실패`); continue; }
-      let refHash; try { refHash = hash(decode(refBuf, cur)); } catch { flags.push(`${num} 디코드실패`); continue; }
+      let refHash; try { refHash = hash(decode(refBuf, ref)); } catch { flags.push(`${num} 디코드실패`); continue; }
       // EN 반다이 후보 수집
       const cands = [];
       for (const s of SUFFIXES) {
@@ -60,12 +69,15 @@ async function main() {
       }
       if (!cands.length) { flags.push(`${num} 반다이EN 없음(일본전용?)`); continue; }
       cands.sort((a, b) => a.d - b.d);
-      const best = cands[0], gap = cands[1] ? cands[1].d - best.d : 999;
-      if (best.d > MAXD || (cands.length > 1 && gap < MINGAP)) { flags.push(`${num} 확신부족(d=${best.d} gap=${gap})`); continue; }
+      const overrideSuffix = VARIANT_OVERRIDES.get(num);
+      const best = overrideSuffix ? cands.find((candidate) => candidate.s === overrideSuffix) : cands[0];
+      if (!best) { flags.push(`${num} verified variant missing (${overrideSuffix})`); continue; }
+      const gap = cands[1] ? cands[1].d - cands[0].d : 999;
+      if (!overrideSuffix && (best.d > MAXD || (cands.length > 1 && gap < MINGAP))) { flags.push(`${num} 확신부족(d=${best.d} gap=${gap})`); continue; }
       const jpUrl = JP + num + best.s + ".png";
       const jb = await fetchBuf(jpUrl);
       if (!jb) { flags.push(`${num} 일본판 이미지 없음(${best.s})`); continue; }
-      card.imageEn = cur;                 // 영문 원본 보존
+      card.imageEn = ref;                 // 영문 원본 보존
       card.image = jpUrl;                 // 표시용을 일본판으로
       card._imgSuffix = best.s || "base";
       changed++;
@@ -73,7 +85,6 @@ async function main() {
     process.stdout.write(`${code} done\n`);
   }
 
-  data.updated = new Date().toISOString().slice(0, 10);
   fs.writeFileSync(dataPath, `${JSON.stringify(data)}\n`, "utf8");
   console.log(JSON.stringify({ changed, flagged: flags.length }));
   if (flags.length) console.log("수동플래그:\n  " + flags.join("\n  "));
