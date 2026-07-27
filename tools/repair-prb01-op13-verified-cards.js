@@ -29,14 +29,17 @@ function card(rank, name, number, rarity, priceUsd, suffix) {
   };
 }
 
+function verifiedManualImage(image) {
+  return { image };
+}
+
 const prb = data.sets["PRB-01"];
 if (!prb || !Array.isArray(prb.cards) || prb.cards.length !== 10) {
   throw new Error("Expected PRB-01 to contain exactly 10 cards before repair.");
 }
 
-// The first nine images were visually matched to the official Japanese list.
-// The gold DON card has no verified image suffix yet, so deliberately use the
-// UI fallback instead of displaying a wrong card image.
+// Cards were visually matched to the official Japanese list. The gold DON
+// card has no official card-number suffix, so it uses the verified product art.
 prb.cards = [
   card(1, "Monkey D. Luffy OP05 119 Manga", "OP05-119", "SEC", 4250.0, "_p4"),
   card(2, "Tony TonyChopper EB01 006 Manga", "EB01-006", "SR", 2400.0, "_p3"),
@@ -46,7 +49,7 @@ prb.cards = [
   card(6, "Portgas D. Ace Manga", "OP02-013", "SR", 1000.0, "_p2"),
   card(7, "Trafalgar Law OP05 069 Manga", "OP05-069", "SR", 1000.0, "_p3"),
   card(8, "Eustass Captain Kid OP05 074 Manga", "OP05-074", "SR", 748.02, "_p5"),
-  card(9, "DON Card Zoro Gold", "DON!!", "DON!!", 729.46),
+  { ...card(9, "DON Card Zoro Gold", "DON!!", "DON!!", 729.46), ...verifiedManualImage("https://opboxindex.com/img/jp/PRB01-DON-zoro-gold.webp") },
   card(10, "Sabo OP04 083 Manga", "OP04-083", "SR", 650.99, "_p2")
 ];
 

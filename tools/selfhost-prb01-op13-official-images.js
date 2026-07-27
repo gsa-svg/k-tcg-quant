@@ -5,6 +5,7 @@
  * card variants tied to the exact official suffix used by the data repair.
  */
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const sharp = require("sharp");
 
@@ -26,20 +27,36 @@ const images = [
   "OP13_OP13-119_p4.png"
 ];
 
+const verifiedManualImages = [
+  { sourceName: "opboxindex-prb-don-zoro-gold.jpg", outputName: "PRB01-DON-zoro-gold.webp" }
+];
+
 async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
 
   for (const sourceName of images) {
     const sourcePath = path.join(sourceDir, sourceName);
+    const outputName = sourceName.replace(/^PRB01_|^OP13_/, "").replace(/\.png$/, ".webp");
+    const outputPath = path.join(outputDir, outputName);
     if (!fs.existsSync(sourcePath)) {
+      if (fs.existsSync(outputPath)) {
+        continue;
+      }
       throw new Error(`Missing verified source image: ${sourceName}`);
     }
 
-    const outputName = sourceName.replace(/^PRB01_|^OP13_/, "").replace(/\.png$/, ".webp");
+    await sharp(sourcePath).webp({ quality: 88 }).toFile(outputPath);
+  }
+
+  for (const { sourceName, outputName } of verifiedManualImages) {
+    const sourcePath = path.join(os.tmpdir(), sourceName);
+    if (!fs.existsSync(sourcePath)) {
+      throw new Error(`Missing verified source image: ${sourceName}`);
+    }
     await sharp(sourcePath).webp({ quality: 88 }).toFile(path.join(outputDir, outputName));
   }
 
-  console.log(`Self-hosted ${images.length} verified Japanese card images.`);
+  console.log(`Self-hosted ${images.length + verifiedManualImages.length} verified Japanese card images.`);
 }
 
 main().catch((error) => {
