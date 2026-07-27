@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727ed";
+const DATA_VERSION = "20260727psap";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1128,11 +1128,15 @@ function initPsaWeekly(root) {
 function renderEditionTable(set) {
   const jp = set.psaFull, en = set.psaFullEn;
   if (!jp) return "";
-  const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td></tr>`;
-  return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("판", "Edition")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th></tr></thead><tbody>
+  const w = set.psaWow;
+  const wk = (d) => (d && d.wowAdd != null
+    ? `<td class="edNum edAdd">+${num(d.wowAdd)}</td><td class="edGem">${d.wowPct >= 0 ? "+" : ""}${d.wowPct}%</td>`
+    : `<td class="edNum">&mdash;</td><td class="edGem">&mdash;</td>`);
+  const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d)}</tr>`;
+  return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("판", "Edition")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "")}
     ${row(t("영문판", "English"), en, t("미발매", "not released"))}
-  </tbody></table></div>`;
+  </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}</div>`;
 }
 
 function renderPsaDestruction(set) {

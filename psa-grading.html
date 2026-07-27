@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://opboxindex.com/psa-grading.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#0a0c10" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>One Piece PSA Population by Set — Japanese vs English | OP Box Index</title>
+    <meta name="description" content="How many One Piece cards from each booster set have been PSA graded, split by Japanese and English printing, with gem rate and week-over-week change. 21 sets, updated 2026-07-26." />
+    <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="One Piece PSA Population by Set — Japanese vs English | OP Box Index" />
+    <meta property="og:description" content="How many One Piece cards from each booster set have been PSA graded, split by Japanese and English printing, with gem rate and week-over-week change. 21 sets, updated 2026-07-26." />
+    <meta property="og:url" content="https://opboxindex.com/psa-grading.html" />
+    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
+    <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece PSA population by set (Japanese and English)","description":"How many One Piece cards from each booster set have been PSA graded, split by Japanese and English printing, with gem rate and week-over-week change. 21 sets, updated 2026-07-26.","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"temporalCoverage":"2026-07-15/2026-07-22","dateModified":"2026-07-26","variableMeasured":["Total PSA graded","PSA 10 gem rate","Weekly change in graded count"]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"PSA Population","item":"https://opboxindex.com/psa-grading.html"}]}</script>
+    <link rel="stylesheet" href="styles.css?v=20260727psap" />
+    <style>
+      .pgWrap { max-width: 980px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
+      .pgWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
+      .pgWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 680px; }
+      .pgTot { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin: 20px 0 6px; }
+      .pgCard { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+      .pgCard .k { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; }
+      .pgCard.jp .k { color: #55d8ea; } .pgCard.en .k { color: #4ad9a4; }
+      .pgCard .v { display: block; font-family: "JetBrains Mono", monospace; font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0 1px; }
+      .pgCard .d { font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .pgCard.jp .d { color: #55d8ea; } .pgCard.en .d { color: #4ad9a4; }
+      .pgCard .d em { font-style: normal; color: var(--muted); font-weight: 400; margin-left: 6px; }
+      .pgTableWrap { overflow-x: auto; margin: 16px 0 8px; }
+      .pgTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+      .pgTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .pgTable thead th:first-child { text-align: left; }
+      .pgTable thead th.hjp { color: #55d8ea; } .pgTable thead th.hen { color: #4ad9a4; }
+      .pgTable tbody th { text-align: left; font-weight: 400; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); white-space: nowrap; }
+      .pgTable tbody th a { display: block; }
+      .pgTable tbody th b { display: block; font-family: "JetBrains Mono", monospace; font-size: 12.5px; }
+      .pgTable tbody th span { display: block; color: var(--muted); font-size: 11.5px; }
+      .pgTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .pgGem { color: var(--muted); }
+      .pgAdd { color: #cfd6e6; }
+      .pgPct { font-weight: 800; }
+      .pgPct.jp { color: #55d8ea; } .pgPct.en { color: #4ad9a4; }
+      .pgNa { color: #6f7889; font-weight: 400; font-family: system-ui, sans-serif; font-size: 11.5px; }
+      .pgSplit { border-left: 1px solid var(--line); }
+      .pgTable tfoot th, .pgTable tfoot td { border-top: 1px solid var(--line); border-bottom: 0; font-weight: 800; padding-top: 11px; }
+      .pgNotes { margin: 14px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.65; }
+      .pgNotes b { color: var(--ink); }
+      @media (max-width: 640px) { .pgTot { grid-template-columns: 1fr; } .pgTable { font-size: 12.5px; } .pgTable td, .pgTable th { padding: 8px 7px; } }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" aria-current="page" data-ko="PSA 인구">PSA Population</a><a href="market.html" data-ko="마켓 지수">Market Index</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+    </header>
+    <main class="pgWrap">
+      <p class="eyebrow">PSA Population</p>
+      <h1>One Piece PSA population by set</h1>
+      <p class="lead">How many cards from each booster set have been submitted to PSA, kept separate for the Japanese and English printings. Grading volume is the clearest proxy we have for sealed boxes being opened &mdash; every graded card came out of a pack. Cumulative totals are as of 2026-07-26; the weekly change compares 2026-07-22 against 2026-07-15.</p>
+      <div class="pgTot">
+        <div class="pgCard jp"><span class="k">Japanese &mdash; total graded</span><span class="v">583,430</span><span class="d">+9,653 <em>this week +1.68%</em></span></div>
+        <div class="pgCard en"><span class="k">English &mdash; total graded</span><span class="v">594,907</span><span class="d">+12,720 <em>this week +2.18%</em></span></div>
+      </div>
+      <div class="pgTableWrap">
+      <table class="pgTable">
+        <caption class="sr-only">PSA graded population and weekly change for every tracked One Piece booster set</caption>
+        <thead><tr>
+          <th scope="col">Booster set</th>
+          <th scope="col" class="hjp">JP graded</th><th scope="col" class="hjp">JP gem</th><th scope="col" class="hjp">JP week</th><th scope="col" class="hjp">%</th>
+          <th scope="col" class="hen">EN graded</th><th scope="col" class="hen">EN gem</th><th scope="col" class="hen">EN week</th><th scope="col" class="hen">%</th>
+        </tr></thead>
+        <tbody>
+        <tr data-code="OP-13">
+          <th scope="row"><a href="sets/op-13.html"><b>OP-13</b><span>Carrying on His Will</span></a></th>
+          <td class="pgNum">42,471</td><td class="pgGem">85.4%</td><td class="pgAdd">+1,243</td><td class="pgPct jp">+3.07%</td>
+          <td class="pgNum pgSplit">81,219</td><td class="pgGem">86.8%</td><td class="pgAdd">+2,601</td><td class="pgPct en">+3.37%</td>
+        </tr>
+        <tr data-code="OP-05">
+          <th scope="row"><a href="sets/op-05.html"><b>OP-05</b><span>Awakening of the New Era</span></a></th>
+          <td class="pgNum">69,711</td><td class="pgGem">88.9%</td><td class="pgAdd">+796</td><td class="pgPct jp">+1.17%</td>
+          <td class="pgNum pgSplit">53,103</td><td class="pgGem">89.3%</td><td class="pgAdd">+713</td><td class="pgPct en">+1.37%</td>
+        </tr>
+        <tr data-code="OP-09">
+          <th scope="row"><a href="sets/op-09.html"><b>OP-09</b><span>Emperors in the New World</span></a></th>
+          <td class="pgNum">66,208</td><td class="pgGem">89.7%</td><td class="pgAdd">+764</td><td class="pgPct jp">+1.18%</td>
+          <td class="pgNum pgSplit">51,034</td><td class="pgGem">88.5%</td><td class="pgAdd">+793</td><td class="pgPct en">+1.59%</td>
+        </tr>
+        <tr data-code="OP-01">
+          <th scope="row"><a href="sets/op-01.html"><b>OP-01</b><span>Romance Dawn</span></a></th>
+          <td class="pgNum">56,316</td><td class="pgGem">90.2%</td><td class="pgAdd">+322</td><td class="pgPct jp">+0.58%</td>
+          <td class="pgNum pgSplit">45,422</td><td class="pgGem">85.5%</td><td class="pgAdd">+595</td><td class="pgPct en">+1.34%</td>
+        </tr>
+        <tr data-code="OP-11">
+          <th scope="row"><a href="sets/op-11.html"><b>OP-11</b><span>A Fist of Divine Speed</span></a></th>
+          <td class="pgNum">27,395</td><td class="pgGem">83.2%</td><td class="pgAdd">+516</td><td class="pgPct jp">+1.94%</td>
+          <td class="pgNum pgSplit">45,768</td><td class="pgGem">86%</td><td class="pgAdd">+969</td><td class="pgPct en">+2.19%</td>
+        </tr>
+        <tr data-code="OP-06">
+          <th scope="row"><a href="sets/op-06.html"><b>OP-06</b><span>Wings of the Captain</span></a></th>
+          <td class="pgNum">34,601</td><td class="pgGem">94%</td><td class="pgAdd">+178</td><td class="pgPct jp">+0.52%</td>
+          <td class="pgNum pgSplit">37,205</td><td class="pgGem">90.6%</td><td class="pgAdd">+481</td><td class="pgPct en">+1.32%</td>
+        </tr>
+        <tr data-code="PRB-01">
+          <th scope="row"><a href="sets/prb-01.html"><b>PRB-01</b><span>Premium Booster</span></a></th>
+          <td class="pgNum">42,136</td><td class="pgGem">87.2%</td><td class="pgAdd">+560</td><td class="pgPct jp">+1.36%</td>
+          <td class="pgNum pgSplit">25,565</td><td class="pgGem">86.9%</td><td class="pgAdd">+411</td><td class="pgPct en">+1.65%</td>
+        </tr>
+        <tr data-code="OP-07">
+          <th scope="row"><a href="sets/op-07.html"><b>OP-07</b><span>500 Years in the Future</span></a></th>
+          <td class="pgNum">33,859</td><td class="pgGem">92.7%</td><td class="pgAdd">+260</td><td class="pgPct jp">+0.78%</td>
+          <td class="pgNum pgSplit">30,927</td><td class="pgGem">89.8%</td><td class="pgAdd">+517</td><td class="pgPct en">+1.72%</td>
+        </tr>
+        <tr data-code="OP-12">
+          <th scope="row"><a href="sets/op-12.html"><b>OP-12</b><span>Legacy of the Master</span></a></th>
+          <td class="pgNum">13,087</td><td class="pgGem">86.1%</td><td class="pgAdd">+239</td><td class="pgPct jp">+1.88%</td>
+          <td class="pgNum pgSplit">43,296</td><td class="pgGem">87.6%</td><td class="pgAdd">+1,130</td><td class="pgPct en">+2.72%</td>
+        </tr>
+        <tr data-code="OP-04">
+          <th scope="row"><a href="sets/op-04.html"><b>OP-04</b><span>Kingdoms of Intrigue</span></a></th>
+          <td class="pgNum">30,778</td><td class="pgGem">91.3%</td><td class="pgAdd">+186</td><td class="pgPct jp">+0.61%</td>
+          <td class="pgNum pgSplit">24,940</td><td class="pgGem">87.9%</td><td class="pgAdd">+234</td><td class="pgPct en">+0.95%</td>
+        </tr>
+        <tr data-code="OP-08">
+          <th scope="row"><a href="sets/op-08.html"><b>OP-08</b><span>Two Legends</span></a></th>
+          <td class="pgNum">22,334</td><td class="pgGem">92.7%</td><td class="pgAdd">+336</td><td class="pgPct jp">+1.54%</td>
+          <td class="pgNum pgSplit">31,855</td><td class="pgGem">87.4%</td><td class="pgAdd">+562</td><td class="pgPct en">+1.81%</td>
+        </tr>
+        <tr data-code="OP-02">
+          <th scope="row"><a href="sets/op-02.html"><b>OP-02</b><span>Paramount War</span></a></th>
+          <td class="pgNum">27,800</td><td class="pgGem">90%</td><td class="pgAdd">+129</td><td class="pgPct jp">+0.47%</td>
+          <td class="pgNum pgSplit">20,983</td><td class="pgGem">86.5%</td><td class="pgAdd">+236</td><td class="pgPct en">+1.14%</td>
+        </tr>
+        <tr data-code="PRB-02">
+          <th scope="row"><a href="sets/prb-02.html"><b>PRB-02</b><span>Premium Booster</span></a></th>
+          <td class="pgNum">17,401</td><td class="pgGem">87.6%</td><td class="pgAdd">+794</td><td class="pgPct jp">+4.88%</td>
+          <td class="pgNum pgSplit">28,303</td><td class="pgGem">85.4%</td><td class="pgAdd">+1,102</td><td class="pgPct en">+4.13%</td>
+        </tr>
+        <tr data-code="OP-03">
+          <th scope="row"><a href="sets/op-03.html"><b>OP-03</b><span>Pillars of Strength</span></a></th>
+          <td class="pgNum">24,188</td><td class="pgGem">88.1%</td><td class="pgAdd">+128</td><td class="pgPct jp">+0.53%</td>
+          <td class="pgNum pgSplit">17,221</td><td class="pgGem">83.2%</td><td class="pgAdd">+165</td><td class="pgPct en">+0.97%</td>
+        </tr>
+        <tr data-code="OP-10">
+          <th scope="row"><a href="sets/op-10.html"><b>OP-10</b><span>Royal Blood</span></a></th>
+          <td class="pgNum">13,932</td><td class="pgGem">88.4%</td><td class="pgAdd">+565</td><td class="pgPct jp">+4.27%</td>
+          <td class="pgNum pgSplit">26,969</td><td class="pgGem">87.2%</td><td class="pgAdd">+632</td><td class="pgPct en">+2.43%</td>
+        </tr>
+        <tr data-code="EB-03">
+          <th scope="row"><a href="sets/eb-03.html"><b>EB-03</b><span>Heroine's Edition</span></a></th>
+          <td class="pgNum">19,196</td><td class="pgGem">87.1%</td><td class="pgAdd">+619</td><td class="pgPct jp">+3.41%</td>
+          <td class="pgNum pgSplit">12,902</td><td class="pgGem">87.9%</td><td class="pgAdd">+1,057</td><td class="pgPct en">+9.33%</td>
+        </tr>
+        <tr data-code="EB-02">
+          <th scope="row"><a href="sets/eb-02.html"><b>EB-02</b><span>Anime 25th Collection</span></a></th>
+          <td class="pgNum">9,709</td><td class="pgGem">89.1%</td><td class="pgAdd">+366</td><td class="pgPct jp">+3.99%</td>
+          <td class="pgNum pgSplit">10,720</td><td class="pgGem">86.7%</td><td class="pgAdd">+368</td><td class="pgPct en">+3.61%</td>
+        </tr>
+        <tr data-code="EB-01">
+          <th scope="row"><a href="sets/eb-01.html"><b>EB-01</b><span>Memorial Collection</span></a></th>
+          <td class="pgNum">11,934</td><td class="pgGem">93.2%</td><td class="pgAdd">+89</td><td class="pgPct jp">+0.75%</td>
+          <td class="pgNum pgSplit">7,188</td><td class="pgGem">89.7%</td><td class="pgAdd">+91</td><td class="pgPct en">+1.29%</td>
+        </tr>
+        <tr data-code="OP-14">
+          <th scope="row"><a href="sets/op-14.html"><b>OP-14</b><span>The Azure Sea's Seven</span></a></th>
+          <td class="pgNum">13,279</td><td class="pgGem">86.4%</td><td class="pgAdd">+543</td><td class="pgPct jp">+4.36%</td>
+          <td class="pgNum pgSplit">&mdash;</td><td class="pgGem">&mdash;</td><td class="pgAdd">&mdash;</td><td class="pgPct"><span class="pgNa">not released</span></td>
+        </tr>
+        <tr data-code="OP-15">
+          <th scope="row"><a href="sets/op-15.html"><b>OP-15</b><span>Adventure on Kami's Island</span></a></th>
+          <td class="pgNum">6,366</td><td class="pgGem">93.3%</td><td class="pgAdd">+845</td><td class="pgPct jp">+16.58%</td>
+          <td class="pgNum pgSplit">&mdash;</td><td class="pgGem">&mdash;</td><td class="pgAdd">&mdash;</td><td class="pgPct"><span class="pgNa">not released</span></td>
+        </tr>
+        <tr data-code="OP-16">
+          <th scope="row"><a href="sets/op-16.html"><b>OP-16</b><span>The Time of Battle</span></a></th>
+          <td class="pgNum">729</td><td class="pgGem">91.4%</td><td class="pgAdd">+175</td><td class="pgPct jp">+43.86%</td>
+          <td class="pgNum pgSplit">287</td><td class="pgGem">94.8%</td><td class="pgAdd">+63</td><td class="pgPct en">+49.61%</td>
+        </tr>
+        </tbody>
+        <tfoot><tr>
+          <th scope="row"><b>All sets</b><span>21 tracked</span></th>
+          <td class="pgNum">583,430</td><td class="pgGem"></td><td class="pgAdd">+9,653</td><td class="pgPct jp">+1.68%</td>
+          <td class="pgNum pgSplit">594,907</td><td class="pgGem"></td><td class="pgAdd">+12,720</td><td class="pgPct en">+2.18%</td>
+        </tr></tfoot>
+      </table>
+      </div>
+      <h2>How to read this</h2>
+      <p class="pgNotes"><b>Total graded</b> is every card from that set sitting in a PSA holder, at any grade &mdash; not one specific card. <b>Gem</b> is the share that came back PSA 10. <b>Week</b> is how many new grades appeared between 2026-07-15 and 2026-07-22, and <b>%</b> is that change against the earlier total.</p>
+      <p class="pgNotes"><b>We never add the two editions together.</b> Japanese and English are separate print runs with different card stock and different print quality, so a combined gem rate would describe neither. 2 sets have no English row at all &mdash; those printings have not been released, which is different from zero cards graded.</p>
+      <p class="pgNotes">A high weekly number is not automatically bullish. It means packs are being opened, which thins the sealed supply, but it also means more graded copies competing on the market. Read it next to the box price on each <a href="sets/index.html">set guide</a>, and against completed sales on the <a href="psa10-ranking.html">PSA 10 value ranking</a>.</p>
+      <p class="pgNotes">Population figures are compiled from public PSA population reporting. We publish weekly change only from the point we began recording it ourselves; we do not republish historical series compiled by others.</p>
+    </main>
+    <footer class="footer">
+      <p>OP Box Index is a data-driven research site, not investment advice.</p>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+    </footer>
+  </body>
+</html>
