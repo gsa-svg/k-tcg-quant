@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727psaw";
+const DATA_VERSION = "20260727ed";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1090,7 +1090,10 @@ function renderPsaWeeklyChart(weekly) {
     momentum = `<div class="pwMomo"><span class="pwMomoLbl">${t("최근 4주", "Past 4 weeks")}</span><b>${num(recent)}</b><span class="pwMomoLbl">${t("등급", "graded")}</span><span class="pwMomoVs">${t(`직전 ${num(prior)}`, `vs ${num(prior)} prior`)}</span>${pct == null ? "" : `<span class="pwMomoPct pw-${dir}">${dir === "down" ? "↓" : dir === "up" ? "↑" : "→"} ${Math.abs(pct)}% ${t("모멘텀", "momentum")}</span>`}</div>`;
   }
   const firstD = new Date(pts[0].d);
-  const since = t(`${firstD.getUTCFullYear()}년 ${firstD.getUTCMonth() + 1}월부터 주별 신규 등급`, `weekly new grades since ${MONTH_EN[firstD.getUTCMonth()]} ${firstD.getUTCFullYear()}`);
+  // 주간 집계는 2025-12-03부터만 게시한다. 그 이전 구간은 의도적으로 싣지 않으므로
+  // "데이터가 없는 것"이 아니라 "제공 범위 밖"이라고 분명히 적는다.
+  const since = t(`${firstD.getUTCFullYear()}년 ${firstD.getUTCMonth() + 1}월 ${firstD.getUTCDate()}일부터 집계 (이전 주간 기록은 제공하지 않습니다)`,
+    `tracked from ${MONTH_EN[firstD.getUTCMonth()]} ${firstD.getUTCDate()}, ${firstD.getUTCFullYear()} (earlier weeks not published)`);
   return `<div class="pwWrap">${momentum}<div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${since}${weekly.allTimeTotal ? t(` · 전체 누적 ${num(weekly.allTimeTotal)}장`, ` · ${num(weekly.allTimeTotal)} graded all-time`) : ""}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
 }
 
@@ -1119,6 +1122,19 @@ function initPsaWeekly(root) {
   });
 }
 
+// 판(일본판/영문판)별 누적 등급 수. 세트에 따라 영문판이 일본판의 2배인 경우도 있어
+// 한쪽만 보면 시장의 절반을 못 본다. 합산은 하지 않는다 — 젬률이 뜻을 잃기 때문.
+// 영문판 미발매 세트는 행을 만들되 "-" 로 비운다(0 으로 적으면 "0장 채점"으로 읽힌다).
+function renderEditionTable(set) {
+  const jp = set.psaFull, en = set.psaFullEn;
+  if (!jp) return "";
+  const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td></tr>`;
+  return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("판", "Edition")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th></tr></thead><tbody>
+    ${row(t("일본판", "Japanese"), jp, "")}
+    ${row(t("영문판", "English"), en, t("미발매", "not released"))}
+  </tbody></table></div>`;
+}
+
 function renderPsaDestruction(set) {
   const rows = set.psa || [];
   if (!rows.length && set.psaTotal == null && !set.psaFull) return "";
@@ -1127,6 +1143,7 @@ function renderPsaDestruction(set) {
   const body = rows.map((r) => `<tr><td class="pdName">${r.name} <em>#${r.number}</em></td><td><span class="pdRar">${psaRarShort(r.rarity)}</span></td><td class="pdNum">${num(r.psa10)}</td><td class="pdNum pdMut">${num(r.psa9)}</td><td class="pdNum">${num(r.total)}</td><td class="pdGem">${r.gem}%</td></tr>`).join("");
   return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사 · 세트 전체", "Population via PSA · full set")}${updated ? ` · ${updated}` : ""}</small></div>
     <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
+    ${renderEditionTable(set)}
     <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다. 아래 막대는 같은 전체 세트 기준의 주별 신규 등급 수예요.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10. The bars use the same full-set basis for weekly new grades.`)}</p>
     ${renderPsaWeeklyChart(set.psaWeekly)}
     ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")}</th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
