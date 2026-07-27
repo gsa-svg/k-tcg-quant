@@ -131,6 +131,11 @@ async function collectRows(source) {
 
     const rowsByCode = {};
     for (const [code, set] of Object.entries(source.sets)) {
+      // URL 이 비어 있으면 Page.navigate 가 조용히 실패하고 **직전 세트의 RowData 를 그대로 읽는다**.
+      // 2026-07-27 실사고: 영문판 목록에 url 을 안 넣어 다른 세트 값이 그 세트 값으로 적재됐다.
+      if (!/^https:\/\/www\.gemrate\.com\/set-population-trend\?/.test(set.url || "")) {
+        throw new Error(`${code}: GemRate URL 이 없거나 형식이 다름 — 아무것도 쓰지 않음`);
+      }
       await send("Page.navigate", { url: set.url });
       let rows = null;
       for (let attempt = 0; attempt < 40; attempt += 1) {
