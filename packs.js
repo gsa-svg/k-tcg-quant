@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727nb2";
+const DATA_VERSION = "20260727gr";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1060,7 +1060,29 @@ function renderEditionTable(set) {
   return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("판", "Edition")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "")}
     ${row(t("영문판", "English"), en, t("미발매", "not released"))}
-  </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}</div>`;
+  </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
+}
+
+// PSA 외 등급사(CGC·TAG)도 같은 판별 기준으로 나란히. 공개 수준이 달라 있는 것만 적는다:
+// TAG 는 최고등급(10·10P) 수까지 주지만 CGC 는 세트 단위로 총량만 준다 → 비율 칸을 비운다.
+// 관측 구간도 등급사마다 달라 "주간"으로 뭉개지 않고 실제 날짜를 그대로 쓴다.
+function renderGraderTable(set) {
+  const g = set.graders;
+  if (!g) return "";
+  const NAMES = { cgc: "CGC", tag: "TAG" };
+  const cell = (e) => {
+    if (!e) return `<td class="grNum">&mdash;</td>`;
+    const add = e.add != null ? ` <span class="grAdd">+${num(e.add)}</span>` : "";
+    const rate = e.gemRate != null ? `<small>${t("최고등급", "top grade")} ${e.gemRate}%</small>` : "";
+    return `<td class="grNum">${num(e.total)}${add}${rate}</td>`;
+  };
+  const rows = Object.entries(g).map(([key, v]) => `<tr><td class="grName">${NAMES[key] || key.toUpperCase()}</td>${cell(v.jp)}${cell(v.en)}</tr>`).join("");
+  if (!rows) return "";
+  const win = Object.values(g).find((v) => v.from && v.to);
+  return `<div class="grWrap"><table class="grTable"><thead><tr><th>${t("타 등급사", "Other graders")}</th><th>${t("일본판", "Japanese")}</th><th>${t("영문판", "English")}</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="edFoot">${t(
+      `누적 등급 수 · +는 ${win ? `${win.from} 대비 ${win.to}` : "최근"} 증가분. CGC는 세트 단위로 총량만 공개해 등급 비율이 없습니다. PSA와 합산하지 마세요 — 등급사마다 기준이 다릅니다.`,
+      `Total graded · + is the change ${win ? `from ${win.from} to ${win.to}` : "since our previous reading"}. CGC publishes set-level totals only, so no grade share. Do not add these to PSA — each grader scales differently.`)}</p></div>`;
 }
 
 function renderPsaDestruction(set) {
@@ -1606,8 +1628,8 @@ function renderPsaTable(psa, updated) {
 
 function renderDataNotice() {
   return `<div class="dataNotice"><b>${t("데이터 기준", "Data notes")}</b> ${t(
-    "eBay Active는 현재 호가이며 실거래가가 아닙니다. 검수 최저 박스와 PSA10 매물 링크는 매일 03:00(KST)에 재검수합니다. Paid Link: eBay 링크를 통해 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다. 판매자, 배송비, 세금, 정품 여부, 재밀봉 리스크는 구매 전 본인이 최종 확인해야 합니다.",
-    "eBay Active shows listing prices, not sold prices. Verified lowest box and PSA 10 listing links are rechecked daily at 03:00 KST. Paid Link: we may earn a commission from qualifying purchases made through eBay links. Buyers must verify seller, shipping, tax, authenticity and reseal risk before purchase.",
+    "eBay Active는 현재 호가이며 실거래가가 아닙니다. 검수 최저 박스와 PSA10 매물 링크는 매일 03:00(KST)에 재검수합니다. PSA 등급 수(누적·주간 증감)는 공개 PSA 인구조사 자료를 매주 월요일 자체 수집해 일본판·영문판을 따로 기록하며, 두 판을 합산하지 않습니다. Paid Link: eBay 링크를 통해 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다. 판매자, 배송비, 세금, 정품 여부, 재밀봉 리스크는 구매 전 본인이 최종 확인해야 합니다.",
+    "eBay Active shows listing prices, not sold prices. Verified lowest box and PSA 10 listing links are rechecked daily at 03:00 KST. PSA graded counts and weekly change are collected by us every Monday from public PSA population reporting, recorded separately for Japanese and English printings, and never summed across editions. Paid Link: we may earn a commission from qualifying purchases made through eBay links. Buyers must verify seller, shipping, tax, authenticity and reseal risk before purchase.",
   )}</div>`;
 }
 

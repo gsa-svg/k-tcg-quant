@@ -5,6 +5,8 @@
 // Run: node tools/generate-set-pages.js
 const fs = require("fs");
 const path = require("path");
+// styles.css 버전을 하드코딩하면 범프할 때마다 어긋난다(2026-07-27 실사고: 가드 V1 21건).
+const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -122,7 +124,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=20260727op13" />
+    <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <style>
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
@@ -366,7 +368,7 @@ function setPage(code, prev, next) {
     const trend = lastW.v >= pk.v * 0.85 ? "still running near its peak" : lastW.v <= pk.v * 0.55 ? "cooling off from its peak" : "steady";
     momentum = `
       <h2>How fast is ${code} being opened right now?</h2>
-      <p>PSA's population report acts as a destruction meter for sealed supply: every graded card came out of an opened pack. Between ${esc(wk[0].d)} and ${esc(lastW.d)}, collectors added <strong>${intl(sum)}</strong> new ${code} grades — peaking at <strong>${intl(pk.v)}</strong> cards in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `All-time, the set counts <strong>${intl(s.psaFull.total)}</strong> graded cards.` : ""} Sustained grading volume while the box price holds is the pattern sealed collectors look for: supply burning while demand stays. The weekly bar chart on the <a href="../packs.html?set=${enc}&hl=en">tracker page</a> extends every week, and our <a href="../articles/psa-grading-vs-sealed-supply-2026.html">grading-vs-supply report</a> compares all 21 sets.</p>`;
+      <p>PSA's population report acts as a destruction meter for sealed supply: every graded card came out of an opened pack. Between ${esc(wk[0].d)} and ${esc(lastW.d)}, collectors added <strong>${intl(sum)}</strong> new ${code} grades — peaking at <strong>${intl(pk.v)}</strong> cards in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `All-time, the set counts <strong>${intl(s.psaFull.total)}</strong> graded cards.` : ""} Sustained grading volume while the box price holds is the pattern sealed collectors look for: supply burning while demand stays. The <a href="../packs.html?set=${enc}&hl=en">tracker page</a> breaks the same count into Japanese and English editions with the change since last week, and our <a href="../articles/psa-grading-vs-sealed-supply-2026.html">grading-vs-supply report</a> compares all 21 sets.</p>`;
   }
 
   // 구매의도 verdict — 전부 실데이터 파생 분기, 매일 재생성으로 월 표기 자동 갱신
@@ -624,7 +626,7 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
-    <link rel="stylesheet" href="styles.css?v=20260727op13" />
+    <link rel="stylesheet" href="styles.css?v=${CSS_VER}" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
