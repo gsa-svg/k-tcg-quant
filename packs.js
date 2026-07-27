@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727gr";
+const DATA_VERSION = "20260727gs";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1057,32 +1057,55 @@ function renderEditionTable(set) {
     ? `<td class="edNum edAdd">+${num(d.wowAdd)}</td><td class="edGem">${d.wowPct >= 0 ? "+" : ""}${d.wowPct}%</td>`
     : `<td class="edNum">&mdash;</td><td class="edGem">&mdash;</td>`);
   const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d)}</tr>`;
-  return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("판", "Edition")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
+  return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "")}
     ${row(t("영문판", "English"), en, t("미발매", "not released"))}
   </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
 }
 
-// PSA 외 등급사(CGC·TAG)도 같은 판별 기준으로 나란히. 공개 수준이 달라 있는 것만 적는다:
-// TAG 는 최고등급(10·10P) 수까지 주지만 CGC 는 세트 단위로 총량만 준다 → 비율 칸을 비운다.
-// 관측 구간도 등급사마다 달라 "주간"으로 뭉개지 않고 실제 날짜를 그대로 쓴다.
+// 등급사별로 따로 소개한다 — CGC 와 TAG 를 "타 등급사"로 묶으면 각 등급사의 등급 체계가
+// 뭉개진다. CGC 는 만점을 Pristine 10 / Gem Mint 10 둘로 나누고, TAG 는 10 / 10P 로 나눈다.
+// 등급사마다 공개 수준과 관측일이 달라 있는 것만, 그 날짜 그대로 적는다.
 function renderGraderTable(set) {
   const g = set.graders;
   if (!g) return "";
-  const NAMES = { cgc: "CGC", tag: "TAG" };
-  const cell = (e) => {
-    if (!e) return `<td class="grNum">&mdash;</td>`;
-    const add = e.add != null ? ` <span class="grAdd">+${num(e.add)}</span>` : "";
-    const rate = e.gemRate != null ? `<small>${t("최고등급", "top grade")} ${e.gemRate}%</small>` : "";
-    return `<td class="grNum">${num(e.total)}${add}${rate}</td>`;
+  const META = {
+    cgc: {
+      name: t("CGC 그레이딩", "CGC grading"),
+      cols: [
+        { h: t("누적 등급", "Total graded"), get: (e) => num(e.total) },
+        { h: t("프리스틴 10", "Pristine 10"), get: (e) => (e.pristine10 != null ? num(e.pristine10) : "&mdash;") },
+        { h: t("젬 민트 10", "Gem Mint 10"), get: (e) => (e.gemMint10 != null ? num(e.gemMint10) : "&mdash;") },
+      ],
+      note: t(
+        "CGC는 만점을 프리스틴 10과 젬 민트 10으로 나눕니다 — 프리스틴이 더 엄격한 위쪽 등급입니다. PSA 10 하나와 직접 비교할 수 없습니다.",
+        "CGC splits its top grade into Pristine 10 and Gem Mint 10 — Pristine is the stricter of the two. Neither maps one-to-one onto a PSA 10."),
+    },
+    tag: {
+      name: t("TAG 그레이딩", "TAG grading"),
+      cols: [
+        { h: t("누적 등급", "Total graded"), get: (e) => num(e.total) },
+        { h: t("10 · 10P", "10 · 10P"), get: (e) => (e.gem != null ? num(e.gem) : "&mdash;") },
+        { h: t("최고등급 비율", "Top-grade share"), get: (e) => (e.gemRate != null ? e.gemRate + "%" : "&mdash;") },
+      ],
+      note: t(
+        "TAG는 10과 10P(퍼펙트)를 따로 매깁니다. 위 수치는 두 등급을 합친 것입니다.",
+        "TAG issues 10 and 10P (perfect) separately; the figure above combines both."),
+    },
   };
-  const rows = Object.entries(g).map(([key, v]) => `<tr><td class="grName">${NAMES[key] || key.toUpperCase()}</td>${cell(v.jp)}${cell(v.en)}</tr>`).join("");
-  if (!rows) return "";
-  const win = Object.values(g).find((v) => v.from && v.to);
-  return `<div class="grWrap"><table class="grTable"><thead><tr><th>${t("타 등급사", "Other graders")}</th><th>${t("일본판", "Japanese")}</th><th>${t("영문판", "English")}</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="edFoot">${t(
-      `누적 등급 수 · +는 ${win ? `${win.from} 대비 ${win.to}` : "최근"} 증가분. CGC는 세트 단위로 총량만 공개해 등급 비율이 없습니다. PSA와 합산하지 마세요 — 등급사마다 기준이 다릅니다.`,
-      `Total graded · + is the change ${win ? `from ${win.from} to ${win.to}` : "since our previous reading"}. CGC publishes set-level totals only, so no grade share. Do not add these to PSA — each grader scales differently.`)}</p></div>`;
+  const block = (key) => {
+    const v = g[key], m = META[key];
+    if (!v || !m) return "";
+    const row = (label, e) => (e
+      ? `<tr><td class="edName">${label}</td>${m.cols.map((c) => `<td class="grNum">${c.get(e)}</td>`).join("")}<td class="grNum">${e.add != null ? `<span class="grAdd">+${num(e.add)}</span>` : "&mdash;"}</td></tr>`
+      : `<tr><td class="edName">${label}</td>${m.cols.map(() => `<td class="grNum">&mdash;</td>`).join("")}<td class="grNum">&mdash;</td></tr>`);
+    const win = v.from && v.to ? t(`증감 = ${v.from} 대비 ${v.to}`, `Change = ${v.from} to ${v.to}`) : "";
+    return `<div class="grWrap"><table class="grTable"><thead><tr><th>${m.name}</th>${m.cols.map((c) => `<th>${c.h}</th>`).join("")}<th>${t("증감", "Change")}</th></tr></thead><tbody>
+      ${row(t("일본판", "Japanese"), v.jp)}
+      ${row(t("영문판", "English"), v.en)}
+    </tbody></table><p class="edFoot">${m.note}${win ? ` · ${win}` : ""}</p></div>`;
+  };
+  return ["cgc", "tag"].map(block).join("");
 }
 
 function renderPsaDestruction(set) {

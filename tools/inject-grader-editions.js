@@ -47,6 +47,12 @@ for (const [code, set] of Object.entries(data.sets)) {
         e.gem = last.gem;
         e.gemRate = Math.round((last.gem / last.total) * 1000) / 10;
       }
+      // CGC 는 만점을 둘로 나눈다 — 뭉치지 않고 각각 싣는다. 열 이름은 CGC 표기 그대로.
+      if (last.grades) {
+        if (Number.isInteger(last.grades["Pristine 10"])) e.pristine10 = last.grades["Pristine 10"];
+        if (Number.isInteger(last.grades["Gem Mint 10"])) e.gemMint10 = last.grades["Gem Mint 10"];
+        if (Number.isInteger(last.grades["Perfect 10"])) e.perfect10 = last.grades["Perfect 10"];
+      }
       if (prev && last.total >= prev.total) { e.add = last.total - prev.total; from = prev.d; to = last.d; }
       side[ed] = e;
     }
