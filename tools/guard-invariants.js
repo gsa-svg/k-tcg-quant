@@ -791,8 +791,43 @@ for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
   }
 }
 
+// ── X2. 일본판 카드 이미지 오배정 재발 방지 — 2026-07-27 실사고.
+//    번호가 같아도 변형(접미사)이 다르면 완전히 다른 그림이다. 실제로 TR 카드에 패럴렐/프로모
+//    그림이 붙어 나갔다. 사람 눈으로 확인한 결과를 data/jp-image-verdicts.json 에 박제해두고,
+//    (1) 그 판정과 어긋난 배정, (2) TR 카드에 일본판 이미지가 다시 붙는 것, (3) 참조된 webp 실종
+//    을 전부 막는다. 판정을 뒤집으려면 다시 눈으로 보고 원장을 고쳐야 한다.
+{
+  const pk = JSON.parse(read("data/onepiece-packs.json"));
+  // (2) TR = 영문 전용 등급 → 같은 번호의 일본판 변형은 다른 그림이다
+  for (const [code, s] of Object.entries(pk.sets || {})) {
+    (s.cards || []).forEach((c, i) => {
+      if (/\bTR\b/.test(c.name || "") && /img\/jp\//.test(c.image || "")) {
+        errors.push(`X2: ${code}[${i}] ${c.number} "${c.name}" 은 TR(영문 전용)인데 일본판 이미지 ${c.image} 배정 — 같은 번호라도 다른 그림이다`);
+      }
+      // (3) 우리가 호스팅하는 일본판 이미지인데 파일이 없으면 조용히 깨진 썸네일
+      //     데이터는 절대 URL(https://opboxindex.com/img/jp/…)로 적히므로 도메인을 벗겨서 본다
+      const local = (c.image || "").replace(/^https?:\/\/opboxindex\.com\//, "");
+      if (/^img\/jp\//.test(local) && !exists(local)) {
+        errors.push(`X2: ${code}[${i}] ${c.number} 의 이미지 ${c.image} 파일 없음 — 깨진 썸네일로 나간다`);
+      }
+    });
+  }
+  // (1) 눈으로 확인한 수정 원장과 어긋나면 되돌아간 것
+  if (exists("data/jp-image-verdicts.json")) {
+    const led = JSON.parse(read("data/jp-image-verdicts.json"));
+    for (const f of led.fixed || []) {
+      const c = ((pk.sets[f.set] || {}).cards || [])[f.idx];
+      if (!c || c.number !== f.num) continue;   // top10 순서가 바뀌면 인덱스가 어긋난다 — 그건 X2로 잡지 않는다
+      const cur = (c.image || "").split("/").pop();
+      if (cur !== f.after) {
+        errors.push(`X2: ${f.set}[${f.idx}] ${f.num} 이미지가 ${cur} — 시각검증 결과는 ${f.after} (${f.why}). 되돌리려면 눈으로 다시 보고 jp-image-verdicts.json 을 고칠 것`);
+      }
+    }
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "I2", "P2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2"] }));
