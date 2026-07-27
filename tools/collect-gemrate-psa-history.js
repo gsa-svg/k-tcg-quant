@@ -169,4 +169,4 @@ async function main() {
 
 if (require.main === module) main().catch((error) => { console.error(error.stack); process.exitCode = 1; });
 
-module.exports = { appendVerifiedWeeks, correctionReason, latestWednesday };
+module.exports = { appendVerifiedWeeks, correctionReason, latestWednesday, collectRows };

@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727op13";
+const DATA_VERSION = "20260727psaw";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1049,26 +1049,49 @@ function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/
 function renderPsaWeeklyChart(weekly) {
   const pts = (weekly && weekly.points) || [];
   if (pts.length < 2) return "";
-  const W = 600, H = 178, padL = 30, padR = 10, padT = 16, padB = 26;
+  const W = 600, H = 178, padL = 34, padR = 10, padT = 16, padB = 26;
   const maxV = Math.max(...pts.map((p) => p.v));
   const scaleStep = maxV <= 100 ? 10 : maxV <= 1000 ? 100 : 1000;
   const niceMax = Math.max(scaleStep, Math.ceil(maxV / scaleStep) * scaleStep);
-  const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.max(2, step * 0.78), baseY = H - padB;
+  const n = pts.length, plotW = W - padL - padR, step = plotW / n, bw = Math.max(1.5, step * 0.78), baseY = H - padB;
   const sy = (v) => padT + (1 - v / niceMax) * (H - padT - padB);
+  // 눈금은 항상 0~최대를 4등분한다. 1000 고정 간격이면 소형 세트(주 수십장)는 선이 한 줄만 나오고
+  // 발매 직후 대형 세트는 선이 빽빽해진다 — 세트마다 규모가 10배 넘게 차이나서 고정 간격은 못 쓴다.
+  const ylab = (v) => (v === 0 ? "0" : niceMax >= 10000 ? Math.round(v / 1000) + "k" : v >= 1000 ? +(v / 1000).toFixed(1) + "k" : String(Math.round(v)));
   let grid = "";
-  for (let g = 0; g <= niceMax; g += 1000) {
-    const y = sy(g);
-    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" class="pwGrid"></line><text x="${padL - 6}" y="${(y + 3.5).toFixed(1)}" class="pwYlab" text-anchor="end">${g === 0 ? "0" : g / 1000 + "k"}</text>`;
+  for (let i = 0; i <= 4; i += 1) {
+    const g = (niceMax / 4) * i, y = sy(g);
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W - padR}" y2="${y.toFixed(1)}" class="pwGrid"></line><text x="${padL - 6}" y="${(y + 3.5).toFixed(1)}" class="pwYlab" text-anchor="end">${ylab(g)}</text>`;
   }
+  // 눈금 라벨 밀도: 18개월치가 들어오면 매달 찍을 자리가 없다. 26주가 넘으면 분기달만 찍고
+  // 1월에는 연도를 붙여 어느 해인지 알 수 있게 한다.
+  const quarterly = pts.length > 26;
   let prevM = -1;
   const bars = pts.map((p, i) => {
     const cx = padL + step * (i + 0.5), x = cx - bw / 2, y = sy(p.v), h = Math.max(1, baseY - y), dt = new Date(p.d), m = dt.getUTCMonth();
     let xlab = "";
-    if (m !== prevM) { prevM = m; xlab = `<text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`; }
+    if (m !== prevM) {
+      prevM = m;
+      if (!quarterly || m % 3 === 0) {
+        const txt = m === 0 ? t(`${dt.getUTCFullYear()}년`, `Jan '${String(dt.getUTCFullYear()).slice(2)}`) : t(`${m + 1}월`, MONTH_EN[m]);
+        xlab = `<text x="${cx.toFixed(1)}" y="${(baseY + 16).toFixed(1)}" class="pwXlab" text-anchor="middle">${txt}</text>`;
+      }
+    }
     return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" class="pwBar" data-v="${p.v}" data-d="${p.d}"></rect>${xlab}`;
   }).join("");
-  const total = pts.reduce((a, b) => a + b.v, 0);
-  return `<div class="pwWrap"><div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${t(`${new Date(pts[0].d).getUTCMonth() + 1}월부터 주별 신규 등급`, `weekly new grades since ${MONTH_EN[new Date(pts[0].d).getUTCMonth()]}`)}${weekly.allTimeTotal ? t(` · 전체 누적 ${num(weekly.allTimeTotal)}장`, ` · ${num(weekly.allTimeTotal)} graded all-time`) : ""}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
+  // 최근 4주 대 직전 4주 = 채점 모멘텀. 주 단위 막대는 들쭉날쭉해서 추세를 눈으로 읽기 어렵다.
+  // 8주가 안 되면(신규 세트) 비교 자체가 성립하지 않으니 아예 표시하지 않는다.
+  const sum = (a) => a.reduce((x, p) => x + p.v, 0);
+  let momentum = "";
+  if (pts.length >= 8) {
+    const recent = sum(pts.slice(-4)), prior = sum(pts.slice(-8, -4));
+    const pct = prior > 0 ? Math.round(((recent - prior) / prior) * 100) : null;
+    const dir = pct == null ? "" : pct < 0 ? "down" : pct > 0 ? "up" : "flat";
+    momentum = `<div class="pwMomo"><span class="pwMomoLbl">${t("최근 4주", "Past 4 weeks")}</span><b>${num(recent)}</b><span class="pwMomoLbl">${t("등급", "graded")}</span><span class="pwMomoVs">${t(`직전 ${num(prior)}`, `vs ${num(prior)} prior`)}</span>${pct == null ? "" : `<span class="pwMomoPct pw-${dir}">${dir === "down" ? "↓" : dir === "up" ? "↑" : "→"} ${Math.abs(pct)}% ${t("모멘텀", "momentum")}</span>`}</div>`;
+  }
+  const firstD = new Date(pts[0].d);
+  const since = t(`${firstD.getUTCFullYear()}년 ${firstD.getUTCMonth() + 1}월부터 주별 신규 등급`, `weekly new grades since ${MONTH_EN[firstD.getUTCMonth()]} ${firstD.getUTCFullYear()}`);
+  return `<div class="pwWrap">${momentum}<div class="pwHead"><b>${t("주간 등급 증가량", "Weekly grades added")}</b><small>${since}${weekly.allTimeTotal ? t(` · 전체 누적 ${num(weekly.allTimeTotal)}장`, ` · ${num(weekly.allTimeTotal)} graded all-time`) : ""}</small></div><div class="pwChartBox"><div class="pwTip" hidden></div><svg viewBox="0 0 ${W} ${H}" class="pwSvg" role="img" aria-label="${t("주간 PSA 등급 증가 막대그래프", "Weekly PSA grades added, bar chart")}"><defs><linearGradient id="pwGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#43cfe4"></stop><stop offset="1" stop-color="#1f9cb8"></stop></linearGradient><linearGradient id="pwGradLast" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78e8f6"></stop><stop offset="1" stop-color="#35bdd8"></stop></linearGradient></defs>${grid}${bars}</svg></div></div>`;
 }
 
 // 주간 막대에 hover 툴팁 연결 (renderDetail innerHTML 직후 호출)
@@ -1079,7 +1102,7 @@ function initPsaWeekly(root) {
     box.querySelectorAll(".pwBar").forEach((bar) => {
       const show = () => {
         const v = +bar.getAttribute("data-v"), dt = new Date(bar.getAttribute("data-d"));
-        tip.innerHTML = `<b>${num(v)}</b> ${t("신규 등급", "new grades")}<span>${t(`${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`, `${MONTH_EN[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`)}</span>`;
+        tip.innerHTML = `<b>${num(v)}</b> ${t("신규 등급", "new grades")}<span>${t(`${dt.getUTCFullYear()}년 ${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`, `${MONTH_EN[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`)}</span>`;
         bar.classList.add("pwBarHover");
         const br = bar.getBoundingClientRect(), cr = box.getBoundingClientRect();
         tip.hidden = false;
