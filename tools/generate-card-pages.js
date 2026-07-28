@@ -1,6 +1,7 @@
 // 인기 카드 개별 페이지 생성 — cards/<slug>.html + cards/index.html 허브 + 사이트맵 idempotent
 // 대상: NM가 보유 카드 중 상위 N(중복 변형 제거). 카드당 NM/PSA10/인구/이력/박스대비 배수까지 실데이터.
 // Run: node tools/generate-card-pages.js
+const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩하면 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
@@ -76,8 +77,12 @@ for (const { code, set: s, card: c } of cands) {
   const slug = slugify(c.number + "-" + c.name);
   const fname = slug + ".html";
   const canonical = `${SITE}/cards/${fname}`;
-  const imgAbs = localImg(slug, c.img);
-  const imgRel = IMG_MAP[slug] ? `../${IMG_MAP[slug]}` : (c.img || null);
+  // c.img 는 옛 TCGplayer 원격 URL 이다. 오늘 자체호스팅한 c.image 가 있으면 그쪽을 쓴다 —
+  // 원격을 그대로 박으면 가드 I1(외부 이미지 핫링크)이 배포를 막는다(2026-07-27 실사고).
+  // cards/ 깊이라 상대경로엔 ../ 를 붙인다(가드 I2), og:image 는 절대 URL 이어야 한다.
+  const selfHosted = c.image && !/^https?:/.test(c.image) ? c.image.replace(/^\.?\//, "") : null;
+  const imgAbs = IMG_MAP[slug] ? `${SITE}/${IMG_MAP[slug]}` : (selfHosted ? `${SITE}/${selfHosted}` : (c.image || c.img || null));
+  const imgRel = IMG_MAP[slug] ? `../${IMG_MAP[slug]}` : (selfHosted ? `../${selfHosted}` : (c.image || c.img || null));
   const setSlug = code.toLowerCase();
   const boxPts = s.boxSeries && s.boxSeries.points || [];
   const boxUsd = boxPts.length ? krwUsd(boxPts[boxPts.length - 1].p) : null;
@@ -162,7 +167,7 @@ for (const { code, set: s, card: c } of cands) {
     <script type="application/ld+json">${artLd}</script>
     <script type="application/ld+json">${faqLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
-    <link rel="stylesheet" href="../styles.css?v=20260727op13" />
+    <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .cardHero { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 6px; }
@@ -271,7 +276,7 @@ const hub = `<!doctype html>
     <meta property="og:url" content="${SITE}/cards/" />
     <meta property="og:image" content="${SITE}/og-image.png" />
     <script type="application/ld+json">${hubLd}</script>
-    <link rel="stylesheet" href="../styles.css?v=20260727op13" />
+    <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .cardGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 18px; }

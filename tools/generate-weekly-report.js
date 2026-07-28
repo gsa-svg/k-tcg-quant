@@ -2,6 +2,7 @@
 // WoW 상승/하락·등급량을 계산해 articles/weekly-market-report-YYYY-MM-DD.html 생성.
 // 사이트맵에 idempotent 추가. RSS는 tools/generate-feed.js 재실행으로 반영.
 // Run: node tools/generate-weekly-report.js
+const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩하면 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
@@ -70,7 +71,7 @@ const html = `<!doctype html>
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${canonical}" />
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "One Piece box market weekly: ${asOf}", "description": ${JSON.stringify(desc)}, "image": "${SITE}/og/og-compare.png", "datePublished": "${new Date().toISOString().slice(0, 10)}", "dateModified": "${new Date().toISOString().slice(0, 10)}", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "${canonical}"}, "author": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "publisher": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "isAccessibleForFree": true}</script>
-    <link rel="stylesheet" href="../styles.css?v=20260727op13" />
+    <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .dataTable { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 14px; }
