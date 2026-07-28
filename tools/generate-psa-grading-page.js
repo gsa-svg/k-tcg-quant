@@ -50,7 +50,7 @@ const enCount = rows.filter((r) => r.en).length;
 
 const cell = (d, ed) => (d
   ? `<td class="pgAdd">+${n(d.add)}</td><td class="pgPct ${ed}">${pc(d.pct)}</td>`
-  : `<td class="pgAdd">&mdash;</td><td class="pgPct"><span class="pgNa">no PSA data</span></td>`);
+  : `<td class="pgAdd">&mdash;</td><td class="pgPct"><span class="pgNa">collecting</span></td>`);
 const tr = (r) => `        <tr data-code="${r.code}">
           <th scope="row"><a href="sets/${r.code.toLowerCase()}.html"><b>${r.code}</b><span>${esc(r.name)}</span></a></th>
           <td class="pgNum">${n(r.jp?.total)}</td><td class="pgGem">${r.jp ? r.jp.gem + "%" : "&mdash;"}</td>${cell(r.jpD, "jp")}

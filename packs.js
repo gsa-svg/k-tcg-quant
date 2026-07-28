@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260728cg2";
+const DATA_VERSION = "20260728cl";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1060,7 +1060,7 @@ function renderEditionTable(set) {
   const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d)}</tr>`;
   return `<div class="edWrap"><table class="edTable"><thead><tr><th class="gHead gPsa">${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "")}
-    ${row(t("영문판", "English"), en, t("PSA 미확보", "no PSA data"))}
+    ${row(t("영문판", "English"), en, t("집계중", "collecting"))}
   </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
 }
 
@@ -1099,9 +1099,10 @@ function renderGraderTable(set) {
   const block = (key) => {
     const v = g[key], m = META[key];
     if (!v || !m) return "";
+    // 값이 하나도 없는 판은 대시를 늘어놓는 대신 "집계중" 한 칸으로. 대시는 0 으로 읽히기 쉽다.
     const row = (label, e) => (e
       ? `<tr><td class="edName">${label}</td>${m.cols.map((c) => `<td class="grNum">${c.get(e)}</td>`).join("")}<td class="grNum">${e.add != null ? `<span class="grAdd">+${num(e.add)}</span>` : "&mdash;"}</td></tr>`
-      : `<tr><td class="edName">${label}</td>${m.cols.map(() => `<td class="grNum">&mdash;</td>`).join("")}<td class="grNum">&mdash;</td></tr>`);
+      : `<tr><td class="edName">${label}</td><td class="grNum" colspan="${m.cols.length + 1}"><span class="edNone">${t("집계중", "collecting")}</span></td></tr>`);
     const win = v.from && v.to ? t(`증감 = ${v.from} 대비 ${v.to}`, `Change = ${v.from} to ${v.to}`) : "";
     // Perfect 10 은 초기 4개 세트에만 있고 이후로는 한 장도 없다. 열을 만들면 대부분 빈 칸이 되므로
     // 있는 세트에서만 각주로 덧붙인다. "중단됐다"고 단정하지 않는다 — 우리 데이터가 그렇다는 것뿐.
