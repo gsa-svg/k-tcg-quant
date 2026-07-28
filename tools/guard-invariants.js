@@ -844,8 +844,19 @@ for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
   }
 }
 
+// ── V2. 페이지 생성기가 캐시버전을 하드코딩하면 안 된다 — 2026-07-27, 하루에 세 번 막혔다.
+//    생성기가 옛 버전 문자열을 박아 넣으면, 야간 워크플로가 페이지를 재생성하는 순간
+//    V1(동시 범프)에 걸려 배포가 통째로 막힌다. 데이터는 다 받아놓고 커밋만 못 하는 상태가 된다.
+//    생성기는 packs.js 의 DATA_VERSION 을 읽어 써야 한다.
+for (const f of fs.readdirSync(path.join(ROOT, "tools")).filter((n) => /^(generate|inject)-.*\.js$/.test(n))) {
+  const src = read(`tools/${f}`);
+  for (const m of src.matchAll(/(?:\?v=|const\s+\w*(?:CACHE|VER|VERSION)\w*\s*=\s*")(\d{8}[a-z0-9]*)/g)) {
+    errors.push(`V2: tools/${f} 가 캐시버전 "${m[1]}" 을 하드코딩 — packs.js 의 DATA_VERSION 을 읽게 할 것(범프 때 배포가 막힌다)`);
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2"] }));
