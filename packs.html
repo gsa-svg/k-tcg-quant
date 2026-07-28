@@ -9,7 +9,7 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://www.onepiece-cardgame.com https://i.ebayimg.com https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://opbox-deals.gsa-834.workers.dev https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="stylesheet" href="styles.css?v=20260727cg" />
+    <link rel="stylesheet" href="styles.css?v=20260727gh" />
     <!-- Google Analytics 4 (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>
@@ -950,6 +950,13 @@
       .grTable td { padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,.04); }
       .grTable tr:last-child td { border-bottom: 0; }
       .grName { color: #cfd6e6; font-weight: 700; font-family: "JetBrains Mono", monospace; font-size: 11.5px; }
+      /* 등급사 이름은 섹션 제목 역할이라 서로 다른 색으로 구분한다 — 표가 세 개 연달아 나와서
+         회색 머리글만으로는 어디서 등급사가 바뀌는지 안 보인다. 색은 손익 색(초록/빨강)과 겹치지 않게 고름. */
+      .gHead { font-size: 12px !important; font-weight: 800 !important; letter-spacing: .07em !important; }
+      .gHead::before { content: ""; display: inline-block; width: 3px; height: 11px; border-radius: 2px; margin-right: 7px; vertical-align: -1px; background: currentColor; }
+      .gPsa { color: #55d8ea !important; }
+      .gCgc { color: #f0b429 !important; }
+      .gTag { color: #a98bff !important; }
       .grNum { text-align: right; font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; color: #eef2ff; }
       .grAdd { color: #4ad9a4; font-weight: 700; }
       .grNum small { display: block; color: #7d8698; font-size: 10.5px; font-family: system-ui, sans-serif; }
@@ -1302,6 +1309,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260727cg" defer></script>
+    <script src="packs.js?v=20260727gh" defer></script>
   </body>
 </html>

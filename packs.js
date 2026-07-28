@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727cg";
+const DATA_VERSION = "20260727gh";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1057,7 +1057,7 @@ function renderEditionTable(set) {
     ? `<td class="edNum edAdd">+${num(d.wowAdd)}</td><td class="edGem">${d.wowPct >= 0 ? "+" : ""}${d.wowPct}%</td>`
     : `<td class="edNum">&mdash;</td><td class="edGem">&mdash;</td>`);
   const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d)}</tr>`;
-  return `<div class="edWrap"><table class="edTable"><thead><tr><th>${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
+  return `<div class="edWrap"><table class="edTable"><thead><tr><th class="gHead gPsa">${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "")}
     ${row(t("영문판", "English"), en, t("미발매", "not released"))}
   </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
@@ -1071,6 +1071,7 @@ function renderGraderTable(set) {
   if (!g) return "";
   const META = {
     cgc: {
+      cls: "gCgc",
       name: t("CGC 그레이딩", "CGC grading"),
       cols: [
         { h: t("누적 등급", "Total graded"), get: (e) => num(e.total) },
@@ -1082,6 +1083,7 @@ function renderGraderTable(set) {
         "CGC splits its top grade into Pristine 10 and Gem Mint 10 — Pristine is the stricter of the two. Neither maps one-to-one onto a PSA 10."),
     },
     tag: {
+      cls: "gTag",
       name: t("TAG 그레이딩", "TAG grading"),
       cols: [
         { h: t("누적 등급", "Total graded"), get: (e) => num(e.total) },
@@ -1100,7 +1102,7 @@ function renderGraderTable(set) {
       ? `<tr><td class="edName">${label}</td>${m.cols.map((c) => `<td class="grNum">${c.get(e)}</td>`).join("")}<td class="grNum">${e.add != null ? `<span class="grAdd">+${num(e.add)}</span>` : "&mdash;"}</td></tr>`
       : `<tr><td class="edName">${label}</td>${m.cols.map(() => `<td class="grNum">&mdash;</td>`).join("")}<td class="grNum">&mdash;</td></tr>`);
     const win = v.from && v.to ? t(`증감 = ${v.from} 대비 ${v.to}`, `Change = ${v.from} to ${v.to}`) : "";
-    return `<div class="grWrap"><table class="grTable"><thead><tr><th>${m.name}</th>${m.cols.map((c) => `<th>${c.h}</th>`).join("")}<th>${t("증감", "Change")}</th></tr></thead><tbody>
+    return `<div class="grWrap"><table class="grTable"><thead><tr><th class="gHead ${m.cls}">${m.name}</th>${m.cols.map((c) => `<th>${c.h}</th>`).join("")}<th>${t("증감", "Change")}</th></tr></thead><tbody>
       ${row(t("일본판", "Japanese"), v.jp)}
       ${row(t("영문판", "English"), v.en)}
     </tbody></table><p class="edFoot">${m.note}${win ? ` · ${win}` : ""}</p></div>`;
