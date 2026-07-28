@@ -142,6 +142,29 @@ jobs:
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
           node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
 
+      # 가드 실패 이유를 실행 화면(annotation + summary)에 직접 띄운다 — 2026-07-27.
+      # 저장소 로그 다운로드는 admin 권한이 필요해, 실패해도 왜 실패했는지 볼 수가 없었다.
+      # 세 번을 추측으로 헤맸다. 이유는 반드시 화면에 남긴다.
+      - name: Guard invariants (block bad deploys)
+        run: |
+          mkdir -p logs
+          if node tools/guard-invariants.js > logs/guard-invariants.log 2>&1; then
+            cat logs/guard-invariants.log
+          else
+            cat logs/guard-invariants.log
+            {
+              echo "### 가드 실패 — 배포를 막았습니다"
+              echo '```json'
+              cat logs/guard-invariants.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            grep -oE '"[A-Z][0-9a-zA-Z]*: [^"]+' logs/guard-invariants.log | sed 's/^"//' | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit 1
+          fi
+
+      # 업로드는 가드 뒤에 둔다 — 앞에 있으면 정작 필요한 guard-invariants.log 가 빠진다.
       - name: Upload update logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -151,12 +174,6 @@ jobs:
             logs/
             data/active-listing-audit.json
           if-no-files-found: ignore
-
-      - name: Guard invariants (block bad deploys)
-        run: |
-          set -o pipefail
-          mkdir -p logs
-          node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
 
       - name: Commit changes
         run: |
