@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260727gh";
+const DATA_VERSION = "20260728en";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1048,7 +1048,8 @@ function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/
 // 주간 PSA 등급 증가 막대차트 (TCG Quant 스타일: y축 눈금선 + hover 툴팁, 청록 그라데이션)
 // 판(일본판/영문판)별 누적 등급 + 최근 주간 증감. 세트에 따라 영문판이 일본판의 2배인
 // 경우도 있어 한쪽만 보면 시장의 절반을 못 본다. 합산은 하지 않는다 — 젬률이 뜻을 잃는다.
-// 영문판 미발매 세트는 행을 만들되 "-" 로 비운다(0 으로 적으면 "0장 채점"으로 읽힌다).
+// 영문판 PSA 수치를 못 구한 세트는 행을 만들되 비운다. "미발매"라고 쓰지 말 것 —
+// 2026-07-27 실사고: OP-14·OP-15 를 미발매로 표기했으나 CGC·TAG 에는 영문판 기록이 있었다.
 function renderEditionTable(set) {
   const jp = set.psaFull, en = set.psaFullEn;
   if (!jp) return "";
@@ -1059,7 +1060,7 @@ function renderEditionTable(set) {
   const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d)}</tr>`;
   return `<div class="edWrap"><table class="edTable"><thead><tr><th class="gHead gPsa">${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "")}
-    ${row(t("영문판", "English"), en, t("미발매", "not released"))}
+    ${row(t("영문판", "English"), en, t("PSA 미확보", "no PSA data"))}
   </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
 }
 

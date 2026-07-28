@@ -10,7 +10,7 @@
 //  - append-only. 같은 날짜가 이미 있으면 값이 같은지 확인만 하고 넘어간다.
 //    값이 다르면 상류 정정이므로 **중단**한다(조용히 덮어쓰지 않는다).
 //  - 누적은 줄어들 수 없다. 역행하면 그 세트/판은 그 주를 건너뛰고 사유를 남긴다.
-//  - 영문판 미발매 세트는 항목을 만들지 않는다(0 이 아니라 '없음').
+//  - 영문판 수치를 못 구한 세트는 항목을 만들지 않는다(0 도 아니고 미발매도 아니다 — 단지 미확보).
 // Run: node tools/collect-psa-edition-weekly.js [--date YYYY-MM-DD]
 const fs = require("node:fs");
 const path = require("node:path");
