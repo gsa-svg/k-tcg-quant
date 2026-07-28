@@ -855,8 +855,37 @@ for (const f of fs.readdirSync(path.join(ROOT, "tools")).filter((n) => /^(genera
   }
 }
 
+// ── M1/M2. 변형 혼입 검사 — 2026-07-28 실사고. 사용자가 화면에서 먼저 발견했다.
+//   M1: 같은 카드번호의 다른 변형에 **동일한 PSA10 sold 구간**이 붙어 있으면, 그 값은
+//       변형별 시세가 아니라 하나의 표본을 나눠 쓴 것이다(OP09-051 금/은, OP05-119 패럴렐/원티드).
+//   M2: NM 대비 PSA10 배율이 터무니없으면 둘 중 하나가 다른 카드 값이다.
+//       (OP02-059 박스토퍼 NM 80엔에 PSA10 38만원 = 475배 / OP05-119 NM 12,800엔에 1,330만원 = 103배)
+//       싼 카드는 등급비 때문에 배율이 크게 나오므로, NM 1만엔 이상인 카드만 본다.
+{
+  const KRW_PER_JPY = 10.1, MAX_MULT = 30;
+  for (const [code, s] of Object.entries(data.sets || {})) {
+    const byNum = {};
+    (s.cards || []).forEach((c, i) => {
+      const n = (c.number || "").toUpperCase();
+      if (n) (byNum[n] ||= []).push({ i, c });
+    });
+    for (const [n, arr] of Object.entries(byNum)) {
+      const sig = arr.filter((x) => x.c.psa10Ebay).map((x) => `${x.c.psa10Ebay.low}|${x.c.psa10Ebay.high}`);
+      if (sig.length > 1 && new Set(sig).size < sig.length) {
+        errors.push(`M1: ${code} ${n} — 서로 다른 변형이 같은 PSA10 sold 구간을 쓰고 있음(변형별 값이 아님). 확인 전까지 내릴 것`);
+      }
+      for (const { i, c } of arr) {
+        const mid = c.psa10Ebay?.middle;
+        if (!mid || !c.nmJpy || c.nmJpy < 10000) continue;
+        const mult = mid / (c.nmJpy * KRW_PER_JPY);
+        if (mult > MAX_MULT) errors.push(`M2: ${code} #${i} ${c.name} — PSA10 이 NM 의 ${mult.toFixed(0)}배. 둘 중 하나가 다른 변형 값일 가능성`);
+      }
+    }
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2"] }));
