@@ -47,6 +47,10 @@ for (const [code, set] of Object.entries(data.sets)) {
         e.gem = last.gem;
         e.gemRate = Math.round((last.gem / last.total) * 1000) / 10;
       }
+      // TAG 도 만점이 둘이다 — 10 과 10P(퍼펙트)를 따로 매긴다. 합쳐 놓으면 CGC 의
+      // Gem Mint/Pristine 구분과 나란히 못 놓는다. 있는 점만 싣는다.
+      if (Number.isInteger(last.g10)) e.g10 = last.g10;
+      if (Number.isInteger(last.g10p)) e.g10p = last.g10p;
       // CGC 는 만점을 둘로 나눈다 — 뭉치지 않고 각각 싣는다. 열 이름은 CGC 표기 그대로.
       if (last.grades) {
         if (Number.isInteger(last.grades["Pristine 10"])) e.pristine10 = last.grades["Pristine 10"];

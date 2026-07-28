@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260728en";
+const DATA_VERSION = "20260728tg";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1088,12 +1088,12 @@ function renderGraderTable(set) {
       name: t("TAG 그레이딩", "TAG grading"),
       cols: [
         { h: t("누적 등급", "Total graded"), get: (e) => num(e.total) },
-        { h: t("10 · 10P", "10 · 10P"), get: (e) => (e.gem != null ? num(e.gem) : "&mdash;") },
-        { h: t("최고등급 비율", "Top-grade share"), get: (e) => (e.gemRate != null ? e.gemRate + "%" : "&mdash;") },
+        { h: "10", get: (e) => (e.g10 != null ? num(e.g10) : "&mdash;") },
+        { h: "10P", get: (e) => (e.g10p != null ? num(e.g10p) : "&mdash;") },
       ],
       note: t(
-        "TAG는 10과 10P(퍼펙트)를 따로 매깁니다. 위 수치는 두 등급을 합친 것입니다.",
-        "TAG issues 10 and 10P (perfect) separately; the figure above combines both."),
+        "TAG도 만점이 둘입니다 — 10과 그 위의 10P(퍼펙트). 10P는 전체의 3% 남짓으로, 세 등급사 중 가장 좁은 문입니다.",
+        "TAG also splits its top grade: 10, and 10P (perfect) above it. 10P is only about 3% of all TAG grades — the narrowest top grade of the three."),
     },
   };
   const block = (key) => {
@@ -1103,10 +1103,16 @@ function renderGraderTable(set) {
       ? `<tr><td class="edName">${label}</td>${m.cols.map((c) => `<td class="grNum">${c.get(e)}</td>`).join("")}<td class="grNum">${e.add != null ? `<span class="grAdd">+${num(e.add)}</span>` : "&mdash;"}</td></tr>`
       : `<tr><td class="edName">${label}</td>${m.cols.map(() => `<td class="grNum">&mdash;</td>`).join("")}<td class="grNum">&mdash;</td></tr>`);
     const win = v.from && v.to ? t(`증감 = ${v.from} 대비 ${v.to}`, `Change = ${v.from} to ${v.to}`) : "";
+    // Perfect 10 은 초기 4개 세트에만 있고 이후로는 한 장도 없다. 열을 만들면 대부분 빈 칸이 되므로
+    // 있는 세트에서만 각주로 덧붙인다. "중단됐다"고 단정하지 않는다 — 우리 데이터가 그렇다는 것뿐.
+    const perfect = key === "cgc"
+      ? [["jp", v.jp], ["en", v.en]].filter(([, e]) => e && e.perfect10 > 0)
+        .map(([ed, e]) => `${ed === "jp" ? t("일본판", "JP") : t("영문판", "EN")} ${num(e.perfect10)}`)
+      : [];
     return `<div class="grWrap"><table class="grTable"><thead><tr><th class="gHead ${m.cls}">${m.name}</th>${m.cols.map((c) => `<th>${c.h}</th>`).join("")}<th>${t("증감", "Change")}</th></tr></thead><tbody>
       ${row(t("일본판", "Japanese"), v.jp)}
       ${row(t("영문판", "English"), v.en)}
-    </tbody></table><p class="edFoot">${m.note}${win ? ` · ${win}` : ""}</p></div>`;
+    </tbody></table><p class="edFoot">${m.note}${perfect.length ? ` ${t("이 세트엔 그 위 퍼펙트 10도 있습니다", "This set also has Perfect 10")} — ${perfect.join(" · ")}.` : ""}${win ? ` · ${win}` : ""}</p></div>`;
   };
   return ["cgc", "tag"].map(block).join("");
 }
