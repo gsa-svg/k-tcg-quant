@@ -58,7 +58,11 @@ jobs:
           node --check tools/generate-free-data.js
           node --check tools/inject-home-summary.js
           node --check tools/guard-invariants.js
-          node tools/guard-invariants.js
+          # 여기서 가드를 '실행'하면 안 된다 — 2026-07-27 교착.
+          # 가드에는 데이터 신선도 검사(T1/P1)가 있는데, 이 잡의 목적이 바로 그 데이터를
+          # 새로 받는 것이다. 데이터가 낡으면 가드가 막고 → 갱신을 못 하고 → 더 낡는다.
+          # 실제로 eBay 키 만료로 5일 밀리자 이 줄 때문에 파이프라인이 영구히 죽었다.
+          # 진짜 관문은 아래 "Guard invariants (block bad deploys)" — 갱신 뒤 커밋 직전에 돈다.
           node --check tools/audit-active-listings.js
           node --check tools/audit-seo.js
           node --check tools/audit-ai-discovery.js
