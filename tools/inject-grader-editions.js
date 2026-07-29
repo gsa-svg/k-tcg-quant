@@ -36,7 +36,10 @@ for (const [code, set] of Object.entries(data.sets)) {
     const s = store.sets?.[code];
     if (!s) continue;
     const side = {};
-    let from = null, to = null;
+    // ⚠️ 변동 구간(from/to)은 반드시 판별로 따로 둔다. 예전엔 블록 하나에 공유했는데,
+    //    일본판과 영문판의 관측일이 다르면(실제로 다르다) 나중에 처리되는 영문판 날짜가
+    //    일본판 라벨까지 덮어써서 "+86 (7/27→7/28)" 처럼 5일치 증가를 하루치로 표기했다.
+    //    2026-07-29 발견·수정.
     for (const ed of ["jp", "en"]) {
       const arr = (s[ed] || []).slice().sort((a, b) => a.d.localeCompare(b.d));
       const last = arr.at(-1);
@@ -57,11 +60,12 @@ for (const [code, set] of Object.entries(data.sets)) {
         if (Number.isInteger(last.grades["Gem Mint 10"])) e.gemMint10 = last.grades["Gem Mint 10"];
         if (Number.isInteger(last.grades["Perfect 10"])) e.perfect10 = last.grades["Perfect 10"];
       }
-      if (prev && last.total >= prev.total) { e.add = last.total - prev.total; from = prev.d; to = last.d; }
+      // 누적이 줄어든 관측(재집계·재등급 등)은 증감을 만들지 않는다 — 음수 증감은 표시하지 않고 비운다.
+      if (prev && last.total >= prev.total) { e.add = last.total - prev.total; e.from = prev.d; e.to = last.d; }
       side[ed] = e;
     }
     if (!Object.keys(side).length) continue;
-    out[key] = { ...side, ...(from && to ? { from, to } : {}) };
+    out[key] = side;
   }
   if (Object.keys(out).length) { set.graders = out; touched += 1; } else delete set.graders;
 }

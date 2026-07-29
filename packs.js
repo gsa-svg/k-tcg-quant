@@ -1103,7 +1103,16 @@ function renderGraderTable(set) {
     const row = (label, e) => (e
       ? `<tr><td class="edName">${label}</td>${m.cols.map((c) => `<td class="grNum">${c.get(e)}</td>`).join("")}<td class="grNum">${e.add != null ? `<span class="grAdd">+${num(e.add)}</span>` : "&mdash;"}</td></tr>`
       : `<tr><td class="edName">${label}</td><td class="grNum" colspan="${m.cols.length + 1}"><span class="edNone">${t("집계중", "collecting")}</span></td></tr>`);
-    const win = v.from && v.to ? t(`증감 = ${v.from} 대비 ${v.to}`, `Change = ${v.from} to ${v.to}`) : "";
+    // 증감 구간은 판별로 다르다(등급사가 판마다 다른 날 갱신된다). 두 판이 같은 구간이면 한 줄로,
+    // 다르면 각각 적는다 — 예전엔 한쪽 날짜가 다른 쪽 라벨까지 덮어써서 5일치 증가를 하루치로 표기했다.
+    const wins = [["jp", t("일본판", "Japanese")], ["en", t("영문판", "English")]]
+      .map(([k, label]) => (v[k] && v[k].from && v[k].to ? { label, span: `${v[k].from} → ${v[k].to}` } : null))
+      .filter(Boolean);
+    const uniq = [...new Set(wins.map((w) => w.span))];
+    const win = !wins.length ? ""
+      : uniq.length === 1 && wins.length > 1
+        ? t(`증감 = ${uniq[0]}`, `Change = ${uniq[0]}`)
+        : t(`증감 = ${wins.map((w) => `${w.label} ${w.span}`).join(" · ")}`, `Change = ${wins.map((w) => `${w.label} ${w.span}`).join(" · ")}`);
     // Perfect 10 은 초기 4개 세트에만 있고 이후로는 한 장도 없다. 열을 만들면 대부분 빈 칸이 되므로
     // 있는 세트에서만 각주로 덧붙인다. "중단됐다"고 단정하지 않는다 — 우리 데이터가 그렇다는 것뿐.
     const perfect = key === "cgc"
@@ -1199,7 +1208,7 @@ async function load() {
   applyRouteState();
   bindLangTabs();
   bindDisplayLanguage();
-  renderStats();
+  renderStats();
   renderMarketStatus();
   renderTodayDeals();
   renderLiveAuctions();

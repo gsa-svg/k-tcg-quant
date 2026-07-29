@@ -46,6 +46,7 @@ jobs:
           node --check tools/collect-gemrate-en-totals.js
           node --check tools/collect-psa-edition-weekly.js
           node --check tools/build-market-index.js
+          node --check tools/audit-grading-numbers.js
           node --check tools/inject-psa-wow.js
           node --check tools/generate-psa-grading-page.js
           node --check tools/audit-price-quality.js
@@ -113,6 +114,9 @@ jobs:
           node tools/collect-psa-edition-weekly.js 2>&1 | tee logs/collect-psa-edition-weekly.log
           node tools/import-gemrate-en-totals.js 2>&1 | tee logs/import-gemrate-en-totals.log
           node tools/inject-psa-wow.js 2>&1 | tee logs/inject-psa-wow.log
+          # 등급 숫자는 틀리면 안 된다(소유자 지시). 젬률 계산, 주간 증감,
+          # 등급사별 증감 구간 라벨이 원본과 맞는지 여기서 막는다.
+          node tools/audit-grading-numbers.js 2>&1 | tee logs/audit-grading-numbers.log
 
       - name: Audit price quality
         run: |
