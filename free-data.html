@@ -9,16 +9,16 @@
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="https://opboxindex.com/free-data.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <title>Free One Piece Booster Box Price Dataset (CSV) | OP Box Index</title>
-    <meta name="description" content="Free CSV dataset of Japanese One Piece booster box prices: 21 sets with box price, change since tracking start, original MSRP and price-vs-MSRP multiple, reprint records and PSA population. Updated daily, CC BY 4.0." />
+    <title>Free One Piece TCG Data — Grading Population &amp; Auction Results (CSV) | OP Box Index</title>
+    <meta name="description" content="Free CSV data for the One Piece Card Game: PSA, CGC and TAG grading population per set with Japanese and English kept separate, completed eBay auction results by day (sell-through, median winning bid, bid counts), and Japanese booster box prices. Updated daily, CC BY 4.0." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Free One Piece Booster Box Price Dataset (CSV)" />
-    <meta property="og:description" content="21 Japanese sets: box price, vs-MSRP multiple, reprint records, PSA population. Free, updated daily, CC BY 4.0." />
+    <meta property="og:title" content="Free One Piece TCG Data — Grading Population &amp; Auction Results (CSV)" />
+    <meta property="og:description" content="PSA / CGC / TAG population by set and printing, plus daily completed-auction results. Free, updated daily, CC BY 4.0." />
     <meta property="og:url" content="https://opboxindex.com/free-data.html" />
     <meta property="og:image" content="https://opboxindex.com/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Booster Box Price Dataset (Japanese sets)","description":"Free CSV of Japanese One Piece booster box aggregates for 21 sets: current box price (KRW/USD), change since tracking start, original Japanese MSRP and price-vs-MSRP multiple, verified reprint record counts, and PSA graded population with PSA 10 rate. Updated daily.","url":"https://opboxindex.com/free-data.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-07-28","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-set-prices.csv"}],"variableMeasured":["set_code","set_name_en","set_name_ko","box_price_krw","box_price_usd","change_pct_since_base","base_date","launch_tracked","msrp_jpy","price_vs_msrp_multiple","reprint_records","psa_graded_total","psa10_rate_pct","as_of"]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Card Game grading population and auction results (free CSV)","description":"Three free CSVs, updated daily. Grading population: PSA, CGC and TAG graded counts per set with Japanese and English printings recorded separately and never summed (42 set-edition rows). Completed eBay auction results by day: number of auctions, how many sold, sell-through rate, median winning bid and median bid count, split by sealed box, single card and pack. Japanese booster box prices for 21 sets with change since tracking start.","url":"https://opboxindex.com/free-data.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-07-28","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","name":"Grading population by set and edition","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-grading-population.csv"},{"@type":"DataDownload","name":"Completed auction results by day","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-auction-daily.csv"},{"@type":"DataDownload","name":"Japanese booster box prices","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-set-prices.csv"}],"variableMeasured":["set_code","set_name_en","edition","psa_total","psa10_rate_pct","psa_weekly_add","cgc_total","cgc_pristine10","cgc_gem_mint10","tag_total","tag_10","tag_10p","as_of","date","kind","auctions","sold","sell_through_pct","median_price_usd","median_bids","set_name_ko","box_price_krw","box_price_usd","change_pct_since_base","base_date","launch_tracked"]}</script>
     <link rel="stylesheet" href="styles.css?v=20260729mk" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
@@ -44,45 +44,57 @@
     </header>
     <main class="bodyPage">
       <p class="eyebrow">Free data</p>
-      <h1>One Piece booster box price dataset — free CSV</h1>
-      <p>A machine-readable snapshot of the Japanese One Piece booster box market: <strong>21 sets</strong>, updated daily. Use it for research, videos, spreadsheets or your own charts. Free under CC BY 4.0 — just credit and link back.</p>
+      <h1>Free One Piece TCG data — grading population and auction results</h1>
+      <p>Three CSVs, regenerated daily, free under CC BY 4.0. The first two are things you cannot get anywhere else for free: <strong>grading population split by grader and by printing</strong>, and <strong>completed eBay auction outcomes</strong> — not asking prices, but what auctions actually closed at.</p>
 
       <div class="dlRow">
-        <a class="primary" href="opbox-set-prices.csv" download>Download CSV (21 sets)</a>
-        <a class="ghost" href="psa-grading.html">See grading population by set →</a>
+        <a class="primary" href="opbox-grading-population.csv" download>Grading population (42 rows)</a>
+        <a class="primary" href="opbox-auction-daily.csv" download>Auction results by day (31 rows)</a>
+        <a class="ghost" href="opbox-set-prices.csv" download>Box prices (21 sets)</a>
       </div>
       <p class="note">Last updated 2026-07-28 · FX ₩1548.63/$ (2026-07-14)</p>
 
-      <h2>What's inside</h2>
+      <h2>1. Grading population — <code>opbox-grading-population.csv</code></h2>
+      <p>One row per set <em>per printing</em>. Japanese and English are different print runs with different pull rates, so we record them separately and <strong>never add them together</strong> — a combined gem rate describes neither. The same applies across graders: a PSA 10, a CGC Pristine 10 and a TAG 10 are different standards, so the columns sit side by side and are never summed.</p>
       <div class="fields">
-        <code>set_code</code> · <code>set_name_en</code> · <code>set_name_ko</code> — set identity<br />
-        <code>box_price_krw</code> · <code>box_price_usd</code> — current sealed Japanese box price<br />
-        <code>change_pct_since_base</code> · <code>base_date</code> · <code>launch_tracked</code> — price change since we began tracking that set (<strong>not</strong> since its release date, except where <code>launch_tracked</code> is true)<br />
-        <code>msrp_jpy</code> · <code>price_vs_msrp_multiple</code> — original Japanese retail price and today's multiple of it<br />
-        <code>reprint_records</code> — count of verified distributor/retailer reprint restocks (Bandai does not officially announce per-set reprints; 0 means no confirmed record, not "never reprinted")<br />
-        <code>psa_graded_total</code> · <code>psa10_rate_pct</code> — PSA population and PSA 10 rate<br />
-        <code>as_of</code> — data date
+        <code>set_code</code> · <code>edition</code> — <code>japanese</code> or <code>english</code><br />
+        <code>psa_total</code> · <code>psa10_rate_pct</code> · <code>psa_weekly_add</code> — cumulative PSA count, PSA 10 share, and how many were added in the latest week we recorded<br />
+        <code>cgc_total</code> · <code>cgc_pristine10</code> · <code>cgc_gem_mint10</code> — CGC splits its top grade in two; Pristine 10 is the stricter one<br />
+        <code>tag_total</code> · <code>tag_10</code> · <code>tag_10p</code> — TAG's 10 and its stricter 10P<br />
+        <code>as_of</code> — the date that row was collected. Blank means we have not confirmed a figure, not zero.
       </div>
 
-      <h2>Preview (first 8 rows)</h2>
+      <h2>Preview — grading population</h2>
       <div style="overflow-x:auto">
       <table class="dTable">
-        <thead><tr><th>Set</th><th>Name</th><th>Box (USD)</th><th>Change</th><th>vs MSRP</th><th>Reprints</th></tr></thead>
+        <thead><tr><th>Set</th><th>Printing</th><th>PSA</th><th>PSA 10 rate</th><th>CGC</th><th>Pristine 10</th><th>TAG</th></tr></thead>
         <tbody>
-<tr><td>OP-01</td><td>Romance Dawn</td><td class="num">$313</td><td class="num">+108.7%</td><td class="num">×10.7</td><td class="num">0</td></tr>
-<tr><td>OP-02</td><td>Paramount War</td><td class="num">$136</td><td class="num">+20.4%</td><td class="num">×4.7</td><td class="num">0</td></tr>
-<tr><td>OP-03</td><td>Pillars of Strength</td><td class="num">$149</td><td class="num">+65.6%</td><td class="num">×5.1</td><td class="num">0</td></tr>
-<tr><td>OP-04</td><td>Kingdoms of Intrigue</td><td class="num">$108</td><td class="num">+31.7%</td><td class="num">×3.3</td><td class="num">0</td></tr>
-<tr><td>OP-05</td><td>Awakening of the New Era</td><td class="num">$163</td><td class="num">+29.4%</td><td class="num">×5</td><td class="num">0</td></tr>
-<tr><td>OP-06</td><td>Wings of the Captain</td><td class="num">$99</td><td class="num">+35.6%</td><td class="num">×3</td><td class="num">1</td></tr>
-<tr><td>OP-07</td><td>500 Years in the Future</td><td class="num">$82</td><td class="num">+60.8%</td><td class="num">×2.5</td><td class="num">0</td></tr>
-<tr><td>OP-08</td><td>Two Legends</td><td class="num">$85</td><td class="num">+80.9%</td><td class="num">×2.6</td><td class="num">0</td></tr>
+<tr><td>OP-01</td><td>Japanese</td><td class="num">56316</td><td class="num">90.2%</td><td class="num">6450</td><td class="num">2634</td><td class="num">248</td></tr>
+<tr><td>OP-01</td><td>English</td><td class="num">45422</td><td class="num">85.5%</td><td class="num">4080</td><td class="num">1542</td><td class="num">531</td></tr>
+<tr><td>OP-02</td><td>Japanese</td><td class="num">27800</td><td class="num">90%</td><td class="num">3239</td><td class="num">—</td><td class="num">134</td></tr>
+<tr><td>OP-02</td><td>English</td><td class="num">20983</td><td class="num">86.5%</td><td class="num">2707</td><td class="num">1106</td><td class="num">264</td></tr>
+<tr><td>OP-03</td><td>Japanese</td><td class="num">24188</td><td class="num">88.1%</td><td class="num">2158</td><td class="num">800</td><td class="num">183</td></tr>
+<tr><td>OP-03</td><td>English</td><td class="num">17221</td><td class="num">83.2%</td><td class="num">1551</td><td class="num">476</td><td class="num">268</td></tr>
+<tr><td>OP-04</td><td>Japanese</td><td class="num">30778</td><td class="num">91.3%</td><td class="num">2834</td><td class="num">1110</td><td class="num">232</td></tr>
+<tr><td>OP-04</td><td>English</td><td class="num">24940</td><td class="num">87.9%</td><td class="num">2592</td><td class="num">905</td><td class="num">351</td></tr>
         </tbody>
       </table>
       </div>
 
+      <h2>2. Auction results by day — <code>opbox-auction-daily.csv</code></h2>
+      <p>Every row is one day and one product type. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
+      <div class="fields">
+        <code>date</code> · <code>kind</code> — <code>all</code>, <code>box</code>, <code>card</code> or <code>pack</code><br />
+        <code>auctions</code> · <code>sold</code> · <code>sell_through_pct</code> — how many ran, how many actually sold<br />
+        <code>median_price_usd</code> — median final winning bid, per item for multi-item lots<br />
+        <code>median_bids</code> — median bid count, a rough read on competition
+      </div>
+
+      <h2>3. Japanese booster box prices — <code>opbox-set-prices.csv</code></h2>
+      <p>Current sealed box price per set in KRW and USD, with change measured from each set's tracking start date — <strong>not</strong> from its release date, except where <code>launch_tracked</code> is true. Reprint history moved to the individual <a href="sets/index.html">set guides</a>, where it can be shown with its sources.</p>
+
       <h2>How it's built</h2>
-      <p>Box prices are daily aggregates of real completed sales and verified active listings, normalised to one sealed Japanese booster box. We publish derived per-set aggregates only — never raw listing dumps. Where a value can't be verified we leave it blank rather than estimate it. MSRP and reprint records are manually verified against retailer and official sources.</p>
+      <p>Prices are aggregates of real completed sales and verified active listings, normalised to one sealed Japanese booster box. Grading counts come from each grader's own public population reporting, collected weekly and appended to a ledger we never rewrite. Auction figures are read from listings after they close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
 
       <div class="attrBox">
         <strong>Attribution (CC BY 4.0)</strong> — free to use, including commercially, if you credit the source:
@@ -90,7 +102,7 @@
       </div>
 
       <h2>Update frequency</h2>
-      <p>The CSV is regenerated every night alongside the site's price pipeline, so the download URL always serves current data. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
+      <p>All three files are regenerated every night alongside the site's data pipeline, so the download URLs always serve current data. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

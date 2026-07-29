@@ -55,7 +55,6 @@ const tableRows = rows.map((b) => {
     <td class="nm">${esc(nameKo(b.code))}</td>
     <td class="num">${won(krw)}</td>
     <td class="num ${chgCls}">${pct(b.changePct)}<small class="fromDate">${esc(b.baseDate || "")} 대비</small></td>
-    <td class="num">${b.vsMsrp ? "×" + b.vsMsrp : "—"}</td>
     <td class="rp">${rpCell}</td>
   </tr>`;
 }).join("\n");
@@ -90,7 +89,7 @@ const faqLd = JSON.stringify({
 const datasetLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
   name: "원피스 부스터박스 시세 (일본판)",
-  description: "일본판 원피스 카드게임 부스터박스 전 세트의 원화 시세, 1월 대비 변동률, 정가 대비 배수, 재판 기록. 매일 갱신.",
+  description: "일본판 원피스 카드게임 부스터박스 전 세트의 원화 시세, 1월 대비 변동률, 재판 기록. 매일 갱신.",
   inLanguage: "ko", isAccessibleForFree: true,
   url: `${SITE}/ko/`, dateModified: DATA_DATE,
   creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },
@@ -113,12 +112,12 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세·재판 기록 | OP Box Index</title>
-    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률, 정가 대비 배수, 재판 기록을 한눈에. 실거래 및 검증된 매물 기반." />
+    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률과 재판 기록을 한눈에. 실거래 및 검증된 매물 기반." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
     <meta property="og:title" content="원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세" />
-    <meta property="og:description" content="일본판 원피스 박스 전 세트 원화 시세·정가 대비 배수·재판 기록. 실거래 및 검증된 매물 기반, 매일 갱신." />
+    <meta property="og:description" content="일본판 원피스 박스 전 세트 원화 시세·재판 기록. 실거래 및 검증된 매물 기반, 매일 갱신." />
     <meta property="og:url" content="${SITE}/ko/" />
     <meta property="og:image" content="${SITE}/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -177,10 +176,10 @@ const html = `<!doctype html>
 
       <section aria-label="전 세트 시세표">
         <h2>전 세트 박스 시세표 (원화)</h2>
-        <p class="koNote">변동률은 각 세트의 <strong>추적 시작일 대비</strong>입니다(발매일 대비 아님 — 대부분 2026-01-07부터 추적, 기준일은 행마다 표기). 정가 대비 배수 = 현재 시세 ÷ 발매 정가. 세트 코드를 누르면 세트별 상세 시세로 갑니다.</p>
+        <p class="koNote">변동률은 각 세트의 <strong>추적 시작일 대비</strong>입니다(발매일 대비 아님 — 대부분 2026-01-07부터 추적, 기준일은 행마다 표기). 세트 코드를 누르면 세트별 상세 시세로 갑니다.</p>
         <div style="overflow-x:auto">
         <table class="koBoard">
-          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>박스 시세</th><th>기준일 대비</th><th>정가 대비</th><th class="l">재판</th></tr></thead>
+          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>박스 시세</th><th>기준일 대비</th><th class="l">재판</th></tr></thead>
           <tbody>
 ${tableRows}
           </tbody>

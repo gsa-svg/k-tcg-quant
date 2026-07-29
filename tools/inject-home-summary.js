@@ -28,7 +28,7 @@ const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
 const tr = rows.map((b) => {
   const s = d.sets[b.code] || {};
   const chg = b.changePct;
-  return `<tr><td><a href="sets/${b.code.toLowerCase()}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}</td><td class="num">${usd(b.nowUsd)}</td><td class="num ${chg >= 0 ? "up" : "down"}">${chg != null ? (chg >= 0 ? "+" : "") + chg + "%" : "—"}</td><td class="num">${b.vsMsrp ? "×" + b.vsMsrp : "—"}</td></tr>`;
+  return `<tr><td><a href="sets/${b.code.toLowerCase()}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}</td><td class="num">${usd(b.nowUsd)}</td><td class="num ${chg >= 0 ? "up" : "down"}">${chg != null ? (chg >= 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
 }).join("\n");
 
 const idx = mi.index;
@@ -93,7 +93,7 @@ const block = `${START}
           <p>Prices below are sealed Japanese booster boxes in USD, from real completed sales and verified active listings. "Change" is measured from each set's tracking start date, not its release date. Of the ${withChg.length} sets with a tracked start price, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
-            <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th><th>vs MSRP</th></tr></thead>
+            <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
             <tbody>
 ${tr}
             </tbody>
