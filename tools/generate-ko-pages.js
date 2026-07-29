@@ -74,10 +74,6 @@ const faqs = [
     a: "반다이는 세트별 재판을 공식 발표하지 않습니다. 표의 재판 기록은 유통사·리테일러 재입고 기준으로 확인된 것이며, '재판 기록 없음'은 확인된 기록이 없다는 뜻입니다.",
   },
   {
-    q: "정가 대비 배수는 어떻게 계산하나요?",
-    a: "현재 박스 시세 ÷ 발매 당시 정가(일본 MSRP)입니다. 예를 들어 ×5면 정가의 5배 가격에 거래된다는 의미입니다.",
-  },
-  {
     q: "일본 아마존에서 응모는 어떻게 하나요?",
     a: "일본 아마존은 인기 박스를 추첨(응모) 방식으로 판매합니다. 한국 배송도 가능(AmazonGlobal, 상품별 상이). 아마존 응모 안내 페이지에서 최신 링크를 확인하세요.",
   },
@@ -257,14 +253,14 @@ ${cardRows}
   const facts = [];
   facts.push(`현재 박스 시세 <strong>${won(krw)}</strong> (기준일 ${esc(DATA_DATE)})`);
   if (chg != null) facts.push(`${esc(b.baseDate || "추적 시작일")} 대비 <strong>${pct(chg)}</strong> — 발매일 대비가 아님`);
-  if (b.msrpYen) facts.push(`발매 정가 <strong>¥${b.msrpYen.toLocaleString("ko-KR")}</strong>${b.vsMsrp ? ` · 현재 정가의 <strong>${b.vsMsrp}배</strong>` : ""}`);
+  if (b.msrpYen) facts.push(`발매 정가 <strong>¥${b.msrpYen.toLocaleString("ko-KR")}</strong>`);
   facts.push(rr.length ? `재판 기록 <strong>${rr.length}회</strong> (${rr.map((r) => r.date).join(", ")}) — 유통사·리테일러 재입고 기준` : `<strong>재판 기록 없음</strong> — 확인된 재입고 기록이 없다는 뜻`);
   if (s.psaTotal != null) facts.push(`PSA 누적 감정 <strong>${Number(s.psaTotal).toLocaleString("ko-KR")}장</strong>${s.psaGem != null ? ` · PSA10 비율 <strong>${s.psaGem}%</strong>` : ""}`);
   if (s.release) facts.push(`영문(NA)판 발매일 ${esc(s.release)} — 이 페이지 시세는 <strong>일본판</strong> 기준`);
 
   const setFaqs = [
     { q: `${code} ${nKo} 박스 시세는 지금 얼마인가요?`, a: `${DATA_DATE} 기준 일본판 ${code} 부스터박스 시세는 약 ${won(krw)}입니다. 이베이 실거래·검증된 매물을 매일 집계해 원화로 환산한 값이며, 판매처·상태에 따라 달라질 수 있습니다.` },
-    { q: `${code}는 정가보다 얼마나 올랐나요?`, a: b.msrpYen ? `발매 정가는 ¥${b.msrpYen.toLocaleString("ko-KR")}이고, 현재 시세는 정가의 약 ${b.vsMsrp ?? "—"}배입니다. 정가 대비 배수 = 현재 시세 ÷ 발매 당시 일본 정가로 계산합니다.` : `이 세트의 발매 정가 정보가 확인되지 않아 정가 대비 배수는 표시하지 않습니다.` },
+    { q: `${code} 발매 정가는 얼마였나요?`, a: b.msrpYen ? `발매 당시 일본 정가는 박스당 ¥${b.msrpYen.toLocaleString("ko-KR")}입니다. 현재 시세는 위 표에서 확인하세요.` : `이 세트의 발매 정가는 확인된 자료가 없어 표시하지 않습니다.` },
     { q: `${code}는 재판(재발매)된 적 있나요?`, a: rr.length ? `유통사·리테일러 재입고 기준으로 ${rr.length}회 확인됩니다(${rr.map((r) => r.date).join(", ")}). 반다이는 세트별 재판을 공식 발표하지 않으므로 공식 발표가 아닌 유통 기록입니다.` : `확인된 재판 기록이 없습니다. 다만 반다이가 세트별 재판을 공식 발표하지 않기 때문에, "기록 없음"이 "재판이 절대 없었다"는 뜻은 아닙니다.` },
     { q: `${code} 변동률은 발매일부터 계산한 건가요?`, a: b.launchTracked ? `${code}는 발매 시점(${esc(b.baseDate || "")})부터 추적한 세트라 변동률이 발매 초기 대비입니다.` : `아니요. ${esc(b.baseDate || "2026-01-07")}부터 추적을 시작해 그 시점 대비 변동률입니다. 발매일 대비가 아닙니다.` },
   ];
@@ -276,7 +272,7 @@ ${cardRows}
   ] });
 
   const title = `${code} ${nKo} 박스 시세 (일본판) | OP Box Index`;
-  const desc = `${code} ${nKo} 일본판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 정가 대비 배수, 재판 기록, 인기 카드 NM 시세까지 매일 갱신. 실거래 및 검증된 매물 기반.`;
+  const desc = `${code} ${nKo} 일본판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 재판 기록과 인기 카드 NM 시세까지 매일 갱신. 실거래 및 검증된 매물 기반.`;
 
   return { slug, html: `<!doctype html>
 <html lang="ko">
@@ -342,7 +338,6 @@ ${cardRows}
       <div class="ixHero">
         <span class="big">${won(krw)}</span>
         ${chg != null ? `<span class="ixChg ${up ? "up" : "down"}">${pct(chg)}</span>` : ""}
-        ${b.vsMsrp ? `<span style="color:#9aa4b6;font-size:14px">정가의 ${b.vsMsrp}배</span>` : ""}
       </div>
       <ul class="koFacts">${facts.map((f) => `<li>${f}</li>`).join("")}</ul>
 ${cardsSection}

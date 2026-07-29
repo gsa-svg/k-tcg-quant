@@ -35,7 +35,6 @@ const idx = mi.index;
 
 // ── 홈은 현재 사실상 유일하게 색인된 페이지 → 검색어 표면적을 최대한 넓힌다.
 // 답변은 전부 검증된 데이터에서 파생(추정 금지). 값이 없으면 그 항목을 만들지 않는다.
-const byMsrp = [...rows].filter((b) => b.vsMsrp).sort((a, b) => b.vsMsrp - a.vsMsrp);
 const byPrice = [...rows].filter((b) => b.nowUsd != null).sort((a, b) => b.nowUsd - a.nowUsd);
 const cheapest = byPrice[byPrice.length - 1];
 const priciest = byPrice[0];
@@ -56,7 +55,7 @@ const faqs = [
   },
   {
     q: "Which One Piece booster box is the most valuable?",
-    a: `${priciest.code} ${nameOf(priciest.code)} is the most expensive sealed Japanese box we track at about ${usd(priciest.nowUsd)}${byMsrp.length ? `. Measured against original Japanese retail price, ${byMsrp[0].code} trades at roughly ${byMsrp[0].vsMsrp}x its launch MSRP` : ""}.`,
+    a: `${priciest.code} ${nameOf(priciest.code)} is the most expensive sealed Japanese box we track at about ${usd(priciest.nowUsd)}, ahead of ${byPrice[1].code} ${nameOf(byPrice[1].code)} at ${usd(byPrice[1].nowUsd)}.`,
   },
   {
     q: "Are One Piece booster boxes going up or down in price?",
@@ -64,7 +63,7 @@ const faqs = [
   },
   {
     q: "Is a One Piece booster box worth buying sealed?",
-    a: `It depends on the set. Sets trading at a high multiple of their original retail price have already priced in scarcity, while recently released sets are closer to MSRP. We publish each set's current price, its change since we began tracking it, and its multiple versus the original Japanese MSRP so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.`,
+    a: `It depends on the set. Older sets have had years for sealed supply to thin out, while recently released sets are still being opened. We publish each set's current price and its change since we began tracking it, alongside how many copies of its cards have been graded, so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.`,
   },
   {
     q: "Where can I check One Piece card and booster box prices for free?",

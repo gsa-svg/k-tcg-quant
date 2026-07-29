@@ -403,7 +403,8 @@ function setPage(code, prev, next) {
     }
   }
 
-  // 재판 이력 + 정가 대비 배수 — 검증된 팩트(data/set-facts.json). 반다이는 세트별 재판 미발표.
+  // 재판 이력 + 발매 정가 — 검증된 팩트(data/set-facts.json). 반다이는 세트별 재판 미발표.
+  // 정가 대비 배수는 2026-07-29 소유자 판단으로 사이트 전체에서 제거했다(쓸모없다고 봄).
   let reprintBlock = "";
   {
     const sf = (SET_FACTS.sets && SET_FACTS.sets[code]) || null;
@@ -423,7 +424,7 @@ function setPage(code, prev, next) {
         : `We found no dated reprint record for ${code} in our sources — which means none surfaced, not that it was never reprinted.`;
       reprintBlock = `
       <h2>Reprints &amp; original price</h2>
-      <p>${code} launched at a Japanese MSRP of <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd})${mult ? `. At today's market price that is roughly <strong>${mult}x its original retail</strong>` : ""}. <strong>On reprints:</strong> Bandai does not publish per-set reprint announcements for the One Piece Card Game, so there is no official count. ${rpLine} See how many copies of this set have been graded — PSA, CGC and TAG, Japanese and English separately — on the <a href="../psa-grading.html">grading population page</a>.</p>`;
+      <p>${code} launched at a Japanese MSRP of <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd}). <strong>On reprints:</strong> Bandai does not publish per-set reprint announcements for the One Piece Card Game, so there is no official count. ${rpLine} See how many copies of this set have been graded — PSA, CGC and TAG, Japanese and English separately — on the <a href="../psa-grading.html">grading population page</a>.</p>`;
     }
   }
 
