@@ -69,15 +69,16 @@ for (const m of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
 
 // ── N1. 메인 네비 일관성: 모든 nav 보유 페이지는 6개 링크를 전부 가져야 함.
 //    (반복 사고: Compare 등 눌렀을 때 Market Index가 사라지는 페이지 존재 → 링크 누락 차단)
-//    상대경로가 폴더마다 달라서(../market.html vs market.html) data-ko 라벨로 판정한다.
-const NAV_REQUIRED = ["부스터 박스", "비교", "PSA10 랭킹", "마켓 지수", "세트 가이드", "아마존 응모"];
+//    상대경로가 폴더마다 달라서 data-ko 라벨로 판정한다.
+//    2026-07-29: "마켓 지수" 제거(지수 위젯·market.html 철회) → 6개에서 5개로.
+const NAV_REQUIRED = ["부스터 박스", "비교", "PSA10 랭킹", "PSA 인구", "세트 가이드", "아마존 응모"];
 for (const f of PUBLIC_HTML) {
   const html = read(f);
   const navM = html.match(/<nav class="nav"[^>]*>([\s\S]*?)<\/nav>/);
   if (!navM) continue; // 네비 없는 페이지는 검사 대상 아님
   const nav = navM[1];
   for (const label of NAV_REQUIRED) {
-    if (!nav.includes(`data-ko="${label}"`)) errors.push(`N1: ${f} 메인 네비에 "${label}" 링크 누락 (6개 링크 전부 필요)`);
+    if (!nav.includes(`data-ko="${label}"`)) errors.push(`N1: ${f} 메인 네비에 "${label}" 링크 누락 (전부 필요)`);
   }
 }
 
@@ -441,34 +442,11 @@ if (exists("data/box-sold-ledger.json")) {
   }
 }
 
-// ── D2. 마켓 인덱스 정합성(build-market-index.js 산출) — 이상값이면 배포 차단
-{
-  const mi = data.marketIndex;
-  if (!mi) errors.push("D2: data.marketIndex 없음 (build-market-index.js 미실행)");
-  else {
-    const v = mi.index && mi.index.value;
-    if (!(v > 50 && v < 1000)) errors.push(`D2: 지수값 이상 (${v}) — 계산 오류 의심`);
-    if (!Array.isArray(mi.constituents) || mi.constituents.length < 10) errors.push(`D2: 구성종목 부족 (${mi.constituents ? mi.constituents.length : 0})`);
-    if (!mi.index || !Array.isArray(mi.index.series) || mi.index.series.length < 5) errors.push("D2: 지수 시계열 부족");
-    if (!mi.board || mi.board.length < 15) errors.push(`D2: 성적표 부족 (${mi.board ? mi.board.length : 0})`);
-    if (!mi.meter || !mi.meter.latestWeek) errors.push("D2: 개봉 미터 없음");
-    if (mi.meter?.isStale && exists("market.html")) {
-      const marketHtml = read("market.html");
-      if (!marketHtml.includes("Historical snapshot")) errors.push("D2: 오래된 개봉 미터가 historical snapshot으로 표시되지 않음");
-      if (marketHtml.includes("is a live read")) errors.push("D2: 오래된 개봉 미터를 live read라고 잘못 표시함");
-    }
-    // 정가·재판 팩트: 성적표에 msrp 배수가 대부분 있어야 함(set-facts.json 로드 확인)
-    const withMsrp = (mi.board || []).filter((b) => b.vsMsrp).length;
-    if (withMsrp < 15) errors.push(`D2: 정가 배수(vsMsrp) 부족 (${withMsrp}) — data/set-facts.json 로드 실패 의심`);
-    if (!mi.reprints || typeof mi.reprints.bandaiAnnounces !== "boolean") errors.push("D2: 재판 데이터(reprints) 없음");
-    // market.html에 구운 지수값이 데이터와 일치해야 함(엇갈리면 stale)
-    if (exists("market.html") && v != null) {
-      const baked = (read("market.html").match(/class="big">([\d.]+)</) || [])[1];
-      if (baked && Math.abs(parseFloat(baked) - v) > 0.05) errors.push(`D2: market.html 구운값 ${baked} ≠ 데이터 ${v} (재생성 필요)`);
-    }
-  }
-}
-
+// ── D2. (철회) 마켓 인덱스/개봉 미터는 2026-07-29 제거됐다.
+//    지수 입력이던 외부 주간시세가 7/13 에 끊겨 홈에 "매일 갱신 157.4"가 2주간 박혀 있었고,
+//    소유자 판단으로 위젯·market.html·나브를 전부 내렸다. 대신 등급(PSA/CGC/TAG) 데이터에 집중한다.
+//    우리 자체 eBay 시계열(boxSeriesEbay / boxSeriesEnEbay)은 계속 쌓이며, 9월에 일판/영문판
+//    두 지수로 다시 세울 예정이다(기준일은 중국셀러 정리 이후인 2026-07-17 이후로 잡을 것).
 // ── S1. 외부 소스명 공개 금지 (영구 규칙)
 for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.txt", "feed.xml"]) {
   if (!exists(f)) continue;
@@ -888,4 +866,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D2", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2"] }));

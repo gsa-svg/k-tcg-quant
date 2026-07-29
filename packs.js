@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260728cl";
+const DATA_VERSION = "20260729mk";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1199,8 +1199,7 @@ async function load() {
   applyRouteState();
   bindLangTabs();
   bindDisplayLanguage();
-  renderStats();
-  renderMarketIndex();
+  renderStats();
   renderMarketStatus();
   renderTodayDeals();
   renderLiveAuctions();
@@ -1285,39 +1284,6 @@ function renderSinceLastVisit() {
   el.innerHTML = `<span class="slvHead">${t(`지난 방문 이후 (${prev.d})`, `Since your last visit (${prev.d})`)}</span>${top.map((m) => `<button class="slvChip" data-key="${m.code}">${m.watched ? "📌 " : ""}${m.code} <b class="${m.pct >= 0 ? "up" : "down"}">${f(m.pct)}</b></button>`).join("")}<span class="slvAvg">${t("시장 평균", "market avg")} <b class="${avg >= 0 ? "up" : "down"}">${f(avg)}</b></span>`;
   el.querySelectorAll(".slvChip").forEach((btn) => btn.addEventListener("click", () => selectPack(btn.dataset.key)));
   trackEvent("since_last_visit", { prev_date: prev.d, movers: top.length });
-}
-
-// OPBOX 마켓 인덱스 + 개봉 미터 (data.marketIndex, tools/build-market-index.js 산출)
-function sparkPath(series, w, h) {
-  const vals = series.map((p) => p.v);
-  const min = Math.min(...vals), max = Math.max(...vals), span = max - min || 1;
-  return series.map((p, i) => `${((i / (series.length - 1)) * w).toFixed(1)},${(h - ((p.v - min) / span) * (h - 3) - 1.5).toFixed(1)}`).join(" ");
-}
-function renderMarketIndex() {
-  const el = document.querySelector("#marketIndexHero");
-  const mi = state.data && state.data.marketIndex;
-  if (!el || !mi) { if (el) el.hidden = true; return; }
-  const idx = mi.index, m = mi.meter;
-  const up = idx.weekChangePct >= 0;
-  const wkTxt = `${up ? "▲" : "▼"} ${up ? "+" : ""}${idx.weekChangePct}% ${t("이번 주", "this week")}`;
-  const meterUp = m && m.wowPct != null && m.wowPct >= 0;
-  const bars = m ? m.weeks.slice(-6) : [];
-  const bmax = bars.length ? Math.max(...bars.map((b) => b.v)) : 1;
-  el.hidden = false;
-  el.innerHTML = `
-    <a class="mktCard mktIndex" href="market.html${state.hl === "ko" ? "?hl=ko" : ""}">
-      <div class="mktHead"><span class="mktLabel"><i></i>${t("OPBOX 지수", "OPBOX Index")}</span><span class="mktInfo" title="${t("일판 박스 18개 등가중 · 2026-01-07 = 100", "18 Japanese boxes, equal-weight · Jan 7 2026 = 100")}">?</span></div>
-      <div class="mktBig"><b>${idx.value.toFixed(1)}</b><span class="mktChg ${up ? "up" : "down"}">${wkTxt}</span></div>
-      <svg class="mktSpark" viewBox="0 0 200 40" preserveAspectRatio="none" role="img" aria-label="${t("지수 추이", "index trend")}"><polyline points="${sparkPath(idx.series, 200, 40)}" fill="none" stroke="${up ? "#10d7a0" : "#ff7d7d"}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>
-      <p class="mktFoot">${idx.sinceBasePct >= 0 ? "+" : ""}${idx.sinceBasePct}% ${t("1월 이후", "since Jan")} · ${t("매일 갱신", "updated daily")} <span class="mktArrow">→</span></p>
-    </a>
-    ${m && m.latestWeek ? `
-    <a class="mktCard mktMeter" href="market.html${state.hl === "ko" ? "?hl=ko" : ""}#opening">
-      <div class="mktHead"><span class="mktLabel"><i class="flame"></i>${t("개봉 미터", "Opening Meter")}</span><span class="mktInfo" title="${t("PSA 신규 등급 = 뜯긴 팩의 증거", "New PSA grades = packs opened")}">?</span></div>
-      <div class="mktBig"><b>${m.latestWeek.v.toLocaleString()}</b><span class="mktUnit">${t("장 / 주", "graded / wk")}</span></div>
-      <div class="mktBars">${bars.map((b) => `<span style="height:${Math.max(8, Math.round((b.v / bmax) * 100))}%" title="${b.d}: ${b.v.toLocaleString()}"></span>`).join("")}</div>
-      <p class="mktFoot">${m.wowPct != null ? `<span class="${meterUp ? "up" : "down"}">${meterUp ? "+" : ""}${m.wowPct}%</span> ${t("전주 대비", "vs last week")} · ` : ""}${t("공급이 불타는 속도", "supply burning")} <span class="mktArrow">→</span></p>
-    </a>` : ""}`;
 }
 
 function renderMarketStatus() {

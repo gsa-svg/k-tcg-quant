@@ -9,8 +9,9 @@ const SITE = "https://opboxindex.com";
 const CACHE = CSS_VER;  // packs.js DATA_VERSION 를 읽는다 — 하드코딩하면 범프 때 가드 V1 이 막는다(2026-07-27)
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+// marketIndex 는 이제 '지수 화면'이 아니라 세트별 시세판(board)·재판기록(reprints) 공급원으로만 쓴다.
+// 지수/개봉미터 표시는 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
 const mi = d.marketIndex;
-const idx = mi.index;
 const fx = d.fx || {};
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const won = (n) => (n == null ? "—" : Math.round(n).toLocaleString("ko-KR") + "원");
@@ -40,14 +41,6 @@ const movers = [...mi.board].sort((a, b) => b.changePct - a.changePct);
 const topUp = movers.slice(0, 3);
 const topDn = movers.slice(-3).reverse();
 
-// 개봉 미터 막대
-const weeks = (mi.meter.weeks || []).slice(-6);
-const maxW = Math.max(...weeks.map((w) => w.v), 1);
-const meterBars = weeks.map((w, i) => {
-  const h = Math.max(6, Math.round((w.v / maxW) * 100));
-  return `<div class="owBar"><span style="height:${h}%"></span><small>${w.d.slice(5)}</small></div>`;
-}).join("");
-
 // 시세표 행 — 변동률 기준일(baseDate)은 세트마다 다름(대부분 2026-01-07, OP-16은 발매추적 4-27) → 행마다 명시
 const koSlug = (code) => code.toLowerCase();
 const tableRows = rows.map((b) => {
@@ -72,10 +65,6 @@ const faqs = [
   {
     q: "원피스 부스터박스 시세는 어디 기준인가요?",
     a: `이베이 실거래·매물 데이터를 매일 집계해 원화로 환산한 값입니다(환율 ₩${fx.usdKrw}/$ 기준, ${fx.date} 갱신). 추정가가 아니라 실제 거래·호가 기반이며, 값이 불확실하면 빈칸으로 둡니다.`,
-  },
-  {
-    q: "OPBOX 지수가 뭔가요?",
-    a: `일본판 원피스 부스터박스 ${mi.constituents.length}종의 시세를 동일가중으로 묶어 하나의 숫자로 만든 시장지수입니다. 2026년 1월 7일 = 100 기준이며, 현재 ${idx.value.toFixed(1)}로 1월 대비 ${pct(idx.sinceBasePct)}입니다.`,
   },
   {
     q: "변동률은 발매일 대비인가요?",
@@ -109,9 +98,6 @@ const datasetLd = JSON.stringify({
 
 const faqHtml = faqs.map((f) => `<details class="faqItem"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n");
 
-const chgCls = idx.sinceBasePct >= 0 ? "up" : "down";
-const wkCls = idx.weekChangePct >= 0 ? "up" : "down";
-
 const html = `<!doctype html>
 <html lang="ko">
   <head>
@@ -126,8 +112,8 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="en" href="${SITE}/" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세·재판·개봉 지수 | OP Box Index</title>
-    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률, 정가 대비 배수, 재판 기록, 개봉 지수까지 한눈에. 실거래 및 검증된 매물 기반." />
+    <title>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세·재판 기록 | OP Box Index</title>
+    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률, 정가 대비 배수, 재판 기록을 한눈에. 실거래 및 검증된 매물 기반." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
@@ -182,26 +168,12 @@ const html = `<!doctype html>
   <body>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
-      <nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../market.html" data-ko="마켓 지수">Market Index</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main class="bodyPage">
       <p class="eyebrow">한국어 · 일본판 시세</p>
       <h1>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세</h1>
       <p class="koNote">일본판 원피스 카드게임 부스터박스 전 세트의 <strong>실거래·검증된 매물 기반</strong> 원화 시세입니다. 기준과 출처가 확인된 값만 표시하며 매일 갱신합니다. 기준일 ${esc(DATA_DATE)}.</p>
-
-      <section aria-label="OPBOX 지수">
-        <h2>OPBOX 지수 — 시장 전체를 숫자 하나로</h2>
-        <div class="ixHero">
-          <span class="big">${idx.value.toFixed(1)}</span>
-          <span class="ixChg ${chgCls}">1월 대비 ${pct(idx.sinceBasePct)}</span>
-          <span class="ixChg ${wkCls}">주간 ${pct(idx.weekChangePct)}</span>
-        </div>
-        <ul class="koFacts">
-          <li>일본판 부스터박스 <strong>${mi.constituents.length}종</strong> 동일가중 지수 (2026년 1월 7일 = 100)</li>
-          <li>현재 <strong>${idx.value.toFixed(1)}</strong> — 1월 대비 <strong>${pct(idx.sinceBasePct)}</strong></li>
-          <li>개봉 지수(주간 PSA 등급 수): <strong>${mi.meter.latestWeek.v.toLocaleString("ko-KR")}장</strong> (${esc(mi.meter.latestWeek.d)} 주)</li>
-        </ul>
-      </section>
 
       <section aria-label="전 세트 시세표">
         <h2>전 세트 박스 시세표 (원화)</h2>
@@ -224,15 +196,9 @@ ${tableRows}
         </div>
       </section>
 
-      <section aria-label="개봉 지수">
-        <h2>개봉 지수 — 주간 PSA 등급 물량</h2>
-        <p class="koNote">주간 PSA 그레이딩 접수량입니다. 물량이 늘수록 개봉·등급 열기가 뜨겁다는 신호(누적 ${mi.meter.allTimeGraded.toLocaleString("ko-KR")}장).</p>
-        <div class="owMeter">${meterBars}</div>
-      </section>
-
       <div class="koCta">
         <a class="primary" href="../amazon-lottery.html">아마존 응모 안내 →</a>
-        <a class="ghost" href="../market.html">영문 상세 지수 →</a>
+        <a class="ghost" href="../psa-grading.html">그레이딩 인구 데이터 →</a>
         <a class="ghost" href="../sets/index.html">세트별 가이드 →</a>
       </div>
 
@@ -257,7 +223,7 @@ fs.writeFileSync(path.join(ROOT, "ko", "index.html"), html, "utf8");
 // ─────────────────────────────────────────────────────────────
 // 세트별 한국어 페이지 /ko/{code}.html — 한국어 롱테일("op-16 시세", "결전의 시간 박스 가격") 공략.
 // 값은 전부 검증된 데이터에서만 파생하고, 없으면 표시하지 않음(빈칸 > 틀린값).
-const NAV_KO = `<nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../market.html" data-ko="마켓 지수">Market Index</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>`;
+const NAV_KO = `<nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>`;
 
 function setPageKo(b) {
   const code = b.code;
@@ -420,5 +386,5 @@ for (const b of rows) {
     return block;
   });
   fs.writeFileSync(smPath, sm, "utf8");
-  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed, index: idx.value }));
+  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed }));
 }

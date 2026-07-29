@@ -37,7 +37,7 @@
         "mainEntityOfPage": "https://opboxindex.com/articles/how-op-box-index-calculates-market-signals.html"
       }
     </script>
-    <link rel="stylesheet" href="../styles.css?v=20260728cl" />
+    <link rel="stylesheet" href="../styles.css?v=20260729mk" />
       <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -45,17 +45,21 @@
   <body>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../market.html" data-ko="마켓 지수">Market Index</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main class="bodyPage">
       <p class="eyebrow">Methodology</p>
       <h1>How OP Box Index reads One Piece market signals</h1>
       <p>OP Box Index is built to make sealed One Piece booster box research easier to read. The site does not issue buy or sell calls. It organizes public marketplace signals so collectors can compare sets without jumping between many tabs.</p>
 
-      <h2>The OPBOX Index, with its actual numbers</h2>
-      <p>The headline number on the dashboard is the <strong>OPBOX Index</strong>. Its construction is deliberately simple so it cannot be quietly massaged: it is an <strong>equal-weight index of 18 Japanese booster boxes</strong> that had a tracked price on <strong>2026-01-07, set to 100</strong> on that date. Sets that entered tracking later (OP-02, OP-15, OP-16) are shown individually but excluded from the index so they cannot distort the base. Prices carry forward on days without a fresh observation.</p>
-      <p>As of 2026-07-23 the index reads <strong>157.4 &mdash; Japanese sealed boxes are up 57.4% since January</strong> on an equal-weight basis. Because every box gets the same weight, this is not a story about one grail set: it means the typical tracked box, from $67 Royal Blood to $268 Romance Dawn, participated in the move. When the index is flat for a week (as it has been recently at +0%), that tells you the market is digesting rather than trending.</p>
-      <p>Next to it we publish the <strong>Opening Meter</strong>: the number of One Piece cards PSA graded in the latest week &mdash; currently <strong>10,724 cards/week, up 38.5% versus the prior week</strong>. We treat grading volume as a destruction proxy: cards get graded when boxes get opened, so a rising meter means sealed supply is being consumed faster. Reading the two together is the core of the method &mdash; index up while the meter runs hot is demand-plus-destruction; index up while the meter cools would be a thinner, more speculative move.</p>
+      <h2>No single market number</h2>
+      <p>This site used to publish a composite index that rolled every Japanese box into one figure. We removed it in July 2026. The problem was not the arithmetic &mdash; it was that a single number papered over sets moving in opposite directions, and it drifted away from what the underlying per-set data actually said. We would rather show nothing than show a number we cannot stand behind, so the site now reports each set on its own and lets you read the spread yourself.</p>
+      <p>The same rule governs everything below: <strong>a blank is better than a wrong number</strong>. Where a value is not yet verified we mark it &ldquo;collecting&rdquo; rather than estimating it.</p>
+
+      <h2>Grading population, by grader and by printing</h2>
+      <p>Grading volume is our best read on how much sealed product is being opened &mdash; cards get graded when boxes get cracked. We collect it from the public population reports of three graders and keep them strictly separate, because their scales are not interchangeable: <strong>PSA</strong> tops out at 10; <strong>CGC</strong> splits its top grade into Pristine 10 and Gem Mint 10 (plus the retired Perfect 10); <strong>TAG</strong> splits its top grade into 10 and 10P. Adding a PSA 10 to a CGC Pristine 10 would produce a number that means nothing, so we never sum across graders.</p>
+      <p>We also never sum across printings. The Japanese and English releases of a set are different print runs with different pull rates, and merging them makes the gem rate meaningless. Every figure on the grading page is labelled by edition. As of the latest collection, PSA has graded <strong>583,430</strong> cards from Japanese sets and <strong>594,907</strong> from English sets across the sets we track &mdash; two separate figures, deliberately not added together.</p>
+      <p>Counts are collected weekly and appended to a ledger that is never rewritten, so week-over-week change is measured against what we actually recorded at the time rather than back-filled after the fact. Weekly history is published from 2025-12-03 onward; we do not reconstruct earlier weeks we did not observe.</p>
 
       <h2>Box price bands</h2>
       <p>For each sealed box, the site separates low, middle and high price bands when enough market references exist. The middle value is useful as a quick reference, but the spread matters too. A tight spread is usually more reliable than a wide spread with one unusually cheap or expensive listing.</p>
@@ -82,7 +86,7 @@
         <li>Use seller and condition checks before buying anything.</li>
       </ul>
 
-      <p>Start with the <a href="../">live market dashboard</a>, then open a <a href="../sets/index.html">set guide</a> for stable background context.</p>
+      <p>Start with the <a href="../">live market dashboard</a>, then open a <a href="../sets/index.html">set guide</a> for stable background context, or see <a href="../psa-grading.html">grading population by set and edition</a>.</p>
     </main>
   </body>
 </html>

@@ -10,6 +10,8 @@ const START = "<!-- HOME_SUMMARY:START -->";
 const END = "<!-- HOME_SUMMARY:END -->";
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+// marketIndex 는 세트별 시세판(board) 공급원으로만 쓴다 — 지수 숫자·개봉미터 표시는
+// 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
 const mi = d.marketIndex;
 const fx = d.fx || {};
 const DATA_DATE = d.updated || "";
@@ -39,6 +41,14 @@ const cheapest = byPrice[byPrice.length - 1];
 const priciest = byPrice[0];
 const nameOf = (c) => (d.sets[c] || {}).nameEn || c;
 
+// 상승/하락은 세트별로만 말한다 — 시장 전체를 숫자 하나로 요약하던 지수는 삭제됨(2026-07-29).
+const withChg = rows.filter((b) => b.changePct != null);
+const byChg = [...withChg].sort((a, b) => b.changePct - a.changePct);
+const nUp = withChg.filter((b) => b.changePct > 0).length;
+const nDn = withChg.filter((b) => b.changePct < 0).length;
+const topUp = byChg[0];
+const topDn = byChg[byChg.length - 1];
+
 const faqs = [
   {
     q: "How much is a One Piece booster box?",
@@ -50,7 +60,7 @@ const faqs = [
   },
   {
     q: "Are One Piece booster boxes going up or down in price?",
-    a: `The OPBOX Index — an equal-weight index of ${mi.constituents.length} Japanese booster boxes based to 100 on January 7, 2026 — is at ${idx.value.toFixed(1)}, ${idx.sinceBasePct >= 0 ? "up" : "down"} ${Math.abs(idx.sinceBasePct)}% since January and ${idx.weekChangePct >= 0 ? "up" : "down"} ${Math.abs(idx.weekChangePct)}% over the past week. Individual sets move differently; see the change column above.`,
+    a: `They move set by set, not as one block. Of the ${withChg.length} Japanese sets where we have a tracked start price, ${nUp} are up and ${nDn} are down since tracking began${topUp ? `; the largest gain is ${topUp.code} at ${topUp.changePct >= 0 ? "+" : ""}${topUp.changePct}%` : ""}${topDn && topDn.changePct < 0 ? ` and the largest fall is ${topDn.code} at ${topDn.changePct}%` : ""}. See the change column above for each set.`,
   },
   {
     q: "Is a One Piece booster box worth buying sealed?",
@@ -58,7 +68,7 @@ const faqs = [
   },
   {
     q: "Where can I check One Piece card and booster box prices for free?",
-    a: `This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and the market index, or download the full per-set dataset as a CSV under a CC BY 4.0 licence at /free-data.html.`,
+    a: `This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and PSA / CGC / TAG grading population by set and edition, or download the full per-set dataset as a CSV under a CC BY 4.0 licence at /free-data.html.`,
   },
 ];
 const faqLd = JSON.stringify({
@@ -80,7 +90,7 @@ const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
           <h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2>
-          <p>The OPBOX Index, an equal-weight index of ${mi.constituents.length} Japanese booster boxes (Jan 7, 2026 = 100), stands at <strong>${idx.value.toFixed(1)}</strong>, ${idx.sinceBasePct >= 0 ? "up" : "down"} <strong>${Math.abs(idx.sinceBasePct)}%</strong> since January. Weekly PSA grading volume is <strong>${mi.meter.latestWeek.v.toLocaleString("en-US")}</strong> cards (week of ${esc(mi.meter.latestWeek.d)}). Prices below are sealed Japanese booster boxes in USD; "change" is measured from each set's tracking start date, not its release date.</p>
+          <p>Prices below are sealed Japanese booster boxes in USD, from real completed sales and verified active listings. "Change" is measured from each set's tracking start date, not its release date. Of the ${withChg.length} sets with a tracked start price, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
             <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th><th>vs MSRP</th></tr></thead>
@@ -89,7 +99,7 @@ ${tr}
             </tbody>
           </table>
           </div>
-          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="market.html">Market index</a> · <a href="ko/">한국어 시세</a></p>
+          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="ko/">한국어 시세</a></p>
         </section>
         <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
           <details class="homeCollapse">

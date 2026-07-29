@@ -159,7 +159,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
   <body>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../market.html" data-ko="마켓 지수">Market Index</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main class="bodyPage">`;
 }
@@ -423,7 +423,7 @@ function setPage(code, prev, next) {
         : `We found no dated reprint record for ${code} in our sources — which means none surfaced, not that it was never reprinted.`;
       reprintBlock = `
       <h2>Reprints &amp; original price</h2>
-      <p>${code} launched at a Japanese MSRP of <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd})${mult ? `. At today's market price that is roughly <strong>${mult}x its original retail</strong>` : ""}. <strong>On reprints:</strong> Bandai does not publish per-set reprint announcements for the One Piece Card Game, so there is no official count. ${rpLine} See the full board on the <a href="../market.html">market index page</a>.</p>`;
+      <p>${code} launched at a Japanese MSRP of <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd})${mult ? `. At today's market price that is roughly <strong>${mult}x its original retail</strong>` : ""}. <strong>On reprints:</strong> Bandai does not publish per-set reprint announcements for the One Piece Card Game, so there is no official count. ${rpLine} See how many copies of this set have been graded — PSA, CGC and TAG, Japanese and English separately — on the <a href="../psa-grading.html">grading population page</a>.</p>`;
     }
   }
 
@@ -648,7 +648,7 @@ function rankingPage() {
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="market.html" data-ko="마켓 지수">Market Index</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>

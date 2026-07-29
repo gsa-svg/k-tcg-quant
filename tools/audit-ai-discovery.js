@@ -83,7 +83,7 @@ if (!/^Sitemap:\s+https:\/\/opboxindex\.com\/sitemap\.xml\s*$/mi.test(robots)) {
 
 for (const requiredUrl of [
   "https://opboxindex.com/",
-  "https://opboxindex.com/market.html",
+  "https://opboxindex.com/psa-grading.html",
   "https://opboxindex.com/compare.html",
   "https://opboxindex.com/psa10-ranking.html",
   "https://opboxindex.com/sets/index.html",

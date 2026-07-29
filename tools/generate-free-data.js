@@ -118,7 +118,7 @@ const html = `<!doctype html>
   <body>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="market.html" data-ko="마켓 지수">Market Index</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main class="bodyPage">
       <p class="eyebrow">Free data</p>
@@ -127,7 +127,7 @@ const html = `<!doctype html>
 
       <div class="dlRow">
         <a class="primary" href="opbox-set-prices.csv" download>Download CSV (${rows.length} sets)</a>
-        <a class="ghost" href="market.html">See the live market index →</a>
+        <a class="ghost" href="psa-grading.html">See grading population by set →</a>
       </div>
       <p class="note">Last updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
 
@@ -165,7 +165,7 @@ ${previewRows}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="sets/index.html">Set Guides</a><a href="market.html">Market Index</a><a href="ko/">한국어 시세</a><a href="about.html">About</a><a href="privacy.html">Privacy</a></nav>
+      <nav aria-label="Footer navigation"><a href="sets/index.html">Set Guides</a><a href="psa-grading.html">Grading Population</a><a href="ko/">한국어 시세</a><a href="about.html">About</a><a href="privacy.html">Privacy</a></nav>
     </footer>
   </body>
 </html>
