@@ -1,4 +1,4 @@
-// 카드별 경매 실거래 집계 — auction-sold.json(개별 낙찰기록)에서 카드(cardId)마다 롤링 통계를 뽑아
+// 카드별 경매 실거래 집계 — 일자별 원장(data/auction-archive/)에서 카드(cardId)마다 롤링 통계를 뽑아
 // data/auction-card-stats.json 으로 별도 저장한다. 카드는 경매 표본이 두꺼워(박스와 달리) 카드별로 보여줄 수 있다.
 //
 // 왜 별도 파일인가: 박스 페이지의 시세/공급 그래프와 성격이 다르다. 카드는 "실낙찰가 + 낙찰률 + 입찰경쟁"을
@@ -7,7 +7,7 @@
 // 산출(카드별, 최근 창 기준):
 //   n=기록수, sold=낙찰수, sellThrough=낙찰률%(팔림/유찰 확정분 분모), medPrice=개당 낙찰 중앙값(USD),
 //   low/high=사분위, medBids=입찰수 중앙값, medBidders=고유입찰자 중앙값, last=최근 낙찰 몇 건.
-// 개별 낙찰기록은 auction-sold.json 이 45일 보존하므로 여기선 파생 집계만 저장(원본은 그쪽이 원장).
+// 개별 낙찰기록은 아카이브가 원장이므로 여기선 파생 집계만 저장한다.
 //
 // 원칙: 조작 없음. 낙찰가는 sold=true + 유효 개당가만. 표본 얇은 카드(sold<MIN)는 담지 않는다(빈 값이 틀린 값보다 낫다).
 // Run: node tools/auction-card-stats.js
@@ -15,8 +15,13 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const soldPath = path.join(ROOT, "data", "auction-sold.json");
+const { readRecent } = require("./auction-archive");
 const outPath = path.join(ROOT, "data", "auction-card-stats.json");
+
+// 원장은 data/auction-archive/<날짜>.json 이다(2026-07-29 분리). 45일 창을 직접 읽는다 —
+// 종전엔 auction-sold.json 을 읽었는데, 그 파일은 이제 최근 14일만 담는 얇은 파일이라
+// 그대로 두면 표본이 조용히 3분의 1로 줄어든다.
+const WINDOW_DAYS = 45;
 
 const MIN_SOLD = 3;          // 이보다 적으면 카드별로 안 보여준다(잡음)
 const LAST_N = 5;            // 카드별 최근 낙찰 표시 개수
@@ -27,8 +32,7 @@ const q = (a, p) => { const s = a.filter(Number.isFinite).sort((m, n) => m - n);
 const unit = (r) => ("qty" in r ? (r.qty == null ? null : r.unitPrice) : r.price);
 
 function main() {
-  const src = JSON.parse(fs.readFileSync(soldPath, "utf8"));
-  const sales = (src.sales || []).filter((r) => r.kind === "card" && r.cardId);
+  const sales = readRecent(WINDOW_DAYS).filter((r) => r.kind === "card" && r.cardId);
 
   const byCard = {};
   for (const r of sales) (byCard[r.cardId] = byCard[r.cardId] || []).push(r);
@@ -56,9 +60,9 @@ function main() {
   }
 
   const out = {
-    note: "Per-card completed eBay auction stats for One Piece Card Game singles, derived from auction-sold.json. medPrice is the median final winning bid per card (USD), sellThrough is the share of decided auctions that actually sold, medBids/medBidders show bidding competition. Cards with fewer than " + MIN_SOLD + " confirmed sales are omitted rather than shown on thin samples. This is a rolling snapshot recomputed from the 45-day sold ledger; the ledger (auction-sold.json) is the source of truth for individual sales.",
-    window: "rolling (auction-sold retention, ~45d)",
-    updated: src.updated || null,
+    note: "Per-card completed eBay auction stats for One Piece Card Game singles, derived from the daily auction archive (data/auction-archive/). medPrice is the median final winning bid per card (USD), sellThrough is the share of decided auctions that actually sold, medBids/medBidders show bidding competition. Cards with fewer than " + MIN_SOLD + " confirmed sales are omitted rather than shown on thin samples. This is a rolling snapshot recomputed from the last 45 days of the archive; those daily files are the source of truth for individual sales.",
+    window: "rolling 45d (daily auction archive)",
+    updated: new Date().toISOString(),
     cardCount: Object.keys(cards).length,
     cards,
   };

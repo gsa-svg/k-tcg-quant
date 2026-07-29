@@ -33,6 +33,15 @@ jobs:
         with:
           node-version: "22"
 
+      # 부가 필드 추출 규칙(등급·판별·카드번호)은 틀리면 원장이 통째로 오염된다.
+      # 소급 수정이 불가능한 데이터라 적재 전에 규칙부터 검증한다.
+      - name: Verify field rules
+        run: |
+          node --check tools/auction-fields.js
+          node --check tools/auction-archive.js
+          node --check tools/settle-auctions.js
+          node tools/test-auction-fields.js
+
       - name: Settle
         run: node tools/settle-auctions.js
 
@@ -44,13 +53,16 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/auction-sold.json data/auction-watch.json data/auction-card-stats.json; then
+          # 원장은 data/auction-archive/ 의 새 파일로 생긴다(추적되지 않는 파일).
+          # git diff 는 추적 안 된 파일을 못 보므로 status 로 판단해야 한다 —
+          # diff 로만 보면 "Nothing settled" 로 빠져나가 원장이 영영 커밋되지 않는다.
+          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-archive)" ]; then
             echo "Nothing settled."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json
+          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-archive
           git commit -m "Settle completed auctions"
           for attempt in 1 2 3; do
             if git push; then

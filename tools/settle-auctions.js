@@ -19,14 +19,18 @@
 const fs = require("fs");
 const path = require("path");
 const { parseLotQuantity, unitPrice } = require("./lot-quantity");
+const { extraFields } = require("./auction-fields");
+const { appendSales, readRecent } = require("./auction-archive");
 
 const ROOT = path.join(__dirname, "..");
 const watchPath = path.join(ROOT, "data", "auction-watch.json");
 const soldPath = path.join(ROOT, "data", "auction-sold.json");
 
-// 개별 낙찰 기록 보관 기간. 이 파일은 2시간마다 다시 쓰이므로(=커밋마다 새 blob) 길수록 저장소가 큰다.
-// 45일이면 발매 전후 비교와 최근 추세에 충분하고, 그 이전은 일별 집계로 남는다.
-const KEEP_SALES_DAYS = 45;
+// 개별 낙찰 기록은 data/auction-archive/<날짜>.json 이 원장이다(하루가 지나면 다시 안 쓰임).
+// auction-sold.json 은 파생 집계 + 최근 창만 담는 얇은 파일로 남긴다 — 2시간마다 재작성되므로
+// 여기에 45일치를 넣으면 저장소가 하루 수십 MB씩 불어난다(2026-07-29 실측: 8일치로 blob 20.8MB).
+const HOT_DAYS = 14;           // 파생 집계가 읽는 창
+const KEEP_SALES_DAYS = 45;    // 아카이브 기준 집계 재계산 범위
 const KEEP_DAILY_DAYS = 365;   // 일별 집계는 더 오래
 const MAX_PER_RUN = 250;       // 한 번에 조회할 최대 건수 (API 한도 보호)
 const GIVE_UP_HOURS = 30;      // 종료 후 이만큼 지나도 정산 못 하면 포기(조회 불가 추정)
@@ -105,8 +109,11 @@ const med = (a) => {
     // 가격으로 섞이는 오염을 막는다. 제목도 남겨 나중에 재검증할 수 있게 한다.
     const qty = parseLotQuantity(j.title || "", w.kind);
     const total = Number.isFinite(price) && sold !== false ? Number(price.toFixed(2)) : null;
-    // 판(에디션): 제목에 명시된 경우만. 없으면 null — 추측하지 않는다. (JP/EN 분리 집계용)
-    const ed = /english|\beng\b/i.test(j.title || "") ? "en" : /japanese|japan\b/i.test(j.title || "") ? "jp" : null;
+
+    // 부가 필드(등급·판·변형·배송비·판매국가·판매자 신뢰구간·종료시각·상태).
+    // 경매는 끝나면 사라지므로 지금 안 뽑으면 영원히 못 뽑는다. 값이 없는 키는 아예 안 만든다.
+    // ed(판)도 여기서 결정된다 — eBay aspects 의 Language 가 제목 추측보다 정확하다.
+    const extra = extraFields(j);
 
     settled.push({
       d: new Date(Date.parse(w.endsAt)).toISOString().slice(0, 10),
@@ -114,7 +121,6 @@ const med = (a) => {
       kind: w.kind,
       set: w.set,
       cardId: w.cardId,
-      ed,
       title: j.title || "",
       sold,
       price: total,
@@ -125,6 +131,7 @@ const med = (a) => {
       bids,
       bidders: Number.isFinite(j.uniqueBidderCount) ? j.uniqueBidderCount : null,
       listedDays,
+      ...extra,
     });
   }
 
@@ -138,17 +145,17 @@ const med = (a) => {
   watch.updated = new Date(now).toISOString();
   fs.writeFileSync(watchPath, JSON.stringify(watch) + "\n", "utf8");
 
-  // ── 낙찰 기록 저장
+  // ── 낙찰 기록 저장: 원장은 일자별 아카이브(하루 지나면 다시 안 쓰임 → 저장소가 안 불어남)
+  const archived = appendSales(settled);
+
+  // 파생 집계·최근 창은 아카이브에서 다시 만든다. 원장과 집계가 어긋날 여지를 없앤다.
   let out;
   try { out = JSON.parse(fs.readFileSync(soldPath, "utf8")); } catch { out = { sales: [], daily: [] }; }
-  const known = new Set(out.sales.map((s) => s.id));
-  out.sales.push(...settled.filter((s) => !known.has(s.id)));
+  const window = readRecent(KEEP_SALES_DAYS).sort((a, b) => a.d.localeCompare(b.d));
+  out.sales = readRecent(HOT_DAYS).sort((a, b) => a.d.localeCompare(b.d));
 
-  const cutSales = new Date(now - KEEP_SALES_DAYS * 86400000).toISOString().slice(0, 10);
-  out.sales = out.sales.filter((s) => s.d >= cutSales).sort((a, b) => a.d.localeCompare(b.d));
-
-  // ── 일별 집계 재계산 (개별 기록에서 다시 만든다 — 집계와 원본이 어긋날 여지를 없앤다)
-  const days = [...new Set(out.sales.map((s) => s.d))];
+  // ── 일별 집계 재계산
+  const days = [...new Set(window.map((s) => s.d))];
   // 가격 집계는 "개당가" 기준. qty 필드가 있는 새 기록은 unitPrice(수량 모름이면 null→제외),
   // qty 필드가 없는 과거 기록은 종전대로 price 를 쓴다(45일 롤링이라 자연 소멸).
   const perUnit = (r) => ("qty" in r ? r.unitPrice : r.price);
@@ -165,7 +172,7 @@ const med = (a) => {
     };
   };
   const daily = days.map((d) => {
-    const rows = out.sales.filter((s) => s.d === d);
+    const rows = window.filter((s) => s.d === d);
     const bySet = {};
     for (const s of new Set(rows.filter((r) => r.set).map((r) => r.set))) {
       const rs = rows.filter((r) => r.set === s);
@@ -186,7 +193,7 @@ const med = (a) => {
   const priorDaily = (out.daily || []).filter((p) => p.d >= cutDaily && !days.includes(p.d));
   out.daily = [...priorDaily, ...daily].sort((a, b) => a.d.localeCompare(b.d));
 
-  out.note = "Completed eBay auction results for One Piece Card Game items. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.";
+  out.note = "Completed eBay auction results for One Piece Card Game items. The full ledger lives in data/auction-archive/<date>.json (one file per day, written once and not rewritten); 'sales' here is only the most recent " + HOT_DAYS + " days and 'daily' is the aggregate series. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.";
   out.updated = new Date(now).toISOString();
   fs.writeFileSync(soldPath, JSON.stringify(out) + "\n", "utf8");
 
@@ -198,6 +205,10 @@ const med = (a) => {
     soldConfirmed: soldNow.length,
     medPrice: med(soldNow.map((s) => s.unitPrice)),
     pendingLeft: watch.pending.length,
-    totalSales: out.sales.length,
+    archived,
+    hotSales: out.sales.length,
+    ledgerSales: window.length,
+    graded: settled.filter((s) => s.grade).length,
+    edResolved: settled.filter((s) => s.ed).length,
   }));
 })();

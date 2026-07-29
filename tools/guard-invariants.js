@@ -347,12 +347,53 @@ if (exists("data/cgc-grading-history.json")) {
 // ── D9. 카드 경매 집계(auction-card-stats) 정합성 — 파생 스냅샷이라 이상값이면 카드 페이지가 틀린다.
 if (exists("data/auction-card-stats.json")) {
   const cs = JSON.parse(read("data/auction-card-stats.json"));
-  if (!/per-card/i.test(cs.note || "") || !/auction-sold/i.test(cs.note || "")) errors.push("D9: note 에 파생 출처(auction-sold) 고지 누락");
+  if (!/per-card/i.test(cs.note || "") || !/auction-archive/i.test(cs.note || "")) errors.push("D9: note 에 파생 출처(auction-archive) 고지 누락");
   for (const [id, c] of Object.entries(cs.cards || {})) {
     if (!(Number.isInteger(c.sold) && c.sold >= 3)) { errors.push(`D9: ${id} sold(${c.sold}) 표본 기준 미달 노출`); break; }
     if (c.medPrice != null && !(c.medPrice > 0)) { errors.push(`D9: ${id} medPrice 이상 (${c.medPrice})`); break; }
     if (c.sellThrough != null && !(c.sellThrough >= 0 && c.sellThrough <= 100)) { errors.push(`D9: ${id} sellThrough 이상 (${c.sellThrough})`); break; }
     if (c.low != null && c.high != null && c.low > c.high) { errors.push(`D9: ${id} low>high`); break; }
+  }
+}
+
+// ── A1. 경매 원장(일자별 아카이브) 무결성 — 여기가 깨지면 되돌릴 방법이 없다.
+//    경매는 끝나면 사라지므로 소급 재수집이 불가능하다. 그래서 "이미 쌓인 날의 기록이 줄어드는 것"을
+//    가장 엄하게 본다(2026-07-29 분리 시 신설). 한 파일=하루, 하루가 지나면 다시 쓰이지 않는다.
+{
+  const dir = "data/auction-archive";
+  if (fs.existsSync(path.join(ROOT, dir))) {
+    const files = fs.readdirSync(path.join(ROOT, dir)).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+    if (!files.length) errors.push("A1: 경매 아카이브가 비어 있다 — 원장 유실 의심");
+    const seen = new Set();
+    for (const f of files) {
+      const day = f.slice(0, 10);
+      let j;
+      try { j = JSON.parse(read(`${dir}/${f}`)); } catch { errors.push(`A1: ${f} 파싱 실패`); continue; }
+      const sales = j.sales;
+      if (!Array.isArray(sales) || !sales.length) { errors.push(`A1: ${f} sales 비어 있음`); continue; }
+      if (j.d !== day) errors.push(`A1: ${f} 내부 날짜(${j.d})가 파일명과 다름`);
+      for (const s of sales) {
+        if (!s || typeof s.id !== "string") { errors.push(`A1: ${f} id 없는 기록`); break; }
+        if (s.d !== day) { errors.push(`A1: ${f} 에 다른 날짜(${s.d}) 기록 혼입`); break; }
+        if (seen.has(s.id)) { errors.push(`A1: ${s.id} 가 여러 날짜 파일에 중복`); break; }
+        seen.add(s.id);
+        // 낙찰가는 팔린 건에만 있어야 한다. 유찰(sold=false)에 가격이 붙으면 "안 팔린 값"이 시세로 샌다.
+        if (s.sold === false && s.price != null) { errors.push(`A1: ${f} 유찰 기록에 낙찰가(${s.price})`); break; }
+        if (s.price != null && !(s.price > 0)) { errors.push(`A1: ${f} 가격 이상 (${s.price})`); break; }
+        // 등급은 제목에서 읽은 값이라 출처를 반드시 남긴다 — 나중에 재검증할 수 있어야 한다.
+        if (s.grade && s.gradeSrc !== "title") { errors.push(`A1: ${f} grade 에 출처(gradeSrc) 누락`); break; }
+        if (s.ed && !["jp", "en"].includes(s.ed)) { errors.push(`A1: ${f} ed 값 이상 (${s.ed})`); break; }
+        // 개인 식별 정보를 원장에 남기지 않는다(판매자는 구간만).
+        if (s.seller && (s.seller.username || s.seller.u)) { errors.push(`A1: ${f} 판매자 username 저장됨 — 구간만 남길 것`); break; }
+      }
+    }
+    // 파생 집계가 원장보다 많으면 어딘가에서 없는 거래를 만들어낸 것이다.
+    if (exists("data/auction-sold.json")) {
+      const hot = JSON.parse(read("data/auction-sold.json"));
+      const hotIds = new Set((hot.sales || []).map((s) => s.id));
+      const orphan = [...hotIds].filter((id) => !seen.has(id));
+      if (orphan.length) errors.push(`A1: 최근 창에 원장에 없는 기록 ${orphan.length}건`);
+    }
   }
 }
 
@@ -866,4 +907,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1"] }));
