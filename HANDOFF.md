@@ -1,5 +1,12 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
+## ⏳ 애드센스 심사용 임시조치 (2026-07-30 신청) — "애드센스 심사용 임시조치 원복해" 라고 하면 이걸 되돌린다
+- **원복 대상 (noindex 2건뿐)**:
+  1. 한국어 세트 21장(ko/op-01~prb-02): `noindex,follow` → `index,follow` + 사이트맵 복귀. 위치: tools/generate-ko-pages.js (setPageKo 안 robots 메타 + 사이트맵 제거 블록)
+  2. articles/weekly-market-report-2026-07-16.html: noindex 제거 + 사이트맵 복귀 (단, 산문 181단어라 보강 후 푸는 게 맞음)
+- **삭제하면 안 되는 것**: 이번에 넣은 해설 산문 전부(ko 세트 5섹션, ko 허브 시장읽기, psa10-ranking 분석+FAQ, psa-grading 분석+FAQ, 카드페이지 "왜 PSA10 값이 없나", cards 허브 방법론). 실측 데이터 파생 콘텐츠라 심사용이 아니라 자산 — 네이버 유입 계획의 본체이기도 함.
+- 승인 후 할 일: ko noindex 해제(→ 네이버 Yeti용), opbox-gsc-recovery-watch 루틴 삭제.
+
 ## 2026-07-27 세션 (등급 데이터 전면 개편 + 실사고 3건)
 
 ### 먼저 알아야 할 것
