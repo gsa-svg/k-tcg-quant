@@ -131,6 +131,38 @@ for (const code of codes) {
   }
 }
 
+// ── G8. top10 카드번호 자체가 맞는가 — 등급·가격 매칭이 전부 이 번호에 매달려 있다.
+//    2026-07-29 실사고: OP-09 골 D. 로저(금망가)가 "119" 로 들어가 있었다. 실제 번호는 OP09-118 이고
+//    119 는 몽키 D. 루피다. 그래서 NM 재고 링크가 다른 카드를 검색했고, CGC 매칭도 실패했다.
+//    사용자가 CGC 공개 인구표 캡처를 보내와서 발견됐다 — 우리 안에서는 아무도 못 잡았다.
+//    같은 세트 psa 표에는 #118 로 옳게 들어 있었다. 우리 두 표를 서로 대조하면 잡힌다.
+for (const code of codes) {
+  const s = pk.sets[code] || {};
+  for (const c of s.cards || []) {
+    const raw = String(c.number || "").replace(/^#/, "").toUpperCase();
+    // DON!! 카드는 표준 카드번호 체계가 없다 — 번호가 없거나 "DON!!" 인 게 정상이다.
+    if (/DON/i.test(c.name || "") || raw === "DON!!") continue;
+    // 번호가 아예 없으면 아무것과도 매칭되지 않으므로 틀린 값이 나갈 일은 없다 — 경고로 남긴다.
+    if (!raw) { warn.push(`${code}: top10 "${c.name}" 에 카드번호 없음 — 등급·시세 매칭 불가`); continue; }
+    // 위험한 건 "있지만 쓸 수 없는" 번호다. 맨숫자("119")는 그럴듯해 보여서 잘못 매칭될 수 있다.
+    if (!/^(OP|EB|PRB|ST)\d{2}-\d{3}$/.test(raw)) {
+      errors.push(`G8 ${code}: 카드번호 형식 이상 "${raw}" (${c.name}) — 세트접두어+3자리여야 한다`);
+      continue;
+    }
+    // 같은 이름이 psa 표에 있으면 뒤 3자리가 같아야 한다. 다르면 둘 중 하나가 틀렸다.
+    const tail = raw.slice(-3);
+    const same = (s.psa || []).filter((p) => p.name === c.name);
+    if (same.length && !same.some((p) => String(p.number).padStart(3, "0") === tail)) {
+      errors.push(`G8 ${code}: "${c.name}" top10 번호 ${raw} 가 psa 표 번호(${same.map((p) => p.number).join("/")})와 불일치`);
+    }
+    // NM 링크가 다른 번호를 검색하고 있으면 다른 카드의 시세·재고를 보여준다.
+    const m = String(c.nmSourceUrl || "").match(/(OP|EB|PRB|ST)\d{2}-?\d{3}/i);
+    if (m && m[0].toUpperCase().replace("-", "") !== raw.replace("-", "")) {
+      errors.push(`G8 ${code}: "${c.name}" NM 링크가 ${m[0]} 를 검색 — 카드번호는 ${raw}`);
+    }
+  }
+}
+
 const out = { audit: errors.length ? "GRADING_FAIL" : "GRADING_OK", sets: codes.length, errors, warnings: warn };
 console.log(JSON.stringify(out, null, 1));
 if (errors.length) process.exit(1);
