@@ -1,5 +1,5 @@
 {
- "updated": "2026-07-29",
+ "updated": "2026-07-30",
  "note": "Daily eBay active-listing supply and demand-proxy signals per set (median listing age, relist rate, best-offer rate, seller country mix). None of these are sales figures: eBay does not expose sold data at this access tier. with the median price of listings that appeared or disappeared. 'gone' means the listing left the active list (sold OR delisted OR expired) — the eBay Browse API cannot distinguish these, so it is never reported as a sale. null = no prior-day snapshot to compare against.",
  "sets": {
   "OP-01": {
@@ -216,6 +216,50 @@
      "enTop3Share": 23.8,
      "enDiscount": 14.3,
      "enSellerFeedback": 303
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 24,
+     "en": 20,
+     "jpExcluded": 6,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 2,
+     "enGone": 3,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": 4005.38,
+     "enGonePrice": 1955,
+     "jpAgeDays": 65,
+     "jpRelistRate": 4.2,
+     "jpOfferRate": 58.3,
+     "jpCountryMix": {
+      "US": 14,
+      "JP": 8,
+      "IT": 1,
+      "IN": 1
+     },
+     "jpTotalListed": 461,
+     "jpSellers": 23,
+     "jpTop3Share": 16.7,
+     "jpDiscount": 33.3,
+     "jpSellerFeedback": 361,
+     "enAgeDays": 87,
+     "enRelistRate": 5,
+     "enOfferRate": 60,
+     "enCountryMix": {
+      "AU": 1,
+      "US": 16,
+      "IT": 1,
+      "JP": 1,
+      "TH": 1
+     },
+     "enTotalListed": 283,
+     "enSellers": 20,
+     "enTop3Share": 15,
+     "enDiscount": 20,
+     "enSellerFeedback": 220
     }
    ]
   },
@@ -425,6 +469,47 @@
      "enTop3Share": 20,
      "enDiscount": 13.3,
      "enSellerFeedback": 126
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 13,
+     "en": 15,
+     "jpExcluded": 4,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 0,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null,
+     "jpAgeDays": 100,
+     "jpRelistRate": 0,
+     "jpOfferRate": 38.5,
+     "jpCountryMix": {
+      "US": 8,
+      "AU": 1,
+      "CA": 1,
+      "JP": 3
+     },
+     "jpTotalListed": 727,
+     "jpSellers": 13,
+     "jpTop3Share": 23.1,
+     "jpDiscount": 38.5,
+     "jpSellerFeedback": 605,
+     "enAgeDays": 145,
+     "enRelistRate": 0,
+     "enOfferRate": 73.3,
+     "enCountryMix": {
+      "US": 14,
+      "GB": 1
+     },
+     "enTotalListed": 303,
+     "enSellers": 15,
+     "enTop3Share": 20,
+     "enDiscount": 0,
+     "enSellerFeedback": 127
     }
    ]
   },
@@ -623,6 +708,45 @@
       "GB": 2
      },
      "enTotalListed": 91,
+     "enSellers": 16,
+     "enTop3Share": 23.5,
+     "enDiscount": 17.6,
+     "enSellerFeedback": 240
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 6,
+     "en": 17,
+     "jpExcluded": 6,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 0,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null,
+     "jpAgeDays": 191,
+     "jpRelistRate": 0,
+     "jpOfferRate": 33.3,
+     "jpCountryMix": {
+      "US": 5,
+      "JP": 1
+     },
+     "jpTotalListed": 92,
+     "jpSellers": 5,
+     "jpTop3Share": 66.7,
+     "jpDiscount": 50,
+     "jpSellerFeedback": 3746,
+     "enAgeDays": 55,
+     "enRelistRate": 11.8,
+     "enOfferRate": 64.7,
+     "enCountryMix": {
+      "US": 15,
+      "GB": 2
+     },
+     "enTotalListed": 90,
      "enSellers": 16,
      "enTop3Share": 23.5,
      "enDiscount": 17.6,
@@ -838,6 +962,47 @@
      "enTop3Share": 18.2,
      "enDiscount": 22.7,
      "enSellerFeedback": 214
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 6,
+     "en": 21,
+     "jpExcluded": 29,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 1,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": 531.62,
+     "jpAgeDays": 58,
+     "jpRelistRate": 0,
+     "jpOfferRate": 16.7,
+     "jpCountryMix": {
+      "US": 4,
+      "JP": 1,
+      "IN": 1
+     },
+     "jpTotalListed": 170,
+     "jpSellers": 5,
+     "jpTop3Share": 66.7,
+     "jpDiscount": 50,
+     "jpSellerFeedback": 6794,
+     "enAgeDays": 40,
+     "enRelistRate": 4.8,
+     "enOfferRate": 71.4,
+     "enCountryMix": {
+      "US": 19,
+      "AU": 1,
+      "DE": 1
+     },
+     "enTotalListed": 144,
+     "enSellers": 20,
+     "enTop3Share": 19,
+     "enDiscount": 23.8,
+     "enSellerFeedback": 167
     }
    ]
   },
@@ -1046,6 +1211,46 @@
      "enTop3Share": 18.8,
      "enDiscount": 6.3,
      "enSellerFeedback": 312
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 9,
+     "en": 17,
+     "jpExcluded": 42,
+     "enExcluded": 0,
+     "jpNew": 2,
+     "jpGone": 0,
+     "enNew": 1,
+     "enGone": 0,
+     "jpNewPrice": 593.27,
+     "jpGonePrice": null,
+     "enNewPrice": 1200,
+     "enGonePrice": null,
+     "jpAgeDays": 121,
+     "jpRelistRate": 0,
+     "jpOfferRate": 44.4,
+     "jpCountryMix": {
+      "US": 5,
+      "JP": 4
+     },
+     "jpTotalListed": 309,
+     "jpSellers": 8,
+     "jpTop3Share": 44.4,
+     "jpDiscount": 66.7,
+     "jpSellerFeedback": 1425,
+     "enAgeDays": 13,
+     "enRelistRate": 11.8,
+     "enOfferRate": 76.5,
+     "enCountryMix": {
+      "US": 15,
+      "PK": 1,
+      "NZ": 1
+     },
+     "enTotalListed": 284,
+     "enSellers": 17,
+     "enTop3Share": 17.6,
+     "enDiscount": 5.9,
+     "enSellerFeedback": 262
     }
    ]
   },
@@ -1245,6 +1450,45 @@
      "enTop3Share": 26.7,
      "enDiscount": 26.7,
      "enSellerFeedback": 297
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 9,
+     "en": 16,
+     "jpExcluded": 1,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 2,
+     "enGone": 1,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": 450.97,
+     "enGonePrice": 577.54,
+     "jpAgeDays": 121,
+     "jpRelistRate": 0,
+     "jpOfferRate": 11.1,
+     "jpCountryMix": {
+      "US": 6,
+      "JP": 3
+     },
+     "jpTotalListed": 93,
+     "jpSellers": 8,
+     "jpTop3Share": 44.4,
+     "jpDiscount": 55.6,
+     "jpSellerFeedback": 1438,
+     "enAgeDays": 32,
+     "enRelistRate": 31.3,
+     "enOfferRate": 56.3,
+     "enCountryMix": {
+      "GB": 5,
+      "US": 11
+     },
+     "enTotalListed": 100,
+     "enSellers": 15,
+     "enTop3Share": 25,
+     "enDiscount": 25,
+     "enSellerFeedback": 326
     }
    ]
   },
@@ -1441,6 +1685,45 @@
      "enTop3Share": 37.5,
      "enDiscount": 25,
      "enSellerFeedback": 3875
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 7,
+     "en": 7,
+     "jpExcluded": 34,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 1,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": 1000,
+     "jpAgeDays": 64,
+     "jpRelistRate": 0,
+     "jpOfferRate": 14.3,
+     "jpCountryMix": {
+      "US": 6,
+      "JP": 1
+     },
+     "jpTotalListed": 225,
+     "jpSellers": 6,
+     "jpTop3Share": 57.1,
+     "jpDiscount": 42.9,
+     "jpSellerFeedback": 1151,
+     "enAgeDays": 182,
+     "enRelistRate": 0,
+     "enOfferRate": 85.7,
+     "enCountryMix": {
+      "US": 6,
+      "BE": 1
+     },
+     "enTotalListed": 189,
+     "enSellers": 7,
+     "enTop3Share": 42.9,
+     "enDiscount": 28.6,
+     "enSellerFeedback": 3879
     }
    ]
   },
@@ -1649,6 +1932,47 @@
      "enTop3Share": 28.6,
      "enDiscount": 0,
      "enSellerFeedback": 297
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 11,
+     "en": 14,
+     "jpExcluded": 44,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 2,
+     "enGone": 2,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": 254.02,
+     "enGonePrice": 425.99,
+     "jpAgeDays": 111,
+     "jpRelistRate": 9.1,
+     "jpOfferRate": 27.3,
+     "jpCountryMix": {
+      "US": 6,
+      "AU": 1,
+      "JP": 3,
+      "MY": 1
+     },
+     "jpTotalListed": 266,
+     "jpSellers": 11,
+     "jpTop3Share": 27.3,
+     "jpDiscount": 45.5,
+     "jpSellerFeedback": 672,
+     "enAgeDays": 26,
+     "enRelistRate": 28.6,
+     "enOfferRate": 71.4,
+     "enCountryMix": {
+      "GB": 4,
+      "US": 10
+     },
+     "enTotalListed": 242,
+     "enSellers": 13,
+     "enTop3Share": 28.6,
+     "enDiscount": 0,
+     "enSellerFeedback": 310
     }
    ]
   },
@@ -1868,6 +2192,49 @@
      "enTop3Share": 19,
      "enDiscount": 42.9,
      "enSellerFeedback": 297
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 11,
+     "en": 19,
+     "jpExcluded": 15,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 1,
+     "enGone": 3,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": 482.75,
+     "enGonePrice": 290,
+     "jpAgeDays": 499,
+     "jpRelistRate": 18.2,
+     "jpOfferRate": 18.2,
+     "jpCountryMix": {
+      "US": 3,
+      "AU": 2,
+      "JP": 5,
+      "SG": 1
+     },
+     "jpTotalListed": 63,
+     "jpSellers": 11,
+     "jpTop3Share": 27.3,
+     "jpDiscount": 36.4,
+     "jpSellerFeedback": 3028,
+     "enAgeDays": 37,
+     "enRelistRate": 10.5,
+     "enOfferRate": 68.4,
+     "enCountryMix": {
+      "US": 15,
+      "GB": 2,
+      "SG": 1,
+      "DE": 1
+     },
+     "enTotalListed": 248,
+     "enSellers": 18,
+     "enTop3Share": 21.1,
+     "enDiscount": 36.8,
+     "enSellerFeedback": 299
     }
    ]
   },
@@ -2070,6 +2437,45 @@
      "enTop3Share": 50,
      "enDiscount": 33.3,
      "enSellerFeedback": 1943
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 13,
+     "en": 5,
+     "jpExcluded": 20,
+     "enExcluded": 0,
+     "jpNew": 4,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 1,
+     "jpNewPrice": 229.49,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": 949.99,
+     "jpAgeDays": 162,
+     "jpRelistRate": 7.7,
+     "jpOfferRate": 7.7,
+     "jpCountryMix": {
+      "US": 8,
+      "JP": 4,
+      "MY": 1
+     },
+     "jpTotalListed": 282,
+     "jpSellers": 12,
+     "jpTop3Share": 30.8,
+     "jpDiscount": 53.8,
+     "jpSellerFeedback": 2020,
+     "enAgeDays": 31,
+     "enRelistRate": 0,
+     "enOfferRate": 80,
+     "enCountryMix": {
+      "US": 5
+     },
+     "enTotalListed": 210,
+     "enSellers": 5,
+     "enTop3Share": 60,
+     "enDiscount": 40,
+     "enSellerFeedback": 1944
     }
    ]
   },
@@ -2285,6 +2691,48 @@
      "enTop3Share": 15.8,
      "enDiscount": 26.3,
      "enSellerFeedback": 289
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 12,
+     "en": 13,
+     "jpExcluded": 35,
+     "enExcluded": 0,
+     "jpNew": 2,
+     "jpGone": 5,
+     "enNew": 0,
+     "enGone": 6,
+     "jpNewPrice": 104.89,
+     "jpGonePrice": 226.7,
+     "enNewPrice": null,
+     "enGonePrice": 700,
+     "jpAgeDays": 29,
+     "jpRelistRate": 8.3,
+     "jpOfferRate": 41.7,
+     "jpCountryMix": {
+      "US": 7,
+      "AU": 1,
+      "JP": 2,
+      "IT": 1,
+      "DE": 1
+     },
+     "jpTotalListed": 301,
+     "jpSellers": 11,
+     "jpTop3Share": 33.3,
+     "jpDiscount": 33.3,
+     "jpSellerFeedback": 551,
+     "enAgeDays": 19,
+     "enRelistRate": 30.8,
+     "enOfferRate": 53.8,
+     "enCountryMix": {
+      "GB": 2,
+      "US": 11
+     },
+     "enTotalListed": 230,
+     "enSellers": 13,
+     "enTop3Share": 23.1,
+     "enDiscount": 15.4,
+     "enSellerFeedback": 188
     }
    ]
   },
@@ -2505,6 +2953,49 @@
      "enTop3Share": 12.5,
      "enDiscount": 41.7,
      "enSellerFeedback": 1446
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 20,
+     "en": 23,
+     "jpExcluded": 10,
+     "enExcluded": 0,
+     "jpNew": 1,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 1,
+     "jpNewPrice": 164.9,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": 407.18,
+     "jpAgeDays": 53,
+     "jpRelistRate": 10,
+     "jpOfferRate": 45,
+     "jpCountryMix": {
+      "US": 13,
+      "JP": 5,
+      "AU": 2
+     },
+     "jpTotalListed": 298,
+     "jpSellers": 20,
+     "jpTop3Share": 15,
+     "jpDiscount": 40,
+     "jpSellerFeedback": 500,
+     "enAgeDays": 106,
+     "enRelistRate": 8.7,
+     "enOfferRate": 43.5,
+     "enCountryMix": {
+      "US": 19,
+      "BR": 1,
+      "SG": 1,
+      "GB": 1,
+      "DE": 1
+     },
+     "enTotalListed": 278,
+     "enSellers": 23,
+     "enTop3Share": 13,
+     "enDiscount": 43.5,
+     "enSellerFeedback": 675
     }
    ]
   },
@@ -2697,6 +3188,43 @@
      "enTop3Share": 100,
      "enDiscount": 0,
      "enSellerFeedback": 662
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 7,
+     "en": 3,
+     "jpExcluded": 19,
+     "enExcluded": 0,
+     "jpNew": 1,
+     "jpGone": 0,
+     "enNew": 1,
+     "enGone": 0,
+     "jpNewPrice": 238.9,
+     "jpGonePrice": null,
+     "enNewPrice": 969.99,
+     "enGonePrice": null,
+     "jpAgeDays": 49,
+     "jpRelistRate": 14.3,
+     "jpOfferRate": 28.6,
+     "jpCountryMix": {
+      "US": 7
+     },
+     "jpTotalListed": 1291,
+     "jpSellers": 7,
+     "jpTop3Share": 42.9,
+     "jpDiscount": 42.9,
+     "jpSellerFeedback": 5162,
+     "enAgeDays": 3,
+     "enRelistRate": 0,
+     "enOfferRate": 33.3,
+     "enCountryMix": {
+      "US": 3
+     },
+     "enTotalListed": 884,
+     "enSellers": 3,
+     "enTop3Share": 100,
+     "enDiscount": 33.3,
+     "enSellerFeedback": 267
     }
    ]
   },
@@ -2895,6 +3423,45 @@
       "GB": 1
      },
      "enTotalListed": 297,
+     "enSellers": 13,
+     "enTop3Share": 23.1,
+     "enDiscount": 38.5,
+     "enSellerFeedback": 577
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 3,
+     "en": 13,
+     "jpExcluded": 27,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 2,
+     "enGone": 2,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": 700,
+     "enGonePrice": 698.05,
+     "jpAgeDays": 37,
+     "jpRelistRate": 0,
+     "jpOfferRate": 33.3,
+     "jpCountryMix": {
+      "US": 1,
+      "AU": 1,
+      "JP": 1
+     },
+     "jpTotalListed": 61,
+     "jpSellers": 3,
+     "jpTop3Share": 100,
+     "jpDiscount": 0,
+     "jpSellerFeedback": 91,
+     "enAgeDays": 20,
+     "enRelistRate": 15.4,
+     "enOfferRate": 23.1,
+     "enCountryMix": {
+      "US": 13
+     },
+     "enTotalListed": 289,
      "enSellers": 13,
      "enTop3Share": 23.1,
      "enDiscount": 38.5,
@@ -3109,6 +3676,47 @@
      "enTop3Share": 12.5,
      "enDiscount": 25,
      "enSellerFeedback": 297
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 6,
+     "en": 24,
+     "jpExcluded": 23,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 0,
+     "enGone": 0,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": null,
+     "enGonePrice": null,
+     "jpAgeDays": 178,
+     "jpRelistRate": 0,
+     "jpOfferRate": 50,
+     "jpCountryMix": {
+      "JP": 3,
+      "US": 2,
+      "AU": 1
+     },
+     "jpTotalListed": 56,
+     "jpSellers": 6,
+     "jpTop3Share": 50,
+     "jpDiscount": 50,
+     "jpSellerFeedback": 2417,
+     "enAgeDays": 40,
+     "enRelistRate": 20.8,
+     "enOfferRate": 29.2,
+     "enCountryMix": {
+      "US": 21,
+      "SG": 1,
+      "GB": 2
+     },
+     "enTotalListed": 184,
+     "enSellers": 24,
+     "enTop3Share": 12.5,
+     "enDiscount": 25,
+     "enSellerFeedback": 299
     }
    ]
   },
@@ -3318,6 +3926,47 @@
      "enTop3Share": 25,
      "enDiscount": 16.7,
      "enSellerFeedback": 2233
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 9,
+     "en": 13,
+     "jpExcluded": 20,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 1,
+     "enNew": 1,
+     "enGone": 0,
+     "jpNewPrice": null,
+     "jpGonePrice": 64.99,
+     "enNewPrice": 559.98,
+     "enGonePrice": null,
+     "jpAgeDays": 65,
+     "jpRelistRate": 0,
+     "jpOfferRate": 22.2,
+     "jpCountryMix": {
+      "US": 3,
+      "JP": 4,
+      "AU": 2
+     },
+     "jpTotalListed": 65,
+     "jpSellers": 8,
+     "jpTop3Share": 44.4,
+     "jpDiscount": 11.1,
+     "jpSellerFeedback": 329,
+     "enAgeDays": 23,
+     "enRelistRate": 7.7,
+     "enOfferRate": 53.8,
+     "enCountryMix": {
+      "US": 11,
+      "GB": 1,
+      "PT": 1
+     },
+     "enTotalListed": 228,
+     "enSellers": 13,
+     "enTop3Share": 23.1,
+     "enDiscount": 15.4,
+     "enSellerFeedback": 2236
     }
    ]
   },
@@ -3508,6 +4157,46 @@
      "jpDiscount": 40,
      "jpSellerFeedback": 1445,
      "enAgeDays": 28,
+     "enRelistRate": 18.2,
+     "enOfferRate": 63.6,
+     "enCountryMix": {
+      "GB": 4,
+      "US": 4,
+      "CA": 2,
+      "AU": 1
+     },
+     "enTotalListed": 48,
+     "enSellers": 11,
+     "enTop3Share": 27.3,
+     "enDiscount": 0,
+     "enSellerFeedback": 101
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 4,
+     "en": 11,
+     "jpExcluded": 7,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 1,
+     "enNew": 0,
+     "enGone": 0,
+     "jpNewPrice": null,
+     "jpGonePrice": 150,
+     "enNewPrice": null,
+     "enGonePrice": null,
+     "jpAgeDays": 123,
+     "jpRelistRate": 0,
+     "jpOfferRate": 25,
+     "jpCountryMix": {
+      "JP": 4
+     },
+     "jpTotalListed": 92,
+     "jpSellers": 4,
+     "jpTop3Share": 75,
+     "jpDiscount": 50,
+     "jpSellerFeedback": 1511,
+     "enAgeDays": 29,
      "enRelistRate": 18.2,
      "enOfferRate": 63.6,
      "enCountryMix": {
@@ -3728,6 +4417,46 @@
      "enTop3Share": 16,
      "enDiscount": 28,
      "enSellerFeedback": 487
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 7,
+     "en": 28,
+     "jpExcluded": 38,
+     "enExcluded": 0,
+     "jpNew": 2,
+     "jpGone": 0,
+     "enNew": 4,
+     "enGone": 1,
+     "jpNewPrice": 88.99,
+     "jpGonePrice": null,
+     "enNewPrice": 277.5,
+     "enGonePrice": 265,
+     "jpAgeDays": 152,
+     "jpRelistRate": 0,
+     "jpOfferRate": 14.3,
+     "jpCountryMix": {
+      "US": 5,
+      "JP": 2
+     },
+     "jpTotalListed": 589,
+     "jpSellers": 7,
+     "jpTop3Share": 42.9,
+     "jpDiscount": 42.9,
+     "jpSellerFeedback": 2403,
+     "enAgeDays": 74,
+     "enRelistRate": 3.6,
+     "enOfferRate": 57.1,
+     "enCountryMix": {
+      "US": 25,
+      "CA": 2,
+      "ES": 1
+     },
+     "enTotalListed": 571,
+     "enSellers": 27,
+     "enTop3Share": 14.3,
+     "enDiscount": 25,
+     "enSellerFeedback": 441
     }
    ]
   },
@@ -3925,6 +4654,45 @@
      "enTop3Share": 17.6,
      "enDiscount": 29.4,
      "enSellerFeedback": 1627
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 14,
+     "en": 18,
+     "jpExcluded": 32,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 1,
+     "enNew": 3,
+     "enGone": 2,
+     "jpNewPrice": null,
+     "jpGonePrice": 173.98,
+     "enNewPrice": 325,
+     "enGonePrice": 356,
+     "jpAgeDays": 48,
+     "jpRelistRate": 0,
+     "jpOfferRate": 35.7,
+     "jpCountryMix": {
+      "US": 11,
+      "JP": 2,
+      "TW": 1
+     },
+     "jpTotalListed": 540,
+     "jpSellers": 14,
+     "jpTop3Share": 21.4,
+     "jpDiscount": 35.7,
+     "jpSellerFeedback": 316,
+     "enAgeDays": 58,
+     "enRelistRate": 11.1,
+     "enOfferRate": 44.4,
+     "enCountryMix": {
+      "US": 18
+     },
+     "enTotalListed": 469,
+     "enSellers": 18,
+     "enTop3Share": 16.7,
+     "enDiscount": 27.8,
+     "enSellerFeedback": 1717
     }
    ]
   },
@@ -4125,6 +4893,46 @@
      "enTop3Share": 30,
      "enDiscount": 50,
      "enSellerFeedback": 373
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 11,
+     "en": 13,
+     "jpExcluded": 10,
+     "enExcluded": 0,
+     "jpNew": 1,
+     "jpGone": 0,
+     "enNew": 3,
+     "enGone": 0,
+     "jpNewPrice": 167.98,
+     "jpGonePrice": null,
+     "enNewPrice": 294.64,
+     "enGonePrice": null,
+     "jpAgeDays": 42,
+     "jpRelistRate": 0,
+     "jpOfferRate": 36.4,
+     "jpCountryMix": {
+      "US": 6,
+      "JP": 4,
+      "AU": 1
+     },
+     "jpTotalListed": 289,
+     "jpSellers": 11,
+     "jpTop3Share": 27.3,
+     "jpDiscount": 45.5,
+     "jpSellerFeedback": 1205,
+     "enAgeDays": 79,
+     "enRelistRate": 7.7,
+     "enOfferRate": 69.2,
+     "enCountryMix": {
+      "US": 12,
+      "ES": 1
+     },
+     "enTotalListed": 288,
+     "enSellers": 13,
+     "enTop3Share": 23.1,
+     "enDiscount": 61.5,
+     "enSellerFeedback": 667
     }
    ]
   },
@@ -4346,6 +5154,48 @@
      "enTop3Share": 21.4,
      "enDiscount": 21.4,
      "enSellerFeedback": 675
+    },
+    {
+     "d": "2026-07-30",
+     "jp": 19,
+     "en": 15,
+     "jpExcluded": 10,
+     "enExcluded": 0,
+     "jpNew": 0,
+     "jpGone": 0,
+     "enNew": 1,
+     "enGone": 0,
+     "jpNewPrice": null,
+     "jpGonePrice": null,
+     "enNewPrice": 210,
+     "enGonePrice": null,
+     "jpAgeDays": 34,
+     "jpRelistRate": 0,
+     "jpOfferRate": 36.8,
+     "jpCountryMix": {
+      "US": 3,
+      "JP": 13,
+      "AU": 1,
+      "KR": 2
+     },
+     "jpTotalListed": 145,
+     "jpSellers": 19,
+     "jpTop3Share": 15.8,
+     "jpDiscount": 31.6,
+     "jpSellerFeedback": 469,
+     "enAgeDays": 42,
+     "enRelistRate": 13.3,
+     "enOfferRate": 40,
+     "enCountryMix": {
+      "US": 12,
+      "GB": 2,
+      "IT": 1
+     },
+     "enTotalListed": 63,
+     "enSellers": 15,
+     "enTop3Share": 20,
+     "enDiscount": 20,
+     "enSellerFeedback": 650
     }
    ]
   }
