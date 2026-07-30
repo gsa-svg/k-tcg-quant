@@ -57,6 +57,41 @@ const tr = (r) => `        <tr data-code="${r.code}">
           <td class="pgNum pgSplit">${n(r.en?.total)}</td><td class="pgGem">${r.en ? r.en.gem + "%" : "&mdash;"}</td>${cell(r.enD, "en")}
         </tr>`;
 
+// ── 해설용 파생 수치 — 표 데이터에서만 계산. 숫자가 바뀌면 문장도 바뀐다(2026-07-30 애드센스 대응).
+const biggest = rows[0];
+const jpGems = rows.filter((r) => r.jp && r.jp.gem != null);
+const hiGem = [...jpGems].sort((a, b) => b.jp.gem - a.jp.gem)[0];
+const loGem = [...jpGems].sort((a, b) => a.jp.gem - b.jp.gem)[0];
+const grew = rows.filter((r) => r.jpD && r.jpD.pct != null).sort((a, b) => b.jpD.pct - a.jpD.pct);
+const fast1 = grew[0], fast2 = grew[1];
+const enBigger = rows.filter((r) => r.jp && r.en && r.en.total > r.jp.total);
+
+const analysis = `
+      <section aria-label="What the numbers show">
+        <h2>What the population data shows right now</h2>
+        <p class="pgNotes"><b>${esc(biggest.code)} ${esc(biggest.name)}</b> carries the largest graded population of any tracked set${biggest.jp ? ` — ${n(biggest.jp.total)} Japanese cards in PSA holders` : ""}${biggest.en ? `, plus ${n(biggest.en.total)} English` : ""}. That is what years of opening does: the set has been cracked, submitted and re-submitted since 2022, and its population still grows every week. Newer sets sit at a fraction of that and climb faster in percentage terms precisely because their base is small.</p>
+        ${fast1 && fast1.jpD ? `<p class="pgNotes">The fastest-growing Japanese population this week is <b>${esc(fast1.code)}</b> at ${pc(fast1.jpD.pct)} (+${n(fast1.jpD.add)} cards)${fast2 && fast2.jpD ? `, followed by <b>${esc(fast2.code)}</b> at ${pc(fast2.jpD.pct)}` : ""}. Fresh sets spike right after release as chase cards go straight from pack to grading queue; a mature set that suddenly accelerates usually means a price move made grading worth the fee again.</p>` : ""}
+        ${hiGem && loGem && hiGem !== loGem ? `<p class="pgNotes">Gem rates are not uniform. Among Japanese printings, <b>${esc(hiGem.code)}</b> currently gems at ${hiGem.jp.gem}% while <b>${esc(loGem.code)}</b> sits at ${loGem.jp.gem}%. The spread reflects print quality and card-stock differences between production runs — and it is why a PSA 10 from a low-gem set commands a wider premium over raw than one from a set where nine in ten submissions gem.</p>` : ""}
+        ${enBigger.length ? `<p class="pgNotes">For ${enBigger.length} set${enBigger.length === 1 ? "" : "s"} (${enBigger.map((r) => esc(r.code)).join(", ")}) the <b>English</b> graded population is actually larger than the Japanese one — a reminder that the two markets have different collector bases, and another reason we never merge the columns.</p>` : ""}
+        <p class="pgNotes">PSA is one of three graders we track. CGC and TAG populations — including CGC's split between Pristine 10 and Gem Mint 10, and TAG's 10 versus 10P — are shown per set on each <a href="sets/index.html">set guide</a>, always kept separate from PSA because the standards do not map onto each other.</p>
+      </section>
+      <section aria-label="Frequently asked questions">
+        <h2>PSA population — common questions</h2>
+        <details class="faqItem" style="max-width:760px"><summary>Which One Piece set has the most PSA-graded cards?</summary><p class="pgNotes">${esc(biggest.code)} ${esc(biggest.name)}${biggest.jp ? `, with ${n(biggest.jp.total)} Japanese cards graded` : ""}${biggest.en ? ` and ${n(biggest.en.total)} English` : ""} as of ${updated}. See the table above for every tracked set.</p></details>
+        <details class="faqItem" style="max-width:760px"><summary>Why does grading volume matter for sealed box prices?</summary><p class="pgNotes">Every graded card came out of an opened pack. When a set's population climbs quickly, sealed boxes of that set are being destroyed at pace — which is supply pressure on the box market. We read population growth alongside the box price series on each set guide.</p></details>
+        <details class="faqItem" style="max-width:760px"><summary>Why don't you add Japanese and English together?</summary><p class="pgNotes">They are different print runs with different card stock, pull rates and buyers. A combined total, or worse a combined gem rate, would describe neither market. Every figure on this site is labelled by printing.</p></details>
+        <details class="faqItem" style="max-width:760px"><summary>Where does this data come from?</summary><p class="pgNotes">Public PSA population reporting, collected by us weekly and appended to a ledger we never rewrite. Weekly change is only shown for the period we recorded ourselves — we do not backfill history we did not observe.</p></details>
+      </section>`;
+
+const FAQ_LD = JSON.stringify({
+  "@context": "https://schema.org", "@type": "FAQPage",
+  mainEntity: [
+    { "@type": "Question", name: "Which One Piece set has the most PSA-graded cards?", acceptedAnswer: { "@type": "Answer", text: `${biggest.code} ${biggest.name}${biggest.jp ? `, with ${biggest.jp.total.toLocaleString("en-US")} Japanese cards graded` : ""} as of ${updated}.` } },
+    { "@type": "Question", name: "Why does grading volume matter for sealed box prices?", answerCount: 1, acceptedAnswer: { "@type": "Answer", text: "Every graded card came out of an opened pack, so fast population growth means sealed boxes are being opened at pace — supply pressure on the sealed market." } },
+    { "@type": "Question", name: "Why don't you add Japanese and English together?", acceptedAnswer: { "@type": "Answer", text: "They are different print runs with different card stock, pull rates and buyers; a combined figure would describe neither market." } },
+  ],
+});
+
 const TITLE = "One Piece PSA Population by Set — Japanese vs English | OP Box Index";
 const DESC = `How many One Piece cards from each booster set have been PSA graded, split by Japanese and English printing, with gem rate and week-over-week change. ${rows.length} sets, updated ${updated}.`;
 const html = `<!doctype html>
@@ -84,6 +119,7 @@ const html = `<!doctype html>
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "One Piece PSA population by set (Japanese and English)", description: DESC, isAccessibleForFree: true, creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" }, temporalCoverage: `${wPrev}/${wNow}`, dateModified: updated, variableMeasured: ["Total PSA graded", "PSA 10 gem rate", "Weekly change in graded count"] })}</script>
+    <script type="application/ld+json">${FAQ_LD}</script>
     <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "OP Box Index", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "PSA Population", item: "https://opboxindex.com/psa-grading.html" }] })}</script>
     <link rel="stylesheet" href="styles.css?v=${ver}" />
     <style>
@@ -156,6 +192,7 @@ ${rows.map(tr).join("\n")}
       <p class="pgNotes"><b>We never add the two editions together.</b> Japanese and English are separate print runs with different card stock and different print quality, so a combined gem rate would describe neither. ${rows.length - enCount} set${rows.length - enCount === 1 ? " has" : "s have"} no English row at all &mdash; those printings have not been released, which is different from zero cards graded.</p>
       <p class="pgNotes">A high weekly number is not automatically bullish. It means packs are being opened, which thins the sealed supply, but it also means more graded copies competing on the market. Read it next to the box price on each <a href="sets/index.html">set guide</a>, and against completed sales on the <a href="psa10-ranking.html">PSA 10 value ranking</a>.</p>
       <p class="pgNotes">Population figures are compiled from public PSA population reporting. We publish weekly change only from the point we began recording it ourselves; we do not republish historical series compiled by others.</p>
+${analysis}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

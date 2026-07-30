@@ -587,6 +587,49 @@ function rankingPage() {
   const rows = rankingRows();
   const asOf = (rows[0] && rows[0].updated) || DATA_DATE;
   const canonical = `${SITE}/psa10-ranking.html`;
+
+  // ── 해설용 파생 수치 — 전부 rows(실측 sold)에서만 계산한다. 추정 문장 금지.
+  //    2026-07-30 애드센스 "가치 낮은 콘텐츠" 대응: 표만 있던 페이지(산문 140단어)에
+  //    데이터가 말해주는 만큼의 분석 산문을 붙인다. 숫자가 바뀌면 문장도 같이 바뀐다.
+  const bySet = {};
+  rows.forEach((r) => { (bySet[r.code] = bySet[r.code] || []).push(r); });
+  const setCounts = Object.entries(bySet).sort((a, b) => b[1].length - a[1].length);
+  const topSet = setCounts[0];
+  const t1 = rows[0], t2 = rows[1], t3 = rows[2];
+  const mangaCount = rows.filter((r) => /manga|MAA|GMA|WAA/i.test(`${r.name} ${r.rarity || ""}`)).length;
+  const spCount = rows.filter((r) => /\bSP\b/i.test(`${r.name} ${r.rarity || ""}`)).length;
+  const medPsa = rows.length ? rows.map((r) => r.psa).sort((a, b) => a - b)[Math.floor(rows.length / 2)] : null;
+  const widest = rows.filter((r) => r.low != null && r.high != null && r.low > 0)
+    .map((r) => ({ ...r, spread: r.high / r.low })).sort((a, b) => b.spread - a.spread)[0];
+  const entryRow = rows[rows.length - 1];
+
+  const analysis = rows.length < 5 ? "" : `
+      <section class="rankProse" aria-label="What the ranking shows">
+        <h2>What the top of the market looks like right now</h2>
+        <p>As of ${esc(asOf)}, the most valuable Japanese One Piece card in PSA 10 is <strong>${esc(t1.name)}</strong> (${esc(t1.code)}${t1.number ? ` ${esc(t1.number)}` : ""}) at a median sold price of <strong>${usd(t1.psa)}</strong> across ${t1.n} completed sales. ${esc(t2.name)} (${esc(t2.code)}) follows at ${usd(t2.psa)}, with ${esc(t3.name)} (${esc(t3.code)}) at ${usd(t3.psa)}. The median across the whole top ${rows.length} is ${usd(medPsa)} — the drop from the very top is steep, which is typical of a chase-card market where one or two printings absorb most collector demand.</p>
+        <p>${esc(topSet[0])} contributes the most entries to the top ${rows.length} (${topSet[1].length} cards)${setCounts[1] ? `, ahead of ${esc(setCounts[1][0])} with ${setCounts[1][1].length}` : ""}. By style, <strong>${mangaCount} of the ${rows.length}</strong> are manga-art variants and <strong>${spCount}</strong> are SP printings — manga art dominating the top of the ranking has been the defining pattern of this market since the OP-05/OP-06 era.</p>
+        ${widest ? `<p>Ranges matter as much as medians. The widest spread in the current top ${rows.length} belongs to <strong>${esc(widest.name)}</strong> (${esc(widest.code)}): sales from ${usd(widest.low)} to ${usd(widest.high)}, roughly ${widest.spread.toFixed(1)}x between the cheapest and the most expensive completed sale. Spreads that wide usually mean auction-format sales mixed with Buy It Now, or centering-quality differences between individual gems — check recent comps, not just one number, before paying top of range.</p>` : ""}
+        <p>The entry ticket for this list is currently about <strong>${usd(entryRow.psa)}</strong> (#${rows.length}, ${esc(entryRow.name)}, ${esc(entryRow.code)}). Cards below that line are tracked on their individual <a href="cards/">card pages</a> and on each <a href="sets/index.html">set guide</a>.</p>
+        <h2>How to read PSA 10 sold prices</h2>
+        <p>Every number here is a <strong>completed eBay sale of a PSA 10 graded card</strong> — not an asking price, and not a raw NM price. We require at least three sales per card before it can rank, because a single graded sale is an anecdote, not a market. Prices are medians, so one outlier auction cannot drag a card up or down the table on its own. Japanese and English printings are never mixed: the ranking is Japanese-only, since the two print runs have different populations and different buyers.</p>
+        <p>A PSA 10 price only means something next to two other numbers: the card's <a href="psa-grading.html">graded population</a> (how many 10s exist) and its raw NM price (what an ungraded copy costs). A high price on a large population signals durable demand; a high price on a population of twenty can evaporate with three new submissions. Those numbers live on each card's tracker page — click any row.</p>
+      </section>
+      <section class="rankProse" aria-label="Frequently asked questions">
+        <h2>PSA 10 ranking — common questions</h2>
+        <details class="faqItem"><summary>What is the most expensive One Piece card in PSA 10 right now?</summary><p>${esc(t1.name)} (${esc(t1.code)}${t1.number ? ` ${esc(t1.number)}` : ""}) — median ${usd(t1.psa)} across ${t1.n} recent completed sales as of ${esc(asOf)}. The full top ${rows.length} is in the table above, updated with each data refresh.</p></details>
+        <details class="faqItem"><summary>Why Japanese cards only?</summary><p>Japanese and English are different print runs with different scarcity, so mixing them in one ranking would produce numbers that describe neither market. This site tracks the Japanese market as its primary focus; English box prices are tracked separately on set pages.</p></details>
+        <details class="faqItem"><summary>Are these asking prices?</summary><p>No. Every figure is a median of completed eBay sales of the PSA 10 graded card, minimum three sales. Active listings often sit far above what buyers actually pay — on this site asking prices are labelled separately wherever they appear.</p></details>
+        <details class="faqItem"><summary>Does a PSA 10 always sell for more than a raw copy?</summary><p>Almost always, but the premium varies enormously — from under 2x to over 10x the NM price depending on gem rate and population. A card with a 90% gem rate has abundant 10s, so the premium stays thin; a card that rarely gems carries a wide one. See <a href="articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM prices</a> for the data.</p></details>
+      </section>`;
+
+  const faqLd = rows.length < 5 ? "" : `<script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org", "@type": "FAQPage",
+    mainEntity: [
+      { "@type": "Question", name: "What is the most expensive One Piece card in PSA 10 right now?", acceptedAnswer: { "@type": "Answer", text: `${t1.name} (${t1.code}${t1.number ? ` ${t1.number}` : ""}) — median $${Math.round(t1.psa).toLocaleString("en-US")} across ${t1.n} recent completed eBay sales as of ${asOf}.` } },
+      { "@type": "Question", name: "Are these asking prices?", acceptedAnswer: { "@type": "Answer", text: "No. Every figure is a median of completed eBay sales of the PSA 10 graded card, with a minimum of three sales per card." } },
+      { "@type": "Question", name: "Why Japanese cards only?", acceptedAnswer: { "@type": "Answer", text: "Japanese and English are different print runs with different populations and buyers, so they are ranked separately rather than mixed." } },
+    ],
+  })}</script>`;
   const title = `Most Valuable One Piece PSA 10 Cards — Sold Price Ranking | OP Box Index`;
   const desc = `The most valuable Japanese One Piece TCG cards in PSA 10, ranked by recent eBay sold prices. Real graded-card completed-sale data across every set — no asking-price hype.`;
   const trs = rows.map((r, i) => `<tr data-code="${esc(r.code)}"><td class="rk">${i + 1}</td><td class="cd"><strong>${esc(r.name)}</strong><span class="sub">${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</span></td><td class="pv">${usd(r.psa)}</td><td class="rg">${r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—"}</td><td class="ns">${r.n}</td></tr>`).join("\n            ");
@@ -627,9 +670,16 @@ function rankingPage() {
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     ${ld}
+    ${faqLd}
     <link rel="stylesheet" href="styles.css?v=${CSS_VER}" />
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
+      .rankProse { max-width: 720px; margin: 26px 0 0; }
+      .rankProse h2 { font-size: 19px; margin: 22px 0 8px; }
+      .rankProse p { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 8px 0; }
+      .rankProse .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
+      .rankProse .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; color: var(--fg); }
+      .rankProse .faqItem p { font-size: 13.5px; margin: 4px 0 10px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
       .rankWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 680px; }
       .rankTableWrap { overflow-x: auto; margin: 18px 0 8px; }
@@ -664,6 +714,7 @@ function rankingPage() {
         </table>
       </div>
       <p class="methodNote">Method: PSA 10 median of recent eBay <em>sold</em> listings (Japanese cards), minimum 3 completed sales, as of ${esc(asOf)}. Values in USD. Tap any row for that card's full live tracker. Reflects graded-card sold prices, not raw singles.</p>
+${analysis}
       <div class="setNavLinks"><a href="./">Live price tracker</a><a href="cards/">Individual card price pages</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you. Prices change; always confirm on eBay before buying. Not investment advice.</p>
     </main>

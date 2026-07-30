@@ -119,6 +119,15 @@ for (const { code, set: s, card: c } of cands) {
         <tr><td>PSA 8 or lower</td><td class="num">${intl(p8)}</td><td class="num">${pop.total ? Math.max(0, 100 - Math.round((pop.psa10 / pop.total) * 100) - Math.round((pop.psa9 / pop.total) * 100)) : 0}%</td></tr>
       </tbody></table>
       <p class="srcNoteA">PSA population report for this exact variant. Population only grows — every new PSA 10 adds supply pressure on the graded price.</p>` : ""}`;
+  } else {
+    // PSA10 실거래·인구가 아직 없는 변형(금·은 SP 등) — 빈 채로 두면 페이지가 얇아지고,
+    // 추정치를 넣는 건 금지다. 대신 "왜 없는지"와 세트 맥락(검증된 값만)을 설명한다. 2026-07-30.
+    const sf = s.psaFull;
+    gradeSection = `
+      <h2>Why there is no PSA 10 price here yet</h2>
+      <p>We only publish a PSA 10 figure when we can verify <strong>completed sales of this exact printing</strong> — a minimum of three, matched by artwork and label, not just card number. ${esc(c.name)} has not cleared that bar recently: low-population variants like this trade thinly, sometimes weeks apart, and a single sale is an anecdote rather than a market price. The number stays blank until real sales accumulate; we never substitute an estimate.</p>
+      <p>Context from the set still applies. ${sf && sf.total ? `Across all ${esc(code)} Japanese cards PSA has graded ${intl(sf.total)} copies with a ${sf.gemRate}% gem rate${sf.wowAdd != null ? ` (+${intl(sf.wowAdd)} in the latest week we recorded)` : ""}, so the set itself is being opened and graded actively — the gap is specific to this variant's thin trading, not to the set.` : `Set-level grading activity for ${esc(code)} is tracked on the set guide.`} Scarce variants with few graded sales often show the widest gap between asking prices and what eventually trades, which is exactly why we wait for sold data.</p>
+      <p>To follow it yourself: the eBay buttons above run variant-specific searches, and the <a href="../sets/${setSlug}.html">${esc(code)} set guide</a> carries the box price series plus PSA, CGC and TAG population for the whole set.</p>`;
   }
 
   // 타이틀은 실제 검색 문구("<카드> psa 10 price") 매칭 + 월 표기 자동 갱신(야간 재생성)
@@ -301,6 +310,12 @@ const hub = `<!doctype html>
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
       <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
+      <section style="max-width:720px" aria-label="How these prices are built">
+        <h2 style="font-size:19px;margin:26px 0 8px">How these card prices are built</h2>
+        <p style="color:#9aa4b6;font-size:14px;line-height:1.7">The most expensive card tracked here is currently <strong>${esc(hubItems[0].name)}</strong> (${esc(hubItems[0].code)} ${esc(hubItems[0].number)}) at about $${hubItems[0].usd.toLocaleString("en-US")} raw, and the entry point for this top ${hubItems.length} sits near $${hubItems[hubItems.length - 1].usd.toLocaleString("en-US")}. Raw NM prices come from Japanese retail stock we check directly; PSA 10 figures come from completed eBay sales (minimum three per card), never from asking prices. Where a variant has no verified sales, its page says so instead of showing a guess.</p>
+        <p style="color:#9aa4b6;font-size:14px;line-height:1.7">Variant matching is the whole game. The same card number can exist as a base print, an alternate art, a manga art and an SP — and they can differ in price by a factor of ten or more. Every page here is pinned to one exact printing, verified against the official Japanese card list, so the image you see is the printing the numbers describe. If a listing you find looks cheaper than our figure, first check that the artwork matches.</p>
+        <p style="color:#9aa4b6;font-size:14px;line-height:1.7">To go deeper: the <a href="../psa10-ranking.html">PSA 10 value ranking</a> orders every tracked card by graded sold price, <a href="../psa-grading.html">the population page</a> shows how much of each set has been graded, and each <a href="../sets/index.html">set guide</a> ties the cards back to the sealed box market they come from.</p>
+      </section>
     </main>
     <footer class="articleFooter">
       <p class="relatedHead">Related</p>

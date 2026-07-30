@@ -41,6 +41,25 @@ const movers = [...mi.board].sort((a, b) => b.changePct - a.changePct);
 const topUp = movers.slice(0, 3);
 const topDn = movers.slice(-3).reverse();
 
+// ── 허브 해설 산문 — 전부 시세판 실측값에서 파생(2026-07-30 애드센스 대응, 허브가 산문 225단어로 얇았음)
+const hubProse = (() => {
+  const withChg = mi.board.filter((b) => b.changePct != null);
+  const nUp = withChg.filter((b) => b.changePct > 0).length;
+  const nDn = withChg.filter((b) => b.changePct < 0).length;
+  const priced = rows.filter((b) => boxKrw(b.code, b.nowUsd) != null);
+  const hi = priced.reduce((m, b) => (boxKrw(b.code, b.nowUsd) > boxKrw(m.code, m.nowUsd) ? b : m));
+  const lo = priced.reduce((m, b) => (boxKrw(b.code, b.nowUsd) < boxKrw(m.code, m.nowUsd) ? b : m));
+  const rpSets = rows.filter((b) => reprintRecords(b.code).length);
+  const u0 = topUp[0], d0 = topDn[0];
+  return `
+      <section aria-label="시장 읽기">
+        <h2>지금 일본판 박스 시장 읽는 법</h2>
+        <p class="koProse">추적 중인 ${withChg.length}개 세트 가운데 <strong>${nUp}개가 추적 시작가 대비 상승</strong>, ${nDn}개가 하락 상태입니다. 가장 비싼 박스는 <strong>${esc(hi.code)} ${esc(nameKo(hi.code))}</strong>(${won(boxKrw(hi.code, hi.nowUsd))}), 가장 싼 박스는 <strong>${esc(lo.code)} ${esc(nameKo(lo.code))}</strong>(${won(boxKrw(lo.code, lo.nowUsd))})로, 같은 게임 안에서도 세트별 격차가 큽니다. 상승 1위는 ${esc(u0.code)}(${pct(u0.changePct)})${d0 && d0.changePct < 0 ? `, 하락 1위는 ${esc(d0.code)}(${pct(d0.changePct)})` : ""}입니다.</p>
+        <p class="koProse">박스 시세를 움직이는 힘은 크게 셋입니다. ① <strong>개봉 속도</strong> — 그레이딩 접수량이 그 대리지표이고, 세트별 PSA·CGC·TAG 인구는 각 세트 페이지에 정리돼 있습니다. ② <strong>재판(재입고)</strong> — 현재 ${rpSets.length}개 세트(${rpSets.map((b) => esc(b.code)).join(", ")})에서 유통사 재입고 기록이 확인됐고, 재판은 공급을 다시 늘려 시세를 누르는 요인입니다. ③ <strong>히트카드 시세</strong> — 박스 기대값의 골격이라, 상위 카드가 오르면 박스가 따라 오르는 패턴이 반복됩니다.</p>
+        <p class="koProse">이 표의 값은 추정치가 아니라 이베이 <strong>실거래·검증된 매물</strong>을 매일 집계해 원화로 환산한 것입니다. 변동률 기준일이 세트마다 다르므로(행마다 표기) "발매일 대비 수익률"로 읽으면 안 됩니다. 세트 코드를 누르면 그 세트의 시세 흐름·재판 이력·인기 카드·그레이딩 인구까지 한국어로 정리된 상세 페이지로 이동합니다.</p>
+      </section>`;
+})();
+
 // 시세표 행 — 변동률 기준일(baseDate)은 세트마다 다름(대부분 2026-01-07, OP-16은 발매추적 4-27) → 행마다 명시
 const koSlug = (code) => code.toLowerCase();
 const tableRows = rows.map((b) => {
@@ -136,6 +155,8 @@ const html = `<!doctype html>
       .koBoard td.nm { color: #9aa4b6; }
       .rpDot { display: inline-block; background: rgba(255,125,60,.15); color: #ff9d6c; border-radius: 6px; padding: 1px 7px; font-weight: 700; font-size: 12px; }
       .rpNone { color: #6a7182; font-size: 12px; }
+      .koProse { color: #9aa4b6; font-size: 14px; max-width: 760px; line-height: 1.75; margin: 8px 0; }
+      .koProse strong { color: #cfd6e4; }
       .fromDate { display: block; font-size: 10px; color: #7d8698; font-weight: 400; }
       .koBoard td.code a { color: #50dad9; text-decoration: none; font-weight: 700; }
       .owMeter { display: flex; gap: 8px; align-items: flex-end; height: 120px; max-width: 520px; margin: 12px 0; }
@@ -146,6 +167,9 @@ const html = `<!doctype html>
       .koFacts { margin: 14px 0; padding: 12px 16px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 760px; font-size: 14px; line-height: 1.7; }
       .koFacts strong { color: #50dad9; }
       .koNote { color: #7d8698; font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
+      .koProse { color: #9aa4b6; font-size: 14px; max-width: 760px; line-height: 1.75; margin: 8px 0; }
+      .koProse strong { color: #cfd6e4; }
+      main h2 { font-size: 18px; margin: 24px 0 6px; }
       .moverGrid { display: flex; gap: 14px; flex-wrap: wrap; margin: 10px 0; }
       .moverCol { flex: 1; min-width: 200px; }
       .moverCol h3 { font-size: 13px; color: #9aa4b6; margin: 0 0 6px; }
@@ -182,6 +206,8 @@ ${tableRows}
         </table>
         </div>
       </section>
+
+${hubProse}
 
       <section aria-label="급등 급락">
         <h2>급등·급락 TOP 3 (1월 대비)</h2>
@@ -248,6 +274,95 @@ ${cardRows}
         </table>
         </div>
       </section>` : "";
+
+  // ── 세트별 해설 산문 (2026-07-30 애드센스 "가치 낮은 콘텐츠" 대응)
+  //    원칙: 문장은 전부 그 세트의 실측값에서 파생. 값이 없으면 그 문단 자체를 만들지 않는다.
+  //    21페이지가 같은 틀이었던 게 반려 사유의 핵심이라, 데이터 조건에 따라 문장이 달라지게 짠다.
+  const prose = [];
+
+  // 1) 시세 흐름 — boxSeries(원화) 최저·최고·현재
+  const pts = (s.boxSeries && s.boxSeries.points) || [];
+  if (pts.length >= 3) {
+    const lo = pts.reduce((m, p) => (p.p < m.p ? p : m));
+    const hi = pts.reduce((m, p) => (p.p > m.p ? p : m));
+    const first = pts[0], last = pts[pts.length - 1];
+    const fromLo = lo.p ? ((last.p - lo.p) / lo.p) * 100 : null;
+    const offHi = hi.p ? ((last.p - hi.p) / hi.p) * 100 : null;
+    let line = `추적 구간(${esc(first.d)}~${esc(last.d)}) 동안 이 박스의 원화 시세는 최저 <strong>${won(lo.p)}</strong>(${esc(lo.d)})에서 최고 <strong>${won(hi.p)}</strong>(${esc(hi.d)}) 사이를 오갔습니다.`;
+    if (fromLo != null && offHi != null) {
+      line += hi.d === last.d
+        ? ` 현재가가 곧 추적 기간 최고가입니다 — 저점 대비 ${pct(fromLo)} 오른 상태로, 최근 매수세가 가격을 끌어올리고 있다는 뜻입니다.`
+        : ` 현재 시세 ${won(last.p)}은 저점 대비 ${pct(fromLo)}, 고점 대비 ${pct(offHi)} 수준입니다.`;
+    }
+    prose.push({ h: "시세 흐름", p: [line, `일별 가격은 이베이 실거래·검증된 매물을 집계해 만든 값이고, 같은 데이터의 차트와 매물 링크는 <a href="${enHref || "../packs.html?set=" + code}">영문 상세 페이지</a>에서 볼 수 있습니다.`] });
+  }
+
+  // 2) 재판 이력 — 있는 세트와 없는 세트의 문장이 완전히 다르다
+  if (rr.length) {
+    prose.push({ h: "재판(재발매) 이력", p: [
+      `${code}는 유통사·리테일러 재입고 기준으로 <strong>재판이 ${rr.length}회</strong> 확인된 세트입니다(${rr.map((r) => esc(r.date) + (r.note ? " · " + esc(r.note) : "")).join(" / ")}). 재판은 밀봉 공급을 다시 늘리기 때문에, 재판 발표~입고 시기엔 박스 시세가 눌리는 경향이 반복적으로 관찰됐습니다.`,
+      `반다이는 세트별 재판을 공식 발표하지 않으므로 위 기록은 유통망에서 확인된 것만 적은 것입니다. 재판분과 초판은 카드 자체로는 구분되지 않습니다.`,
+    ] });
+  } else {
+    prose.push({ h: "재판(재발매) 이력", p: [
+      `${code}는 지금까지 유통사·리테일러 재입고 기록이 <strong>확인되지 않은</strong> 세트입니다. 다만 반다이가 세트별 재판을 공식 발표하지 않기 때문에 "기록 없음"은 "재판이 절대 없었다"가 아니라 "우리가 확인한 재입고가 없다"는 뜻으로 읽어야 합니다.`,
+      `재입고 기록이 없는 세트는 시중 물량이 개봉으로만 줄어들기 때문에, 아래 그레이딩 접수량(=개봉 강도)이 시세를 읽는 데 특히 중요해집니다.`,
+    ] });
+  }
+
+  // 3) 인기 카드 구성 — top 카드·유형 구성·NM 대비 PSA10
+  if (topCards.length >= 3) {
+    const t0 = topCards[0];
+    const kind = (c) => /manga|망가/i.test(c.name) ? "망가" : /\bsp\b/i.test(c.name) ? "SP" : /wanted|수배/i.test(c.name) ? "수배서" : /parallel|alt/i.test(c.name) ? "패러렐" : "기타";
+    const comp = {};
+    (s.cards || []).forEach((c) => { comp[kind(c)] = (comp[kind(c)] || 0) + 1; });
+    const compTxt = Object.entries(comp).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}장`).join(", ");
+    const p1 = `이 박스의 가치를 끌고 가는 카드는 <strong>${esc(t0.name)}</strong>(${esc(t0.number)})로, 일본판 NM 시세가 약 <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>입니다. 추적 중인 상위 카드 구성은 ${compTxt} — 어떤 유형이 몇 장인지가 박스 기대값의 골격입니다.`;
+    const sold = t0.psa10Ebay && t0.psa10Ebay.soldBased && t0.psa10Ebay.middle != null ? t0.psa10Ebay : null;
+    const p2 = sold
+      ? `같은 카드의 <strong>PSA 10 실거래 중앙값은 ${won(sold.middle)}</strong>(표본 ${sold.sampleSize}건)로, NM 원본 대비 약 ${(sold.middle / (t0.nmJpy * fx.jpyKrw)).toFixed(1)}배입니다. 등급 프리미엄이 이 정도로 벌어져 있으면 개봉→그레이딩 수요가 유지되는 세트라는 신호입니다.`
+      : `변형(망가·SP·패러렐)이 다르면 같은 번호라도 가격이 몇 배씩 달라지므로, 카드 번호와 레어도를 반드시 함께 확인해야 합니다.`;
+    prose.push({ h: "인기 카드가 말해주는 것", p: [p1, p2] });
+  }
+
+  // 4) 그레이딩 — PSA(판별) + CGC/TAG. 세트마다 숫자가 완전히 다른, 이 사이트 고유 데이터.
+  {
+    const g = [];
+    if (s.psaFull && s.psaFull.total) {
+      let line = `PSA에는 일본판 기준 누적 <strong>${s.psaFull.total.toLocaleString("ko-KR")}장</strong>이 접수됐고 그중 ${s.psaFull.gemRate}%가 PSA 10을 받았습니다`;
+      line += s.psaFull.wowAdd != null ? ` (최근 한 주에만 +${s.psaFull.wowAdd.toLocaleString("ko-KR")}장).` : ".";
+      if (s.psaFullEn && s.psaFullEn.total) {
+        line += ` 영문판은 별도로 ${s.psaFullEn.total.toLocaleString("ko-KR")}장·젬률 ${s.psaFullEn.gemRate}%입니다. 두 판은 인쇄가 달라 합산하지 않습니다.`;
+      }
+      g.push(line);
+    }
+    const cg = set => set && (set.jp || set.en);
+    if (cg(s.graders && s.graders.cgc)) {
+      const e = s.graders.cgc.jp || s.graders.cgc.en;
+      const ed = s.graders.cgc.jp ? "일본판" : "영문판";
+      if (e.total) g.push(`CGC에는 ${ed} 기준 ${e.total.toLocaleString("ko-KR")}장이 있으며, 만점이 프리스틴 10(${(e.pristine10 ?? 0).toLocaleString("ko-KR")}장)과 젬 민트 10(${(e.gemMint10 ?? 0).toLocaleString("ko-KR")}장)으로 나뉩니다 — 프리스틴이 더 엄격한 위쪽 등급입니다.`);
+    }
+    if (cg(s.graders && s.graders.tag)) {
+      const e = s.graders.tag.jp || s.graders.tag.en;
+      const ed = s.graders.tag.jp ? "일본판" : "영문판";
+      if (e.total) g.push(`TAG는 ${ed} ${e.total.toLocaleString("ko-KR")}장${e.g10 != null ? ` 중 10등급 ${e.g10.toLocaleString("ko-KR")}장, 그 위의 10P는 ${(e.g10p ?? 0).toLocaleString("ko-KR")}장` : ""}입니다. 표본이 얇은 구간은 숫자보다 추세로만 읽는 게 안전합니다.`);
+    }
+    if (g.length) {
+      g.push(`그레이딩 접수량은 "박스가 얼마나 개봉되고 있나"의 대리지표입니다 — 등급 카드는 전부 개봉된 팩에서 나오기 때문입니다. 세 등급사의 기준은 서로 호환되지 않아 절대 합산하지 않습니다.`);
+      prose.push({ h: "그레이딩 인구 (PSA · CGC · TAG)", p: g });
+    }
+  }
+
+  // 5) 구매 체크리스트 — 실수하기 쉬운 순서로
+  prose.push({ h: "구매 전 체크리스트", p: [
+    `① 일본판인지 영문판인지 먼저 확인하세요 — 같은 세트라도 두 판의 시세·수록 변형이 다릅니다(이 페이지는 일본판 기준). ② 밀봉 박스는 리실(재밀봉) 리스크가 있으니 판매자 평점·실사진을 확인하세요. ③ 일본 아마존 응모(추첨) 판매는 정가 구매가 가능해 시세보다 쌉니다 — <a href="../amazon-lottery.html">응모 방법 안내</a>에 정리해 뒀습니다.`,
+  ] });
+
+  const proseHtml = prose.map((sec) => `
+      <section aria-label="${esc(sec.h)}">
+        <h2>${esc(sec.h)}</h2>
+        ${sec.p.map((t) => `<p class="koProse">${t}</p>`).join("\n        ")}
+      </section>`).join("\n");
 
   // 팩트 리스트 — 검증된 값만
   const facts = [];
@@ -340,6 +455,7 @@ ${cardRows}
         ${chg != null ? `<span class="ixChg ${up ? "up" : "down"}">${pct(chg)}</span>` : ""}
       </div>
       <ul class="koFacts">${facts.map((f) => `<li>${f}</li>`).join("")}</ul>
+${proseHtml}
 ${cardsSection}
       <div class="koCta">
         <a class="primary" href="./">전 세트 시세표 →</a>
