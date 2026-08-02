@@ -98,7 +98,7 @@ ${tr}
             </tbody>
           </table>
           </div>
-          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="ko/">한국어 시세</a></p>
+          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auction results</a> · <a href="ko/">한국어 시세</a></p>
         </section>
         <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
           <details class="homeCollapse">

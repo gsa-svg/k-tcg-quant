@@ -49,7 +49,7 @@
 
       <div class="dlRow">
         <a class="primary" href="opbox-grading-population.csv" download>Grading population (42 rows)</a>
-        <a class="primary" href="opbox-auction-daily.csv" download>Auction results by day (43 rows)</a>
+        <a class="primary" href="opbox-auction-daily.csv" download>Auction results by day (47 rows)</a>
         <a class="ghost" href="opbox-set-prices.csv" download>Box prices (21 sets)</a>
       </div>
       <p class="note">Last updated 2026-08-01 · FX ₩1548.63/$ (2026-07-14)</p>
@@ -82,7 +82,7 @@
       </div>
 
       <h2>2. Auction results by day — <code>opbox-auction-daily.csv</code></h2>
-      <p>Every row is one day and one product type. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
+      <p>Every row is one day and one product type. The same data is explained and charted on the <a href="auction.html">auction results page</a>. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
       <div class="fields">
         <code>date</code> · <code>kind</code> — <code>all</code>, <code>box</code>, <code>card</code> or <code>pack</code><br />
         <code>auctions</code> · <code>sold</code> · <code>sell_through_pct</code> — how many ran, how many actually sold<br />
