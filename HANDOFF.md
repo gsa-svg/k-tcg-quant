@@ -1,5 +1,22 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
+## 2026-08-01 세션 — 유입 진단 + 한국어 주제 페이지 3장 신설
+- **절대 규칙(사용자 지시, 메모리에도 저장됨)**: 기존 페이지의 노출 상태를 임의로 바꾸지 말 것.
+  noindex 추가·canonical/hreflang 변경·사이트맵 제거·페이지 삭제는 사용자 확인 필수. **추가는 허용.**
+- **유입 진단(GSC+GA4 실측)**: 28일 클릭 45/노출 704/CTR 6.4%/순위 9.9. 문제는 CTR이 아니라 노출량.
+  원인 = ①사이트 40일차(도메인 신뢰 부족) ②noindex 48장(카드27+ko21, 7/24 애드센스 대비 임시)
+  ③"크롤됨-미색인" 22장. GA4: Direct 급등(네이버 카페 응모글)이 빠지는 중이라 정체로 보임.
+  Organic 참여율 82%로 질은 최상, AI Assistant 채널만 유일하게 성장 중.
+- **신설**: `tools/generate-ko-topic-pages.js` → ko/cards.html(카드시세)·ko/grading.html(그레이딩)·
+  ko/auction.html(이베이 경매 낙찰 — 경매 데이터 첫 공개 지면). 전부 index,follow+사이트맵 추가,
+  두 야간 워크플로에서 재생성. ko 허브에 링크 섹션 추가. 기존 페이지 head 무변경 검증 완료.
+- **다음 작업(승계)**:
+  1. 애드센스 결과 나오면 → "애드센스 심사용 임시조치 원복해" (ko 세트 21장 noindex 해제, 위 섹션 참고)
+  2. 승인 후 카드 27장 noindex 해제 + 사이트맵 복귀(generate-card-pages.js 의 7/24 임시 블록 제거)
+  3. GSC에서 새 3페이지 URL 검사→색인 요청(수동으로 하면 며칠 빨라짐. 사용자 계정 gsa@)
+  4. 스레드: A안(EN>JP 인구) 카드 게시 대기 중, B안(경매 낙찰률)은 2~3일 뒤
+  5. 8/3(월) sold 수집 — 크롬 자동선택 규칙 적용됨(Windows·isLocal)
+
 ## ⏳ 애드센스 심사용 임시조치 (2026-07-30 신청) — "애드센스 심사용 임시조치 원복해" 라고 하면 이걸 되돌린다
 - **원복 대상 (noindex 2건뿐)**:
   1. 한국어 세트 21장(ko/op-01~prb-02): `noindex,follow` → `index,follow` + 사이트맵 복귀. 위치: tools/generate-ko-pages.js (setPageKo 안 robots 메타 + 사이트맵 제거 블록)
