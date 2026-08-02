@@ -136,6 +136,7 @@ jobs:
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
+          node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
           node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
           node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log

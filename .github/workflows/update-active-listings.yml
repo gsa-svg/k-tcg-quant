@@ -142,6 +142,7 @@ jobs:
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
+          node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
           node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
 
