@@ -100,7 +100,14 @@ jobs:
           mkdir -p logs
           node tools/update-box-series-history.js 2>&1 | tee logs/update-box-series-history.log
 
+      # ⚠️ GemRate 수집은 러너에서 자주 실패한다("OP-01: GemRate RowData unavailable").
+      #    로컬 크롬(사용자 IP)에서는 같은 스크립트가 멀쩡히 도는 걸로 보아 데이터센터 IP 쪽 차단으로 보인다.
+      #    이 스텝이 죽으면서 **뒤의 모든 스텝(가격 감사·페이지 재생성·커밋)까지 통째로 스킵**돼,
+      #    2026-07-27·08-03 두 주 동안 주간 갱신이 아무것도 커밋되지 않았다(2026-08-03 확인).
+      #    PSA 는 어차피 매주 월요일에 사람이 로컬에서 돌리기로 했으므로(HANDOFF 참고),
+      #    여기서는 실패해도 나머지를 계속 진행시킨다. 값을 지어내는 게 아니라 그 주 PSA 점만 비는 것이다.
       - name: Collect and append verified PSA weekly history
+        continue-on-error: true
         run: |
           set -o pipefail
           mkdir -p logs
@@ -109,7 +116,10 @@ jobs:
 
       # 판별(일본판/영문판) 누적을 매주 한 점씩 쌓는다. 화면에는 최근 두 점의 차이만 쓰지만
       # 점을 계속 보존해야 몇 달 뒤에 주차별 증가량을 우리 데이터로 말할 수 있다(소급 불가).
+      # 위와 같은 이유로 실패해도 뒤를 막지 않는다 — 단, audit-grading-numbers 는 여기서 빼내
+      # 별도 스텝으로 두어 **등급 숫자 검증은 계속 강제**한다(그건 실패하면 진짜 멈춰야 한다).
       - name: Append per-edition PSA cumulative snapshot
+        continue-on-error: true
         run: |
           set -o pipefail
           mkdir -p logs
@@ -117,8 +127,13 @@ jobs:
           node tools/collect-psa-edition-weekly.js 2>&1 | tee logs/collect-psa-edition-weekly.log
           node tools/import-gemrate-en-totals.js 2>&1 | tee logs/import-gemrate-en-totals.log
           node tools/inject-psa-wow.js 2>&1 | tee logs/inject-psa-wow.log
-          # 등급 숫자는 틀리면 안 된다(소유자 지시). 젬률 계산, 주간 증감,
-          # 등급사별 증감 구간 라벨이 원본과 맞는지 여기서 막는다.
+
+      # 등급 숫자는 틀리면 안 된다(소유자 지시). 젬률 계산, 주간 증감, 등급사별 증감 구간 라벨이
+      # 원본과 맞는지 여기서 막는다. 위 수집이 건너뛰어졌더라도 **이 검증만은 반드시 통과해야 한다**.
+      - name: Audit grading numbers
+        run: |
+          set -o pipefail
+          mkdir -p logs
           node tools/audit-grading-numbers.js 2>&1 | tee logs/audit-grading-numbers.log
 
       - name: Audit price quality
