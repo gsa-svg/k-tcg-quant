@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260803cg";
+const DATA_VERSION = "20260803d";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -725,6 +725,19 @@ function renderBoxSeries() {
 
 async function fetchPackData() {
   let lastError;
+
+  // 페이지 <head> 의 인라인 스크립트가 이미 요청을 걸어놨으면 그걸 쓴다.
+  // 이 스크립트는 defer 라 HTML 파싱이 끝나야 실행되는데, 그때 데이터를 요청하면
+  // 스크립트 다운로드 시간만큼 표가 늦게 뜬다(로컬 실측 222ms 에 시작). head 에서 미리 걸면
+  // 스크립트 받는 동안 같이 내려온다. rel=preload 대신 인라인 fetch 를 쓰는 이유는
+  // preload 는 요청 조건이 조금만 달라도 재사용되지 않고 같은 파일을 두 번 받기 때문이다(실측).
+  // 실패하면 아래 기존 경로가 그대로 다시 시도하므로 이 최적화가 깨져도 화면은 멀쩡하다.
+  if (typeof window !== "undefined" && window.__opPackData) {
+    try {
+      const early = await window.__opPackData;
+      if (early) return early;
+    } catch { /* 아래 기본 경로로 넘어간다 */ }
+  }
 
   for (const url of DATA_URLS) {
     try {
