@@ -1,5 +1,18 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
+## 2026-08-03 — sold 수집을 수동으로 전환 (자동 루틴 삭제)
+- 8/3 수집 완료: 42/42 페이지·로봇0, 원장 신규 12건(총 2,255건), 시계열 42점 append(총 292점). 가드 OK. 커밋 `f827c41`.
+- **예약작업 `opbox-sold-collection-mwf` 삭제.** 사용자 지시(2026-08-03). 이유: 자동실행이 조용히 실패해
+  7/10~7/21 시계열이 통째로 비었고(수집일 7일뿐: 7/09·7/22·7/27·7/29·7/31·8/02·8/03), 이 날은 사람이 먼저 돌려
+  이중 실행까지 났다. **알림 루틴 `opbox-collect-reminder-mwf`(월·수·금 10:06)는 유지** — 문구를
+  "'sold 수집 돌려줘' 라고 말해라(자동 안 돎)"로 교체했다. 이제 그 알림이 유일한 방아쇠다.
+- **수집 절차 원문은 `C:\Users\kimtt\.claude\scheduled-tasks\opbox-sold-collection-mwf\SKILL.md` 에 그대로 남아 있다.**
+  월·수·금에 사용자가 요청하면 그 SKILL.md 순서대로 하면 된다(브라우저 setup → __runBatch 4회 → __opDownload →
+  box-sold-ingest.js → append-box-sold-series.js → guard → 커밋·푸시).
+- 데이터 보존 상태: 원장 `data/box-sold-ledger.json` 은 append-only 로 2025-03-02~2026-08-02 실거래 2,255건 전부 보유.
+  **개별 거래는 eBay가 최근 ~90일만 보여주므로 90일 넘게 안 돌리면 그 구간은 영구 손실**이고,
+  시계열 점(`box-sold-series.json`)은 돌린 날에만 생겨 건너뛴 날은 소급 불가다.
+
 ## 2026-08-01(추가) — 우선순위 전환: 해외(영어) 유저 1순위
 - 사용자: "한국어 검색에 많이 잡힐 필요 없어, 해외 유저들이 봤으면 좋겠어" (메모리 project-opbox-korean-seo 에 기록).
   ko 페이지 3장은 유지(추가 자산), 추가 투자는 영어 쪽으로.
