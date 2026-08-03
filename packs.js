@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260729mk";
+const DATA_VERSION = "20260803cg";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1119,10 +1119,18 @@ function renderGraderTable(set) {
       ? [["jp", v.jp], ["en", v.en]].filter(([, e]) => e && e.perfect10 > 0)
         .map(([ed, e]) => `${ed === "jp" ? t("일본판", "JP") : t("영문판", "EN")} ${num(e.perfect10)}`)
       : [];
+    // CGC 가 두 상품을 한 항목으로 세는 판(영문판 OP-14·OP-15 = EB-04 동봉 발매)은 그 사실을 밝힌다.
+    // 숫자를 고치는 게 아니라, 무엇을 세었는지 정확히 말하는 것이다.
+    const combined = [["jp", v.jp], ["en", v.en]]
+      .filter(([, e]) => e && e.combinedWith)
+      .map(([ed, e]) => (ed === "jp"
+        ? t(`일본판 수치는 ${e.combinedWith} 를 포함합니다`, `The Japanese figure includes ${e.combinedWith}`)
+        : t(`영문판은 ${e.combinedWith} 와 한 상품으로 발매돼 CGC 가 한 항목으로 집계합니다 — 위 영문판 수치에 ${e.combinedWith} 가 포함돼 있습니다`,
+          `In English these shipped as one product with ${e.combinedWith}, and CGC counts them as one entry — the English figure above includes ${e.combinedWith}`)));
     return `<div class="grWrap"><table class="grTable"><thead><tr><th class="gHead ${m.cls}">${m.name}</th>${m.cols.map((c) => `<th>${c.h}</th>`).join("")}<th>${t("증감", "Change")}</th></tr></thead><tbody>
       ${row(t("일본판", "Japanese"), v.jp)}
       ${row(t("영문판", "English"), v.en)}
-    </tbody></table><p class="edFoot">${m.note}${perfect.length ? ` ${t("이 세트엔 그 위 퍼펙트 10도 있습니다", "This set also has Perfect 10")} — ${perfect.join(" · ")}.` : ""}${win ? ` · ${win}` : ""}</p></div>`;
+    </tbody></table><p class="edFoot">${m.note}${combined.length ? ` ${combined.join(" · ")}.` : ""}${perfect.length ? ` ${t("이 세트엔 그 위 퍼펙트 10도 있습니다", "This set also has Perfect 10")} — ${perfect.join(" · ")}.` : ""}${win ? ` · ${win}` : ""}</p></div>`;
   };
   return ["cgc", "tag"].map(block).join("");
 }
