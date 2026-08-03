@@ -9,14 +9,27 @@
 //  - append-only. 같은 날짜면 스킵(과거 점 절대 덮어쓰기/삭제 금지).
 //  - total>0, 0<=gem<=total 인 값만 담는다. 이상값은 그 박스/판 스킵(지어내지 않음).
 //  - TAG pop 은 누적값이라 재조회로 복구 가능하지만, 시계열(주차별 증가분)은 소급 불가 → 매주 쌓는다.
-// Run: node tools/tag-pop-ingest.js <snapshot.json>
+//  - **커버리지 축소 거부**(2026-08-03 신설): 이번 (세트|판) 수가 직전 수집일보다 적으면 적재를 멈춘다.
+//    연도 페이지가 한 장 늘었는데 못 넘긴 경우가 딱 이렇게 보인다(CGC 에서 실제로 2주간 당했다).
+//    정말 사라진 세트라면 --allow-shrink 로 사람이 명시한다.
+// Run: node tools/tag-pop-ingest.js <snapshot.json> [--allow-shrink]
 const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const histPath = path.join(ROOT, "data", "tag-grading-history.json");
 
-function ingest(snapshot) {
+// 직전 수집일의 (세트|판) 커버리지. 오늘 것이 이보다 적으면 뭔가를 못 읽은 것이다.
+function priorCoverage(store, today) {
+  const byDate = {};
+  for (const [code, eds] of Object.entries(store.sets || {})) {
+    for (const ed of ["jp", "en"]) for (const p of eds[ed] || []) (byDate[p.d] = byDate[p.d] || new Set()).add(`${code}|${ed}`);
+  }
+  const prior = Object.keys(byDate).filter((d) => d < today).sort().at(-1);
+  return prior ? { d: prior, keys: byDate[prior] } : null;
+}
+
+function ingest(snapshot, opts = {}) {
   const d = snapshot.collectedAt;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d || "")) throw new Error("snapshot.collectedAt 필요 (YYYY-MM-DD)");
   if (snapshot.grader !== "tag") throw new Error("grader 가 tag 가 아님");
@@ -24,6 +37,19 @@ function ingest(snapshot) {
   let store;
   try { store = JSON.parse(fs.readFileSync(histPath, "utf8")); } catch { store = { grader: "tag", sets: {} }; }
   store.sets = store.sets || {};
+
+  const nowKeys = new Set();
+  for (const [code, eds] of Object.entries(snapshot.boxes || {})) {
+    for (const ed of ["jp", "en"]) if (eds && eds[ed]) nowKeys.add(`${code}|${ed}`);
+  }
+  const prior = priorCoverage(store, d);
+  if (prior && nowKeys.size < prior.keys.size && !opts.allowShrink) {
+    const missing = [...prior.keys].filter((k) => !nowKeys.has(k));
+    throw new Error(
+      `커버리지 축소: 이번 ${nowKeys.size}개 < 직전(${prior.d}) ${prior.keys.size}개. 빠진 것: ${missing.slice(0, 8).join(", ")}${missing.length > 8 ? " …" : ""}\n` +
+      `연도 페이지를 끝까지 읽었는지(__tagYear 의 complete) 먼저 확인할 것. 정말 사라진 세트라면 --allow-shrink 로 명시한다.`
+    );
+  }
 
   let appended = 0, skipped = 0, rejected = 0;
   for (const [code, eds] of Object.entries(snapshot.boxes || {})) {
@@ -46,12 +72,12 @@ function ingest(snapshot) {
   store.updated = d;
   store.weeklyThrough = Object.values(store.sets).flatMap((e) => [...(e.jp || []), ...(e.en || [])]).map((p) => p.d).sort().at(-1) || d;
   fs.writeFileSync(histPath, JSON.stringify(store) + "\n", "utf8");
-  return { appended, skipped, rejected, sets: Object.keys(store.sets).length, weeklyThrough: store.weeklyThrough };
+  return { appended, skipped, rejected, sets: Object.keys(store.sets).length, coverage: nowKeys.size, weeklyThrough: store.weeklyThrough };
 }
 
 module.exports = { ingest };
 if (require.main === module) {
-  const f = process.argv[2];
-  if (!f) { console.error("usage: node tools/tag-pop-ingest.js <snapshot.json>"); process.exit(1); }
-  console.log(JSON.stringify(ingest(JSON.parse(fs.readFileSync(f, "utf8")))));
+  const f = process.argv.slice(2).find((a) => !a.startsWith("--"));
+  if (!f) { console.error("usage: node tools/tag-pop-ingest.js <snapshot.json> [--allow-shrink]"); process.exit(1); }
+  console.log(JSON.stringify(ingest(JSON.parse(fs.readFileSync(f, "utf8")), { allowShrink: process.argv.includes("--allow-shrink") })));
 }

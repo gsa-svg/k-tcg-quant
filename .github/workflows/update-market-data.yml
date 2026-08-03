@@ -64,6 +64,7 @@ jobs:
           node tools/test-price-quality-audit.js
           node tools/test-update-psa-weekly-history.js
           node tools/test-collect-gemrate-psa-history.js
+          node tools/test-pop-ingest-guards.js
           node tools/test-import-gemrate-psa-history.js
           node tools/audit-seo.js
           node tools/audit-ai-discovery.js
