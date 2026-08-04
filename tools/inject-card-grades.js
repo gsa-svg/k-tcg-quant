@@ -68,13 +68,17 @@ for (const [code, set] of Object.entries(data.sets)) {
     const key = `${num}|${ourTier(card.name || "")}`;
 
     const out = {};
-    const c = lastPoint(cgc, code, key);
-    if (c && int(c.total)) {
+    // CGC 원장은 2026-08-03 부터 판별로 나뉜다(sets[코드][판][키]). 그 전 기록은 .jp 로 이관돼 있다.
+    const cgcEd = {};
+    for (const ed of ["jp", "en"]) {
+      const c = lastPoint(cgc?.sets?.[code]?.[ed] ? { sets: { [code]: cgc.sets[code][ed] } } : null, code, key);
+      if (!c || !int(c.total)) continue;
       const pristine = int(c.g?.["Pristine 10"]) ?? 0;
       const gemMint = int(c.g?.["Gem Mint 10"]) ?? 0;
       // 만점이 총량을 넘으면 매칭이 어긋난 것이다 — 그런 값은 싣지 않는다.
-      if (pristine + gemMint <= c.total) { out.cgc = { total: c.total, pristine10: pristine, gemMint10: gemMint, d: c.d }; withCgc += 1; }
+      if (pristine + gemMint <= c.total) cgcEd[ed] = { total: c.total, pristine10: pristine, gemMint10: gemMint, d: c.d };
     }
+    if (Object.keys(cgcEd).length) { out.cgc = cgcEd; withCgc += 1; }
     const g = lastPoint(tag, code, key);
     if (g && int(g.total)) {
       const g10 = int(g.g?.["10"]) ?? 0;

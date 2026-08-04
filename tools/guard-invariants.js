@@ -450,17 +450,25 @@ if (exists("data/cgc-card-pop.json")) {
   const cp = JSON.parse(read("data/cgc-card-pop.json"));
   if (cp.grader !== "cgc") errors.push("D10: cgc-card-pop.grader 가 cgc 가 아님");
   if (!/append-only/i.test(cp.note || "")) errors.push("D10: note 에 append-only 고지 누락");
-  for (const [code, cards] of Object.entries(cp.sets || {})) {
+  // 2026-08-03 부터 판별로 나뉜다: sets[코드][jp|en][카드키]. 그 전 파일은 sets[코드][카드키] 였고
+  // 이관 스크립트가 .jp 로 옮긴다. 둘 다 검사한다 — 옛 파일이 남아 있어도 조용히 넘어가지 않게.
+  const walk = (code, label, cards) => {
     for (const [key, arr] of Object.entries(cards || {})) {
+      if (!Array.isArray(arr)) { errors.push(`D10: ${code}${label} ${key} 점 목록이 배열이 아님`); continue; }
       let prev = "";
-      for (const p of arr || []) {
-        if (!p || typeof p.d !== "string" || p.d <= prev) { errors.push(`D10: ${code} ${key} 날짜 이상/역행`); break; }
-        if (!(Number.isInteger(p.total) && p.total > 0)) { errors.push(`D10: ${code} ${key} ${p.d} total 이상`); break; }
+      for (const p of arr) {
+        if (!p || typeof p.d !== "string" || p.d <= prev) { errors.push(`D10: ${code}${label} ${key} 날짜 이상/역행`); break; }
+        if (!(Number.isInteger(p.total) && p.total > 0)) { errors.push(`D10: ${code}${label} ${key} ${p.d} total 이상`); break; }
         const sum = Object.values(p.g || {}).reduce((a, v) => a + (Number(v) || 0), 0);
-        if (sum > p.total) { errors.push(`D10: ${code} ${key} ${p.d} 등급합(${sum})>total(${p.total})`); break; }
+        if (sum > p.total) { errors.push(`D10: ${code}${label} ${key} ${p.d} 등급합(${sum})>total(${p.total})`); break; }
         prev = p.d;
       }
     }
+  };
+  for (const [code, bucket] of Object.entries(cp.sets || {})) {
+    const eds = Object.keys(bucket || {}).filter((k) => k === "jp" || k === "en");
+    if (eds.length) for (const ed of eds) walk(code, `.${ed}`, bucket[ed]);
+    else walk(code, "", bucket);
   }
 }
 
