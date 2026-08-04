@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260803m";
+const DATA_VERSION = "20260803n";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1650,7 +1650,9 @@ function cardGradePanel(card) {
     rows.push(`<tr><td class="edName">${label}</td><td class="grNum">${num(c.total)}</td><td class="grNum">${num(c.gemMint10)}</td><td class="grNum">${num(c.pristine10)}</td><td class="grNum">${pct(c.pristine10 + c.gemMint10, c.total)}</td></tr>`);
   }
   if (g.tag) {
-    rows.push(`<tr><td class="edName">TAG</td><td class="grNum">${num(g.tag.total)}</td><td class="grNum">${num(g.tag.g10)}</td><td class="grNum">${num(g.tag.g10p)}</td><td class="grNum">${pct(g.tag.g10 + g.tag.g10p, g.tag.total)}</td></tr>`);
+    // TAG 는 아직 일본판만 모은다. 라벨을 그냥 "TAG" 로 두면, 위 두 등급사가 판별로 나뉜 표에서
+    // 이 줄만 두 판을 합친 값처럼 읽힌다 — 판별을 라벨에 박아 오해를 없앤다(영문판 수집 전까지).
+    rows.push(`<tr><td class="edName">${t("TAG 일본판", "TAG Japanese")}</td><td class="grNum">${num(g.tag.total)}</td><td class="grNum">${num(g.tag.g10)}</td><td class="grNum">${num(g.tag.g10p)}</td><td class="grNum">${pct(g.tag.g10 + g.tag.g10p, g.tag.total)}</td></tr>`);
   }
   if (!rows.length) return "";
   const asOf = [g.cgc?.d, g.cgc?.jp?.d, g.cgc?.en?.d, g.tag?.d, g.psa?.jp?.d, g.psa?.en?.d].filter(Boolean).sort().at(-1);
