@@ -174,7 +174,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260803d";
+const DATA_VERSION = "20260803f";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -790,11 +790,15 @@ function renderHitList(cards) {
   const cells = cards
     .map((c, index) => {
       const color = rarityColor[c.rarity] || "#8d95a7";
-      // 그리드: 자체호스팅 일본판 webp(c.image, 장당 ~95KB) 우선 · 라이트박스 확대는 고해상 원본(imageJpSrc/imageEn) 우선
+      // 그리드·확대 모두 자체호스팅 일본판 webp(c.image, 장당 ~95KB)를 쓴다.
+      // 예전엔 확대에 고해상 원본(imageJpSrc = onepiece-cardgame.com)을 먼저 썼는데 그 도메인이
+      // 외부 호출을 막아 **확대창 이미지가 늘 깨져 있었다**(2026-08-03 실측: naturalWidth 0).
+      // 영문 원본(imageEn)은 그림이 다른 판이라 일본판 썸네일을 눌렀을 때 뜨면 오해를 부른다 — 폴백으로만 둔다.
       const img = c.image || c.img || FALLBACK;
-      const zoomImg = c.imageJpSrc || c.imageEn || img;
+      const zoomImg = c.image || c.imageEn || c.img || FALLBACK;
+      const zoomFallback = c.imageEn || c.img || "";
       return `
-        <figure class="hitCard" data-card-index="${index}" data-img="${zoomImg}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
+        <figure class="hitCard" data-card-index="${index}" data-img="${zoomImg}" data-img-fallback="${zoomFallback}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
           <div class="hitThumb">
             <span class="hitRank">${c.rank}</span>
             ${c.rarity ? `<span class="hitRar" style="--c:${color}">${c.rarity}</span>` : ""}
@@ -1620,13 +1624,45 @@ function historyChart(history, market) {
   return `<div class="cardChart"><div class="cardChartHead"><strong>${t("6개월 NM 추이", "6-month NM trend")}</strong><span>${points[0].date} ~ ${points[points.length - 1].date}</span></div><svg viewBox="0 0 600 180" role="img" aria-label="${t("6개월 NM 시세 추이", "6-month NM price trend")}"><path d="M24 150H576" class="chartAxis"></path><polyline points="${coords.map((p) => `${p.x},${p.y}`).join(" ")}" class="chartLine"></polyline>${coords.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" class="chartDot"></circle>`).join("")}</svg><div class="cardChartRange"><span>${triMain(min, "KRW").main}</span><span>${triMain(max, "KRW").main}</span></div></div>`;
 }
 
-function cardMarketPanel(card) {
-  const market = card.japaneseNmEbay;
-  if (!market?.sampleSize) return `<div class="cardChartEmpty">${t("일본판 NM eBay 표본이 아직 없습니다.", "No Japanese NM eBay samples yet.")}</div>`;
-  return `<div class="cardMarketPanel"><h3>${t("일본판 NM eBay", "Japanese NM eBay")}</h3><div class="bandRows cardMarketRows">${priceBandRows(market)}</div><p>eBay Active · ${t(`표본 ${market.sampleSize}건`, `${market.sampleSize} samples`)} · ${t("신뢰", "confidence")} ${market.confidence || "C"} · ${market.updated || ""}</p>${historyChart(market.history, market)}</div>`;
+// 카드 확대창에 붙는 그 카드의 실측값. 예전엔 japaneseNmEbay 하나만 봤는데 그 매칭이 0건이라
+// 어떤 카드를 눌러도 "표본이 아직 없습니다"만 떴다(2026-08-03 발견). 가진 것을 전부 보여준다.
+// 원칙은 그대로 — 없는 항목은 줄 자체를 만들지 않고, 하나도 없을 때만 안내 한 줄.
+function cardGradePanel(card) {
+  const g = card.graderPop;
+  if (!g) return "";
+  // 채점 수 자체는 사실이라 몇 장이든 싣지만, **비율은 10장 미만이면 비운다**.
+  // 2장 중 2장이 만점이면 100% 인데 그 숫자는 아무것도 말해주지 않는다(집계 3건 미만은 숨기는 집안 규칙과 같은 취지).
+  const MIN_RATE_N = 10;
+  const pct = (part, total) => (total >= MIN_RATE_N ? `${((part / total) * 100).toFixed(1)}%` : "&mdash;");
+  const rows = [];
+  if (g.cgc) {
+    rows.push(`<tr><td class="edName">CGC</td><td class="grNum">${num(g.cgc.total)}</td><td class="grNum">${num(g.cgc.gemMint10)}</td><td class="grNum">${num(g.cgc.pristine10)}</td><td class="grNum">${pct(g.cgc.pristine10 + g.cgc.gemMint10, g.cgc.total)}</td></tr>`);
+  }
+  if (g.tag) {
+    rows.push(`<tr><td class="edName">TAG</td><td class="grNum">${num(g.tag.total)}</td><td class="grNum">${num(g.tag.g10)}</td><td class="grNum">${num(g.tag.g10p)}</td><td class="grNum">${pct(g.tag.g10 + g.tag.g10p, g.tag.total)}</td></tr>`);
+  }
+  if (!rows.length) return "";
+  const asOf = [g.cgc?.d, g.tag?.d].filter(Boolean).sort().at(-1);
+  return `<div class="cardGradePanel"><h3>${t("이 카드의 등급 인구", "Grades for this card")}</h3>
+    <table class="grTable"><thead><tr><th>${t("등급사", "Grader")}</th><th>${t("누적", "Total")}</th><th>${t("만점", "Top")}</th><th>${t("최상위", "Highest")}</th><th>${t("만점 비율", "Top rate")}</th></tr></thead><tbody>${rows.join("")}</tbody></table>
+    <p class="edFoot">${t(
+      "CGC 는 젬 민트 10 위에 프리스틴 10, TAG 는 10 위에 10P 를 둡니다 — 가운데 열이 만점, 오른쪽이 그보다 엄격한 최상위입니다. 등급사끼리 합산하지 않습니다. PSA 는 카드별 인구를 수집하지 않아 여기 없습니다(세트 단위는 등급 페이지에 있습니다).",
+      "CGC puts Pristine 10 above Gem Mint 10; TAG puts 10P above 10 — the middle column is the top grade, the right one is the stricter tier above it. Graders are never summed together. PSA is absent here because we collect its population by set, not by card (see the grading page).")}${asOf ? ` · ${t("기준", "as of")} ${asOf}` : ""}</p></div>`;
 }
 
-function openLightbox(src, name, card) {
+function cardMarketPanel(card) {
+  const market = card.japaneseNmEbay;
+  const grades = cardGradePanel(card);
+  // 시세줄은 카드 카드(그리드)에 쓰는 것과 같은 함수다 — 확대창에서도 같은 값을 같은 라벨로 보여준다.
+  const prices = card.number ? `<div class="cardLbPrices">${priceLines(card)}</div>` : "";
+  const nm = market?.sampleSize
+    ? `<div class="cardMarketPanel"><h3>${t("일본판 NM eBay", "Japanese NM eBay")}</h3><div class="bandRows cardMarketRows">${priceBandRows(market)}</div><p>eBay Active · ${t(`표본 ${market.sampleSize}건`, `${market.sampleSize} samples`)} · ${t("신뢰", "confidence")} ${market.confidence || "C"} · ${market.updated || ""}</p>${historyChart(market.history, market)}</div>`
+    : "";
+  const body = `${prices}${nm}${grades}`;
+  return body || `<div class="cardChartEmpty">${t("이 카드는 아직 실측값이 없습니다.", "No measured data for this card yet.")}</div>`;
+}
+
+function openLightbox(src, name, card, fallback) {
   let lb = document.querySelector("#lightbox");
   if (!lb) {
     lb = document.createElement("div");
@@ -1638,7 +1674,16 @@ function openLightbox(src, name, card) {
   }
   const big = src.replace(/_(\d+)w\.jpg/, "_1000x1000.jpg");
   const imgEl = lb.querySelector("#lbImg");
-  imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = src; };
+  // 폴백 사슬: 고해상 변형 → 원래 주소 → 다른 판 이미지. 마지막까지 실패하면 이미지 칸을 숨긴다
+  // (깨진 아이콘이 남으면 "데이터가 없는 것"처럼 보인다).
+  const chain = [big, src, fallback].filter((u, i, a) => u && a.indexOf(u) === i).slice(1);
+  imgEl.hidden = false;
+  imgEl.onerror = () => {
+    const next = chain.shift();
+    if (next) { imgEl.src = next; return; }
+    imgEl.onerror = null;
+    imgEl.hidden = true;
+  };
   imgEl.src = big;
   lb.querySelector("#lbCap").textContent = name || "";
   lb.querySelector("#lbMarket").innerHTML = cardMarketPanel(card || {});
@@ -1721,7 +1766,7 @@ function renderDetail() {
     event.stopPropagation();
     trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
   }));
-  el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card); }));
+  el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
   initBoxCharts(el);
 }
 
