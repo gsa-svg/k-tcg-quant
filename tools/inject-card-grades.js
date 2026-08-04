@@ -12,8 +12,10 @@
 //   card.graderPop = {
 //     cgc: { total, pristine10, gemMint10, d },   // d = 그 관측일
 //     tag: { total, g10, g10p, d },
+//     psa: { jp:{total,g10,g9,d}, en:{...} },     // PSA 만 판별로 나뉜다(합산 금지)
 //   }
-// PSA 는 카드별 인구를 우리가 갖고 있지 않다(GemRate 수집은 세트 단위). 그래서 넣지 않는다.
+// PSA 는 GemRate 공개 세트 페이지에 카드·변형별로 있고 일본판/영문판이 따로다(2026-08-03 확인).
+// 합산하지 않고 판별로 각각 싣는다. CGC·TAG 는 우리 수집이 일본판 기준이라 판 구분 없이 한 줄이다.
 // Run: node tools/inject-card-grades.js
 const fs = require("node:fs");
 const path = require("node:path");
@@ -30,6 +32,24 @@ const load = (f) => {
 };
 const cgc = load("cgc-card-pop.json");
 const tag = load("tag-card-pop.json");
+const psa = load("psa-card-pop.json");
+
+// PSA 원장은 카드 각인 세트 기준으로 쌓인다(OP-13 top10 의 OP09-004 는 OP-09 밑에 있다).
+// 그래서 담고 있는 박스가 아니라 카드 번호의 각인으로 찾아야 한다.
+const psaPoint = (card, key) => {
+  const stamp = (String(card.number || "").toUpperCase().match(/^([A-Z]+\d{2})/) || [, ""])[1];
+  if (!stamp) return {};
+  const code = `${stamp.slice(0, -2)}-${stamp.slice(-2)}`;
+  const out = {};
+  for (const ed of ["jp", "en"]) {
+    const arr = psa?.sets?.[code]?.[ed]?.[key];
+    const last = Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null;
+    if (last && Number.isInteger(last.total) && last.total > 0 && Number.isInteger(last.g10) && last.g10 <= last.total) {
+      out[ed] = { total: last.total, g10: last.g10, g9: Number.isInteger(last.g9) ? last.g9 : null, d: last.d };
+    }
+  }
+  return out;
+};
 
 // 마지막 관측점만 쓴다(시계열은 원장에 그대로 남는다).
 const lastPoint = (store, code, key) => {
@@ -39,7 +59,7 @@ const lastPoint = (store, code, key) => {
 
 const int = (v) => (Number.isInteger(v) && v >= 0 ? v : null);
 
-let cards = 0, withCgc = 0, withTag = 0, cleared = 0;
+let cards = 0, withCgc = 0, withTag = 0, withPsa = 0, cleared = 0;
 for (const [code, set] of Object.entries(data.sets)) {
   for (const card of set.cards || []) {
     cards += 1;
@@ -62,10 +82,13 @@ for (const [code, set] of Object.entries(data.sets)) {
       if (g10 + g10p <= g.total) { out.tag = { total: g.total, g10, g10p, d: g.d }; withTag += 1; }
     }
 
+    const p = psaPoint(card, key);
+    if (Object.keys(p).length) { out.psa = p; withPsa += 1; }
+
     if (Object.keys(out).length) card.graderPop = out;
     else if (card.graderPop) { delete card.graderPop; cleared += 1; }
   }
 }
 
 fs.writeFileSync(dataPath, `${JSON.stringify(data, null, 1)}\n`, "utf8");
-console.log(JSON.stringify({ status: "ok", cards, withCgc, withTag, cleared }));
+console.log(JSON.stringify({ status: "ok", cards, withCgc, withTag, withPsa, cleared }));
