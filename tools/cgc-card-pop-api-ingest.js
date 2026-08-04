@@ -12,8 +12,9 @@
 //
 // 매칭(틀리지 않는 게 전부):
 //   - 번호는 각인 포함 완전일치. 변형은 기존 cgcTier() 를 그대로 쓴다(가드 Q4 가 검증하는 규칙).
-//   - 우리 tier 로 좁혀 **정확히 1개**일 때만 채택. 2개 이상이면 버리고 사람이 볼 수 있게 남긴다.
-//     (영문판엔 오탈자 수정판 Post-Errata 가 따로 있어 같은 tier 로 2행이 되는 경우가 있다.)
+//   - 우리 tier 로 좁힌 뒤, 남은 줄이 여러 개면 **합산**한다(사유는 match() 안 주석 참고).
+//     우리 카드 목록엔 같은 번호+변형이 둘 있는 경우가 없어서 합쳐도 다른 카드와 섞이지 않는다.
+//   - tier 로 좁혀 한 줄도 안 남으면 그 카드는 값이 없는 것으로 둔다(비슷한 걸 갖다 붙이지 않는다).
 // Run: node tools/cgc-card-pop-api-ingest.js <dump.json> [--report] [--links links.json]
 const fs = require("node:fs");
 const path = require("node:path");
@@ -50,14 +51,20 @@ function match(dump, data) {
         const same = rows.filter((r) => String(r.num || "").toUpperCase() === num);
         if (!same.length) continue;
         const hits = same.filter((r) => cgcTier(r.variant) === tier);
-        if (hits.length === 1) {
-          const r = hits[0];
-          if (!(Number.isInteger(r.total) && r.total > 0)) continue;
-          const pristine = Number(r.pristine) || 0, gem = Number(r.gem) || 0;
-          if (pristine + gem > r.total) continue;   // 만점이 총량을 넘으면 매칭이 어긋난 것
-          accepted.push({ code, ed, num, tier, card: card.name, variant: r.variant, total: r.total, pristine, gem });
-        } else if (hits.length === 0) absent.push(`${code}|${ed} ${num} [${tier}]`);
-        else ambiguous.push({ code, ed, num, tier, card: card.name, options: hits.map((h) => `${h.variant || "(빈칸)"} · ${h.total}장`) });
+        if (hits.length === 0) { absent.push(`${code}|${ed} ${num} [${tier}]`); continue; }
+        // 같은 번호·같은 변형인데 CGC 에 줄이 여러 개인 경우가 있다(2026-08-03 실측):
+        //  · 영문판 오탈자 수정 재판이 따로 등록됨 — Post-Errata ("Up to"). 그림·번호·변형이 같은 같은 카드다.
+        //  · 철자만 다른 중복 등록 — "Kouzuki Hiyori" vs "Kozuki Hiyori".
+        //  · 라벨까지 똑같은 줄이 두 개 — CGC 쪽 중복 등록.
+        //  · 같은 알트아트의 테두리 처리 차이 — (Borderless) vs (Map Text Box).
+        // 우리 카드 한 장에 값 하나를 보여주므로 이것들을 **더한다**. 한 줄만 쓰면 나머지 장수가 사라진다.
+        // 합쳐도 안전한 근거: 우리 카드 목록에는 같은 번호+변형이 둘 있는 경우가 없다(번호 없는 카드는 애초에 제외).
+        // 몇 줄을 합쳤는지 rows 로 남겨 나중에 되짚을 수 있게 한다.
+        const total = hits.reduce((a, r) => a + (Number(r.total) || 0), 0);
+        const pristine = hits.reduce((a, r) => a + (Number(r.pristine) || 0), 0);
+        const gem = hits.reduce((a, r) => a + (Number(r.gem) || 0), 0);
+        if (!(total > 0) || pristine + gem > total) { ambiguous.push({ code, ed, num, tier, card: card.name, options: hits.map((h) => `${h.variant || "(빈칸)"} · ${h.total}장`) }); continue; }
+        accepted.push({ code, ed, num, tier, card: card.name, variant: hits.map((h) => h.variant || "(빈칸)").join(" + "), rows: hits.length, total, pristine, gem });
       }
     }
   }
@@ -75,13 +82,13 @@ function ingest(dump, res) {
     const byEd = (bucket[a.ed] = bucket[a.ed] || {});
     const arr = (byEd[`${a.num}|${a.tier}`] = byEd[`${a.num}|${a.tier}`] || []);
     if (arr.some((p) => p.d === dump.collectedAt)) { skipped += 1; continue; }
-    arr.push({ d: dump.collectedAt, total: a.total, g: { "Pristine 10": a.pristine, "Gem Mint 10": a.gem }, variant: a.variant });
+    arr.push({ d: dump.collectedAt, total: a.total, g: { "Pristine 10": a.pristine, "Gem Mint 10": a.gem }, variant: a.variant, rows: a.rows });
     arr.sort((x, y) => x.d.localeCompare(y.d));
     appended += 1;
   }
   hist.grader = "cgc";
   hist.updated = dump.collectedAt;
-  hist.note = "Weekly CGC population for our tracked top-10 One Piece chase cards, per card and per printing variant, kept separately for Japanese and English. Source: CGC public population API. Matched by stamped card number + variant; recorded only when exactly one variant row matches. Japanese and English are never summed. Append-only.";
+  hist.note = "Weekly CGC population for our tracked top-10 One Piece chase cards, per card and per printing variant, kept separately for Japanese and English. Source: CGC public population API. Matched by stamped card number + variant. Where CGC lists the same card and variant on several rows — an English post-errata reprint, a spelling duplicate, or two border treatments of the same alt art — those rows are added together, because we show one figure per card; the number of rows combined is kept alongside each point. Japanese and English are never summed together, and neither are different graders. Append-only.";
   fs.writeFileSync(histPath, `${JSON.stringify(hist)}\n`, "utf8");
   return { appended, skipped, migrated: moved };
 }
