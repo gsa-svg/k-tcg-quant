@@ -45,6 +45,18 @@ function safeEbayUrl(value) {
 
 // eBay Partner Network(EPN) 추적 파라미터 부착 — 공개 캠페인 ID(비밀 아님)
 const EPN_CAMPID = "5339163744";
+
+// eBay 한시 쿠폰. **기간이 지나면 화면에서 스스로 사라진다** — 끝난 쿠폰을 띄우는 건 틀린 값을 띄우는 것과 같다.
+// endsAt 은 eBay 약관 원문 기준(Valid Until: August 10, 2026, 11:59 p.m. GMT-6 → UTC 08-11 05:59).
+// 다음 쿠폰이 나오면 이 블록의 code·url·endsAt 세 줄만 갈아끼우면 된다. 값이 없거나 지났으면 렌더 자체를 안 한다.
+const EBAY_COUPON = {
+  pct: 12,
+  code: "HIS12AUG",
+  url: "https://www.ebay.com/e/row/his12aug-eng",
+  endsAt: "2026-08-11T05:59:00Z",
+  endLabel: { ko: "8/10까지", en: "through Aug 10" },
+};
+const couponLive = () => EBAY_COUPON.code && Date.now() < Date.parse(EBAY_COUPON.endsAt);
 const EPN_ROTATION = "711-53200-19255-0"; // ebay.com(US)
 function epnUrl(value) {
   if (!value) return "";
@@ -174,7 +186,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260803n";
+const DATA_VERSION = "20260803p";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1464,6 +1476,16 @@ function renderTodayDeals() {
         <span class="ctaArrow">↗</span>
       </a>`).join("")}
     </div>
+    ${couponLive() ? `<div class="couponRow">
+      <a class="couponChip" href="${epnUrl(EBAY_COUPON.url)}" target="_blank" rel="noopener noreferrer sponsored">
+        <span class="couponPct">${EBAY_COUPON.pct}%</span>
+        <span class="couponMeta"><b>${t("eBay 쿠폰 받기", "Get the eBay coupon")}</b>
+          <small>${t("결제 시 코드 입력", "Apply the code at checkout")} · ${t(EBAY_COUPON.endLabel.ko, EBAY_COUPON.endLabel.en)}</small></span>
+        <span class="couponCode">${EBAY_COUPON.code}</span><span class="ctaArrow">↗</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=one+piece+card+japanese&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("싱글 카드", "Single cards")}</span> <span class="supplySub">${t("일본판 싱글 보기", "Browse Japanese singles")}</span><span class="bestTag">SINGLE</span></a>
+      <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=one+piece+psa+10+japanese&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("등급 카드", "Graded cards")}</span> <span class="supplySub">${t("PSA 10 매물 보기", "Browse PSA 10 listings")}</span><span class="bestTag">GRADED</span></a>
+      <small class="couponNote">${t("쿠폰은 eBay 가 운영하며 조건·기간은 eBay 페이지 기준입니다. Paid Link.", "The coupon is run by eBay; terms and dates follow eBay's page. Paid Link.")}</small>
+    </div>` : ""}
     <div class="suppliesRow">
       <span class="suppliesLabel">${t("🛡️ 카드 보호 · TCG 커뮤니티 표준", "🛡️ Protect your cards · TCG community staples")}</span>
       <a class="supplyCard" href="${epnUrl("https://www.ebay.com/sch/i.html?_nkw=card+sleeves&_sop=12")}" target="_blank" rel="noopener noreferrer sponsored"><span class="supplyName">${t("플레이 슬리브", "Play sleeves")}</span> <span class="supplySub">${t("카드 슬리브 전체 보기", "Browse card sleeves")}</span><span class="bestTag">PLAY</span></a>
