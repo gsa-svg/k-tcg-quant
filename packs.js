@@ -62,7 +62,12 @@ function epnUrl(value) {
   if (!value) return "";
   try {
     const url = new URL(value);
-    if (!/(^|\.)ebay\./i.test(url.hostname)) return value;
+    // 방어: http(s) 이외 스킴(javascript: 등)은 href 에 절대 넣지 않는다. 예전엔 파싱 실패나
+    // 비-eBay 주소를 **원문 그대로** 돌려줘서, 상류(중계기·API)가 오염되면 악성 링크가
+    // 그대로 화면에 꽂힐 수 있었다(2026-08-06 보안 점검에서 발견). url.href 로만 반환하면
+    // 따옴표 등이 퍼센트 인코딩되어 속성 탈출도 함께 막힌다.
+    if (url.protocol !== "https:" && url.protocol !== "http:") return "#";
+    if (!/(^|\.)ebay\./i.test(url.hostname)) return url.href;
     if (url.searchParams.get("campid")) return url.href; // 이미 부착됨
     url.searchParams.set("mkcid", "1");
     url.searchParams.set("mkrid", EPN_ROTATION);
@@ -72,7 +77,7 @@ function epnUrl(value) {
     url.searchParams.set("mkevt", "1");
     return url.href;
   } catch (e) {
-    return value;
+    return "#";
   }
 }
 
@@ -186,7 +191,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260803p";
+const DATA_VERSION = "20260806a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
