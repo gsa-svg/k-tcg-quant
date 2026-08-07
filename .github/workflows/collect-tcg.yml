@@ -46,6 +46,10 @@ jobs:
       - name: Settle ended auctions
         run: node tools/settle-tcg.js
 
+      # 원본이 바뀌면 화면이 읽는 집계도 같이 다시 굽는다. 안 하면 화면만 하루 뒤처진다.
+      - name: Build series
+        run: node tools/build-tcg-series.js
+
       - name: Guard
         run: node tools/guard-invariants.js
 
@@ -55,13 +59,13 @@ jobs:
           # 구멍이 생기고, 미스테이징 변경 때문에 다음 rebase 가 통째로 죽는다(2026-07-20 실사고).
           # git diff 대신 status 를 쓰는 이유: tcg-archive 의 새 날짜 파일은 아직 추적 전이라
           # diff 에는 안 잡힌다. 그대로 두면 첫날 데이터가 조용히 사라진다.
-          if [ -z "$(git status --porcelain data/tcg-snapshot.json data/tcg-watch.json data/tcg-archive)" ]; then
+          if [ -z "$(git status --porcelain data/tcg-snapshot.json data/tcg-watch.json data/tcg-series.json data/tcg-archive)" ]; then
             echo "No TCG changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/tcg-snapshot.json data/tcg-watch.json data/tcg-archive
+          git add data/tcg-snapshot.json data/tcg-watch.json data/tcg-series.json data/tcg-archive
           git commit -m "Collect TCG auction data"
           for attempt in 1 2 3; do
             if git push; then

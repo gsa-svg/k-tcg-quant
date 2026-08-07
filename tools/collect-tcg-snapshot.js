@@ -29,19 +29,32 @@ const KEEP_DAYS = 730;
 // 8게임 × 150 = 하루 1,200건. 원피스(하루 871건)와 합쳐도 API 한도 안에 든다.
 // 150건이면 낙찰률 오차가 ±4%p 안쪽이라 게임 간 비교에는 충분하고, 전수는 애초에 불가능하다
 // (포켓몬만 하루 4만 건이 끝난다 — 우리 정산 능력의 14배).
-const WATCH_PER_GAME = 150;
+const WATCH_PER_GAME = 100;
 
 // 검색어는 "그 게임을 가장 넓게 잡는 것" 하나로 고정한다. 게임마다 검색어 수가 다르면 비교가 깨진다.
 // (원피스 실측: 'One Piece TCG' 14,544 vs 'One Piece Card Game' 6,770 — 검색어 하나로 2배가 갈린다.)
+//
+// 목록 기준: 2026-08-07 실측으로 **진행 중 경매 250건 이상**인 게임만 넣는다.
+// 그 아래(배틀스피리츠 24, 그랜드아카이브 19, 아코라 7)는 하루 표본이 한 자리라 비율이 의미를 잃고,
+// 호출만 축낸다. 볼륨이 올라오면 그때 넣는다.
 const TCGS = [
-  { k: "pokemon",   nm: "Pokemon",              q: "Pokemon TCG" },
-  { k: "pokemonjp", nm: "Pokemon (Japanese)",   q: "Pokemon Card Japanese" },
-  { k: "magic",     nm: "Magic: The Gathering", q: "Magic The Gathering" },
-  { k: "yugioh",    nm: "Yu-Gi-Oh!",            q: "Yu-Gi-Oh" },
-  { k: "onepiece",  nm: "One Piece",            q: "One Piece TCG" },
-  { k: "lorcana",   nm: "Disney Lorcana",       q: "Disney Lorcana" },
+  { k: "pokemon",    nm: "Pokemon",                  q: "Pokemon TCG" },
+  { k: "pokemonjp",  nm: "Pokemon (Japanese)",       q: "Pokemon Card Japanese" },
+  { k: "magic",      nm: "Magic: The Gathering",     q: "Magic The Gathering" },
+  { k: "yugioh",     nm: "Yu-Gi-Oh!",                q: "Yu-Gi-Oh" },
+  { k: "onepiece",   nm: "One Piece",                q: "One Piece TCG" },
+  { k: "lorcana",    nm: "Disney Lorcana",           q: "Disney Lorcana" },
+  { k: "weiss",      nm: "Weiss Schwarz",            q: "Weiss Schwarz" },
+  { k: "digimon",    nm: "Digimon",                  q: "Digimon Card Game" },
+  { k: "riftbound",  nm: "Riftbound (LoL)",          q: "Riftbound League of Legends" },
+  { k: "unionarena", nm: "Union Arena",              q: "Union Arena" },
+  { k: "swu",        nm: "Star Wars Unlimited",      q: "Star Wars Unlimited" },
+  { k: "gundam",     nm: "Gundam Card Game",         q: "Gundam Card Game" },
   { k: "dragonball", nm: "Dragon Ball Fusion World", q: "Dragon Ball Fusion World" },
-  { k: "palworld",  nm: "Palworld TCG",         q: "Palworld TCG" },
+  { k: "fab",        nm: "Flesh and Blood",          q: "Flesh and Blood TCG" },
+  { k: "metazoo",    nm: "MetaZoo",                  q: "MetaZoo TCG" },
+  { k: "vanguard",   nm: "Cardfight Vanguard",       q: "Cardfight Vanguard" },
+  { k: "palworld",   nm: "Palworld TCG",             q: "Palworld TCG" },
 ];
 
 function loadEnv(p) {
@@ -66,10 +79,10 @@ async function token() {
   return j.access_token;
 }
 
-async function search(tok, q, limit, sort) {
+async function search(tok, q, limit, sort, buying = "AUCTION") {
   const u = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
   u.searchParams.set("q", q);
-  u.searchParams.set("filter", "buyingOptions:{AUCTION}");
+  u.searchParams.set("filter", `buyingOptions:{${buying}}`);
   u.searchParams.set("limit", String(limit));
   if (sort) u.searchParams.set("sort", sort);
   const r = await fetch(u, { headers: { Authorization: `Bearer ${tok}`, "X-EBAY-C-MARKETPLACE-ID": marketplaceId } });
@@ -94,6 +107,10 @@ const median = (a) => {
   for (const g of TCGS) {
     // 1) 전체 진행 중 건수 — limit=1 로 total 만 받는다
     const head = await search(tok, g.q, 1);
+    // 즉시구매도 같이 센다. 경매는 TCG 거래의 작은 쪽이다(실측: 디지몬 경매 1,935 vs 즉구 188,221).
+    // 경매만 보고 "시장"이라 하면 100배를 빠뜨린 얘기가 된다. 다만 즉구는 팔릴 때까지 몇 달도 걸려
+    // "지금 걸린 개수"일 뿐이고, 낙찰률 같은 걸 낼 수는 없다 — 그래서 건수만 적는다.
+    const fixed = await search(tok, g.q, 1, null, "FIXED_PRICE");
     // 2) 종료 임박 순 표본 — 입찰이 붙은 비율과 현재가 분포를 본다
     const { items } = await search(tok, g.q, SAMPLE, "endingSoonest");
     let withBids = 0;
@@ -116,6 +133,7 @@ const median = (a) => {
     games.push({
       k: g.k,
       live: head.total,                                   // eBay 가 알려준 진행 중 경매 수
+      liveFixed: fixed.total,                             // 진행 중 즉시구매 수 (건수만 — 낙찰 개념이 없다)
       sampled: items.length,
       withBids,                                           // 표본 중 입찰이 하나라도 붙은 건수
       bidRate: items.length ? Math.round(withBids / items.length * 1000) / 10 : null,
@@ -133,7 +151,7 @@ const median = (a) => {
 
   fs.writeFileSync(OUT, `${JSON.stringify({
     basis: "Live eBay auction listings by trading card game, sampled once a day",
-    note: "live is how many auction listings eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 200 listings ending soonest: withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded.",
+    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 200 listings ending soonest: withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded.",
     marketplace: marketplaceId,
     sampleSize: SAMPLE,
     terms: Object.fromEntries(TCGS.map((g) => [g.k, { name: g.nm, query: g.q }])),
@@ -159,6 +177,6 @@ const median = (a) => {
   console.log(JSON.stringify({
     status: "ok", day, games: games.length,
     watchAdded: fresh.length, watchPending: pending.length,
-    rows: games.map((g) => `${g.k} live=${g.live} bid=${g.bidRate}% med=$${g.medBid}`),
+    rows: games.map((g) => `${g.k} auc=${g.live} fix=${g.liveFixed} bid=${g.bidRate}% med=${g.medBid}`),
   }, null, 1));
 })().catch((e) => { console.error(String(e.message || e)); process.exit(1); });
