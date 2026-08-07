@@ -1,0 +1,44 @@
+name: Collection health
+
+# 수집이 조용히 멈추는 걸 잡는 감시자 — 2026-08-07 신설.
+#
+# 왜 별도 워크플로인가: 수집 워크플로 안에서만 검사하면, **그 워크플로가 아예 안 도는 경우**를 못 잡는다.
+# 실제로 2026-08-05 에 PSA 주간 수집이 2주 동안 조용히 죽어 있었다. 그때 아무도 몰랐던 이유가 이것이다.
+# 이 워크플로는 아무것도 수집하지 않고, 오직 "데이터가 늙지 않았는가"만 본다.
+#
+# 실패하면 GitHub 이 저장소 소유자에게 메일을 보낸다. 그게 알림이다.
+# 경매·시계열은 소급 수집이 안 되므로, 하루라도 빨리 아는 게 전부다.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 하루 두 번 (KST 10:00 · 22:00). 모든 수집 워크플로가 한 번씩은 돌고 난 뒤 시각.
+    - cron: "0 1,13 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check data freshness
+        run: node tools/audit-collection-health.js
+
+      # 위가 실패하면 여기까지 안 온다. 요약을 실행 화면에 남겨 메일만 보고도 상황을 알게 한다.
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Collection health"
+            echo ""
+            echo '```json'
+            node tools/audit-collection-health.js || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

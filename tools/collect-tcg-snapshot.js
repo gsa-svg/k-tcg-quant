@@ -154,6 +154,14 @@ const median = (a) => {
     });
   }
 
+  // 아무것도 못 받았는데 "성공"으로 끝나면, 그날 한 줄이 0 으로 박히고 아무도 모른다.
+  // eBay 응답 형태가 바뀌거나 자격증명이 만료되면 정확히 이렇게 된다 — 여기서 터뜨린다.
+  const alive = games.filter((g) => g.live > 0).length;
+  if (alive < Math.ceil(TCGS.length / 2)) {
+    throw new Error(`물량이 잡힌 게임이 ${alive}/${TCGS.length} 뿐이다 — 응답 형식이나 자격증명을 의심할 것`);
+  }
+  if (!watchAdd.length) throw new Error("감시 목록에 넣을 매물을 하나도 못 받았다");
+
   const prev = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : { points: [] };
   // 하루 한 줄. 같은 날 다시 돌면 덮어쓴다(하루가 지나면 다시 쓰지 않는다).
   const points = prev.points.filter((p) => p.d !== day).concat([{ d: day, games }]);
