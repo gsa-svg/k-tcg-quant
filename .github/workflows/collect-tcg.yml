@@ -10,8 +10,11 @@ name: Collect TCG market
 on:
   workflow_dispatch:
   schedule:
-    # 스냅샷+정산 (KST 09:00) / 정산만 (KST 03:00 · 15:00 · 21:00)
-    - cron: "0 0,6,12,18 * * *"
+    # ⚠️ cron 을 두 줄로 나눈 이유: github.event.schedule 은 **매칭된 cron 문자열 그대로**다.
+    #    한 줄에 "0 0,6,12,18 * * *" 로 몰아넣으면 매 실행마다 그 문자열이 그대로 들어와,
+    #    "자정에만 스냅샷" 같은 조건을 걸 방법이 없다(조건이 영영 거짓이 되어 스냅샷이 안 돈다).
+    - cron: "0 0 * * *"          # 스냅샷 + 정산 (KST 09:00)
+    - cron: "0 6,12,18 * * *"    # 정산만 (KST 15:00 · 21:00 · 03:00)
 
 permissions:
   contents: write

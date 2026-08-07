@@ -16,7 +16,9 @@ const path = require("node:path");
 const ROOT = path.join(__dirname, "..");
 const WATCH = path.join(ROOT, "data", "tcg-watch.json");
 const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
-const MAX_PER_RUN = 400;          // API 보호. 하루 여러 번 돌리면 1,200건을 무리 없이 소화한다.
+// 하루에 감시 목록으로 들어오는 양(17게임 × 100 = 1,700)보다 처리 능력이 커야 밀리지 않는다.
+// 600 × 하루 4회 = 2,400 — 여유 40%. 이보다 낮추면 못 읽은 채 30시간이 지나 영영 빈칸이 되는 건이 생긴다.
+const MAX_PER_RUN = 600;
 const GIVE_UP_HOURS = 30;         // 이보다 오래된 건 조회가 안 될 수 있다 — 추측하지 않고 버린다.
 
 function loadEnv(p) {
@@ -88,14 +90,24 @@ async function getItem(tok, id) {
   }
 
   fs.mkdirSync(ARCHIVE, { recursive: true });
+  // 이미 어느 날짜 파일에든 들어간 id 는 다시 쓰지 않는다. 같은 경매가 두 번 세어지면
+  // 낙찰률 분모가 부풀고, append-only 원장이라 되돌릴 수도 없다.
+  const already = new Set();
+  for (const f of fs.readdirSync(ARCHIVE).filter((n) => /^\d{4}-\d{2}-\d{2}\.json$/.test(n))) {
+    for (const s2 of (JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || [])) already.add(s2.id);
+  }
   let written = 0;
   for (const [day, rows] of byDay) {
     const f = path.join(ARCHIVE, `${day}.json`);
     const prev = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : { d: day, sales: [] };
     const have = new Set(prev.sales.map((s) => s.id));
-    const add = rows.filter((r) => !have.has(r.id));
+    const add = rows.filter((r) => {
+      if (have.has(r.id) || already.has(r.id)) return false;
+      already.add(r.id);        // 같은 실행 안에서 두 번 들어오는 것도 막는다(검색어가 겹칠 때 생긴다)
+      return true;
+    });
     prev.sales = prev.sales.concat(add);
-    prev.note = "Settled eBay auctions by game. One file per day, appended only -- a day that has passed is never rewritten. sold comes from eBay's own sold-quantity on the ended listing; price is the winning bid and is left null on unsold listings.";
+    prev.note = "Settled eBay auctions by game. One file per day, appended only -- a day that has passed is never rewritten. sold comes from eBay's own sold-quantity on the ended listing; price is the winning bid and is left null on unsold listings. Terms: this dataset is published by opboxindex.com. You may quote figures with a visible link back to opboxindex.com. Bulk copying, redistribution, or resale of these files is not permitted.";
     fs.writeFileSync(f, `${JSON.stringify(prev)}\n`, "utf8");
     written += add.length;
   }

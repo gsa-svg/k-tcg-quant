@@ -438,6 +438,68 @@ if (exists("data/auction-card-stats.json")) {
   }
 }
 
+// ── A3. TCG 경매 원장·집계 무결성 — 2026-08-07 수집 시작과 함께 신설.
+//    원피스와 같은 사고를 그대로 반복할 자리다: 유찰에 가격이 붙거나, 같은 매물이 두 날에 세어지거나,
+//    "물량"과 "거래"를 같은 방식으로 합치는 것. 셋 다 조용히 틀리고, 틀린 채로 그래프가 그려진다.
+{
+  const dir = "data/tcg-archive";
+  if (fs.existsSync(path.join(ROOT, dir))) {
+    const files = fs.readdirSync(path.join(ROOT, dir)).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+    const seen = new Set();
+    const byId = new Map();
+    for (const f of files) {
+      const day = f.slice(0, 10);
+      let j;
+      try { j = JSON.parse(read(`${dir}/${f}`)); } catch { errors.push(`A3: ${f} 파싱 실패`); continue; }
+      for (const s of (j.sales || [])) {
+        if (!s || typeof s.id !== "string") { errors.push(`A3: ${f} id 없는 기록`); break; }
+        if (s.d !== day) { errors.push(`A3: ${f} 에 다른 날짜(${s.d}) 기록 혼입`); break; }
+        // 같은 경매가 두 날에 세어지면 낙찰률 분모가 부풀고, 되돌릴 방법이 없다.
+        if (seen.has(s.id)) { errors.push(`A3: ${s.id} 가 여러 날짜 파일에 중복`); break; }
+        seen.add(s.id);
+        if (!s.g) { errors.push(`A3: ${f} 게임 표시 없는 기록`); break; }
+        // 검색어가 겹치면 한 매물이 두 게임에 들어간다(2026-08-07 실측: pokemon/pokemonjp).
+        // 그대로 두면 두 게임의 분모가 같이 부풀어 비교가 통째로 틀어진다.
+        if (byId.has(s.id) && byId.get(s.id) !== s.g) {
+          errors.push(`A3: ${s.id} 가 두 게임(${byId.get(s.id)}, ${s.g})에 기록됨 — 검색어 겹침`);
+          break;
+        }
+        byId.set(s.id, s.g);
+        // 유찰에 가격이 붙으면 "안 팔린 값"이 시세로 샌다.
+        if (s.sold === false && s.price != null) { errors.push(`A3: ${f} 유찰 기록에 낙찰가(${s.price})`); break; }
+        if (s.sold === true && s.price != null && !(s.price > 0)) { errors.push(`A3: ${f} 가격 이상(${s.price})`); break; }
+      }
+    }
+  }
+
+  const sf = "data/tcg-series.json";
+  if (exists(sf)) {
+    const S = JSON.parse(read(sf));
+    const keys = Object.keys(S.games || {});
+    if (!keys.length) errors.push("A3: tcg-series 에 게임 목록이 없다");
+    for (const scope of ["daily", "weekly", "monthly"]) {
+      for (const r of (S[scope] || [])) {
+        for (const k of keys) {
+          const g = r.games[k];
+          if (!g) { errors.push(`A3: ${scope} ${r.d} ${k} 누락`); continue; }
+          if (g.sold > g.ended) errors.push(`A3: ${scope} ${r.d} ${k} 낙찰(${g.sold}) > 종료(${g.ended})`);
+          // 표본이 얇은데 비율이 붙어 있으면, 없는 추세를 만든 것이다.
+          if (g.ended < S.minRateSample && g.sellThrough !== null) {
+            errors.push(`A3: ${scope} ${r.d} ${k} 표본 ${g.ended}건인데 낙찰률(${g.sellThrough}) 노출`);
+          }
+          // 물량은 그 순간의 사진이라 기간을 늘려도 "평균"이어야 한다. 합으로 바뀌면 주봉이 일봉의 7배가 된다.
+          if (scope !== "daily" && r.days > 1 && g.live != null) {
+            const dailyMax = Math.max(...(S.daily || []).filter((d) => d.games[k]?.live != null).map((d) => d.games[k].live), 0);
+            if (dailyMax && g.live > dailyMax * 1.5) {
+              errors.push(`A3: ${scope} ${r.d} ${k} 물량(${g.live})이 일봉 최대(${dailyMax})를 넘음 — 평균이 아니라 합으로 집계된 듯`);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 // ── Q4. 그레이더 카드매칭 변형(tier) 규칙 — "카드번호만 보고 매칭" 사고(유유테이/eBay top10) 재발 금지.
 //    CGC/TAG 실측 라벨 코퍼스로 ourTier/cgcTier/tagTier 를 실제 실행해 검증. 번호+변형 둘 다 맞아야 기록된다.
 {
@@ -976,4 +1038,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "G8"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "G8"] }));

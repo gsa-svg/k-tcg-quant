@@ -37,9 +37,13 @@ const WATCH_PER_GAME = 100;
 // 목록 기준: 2026-08-07 실측으로 **진행 중 경매 250건 이상**인 게임만 넣는다.
 // 그 아래(배틀스피리츠 24, 그랜드아카이브 19, 아코라 7)는 하루 표본이 한 자리라 비율이 의미를 잃고,
 // 호출만 축낸다. 볼륨이 올라오면 그때 넣는다.
+//
+// ⚠️ 순서가 규칙이다. 검색어가 겹치면(일본판 포켓몬은 'Pokemon TCG' 에도 잡힌다) **먼저 나온 게임이 가져간다**.
+//    그래서 좁은 검색어를 위에 둔다. 2026-08-07 실측으로 같은 매물이 pokemon·pokemonjp 양쪽에
+//    기록되는 걸 가드가 잡았다 — 그대로 뒀으면 일본판이 두 번 세어져 게임 간 비교가 통째로 틀어졌다.
 const TCGS = [
-  { k: "pokemon",    nm: "Pokemon",                  q: "Pokemon TCG" },
   { k: "pokemonjp",  nm: "Pokemon (Japanese)",       q: "Pokemon Card Japanese" },
+  { k: "pokemon",    nm: "Pokemon",                  q: "Pokemon TCG" },
   { k: "magic",      nm: "Magic: The Gathering",     q: "Magic The Gathering" },
   { k: "yugioh",     nm: "Yu-Gi-Oh!",                q: "Yu-Gi-Oh" },
   { k: "onepiece",   nm: "One Piece",                q: "One Piece TCG" },
@@ -103,6 +107,7 @@ const median = (a) => {
   const day = new Date().toISOString().slice(0, 10);
   const games = [];
   const watchAdd = [];
+  const claimed = new Set();   // 검색어가 겹칠 때 한 매물이 두 게임에 들어가는 걸 막는다
 
   for (const g of TCGS) {
     // 1) 전체 진행 중 건수 — limit=1 로 total 만 받는다
@@ -126,9 +131,15 @@ const median = (a) => {
     // 낙찰률·거래액은 끝난 뒤에야 알 수 있다. 표본 앞쪽(가장 먼저 끝나는 것들)을 감시 목록에 넣어
     // settle-tcg.js 가 종료 후 다시 읽게 한다. 표본을 "종료 임박 순" 앞에서 자르는 이유는,
     // 다음 실행 전에 끝나야 놓치지 않기 때문이다.
-    for (const it of items.slice(0, WATCH_PER_GAME)) {
+    let taken = 0;
+    for (const it of items) {
+      if (taken >= WATCH_PER_GAME) break;
       if (!it.itemId || !it.itemEndDate) continue;
+      // 한 매물은 한 게임에만 속한다. 앞선(더 좁은) 검색어가 이미 가져갔으면 건너뛴다.
+      if (claimed.has(it.itemId)) continue;
+      claimed.add(it.itemId);
       watchAdd.push({ g: g.k, id: it.itemId, end: it.itemEndDate, seen: day });
+      taken += 1;
     }
     games.push({
       k: g.k,
@@ -151,10 +162,10 @@ const median = (a) => {
 
   fs.writeFileSync(OUT, `${JSON.stringify({
     basis: "Live eBay auction listings by trading card game, sampled once a day",
-    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 200 listings ending soonest: withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded.",
+    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 200 listings ending soonest: withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms: this dataset is published by opboxindex.com. You may quote figures with a visible link back to opboxindex.com. Bulk copying, redistribution, or resale of these files is not permitted.",
     marketplace: marketplaceId,
     sampleSize: SAMPLE,
-    terms: Object.fromEntries(TCGS.map((g) => [g.k, { name: g.nm, query: g.q }])),
+    terms: Object.fromEntries(TCGS.map((g, i) => [g.k, { name: g.nm, query: g.q, order: i }])),
     updated: new Date().toISOString(),
     points: points.filter((p) => p.d >= cut),
   })}\n`, "utf8");
