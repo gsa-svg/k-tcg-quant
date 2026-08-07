@@ -107,7 +107,7 @@ async function getItem(tok, id) {
       return true;
     });
     prev.sales = prev.sales.concat(add);
-    prev.note = "Settled eBay auctions by game. One file per day, appended only -- a day that has passed is never rewritten. sold comes from eBay's own sold-quantity on the ended listing; price is the winning bid and is left null on unsold listings. Terms: this dataset is published by opboxindex.com. You may quote figures with a visible link back to opboxindex.com. Bulk copying, redistribution, or resale of these files is not permitted.";
+    prev.note = "Settled eBay auctions by game. One file per day, appended only -- a day that has passed is never rewritten. sold comes from eBay's own sold-quantity on the ended listing; price is the winning bid and is left null on unsold listings. Terms of use: https://opboxindex.com/free-data.html#terms";
     fs.writeFileSync(f, `${JSON.stringify(prev)}\n`, "utf8");
     written += add.length;
   }
