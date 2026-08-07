@@ -405,7 +405,7 @@ if (exists("data/auction-card-stats.json")) {
   if (exists(f)) {
     const s = JSON.parse(read(f));
     const EDS = ["jp", "en", "other"];
-    const CATS = ["box", "graded", "raw", "pack"];
+    const CATS = ["box", "graded", "raw", "pack", "lot"];
     const minN = s.minPriceSample;
     if (!(minN > 0)) errors.push("A2: minPriceSample 이 없다 — 시세 표본 하한이 사라짐");
     for (const scope of ["daily", "weekly", "monthly"]) {

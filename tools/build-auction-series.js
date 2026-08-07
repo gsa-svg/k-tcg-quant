@@ -18,9 +18,10 @@
 //   3) 경쟁   bidders / bids 평균              … 몇 명이 붙었나 (가격보다 먼저 움직인다)
 //   4) 판본   byEd = jp / en / other          … 어느 판이 팔리나
 //
-// 분류(4종, 서로 겹치지 않음):
+// 분류(5종, 서로 겹치지 않음):
 //   box   … 밀봉 박스·카톤        graded … 등급 카드(제목에서 읽은 등급이 있는 것)
-//   pack  … 낱팩                  raw    … 그 외 카드(무등급)
+//   pack  … 낱팩                  raw    … 낱장 카드(무등급)
+//   lot   … 여러 장·여러 개 묶음("Set of 100", "Lot of 10" 류). 낱장과 섞으면 낱장 통계가 오염된다.
 //   ※ grade 는 2026-07-22 부터 기록된다. 그 이전 날짜는 graded 를 집계하지 않고 gradeTracked:false 로 남긴다.
 // Run: node tools/build-auction-series.js
 const fs = require("node:fs");
@@ -40,14 +41,20 @@ const MIN_PRICE_N = 5;
 // (실측: 7/20–21 0%, 7/29 66%, 7/30부터 80%대로 안정. 등급 때와 같은 함정이라 같은 방식으로 표시한다.)
 const ED_MIN_COVERAGE = 70;
 
-const CATS = ["box", "graded", "raw", "pack"];
+const CATS = ["box", "graded", "raw", "pack", "lot"];
 // 판본은 jp / en / other 셋뿐이다. 원장의 ed 는 eBay 언어 속성이나 제목에서 온 jp·en 만 채워지고,
 // 나머지(한국판·중국판·판단 불가)는 전부 other 로 간다 — 그 안을 더 쪼개도 쓸 데가 없다.
 const EDS = ["jp", "en", "other"];
 
 const edition = (s) => (s.ed === "jp" || s.ed === "en" ? s.ed : "other");
 
+// "100장 묶음"은 카드 한 장이 아니다. 제목이 묶음을 말하면 낱장·낱팩과 섞지 않고 lot 으로 뺀다
+// (2026-08-07 실측: 싱글 버킷 9,788건 중 242건이 묶음. 낙찰률이 17.4% vs 낱장 28.1% 로 아예 다른 물건이다).
+// ⚠️ 제목이 없는 행(1,731건, 전부 7/22 이전)은 묶음인지 알 방법이 없어 그대로 낱장에 남는다.
+const LOT_TITLE = /\blots?\s+of\b|\blot\b|\bbundle\b|\bbrick\b|\bplaysets?\b|\bset\s+of\s+\d|\b\d{2,}\s*(?:cards?|pcs|pieces)\b|\bx\s?\d{2,}\b/i;
+
 const category = (s) => {
+  if (s.title && LOT_TITLE.test(s.title)) return "lot";  // 묶음이 먼저다 — 낱장 통계를 오염시키는 쪽이라
   if (s.kind === "box" || s.kind === "carton") return "box";
   if (s.kind === "pack") return "pack";
   return s.grade ? "graded" : "raw";
@@ -55,16 +62,9 @@ const category = (s) => {
 
 // 낙찰 단가. 여러 장 묶음이면 묶음가를 장수로 나눈 unitPrice 를 쓴다 —
 // 10장 묶음 $100 을 $100 짜리 카드로 세면 시세가 통째로 부풀어 오른다.
-//
-// unitPrice 가 없는 낙찰건이 20%(735건) 있고, 그중 제목이 남은 112건을 보니 95건이 "LOT of 5" 류였다.
-// 장수 파서가 놓친 묶음이다. 이런 건 장당가를 만들 수 없으므로 **시세 계산에서 뺀다**(건수·금액에는 그대로 남는다).
-// 실측 영향: 전체 중앙가 $18.5 → 제외해도 $18.5. 작지만, 작다고 확인한 것과 안 본 것은 다르다.
-const LOT_TITLE = /\blots?\s+of\b|\blot\b|\bbundle\b|\bbrick\b|\bplaysets?\b|\bset\s+of\s+\d|\b\d{2,}\s*(?:cards?|pcs|pieces)\b|\bx\s?\d{2,}\b/i;
-const unit = (s) => {
-  if (s.unitPrice > 0) return s.unitPrice;              // 장수가 확인된 건
-  if (s.title && LOT_TITLE.test(s.title)) return null;  // 장수 미상인데 묶음으로 보이는 건 → 시세에서 제외
-  return s.price;
-};
+// lot 은 장수를 모르는 게 대부분(196건 중 191건)이라 장당가를 만들 수 없다. 대신 **묶음 하나의 값**을
+// 그대로 쓴다 — 자기 버킷 안에서는 그게 맞는 단위다.
+const unit = (s, cat) => (cat === "lot" ? s.price : (s.unitPrice > 0 ? s.unitPrice : s.price));
 
 const isoWeekStart = (day) => {
   const t = new Date(`${day}T00:00:00Z`);
@@ -82,7 +82,7 @@ function pct(sorted, q) {
 
 function stats(sales) {
   const b = {
-    ended: 0, sold: 0, unsold: 0, amount: 0, noTitle: 0, priceSkipped: 0,
+    ended: 0, sold: 0, unsold: 0, amount: 0, noTitle: 0,
     byCat: Object.fromEntries(CATS.map((c) => [c, { ended: 0, sold: 0, amount: 0 }])),
     byEd: Object.fromEntries(EDS.map((e) => [e, { ended: 0, sold: 0, amount: 0 }])),
   };
@@ -108,8 +108,9 @@ function stats(sales) {
       b.amount += v;
       b.byCat[cat].amount += v;
       b.byEd[ed].amount += v;
-      const u = unit(s);
-      if (u > 0) { prices[cat].push(u); prices.all.push(u); } else if (u === null) b.priceSkipped += 1;
+      const u = unit(s, cat);
+      // all 에는 묶음을 넣지 않는다. 묶음가는 카드 한 장 값이 아니라서 섞으면 전체 중앙값이 뜻을 잃는다.
+      if (u > 0) { prices[cat].push(u); if (cat !== "lot") prices.all.push(u); }
     }
     // 입찰 경쟁은 낙찰된 건에서만 센다. 유찰은 0 입찰이 대부분이라 섞으면 평균이 무너진다.
     if (s.bidders > 0) { bidders[cat].push(s.bidders); bidders.all.push(s.bidders); }
@@ -195,7 +196,7 @@ function main() {
 
   const out = {
     basis: "completed eBay auctions for One Piece Card Game items",
-    note: "Daily, weekly and monthly rollups built from data/auction-archive (one append-only file per day). A day is flagged partial when fewer auctions were captured than a normal day, and missing days are listed in gaps — neither is silently smoothed over. Item grade is only parsed from listing titles since 2026-07-22, so earlier days carry gradeTracked:false and their graded/raw split is unknown, not zero. Amounts are winning bid x quantity in USD; price holds the 25th, 50th and 75th percentile of the per-card winning price (lot listings divided by their card count), left null below 5 sales because a median of three is not a market; sales whose title reads as a lot but whose card count could not be parsed are counted in ended and amount but skipped for price, and priceSkipped says how many. bidders and bids are averages over won auctions only, since unsold ones mostly have zero and would drag the mean. byEd splits the same auctions by printing: jp and en come from the listing's own language field or title, and everything else -- other printings and listings we could not read -- falls into other. Edition parsing was rolled out gradually (0% of listings on 2026-07-20, ~85% from 2026-07-30), so edCoverage records how many rows in each bucket actually carry a printing, and edTracked is false wherever that is under 70% -- there, other means unread, not foreign.",
+    note: "Daily, weekly and monthly rollups built from data/auction-archive (one append-only file per day). A day is flagged partial when fewer auctions were captured than a normal day, and missing days are listed in gaps — neither is silently smoothed over. Item grade is only parsed from listing titles since 2026-07-22, so earlier days carry gradeTracked:false and their graded/raw split is unknown, not zero. Amounts are winning bid x quantity in USD; price holds the 25th, 50th and 75th percentile of the per-card winning price (lot listings divided by their card count), left null below 5 sales because a median of three is not a market; multi-item listings (title says lot, bundle, set of N and so on) get their own lot category instead of being mixed into single cards, and their price is the price of the whole lot, so lot is left out of the all bucket. Listings stored before titles were kept (1,731 rows, all on or before 2026-07-22) cannot be checked for this and stay in raw. bidders and bids are averages over won auctions only, since unsold ones mostly have zero and would drag the mean. byEd splits the same auctions by printing: jp and en come from the listing's own language field or title, and everything else -- other printings and listings we could not read -- falls into other. Edition parsing was rolled out gradually (0% of listings on 2026-07-20, ~85% from 2026-07-30), so edCoverage records how many rows in each bucket actually carry a printing, and edTracked is false wherever that is under 70% -- there, other means unread, not foreign.",
     builtFrom: { first: daily[0].d, last: daily[daily.length - 1].d, files: files.length },
     gradeSince: GRADE_SINCE,
     minPriceSample: MIN_PRICE_N,
