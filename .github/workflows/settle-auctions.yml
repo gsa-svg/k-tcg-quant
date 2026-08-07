@@ -48,6 +48,10 @@ jobs:
       - name: Card auction stats
         run: node tools/auction-card-stats.js
 
+      # 일봉·주봉·월봉 집계. 아카이브를 통째로 다시 읽어 구우므로 순서·중복에 영향받지 않는다.
+      - name: Build auction series
+        run: node tools/build-auction-series.js
+
       - name: Guard
         run: node tools/guard-invariants.js
 
@@ -56,13 +60,13 @@ jobs:
           # 원장은 data/auction-archive/ 의 새 파일로 생긴다(추적되지 않는 파일).
           # git diff 는 추적 안 된 파일을 못 보므로 status 로 판단해야 한다 —
           # diff 로만 보면 "Nothing settled" 로 빠져나가 원장이 영영 커밋되지 않는다.
-          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-archive)" ]; then
+          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive)" ]; then
             echo "Nothing settled."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-archive
+          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive
           git commit -m "Settle completed auctions"
           for attempt in 1 2 3; do
             if git push; then
