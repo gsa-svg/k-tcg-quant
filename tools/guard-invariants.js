@@ -397,6 +397,47 @@ if (exists("data/auction-card-stats.json")) {
   }
 }
 
+// ── A2. 경매 시계열(auction-series.json) 축 무결성 — 2026-08-07 판본·시세·입찰 축 신설과 함께 추가.
+//    이 파일은 화면이 그대로 그리는 값이라, 축이 조용히 빠지거나 합이 어긋나면 없는 사실이 그려진다.
+//    특히 "표본이 얇을 때 값을 비운다"는 규칙은 지키기 쉬운 만큼 되돌리기도 쉬워서 여기에 못 박는다.
+{
+  const f = "data/auction-series.json";
+  if (exists(f)) {
+    const s = JSON.parse(read(f));
+    const EDS = ["jp", "en", "other"];
+    const CATS = ["box", "graded", "raw", "pack"];
+    const minN = s.minPriceSample;
+    if (!(minN > 0)) errors.push("A2: minPriceSample 이 없다 — 시세 표본 하한이 사라짐");
+    for (const scope of ["daily", "weekly", "monthly"]) {
+      const rows = s[scope];
+      if (!Array.isArray(rows) || !rows.length) { errors.push(`A2: ${scope} 비어 있음`); continue; }
+      for (const r of rows) {
+        // 축의 합은 언제나 전체와 같아야 한다. 어긋나면 어떤 건은 세다 말았다는 뜻이다.
+        for (const [name, axis] of [["byEd", EDS], ["byCat", CATS]]) {
+          if (!r[name]) { errors.push(`A2: ${scope} ${r.d} ${name} 축 누락`); continue; }
+          const sum = axis.reduce((a, k) => a + ((r[name][k] || {}).ended || 0), 0);
+          if (sum !== r.ended) errors.push(`A2: ${scope} ${r.d} ${name} 합계 ${sum} ≠ ended ${r.ended}`);
+        }
+        if (r.sold + r.unsold !== r.ended) errors.push(`A2: ${scope} ${r.d} 낙찰+유찰 ≠ 종료`);
+        // 판본 커버리지가 낮은 구간을 "집계 가능"으로 표시하면, 못 읽은 걸 다른 판으로 읽게 된다.
+        if (r.edTracked && r.edCoverage < s.edMinCoverage) errors.push(`A2: ${scope} ${r.d} edCoverage ${r.edCoverage}% 인데 edTracked=true`);
+        // 표본이 하한 미만인데 중앙값이 있으면, 없는 시세를 만들어낸 것이다.
+        for (const k of [...CATS, "all"]) {
+          const p = (r.price || {})[k];
+          if (!p) { errors.push(`A2: ${scope} ${r.d} price.${k} 누락`); continue; }
+          if (p.n < minN && p.med !== null) errors.push(`A2: ${scope} ${r.d} price.${k} 표본 ${p.n}건인데 중앙값(${p.med}) 노출`);
+          if (p.med !== null && !(p.p25 <= p.med && p.med <= p.p75)) errors.push(`A2: ${scope} ${r.d} price.${k} 백분위 순서 뒤집힘 (${p.p25}/${p.med}/${p.p75})`);
+        }
+        // 입찰 평균은 낙찰건 기준이라 1 미만이 나올 수 없다(0 입찰이 섞였다는 뜻).
+        for (const k of [...CATS, "all"]) {
+          const b = (r.bidders || {})[k];
+          if (b !== null && b !== undefined && b < 1) errors.push(`A2: ${scope} ${r.d} bidders.${k}=${b} — 유찰 혼입 의심`);
+        }
+      }
+    }
+  }
+}
+
 // ── Q4. 그레이더 카드매칭 변형(tier) 규칙 — "카드번호만 보고 매칭" 사고(유유테이/eBay top10) 재발 금지.
 //    CGC/TAG 실측 라벨 코퍼스로 ourTier/cgcTier/tagTier 를 실제 실행해 검증. 번호+변형 둘 다 맞아야 기록된다.
 {
@@ -935,4 +976,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "G8"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "G8"] }));

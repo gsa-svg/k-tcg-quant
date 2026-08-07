@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 경매 시계열 집계 — 2026-08-06.
+// 경매 시계열 집계 — 2026-08-06(판본·가격·입찰 축 추가 2026-08-07).
 //
 // data/auction-archive/<날짜>.json(하루 1파일, 한 번 쓰고 다시 안 고침)을 전부 읽어
 // data/auction-series.json 에 **일봉·주봉·월봉**을 굽는다. 화면(일/주/월 토글)은 이 파일만 읽으면 된다.
@@ -11,6 +11,12 @@
 // ⚠️ **불완전한 구간은 표시로 남긴다**(partial). 수집이 빠진 날(7/25·26)이나 부분 수집(7/27·8/6)을
 //    그냥 그리면 "그날 경매가 급감"이라는 없는 사실이 생긴다. 지우지도 않고 섞지도 않는다 —
 //    표시만 해두고 그릴지 말지는 화면이 정한다.
+//
+// 네 개의 축을 같은 구간에 대해 굽는다. 하나만으로는 시장을 못 읽는다:
+//   1) 물량   ended / sold / sellThrough      … 얼마나 나왔고 얼마나 팔렸나
+//   2) 금액   amount / price(p25·중앙·p75)     … 얼마에 팔렸나 (합계는 물량에 끌려다닌다. 중앙값이 진짜 시세다)
+//   3) 경쟁   bidders / bids 평균              … 몇 명이 붙었나 (가격보다 먼저 움직인다)
+//   4) 판본   byEd = jp / en / other          … 어느 판이 팔리나
 //
 // 분류(4종, 서로 겹치지 않음):
 //   box   … 밀봉 박스·카톤        graded … 등급 카드(제목에서 읽은 등급이 있는 것)
@@ -28,14 +34,36 @@ const OUT = path.join(ROOT, "data", "auction-series.json");
 const GRADE_SINCE = "2026-07-22";
 // 하루 종료 건수가 이보다 적으면 수집이 덜 돈 날로 본다(정상일은 500건 이상, 부분 수집일은 91·271건이었다).
 const PARTIAL_BELOW = 400;
+// 중앙값을 이 표본 미만으로 내놓지 않는다. 박스는 하루 5건짜리라 한 건에 중앙값이 통째로 흔들린다.
+const MIN_PRICE_N = 5;
+// 판본 판정이 붙은 비율이 이보다 낮은 날은 other 를 "다른 판"으로 읽으면 안 된다 — 그냥 못 읽은 것이다.
+// (실측: 7/20–21 0%, 7/29 66%, 7/30부터 80%대로 안정. 등급 때와 같은 함정이라 같은 방식으로 표시한다.)
+const ED_MIN_COVERAGE = 70;
 
 const CATS = ["box", "graded", "raw", "pack"];
-const empty = () => ({ ended: 0, sold: 0, unsold: 0, amount: 0, byCat: Object.fromEntries(CATS.map((c) => [c, { ended: 0, sold: 0, amount: 0 }])) });
+// 판본은 jp / en / other 셋뿐이다. 원장의 ed 는 eBay 언어 속성이나 제목에서 온 jp·en 만 채워지고,
+// 나머지(한국판·중국판·판단 불가)는 전부 other 로 간다 — 그 안을 더 쪼개도 쓸 데가 없다.
+const EDS = ["jp", "en", "other"];
+
+const edition = (s) => (s.ed === "jp" || s.ed === "en" ? s.ed : "other");
 
 const category = (s) => {
   if (s.kind === "box" || s.kind === "carton") return "box";
   if (s.kind === "pack") return "pack";
   return s.grade ? "graded" : "raw";
+};
+
+// 낙찰 단가. 여러 장 묶음이면 묶음가를 장수로 나눈 unitPrice 를 쓴다 —
+// 10장 묶음 $100 을 $100 짜리 카드로 세면 시세가 통째로 부풀어 오른다.
+//
+// unitPrice 가 없는 낙찰건이 20%(735건) 있고, 그중 제목이 남은 112건을 보니 95건이 "LOT of 5" 류였다.
+// 장수 파서가 놓친 묶음이다. 이런 건 장당가를 만들 수 없으므로 **시세 계산에서 뺀다**(건수·금액에는 그대로 남는다).
+// 실측 영향: 전체 중앙가 $18.5 → 제외해도 $18.5. 작지만, 작다고 확인한 것과 안 본 것은 다르다.
+const LOT_TITLE = /\blots?\s+of\b|\blot\b|\bbundle\b|\bbrick\b|\bplaysets?\b|\bset\s+of\s+\d|\b\d{2,}\s*(?:cards?|pcs|pieces)\b|\bx\s?\d{2,}\b/i;
+const unit = (s) => {
+  if (s.unitPrice > 0) return s.unitPrice;              // 장수가 확인된 건
+  if (s.title && LOT_TITLE.test(s.title)) return null;  // 장수 미상인데 묶음으로 보이는 건 → 시세에서 제외
+  return s.price;
 };
 
 const isoWeekStart = (day) => {
@@ -44,28 +72,75 @@ const isoWeekStart = (day) => {
   return t.toISOString().slice(0, 10);
 };
 
-function addSale(bucket, s) {
-  const cat = category(s);
-  bucket.ended += 1;
-  bucket.byCat[cat].ended += 1;
-  if (!s.sold) { bucket.unsold += 1; return; }
-  bucket.sold += 1;
-  bucket.byCat[cat].sold += 1;
-  // 낙찰액은 개당가가 아니라 실제 결제 규모(가격×수량)로 본다. 통화가 USD 가 아니면 금액에서 뺀다
-  // (환산해서 섞으면 어느 시점 환율인지 알 수 없는 값이 된다 — 빈 값이 틀린 값보다 낫다).
-  if (s.currency === "USD" && s.price > 0) {
-    const v = s.price * (s.qty || 1);
-    bucket.amount += v;
-    bucket.byCat[cat].amount += v;
-  }
+const round = (n, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
+
+// 선형보간 없는 최근접 백분위. 표본이 작을 때 없는 값을 만들어내지 않는다.
+function pct(sorted, q) {
+  if (!sorted.length) return null;
+  return round(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * q))]);
 }
 
-function finish(bucket, meta) {
-  const round = (n) => Math.round(n * 100) / 100;
-  bucket.amount = round(bucket.amount);
-  for (const c of CATS) bucket.byCat[c].amount = round(bucket.byCat[c].amount);
-  bucket.sellThrough = bucket.ended ? round((bucket.sold / bucket.ended) * 100) : null;
-  return { ...meta, ...bucket };
+function stats(sales) {
+  const b = {
+    ended: 0, sold: 0, unsold: 0, amount: 0, noTitle: 0, priceSkipped: 0,
+    byCat: Object.fromEntries(CATS.map((c) => [c, { ended: 0, sold: 0, amount: 0 }])),
+    byEd: Object.fromEntries(EDS.map((e) => [e, { ended: 0, sold: 0, amount: 0 }])),
+  };
+  const prices = Object.fromEntries([...CATS, "all"].map((k) => [k, []]));
+  const bidders = Object.fromEntries([...CATS, "all"].map((k) => [k, []]));
+  const bids = Object.fromEntries([...CATS, "all"].map((k) => [k, []]));
+
+  for (const s of sales) {
+    const cat = category(s);
+    const ed = edition(s);
+    b.ended += 1;
+    b.byCat[cat].ended += 1;
+    b.byEd[ed].ended += 1;
+    if (!s.title) b.noTitle += 1;
+    if (!s.sold) { b.unsold += 1; continue; }
+    b.sold += 1;
+    b.byCat[cat].sold += 1;
+    b.byEd[ed].sold += 1;
+    // 낙찰액은 개당가가 아니라 실제 결제 규모(가격×수량)로 본다. 통화가 USD 가 아니면 금액에서 뺀다
+    // (환산해서 섞으면 어느 시점 환율인지 알 수 없는 값이 된다 — 빈 값이 틀린 값보다 낫다).
+    if (s.currency === "USD" && s.price > 0) {
+      const v = s.price * (s.qty || 1);
+      b.amount += v;
+      b.byCat[cat].amount += v;
+      b.byEd[ed].amount += v;
+      const u = unit(s);
+      if (u > 0) { prices[cat].push(u); prices.all.push(u); } else if (u === null) b.priceSkipped += 1;
+    }
+    // 입찰 경쟁은 낙찰된 건에서만 센다. 유찰은 0 입찰이 대부분이라 섞으면 평균이 무너진다.
+    if (s.bidders > 0) { bidders[cat].push(s.bidders); bidders.all.push(s.bidders); }
+    if (s.bids > 0) { bids[cat].push(s.bids); bids.all.push(s.bids); }
+  }
+
+  const avg = (a) => (a.length ? round(a.reduce((x, y) => x + y, 0) / a.length, 1) : null);
+  const priceBlock = (k) => {
+    const a = prices[k].slice().sort((x, y) => x - y);
+    // 표본이 얇으면 값을 아예 안 내놓는다. n 은 항상 같이 실어 독자가 무게를 판단하게 한다.
+    if (a.length < MIN_PRICE_N) return { n: a.length, p25: null, med: null, p75: null };
+    return { n: a.length, p25: pct(a, 0.25), med: pct(a, 0.5), p75: pct(a, 0.75) };
+  };
+
+  b.amount = round(b.amount);
+  for (const c of CATS) b.byCat[c].amount = round(b.byCat[c].amount);
+  for (const e of EDS) b.byEd[e].amount = round(b.byEd[e].amount);
+  b.sellThrough = b.ended ? round((b.sold / b.ended) * 100) : null;
+  // 판정이 붙은 비율. 날짜 상수로 박지 않고 매번 세서, 나중에 커버리지가 떨어지면 저절로 드러나게 한다.
+  b.edCoverage = b.ended ? round(((b.byEd.jp.ended + b.byEd.en.ended) / b.ended) * 100, 1) : null;
+  b.edTracked = b.edCoverage !== null && b.edCoverage >= ED_MIN_COVERAGE;
+  b.price = Object.fromEntries([...CATS, "all"].map((k) => [k, priceBlock(k)]));
+  b.bidders = Object.fromEntries([...CATS, "all"].map((k) => [k, avg(bidders[k])]));
+  b.bids = Object.fromEntries([...CATS, "all"].map((k) => [k, avg(bids[k])]));
+
+  // 축이 늘면 합이 안 맞는 실수를 조용히 내보내기 쉽다. 여기서 터뜨려 잘못된 파일이 나가는 걸 막는다.
+  for (const [name, axis] of [["byCat", CATS], ["byEd", EDS]]) {
+    const sum = axis.reduce((a, k) => a + b[name][k].ended, 0);
+    if (sum !== b.ended) throw new Error(`${name} 합계(${sum})가 ended(${b.ended})와 다르다`);
+  }
+  return b;
 }
 
 function main() {
@@ -73,18 +148,23 @@ function main() {
   const files = fs.readdirSync(ARCHIVE).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
   if (!files.length) throw new Error("아카이브가 비어 있다");
 
-  const daily = [];
+  // 주봉·월봉은 일봉을 더해서 만들 수 없다 — 중앙값은 더해지지 않는다.
+  // 그래서 원본 낙찰건을 날짜별로 들고 있다가 구간마다 다시 계산한다(전 기간 1만여 건, 비용은 무시할 수준).
+  const byDay = new Map();
   for (const f of files) {
     const day = f.slice(0, 10);
-    const sales = JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || [];
-    const b = empty();
-    for (const s of sales) addSale(b, s);
-    daily.push(finish(b, {
+    byDay.set(day, JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || []);
+  }
+
+  const daily = [...byDay.entries()].map(([day, sales]) => {
+    const b = stats(sales);
+    return {
       d: day,
       partial: b.ended < PARTIAL_BELOW,          // 수집이 덜 돈 날 — 화면에서 뺄지 흐리게 할지는 화면이 정한다
       gradeTracked: day >= GRADE_SINCE,          // false 면 graded/raw 구분이 없는 날이다
-    }));
-  }
+      ...b,
+    };
+  });
 
   // 빠진 날짜를 찾아 둔다. 그래프에서 선을 이으면 없는 날이 채워진 것처럼 보인다.
   const gaps = [];
@@ -98,29 +178,28 @@ function main() {
 
   const roll = (keyOf) => {
     const map = new Map();
-    for (const day of daily) {
-      const k = keyOf(day.d);
-      if (!map.has(k)) map.set(k, { bucket: empty(), days: 0, partialDays: 0, gradeDays: 0 });
+    for (const [day, sales] of byDay) {
+      const k = keyOf(day);
+      if (!map.has(k)) map.set(k, { sales: [], days: 0, partialDays: 0, gradeDays: 0 });
       const g = map.get(k);
+      g.sales.push(...sales);
       g.days += 1;
-      if (day.partial) g.partialDays += 1;
-      if (day.gradeTracked) g.gradeDays += 1;
-      g.bucket.ended += day.ended; g.bucket.sold += day.sold; g.bucket.unsold += day.unsold; g.bucket.amount += day.amount;
-      for (const c of CATS) {
-        g.bucket.byCat[c].ended += day.byCat[c].ended;
-        g.bucket.byCat[c].sold += day.byCat[c].sold;
-        g.bucket.byCat[c].amount += day.byCat[c].amount;
-      }
+      if (sales.length < PARTIAL_BELOW) g.partialDays += 1;
+      if (day >= GRADE_SINCE) g.gradeDays += 1;
     }
     return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([k, g]) => finish(g.bucket, { d: k, days: g.days, partialDays: g.partialDays, gradeTracked: g.gradeDays === g.days }));
+      .map(([k, g]) => ({
+        d: k, days: g.days, partialDays: g.partialDays, gradeTracked: g.gradeDays === g.days, ...stats(g.sales),
+      }));
   };
 
   const out = {
     basis: "completed eBay auctions for One Piece Card Game items",
-    note: "Daily, weekly and monthly rollups built from data/auction-archive (one append-only file per day). A day is flagged partial when fewer auctions were captured than a normal day, and missing days are listed in gaps — neither is silently smoothed over. Item grade is only parsed from listing titles since 2026-07-22, so earlier days carry gradeTracked:false and their graded/raw split is unknown, not zero. Amounts are winning bid x quantity in USD only; non-USD sales are counted but left out of amounts rather than converted at an unknown rate.",
+    note: "Daily, weekly and monthly rollups built from data/auction-archive (one append-only file per day). A day is flagged partial when fewer auctions were captured than a normal day, and missing days are listed in gaps — neither is silently smoothed over. Item grade is only parsed from listing titles since 2026-07-22, so earlier days carry gradeTracked:false and their graded/raw split is unknown, not zero. Amounts are winning bid x quantity in USD; price holds the 25th, 50th and 75th percentile of the per-card winning price (lot listings divided by their card count), left null below 5 sales because a median of three is not a market; sales whose title reads as a lot but whose card count could not be parsed are counted in ended and amount but skipped for price, and priceSkipped says how many. bidders and bids are averages over won auctions only, since unsold ones mostly have zero and would drag the mean. byEd splits the same auctions by printing: jp and en come from the listing's own language field or title, and everything else -- other printings and listings we could not read -- falls into other. Edition parsing was rolled out gradually (0% of listings on 2026-07-20, ~85% from 2026-07-30), so edCoverage records how many rows in each bucket actually carry a printing, and edTracked is false wherever that is under 70% -- there, other means unread, not foreign.",
     builtFrom: { first: daily[0].d, last: daily[daily.length - 1].d, files: files.length },
     gradeSince: GRADE_SINCE,
+    minPriceSample: MIN_PRICE_N,
+    edMinCoverage: ED_MIN_COVERAGE,
     gaps,
     daily,
     weekly: roll(isoWeekStart),
@@ -128,14 +207,16 @@ function main() {
   };
 
   fs.writeFileSync(OUT, `${JSON.stringify(out)}\n`, "utf8");
+  const last = daily[daily.length - 1];
   console.log(JSON.stringify({
     status: "ok",
     days: daily.length, weeks: out.weekly.length, months: out.monthly.length,
     partialDays: daily.filter((d) => d.partial).length, gaps: gaps.length,
     ended: daily.reduce((a, d) => a + d.ended, 0),
     amount: Math.round(daily.reduce((a, d) => a + d.amount, 0)),
+    lastDay: { d: last.d, medPrice: last.price.all.med, bidders: last.bidders.all, ed: Object.fromEntries(EDS.map((e) => [e, last.byEd[e].ended])) },
   }));
 }
 
 if (require.main === module) main();
-module.exports = { category, isoWeekStart };
+module.exports = { category, edition, isoWeekStart };
