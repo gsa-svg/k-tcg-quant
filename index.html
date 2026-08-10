@@ -9,13 +9,13 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://www.onepiece-cardgame.com https://i.ebayimg.com https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://pagead2.googlesyndication.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://opbox-deals.gsa-834.workers.dev https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://ep2.adtrafficquality.google https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="stylesheet" href="styles.css?v=20260810a" />
+    <link rel="stylesheet" href="styles.css?v=20260810b" />
     <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
          그때 요청하면 스크립트 받는 시간만큼 첫 표가 늦게 뜬다(로컬 실측 222ms → 125ms).
          rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
          ?v= 는 packs.js 의 DATA_VERSION 과 반드시 같아야 한다(가드 V1 이 검사). 실패하면 packs.js 가 알아서 다시 받는다. -->
     <script>
-      window.__opPackData = fetch("data/onepiece-packs.json?v=20260810a", { cache: "default" })
+      window.__opPackData = fetch("data/onepiece-packs.json?v=20260810b", { cache: "default" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .catch(function () { return null; });
     </script>
@@ -45,7 +45,7 @@
     <meta property="og:image:height" content="630" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="OP Box Index — Live One Piece Box &amp; Card Prices" />
-    <meta property="og:description" content="Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Top 10 chase cards, sold-price trends and PSA population data. No hype, just data." />
+    <meta property="og:description" content="Tracked One Piece booster-box and PSA 10 card prices, with completed-sale samples, active listings, chase cards and PSA population data." />
     <meta property="og:url" content="https://opboxindex.com/" />
     <meta property="og:locale" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -69,7 +69,7 @@
           "geographicArea": ["United States", "Japan", "Singapore", "Malaysia", "Philippines", "Thailand", "Vietnam", "Indonesia"]
         },
         "inLanguage": "en-US",
-        "description": "Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Top 10 chase cards, sold-price trends and PSA population data. No hype, just data.",
+        "description": "Tracked One Piece booster-box and PSA 10 card prices, with completed-sale samples, active listings, chase cards and PSA population data.",
         "keywords": ["One Piece booster box prices", "One Piece booster box price", "One Piece PSA 10 card prices", "One Piece card prices", "One Piece booster pack prices", "Japanese One Piece cards", "OP card price", "PSA 10 manga rare prices", "eBay sold One Piece cards", "One Piece PSA population report", "One Piece booster box investment", "OP-05 vs OP-06", "One Piece sealed box reseal check", "원피스 부스터박스 시세", "원피스 PSA10 카드 시세", "부스터팩 시세정보"],
         "creator": {
           "@type": "Organization",
@@ -80,7 +80,7 @@
     </script>
     
     <title>OP Box Index — Live One Piece Box &amp; Card Prices</title>
-    <meta name="description" content="Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Top 10 chase cards, sold-price trends and PSA population data. No hype, just data." />
+    <meta name="description" content="Tracked One Piece booster-box and PSA 10 card prices, with completed-sale samples, active listings, chase cards and PSA population data." />
     <link rel="preconnect" href="https://tcgplayer-cdn.tcgplayer.com" crossorigin />
     <link rel="preconnect" href="https://card.yuyu-tei.jp" crossorigin />
     <style>
@@ -1169,7 +1169,7 @@
         <p class="eyebrow">One Piece Booster Packs</p>
         <h1>OP Box Index / <span>Booster Box Terminal</span></h1>
         <p class="lead">
-          Real eBay prices for <strong>One Piece boxes</strong> and <strong>PSA 10 cards</strong> — updated daily. No hype, just data.
+          Tracked prices for <strong>One Piece boxes</strong> and <strong>PSA 10 cards</strong> — completed sales, active listings and grading data kept separate.
         </p>
       </section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"></div>
@@ -1333,6 +1333,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20260810a" defer></script>
+    <script src="packs.js?v=20260810b" defer></script>
   </body>
 </html>

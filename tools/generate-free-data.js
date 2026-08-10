@@ -190,7 +190,7 @@ const html = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Free data</p>
       <h1>Free One Piece TCG data — grading population and auction results</h1>
-      <p>Three CSVs, regenerated daily, free under CC BY 4.0. The first two are things you cannot get anywhere else for free: <strong>grading population split by grader and by printing</strong>, and <strong>completed eBay auction outcomes</strong> — not asking prices, but what auctions actually closed at.</p>
+      <p>Three CSVs, regenerated daily, free under CC BY 4.0. They cover <strong>grading population split by grader and printing</strong>, <strong>completed eBay auction outcomes</strong>, and Japanese booster-box prices. Auction rows record settled outcomes rather than active asking prices.</p>
 
       <div class="dlRow">
         <a class="primary" href="opbox-grading-population.csv" download>Grading population (${nGrades} rows)</a>
@@ -244,7 +244,7 @@ ${gradePreview}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="sets/index.html">Set Guides</a><a href="psa-grading.html">Grading Population</a><a href="ko/">한국어 시세</a><a href="about.html">About</a><a href="privacy.html">Privacy</a></nav>
+      <nav aria-label="Footer navigation"><a href="sets/index.html">Set Guides</a><a href="psa-grading.html">Grading Population</a><a href="ko/">한국어 시세</a><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
   </body>
 </html>

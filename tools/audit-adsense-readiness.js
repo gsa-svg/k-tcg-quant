@@ -16,6 +16,7 @@ const ROBOTS_META_RE = /<meta\s+name=["']robots["'][^>]*>/gi;
 const EPN_CAMPAIGN_ID = "5339163744";
 const DEVELOPMENT_COPY_RE = /\(\s*MVP\s*\)|display ad placeholder|Google AdSense 광고 자리|Google AdSense slot/i;
 const AD_SHELL_RE = /<aside\b[^>]*class=(["'])[^"']*\badsenseSlot\b[^"']*\1[^>]*>[\s\S]*?<\/aside>/gi;
+const UNSUPPORTED_CAUSAL_COPY_RE = /PSA grading is eating One Piece sealed supply|grading volume is (?:therefore )?a destruction meter|cards get graded when boxes get cracked|fast population growth means sealed boxes are being opened|sealed boxes of that set are being destroyed at pace|submitted and re-submitted since 2022|How fast is [^<\n]+ being opened right now|gap driven by print volume and Western demand|removes the worst-case of buying the top|neither crashed nor running|expected value concentrates in a few low-odds hits|English OP-05 was printed in far smaller volume|More opening means more sealed boxes destroyed|grading volume is accelerating while the price holds|from here it is a supply-burn story|The 13-day release gap is the reason|box expected value lottery-shaped/i;
 const EXCLUDED_DIRS = new Set([".git", ".planning", "docs", "node_modules", "scratchpad", "social"]);
 const errors = [];
 const warnings = [];
@@ -148,6 +149,10 @@ const pages = walkHtml().map((file) => {
 const emptyAdShells = [];
 const cardImagesWithoutDimensions = [];
 const pagesWithoutSkipLink = [];
+const articlesWithoutVisibleTrust = [];
+const articlesWithMalformedTrustLine = [];
+const monetizedPagesWithoutTrustNavigation = [];
+const pagesWithUnsupportedCausalClaims = [];
 
 for (const page of pages) {
   if (page.robotsMetaCount > 1) {
@@ -188,6 +193,24 @@ for (const page of pages) {
     ));
     if (!hasMainTarget || !hasSkipLink) pagesWithoutSkipLink.push(page.file);
   }
+  const hasArticleSchema = /^articles\/(?!index\.html$).+\.html$/.test(page.file)
+    && /["']@type["']\s*:\s*["']Article["']/i.test(page.html);
+  if (hasArticleSchema) {
+    const articleMeta = page.html.match(/<p\b[^>]*class=(["'])[^"']*\barticleMeta\b[^"']*\1[^>]*>[\s\S]*?<\/p>/i)?.[0] || "";
+    const hasVisibleTrust = /href=["'][^"']*about\.html["']/i.test(articleMeta)
+      && /href=["'][^"']*methodology\.html["']/i.test(articleMeta)
+      && /<time\b[^>]*datetime=["']\d{4}-\d{2}-\d{2}["']/i.test(articleMeta);
+    if (!hasVisibleTrust) articlesWithoutVisibleTrust.push(page.file);
+    if (/\s\?\s(?:Published|Updated|<a\b)/i.test(articleMeta)) {
+      articlesWithMalformedTrustLine.push(page.file);
+    }
+  }
+  if (page.hasAdsense && page.file !== "methodology.html") {
+    const hasAboutLink = /href=["'][^"']*about\.html["']/i.test(page.html);
+    const hasMethodologyLink = /href=["'][^"']*methodology\.html["']/i.test(page.html);
+    if (!hasAboutLink || !hasMethodologyLink) monetizedPagesWithoutTrustNavigation.push(page.file);
+  }
+  if (UNSUPPORTED_CAUSAL_COPY_RE.test(page.text)) pagesWithUnsupportedCausalClaims.push(page.file);
 }
 
 if (emptyAdShells.length) {
@@ -201,6 +224,18 @@ if (!/:focus-visible\b/.test(read("styles.css"))) {
 }
 if (pagesWithoutSkipLink.length) {
   errors.push(`${pagesWithoutSkipLink.length} pages with main content lack a working keyboard skip link`);
+}
+if (articlesWithoutVisibleTrust.length) {
+  errors.push(`${articlesWithoutVisibleTrust.length} articles lack a visible author/date/methodology trust line`);
+}
+if (articlesWithMalformedTrustLine.length) {
+  errors.push(`${articlesWithMalformedTrustLine.length} article trust lines contain a malformed separator`);
+}
+if (monetizedPagesWithoutTrustNavigation.length) {
+  errors.push(`${monetizedPagesWithoutTrustNavigation.length} monetized pages lack About or Methodology navigation`);
+}
+if (pagesWithUnsupportedCausalClaims.length) {
+  errors.push(`${pagesWithUnsupportedCausalClaims.length} pages contain unsupported causal or investment conclusions`);
 }
 
 const monetizedPages = pages.filter((page) => page.hasAdsense);
@@ -297,6 +332,14 @@ if (DEVELOPMENT_COPY_RE.test(read("packs.js"))) {
   errors.push("packs.js: dynamic development-stage or ad-placeholder copy remains");
 }
 
+const resealGuide = read("articles/reseal-checklist.html");
+if (!/original Bandai security tape/i.test(resealGuide)) {
+  errors.push("articles/reseal-checklist.html: Japanese display guidance must require original Bandai security tape");
+}
+if (/factory wrap on a Japanese One Piece display/i.test(resealGuide)) {
+  errors.push("articles/reseal-checklist.html: Japanese displays must not be described as factory shrink-wrapped");
+}
+
 const packs = pages.find((page) => page.file === "packs.html");
 if (packs && !packs.noindex) errors.push("packs.html: duplicate home variant must be noindex");
 const packsDeepLinks = pages.filter((page) => /href=["'][^"']*packs\.html\?set=/i.test(page.html));
@@ -319,6 +362,10 @@ const report = {
   emptyAdShells: emptyAdShells.length,
   cardImagesWithoutDimensions: cardImagesWithoutDimensions.length,
   pagesWithoutSkipLink: pagesWithoutSkipLink.length,
+  articlesWithoutVisibleTrust: articlesWithoutVisibleTrust.length,
+  articlesWithMalformedTrustLine: articlesWithMalformedTrustLine.length,
+  monetizedPagesWithoutTrustNavigation: monetizedPagesWithoutTrustNavigation.length,
+  pagesWithUnsupportedCausalClaims: pagesWithUnsupportedCausalClaims.length,
   minimumMonetizedWordCount: monetizedPages.length
     ? Math.min(...monetizedPages.map((page) => page.wordCount))
     : 0,

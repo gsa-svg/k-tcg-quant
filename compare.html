@@ -23,25 +23,25 @@
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Compare All One Piece Booster Boxes | OP Box Index" />
-    <meta property="og:description" content="Every Japanese One Piece booster box ranked side by side: live box price, card support, demand, scarcity and an investment-appeal score. No hype, just data." />
+    <meta property="og:description" content="Compare Japanese One Piece booster boxes by live price, matched sales, active-listing depth, chase-card concentration and a documented screening score." />
     <meta property="og:url" content="https://opboxindex.com/compare.html" />
     <meta property="og:image" content="https://opboxindex.com/og/og-compare.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Compare All One Piece Booster Boxes | OP Box Index</title>
-    <meta name="description" content="Every Japanese One Piece booster box ranked side by side: live box price, card support, demand, scarcity and an investment-appeal score. No hype, just data." />
+    <meta name="description" content="Compare Japanese One Piece booster boxes by live price, matched sales, active-listing depth, chase-card concentration and a documented screening score." />
     <script type="application/ld+json">
       {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Compare booster boxes","item":"https://opboxindex.com/compare.html"}]}
     </script>
-    <link rel="preload" href="styles.css?v=20260810a" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260810a" />
+    <link rel="preload" href="styles.css?v=20260810b" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260810b" />
     <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
          그때 요청하면 스크립트 받는 시간만큼 첫 표가 늦게 뜬다(로컬 실측 222ms → 125ms).
          rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
          ?v= 는 packs.js 의 DATA_VERSION 과 반드시 같아야 한다(가드 V1 이 검사). 실패하면 packs.js 가 알아서 다시 받는다. -->
     <script>
-      window.__opPackData = fetch("data/onepiece-packs.json?v=20260810a", { cache: "default" })
+      window.__opPackData = fetch("data/onepiece-packs.json?v=20260810b", { cache: "default" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .catch(function () { return null; });
     </script>
@@ -106,12 +106,12 @@
     <main id="main-content" class="comparePage">
       <p class="eyebrow">All Booster Boxes</p>
       <h1>Compare One Piece booster boxes</h1>
-      <p class="lead">Every Japanese One Piece booster box ranked side by side — live box price, card support, demand, scarcity and a combined investment-appeal score. All figures come from live eBay sold and listing data. Click any row for the full box breakdown.</p>
+      <p class="lead">Japanese One Piece booster boxes compared by current price, matched sales, active-listing depth, chase-card concentration and a combined screening score. The score is a research shortcut, not a buying verdict; open any row for its underlying data.</p>
       <section class="compareTable" id="compareTable" aria-label="All booster box comparison" hidden></section>
 
       <section class="compareStatic" aria-label="How to read this comparison" style="margin-top:26px; max-width:860px;">
         <h2 style="font-size:19px;">How to read this comparison</h2>
-        <p style="color:#aeb7c9; line-height:1.65;">The table above ranks every Japanese One Piece Card Game booster box we track. <strong>Box price</strong> is the current market value of a sealed box, refreshed from live sold and listing data. <strong>Card support</strong> is the combined market value of the set's top 10 chase cards divided by the box price — a set whose singles are worth several times its box tends to keep getting opened, which removes sealed supply. <strong>Demand</strong> and <strong>scarcity</strong> summarize recent sales pace and how few boxes are currently listed. The <strong>score</strong> blends these signals into a single research number; it is a screening tool, not a buy list.</p>
+        <p style="color:#aeb7c9; line-height:1.65;">The table above ranks every Japanese One Piece Card Game booster box we track. <strong>Box price</strong> is the current market value of a sealed box, refreshed from live sold and listing data. <strong>Card support</strong> is the combined market value of the set's top 10 chase cards divided by the box price; it describes how much visible chase-card value sits behind the sealed price, not expected opening value or proof of current box openings. <strong>Demand</strong> and <strong>scarcity</strong> summarize recent sales pace and how few boxes are currently listed. The <strong>score</strong> blends these signals into a single research number; it is a screening tool, not a buy list.</p>
 
         <h2 style="font-size:19px; margin-top:22px;">July 2026 snapshot: six months in one table</h2>
         <p style="color:#aeb7c9; line-height:1.65;">For readers who want the raw trajectory, here is how each Japanese box moved from early January to mid-July 2026 (weekly market values, USD), alongside the English-to-Japanese price ratio and the PSA gem rate of the set's chase cards. Full weekly charts, top-10 card prices and grading data live on each set's page.</p>
@@ -151,6 +151,6 @@
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
-    <script src="packs.js?v=20260810a"></script>
+    <script src="packs.js?v=20260810b"></script>
   </body>
 </html>

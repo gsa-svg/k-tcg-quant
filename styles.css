@@ -56,6 +56,22 @@ a {
   transform: translateY(0);
 }
 
+.articleMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 8px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.articleMeta a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .topbar {
   position: sticky;
   top: 0;

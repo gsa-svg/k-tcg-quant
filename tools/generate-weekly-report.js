@@ -40,6 +40,7 @@ const fname = `weekly-market-report-${slugDate}.html`;
 const canonical = `${SITE}/articles/${fname}`;
 const title = `One Piece Box Market Weekly: ${asOf} | OP Box Index`;
 const desc = `Week of ${asOf}: ${gainers[0] ? `${gainers[0].code} led Japanese boxes at +${gainers[0].chg}%` : "quiet week for Japanese boxes"}; ${totalGrades.toLocaleString("en-US")} new PSA grades. Auto-generated from our weekly tracking data.`;
+const publishedDate = new Date().toISOString().slice(0, 10);
 const esc = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const pct = (v) => `<span style="color:${v >= 0 ? "#26d07c" : "#ff7a7a"}">${v >= 0 ? "+" : ""}${v}%</span>`;
 const tr = (r) => `<tr><td><a href="../sets/${r.code.toLowerCase()}.html">${r.code} ${esc(r.name)}</a></td><td class="num">$${r.prevUsd}</td><td class="num">$${r.now}</td><td class="num">${pct(r.chg)}</td></tr>`;
@@ -70,7 +71,7 @@ const html = `<!doctype html>
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(desc)}" />
     <meta property="og:url" content="${canonical}" />
-    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "One Piece box market weekly: ${asOf}", "description": ${JSON.stringify(desc)}, "image": "${SITE}/og/og-compare.png", "datePublished": "${new Date().toISOString().slice(0, 10)}", "dateModified": "${new Date().toISOString().slice(0, 10)}", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "${canonical}"}, "author": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "publisher": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "isAccessibleForFree": true}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "One Piece box market weekly: ${asOf}", "description": ${JSON.stringify(desc)}, "image": "${SITE}/og/og-compare.png", "datePublished": "${publishedDate}", "dateModified": "${publishedDate}", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "${canonical}"}, "author": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "publisher": {"@type": "Organization", "name": "OP Box Index", "url": "${SITE}/"}, "isAccessibleForFree": true}</script>
     <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
@@ -92,6 +93,7 @@ const html = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Weekly Report · data through ${asOf}</p>
       <h1>One Piece box market weekly</h1>
+      <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Published <time datetime="${publishedDate}">${publishedDate}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>
       <p>The numbers below are generated directly from our weekly tracking series — Japanese sealed box market values and PSA population deltas — for the week ending ${asOf}. Every figure links to the live set page where you can inspect the full chart.</p>
 
       <h2>Japanese boxes: week-over-week movers</h2>

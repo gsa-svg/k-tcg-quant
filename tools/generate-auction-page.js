@@ -47,7 +47,7 @@ const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l">${k.k === "ca
 const faqs = [
   { q: "Where do these auction prices come from?", a: "Every auction is read again after it closed, so the price recorded is the final winning bid — not a mid-auction bid and not an asking price. Auctions that ended without a sale stay in the data as the denominator of sell-through. Where eBay does not report a sold state we store null rather than guessing." },
   { q: "What share of One Piece card auctions actually sell?", a: `Across the last ${daily.length} days we tracked ${num(totN)} One Piece auctions to close and ${num(totSold)} of them sold — about ${st}%. Sealed boxes clear at a far higher rate than single cards${boxK.st != null && cardK.st != null ? ` (${boxK.st}% vs ${cardK.st}% in this window)` : ""}.` },
-  { q: "Why are auction prices lower than Buy It Now prices?", a: "Winning bids tend to sit below fixed-price listings because auctions find the price a real buyer will actually pay today. That makes the auction median a useful floor-price signal — but remember shipping and import fees are on top, and graded cards must be matched by label variant before comparing." },
+  { q: "Why can auction prices differ from Buy It Now prices?", a: "An auction records the highest bid reached at a specific closing time, while a fixed-price listing records a seller's ask. Use the auction median as one completed-sale reference, then add shipping and import fees and match the exact card variant before comparing." },
   { q: "Can I download this data?", a: "Yes — the daily aggregates (auctions tracked, sold count, sell-through, median winning bid) are published as a free CSV under CC BY 4.0 on the free data page. Attribution with a link is the only requirement." },
 ];
 const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
@@ -122,7 +122,7 @@ const html = `<!doctype html>
     <main id="main-content" class="aucWrap">
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
-      <p class="lead">We track One Piece Card Game auctions on eBay and read each one <strong>after it closes</strong>, recording the final winning bid and whether it actually sold. Sniping moves prices in the last minutes, so a "current bid" is not a price — only the settled result is. Unsold auctions stay in the data: they are the denominator that asking-price sites never show you.</p>
+      <p class="lead">We track One Piece Card Game auctions on eBay and read each one <strong>after it closes</strong>, recording the final winning bid and whether it sold. A mid-auction bid can still change, so this page uses settled outcomes. Unsold auctions remain in the denominator when sell-through is calculated.</p>
 
       <h2>Daily results — last ${daily.length} days</h2>
       <div style="overflow-x:auto">
@@ -144,7 +144,7 @@ ${kTr}
         </tbody>
       </table>
       </div>
-      <p>Over the last ${daily.length} days, <strong>${st}% of the ${num(totN)} auctions we tracked ended with a winning bid</strong>. The split matters more than the average: single cards flood the auction format and a large share go unsold${cardK.st != null ? ` (${cardK.st}% sell-through)` : ""}, while sealed booster boxes are scarce in auction format and clear at a much higher rate${boxK.st != null ? ` (${boxK.st}%)` : ""}. "Lots of listings" and "things actually selling" are different signals — this table is the difference.</p>
+      <p>Over the last ${daily.length} days, <strong>${st}% of the ${num(totN)} auctions we tracked ended with a winning bid</strong>. Results differ by item type: single-card sell-through was${cardK.st != null ? ` ${cardK.st}%` : " not available"}, while sealed booster-box sell-through was${boxK.st != null ? ` ${boxK.st}%` : " not available"} in this sample. These figures describe only the auctions tracked in the stated window.</p>
 
       <h2>Highest auction medians by card</h2>
       <div style="overflow-x:auto">
@@ -158,7 +158,7 @@ ${cTr}
       <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Rolling window, minimum 3 confirmed sales per card. Cards below that bar are omitted rather than shown on thin samples. Ranges are 25th–75th percentile of confirmed sales.</p>
 
       <h2>How to use auction data</h2>
-      <p>Auction medians usually sit <strong>below</strong> Buy It Now asking prices, because an auction finds what a real buyer pays today. Read them as a floor-price signal: if a card's fixed-price listings sit far above its auction median with a weak sell-through, the ask is aspirational. The reverse — auctions closing near the ask with high sell-through — is what genuine demand looks like.${last ? ` On the latest full day (${esc(last.d)}) we tracked ${num(last.n)} auctions ending, of which ${num(last.sold)} sold.` : ""}</p>
+      <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap can be a reason to inspect sample size, exact variant, condition, shipping and closing time before drawing a conclusion.${last ? ` On the latest full day (${esc(last.d)}) we tracked ${num(last.n)} auctions ending, of which ${num(last.sold)} sold.` : ""}</p>
       <p>Cross-reference with the rest of the site: each card's NM and PSA 10 prices live on the <a href="cards/">card price pages</a> and the <a href="psa10-ranking.html">PSA 10 value ranking</a>, sealed-box context on the <a href="sets/index.html">set guides</a>, and grading supply on the <a href="psa-grading.html">population page</a>. The daily aggregates here are downloadable as a <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
 
       <h2>Auction data — common questions</h2>
@@ -167,7 +167,7 @@ ${cTr}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
   </body>
 </html>

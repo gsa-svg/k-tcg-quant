@@ -344,14 +344,14 @@ function setPage(code, prev, next) {
     if (en.length >= 8) {
       const enLast = en[en.length - 1], enChg = Math.round((enLast.p / en[0].p - 1) * 100);
       const ratio = (enLast.p / last.p).toFixed(1);
-      enBit = ` The English-language ${code} box trades near <strong>${usd(toU(enLast.p))}</strong> over the same period (${enChg >= 0 ? "+" : ""}${enChg}% since January) — about <strong>${ratio}x</strong> the Japanese box, a gap driven by print volume and Western demand rather than card content.`;
+      enBit = ` The English-language ${esc(s.nameEn || code)} box trades near <strong>${usd(toU(enLast.p))}</strong> over the same period (${enChg >= 0 ? "+" : ""}${enChg}% since January) — about <strong>${ratio}x</strong> the Japanese box. This ratio does not explain why.`;
     }
     trajectory = `
       <h2>${code} box price: the six-month trajectory</h2>
-      <p>The Japanese sealed box entered ${monthYear(first.d) || "January 2026"} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
+      <p>The Japanese ${esc(s.nameEn || code)} sealed box entered ${monthYear(first.d) || "January 2026"} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
   }
 
-  // 주간 등급(개봉) 모멘텀 — psaWeekly 기반, 세트별 고유
+  // 주간 PSA 인구 증가 — psaWeekly 기반, 세트별 고유. 실제 개봉량으로 표현하지 않는다.
   let momentum = "";
   const wk = s.psaWeekly && Array.isArray(s.psaWeekly.points) ? s.psaWeekly.points : [];
   if (wk.length >= 3) {
@@ -360,11 +360,11 @@ function setPage(code, prev, next) {
     const lastW = wk[wk.length - 1];
     const trend = lastW.v >= pk.v * 0.85 ? "still running near its peak" : lastW.v <= pk.v * 0.55 ? "cooling off from its peak" : "steady";
     momentum = `
-      <h2>How fast is ${code} being opened right now?</h2>
-      <p>Between ${esc(wk[0].d)} and ${esc(lastW.d)}, collectors added <strong>${intl(sum)}</strong> new ${code} PSA grades — peaking at <strong>${intl(pk.v)}</strong> in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `The all-time set total is <strong>${intl(s.psaFull.total)}</strong>.` : ""}</p>`;
+      <h2>How fast is the ${code} PSA population growing?</h2>
+      <p>For ${esc(s.nameEn || code)}, between ${esc(wk[0].d)} and ${esc(lastW.d)}, the recorded PSA population increased by <strong>${intl(sum)}</strong> grades — peaking at <strong>${intl(pk.v)}</strong> in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `The all-time set total is <strong>${intl(s.psaFull.total)}</strong>.` : ""} Grades are not a box-opening count.</p>`;
   }
 
-  // 구매의도 verdict — 전부 실데이터 파생 분기, 매일 재생성으로 월 표기 자동 갱신
+  // 현재 가격 구간 해설 — 실데이터 파생, 미래 가격이나 구매 결론은 만들지 않는다.
   let verdict = "";
   {
     const pts = (s.boxSeries && s.boxSeries.points) || [];
@@ -378,16 +378,16 @@ function setPage(code, prev, next) {
       const mult = topNm && vLast ? topNm / vLast : null;
       const nowLabel = monthYear(DATA_DATE) || "today";
       let priceRead;
-      if (dd >= 20) priceRead = `Today's buyer pays about <strong>${dd}% below the tracked peak</strong> (${usd(vPeak)} → ${usd(vLast)}) — the market has already corrected, which removes the worst-case of buying the top.`;
-      else if (chg >= 15 && dd < 10) priceRead = `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window) — the market has rewarded holders, and a buyer today is paying for that momentum to continue.`;
-      else priceRead = `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window — neither crashed nor running.`;
+      if (dd >= 20) priceRead = `The current value is about <strong>${dd}% below the tracked peak</strong> (${usd(vPeak)} → ${usd(vLast)}). Past peaks do not set future floors.`;
+      else if (chg >= 15 && dd < 10) priceRead = `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`;
+      else priceRead = `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`;
       const chaseRead = mult != null
         ? (mult >= 3
-          ? ` The chase math is lottery-shaped: the top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so a box's expected value concentrates in a few low-odds hits.`
-          : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price — value here is spread across the top-10 table rather than one jackpot card.`)
+          ? ` The top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.`
+          : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price. Check the full top-10 distribution. This ratio is not opening EV.`)
         : "";
       verdict = `
-      <h2>Is ${/^[OE]/.test(code) ? "an" : "a"} ${code} booster box worth buying? (${esc(nowLabel)})</h2>
+      <h2>How the ${code} box price compares with its tracked range (${esc(nowLabel)})</h2>
       <p>${priceRead}${chaseRead}</p>`;
     }
   }
@@ -608,7 +608,7 @@ function rankingPage() {
         <details class="faqItem"><summary>What is the most expensive One Piece card in PSA 10 right now?</summary><p>${esc(t1.name)} (${esc(t1.code)}${t1.number ? ` ${esc(t1.number)}` : ""}) — median ${usd(t1.psa)} across ${t1.n} recent completed sales as of ${esc(asOf)}. The full top ${rows.length} is in the table above, updated with each data refresh.</p></details>
         <details class="faqItem"><summary>Why Japanese cards only?</summary><p>Japanese and English are different print runs with different scarcity, so mixing them in one ranking would produce numbers that describe neither market. This site tracks the Japanese market as its primary focus; English box prices are tracked separately on set pages.</p></details>
         <details class="faqItem"><summary>Are these asking prices?</summary><p>No. Every figure is a median of completed eBay sales of the PSA 10 graded card, minimum three sales. Active listings often sit far above what buyers actually pay — on this site asking prices are labelled separately wherever they appear.</p></details>
-        <details class="faqItem"><summary>Does a PSA 10 always sell for more than a raw copy?</summary><p>Almost always, but the premium varies enormously — from under 2x to over 10x the NM price depending on gem rate and population. A card with a 90% gem rate has abundant 10s, so the premium stays thin; a card that rarely gems carries a wide one. See <a href="articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM prices</a> for the data.</p></details>
+        <details class="faqItem"><summary>Does a PSA 10 always sell for more than a raw copy?</summary><p>The completed-sale median is usually higher for the PSA 10 cards in this table, but the premium varies by card. Gem rate and population add supply context; submission selection, character demand and completed-sale depth also matter. See <a href="articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM prices</a> for the data and limits.</p></details>
       </section>`;
 
   const faqLd = rows.length < 5 ? "" : `<script type="application/ld+json">${JSON.stringify({
@@ -620,7 +620,7 @@ function rankingPage() {
     ],
   })}</script>`;
   const title = `Most Valuable One Piece PSA 10 Cards — Sold Price Ranking | OP Box Index`;
-  const desc = `The most valuable Japanese One Piece TCG cards in PSA 10, ranked by recent eBay sold prices. Real graded-card completed-sale data across every set — no asking-price hype.`;
+  const desc = `The most valuable Japanese One Piece TCG cards in PSA 10, ranked by recent eBay completed-sale medians with at least three matched sales per card.`;
   const trs = rows.map((r, i) => `<tr data-code="${esc(r.code)}"><td class="rk">${i + 1}</td><td class="cd"><strong>${esc(r.name)}</strong><span class="sub">${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</span></td><td class="pv">${usd(r.psa)}</td><td class="rg">${r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—"}</td><td class="ns">${r.n}</td></tr>`).join("\n            ");
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "ItemList",
@@ -694,7 +694,7 @@ function rankingPage() {
     <main id="main-content" class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>
       <h1>Most valuable One Piece PSA 10 cards</h1>
-      <p class="lead">The highest-value Japanese One Piece TCG cards in PSA 10 gem mint, ranked by recent eBay <strong>sold</strong> prices across every set. Real completed-sale data, minimum 3 sales per card — no asking-price hype.</p>
+      <p class="lead">The highest-value Japanese One Piece TCG cards in PSA 10 gem mint, ranked by recent eBay <strong>completed-sale medians</strong> across every set. Each ranked card has at least three matched sales.</p>
       <div class="rankTableWrap">
         <table class="rankTable">
           <thead><tr><th>#</th><th>Card</th><th>PSA 10 sold</th><th>Sold range</th><th>Sales</th></tr></thead>
@@ -710,7 +710,7 @@ ${analysis}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
     <script>
       document.querySelectorAll('.rankTable tr[data-code]').forEach(function (tr) {

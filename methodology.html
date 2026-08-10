@@ -15,14 +15,14 @@
     <link rel="canonical" href="https://opboxindex.com/methodology.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <title>Methodology — How OP Box Index Counts | One Piece TCG Market Data</title>
-    <meta name="description" content="How OP Box Index collects and verifies its data: eBay auctions settled after they close, sampling honesty, append-only ledgers, and 45 automated checks that block publishing when a number cannot be trusted." />
+    <meta name="description" content="How OP Box Index collects and verifies its data: eBay auctions settled after they close, sampling honesty, append-only ledgers, and more than 40 automated checks that block unsupported publishing." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="article" />
     <meta property="og:title" content="Methodology — How OP Box Index Counts" />
     <meta property="og:description" content="Every rule we follow before a number reaches a page: post-close auction settlement, sample-size floors, append-only ledgers, and automated guards that stop a bad publish." />
     <meta property="og:url" content="https://opboxindex.com/methodology.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
-    <link rel="stylesheet" href="styles.css?v=20260810a" />
+    <link rel="stylesheet" href="styles.css?v=20260810b" />
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -55,7 +55,7 @@
       <h2>Ledgers are append-only</h2>
       <p>Completed auctions are written to one file per day, and a day that has passed is never rewritten. Aggregates — daily, weekly, monthly — are rebuilt from those ledgers on every run, so if a rule improves, history is recomputed under the new rule instead of being hand-edited. Days when collection was interrupted are flagged as partial and gaps are listed explicitly, because a missing day silently drawn as zero would invent a crash that never happened. Grading population numbers work the same way: each grader's own public report is appended weekly and never modified after the fact.</p>
 
-      <h2>The guard system: 45 checks between the data and you</h2>
+      <h2>The guard system: more than 40 checks between the data and you</h2>
       <p>Before anything publishes, an automated suite re-derives the site's claims from the raw ledgers and fails the build on any mismatch. Some examples of what it enforces: category totals must sum exactly to the overall total; a sell-through rate may not appear when its sample is under the floor; a median may not appear when price observations are too few; an unsold listing may never carry a winning price; the same auction may not appear in two daily files or two games; and weekly listing counts must be averages of daily snapshots, not sums — adding up snapshots would count the same listing once per day it stayed live. When a check fails, the site does not update until a human looks at why. We add a new check every time we find a new way to be wrong, which is often.</p>
 
       <h2>What we refuse to do</h2>
