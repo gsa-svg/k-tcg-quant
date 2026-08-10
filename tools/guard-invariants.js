@@ -848,6 +848,16 @@ for (const f of ["index.html", "packs.html"]) {
 
     // 이 워크플로가 돌리는 도구가 기록하는 data/*.json 은 전부 커밋 목록에 있어야 한다.
     const tools = [...y.matchAll(/node tools\/([a-z0-9-]+\.js)/g)].map((m) => m[1]);
+    // generate-set-pages.js 는 sets/ 밖의 루트 페이지도 함께 굽는다. 이 파일을 빼면
+    // PSA 호가가 바뀐 날에만 미스테이징 변경이 남아 push 경합 후 rebase 가 실패한다.
+    if (tools.includes("generate-set-pages.js")) {
+      if (!addLine.includes("psa10-ranking.html")) {
+        errors.push(`W1: psa10-ranking.html 은 ${wf} 의 산출물인데 커밋 목록에 없음 — rebase 실패를 유발함`);
+      }
+      if (!y.includes("Tracked generated files remain unstaged")) {
+        errors.push(`W1: ${wf} 에 staging 후 추적 파일 잔여 검사 없음 — 새 산출물 누락을 사전에 차단할 수 없음`);
+      }
+    }
     const src = [...new Set(tools)]
       .filter((f) => exists(`tools/${f}`))
       .map((f) => read(`tools/${f}`))
