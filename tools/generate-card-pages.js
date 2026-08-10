@@ -252,6 +252,8 @@ for (const { code, set: s, card: c } of cands) {
         <a href="../sets/${setSlug}.html">${esc(code)} set guide &amp; box price</a>
         <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
         <a href="index.html">All tracked cards</a>
+        <a href="../about.html">About the research</a>
+        <a href="../methodology.html">Methodology</a>
       </nav>
       <p class="affNote">Prices are research references, not offers. As an eBay Partner we may earn a commission from qualifying purchases through eBay links, at no extra cost to you.</p>
     </footer>
@@ -348,6 +350,8 @@ const hub = `<!doctype html>
         <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
         <a href="../articles/one-piece-card-price-guide.html">Card price guide</a>
         <a href="../sets/index.html">All set guides</a>
+        <a href="../about.html">About the research</a>
+        <a href="../methodology.html">Methodology</a>
       </nav>
       <p class="affNote">OP Box Index is a data-driven research site, not investment advice.</p>
     </footer>

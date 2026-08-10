@@ -49,6 +49,7 @@ jobs:
           node --check tools/update-supply-series.js
           node --check tools/fetch-auction-deals.js
           node --check tools/generate-set-pages.js
+          node --check tools/generate-upcoming-set-pages.js
           node --check tools/generate-card-pages.js
           node --check tools/fetch-card-images.js
           node --check tools/fetch-box-images.js
@@ -144,6 +145,7 @@ jobs:
           node tools/fetch-card-images.js 2>&1 | tee logs/fetch-card-images.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
+          node tools/generate-upcoming-set-pages.js 2>&1 | tee logs/generate-upcoming-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log

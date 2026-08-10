@@ -53,6 +53,7 @@ jobs:
           node --check tools/audit-active-listings.js
           node --check tools/generate-card-pages.js
           node --check tools/generate-set-pages.js
+          node --check tools/generate-upcoming-set-pages.js
           node --check tools/generate-ko-pages.js
           node --check tools/generate-ko-topic-pages.js
           node --check tools/generate-auction-page.js
@@ -154,6 +155,7 @@ jobs:
           node tools/generate-psa-grading-page.js 2>&1 | tee logs/generate-psa-grading-page.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
+          node tools/generate-upcoming-set-pages.js 2>&1 | tee logs/generate-upcoming-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log
