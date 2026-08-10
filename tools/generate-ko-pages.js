@@ -198,11 +198,12 @@ const html = `<!doctype html>
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
       <nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="bodyPage">
+    <main id="main-content" class="bodyPage">
       <p class="eyebrow">한국어 · 일본판 시세</p>
       <h1>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세</h1>
       <p class="koNote">일본판 원피스 카드게임 부스터박스 전 세트의 <strong>실거래·검증된 매물 기반</strong> 원화 시세입니다. 기준과 출처가 확인된 값만 표시하며 매일 갱신합니다. 기준일 ${esc(DATA_DATE)}.</p>
@@ -459,11 +460,12 @@ ${cardRows}
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
       ${NAV_KO}
     </header>
-    <main class="bodyPage">
+    <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · 일본판</p>
       <h1>${esc(code)} ${esc(nKo)} 부스터박스 시세 (일본판)</h1>
       <div class="ixHero">

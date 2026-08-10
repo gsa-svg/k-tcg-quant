@@ -114,11 +114,12 @@ const html = `<!doctype html>
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
       <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="aucWrap">
+    <main id="main-content" class="aucWrap">
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">We track One Piece Card Game auctions on eBay and read each one <strong>after it closes</strong>, recording the final winning bid and whether it actually sold. Sniping moves prices in the last minutes, so a "current bid" is not a price — only the settled result is. Unsold auctions stay in the data: they are the denominator that asking-price sites never show you.</p>

@@ -191,7 +191,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260806a";
+const DATA_VERSION = "20260810a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -893,10 +893,6 @@ function applyStaticI18n() {
   if (jpTab) jpTab.innerHTML = `JP / EN BOX <small id="statJp"></small>`;
   const extraTab = document.querySelector('.langTab[data-lang="extra"]');
   if (extraTab) extraTab.innerHTML = `${t("EB·PRB", "EB / PRB")} <small id="statExtra"></small>`;
-  setText("#adsenseTopAd .adLabel", "광고", "Advertisement");
-  document.querySelectorAll(".adDisclosure").forEach((node) => {
-    node.textContent = t("이 페이지에는 Google AdSense 광고가 표시될 수 있습니다.", "This page may show Google AdSense ads.");
-  });
   setText(".packSection > .note", "신규 세트는 시세 데이터가 준비되는 대로 반영됩니다. 모든 가격은 참고값입니다.", "New sets appear once price data is ready. All prices are reference values.");
   setText(".footer p", "OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.", "OP Box Index is a data-driven research site, not investment advice.");
   setText(

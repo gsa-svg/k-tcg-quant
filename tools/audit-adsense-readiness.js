@@ -15,6 +15,7 @@ const NOINDEX_RE = /<meta\s+name=["']robots["'][^>]*content=["'][^"']*noindex/i;
 const ROBOTS_META_RE = /<meta\s+name=["']robots["'][^>]*>/gi;
 const EPN_CAMPAIGN_ID = "5339163744";
 const DEVELOPMENT_COPY_RE = /\(\s*MVP\s*\)|display ad placeholder|Google AdSense 광고 자리|Google AdSense slot/i;
+const AD_SHELL_RE = /<aside\b[^>]*class=(["'])[^"']*\badsenseSlot\b[^"']*\1[^>]*>[\s\S]*?<\/aside>/gi;
 const EXCLUDED_DIRS = new Set([".git", ".planning", "docs", "node_modules", "scratchpad", "social"]);
 const errors = [];
 const warnings = [];
@@ -144,6 +145,10 @@ const pages = walkHtml().map((file) => {
   };
 });
 
+const emptyAdShells = [];
+const cardImagesWithoutDimensions = [];
+const pagesWithoutSkipLink = [];
+
 for (const page of pages) {
   if (page.robotsMetaCount > 1) {
     errors.push(`${page.file}: conflicting duplicate robots meta tags (${page.robotsMetaCount})`);
@@ -164,6 +169,38 @@ for (const page of pages) {
   if (/확인됩니다\(\)|\(\s*·|\b(?:undefined|NaN|TBD|TODO)\b/i.test(page.text)) {
     errors.push(`${page.file}: visible placeholder or malformed content`);
   }
+  for (const match of page.html.matchAll(AD_SHELL_RE)) {
+    if (!/class=(["'])[^"']*\badsbygoogle\b/i.test(match[0])) emptyAdShells.push(page.file);
+  }
+  if (page.file.startsWith("cards/")) {
+    for (const match of page.html.matchAll(/<img\b[^>]*>/gi)) {
+      if (!/\bwidth=["']\d+["']/i.test(match[0]) || !/\bheight=["']\d+["']/i.test(match[0])) {
+        cardImagesWithoutDimensions.push(page.file);
+      }
+    }
+  }
+  const mainTag = page.html.match(/<main\b[^>]*>/i)?.[0];
+  if (mainTag) {
+    const hasMainTarget = /\bid=["']main-content["']/i.test(mainTag);
+    const hasSkipLink = [...page.html.matchAll(/<a\b[^>]*>/gi)].some((match) => (
+      /\bclass=["'][^"']*\bskipLink\b[^"']*["']/i.test(match[0])
+      && /\bhref=["']#main-content["']/i.test(match[0])
+    ));
+    if (!hasMainTarget || !hasSkipLink) pagesWithoutSkipLink.push(page.file);
+  }
+}
+
+if (emptyAdShells.length) {
+  errors.push(`${emptyAdShells.length} empty manual ad shells remain without an adsbygoogle unit`);
+}
+if (cardImagesWithoutDimensions.length) {
+  errors.push(`${cardImagesWithoutDimensions.length} card images lack explicit width/height and can cause layout shift`);
+}
+if (!/:focus-visible\b/.test(read("styles.css"))) {
+  errors.push("styles.css: interactive elements lack a shared keyboard focus-visible treatment");
+}
+if (pagesWithoutSkipLink.length) {
+  errors.push(`${pagesWithoutSkipLink.length} pages with main content lack a working keyboard skip link`);
 }
 
 const monetizedPages = pages.filter((page) => page.hasAdsense);
@@ -279,6 +316,9 @@ const report = {
   noindexWithAdsense: pages.filter((page) => page.noindex && page.hasAdsense).length,
   excludedPagesWithAdsense: pages.filter((page) => isApprovalExcludedPage(page.file) && page.hasAdsense).length,
   thinMonetizedPages: pages.filter((page) => page.hasAdsense && page.wordCount < 350).length,
+  emptyAdShells: emptyAdShells.length,
+  cardImagesWithoutDimensions: cardImagesWithoutDimensions.length,
+  pagesWithoutSkipLink: pagesWithoutSkipLink.length,
   minimumMonetizedWordCount: monetizedPages.length
     ? Math.min(...monetizedPages.map((page) => page.wordCount))
     : 0,

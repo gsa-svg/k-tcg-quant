@@ -182,11 +182,12 @@ const html = `<!doctype html>
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
       <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="bodyPage">
+    <main id="main-content" class="bodyPage">
       <p class="eyebrow">Free data</p>
       <h1>Free One Piece TCG data — grading population and auction results</h1>
       <p>Three CSVs, regenerated daily, free under CC BY 4.0. The first two are things you cannot get anywhere else for free: <strong>grading population split by grader and by printing</strong>, and <strong>completed eBay auction outcomes</strong> — not asking prices, but what auctions actually closed at.</p>

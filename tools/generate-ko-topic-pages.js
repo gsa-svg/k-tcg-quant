@@ -81,11 +81,12 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName }) {
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
       <nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="bodyPage">
+    <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · ${esc(eyebrow)}</p>
       <h1>${esc(h1)}</h1>
 ${body}

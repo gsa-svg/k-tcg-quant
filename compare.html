@@ -34,14 +34,14 @@
     <script type="application/ld+json">
       {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Compare booster boxes","item":"https://opboxindex.com/compare.html"}]}
     </script>
-    <link rel="preload" href="styles.css?v=20260806a" as="style" />
-    <link rel="stylesheet" href="styles.css?v=20260806a" />
+    <link rel="preload" href="styles.css?v=20260810a" as="style" />
+    <link rel="stylesheet" href="styles.css?v=20260810a" />
     <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
          그때 요청하면 스크립트 받는 시간만큼 첫 표가 늦게 뜬다(로컬 실측 222ms → 125ms).
          rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
          ?v= 는 packs.js 의 DATA_VERSION 과 반드시 같아야 한다(가드 V1 이 검사). 실패하면 packs.js 가 알아서 다시 받는다. -->
     <script>
-      window.__opPackData = fetch("data/onepiece-packs.json?v=20260806a", { cache: "default" })
+      window.__opPackData = fetch("data/onepiece-packs.json?v=20260810a", { cache: "default" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .catch(function () { return null; });
     </script>
@@ -95,6 +95,7 @@
     <link rel="manifest" href="/site.webmanifest" />
   </head>
   <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./" aria-label="OP Box Index home">
         <span class="brandMark">OP</span>
@@ -102,7 +103,7 @@
       </a>
       <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" aria-current="page" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="comparePage">
+    <main id="main-content" class="comparePage">
       <p class="eyebrow">All Booster Boxes</p>
       <h1>Compare One Piece booster boxes</h1>
       <p class="lead">Every Japanese One Piece booster box ranked side by side — live box price, card support, demand, scarcity and a combined investment-appeal score. All figures come from live eBay sold and listing data. Click any row for the full box breakdown.</p>
@@ -150,6 +151,6 @@
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
-    <script src="packs.js?v=20260806a"></script>
+    <script src="packs.js?v=20260810a"></script>
   </body>
 </html>

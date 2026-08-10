@@ -1,5 +1,19 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
+## 2026-08-10(월) — Codex 3차 심사 3차 품질 패스: 빈 광고 껍데기·UI 완성도
+
+- **빈 광고 자리 4개 제거:** `index.html`·`packs.html`에 실제 `<ins class="adsbygoogle">` 없이 점선 박스와
+  `Advertisement`만 보이던 수동 광고 껍데기 2개씩을 제거했다. 승인용 AdSense 로더는 기존 24개 핵심 지면에
+  그대로 남아 있어 Auto Ads·승인 크롤 범위는 줄지 않았다. `packs.html`은 계속 AdSense가 없다.
+- **접근성·레이아웃 안정성:** 전역 `:focus-visible` 키보드 포커스와 dark `color-scheme`을 추가했다.
+  카드 상세·허브 이미지 48개에는 실제 파일 비율(716×1000)의 `width`·`height`를 생성기에서 넣어 CLS를 줄였다.
+  본문이 있는 HTML 104개에는 `#main-content`와 영문/한국어 `skipLink`를 넣었고, 8개 생성기도 함께 수정했다.
+  CSS/JS 캐시는 `20260810a`로 전체 동기화했다.
+- **회귀 가드:** readiness 감사가 빈 수동 광고 껍데기, 카드 이미지 치수 누락, 전역 키보드 포커스와 본문 바로가기 누락을
+  차단한다. 수정 전 의도적 역테스트는 빈 껍데기 4개·이미지 48개·본문 바로가기 104개 누락을 FAIL했고 수정 후 모두 0이다.
+- **로컬 검증:** 테스트 8종, JSON-LD 269블록, grading·AI discovery·수집 건강·SEO·readiness·최종 48개 guard
+  모두 통과. 가격·수집·정산 원장과 eBay EPN 70개에는 변경이 없다.
+
 ## 2026-08-10(월) — Codex 3차 심사 2차 품질 패스: 생성형 흔적·대량 유사문장 제거
 
 - **홈 기능은 건드리지 않고 미완성 표기만 제거했다.** `index.html`·`packs.html`의 `(MVP)`와

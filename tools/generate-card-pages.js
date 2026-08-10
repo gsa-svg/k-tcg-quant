@@ -184,7 +184,7 @@ for (const { code, set: s, card: c } of cands) {
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .cardHero { display: flex; gap: 22px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 6px; }
-      .cardHero img { width: 200px; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
+      .cardHero img { width: 200px; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
       .priceCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 12px 0; max-width: 560px; }
       .pc { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
       .pc span { display: block; color: #7d8698; font-size: 12px; margin-bottom: 3px; }
@@ -204,15 +204,16 @@ for (const { code, set: s, card: c } of cands) {
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
       <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="bodyPage">
+    <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="index.html" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
       <h1>${esc(c.name)} <small style="color:#7d8698;font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
       <div class="cardHero">
-        ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" loading="eager" decoding="async" />` : ""}
+        ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="716" height="1000" loading="eager" decoding="async" fetchpriority="high" />` : ""}
         <div style="flex:1;min-width:260px;">
           <div class="priceCards">
             <div class="pc hl"><span>Japanese NM (raw)</span><b>${usd(nmUsd)}</b><small>${jpy(c.nmJpy)} · Japanese retail${c.nmVenue ? "" : ""} · as of ${esc(DATA_DATE)}</small></div>
@@ -313,23 +314,24 @@ const hub = `<!doctype html>
       .cardGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 18px; }
       .cardGrid a { display: block; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 10px; background: rgba(20,23,28,.6); text-align: center; }
       .cardGrid a:hover { border-color: #10d7a0; }
-      .cardGrid img { width: 100%; border-radius: 8px; }
+      .cardGrid img { display: block; width: 100%; height: auto; border-radius: 8px; }
       .cardGrid b { display: block; font-size: 13px; margin-top: 7px; color: #eef2ff; line-height: 1.3; }
       .cardGrid small { color: #7d8698; font-size: 11.5px; }
       .cardGrid .pr { display: block; color: #50dad9; font-family: "JetBrains Mono", monospace; font-weight: 800; margin-top: 3px; }
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
       <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="bodyPage">
+    <main id="main-content" class="bodyPage">
       <p class="eyebrow">Card Prices</p>
       <h1>One Piece card prices: the top ${hubItems.length} tracked cards</h1>
       <p>Individual price pages for the most valuable Japanese One Piece Card Game cards we track — raw NM prices from Japanese retail, PSA 10 prices from verified eBay data, and PSA population stats. Every page is variant-specific: a manga rare and its plain parallel are different cards with very different prices. Prices refresh with our tracking runs (as of ${DATA_DATE}).</p>
       <div class="cardGrid">
-        ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
+        ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" width="716" height="1000" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
       <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>

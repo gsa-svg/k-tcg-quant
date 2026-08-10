@@ -157,11 +157,12 @@ const html = `<!doctype html>
     </style>
   </head>
   <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
       <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" aria-current="page" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
-    <main class="pgWrap">
+    <main id="main-content" class="pgWrap">
       <p class="eyebrow">PSA Population</p>
       <h1>One Piece PSA population by set</h1>
       <p class="lead">How many cards from each booster set have been submitted to PSA, kept separate for the Japanese and English printings. Grading volume is the clearest proxy we have for sealed boxes being opened &mdash; every graded card came out of a pack. Cumulative totals are as of ${updated}; the weekly change compares ${wNow} against ${wPrev}.</p>
