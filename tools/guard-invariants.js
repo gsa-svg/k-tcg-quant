@@ -438,6 +438,49 @@ if (exists("data/auction-card-stats.json")) {
   }
 }
 
+// ── S3. 세트 페이지 고유 해설 — 2026-08-07 애드센스 "가치가 별로 없는 콘텐츠" 거절의 재발 방지.
+//    실측: 세트 페이지 21장이 문장 기준 63% 동일(숫자만 교체)이었다. 수기 해설(set-commentary.json)을
+//    도입했고, 이 검사는 그 해설이 (1) 모든 세트에 있고 (2) 세트끼리 문장을 재사용하지 않고
+//    (3) 실제 빌드된 페이지에 주입되어 있는지를 강제한다. 하나라도 무너지면 템플릿으로 되돌아간 것이다.
+{
+  const cmPath = "data/set-commentary.json";
+  const packsPath = "data/onepiece-packs.json";
+  if (exists(cmPath) && exists(packsPath)) {
+    const cm = JSON.parse(read(cmPath));
+    const packs = JSON.parse(read(packsPath));
+    const order = [...(packs.jp?.list || []), ...(packs.extra?.list || [])]
+      .filter((c) => (packs.sets?.[c]?.cards || []).length > 0);
+    const fp = (s) => s.replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const seenSent = new Map();   // 정규화 문장 -> 처음 쓴 세트
+    const seenDesc = new Set();
+    for (const code of order) {
+      const c = cm.sets?.[code];
+      if (!c) { errors.push(`S3: ${code} 수기 해설 없음 — 템플릿 문구로 노출된다`); continue; }
+      const body = (c.body || []).join(" ");
+      if (body.length < 350) errors.push(`S3: ${code} 해설이 ${body.length}자 — 350자 미만은 껍데기다`);
+      if (!c.desc || c.desc.length < 60) errors.push(`S3: ${code} desc 부실`);
+      if (seenDesc.has(c.desc)) errors.push(`S3: ${code} desc 가 다른 세트와 동일`);
+      seenDesc.add(c.desc);
+      for (const raw of body.split(/[.!?]/)) {
+        const s = raw.trim().replace(/[0-9,.%$]+/g, "#");
+        if (s.length < 45) continue;
+        if (seenSent.has(s) && seenSent.get(s) !== code) {
+          errors.push(`S3: ${code} 해설 문장이 ${seenSent.get(s)} 와 중복 — "${raw.trim().slice(0, 50)}…"`);
+        }
+        seenSent.set(s, code);
+      }
+      // 빌드 산출물에 주입됐는지 — 생성기가 조용히 주입을 빼먹으면 파일만 있고 화면엔 없다.
+      const pagePath = `sets/${code.toLowerCase()}.html`;
+      if (exists(pagePath)) {
+        const html = read(pagePath);
+        if (!fp(html).includes(fp((c.body || [""])[0]).slice(0, 60))) {
+          errors.push(`S3: ${pagePath} 에 해설이 주입되지 않음 — 생성기 재실행 필요`);
+        }
+      }
+    }
+  }
+}
+
 // ── A3. TCG 경매 원장·집계 무결성 — 2026-08-07 수집 시작과 함께 신설.
 //    원피스와 같은 사고를 그대로 반복할 자리다: 유찰에 가격이 붙거나, 같은 매물이 두 날에 세어지거나,
 //    "물량"과 "거래"를 같은 방식으로 합치는 것. 셋 다 조용히 틀리고, 틀린 채로 그래프가 그려진다.
@@ -1038,4 +1081,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "G8"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "G8"] }));

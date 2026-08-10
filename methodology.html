@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P73SE1WVD0');
+    </script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://opboxindex.com/methodology.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <title>Methodology — How OP Box Index Counts | One Piece TCG Market Data</title>
+    <meta name="description" content="How OP Box Index collects and verifies its data: eBay auctions settled after they close, sampling honesty, append-only ledgers, and 45 automated checks that block publishing when a number cannot be trusted." />
+    <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Methodology — How OP Box Index Counts" />
+    <meta property="og:description" content="Every rule we follow before a number reaches a page: post-close auction settlement, sample-size floors, append-only ledgers, and automated guards that stop a bad publish." />
+    <meta property="og:url" content="https://opboxindex.com/methodology.html" />
+    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
+    <link rel="stylesheet" href="styles.css?v=20260806a" />
+    <meta name="theme-color" content="#0a0c10" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+    </header>
+    <main class="bodyPage">
+      <p class="eyebrow">Methodology</p>
+      <h1>How this site counts</h1>
+      <p>Every number on OP Box Index can be traced to a rule on this page. We publish it because market data is easy to fake and easy to get subtly wrong, and the only defense a reader has is knowing exactly how a figure was made. If you catch a number that breaks one of these rules, that is a bug — <a href="about.html">tell us</a> and we will fix the pipeline, not just the page.</p>
+
+      <h2>Auctions are read after they end, never before</h2>
+      <p>Asking prices are wishes. Even a live auction's current bid is not a price: we once tracked a box that sat at $107 twenty-one minutes before closing and finished at $135 — a 26% move in the final stretch, which is normal behavior when bidders wait until the end. So the auction figures on this site come from a settlement pass that re-reads each listing <em>after</em> it closes and records three things: whether it actually sold, what the winning bid was, and how many bidders took part. Unsold listings are kept — they are the denominator of every sell-through rate we show. A listing we fail to re-read within 30 hours of closing is dropped rather than guessed at.</p>
+
+      <h2>A sample, not a census — and we say so</h2>
+      <p>eBay runs more One Piece card auctions than any collector site can settle one by one, so we work from a fixed daily sample and publish the coverage estimate right next to the data (as of August 2026, roughly two-fifths of the auctions that end each day). Ratios like sell-through survive sampling well; absolute totals do not, which is why we present totals as "what we recorded", never as "the market". Where a rate is shown with a ± figure, that is a Wilson 95% interval — and because our sample is chosen by eBay's search ranking rather than at random, the true uncertainty is somewhat wider than the ± printed. Below a floor of a few dozen settled auctions we print no rate at all: a percentage built on a handful of listings is noise wearing a suit.</p>
+
+      <h2>Classification rules that keep categories honest</h2>
+      <ul>
+        <li><strong>Lots are not singles.</strong> A "Set of 100" bundle is a different product from one card. Listings whose titles read as lots are counted in their own category; mixing them would drag down the single-card sell-through and poison the median price. When a lot's card count is known we divide to a per-card price; when it is not, the listing stays out of price statistics entirely.</li>
+        <li><strong>Graded is split from raw.</strong> A slabbed PSA 10 and a raw near-mint copy are different markets. Grade is parsed from the listing title, and the source of that parse is stored with the row so it can be re-checked later.</li>
+        <li><strong>Japanese and English are never summed.</strong> Different print runs, different pull rates, different buyers. Population counts and prices are recorded per printing, and any figure that would require adding them together is a figure we do not publish.</li>
+        <li><strong>One listing, one category, one game.</strong> Search terms overlap — a Japanese Pokemon listing matches more than one query — so every listing is claimed once, by the narrowest match, and can never be counted twice.</li>
+      </ul>
+
+      <h2>Ledgers are append-only</h2>
+      <p>Completed auctions are written to one file per day, and a day that has passed is never rewritten. Aggregates — daily, weekly, monthly — are rebuilt from those ledgers on every run, so if a rule improves, history is recomputed under the new rule instead of being hand-edited. Days when collection was interrupted are flagged as partial and gaps are listed explicitly, because a missing day silently drawn as zero would invent a crash that never happened. Grading population numbers work the same way: each grader's own public report is appended weekly and never modified after the fact.</p>
+
+      <h2>The guard system: 45 checks between the data and you</h2>
+      <p>Before anything publishes, an automated suite re-derives the site's claims from the raw ledgers and fails the build on any mismatch. Some examples of what it enforces: category totals must sum exactly to the overall total; a sell-through rate may not appear when its sample is under the floor; a median may not appear when price observations are too few; an unsold listing may never carry a winning price; the same auction may not appear in two daily files or two games; and weekly listing counts must be averages of daily snapshots, not sums — adding up snapshots would count the same listing once per day it stayed live. When a check fails, the site does not update until a human looks at why. We add a new check every time we find a new way to be wrong, which is often.</p>
+
+      <h2>What we refuse to do</h2>
+      <ul>
+        <li>No estimates in place of data. A blank cell means "we could not verify this", and we prefer it to a plausible guess.</li>
+        <li>No currency blending. Sold amounts are aggregated in USD only; a sale in another currency is counted as a sale but kept out of dollar totals rather than converted at some arbitrary moment's rate.</li>
+        <li>No survivor-only ratios. Every rate we print keeps its failures — unsold auctions, ungraded submissions — in the denominator.</li>
+        <li>No repackaging of other sites' analysis. Our inputs are primary: marketplace records read through official interfaces, the graders' own population reports, and a weekly ungraded market benchmark.</li>
+      </ul>
+
+      <h2>Corrections</h2>
+      <p>When we find an error we fix the pipeline that produced it, rebuild history from the ledgers, and note material changes on the affected page. The version of every dataset is stamped into the files themselves, so a reader comparing yesterday's download to today's can see exactly what moved. Three of our datasets are also <a href="free-data.html">downloadable as CSV</a> under CC BY 4.0 — re-run our numbers yourself; that is the point of publishing them.</p>
+    </main>
+    <footer class="footer">
+      <p>OP Box Index is a data-driven research site, not investment advice.</p>
+      <nav aria-label="Footer navigation"><a href="sets/index.html">Set Guides</a><a href="about.html">About</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+    </footer>
+  </body>
+</html>

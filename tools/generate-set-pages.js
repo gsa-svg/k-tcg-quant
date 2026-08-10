@@ -25,6 +25,12 @@ try { CARD_MAP = JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.j
 // 검증된 세트 팩트(정가·재판) — data/set-facts.json (연구 워크플로 산출, 나이틀리 불변)
 let SET_FACTS = { sets: {} };
 try { SET_FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
+// 세트별 수기 해설 — data/set-commentary.json (사람이 쓴 문장, 기계 생성 금지).
+// 왜: 2026-08-07 애드센스가 "가치가 별로 없는 콘텐츠"로 거절했다. 실측하니 세트 페이지 21장이
+// 문장 기준 63% 동일(숫자만 교체된 템플릿)이었다 — 정확히 그 정책이 가리키는 형태다.
+// 페이지마다 "그 세트에만 참인 이야기"가 있어야 하고, 그 원문은 이 파일 하나에서 온다(가드 S3).
+let COMMENTARY = { sets: {} };
+try { COMMENTARY = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-commentary.json"), "utf8")); } catch (e) {}
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -169,7 +175,7 @@ const FOOT = `
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="../about.html">About</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../free-data.html">Data terms</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
     </footer>
   </body>
 </html>
@@ -213,7 +219,14 @@ function liveWidget(code) {
 // 구글은 본문에 없는 FAQPage 구조화데이터를 스팸으로 취급하고(리치결과는 2023년 폐지),
 // 숨긴 FAQ 는 이득 0·리스크만 있다. 그래서 한 소스에서 뽑아 양쪽에 쓴다 — 2026-07-21 감사.
 function faqItems(code, nameEn) {
+  // 세트별 수기 해설이 있으면 그 세트에만 참인 문답을 맨 앞에 둔다 — FAQ 까지 전 세트 동일하면
+  // 구조화데이터부터 템플릿으로 읽힌다(2026-08-07 애드센스 거절의 근인).
+  const story = COMMENTARY.sets?.[code];
   return [
+    ...(story ? [{
+      q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`,
+      a: story.desc,
+    }] : []),
     {
       q: `What is the current ${code} ${nameEn} booster box price?`,
       a: `OP Box Index tracks ${code} ${nameEn} Japanese sealed booster box prices daily from eBay active listings and sold history, shown in USD with KRW and JPY conversions. Check the live tracker for today's price band.`,
@@ -295,7 +308,11 @@ function setPage(code, prev, next) {
   const top3 = cards.slice(0, 3).map((c) => c.name).join(", ");
   const canonical = `${SITE}/sets/${slug(code)}.html`;
   const title = `${code} ${nameEn} Booster Box Price (Japanese) | OP Box Index`;
-  const desc = `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
+  // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
+  // 그것부터 템플릿 신호다. 해설이 없는 세트만 기존 골격으로 떨어진다.
+  const story = COMMENTARY.sets?.[code];
+  if (!story) console.warn(`[set-commentary] ${code} 해설 없음 — 템플릿 문구로 대체됨 (S3 가드가 잡는다)`);
+  const desc = story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   // s.release = 영문(NA)판 발매일. "일본판 페이지인데 Released=EN날짜"로 읽히던 오표기 수정
   const release = s.release ? `<p class="eyebrow">Japanese edition · EN release ${esc(s.release)}</p>` : `<p class="eyebrow">Japanese edition</p>`;
@@ -483,6 +500,10 @@ function setPage(code, prev, next) {
       </div>
       ${keyFacts}
       <p><strong>${code} ${esc(nameEn)}</strong> is tracked daily on OP Box Index using eBay active listings and sold history for the Japanese sealed booster box, plus per-card data for its most valuable pulls. The strongest chase cards in this set include ${esc(top3)} — the cards that effectively set the floor for what a sealed box is worth.</p>
+      ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
+        <h2>${esc(story.heading)}</h2>
+        ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n        ")}
+      </section>` : ""}
       ${boxLine}
       ${liveWidget(code)}
       <div class="ctaRow">
@@ -527,9 +548,14 @@ function hubPage() {
   const canonical = `${SITE}/sets/index.html`;
   const title = `One Piece Booster Box Price Guides by Set (Japanese) | OP Box Index`;
   const desc = `Japanese One Piece booster box price guides for every set: OP-01 through OP-15, EB and PRB — live eBay prices, top chase cards and PSA 10 data.`;
+  // 목록의 꼬리표를 세트별 수기 한 줄로 — "box price, top chase cards & PSA data" 를 21번 반복하면
+  // 허브부터 템플릿으로 읽힌다. 해설 없는 세트만 기존 문구로 떨어진다.
   const items = ORDER.map((code) => {
     const s = data.sets[code];
-    return `<li><a href="${slug(code)}.html"><strong>${code}</strong> ${esc(s.nameEn || "")}</a> — box price, top chase cards &amp; PSA data</li>`;
+    const tail = COMMENTARY.sets?.[code]?.heading
+      ? esc(COMMENTARY.sets[code].heading.toLowerCase())
+      : "box price, top chase cards &amp; PSA data";
+    return `<li><a href="${slug(code)}.html"><strong>${code}</strong> ${esc(s.nameEn || "")}</a> — ${tail}</li>`;
   }).join("\n        ");
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
