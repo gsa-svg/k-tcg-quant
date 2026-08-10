@@ -893,7 +893,7 @@ function applyStaticI18n() {
   if (jpTab) jpTab.innerHTML = `JP / EN BOX <small id="statJp"></small>`;
   const extraTab = document.querySelector('.langTab[data-lang="extra"]');
   if (extraTab) extraTab.innerHTML = `${t("EB·PRB", "EB / PRB")} <small id="statExtra"></small>`;
-  setText("#adsenseTopAd .adLabel", "Google AdSense 광고 자리", "Google AdSense slot");
+  setText("#adsenseTopAd .adLabel", "광고", "Advertisement");
   document.querySelectorAll(".adDisclosure").forEach((node) => {
     node.textContent = t("이 페이지에는 Google AdSense 광고가 표시될 수 있습니다.", "This page may show Google AdSense ads.");
   });

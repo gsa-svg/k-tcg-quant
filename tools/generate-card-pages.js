@@ -103,11 +103,11 @@ for (const { code, set: s, card: c } of cands) {
     const premium = p10.v - nmUsd;
     let verdict;
     if (ratio <= 1.05) {
-      verdict = `Right now a PSA 10 ${p10.kind === "sold" ? "sells" : "is listed"} at roughly the same price as — or below — a raw NM copy. At today's numbers, grading this card adds fees, shipping and months of turnaround for no price upside. That happens with high-supply modern cards: when ${pop ? intl(pop.psa10) + " PSA 10s already exist" : "graded supply is deep"}, the slab premium collapses.`;
+      verdict = `${c.name} (${c.number}) currently has no measurable slab premium: PSA 10 ${p10.kind === "sold" ? "sales center" : "listings start"} near ${usd(p10.v)}, versus ${usd(nmUsd)} for raw NM${pop ? `, with ${intl(pop.psa10)} PSA 10 copies already reported` : ""}.`;
     } else if (ratio < 1.5) {
-      verdict = `The PSA 10 premium over raw is currently about ${usd(premium)} (${Math.round((ratio - 1) * 100)}%). After grading fees and shipping, the margin is thin — and a PSA 9 result usually lands below the raw NM price, so the downside of an imperfect grade outweighs the upside unless your copy is flawless.`;
+      verdict = `${c.name} (${c.number}) carries a narrow ${usd(premium)} PSA 10 premium (${Math.round((ratio - 1) * 100)}%) over its ${usd(nmUsd)} raw reference, before grading fees, shipping or the risk of a lower grade.`;
     } else {
-      verdict = `A PSA 10 currently carries a premium of about ${usd(premium)} over raw (${ratio.toFixed(1)}x). ${pop && pop.gem >= 80 ? `With an ${pop.gem}% gem rate, clean copies convert to PSA 10 often, so the math can work if the card is truly near-mint.` : pop ? `But the ${pop.gem}% gem rate means a meaningful share of submissions come back PSA 9 or lower, where most of that premium disappears — factor that risk in before submitting.` : `Factor in the risk of a PSA 9 result, where most of that premium disappears.`}`;
+      verdict = `${c.name} (${c.number}) shows a ${usd(premium)} PSA 10 premium, or ${ratio.toFixed(1)}x its raw reference${pop ? `, alongside a ${pop.gem}% exact-variant gem rate` : ""}; this is a market spread, not a guaranteed grading return.`;
     }
     const p8 = pop ? Math.max(0, (pop.total || 0) - (pop.psa10 || 0) - (pop.psa9 || 0)) : 0;
     gradeSection = `
@@ -118,16 +118,20 @@ for (const { code, set: s, card: c } of cands) {
         <tr><td>PSA 9</td><td class="num">${intl(pop.psa9)}</td><td class="num">${pop.total ? Math.round((pop.psa9 / pop.total) * 100) : 0}%</td></tr>
         <tr><td>PSA 8 or lower</td><td class="num">${intl(p8)}</td><td class="num">${pop.total ? Math.max(0, 100 - Math.round((pop.psa10 / pop.total) * 100) - Math.round((pop.psa9 / pop.total) * 100)) : 0}%</td></tr>
       </tbody></table>
-      <p class="srcNoteA">PSA population report for this exact variant. Population only grows — every new PSA 10 adds supply pressure on the graded price.</p>` : ""}`;
+      <p class="srcNoteA">Exact-printing PSA report for ${esc(c.name)} ${esc(c.number)}; population is cumulative, while price observations are dated.</p>` : ""}`;
   } else {
     // PSA10 실거래·인구가 아직 없는 변형(금·은 SP 등) — 빈 채로 두면 페이지가 얇아지고,
     // 추정치를 넣는 건 금지다. 대신 "왜 없는지"와 세트 맥락(검증된 값만)을 설명한다. 2026-07-30.
     const sf = s.psaFull;
     gradeSection = `
-      <h2>Why there is no PSA 10 price here yet</h2>
-      <p>We only publish a PSA 10 figure when we can verify <strong>completed sales of this exact printing</strong> — a minimum of three, matched by artwork and label, not just card number. ${esc(c.name)} has not cleared that bar recently: low-population variants like this trade thinly, sometimes weeks apart, and a single sale is an anecdote rather than a market price. The number stays blank until real sales accumulate; we never substitute an estimate.</p>
-      <p>Context from the set still applies. ${sf && sf.total ? `Across all ${esc(code)} Japanese cards PSA has graded ${intl(sf.total)} copies with a ${sf.gemRate}% gem rate${sf.wowAdd != null ? ` (+${intl(sf.wowAdd)} in the latest week we recorded)` : ""}, so the set itself is being opened and graded actively — the gap is specific to this variant's thin trading, not to the set.` : `Set-level grading activity for ${esc(code)} is tracked on the set guide.`} Scarce variants with few graded sales often show the widest gap between asking prices and what eventually trades, which is exactly why we wait for sold data.</p>
-      <p>To follow it yourself: the eBay buttons above run variant-specific searches, and the <a href="../sets/${setSlug}.html">${esc(code)} set guide</a> carries the box price series plus PSA, CGC and TAG population for the whole set.</p>`;
+      <h2>${esc(c.name)} PSA 10 market status</h2>
+      <p>No PSA 10 figure is shown for ${esc(c.name)} (${esc(c.number)}) because fewer than three completed sales of this exact artwork and label passed our variant check.</p>
+      <ul class="factList">
+        <li>Required exact-printing sales: 3</li>
+        <li>Fallback estimate: none</li>
+        ${sf && sf.total ? `<li>${esc(code)} Japanese PSA submissions: ${intl(sf.total)} · gem rate: ${sf.gemRate}%${sf.wowAdd != null ? ` · latest recorded week: +${intl(sf.wowAdd)}` : ""}</li>` : ""}
+        <li><a href="../sets/${setSlug}.html">Open the ${esc(code)} set-level grading and box record</a></li>
+      </ul>`;
   }
 
   // 타이틀은 실제 검색 문구("<카드> psa 10 price") 매칭 + 월 표기 자동 갱신(야간 재생성)
@@ -135,9 +139,9 @@ for (const { code, set: s, card: c } of cands) {
   const desc = `${c.name} ${c.number} current prices: raw Japanese NM ${jpy(c.nmJpy)} (about ${usd(nmUsd)})${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} near ${usd(p10.v)}` : ""}${pop ? `, PSA population ${intl(pop.total)} (${pop.gem}% gem rate)` : ""}. Variant-verified, updated ${DATA_DATE}.`;
 
   const faq = [
-    { q: `How much is ${c.name} (${c.number}) worth?`, a: `As of ${DATA_DATE}, the raw Japanese near-mint copy runs about ${jpy(c.nmJpy)} (${usd(nmUsd)}) at Japanese retail${p10 ? `, and PSA 10 copies ${p10.kind === "sold" ? "have sold" : "are listed"} near ${usd(p10.v)}` : ""}. Prices move with the market; the figures on this page update with our data refreshes.` },
-    ...(pop ? [{ q: `How rare is a PSA 10 of this card?`, a: `PSA has graded ${intl(pop.total)} copies of this exact variant, of which ${intl(pop.psa10)} earned PSA 10 — a ${pop.gem}% gem rate.` }] : []),
-    { q: `Which exact printing is this price for?`, a: `This page tracks the "${c.name}" printing only. Other printings of ${c.number} trade at very different prices, so match the artwork and finish exactly before comparing a listing to these numbers.` },
+    { q: `How much is ${c.name} (${c.number}) worth?`, a: `On ${DATA_DATE}, ${c.name} ${c.number} was tracked near ${jpy(c.nmJpy)} (${usd(nmUsd)}) in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}` : "; no PSA 10 figure met the exact-variant sales rule"}.` },
+    ...(pop ? [{ q: `How rare is a PSA 10 ${c.name}?`, a: `PSA reports ${intl(pop.total)} graded copies of the tracked ${c.name} ${c.number} printing, including ${intl(pop.psa10)} in PSA 10 for a ${pop.gem}% gem rate.` }] : []),
+    { q: `Which ${c.name} printing does this page track?`, a: `The ${c.name} value on this page applies only to the ${c.number} artwork shown above; buyers should match its artwork, finish, card number and graded-label variant.` },
   ];
   const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
   const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Article", headline: `${c.name} (${c.number}) price guide`, description: desc, image: imgAbs || `${SITE}/og-image.png`, datePublished: "2026-07-17", dateModified: DATA_DATE, inLanguage: "en-US", mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, author: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, publisher: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, isAccessibleForFree: true });
@@ -159,8 +163,8 @@ for (const { code, set: s, card: c } of cands) {
       gtag('config', 'G-P73SE1WVD0');
     </script>
     <!-- No AdSense on noindex card detail pages; eBay EPN links remain active. -->
-    <!-- 2026-07-24 애드센스 재심사 대비 임시 noindex: 카드 상세는 템플릿 비중이 높아 "얇은 대량 유사페이지"
-         판정 위험(감사 확정 이슈). 카드별 고유 서술+실거래 데이터가 쌓이면 index,follow 로 되돌릴 것. -->
+    <!-- Card details remain noindex and ad-free through the AdSense review window.
+         Reconsider indexing separately after enough exact-variant sale history accumulates. -->
     <meta name="robots" content="noindex,follow" />
     <link rel="canonical" href="${canonical}" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -196,6 +200,7 @@ for (const { code, set: s, card: c } of cands) {
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: #10d7a0; }
       .srcNoteA { color: #7d8698; font-size: 12.5px; margin: 4px 0 16px; }
+      .factList { max-width: 680px; color: #9aa4b6; line-height: 1.7; }
     </style>
   </head>
   <body>
@@ -214,7 +219,7 @@ for (const { code, set: s, card: c } of cands) {
             ${p10 ? `<div class="pc"><span>PSA 10 ${p10.kind === "sold" ? "(sold median)" : "(lowest listing)"}</span><b>${usd(p10.v)}</b><small>${p10.kind === "sold" ? `${p10.n} sales` : "ask, not a sale"} · ${esc(p10.date || "")}</small></div>` : ""}
             ${pop ? `<div class="pc"><span>PSA population</span><b>${intl(pop.total)}</b><small>${intl(pop.psa10)} in PSA 10 · ${pop.gem}% gem rate</small></div>` : ""}
           </div>
-          <p>${esc(c.name)} is ${rank ? `the <strong>#${rank} chase card</strong> in` : "one of the top chase cards in"} <a href="../sets/${setSlug}.html">${esc(code)} ${esc(s.nameEn || "")}</a>.${boxMult && boxMult > 0.8 ? ` A single raw copy is currently worth about <strong>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x a sealed ${esc(code)} box</strong> (${usd(boxUsd)}) — the kind of hit that drives the whole box market.` : ""} ${pop && pop.gem >= 85 ? `Its ${pop.gem}% gem rate means clean copies grade PSA 10 often, which keeps the graded premium over raw in check.` : pop ? `Its ${pop.gem}% gem rate is on the lower side, which makes true PSA 10 copies scarcer than the raw supply suggests.` : ""}</p>
+          <p>${esc(c.name)} is ${rank ? `the <strong>#${rank} chase card</strong> in` : "one of the top chase cards in"} <a href="../sets/${setSlug}.html">${esc(code)} ${esc(s.nameEn || "")}</a>.${boxMult && boxMult > 0.8 ? ` One raw ${esc(c.name)} is currently worth about <strong>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x a sealed ${esc(code)} box</strong> (${usd(boxUsd)}).` : ""} ${pop && pop.gem >= 85 ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, which helps explain its raw-to-slab spread.` : pop ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, so PSA 10 supply is materially smaller than total submissions.` : ""}</p>
           <div class="ctaRow">
             <a class="primary" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
             <a href="${ebayPsa}" target="_blank" rel="noopener noreferrer sponsored">PSA 10 on eBay</a>
@@ -224,12 +229,18 @@ for (const { code, set: s, card: c } of cands) {
 
       ${serRows ? `<h2>Recent price checkpoints</h2>
       <table class="dataTable"><thead><tr><th>Date</th><th>NM (raw)</th><th>PSA 10</th></tr></thead><tbody>${serRows}</tbody></table>
-      <p class="srcNoteA">Checkpoints from our tracking runs (Japanese retail NM; PSA 10 from verified eBay sold medians where available). Sparse rows mean no verified data that day — we leave gaps rather than estimate. Early PSA 10 checkpoints can reflect smaller sold samples than the current figure, so treat the latest row as the most reliable.</p>` : ""}
+      <p class="srcNoteA">${esc(c.name)} checkpoints use Japanese-retail NM observations and exact-variant eBay sold medians; missing cells remain unestimated.</p>` : ""}
 
       ${gradeSection}
 
-      <h2>Verify the variant before you buy</h2>
-      <p>${esc(c.number)} exists in multiple printings, and they do <em>not</em> trade at the same price. This page tracks the <strong>${esc(c.name)}</strong> printing specifically. When comparing a listing: match the artwork and finish to the image above, check the card number in the corner, and for graded copies read the PSA label variant line. Our <a href="../articles/one-piece-card-price-guide.html">card price guide</a> covers variant matching in detail, and the <a href="../articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM guide</a> explains when grading is worth it.</p>
+      <h2>${esc(c.name)} variant record</h2>
+      <ul class="factList">
+        <li>Tracked card number: ${esc(c.number)}</li>
+        <li>Tracked name: ${esc(c.name)}</li>
+        <li>Rarity label: ${esc(c.rarity || "not supplied")}</li>
+        <li>Required listing match: artwork, finish, number and PSA label</li>
+        <li><a href="../articles/one-piece-card-price-guide.html">Variant-matching method</a> · <a href="../articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM method</a></li>
+      </ul>
 
       <h2>FAQ</h2>
       ${faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("\n      ")}
@@ -253,6 +264,16 @@ for (const { code, set: s, card: c } of cands) {
   hubItems.push({ slug: fname, name: c.name, number: c.number, code, usd: Math.round(nmUsd), img: imgRel || c.img });
 }
 
+// cards/*.html are generator-owned. Remove details that fell out of TOP_N so
+// old, unlinked template pages do not remain publicly reachable after refreshes.
+const currentCardFiles = new Set(written);
+const removedStale = [];
+for (const file of fs.readdirSync(CARDS_DIR)) {
+  if (file === "index.html" || !file.endsWith(".html") || currentCardFiles.has(file)) continue;
+  fs.unlinkSync(path.join(CARDS_DIR, file));
+  removedStale.push(file);
+}
+
 // 세트 페이지가 체이스 표에 링크 걸 수 있게 슬러그 맵 출력 (generate-set-pages.js가 읽음)
 const cardMap = {};
 for (const it of hubItems) cardMap[it.number + "|" + norm(it.name)] = it.slug;
@@ -260,6 +281,7 @@ fs.writeFileSync(path.join(CARDS_DIR, "card-map.json"), JSON.stringify(cardMap, 
 
 // ---- 허브(cards/index.html)
 const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
+const ebayCardHub = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("One Piece Card Game Japanese")}&_sop=15&${EPN}`;
 const hub = `<!doctype html>
 <html lang="en">
   <head>
@@ -310,6 +332,7 @@ const hub = `<!doctype html>
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
       <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
+      <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>
       <section style="max-width:720px" aria-label="How these prices are built">
         <h2 style="font-size:19px;margin:26px 0 8px">How these card prices are built</h2>
         <p style="color:#9aa4b6;font-size:14px;line-height:1.7">The most expensive card tracked here is currently <strong>${esc(hubItems[0].name)}</strong> (${esc(hubItems[0].code)} ${esc(hubItems[0].number)}) at about $${hubItems[0].usd.toLocaleString("en-US")} raw, and the entry point for this top ${hubItems.length} sits near $${hubItems[hubItems.length - 1].usd.toLocaleString("en-US")}. Raw NM prices come from Japanese retail stock we check directly; PSA 10 figures come from completed eBay sales (minimum three per card), never from asking prices. Where a variant has no verified sales, its page says so instead of showing a guess.</p>
@@ -346,4 +369,4 @@ if (!sm.includes(`<loc>${SITE}/cards/</loc>`)) {
   sm = sm.replace("</urlset>", `  <url>\n    <loc>${SITE}/cards/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>`);
 }
 fs.writeFileSync(smPath, sm);
-console.log(JSON.stringify({ cards: written.length, sitemapRemoved: removed }));
+console.log(JSON.stringify({ cards: written.length, removedStale, sitemapRemoved: removed }));

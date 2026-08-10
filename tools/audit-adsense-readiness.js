@@ -14,6 +14,7 @@ const ADSENSE_RE = /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js
 const NOINDEX_RE = /<meta\s+name=["']robots["'][^>]*content=["'][^"']*noindex/i;
 const ROBOTS_META_RE = /<meta\s+name=["']robots["'][^>]*>/gi;
 const EPN_CAMPAIGN_ID = "5339163744";
+const DEVELOPMENT_COPY_RE = /\(\s*MVP\s*\)|display ad placeholder|Google AdSense 광고 자리|Google AdSense slot/i;
 const EXCLUDED_DIRS = new Set([".git", ".planning", "docs", "node_modules", "scratchpad", "social"]);
 const errors = [];
 const warnings = [];
@@ -221,6 +222,44 @@ if (maxSetRepetition > 40) {
   errors.push(`one or more set pages repeat up to ${maxSetRepetition}% of sentence words; maximum is 40%`);
 }
 
+// Google can assess the whole site during approval, including noindex/ad-free
+// generated pages. Keep those pages data-specific instead of allowing a large
+// family of nearly identical prose pages to accumulate unnoticed.
+const cardPages = pages
+  .filter((page) => /^cards\/(?!index\.html$).+\.html$/.test(page.file))
+  .map(({ file, text }) => ({ file, text }));
+const cardRepetition = repeatedWordShare(cardPages);
+const medianCardRepetition = median(cardRepetition.map((item) => item.repeatedWordShare));
+const maxCardRepetition = Math.max(0, ...cardRepetition.map((item) => item.repeatedWordShare));
+if (medianCardRepetition > 35) {
+  errors.push(`card pages repeat ${medianCardRepetition}% of sentence words at the median; maximum is 35%`);
+}
+if (maxCardRepetition > 45) {
+  errors.push(`one or more card pages repeat up to ${maxCardRepetition}% of sentence words; maximum is 45%`);
+}
+
+const koSetPages = pages
+  .filter((page) => /^ko\/(?:op|eb|prb)-\d+\.html$/.test(page.file))
+  .map(({ file, text }) => ({ file, text }));
+const koSetRepetition = repeatedWordShare(koSetPages);
+const medianKoSetRepetition = median(koSetRepetition.map((item) => item.repeatedWordShare));
+const maxKoSetRepetition = Math.max(0, ...koSetRepetition.map((item) => item.repeatedWordShare));
+if (medianKoSetRepetition > 35) {
+  errors.push(`Korean set pages repeat ${medianKoSetRepetition}% of sentence words at the median; maximum is 35%`);
+}
+if (maxKoSetRepetition > 45) {
+  errors.push(`one or more Korean set pages repeat up to ${maxKoSetRepetition}% of sentence words; maximum is 45%`);
+}
+
+for (const file of ["index.html", "packs.html"]) {
+  if (DEVELOPMENT_COPY_RE.test(read(file))) {
+    errors.push(`${file}: visible development-stage or ad-placeholder copy remains`);
+  }
+}
+if (DEVELOPMENT_COPY_RE.test(read("packs.js"))) {
+  errors.push("packs.js: dynamic development-stage or ad-placeholder copy remains");
+}
+
 const packs = pages.find((page) => page.file === "packs.html");
 if (packs && !packs.noindex) errors.push("packs.html: duplicate home variant must be noindex");
 const packsDeepLinks = pages.filter((page) => /href=["'][^"']*packs\.html\?set=/i.test(page.html));
@@ -246,6 +285,12 @@ const report = {
   setPages: setPages.length,
   medianSetRepeatedWordShare: medianSetRepetition,
   maxSetRepeatedWordShare: maxSetRepetition,
+  cardPages: cardPages.length,
+  medianCardRepeatedWordShare: medianCardRepetition,
+  maxCardRepeatedWordShare: maxCardRepetition,
+  koSetPages: koSetPages.length,
+  medianKoSetRepeatedWordShare: medianKoSetRepetition,
+  maxKoSetRepeatedWordShare: maxKoSetRepetition,
   epnCheckedSets: Object.keys(commentary.sets || {}).length,
   ebayAffiliateAnchors,
   errors,
