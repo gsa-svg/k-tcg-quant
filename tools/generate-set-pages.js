@@ -521,7 +521,6 @@ function setPage(code, prev, next) {
         </table>
       </div>
       <p class="priceNote">${allTcg ? `NM (raw) = raw ungraded card market price (TCGplayer market, <span title="TCGplayer">TCG</span>). Japanese NM and PSA 10 sold data for this set is still being collected.` : `NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask").`} Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
-      <p class="gearRec">💎 <strong>Protect your chase cards.</strong> One Piece cards are standard size (63×88 mm), and Dragon Shield Matte 100 is a widely used premium sleeve. <a href="${SLEEVE_EBAY}" target="_blank" rel="noopener noreferrer sponsored">Shop popular sleeves on eBay ↗</a></p>
       ${trajectory}
       ${verdict}
       ${reprintBlock}
