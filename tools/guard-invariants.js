@@ -858,6 +858,9 @@ for (const f of ["index.html", "packs.html"]) {
         errors.push(`W1: ${wf} 에 staging 후 추적 파일 잔여 검사 없음 — 새 산출물 누락을 사전에 차단할 수 없음`);
       }
     }
+    if (tools.includes("backfill-english-box-series.js") && !addLine.includes("logs/en-backfill-status.json")) {
+      errors.push(`W1: logs/en-backfill-status.json 은 ${wf} 의 산출물인데 커밋 목록에 없음 — rebase 실패를 유발함`);
+    }
     const src = [...new Set(tools)]
       .filter((f) => exists(`tools/${f}`))
       .map((f) => read(`tools/${f}`))
