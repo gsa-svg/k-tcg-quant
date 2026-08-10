@@ -119,7 +119,7 @@ const html = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <!-- Korean data pages remain ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/ko/" />
     <link rel="alternate" hreflang="ko" href="${SITE}/ko/" />
@@ -299,13 +299,16 @@ ${cardRows}
         ? ` 현재가가 곧 추적 기간 최고가입니다 — 저점 대비 ${pct(fromLo)} 오른 상태로, 최근 매수세가 가격을 끌어올리고 있다는 뜻입니다.`
         : ` 현재 시세 ${won(last.p)}은 저점 대비 ${pct(fromLo)}, 고점 대비 ${pct(offHi)} 수준입니다.`;
     }
-    prose.push({ h: "시세 흐름", p: [line, `일별 가격은 이베이 실거래·검증된 매물을 집계해 만든 값이고, 같은 데이터의 차트와 매물 링크는 <a href="${enHref || "../packs.html?set=" + code}">영문 상세 페이지</a>에서 볼 수 있습니다.`] });
+    prose.push({ h: "시세 흐름", p: [line, `일별 가격은 이베이 실거래·검증된 매물을 집계해 만든 값이고, 같은 데이터의 차트와 매물 링크는 <a href="${enHref || "../?set=" + code}">영문 상세 페이지</a>에서 볼 수 있습니다.`] });
   }
 
   // 2) 재판 이력 — 있는 세트와 없는 세트의 문장이 완전히 다르다
   if (rr.length) {
+    const reprintLabels = rr
+      .map((r) => [r.date, r.note].filter(Boolean).map(esc).join(" · "))
+      .filter(Boolean);
     prose.push({ h: "재판(재발매) 이력", p: [
-      `${code}는 유통사·리테일러 재입고 기준으로 <strong>재판이 ${rr.length}회</strong> 확인된 세트입니다(${rr.map((r) => esc(r.date) + (r.note ? " · " + esc(r.note) : "")).join(" / ")}). 재판은 밀봉 공급을 다시 늘리기 때문에, 재판 발표~입고 시기엔 박스 시세가 눌리는 경향이 반복적으로 관찰됐습니다.`,
+      `${code}는 유통사·리테일러 재입고 기준으로 <strong>재판이 ${rr.length}회</strong> 확인된 세트입니다${reprintLabels.length ? `(${reprintLabels.join(" / ")})` : ""}. 재판은 밀봉 공급을 다시 늘리기 때문에, 재판 발표~입고 시기엔 박스 시세가 눌리는 경향이 반복적으로 관찰됐습니다.`,
       `반다이는 세트별 재판을 공식 발표하지 않으므로 위 기록은 유통망에서 확인된 것만 적은 것입니다. 재판분과 초판은 카드 자체로는 구분되지 않습니다.`,
     ] });
   } else {
@@ -374,14 +377,15 @@ ${cardRows}
   facts.push(`현재 박스 시세 <strong>${won(krw)}</strong> (기준일 ${esc(DATA_DATE)})`);
   if (chg != null) facts.push(`${esc(b.baseDate || "추적 시작일")} 대비 <strong>${pct(chg)}</strong> — 발매일 대비가 아님`);
   if (b.msrpYen) facts.push(`발매 정가 <strong>¥${b.msrpYen.toLocaleString("ko-KR")}</strong>`);
-  facts.push(rr.length ? `재판 기록 <strong>${rr.length}회</strong> (${rr.map((r) => r.date).join(", ")}) — 유통사·리테일러 재입고 기준` : `<strong>재판 기록 없음</strong> — 확인된 재입고 기록이 없다는 뜻`);
+  const reprintDates = rr.map((r) => r.date).filter(Boolean);
+  facts.push(rr.length ? `재판 기록 <strong>${rr.length}회</strong>${reprintDates.length ? ` (${reprintDates.join(", ")})` : ""} — 유통사·리테일러 재입고 기준` : `<strong>재판 기록 없음</strong> — 확인된 재입고 기록이 없다는 뜻`);
   if (s.psaTotal != null) facts.push(`PSA 누적 감정 <strong>${Number(s.psaTotal).toLocaleString("ko-KR")}장</strong>${s.psaGem != null ? ` · PSA10 비율 <strong>${s.psaGem}%</strong>` : ""}`);
   if (s.release) facts.push(`영문(NA)판 발매일 ${esc(s.release)} — 이 페이지 시세는 <strong>일본판</strong> 기준`);
 
   const setFaqs = [
     { q: `${code} ${nKo} 박스 시세는 지금 얼마인가요?`, a: `${DATA_DATE} 기준 일본판 ${code} 부스터박스 시세는 약 ${won(krw)}입니다. 이베이 실거래·검증된 매물을 매일 집계해 원화로 환산한 값이며, 판매처·상태에 따라 달라질 수 있습니다.` },
     { q: `${code} 발매 정가는 얼마였나요?`, a: b.msrpYen ? `발매 당시 일본 정가는 박스당 ¥${b.msrpYen.toLocaleString("ko-KR")}입니다. 현재 시세는 위 표에서 확인하세요.` : `이 세트의 발매 정가는 확인된 자료가 없어 표시하지 않습니다.` },
-    { q: `${code}는 재판(재발매)된 적 있나요?`, a: rr.length ? `유통사·리테일러 재입고 기준으로 ${rr.length}회 확인됩니다(${rr.map((r) => r.date).join(", ")}). 반다이는 세트별 재판을 공식 발표하지 않으므로 공식 발표가 아닌 유통 기록입니다.` : `확인된 재판 기록이 없습니다. 다만 반다이가 세트별 재판을 공식 발표하지 않기 때문에, "기록 없음"이 "재판이 절대 없었다"는 뜻은 아닙니다.` },
+    { q: `${code}는 재판(재발매)된 적 있나요?`, a: rr.length ? `유통사·리테일러 재입고 기준으로 ${rr.length}회 확인됩니다${reprintDates.length ? `(${reprintDates.join(", ")})` : ""}. 반다이는 세트별 재판을 공식 발표하지 않으므로 공식 발표가 아닌 유통 기록입니다.` : `확인된 재판 기록이 없습니다. 다만 반다이가 세트별 재판을 공식 발표하지 않기 때문에, "기록 없음"이 "재판이 절대 없었다"는 뜻은 아닙니다.` },
     { q: `${code} 변동률은 발매일부터 계산한 건가요?`, a: b.launchTracked ? `${code}는 발매 시점(${esc(b.baseDate || "")})부터 추적한 세트라 변동률이 발매 초기 대비입니다.` : `아니요. ${esc(b.baseDate || "2026-01-07")}부터 추적을 시작해 그 시점 대비 변동률입니다. 발매일 대비가 아닙니다.` },
   ];
   const setFaqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: setFaqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
@@ -401,7 +405,7 @@ ${cardRows}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <!-- No AdSense on noindex Korean set detail pages. -->
     <!-- 2026-07-24 애드센스 재심사 대비 임시 noindex: 한국어 세트 상세는 고유 서술이 없어 "얇은 대량 유사페이지"
          판정 위험(감사 확정 이슈). 세트별 한국어 해설을 채우면 index,follow 로 되돌릴 것. 허브(/ko/)는 유지. -->
     <meta name="robots" content="noindex,follow" />

@@ -1431,7 +1431,7 @@ function renderCompareTable() {
       const code = tr.dataset.code;
       // 비교 전용 페이지(홈 상세 요소 없음)에서는 홈으로 이동
       if (!document.querySelector("#detail")) {
-        location.href = `packs.html?set=${code}${state.hl === "ko" ? "&hl=ko" : ""}`;
+        location.href = `./?set=${code}${state.hl === "ko" ? "&hl=ko" : ""}`;
         return;
       }
       const lang = (state.data.extra?.list || []).includes(code) ? "extra" : "jp";

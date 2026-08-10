@@ -18,11 +18,16 @@ function requireMatch(content, pattern, label, file) {
   if (!pattern.test(content)) errors.push(`${file}: missing ${label}`);
 }
 
-function requiredPageChecks(file) {
+function requiredPageChecks(file, { robots = "index" } = {}) {
   const content = read(file);
   requireMatch(content, /<title>[^<]{20,}<\/title>/i, "descriptive title", file);
   requireMatch(content, /<meta\s+name="description"\s+content="[^"]{70,}"/i, "descriptive meta description", file);
-  requireMatch(content, /<meta\s+name="robots"\s+content="(?=[^"]*index)(?=[^"]*follow)[^"]+"/i, "index,follow robots", file);
+  const robotsTags = content.match(/<meta\s+name="robots"\s+content="[^"]+"\s*\/?>/gi) || [];
+  if (robotsTags.length !== 1) errors.push(`${file}: expected exactly one robots meta tag, found ${robotsTags.length}`);
+  const robotsPattern = robots === "noindex"
+    ? /<meta\s+name="robots"\s+content="noindex,follow(?:,[^"]*)?"\s*\/?>/i
+    : /<meta\s+name="robots"\s+content="index,follow(?:,[^"]*)?"\s*\/?>/i;
+  requireMatch(content, robotsPattern, `${robots},follow robots`, file);
   requireMatch(content, new RegExp(`<link\\s+rel="canonical"\\s+href="${SITE.replace(/[./]/g, "\\$&")}`), "absolute canonical", file);
   requireMatch(content, /<meta\s+property="og:title"\s+content="[^"]+"/i, "Open Graph title", file);
   requireMatch(content, /<meta\s+property="og:description"\s+content="[^"]+"/i, "Open Graph description", file);
@@ -40,7 +45,8 @@ function readHtmlFiles(relativeDir) {
 function checkHome() {
   const home = read("index.html");
   const packs = read("packs.html");
-  ["index.html", "packs.html"].forEach(requiredPageChecks);
+  requiredPageChecks("index.html");
+  requiredPageChecks("packs.html", { robots: "noindex" });
   for (const [file, content] of [["index.html", home], ["packs.html", packs]]) {
     requireMatch(content, /<link\s+rel="canonical"\s+href="https:\/\/opboxindex\.com\/"\s*\/>/i, "root canonical", file);
     // 키 순서에 의존하지 않게 타입·필수필드를 각각 확인(브랜드 엔티티 스키마는 @id/sameAs/knowsAbout 등으로 확장됨)
@@ -72,7 +78,9 @@ function checkStaticContent() {
   const articlePages = readHtmlFiles("articles").filter((file) => file !== "articles/index.html");
   const setPages = readHtmlFiles("sets").filter((file) => file !== "sets/index.html");
   for (const file of articlePages) {
-    requiredPageChecks(file);
+    requiredPageChecks(file, {
+      robots: /^articles\/weekly-market-report-\d{4}-\d{2}-\d{2}\.html$/.test(file) ? "noindex" : "index",
+    });
     requireMatch(read(file), /"@type"\s*:\s*"Article"/i, "Article schema", file);
   }
   for (const file of setPages) {

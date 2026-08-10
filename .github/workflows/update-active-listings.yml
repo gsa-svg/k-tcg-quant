@@ -59,6 +59,7 @@ jobs:
           node --check tools/build-market-index.js
           node --check tools/inject-home-summary.js
           node --check tools/guard-invariants.js
+          node --check tools/audit-adsense-readiness.js
           node --check tools/audit-grading-numbers.js
           node tools/audit-grading-numbers.js
           # 여기서 가드를 '실행'하면 안 된다 — 2026-07-27 교착.

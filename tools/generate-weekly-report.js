@@ -56,8 +56,8 @@ const html = `<!doctype html>
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
-    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <!-- Short automated weekly reports remain noindex and ad-free until expanded editorially. -->
+    <meta name="robots" content="noindex,follow" />
     <link rel="canonical" href="${canonical}" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>${esc(title)}</title>
@@ -116,14 +116,28 @@ const html = `<!doctype html>
   </body>
 </html>
 `;
-fs.writeFileSync(path.join(ROOT, "articles", fname), html);
+// 자동 생성 리포트의 새 공개 발행은 승인 기간에 멈춘다. 데이터 계산은 계속 검증하되,
+// 사람이 편집 품질을 확인하고 명시적으로 환경변수를 준 경우에만 파일을 쓴다.
+const publishReport = process.env.PUBLISH_WEEKLY_REPORT === "1";
+if (publishReport) fs.writeFileSync(path.join(ROOT, "articles", fname), html);
 
-// sitemap idempotent 추가
+// 주간 자동 리포트는 noindex이므로 sitemap에도 넣지 않는다. 과거 생성기 버전이
+// 추가한 항목이 있으면 함께 제거해 robots와 sitemap 신호를 일치시킨다.
 const smPath = path.join(ROOT, "sitemap.xml");
 let sm = fs.readFileSync(smPath, "utf8");
-if (!sm.includes(fname)) {
-  const entry = `  <url>\n    <loc>${canonical}</loc>\n    <lastmod>${new Date().toISOString().slice(0, 10)}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-  sm = sm.replace("</urlset>", entry + "</urlset>");
+const cleanedSitemap = sm.replace(
+  /\s*<url>\s*<loc>https:\/\/opboxindex\.com\/articles\/weekly-market-report-[^<]+<\/loc>[\s\S]*?<\/url>/g,
+  "",
+);
+if (cleanedSitemap !== sm) {
+  sm = cleanedSitemap.replace("</urlset>", "\n</urlset>");
   fs.writeFileSync(smPath, sm);
 }
-console.log(JSON.stringify({ file: fname, asOf, gainers: gainers.length, losers: losers.length, totalGrades }));
+console.log(JSON.stringify({
+  file: fname,
+  published: publishReport,
+  asOf,
+  gainers: gainers.length,
+  losers: losers.length,
+  totalGrades,
+}));

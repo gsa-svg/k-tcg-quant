@@ -111,7 +111,8 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <!-- AdSense is intentionally limited to substantial editorial/core pages during site approval.
+         Set guides keep eBay EPN links but do not request Google ads. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />${hreflang}
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -171,7 +172,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
 }
 
 const FOOT = `
-      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you. Prices and availability change; always confirm details on eBay before buying.</p>
+      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
@@ -219,27 +220,16 @@ function liveWidget(code) {
 // 구글은 본문에 없는 FAQPage 구조화데이터를 스팸으로 취급하고(리치결과는 2023년 폐지),
 // 숨긴 FAQ 는 이득 0·리스크만 있다. 그래서 한 소스에서 뽑아 양쪽에 쓴다 — 2026-07-21 감사.
 function faqItems(code, nameEn) {
-  // 세트별 수기 해설이 있으면 그 세트에만 참인 문답을 맨 앞에 둔다 — FAQ 까지 전 세트 동일하면
-  // 구조화데이터부터 템플릿으로 읽힌다(2026-08-07 애드센스 거절의 근인).
+  // FAQ도 세트별 해설에서만 만든다. 가격·체이스·매수 판단의 공통 3문답을 21페이지에
+  // 복제하던 구조가 최종 HTML 반복률을 크게 높였기 때문에 공통 문답은 방법론 페이지로 통합했다.
   const story = COMMENTARY.sets?.[code];
-  return [
-    ...(story ? [{
+  return story ? [{
       q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`,
       a: story.desc,
-    }] : []),
-    {
-      q: `What is the current ${code} ${nameEn} booster box price?`,
-      a: `OP Box Index tracks ${code} ${nameEn} Japanese sealed booster box prices daily from eBay active listings and sold history, shown in USD with KRW and JPY conversions. Check the live tracker for today's price band.`,
-    },
-    {
-      q: `What are the top chase cards in ${code} ${nameEn}?`,
-      a: `The most valuable ${code} pulls are ranked on this page by market price, including parallel, manga rare and special art cards, with PSA 10 population data where available.`,
-    },
-    {
-      q: `Is a Japanese ${code} booster box a good buy?`,
-      a: `That depends on price versus recent sold data, chase-card strength, supply and reseal risk. OP Box Index shows the data signals but does not give investment advice.`,
-    },
-  ];
+    }] : [{
+      q: `Where is the current ${code} ${nameEn} market data?`,
+      a: `The price table and tracker links on this page show the currently available ${code} market observations.`,
+    }];
 }
 
 // 화면에 보이는 FAQ 섹션 — faqLd 와 동일 Q&A. 구조화데이터와 본문 일치를 보장.
@@ -305,7 +295,6 @@ function setPage(code, prev, next) {
   const nameEn = s.nameEn || code;
   const cards = (s.cards || []).slice(0, 10);
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
-  const top3 = cards.slice(0, 3).map((c) => c.name).join(", ");
   const canonical = `${SITE}/sets/${slug(code)}.html`;
   const title = `${code} ${nameEn} Booster Box Price (Japanese) | OP Box Index`;
   // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
@@ -335,24 +324,10 @@ function setPage(code, prev, next) {
   if (fullPsaRate != null) summaryBits.push(`Full-set PSA 10 gem rate <b>${esc(String(fullPsaRate))}%</b>${fullPsaTotal ? ` (${intl(fullPsaTotal)} graded)` : ""}`);
   const summaryLine = summaryBits.length ? `<p class="dataSummary">${summaryBits.join(" · ")}</p>` : "";
 
-  // 박스 시세 구워넣기 (날짜 명시 · 매일 재생성으로 최신 유지)
-  const bm = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
-  let boxLine = "";
-  if (bm && bm.middle != null) {
-    const mid = toUsd(bm.middle, bm.currency), lo = bm.low != null ? toUsd(bm.low, bm.currency) : null, hi = bm.high != null ? toUsd(bm.high, bm.currency) : null;
-    if (mid != null) boxLine = `<p>As of <strong>${esc(bm.updated || DATA_DATE)}</strong>, a sealed ${code} Japanese booster box lists around <strong>${usd(mid)}</strong>${lo != null && hi != null ? ` (typical range ${usd(lo)}–${usd(hi)})` : ""} on eBay${bm.sampleSize ? `, from ${bm.sampleSize} active listings` : ""}. This updates daily — see the <a href="../packs.html?set=${enc}&hl=en">live ${code} tracker</a> for today's number and recent sold prices.</p>`;
-  }
-
   // 데이터 기반 분석 문단 (세트마다 고유)
   const top = cards[0], tp = top ? cardPrices(top) : {};
   const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
-  const soldCount = cards.filter((c) => c.psa10Ebay && c.psa10Ebay.soldBased).length;
-  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}. ${soldCount > 1 ? `${soldCount} of the top 10 cards have verified PSA 10 sold history, so the graded premiums here reflect real transactions, not asking prices. ` : ""}${fullPsaRate != null ? `Across the full ${code} set, cards grade PSA 10 (gem mint) about <strong>${fullPsaRate}%</strong> of the time${fullPsaTotal ? ` out of ${intl(fullPsaTotal)} graded` : ""} — ${fullPsaRate >= 85 ? "a high gem rate, which tends to keep the graded-vs-raw premium modest" : "a moderate gem rate, which keeps clean PSA 10 copies scarce and their premium wide"}.` : ""}` : "";
-
-  // PSA 섹션
-  const psaSection = fullPsaRate != null ? `
-      <h2>${code} PSA 10 grading data</h2>
-      <p>Across the full ${code} ${esc(nameEn)} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10${fullPsaTotal ? `, across ${intl(fullPsaTotal)} total grades` : ""}. A higher gem rate means more PSA 10 supply, which usually compresses the premium a graded card holds over a raw NM copy; a lower rate keeps gem examples scarce and the premium wide. That is why chase-card value tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity. Read the <a href="../articles/one-piece-card-price-guide.html">One Piece card price guide</a>, then see the <a href="../psa10-ranking.html">most valuable One Piece PSA 10 cards</a> across all sets.</p>` : "";
+  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}.` : "";
 
   // 6개월 박스 시세 궤적 (세트별 고유 수치 — boxSeries 주간 시리즈 기반)
   let trajectory = "";
@@ -372,7 +347,7 @@ function setPage(code, prev, next) {
     }
     trajectory = `
       <h2>${code} box price: the six-month trajectory</h2>
-      <p>Weekly market data tells the ${code} story precisely. The Japanese sealed box entered ${monthYear(first.d) || "January 2026"} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit} The interactive chart on the <a href="../packs.html?set=${enc}&hl=en">live tracker</a> lets you hover any week for the exact price of both editions.</p>`;
+      <p>The Japanese sealed box entered ${monthYear(first.d) || "January 2026"} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
   }
 
   // 주간 등급(개봉) 모멘텀 — psaWeekly 기반, 세트별 고유
@@ -385,7 +360,7 @@ function setPage(code, prev, next) {
     const trend = lastW.v >= pk.v * 0.85 ? "still running near its peak" : lastW.v <= pk.v * 0.55 ? "cooling off from its peak" : "steady";
     momentum = `
       <h2>How fast is ${code} being opened right now?</h2>
-      <p>PSA's population report acts as a destruction meter for sealed supply: every graded card came out of an opened pack. Between ${esc(wk[0].d)} and ${esc(lastW.d)}, collectors added <strong>${intl(sum)}</strong> new ${code} grades — peaking at <strong>${intl(pk.v)}</strong> cards in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `All-time, the set counts <strong>${intl(s.psaFull.total)}</strong> graded cards.` : ""} Sustained grading volume while the box price holds is the pattern sealed collectors look for: supply burning while demand stays. The <a href="../packs.html?set=${enc}&hl=en">tracker page</a> breaks the same count into Japanese and English editions with the change since last week, and our <a href="../articles/psa-grading-vs-sealed-supply-2026.html">grading-vs-supply report</a> compares all 21 sets.</p>`;
+      <p>Between ${esc(wk[0].d)} and ${esc(lastW.d)}, collectors added <strong>${intl(sum)}</strong> new ${code} PSA grades — peaking at <strong>${intl(pk.v)}</strong> in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `The all-time set total is <strong>${intl(s.psaFull.total)}</strong>.` : ""}</p>`;
   }
 
   // 구매의도 verdict — 전부 실데이터 파생 분기, 매일 재생성으로 월 표기 자동 갱신
@@ -410,13 +385,9 @@ function setPage(code, prev, next) {
           ? ` The chase math is lottery-shaped: the top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so a box's expected value concentrates in a few low-odds hits.`
           : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price — value here is spread across the top-10 table rather than one jackpot card.`)
         : "";
-      const gemRead = fullPsaRate != null
-        ? ` On the grading side, the full set's ${fullPsaRate}% PSA 10 gem rate ${fullPsaRate >= 85 ? "keeps graded supply plentiful — raw chase copies, not slabs, carry the scarcity" : "keeps true gem copies scarce, supporting graded premiums"}.`
-        : "";
       verdict = `
       <h2>Is ${/^[OE]/.test(code) ? "an" : "a"} ${code} booster box worth buying? (${esc(nowLabel)})</h2>
-      <p>${priceRead}${chaseRead}${gemRead}</p>
-      <p>What the data cannot tell you: future reprints, banlist shifts, or your own luck. We publish the signals — price trajectory, opening rate, PSA population — and leave the decision to you. This is research, not investment advice; before paying up for any sealed box, run the <a href="../articles/reseal-checklist.html">reseal checklist</a>.</p>`;
+      <p>${priceRead}${chaseRead}</p>`;
     }
   }
 
@@ -432,16 +403,19 @@ function setPage(code, prev, next) {
       const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
       const recs = sf.reprintRecords || [];
       const rpLine = recs.length
-        ? `We found <strong>${recs.length}</strong> dated reprint record${recs.length > 1 ? "s" : ""} for ${code} from Japanese retailers/distributors: ${recs.map((r) => {
+        ? `${recs.map((r) => {
             // 소스 URL 이 살아있는 http 링크일 때만 클릭 링크. 죽은/빈 소스는 출처명만 텍스트로(죽은 링크 노출 방지 — 2026-07-21 감사).
             const live = typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead;
             const label = live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${esc(r.kind)}</a>` : esc(r.kind);
-            return `${r.date ? esc(r.date) : "date n/a"} (${label})`;
-          }).join(", ")}.`
-        : `We found no dated reprint record for ${code} in our sources — which means none surfaced, not that it was never reprinted.`;
+            return `${r.date ? `${esc(r.date)} — ` : ""}${label}`;
+          }).join(", ")}`
+        : "None in the current source ledger";
       reprintBlock = `
       <h2>Reprints &amp; original price</h2>
-      <p>${code} launched at a Japanese MSRP of <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd}). <strong>On reprints:</strong> Bandai does not publish per-set reprint announcements for the One Piece Card Game, so there is no official count. ${rpLine} See how many copies of this set have been graded — PSA, CGC and TAG, Japanese and English separately — on the <a href="../psa-grading.html">grading population page</a>.</p>`;
+      <ul class="keyFacts">
+        <li>Original Japanese MSRP: <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd}).</li>
+        <li>Retailer/distributor reprint records: ${rpLine}.</li>
+      </ul>`;
     }
   }
 
@@ -499,15 +473,13 @@ function setPage(code, prev, next) {
         </div>
       </div>
       ${keyFacts}
-      <p><strong>${code} ${esc(nameEn)}</strong> is tracked daily on OP Box Index using eBay active listings and sold history for the Japanese sealed booster box, plus per-card data for its most valuable pulls. The strongest chase cards in this set include ${esc(top3)} — the cards that effectively set the floor for what a sealed box is worth.</p>
       ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
         <h2>${esc(story.heading)}</h2>
         ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n        ")}
       </section>` : ""}
-      ${boxLine}
       ${liveWidget(code)}
       <div class="ctaRow">
-        <a class="primary" href="../packs.html?set=${enc}&hl=en">Open live ${code} tracker</a>
+        <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>
         <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">Browse ${code} boxes on eBay</a>
       </div>
       <h2>Top 10 chase cards in ${code}</h2>
@@ -520,21 +492,12 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) = raw ungraded card market price (TCGplayer market, <span title="TCGplayer">TCG</span>). Japanese NM and PSA 10 sold data for this set is still being collected.` : `NM = raw near-mint Japanese single (asking). PSA 10 = recent eBay <em>sold</em> median where marked "sold", otherwise lowest verified listing ("ask").`} Figures as of ${esc(DATA_DATE)}; live per-card prices on the <a href="../packs.html?set=${enc}&hl=en">tracker</a>.</p>
+      <p class="priceNote">${allTcg ? `NM (raw) uses TCGplayer market data while Japanese NM and PSA 10 sales are still being collected.` : `NM is Japanese near-mint retail; PSA 10 uses a sold median when marked "sold" and otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>
       ${trajectory}
       ${verdict}
       ${reprintBlock}
       ${momentum}
-      ${psaSection}
-      <h2>Before you buy a sealed ${code} box</h2>
-      <ul>
-        <li>Compare the asking price against recent <strong>sold</strong> prices, not just listings — active prices are often above what boxes actually sell for.</li>
-        <li>Check the seller's history, photos of the actual box and shrink-wrap condition to reduce <a href="../articles/reseal-checklist.html">reseal risk</a>.</li>
-        <li>Japanese and English boxes price very differently — see <a href="../articles/japan-vs-english.html">Japanese vs English boxes</a>.</li>
-        <li>Understand <a href="../articles/sealed-box-rules.html">what actually moves sealed box prices</a> before treating any box as an investment.</li>
-        <li>Chase-card value often tracks <a href="../articles/psa-population-and-prices.html">PSA population and gem rate</a>, not just character popularity.</li>
-        ${compareLink}
-      </ul>
+      ${compareLink ? `<p class="priceNote">${compareLink.replace(/^<li>|<\/li>$/g, "")}</p>` : ""}
       ${faqHtml(code, nameEn)}
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
@@ -749,7 +712,7 @@ ${analysis}
     </footer>
     <script>
       document.querySelectorAll('.rankTable tr[data-code]').forEach(function (tr) {
-        tr.addEventListener('click', function () { location.href = 'packs.html?set=' + encodeURIComponent(tr.getAttribute('data-code')) + '&hl=en'; });
+        tr.addEventListener('click', function () { location.href = './?set=' + encodeURIComponent(tr.getAttribute('data-code')) + '&hl=en'; });
       });
     </script>
   </body>

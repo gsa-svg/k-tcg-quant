@@ -57,6 +57,7 @@ jobs:
           node --check tools/generate-ko-topic-pages.js
           node --check tools/generate-auction-page.js
           node --check tools/guard-invariants.js
+          node --check tools/audit-adsense-readiness.js
           node --check tools/audit-seo.js
           node --check tools/audit-ai-discovery.js
           node --check tools/run-with-retry.js

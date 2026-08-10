@@ -10,6 +10,7 @@
 //  [검증파일 삭제 사고 예방] → F1
 const fs = require("fs");
 const path = require("path");
+const { spawnSync } = require("child_process");
 const ROOT = path.join(__dirname, "..");
 const errors = [];
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
@@ -1077,8 +1078,28 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   }
 }
 
+// ── A4. AdSense 승인 준비도 — 최종 생성 HTML을 별도 SRP 감사로 검사한다.
+//    noindex+광고, 자동생성/내비 페이지 광고, 박문서 광고, 세트 문장 반복,
+//    packs 홈 별칭과 EPN campid 보존을 한 번에 확인한다.
+{
+  const result = spawnSync(process.execPath, [path.join(__dirname, "audit-adsense-readiness.js")], {
+    cwd: ROOT,
+    encoding: "utf8",
+  });
+  let report = null;
+  try { report = JSON.parse(result.stdout || ""); } catch {}
+  if (result.error) {
+    errors.push(`A4: AdSense readiness 감사 실행 실패 — ${result.error.message}`);
+  } else if (result.status !== 0) {
+    const details = Array.isArray(report?.errors) && report.errors.length
+      ? report.errors.map((error) => `A4: ${error}`)
+      : [`A4: AdSense readiness 감사 실패${result.stderr ? ` — ${result.stderr.trim()}` : ""}`];
+    errors.push(...details);
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "G8"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "G8"] }));

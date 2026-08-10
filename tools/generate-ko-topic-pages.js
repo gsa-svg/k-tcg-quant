@@ -40,7 +40,7 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName }) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <!-- Korean topic pages remain ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />
     <link rel="alternate" hreflang="ko" href="${canonical}" />

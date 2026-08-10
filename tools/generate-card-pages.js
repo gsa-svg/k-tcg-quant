@@ -158,7 +158,7 @@ for (const { code, set: s, card: c } of cands) {
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <!-- No AdSense on noindex card detail pages; eBay EPN links remain active. -->
     <!-- 2026-07-24 애드센스 재심사 대비 임시 noindex: 카드 상세는 템플릿 비중이 높아 "얇은 대량 유사페이지"
          판정 위험(감사 확정 이슈). 카드별 고유 서술+실거래 데이터가 쌓이면 index,follow 로 되돌릴 것. -->
     <meta name="robots" content="noindex,follow" />
@@ -272,7 +272,7 @@ const hub = `<!doctype html>
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
+    <!-- Navigation hubs stay ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/cards/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
