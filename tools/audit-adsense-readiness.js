@@ -10,6 +10,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
+const ADSENSE_PUBLISHER_ID = "1520891018658006";
 const ADSENSE_RE = /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/i;
 const NOINDEX_RE = /<meta\s+name=["']robots["'][^>]*content=["'][^"']*noindex/i;
 const ROBOTS_META_RE = /<meta\s+name=["']robots["'][^>]*>/gi;
@@ -281,6 +282,53 @@ if (monetizedPages.length < 5) {
   errors.push(`only ${monetizedPages.length} substantial pages retain AdSense; expected at least 5`);
 }
 
+const adsensePublisherIds = new Set();
+const adsenseTagConfigurationFailures = [];
+const cmpBlockingReferrerPages = [];
+for (const page of monetizedPages) {
+  const tags = [...page.html.matchAll(/<script\b[^>]*src=(['"])([^'"]*pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^'"]*)\1[^>]*>/gi)];
+  if (!tags.length) {
+    adsenseTagConfigurationFailures.push(page.file);
+    continue;
+  }
+  for (const tag of tags) {
+    const publisherId = (tag[2].match(/[?&](?:amp;)?client=ca-pub-(\d+)/i) || [])[1];
+    if (publisherId) adsensePublisherIds.add(publisherId);
+    if (publisherId !== ADSENSE_PUBLISHER_ID || !/\bcrossorigin=['"]anonymous['"]/i.test(tag[0])) {
+      adsenseTagConfigurationFailures.push(page.file);
+    }
+  }
+  const referrerPolicy = (page.html.match(/<meta\b[^>]*name=['"]referrer['"][^>]*content=['"]([^'"]+)['"]/i) || [])[1] || "";
+  if (/^(?:no-referrer|same-origin)$/i.test(referrerPolicy.trim())) {
+    cmpBlockingReferrerPages.push(page.file);
+  }
+}
+if (adsenseTagConfigurationFailures.length) {
+  errors.push(`${new Set(adsenseTagConfigurationFailures).size} monetized pages have a missing, mismatched, or incomplete AdSense tag`);
+}
+if (adsensePublisherIds.size !== 1 || !adsensePublisherIds.has(ADSENSE_PUBLISHER_ID)) {
+  errors.push(`AdSense tags must use only ca-pub-${ADSENSE_PUBLISHER_ID}`);
+}
+if (cmpBlockingReferrerPages.length) {
+  errors.push(`${cmpBlockingReferrerPages.length} monetized pages use a referrer policy that can block Google Privacy & messaging`);
+}
+
+const privacyHtml = read("privacy.html");
+const privacyDisclosureChecks = [
+  ["Google advertising cookie disclosure", /third-party vendors, including Google, use cookies[\s\S]*prior visits/i],
+  ["personalized advertising opt-out", /https:\/\/adssettings\.google\.com\//i],
+  ["Google partner-site data-use disclosure", /https:\/\/policies\.google\.com\/technologies\/partner-sites/i],
+  ["analytics disclosure", /Google Analytics[\s\S]*https:\/\/policies\.google\.com\/privacy/i],
+  ["affiliate disclosure", /Affiliate and paid links[\s\S]*eBay Partner Network/i],
+  ["privacy contact", /mailto:[^'"\s>]+/i],
+];
+const privacyDisclosureFailures = privacyDisclosureChecks
+  .filter(([, pattern]) => !pattern.test(privacyHtml))
+  .map(([label]) => label);
+if (privacyDisclosureFailures.length) {
+  errors.push(`privacy.html is missing: ${privacyDisclosureFailures.join(", ")}`);
+}
+
 let ebayAffiliateAnchors = 0;
 for (const page of pages) {
   for (const match of page.html.matchAll(/<a\b[^>]*href=(["'])(https?:\/\/(?:www\.)?ebay\.[\s\S]*?)\1[^>]*>/gi)) {
@@ -386,7 +434,10 @@ if (/packs\.html\?set=/i.test(read("packs.js"))) {
 }
 
 const adsTxt = read("ads.txt").trim();
-if (!adsTxt.includes("pub-1520891018658006")) errors.push("ads.txt: AdSense publisher id missing");
+const expectedAdsTxtLine = `google.com, pub-${ADSENSE_PUBLISHER_ID}, DIRECT, f08c47fec0942fa0`;
+if (!adsTxt.split(/\r?\n/).map((line) => line.trim()).includes(expectedAdsTxtLine)) {
+  errors.push(`ads.txt: exact authorized seller line missing for pub-${ADSENSE_PUBLISHER_ID}`);
+}
 
 const report = {
   publicHtml: pages.length,
@@ -400,6 +451,10 @@ const report = {
   articlesWithoutVisibleTrust: articlesWithoutVisibleTrust.length,
   articlesWithMalformedTrustLine: articlesWithMalformedTrustLine.length,
   monetizedPagesWithoutTrustNavigation: monetizedPagesWithoutTrustNavigation.length,
+  adsensePublisherIds: [...adsensePublisherIds].sort().map((id) => `ca-pub-${id}`),
+  adsenseTagConfigurationFailures: new Set(adsenseTagConfigurationFailures).size,
+  cmpBlockingReferrerPages: cmpBlockingReferrerPages.length,
+  privacyDisclosureFailures,
   pagesWithUnsupportedCausalClaims: pagesWithUnsupportedCausalClaims.length,
   minimumMonetizedWordCount: monetizedPages.length
     ? Math.min(...monetizedPages.map((page) => page.wordCount))

@@ -1,5 +1,26 @@
 # 인수인계 — OP Box Index (opboxindex.com)
 
+## 2026-08-11(화) — AdSense 정책·ads.txt·개인정보 기술 감사
+
+- **Google 최신 공식 기준을 다시 대조했다.** 개인정보처리방침은 Google 광고 쿠키, 이전 방문 기반 광고,
+  맞춤광고 해제(`adssettings.google.com`), Google 서비스 이용 사이트의 데이터 처리
+  (`policies.google.com/technologies/partner-sites`), Analytics, eBay/Amazon 제휴, 연락처를 모두 명시한다.
+  `ads.txt`는 라이브에서 HTTP 200·`text/plain`이며
+  `google.com, pub-1520891018658006, DIRECT, f08c47fec0942fa0` 한 줄이 정상 노출된다.
+- **게시자 ID와 태그를 전수 확인했다.** 광고 지면 24장 모두 `ca-pub-1520891018658006` 하나만 사용하고,
+  최신 비동기 AdSense loader와 `crossorigin="anonymous"`가 있다. noindex+AdSense 0, 얇은 광고 지면 0,
+  eBay EPN 70은 그대로다. Google Privacy & messaging를 막는 `no-referrer`·`same-origin` 메타도 0장이다.
+- **준비도 가드를 강화했다.** `tools/audit-adsense-readiness.js`가 이제 광고 태그의 게시자 ID·형식,
+  `ads.txt` 정확한 authorized seller 행, 개인정보 필수 고지 6종, CMP를 막는 referrer 설정을 검사한다.
+  역테스트에서 게시자 ID를 틀리고 맞춤광고 해제 링크를 제거했을 때 두 오류가 의도대로 FAIL했으며,
+  원상복구 후 둘 다 0으로 돌아왔다.
+- **CMP는 계정 측 최종 확인이 남았다.** Google은 EEA·영국·스위스에서 개인화 광고를 제공할 때 인증 CMP를
+  요구한다. 공개 강제 테스트 URL에서 `googlefc`·`__tcfapi`가 나타나지 않아 유럽 규정 메시지가 미게시일
+  가능성이 있으나, 계정의 Privacy & messaging 설정은 저장소나 비로그인 공개 화면만으로 확정할 수 없다.
+  2026-08-24 최종 감사 때 AdSense 계정의 European regulations message 게시 상태와 Policy center의
+  `Consent requirement: No CMP` 유무를 읽기 전용으로 반드시 확인한다.
+- **보존 범위:** 홈페이지·가격/경매/정산 원장·자동 수집·eBay EPN은 수정하지 않았다. 재검토 요청도 실행하지 않았다.
+
 ## 2026-08-10(월) — 자동 수집 커밋 경합 복구·산출물 누락 재발 방지
 
 - **실패 원인을 실제 Actions 로그로 확정했다.** 5차 품질 패스 직후 실행된 일일 수집 run `31368505236`은
