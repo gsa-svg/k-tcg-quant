@@ -25,6 +25,57 @@ const n = (v) => (v == null ? "&mdash;" : v.toLocaleString("en-US"));
 const pc = (v) => (v == null ? null : (v >= 0 ? "+" : "") + v.toFixed(2) + "%");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
+// ── 등급사 3사 비교 — 2026-08-12 신설.
+// 우리는 PSA·CGC·TAG 카드별 인구를 각각 쌓고 있는데, 정작 "같은 카드를 세 곳이 어떻게 매기나"를
+// 아무 데서도 안 보여주고 있었다. 세 곳 다 일정 수 이상 등급이 있는 카드만 골라 나란히 둔다.
+//
+// ⚠️ 최상위 등급의 정의가 회사마다 다르다. 하나로 뭉뚱그리면 안 된다.
+//    PSA = 10 하나 · CGC = Pristine 10 + Gem Mint 10 · TAG = 10 + 10P
+// ⚠️ 이건 "누가 후하게 준다"의 증명이 아니다. 물리적으로 다른 카드고, 어디에 보낼지도
+//    제출자가 고른다. 우리가 말할 수 있는 건 "기록된 결과가 이렇게 다르다"까지다.
+const GRADER_MIN = 20;   // 세 곳 모두 이 장수 이상일 때만 비교에 올린다
+const graderCmp = (() => {
+  const load = (file, gem) => {
+    const p = path.join(ROOT, "data", file);
+    if (!fs.existsSync(p)) return null;
+    const j = JSON.parse(fs.readFileSync(p, "utf8"));
+    const out = {};
+    const walk = (code, cards) => {
+      for (const [key, pts] of Object.entries(cards)) {
+        if (!Array.isArray(pts) || !pts.length) continue;
+        const last = pts[pts.length - 1];
+        const g = gem(last);
+        if (last.total == null || g == null) continue;
+        out[`${code}|${key}`] = { total: last.total, gem: g, d: last.d, label: last.label || last.par || "" };
+      }
+    };
+    for (const [code, v] of Object.entries(j.sets || {})) {
+      if (v.jp || v.en) { if (v.jp) walk(code, v.jp); if (v.en) walk(code, v.en); }
+      else walk(code, v);   // TAG 는 판별 구분이 없다
+    }
+    return out;
+  };
+  const P = load("psa-card-pop.json", (p) => p.g10 ?? null);
+  const C = load("cgc-card-pop.json", (p) => (p.g ? (p.g["Pristine 10"] || 0) + (p.g["Gem Mint 10"] || 0) : null));
+  const T = load("tag-card-pop.json", (p) => (p.g ? (p.g["10"] || 0) + (p.g["10P"] || 0) : null));
+  if (!P || !C || !T) return null;
+  const rows = [];
+  for (const [k, p] of Object.entries(P)) {
+    const c = C[k], t = T[k];
+    if (!c || !t) continue;
+    if (p.total < GRADER_MIN || c.total < GRADER_MIN || t.total < GRADER_MIN) continue;
+    const rate = (x) => +((x.gem / x.total) * 100).toFixed(1);
+    rows.push({
+      key: k, card: k.split("|").slice(1).join(" "), label: p.label || t.label || "",
+      psa: rate(p), psaN: p.total, cgc: rate(c), cgcN: c.total, tag: rate(t), tagN: t.total,
+    });
+  }
+  if (rows.length < 8) return null;   // 표본이 얇으면 표를 만들지 않는다
+  rows.sort((a, b) => b.psaN - a.psaN);
+  const avg = (f) => +(rows.reduce((a, r) => a + r[f], 0) / rows.length).toFixed(1);
+  return { rows, avgPsa: avg("psa"), avgCgc: avg("cgc"), avgTag: avg("tag"), asOf: Object.values(P)[0].d };
+})();
+
 const codes = [...(pk.jp?.list || []), ...(pk.extra?.list || [])];
 const rows = codes.map((code) => {
   const set = pk.sets[code];
@@ -193,6 +244,34 @@ ${rows.map(tr).join("\n")}
       <p class="pgNotes"><b>We never add the two editions together.</b> Japanese and English are separate print runs with different card stock and different print quality, so a combined gem rate would describe neither. ${rows.length - enCount} set${rows.length - enCount === 1 ? " has" : "s have"} no English row at all &mdash; those printings have not been released, which is different from zero cards graded.</p>
       <p class="pgNotes">A high weekly number is not automatically bullish and does not prove that the cards were pulled that week. It does show more graded copies entering the recorded population. Read it next to release timing and the box price on each <a href="sets/index.html">set guide</a>, and against completed sales on the <a href="psa10-ranking.html">PSA 10 value ranking</a>.</p>
       <p class="pgNotes">Population figures are compiled from public PSA population reporting. We publish weekly change only from the point we began recording it ourselves; we do not republish historical series compiled by others.</p>
+${graderCmp ? `
+      <h2>The same cards, judged by three graders</h2>
+      <p class="pgNotes">We track per-card population at PSA, CGC and TAG separately. These are the ${graderCmp.rows.length} cards where all three have graded at least ${GRADER_MIN} copies, so a top-grade share is worth stating for each. Population as of ${esc(graderCmp.asOf)}.</p>
+      <div class="pgTot">
+        <div class="pgCard jp"><span class="k">PSA &mdash; top-grade share</span><span class="v">${graderCmp.avgPsa}%</span><span class="d">PSA 10</span></div>
+        <div class="pgCard"><span class="k">CGC &mdash; top-grade share</span><span class="v">${graderCmp.avgCgc}%</span><span class="d">Pristine 10 + Gem Mint 10</span></div>
+        <div class="pgCard en"><span class="k">TAG &mdash; top-grade share</span><span class="v">${graderCmp.avgTag}%</span><span class="d">10 + 10P</span></div>
+      </div>
+      <div class="pgTableWrap">
+      <table class="pgTable">
+        <caption class="sr-only">Top-grade share at PSA, CGC and TAG for cards all three have graded</caption>
+        <thead><tr>
+          <th scope="col">Card</th>
+          <th scope="col" class="hjp">PSA</th><th scope="col" class="hjp">graded</th>
+          <th scope="col">CGC</th><th scope="col">graded</th>
+          <th scope="col" class="hen">TAG</th><th scope="col" class="hen">graded</th>
+        </tr></thead>
+        <tbody>
+${graderCmp.rows.map((r) => `          <tr><th scope="row"><b>${esc(r.card)}</b><span>${esc(String(r.label).slice(0, 44))}</span></th>` +
+  `<td class="pgPct jp">${r.psa}%</td><td class="pgNum">${n(r.psaN)}</td>` +
+  `<td class="pgPct">${r.cgc}%</td><td class="pgNum">${n(r.cgcN)}</td>` +
+  `<td class="pgPct en">${r.tag}%</td><td class="pgNum">${n(r.tagN)}</td></tr>`).join("\n")}
+        </tbody>
+      </table>
+      </div>
+      <p class="pgNotes"><b>Each grader's top grade means something different.</b> PSA has a single 10. CGC splits its top into Pristine 10 and Gem Mint 10, and we count both. TAG has 10 and a stricter 10P above it, and we count both. A share is therefore comparable only as "how often the highest available grade was awarded", not as a like-for-like quality score.</p>
+      <p class="pgNotes"><b>This does not prove one grader is stricter.</b> These are different physical copies, and submitters choose where to send a card &mdash; a collector who expects a gem may favour one company, which moves the recorded share without anyone grading differently. PSA populations are also far larger, so its share rests on a much heavier sample than CGC's or TAG's. What the table shows is that <b>the recorded outcomes differ by grader</b>, which is worth knowing before reading any single company's population as the market's quality level.</p>
+` : ""}
 ${analysis}
     </main>
     <footer class="footer">
