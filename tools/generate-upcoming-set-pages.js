@@ -46,7 +46,7 @@ function validatePage(page) {
 
 function renderSections(sections) {
   return sections.map((section) => `
-      <section>
+      <section${section.searchIntent ? ' class="searchIntent"' : ""}>
         <h2>${escapeHtml(section.heading)}</h2>
         ${section.paragraphsHtml.map((paragraph) => `<p>${paragraph}</p>`).join("\n        ")}
       </section>`).join("\n");

@@ -31,6 +31,10 @@ try { SET_FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.
 // 페이지마다 "그 세트에만 참인 이야기"가 있어야 하고, 그 원문은 이 파일 하나에서 온다(가드 S3).
 let COMMENTARY = { sets: {} };
 try { COMMENTARY = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-commentary.json"), "utf8")); } catch (e) {}
+// 자연검색 핵심 랜딩의 검색 의도 원문. 가격은 아래 생성기가 검증 데이터에서 매번 채우고,
+// 이 파일은 세트별 맥락·재판 해석·실링 체크처럼 자동으로 지어내면 안 되는 문장만 보관한다.
+let PRIORITY_SET_SEO = { sets: {} };
+try { PRIORITY_SET_SEO = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "priority-set-seo.json"), "utf8")); } catch (e) {}
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -306,12 +310,13 @@ function setPage(code, prev, next) {
   const cards = (s.cards || []).slice(0, 10);
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
   const canonical = `${SITE}/sets/${slug(code)}.html`;
-  const title = `${code} ${nameEn} Booster Box Price (Japanese) | OP Box Index`;
+  const prioritySeo = PRIORITY_SET_SEO.sets?.[code];
+  const title = `${prioritySeo?.title || `${code} ${nameEn} Booster Box Price (Japanese)`} | OP Box Index`;
   // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
   // 그것부터 템플릿 신호다. 해설이 없는 세트만 기존 골격으로 떨어진다.
   const story = COMMENTARY.sets?.[code];
   if (!story) console.warn(`[set-commentary] ${code} 해설 없음 — 템플릿 문구로 대체됨 (S3 가드가 잡는다)`);
-  const desc = story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
+  const desc = prioritySeo?.description || story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   // s.release = 영문(NA)판 발매일. "일본판 페이지인데 Released=EN날짜"로 읽히던 오표기 수정
   const release = s.release ? `<p class="eyebrow">Japanese edition · EN release ${esc(s.release)}</p>` : `<p class="eyebrow">Japanese edition</p>`;
@@ -429,6 +434,27 @@ function setPage(code, prev, next) {
     }
   }
 
+  // 핵심 자연검색 랜딩: 현재 가격, 재판 근거, factory-seal 판별을 첫 화면 가까이에서 직접 답한다.
+  // 수동 문장과 검증된 가격 데이터를 분리해 야간 재생성 때도 최신값과 고유 해설을 함께 유지한다.
+  let searchIntentBlock = "";
+  if (prioritySeo) {
+    const seriesPoints = (s.boxSeries && s.boxSeries.points) || [];
+    const latestPoint = seriesPoints.length ? seriesPoints[seriesPoints.length - 1] : null;
+    const latestValue = latestPoint ? krwUsd(latestPoint.p) : null;
+    const active = s.boxMarket?.jp?.ebayActive;
+    const activeMiddle = active?.middle != null ? toUsd(active.middle, active.currency) : null;
+    const priceParts = [];
+    if (latestValue != null) priceParts.push(`As of ${esc(latestPoint.d)}, the tracked Japanese sealed-box market value is about <strong>${usd(latestValue)}</strong>.`);
+    if (activeMiddle != null && (active.sampleSize || 0) >= 3) priceParts.push(`Current eBay asks center near <strong>${usd(activeMiddle)}</strong> across ${active.sampleSize} verified listings.`);
+    searchIntentBlock = `
+      <section class="searchIntent" aria-label="${esc(`${code} price, reprint and factory-seal summary`)}">
+        <h2>${esc(prioritySeo.heading)}</h2>
+        <p>${priceParts.join(" ")} ${esc(prioritySeo.marketContext)}</p>
+        <p><strong>Reprint record:</strong> ${esc(prioritySeo.reprintContext)}</p>
+        <p><strong>Factory-seal check:</strong> ${esc(prioritySeo.sealContext)}</p>
+      </section>`;
+  }
+
   const compareLink =
     code === "OP-05" || code === "OP-06"
       ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
@@ -477,13 +503,13 @@ function setPage(code, prev, next) {
       <div class="setHero">
         ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" width="132" height="184" loading="eager" fetchpriority="high" decoding="async" />` : ""}
         <div>
-          <h1>${code} ${esc(nameEn)} — Japanese booster box price &amp; chase cards</h1>
+          <h1>${code} ${esc(nameEn)} — Japanese booster box price${prioritySeo ? ", reprints" : ""} &amp; chase cards</h1>
           ${release}
           ${summaryLine}
         </div>
       </div>
       ${AFF_TOP}
-      ${keyFacts}
+      ${keyFacts}${searchIntentBlock}
       ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
         <h2>${esc(story.heading)}</h2>
         ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n        ")}

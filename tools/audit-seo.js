@@ -87,6 +87,17 @@ function checkStaticContent() {
     requiredPageChecks(file);
     requireMatch(read(file), /"@type"\s*:\s*"FAQPage"/i, "FAQ schema", file);
   }
+
+  // 자연검색 핵심 랜딩은 일반 세트 템플릿보다 검색 의도를 더 직접 답해야 한다.
+  // 생성 산출물을 직접 고치지 않고 생성기를 통해 이 계약을 만족시킨다.
+  const prioritySetPages = ["op-01", "op-05", "prb-01", "eb-03", "op-13", "op-17"];
+  for (const setSlug of prioritySetPages) {
+    const file = `sets/${setSlug}.html`;
+    const content = read(file);
+    requireMatch(content, /<section\s+class="searchIntent"/i, "priority-set search-intent section", file);
+    requireMatch(content, /<h2>[^<]*(?:price|reprint)[^<]*<\/h2>/i, "price or reprint search-intent heading", file);
+    requireMatch(content, /factory (?:seal|sealed)|Bandai security tape/i, "factory-seal guidance", file);
+  }
 }
 
 checkHome();
