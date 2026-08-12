@@ -191,7 +191,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260810b";
+const DATA_VERSION = "20260812a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1176,7 +1176,11 @@ function renderPsaDestruction(set) {
     ${renderEditionTable(set)}
     <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10.`)}</p>
     ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")} <em class="pdEd">${t("일본판", "JP")}</em></th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
-    <p class="note">${t("Top 10 표는 각 카드가 PSA 등급 받은 수(그레이드 기준)이며 <b>일본판 기준</b>입니다. 등급이 늘수록 미개봉 박스가 개봉·파괴된 것 — 미개봉 공급 감소 신호. 세트 전체 누적은 위 표에서 일본판·영문판을 따로 볼 수 있어요.", "The Top 10 table shows how many of each card were PSA-graded, <b>Japanese printings only</b>. More grading means more sealed boxes opened — a proxy for shrinking sealed supply. Full-set totals are split by edition in the table above.")}</p></div>`;
+    <!-- ⚠️ "등급이 늘면 박스가 개봉된 것"이라고 쓰지 말 것. 2026-08-12 에 지웠다.
+         제출은 몇 년 전에 뽑아둔 생카드로도 이뤄지고, 무엇을 보낼지도 제출자가 고른다.
+         사이트의 기사·방법론은 전부 "개봉량을 알 수 없다"고 쓰는데 여기만 반대로 말하고 있었다.
+         이 문구는 JS 가 그려서 정적 HTML 검사에 안 걸렸다 — 그래서 오래 남았다. -->
+    <p class="note">${t("Top 10 은 카드별 PSA 등급 수, <b>일본판 기준</b>입니다. 등급 수는 <b>제출 활동</b>이지 개봉량이 아닙니다 — 예전에 뽑아둔 카드도 섞입니다.", "Top 10 shows PSA grades per card, <b>Japanese printings only</b>. Grade counts measure <b>submission activity</b>, not boxes opened — older raw cards get submitted too.")}</p></div>`;
 }
 
 function renderBoxMarket(set) {
