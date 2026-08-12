@@ -154,6 +154,37 @@ if (has("data/auction-market.json")) {
   }
 }
 
+// ── 8. eBay 실거래(sold) 박스 시계열 — 이 프로젝트에서 **자동화가 불가능한 유일한 수집**이다.
+//    eBay 가 데이터센터 IP 를 막아 사용자 실브라우저로만 긁을 수 있고, 그래서 월·수·금 사람 손에 달려 있다.
+//    그런데 감시 범위 밖이라 2026-08-05·08-07 이 통째로 비고 8/12 도 늦어질 때까지 아무도 몰랐다.
+//    사람이 기억해야 하는 절차는 반드시 빠진다 — 빠졌다는 사실이라도 자동으로 알려야 한다.
+{
+  const SOLD_STALE = 4;   // 월·수·금이면 최대 간격이 3일. 4일을 넘었으면 한 번 걸렀다는 뜻이다.
+  if (!has("data/box-sold-series.json")) fail("박스 sold 시계열 파일이 없다");
+  else {
+    const S = readJSON("data/box-sold-series.json");
+    const dates = [...new Set(Object.values(S.sets || {})
+      .flatMap((v) => [...(v.jp || []), ...(v.en || [])].map((p) => p.d)))].sort();
+    if (!dates.length) fail("박스 sold 시계열이 비었다");
+    else {
+      const last = dates[dates.length - 1];
+      const age = daysAgo(last);
+      if (age > SOLD_STALE) {
+        fail(`박스 sold 수집이 ${age}일째 없다 (마지막 ${last}) — 월·수·금 수동 수집을 걸렀다`);
+      } else ok(`박스 sold 최신 ${last}`);
+      // 세트 커버리지: 파일은 갱신됐는데 일부 세트만 들어온 날을 잡는다.
+      const sets = Object.keys(S.sets || {});
+      const onLast = sets.filter((k) => {
+        const v = S.sets[k];
+        return [...(v.jp || []), ...(v.en || [])].some((p) => p.d === last);
+      });
+      if (sets.length && onLast.length < sets.length * 0.8) {
+        fail(`박스 sold ${last} 수집이 ${onLast.length}/${sets.length} 세트뿐 — 부분 수집이다`);
+      }
+    }
+  }
+}
+
 const out = { status: problems.length ? "FAIL" : "OK", today, problems, checked: notes };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
 if (problems.length) process.exit(1);
