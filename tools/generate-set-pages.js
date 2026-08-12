@@ -444,8 +444,10 @@ function setPage(code, prev, next) {
     const active = s.boxMarket?.jp?.ebayActive;
     const activeMiddle = active?.middle != null ? toUsd(active.middle, active.currency) : null;
     const priceParts = [];
-    if (latestValue != null) priceParts.push(`As of ${esc(latestPoint.d)}, the tracked Japanese sealed-box market value is about <strong>${usd(latestValue)}</strong>.`);
-    if (activeMiddle != null && (active.sampleSize || 0) >= 3) priceParts.push(`Current eBay asks center near <strong>${usd(activeMiddle)}</strong> across ${active.sampleSize} verified listings.`);
+    if (activeMiddle != null && (active.sampleSize || 0) >= 3) {
+      priceParts.push(`As of ${esc(active.updated || DATA_DATE)}, current eBay asks center near <strong>${usd(activeMiddle)}</strong> across ${active.sampleSize} verified listings.`);
+    }
+    if (latestValue != null) priceParts.push(`The separate tracked market series last recorded about <strong>${usd(latestValue)}</strong> on ${esc(latestPoint.d)}.`);
     searchIntentBlock = `
       <section class="searchIntent" aria-label="${esc(`${code} price, reprint and factory-seal summary`)}">
         <h2>${esc(prioritySeo.heading)}</h2>
