@@ -1111,8 +1111,60 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   }
 }
 
+// ── E1. EPN 제휴 고지 — 제휴 링크가 뜨는 페이지에는 눈에 띄는 상단 고지가 있어야 한다.
+//    2026-08-10 EPN 위반 통지(기한 8/19): 고지 문구는 적절하나 푸터에만 있어 이용자가 놓치기 쉽다.
+//    Participation Requirements I.G. 위반이며, 방치하면 계정 정지 + 대기 수수료 100% 회수다.
+//    그래서 "고지가 있나"가 아니라 **"제휴 링크보다 먼저 나오나"**를 검사한다.
+//    campid 가 HTML 에 박힌 페이지와 packs.js 가 링크를 주입하는 페이지 둘 다 대상이다.
+{
+  const CAMPID = "5339163744";
+  const injectors = ["packs.js"].filter((j) => read(j).includes(CAMPID));
+  for (const f of PUBLIC_HTML) {
+    const html = read(f);
+    const baked = html.includes(CAMPID);
+    const injected = injectors.some((j) => html.includes(j));
+    if (!baked && !injected) continue;
+    const iNote = html.indexOf('class="affTop"');
+    if (iNote < 0) {
+      errors.push(`E1: ${f} 에 제휴 링크가 있는데 상단 고지(.affTop)가 없다 — EPN I.G. 위반`);
+      continue;
+    }
+    // 푸터로 밀려나면 다시 위반이다. 링크가 HTML 에 박힌 경우 순서를 실제로 확인한다.
+    if (baked) {
+      const iLink = html.indexOf(CAMPID);
+      if (iNote > iLink) errors.push(`E1: ${f} 의 고지가 첫 제휴 링크보다 뒤에 있다 — 접힘선 위로 올려야 한다`);
+    }
+  }
+  // 고지를 다시 작게/흐리게 만들면 EPN 이 지적한 상태(11px · opacity .8 · 흐린 회색)로 되돌아간다.
+  // 크기·투명도뿐 아니라 **대비**까지 본다 — opacity 를 1로 두고 글자색만 어둡게 하면
+  // 검사를 통과하면서 실제로는 안 보이게 만들 수 있기 때문이다.
+  const css = read("styles.css");
+  const rule = (css.match(/\.affTop\s*\{[^}]*\}/) || [])[0] || "";
+  if (!rule) errors.push("E1: styles.css 에 .affTop 규칙이 없다");
+  else {
+    const size = parseFloat((rule.match(/font-size:\s*([\d.]+)px/) || [])[1] || "0");
+    if (size < 12.5) errors.push(`E1: .affTop font-size ${size}px — 12.5px 미만이면 "눈에 띄지 않는다"는 지적으로 되돌아간다`);
+    const op = (rule.match(/opacity:\s*([\d.]+)/) || [])[1];
+    if (op && parseFloat(op) < 1) errors.push(`E1: .affTop opacity ${op} — 고지를 흐리게 하면 안 된다`);
+
+    // WCAG 상대휘도 → 배경 대비. 본문용 최소 기준 4.5:1 을 하한으로 쓴다.
+    const hex = (h) => { const n = h.replace("#", ""); return [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16)); };
+    const lum = (rgb) => rgb.map((v) => { const s = v / 255; return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4; })
+      .reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0);
+    const varOf = (name) => (css.match(new RegExp(`${name}:\\s*(#[0-9a-f]{6})`, "i")) || [])[1];
+    let fg = (rule.match(/color:\s*(#[0-9a-f]{6})/i) || [])[1];
+    if (!fg) { const v = (rule.match(/color:\s*var\((--[\w-]+)\)/) || [])[1]; if (v) fg = varOf(v); }
+    const bg = varOf("--bg");
+    if (fg && bg) {
+      const [a, b] = [lum(hex(fg)), lum(hex(bg))].sort((x, y) => y - x);
+      const ratio = (a + 0.05) / (b + 0.05);
+      if (ratio < 4.5) errors.push(`E1: .affTop 대비 ${ratio.toFixed(1)}:1 — 4.5:1 미만이면 고지를 숨긴 것으로 본다`);
+    }
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "G8"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8"] }));

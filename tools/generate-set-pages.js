@@ -144,6 +144,10 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
+         작게 줄이거나 opacity 를 낮추지 말 것. */
+      .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
+      .affTop b { color: inherit; font-weight: 600; }
       .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
       .dataSummary b { color: var(--accent); font-weight: 800; }
       .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 13.5px; line-height: 1.65; }
@@ -171,6 +175,11 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
     </header>
     <main id="main-content" class="bodyPage">`;
 }
+
+// EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게" 있어야 한다.
+// 2026-08-10 EPN 위반 통지: 문구는 적절하나 푸터에 있어 잘 보이지 않는다. 그래서 본문 상단에도 넣는다.
+// 푸터의 affNote 는 그대로 두고 이걸 추가하는 것이다 — 둘 중 하나를 지우지 말 것.
+const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>`;
 
 const FOOT = `
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>
@@ -473,6 +482,7 @@ function setPage(code, prev, next) {
           ${summaryLine}
         </div>
       </div>
+      ${AFF_TOP}
       ${keyFacts}
       ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
         <h2>${esc(story.heading)}</h2>

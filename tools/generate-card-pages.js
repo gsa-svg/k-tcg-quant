@@ -8,6 +8,11 @@ const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
 const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
 const TOP_N = 24;
+// EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게".
+// 2026-08-10 EPN 위반 통지: 문구 자체는 적절하나 푸터에 있어 잘 보이지 않는다는 지적.
+// 그래서 본문 상단(접힘선 위)에도 넣는다. 푸터의 affNote 는 그대로 둔다 — 둘 중 하나를 지우지 말 것.
+// 스타일은 styles.css 의 .affTop. 작게 줄이거나 opacity 를 낮추면 위반으로 되돌아간다.
+const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>`;
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const FX = d.fx || {};
@@ -212,6 +217,7 @@ for (const { code, set: s, card: c } of cands) {
     <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="index.html" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
       <h1>${esc(c.name)} <small style="color:#7d8698;font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
+      ${AFF_TOP}
       <div class="cardHero">
         ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="716" height="1000" loading="eager" decoding="async" fetchpriority="high" />` : ""}
         <div style="flex:1;min-width:260px;">
@@ -332,6 +338,7 @@ const hub = `<!doctype html>
       <p class="eyebrow">Card Prices</p>
       <h1>One Piece card prices: the top ${hubItems.length} tracked cards</h1>
       <p>Individual price pages for the most valuable Japanese One Piece Card Game cards we track — raw NM prices from Japanese retail, PSA 10 prices from verified eBay data, and PSA population stats. Every page is variant-specific: a manga rare and its plain parallel are different cards with very different prices. Prices refresh with our tracking runs (as of ${DATA_DATE}).</p>
+      ${AFF_TOP}
       <div class="cardGrid">
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" width="716" height="1000" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
