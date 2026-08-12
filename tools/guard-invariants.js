@@ -869,9 +869,15 @@ for (const f of ["index.html", "packs.html"]) {
     for (const f of dataFiles) {
       if (CURATED.has(f)) continue;
       // 도구가 "쓰는" 파일만 대상 — 읽기만 하는 파일도 소스에 이름이 나오므로 writeFileSync 로 판별한다.
-      const writes = new RegExp(`writeFileSync\\([^)]*${f.replace(/[.]/g, "\\.")}`).test(src)
-        || new RegExp(`"${f.replace(/[.]/g, "\\.")}"[^\\n]*\\n?[^\\n]*writeFileSync`).test(src)
-        || (src.includes(`"${f}"`) && /writeFileSync/.test(src) && new RegExp(`Path[^\\n]*"${f.replace(/[.]/g, "\\.")}"`).test(src));
+      const esc = f.replace(/[.]/g, "\\.");
+      // 경로를 변수에 담아 쓰는 경우: `const xPath = path.join(..., "foo.json")` 로 잡은 변수명이
+      // 실제로 writeFileSync 의 **첫 인자**로 쓰였을 때만 산출물로 본다.
+      // 예전에는 경로 상수가 있기만 하면 쓴다고 판정해서, 읽기 전용 입력까지 산출물로 오탐했다
+      // (2026-08-12: collect-cgc-card-pop.js 가 읽기만 하는 onepiece-packs.json 이 걸렸다).
+      const pathVars = [...src.matchAll(new RegExp(`(\\w+)\\s*=\\s*path\\.join\\([^;\\n]*"${esc}"`, "g"))].map((m) => m[1]);
+      const writes = new RegExp(`writeFileSync\\([^)]*${esc}`).test(src)
+        || new RegExp(`"${esc}"[^\\n]*\\n?[^\\n]*writeFileSync`).test(src)
+        || pathVars.some((v) => new RegExp(`writeFileSync\\(\\s*${v}\\b`).test(src));
       if (!writes) continue;
       if (!addLine.includes(`data/${f}`)) {
         errors.push(`W1: data/${f} 는 ${wf} 의 산출물인데 커밋 목록에 없음 — rebase 실패를 유발함`);

@@ -17,7 +17,10 @@ const path = require("node:path");
 
 const ROOT = path.join(__dirname, "..");
 const API = "https://production.api.aws.ccg-ops.com/api/cards/research/trading-cards";
-const CACHE = path.join(process.env.TEMP || ROOT, "cgc-groups.json");
+// 그룹 목록 캐시는 반드시 저장소 **밖**에 둔다. TEMP 는 윈도우에만 있어서, 예전 폴백(|| ROOT)은
+// 리눅스 러너에서 저장소 루트에 cgc-groups.json 을 떨어뜨렸다 — 추적 안 되는 파일이 남아
+// 다음 rebase 를 깨뜨릴 자리였다(2026-08-12 자동화하며 발견).
+const CACHE = path.join(process.env.RUNNER_TEMP || process.env.TEMP || require("node:os").tmpdir(), "cgc-groups.json");
 
 const packs = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const ORDER = [...packs.jp.list, ...packs.extra.list].filter((c) => (packs.sets[c]?.cards || []).length > 0);

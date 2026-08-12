@@ -1,0 +1,99 @@
+name: Collect grading
+
+# 그레이딩 인구를 사람 손 없이 매주 쌓는다 — 2026-08-12 신설.
+#
+# 왜 만드나: 그레이딩은 "매주 월요일에 사람이 로컬에서 돌린다"로 되어 있었고, 그래서 계속 놓쳤다.
+#   · 2026-08-05: PSA 주간이 2주 조용히 죽어 있었다(continue-on-error 로 실패가 덮였다).
+#   · 2026-08-12: psa-edition-weekly 가 7/29 에 멈춘 채 화면에는 그 값이 "THIS WEEK" 으로 나갔다.
+# 사람이 기억해야 하는 절차는 언젠가 반드시 빠진다. CGC 는 공개 API 로 전부 자동화된다.
+#
+# ⚠️ 여기서 안 하는 것:
+#   · eBay sold — eBay 가 데이터센터 IP 를 막아 **실브라우저(사용자 IP)로만** 가능하다. 자동화 불가.
+#   · TAG — 포털이 SPA 렌더 DOM 이라 아직 브라우저가 필요하다.
+#   · PSA — update-market-data.yml(일요일)이 이미 맡고 있다. 여기서 또 돌리면 이중 적재가 된다.
+#
+# data/cgc-card-pop.json 만 건드린다. 다른 원장은 손대지 않는다.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 매주 월요일 KST 10:30. 사용자가 월요일에 하던 그 자리를 대신한다.
+    - cron: "30 1 * * 1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect-grading
+  cancel-in-progress: false
+
+jobs:
+  cgc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # CGC 공개 API. 그룹 목록이 11,000건이 넘어 페이지를 전부 돌아야 하므로 몇 분 걸린다.
+      - name: Collect CGC card population
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/collect-cgc-card-pop.js "$RUNNER_TEMP/cgc-dump.json" 2>&1 | tee logs/collect-cgc-card-pop.log
+
+      # 적재기는 append-only 다. 같은 날짜가 이미 있으면 값만 대조하고 넘어간다.
+      # 세트가 하나도 안 잡히면(absent 급증) 상류 구조가 바뀐 것이므로 여기서 멈춰야 한다.
+      - name: Ingest CGC card population
+        run: |
+          set -o pipefail
+          node tools/cgc-card-pop-api-ingest.js "$RUNNER_TEMP/cgc-dump.json" 2>&1 | tee logs/cgc-card-pop-api-ingest.log
+
+      # 적재가 "성공"했는데 오늘 날짜가 안 들어간 경우를 잡는다.
+      # 조용히 아무것도 안 쌓는 실패가 이 프로젝트에서 실제로 두 번 났다.
+      - name: Verify today landed
+        run: |
+          node -e '
+            const fs = require("fs");
+            const raw = fs.readFileSync("data/cgc-card-pop.json", "utf8");
+            const today = new Date().toISOString().slice(0, 10);
+            if (!raw.includes(today)) {
+              console.error(`::error::cgc-card-pop.json 에 오늘(${today}) 날짜가 없다 — 수집이 조용히 실패했다`);
+              process.exit(1);
+            }
+            const dates = [...new Set(raw.match(/\d{4}-\d{2}-\d{2}/g) || [])].sort();
+            console.log(`OK — 최신 ${dates[dates.length - 1]} (총 ${dates.length}일치)`);
+          '
+
+      - name: Guard
+        run: node tools/guard-invariants.js
+
+      - name: Collection health
+        run: node tools/audit-collection-health.js
+
+      - name: Commit changes
+        run: |
+          # 감지 목록과 커밋 목록을 반드시 같게 둔다 — 어긋나면 변경이 남아 다음 rebase 가 죽는다.
+          if [ -z "$(git status --porcelain data/cgc-card-pop.json)" ]; then
+            echo "No CGC changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/cgc-card-pop.json
+          git commit -m "Collect CGC card population"
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Push failed after 3 attempts."
+              exit 1
+            fi
+            echo "Push raced; rebasing before retry $((attempt + 1))/3."
+            git pull --rebase
+          done
