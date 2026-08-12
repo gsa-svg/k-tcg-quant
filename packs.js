@@ -191,7 +191,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260812a";
+const DATA_VERSION = "20260812b";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1109,9 +1109,10 @@ function renderGraderTable(set) {
         { h: t("젬 민트 10", "Gem Mint 10"), get: (e) => (e.gemMint10 != null ? num(e.gemMint10) : "&mdash;") },
         { h: t("프리스틴 10", "Pristine 10"), get: (e) => (e.pristine10 != null ? num(e.pristine10) : "&mdash;") },
       ],
+      // 열 제목이 이미 "젬 민트 10 / 프리스틴 10"이라고 말한다. 설명은 순서와 비교불가만 남긴다.
       note: t(
-        "CGC는 만점을 프리스틴 10과 젬 민트 10으로 나눕니다 — 프리스틴이 더 엄격한 위쪽 등급입니다. PSA 10 하나와 직접 비교할 수 없습니다.",
-        "CGC splits its top grade into Pristine 10 and Gem Mint 10 — Pristine is the stricter of the two. Neither maps one-to-one onto a PSA 10."),
+        "프리스틴 10 이 젬 민트 10 보다 위. PSA 10 과 1:1 대응은 아닙니다.",
+        "Pristine 10 ranks above Gem Mint 10. Neither equals a PSA 10."),
     },
     tag: {
       cls: "gTag",
@@ -1122,8 +1123,8 @@ function renderGraderTable(set) {
         { h: "10P", get: (e) => (e.g10p != null ? num(e.g10p) : "&mdash;") },
       ],
       note: t(
-        "TAG도 만점이 둘입니다 — 10과 그 위의 10P(퍼펙트). 10P는 전체의 3% 남짓으로, 세 등급사 중 가장 좁은 문입니다.",
-        "TAG also splits its top grade: 10, and 10P (perfect) above it. 10P is only about 3% of all TAG grades — the narrowest top grade of the three."),
+        "10P 가 10 보다 위. 전체 TAG 등급의 3% 남짓입니다.",
+        "10P ranks above 10 — about 3% of all TAG grades."),
     },
   };
   const block = (key) => {
@@ -1389,14 +1390,16 @@ function renderCompareTable() {
 
   const scoreClassLocal = (s) => (s >= 66 ? "sHigh" : s >= 40 ? "sMid" : "sLow");
   const head = `<div class="ctHead"><span class="bmLabel">${t("전 세트 비교 · 투자 매력도 순", "All sets compared · by investment appeal")}</span><small>${t("모든 점수는 실거래·매물 데이터 기반 참고 지표", "All scores are reference signals from live sold/listing data")}</small></div>`;
-  const legend = `<dl class="ctLegend">
-    <div><dt>${t("박스가", "Box price")}</dt><dd>${t("현재 일본판 미개봉 박스 시세(중간값). 'ask'는 실거래가 아닌 판매자 호가 기준.", "Current Japanese sealed box price (median). 'ask' means seller listing price, not a completed sale.")}</dd></div>
-    <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성·데이터 신뢰도를 종합한 점수. 높을수록 데이터상 매력적. 매수 추천이 아닙니다.", "Combined score of card value, demand, scarcity and data confidence. Higher = more appealing on the data. Not buying advice.")}</dd></div>
-    <div><dt>${t("최고 카드 실거래", "Top card sold")}</dt><dd>${t("이 박스 히트카드 중 최고가의 eBay 실제 판매가(PSA10, 판매 3건 이상). 호가가 아닌 진짜 팔린 값 — 가장 신뢰할 수 있는 기준.", "The box's highest chase card by actual eBay sold price (PSA 10, 3+ sales). Real completed sales, not asking prices — the most credible number here.")}</dd></div>
-    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("박스 안 TOP10 카드의 '판매자 호가' 합이 박스가의 몇 배인지. 실거래가 아닌 참고치이며, '1장 쏠림' 표시는 카드 한 장이 절반 이상을 차지한다는 뜻. 봉입률 비공개라 개봉 이득 보장 아님.", "How many times the top-10 cards' seller asking prices cover the box price. Reference only (not sold data); 'top-heavy' means a single card makes up over half. Pull rates aren't public — no guaranteed open value.")}</dd></div>
-    <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 eBay 판매완료 표본과 이전 기간 대비 추세. 현재 매물 수는 제외하며, 표본이 부족하면 점수를 숨김.", "Recent 4-week eBay sold samples and trend vs. the prior period. Active listings are excluded; thin samples are not scored.")}</dd></div>
-    <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("현재 시장에 올라온 매물이 얼마나 적은지. 높을수록 지금 구하기 어려움.", "How few boxes are listed right now. Higher = harder to find at the moment.")}</dd></div>
-  </dl>`;
+  // 정의는 한 번 읽으면 되는 참고 자료다. 펼쳐 두면 표에 닿기 전에 600자를 막고 선다.
+  // 접어 두고, 각 정의도 한 줄로 줄인다 — 열 제목이 이미 이름을 말하고 있다. (2026-08-12)
+  const legend = `<details class="ctLegendBox"><summary>${t("점수 읽는 법", "What the columns mean")}</summary><dl class="ctLegend">
+    <div><dt>${t("박스가", "Box price")}</dt><dd>${t("일본판 미개봉 박스 중간값. 'ask'는 호가.", "Japanese sealed box median. 'ask' = listing price.")}</dd></div>
+    <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성 종합. 매수 추천 아님.", "Card value, demand and scarcity combined. Not buying advice.")}</dd></div>
+    <div><dt>${t("최고 카드 실거래", "Top card sold")}</dt><dd>${t("히트카드 최고 실판매가(PSA10, 3건 이상).", "Highest chase card by actual sold price (PSA 10, 3+ sales).")}</dd></div>
+    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("TOP10 호가 합 ÷ 박스가. 참고치이며 개봉 이득 보장 아님.", "Top-10 asking prices ÷ box price. Reference only — no guaranteed open value.")}</dd></div>
+    <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 실판매 표본과 추세.", "Recent 4-week sold samples and trend.")}</dd></div>
+    <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("지금 매물이 얼마나 적은지.", "How few boxes are listed right now.")}</dd></div>
+  </dl></details>`;
   const thead = `<tr>
     <th>#</th><th class="ctSet">${t("세트", "Set")}</th>
     <th>${t("박스가", "Box price")}</th>
