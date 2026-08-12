@@ -41,6 +41,43 @@
       .faqItem { max-width: 720px; border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
       .faqItem p { font-size: 13.5px; margin: 4px 0 10px; }
+
+      /* ── 3초 안에 읽히는 대시보드 ────────────────────────────────
+         원칙: 숫자 먼저, 차트 하나만 크게, 설명은 접는다.
+         색은 dataviz 검증 통과 6종(+중립). 이름표를 항상 같이 두어
+         색만으로 구분하게 하지 않는다. */
+      .statRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+      .stat { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,.02); }
+      .stat b { display: block; font-size: clamp(24px,4.4vw,32px); font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+      .stat span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 5px; letter-spacing: .02em; }
+      .stat.hi b { color: #14A882; }
+
+      .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0 8px; background: rgba(255,255,255,.015); }
+      .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+      .chartHead h2 { margin: 0; font-size: 17px; }
+      .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
+      .metricTabs { display: flex; gap: 6px; }
+      .metricTabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 6px 11px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 34px; }
+      .metricTabs button[aria-pressed="true"] { border-color: #14A882; color: #14A882; background: rgba(20,168,130,.1); }
+      .metricTabs button:focus-visible { outline: 2px solid #14A882; outline-offset: 2px; }
+
+      .barList { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 4px; }
+      .barRow { display: grid; grid-template-columns: minmax(88px,132px) 1fr minmax(62px,78px); align-items: center; gap: 10px; }
+      .barName { font-size: 12.5px; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .barRow.me .barName { color: var(--ink); font-weight: 800; }
+      .barTrack { height: 16px; background: rgba(255,255,255,.045); border-radius: 4px; overflow: hidden; }
+      .barFill { height: 100%; border-radius: 0 4px 4px 0; transition: width .45s cubic-bezier(.22,.61,.36,1); }
+      .barVal { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
+      .barRow .ci { color: var(--muted); font-weight: 400; font-size: 11px; }
+      .barRow:hover .barName, .barRow:focus-within .barName { color: var(--ink); }
+
+      .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 10px 0 2px; font-size: 11.5px; color: var(--muted); }
+      .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+      .noteFold { max-width: 760px; margin: 10px 0 0; }
+      .noteFold summary { cursor: pointer; font-size: 12.5px; color: var(--muted); padding: 6px 0; }
+      .noteFold p { font-size: 12.5px; margin: 4px 0 8px; }
+      @media (prefers-reduced-motion: reduce) { .barFill { transition: none; } }
     </style>
   </head>
   <body>
@@ -52,7 +89,35 @@
     <main id="main-content" class="aucWrap">
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
-      <p class="lead">We track One Piece Card Game auctions on eBay and read each one <strong>after it closes</strong>, recording the final winning bid and whether it sold. A mid-auction bid can still change, so this page uses settled outcomes. Unsold auctions remain in the denominator when sell-through is calculated.</p>
+      <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
+
+      <div class="statRow">
+        <div class="stat hi"><b>41%</b><span>sold across all games</span></div>
+        <div class="stat"><b>3,313</b><span>auctions read after close</span></div>
+        <div class="stat"><b>16</b><span>card games tracked</span></div>
+        <div class="stat"><b>$373,259</b><span>hammer value · 6d</span></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>Which card games actually sell</h2>
+            <p class="sub">2026-08-07–2026-08-12 · 3,352 auctions read after close</p>
+          </div>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-metric="rate" aria-pressed="true">Sell-through</button>
+            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
+            <button type="button" data-metric="live" aria-pressed="false">Live auctions</button>
+          </div>
+        </div>
+        <div class="barList" id="tcgBars"></div>
+        <div class="legend" id="tcgLegend"></div>
+        <details class="noteFold">
+          <summary>How this is measured</summary>
+          <p>Same collector, same window, every game: each auction is re-read after it closes, and auctions that ended unsold stay in the denominator. Sell-through carries a Wilson 95% interval — two games differ only where their intervals do not overlap, so neighbours within a few points are not ranked against each other. Games with fewer than 100 tracked auctions are omitted rather than shown on a thin sample. Hammer value is the sum of winning bids in our tracked sample, not total eBay volume. Colour marks the six most-searched games so they are easy to find; every bar is labelled, so colour is never the only identifier.</p>
+          <p>One note on the One Piece bar: this cross-game sampler reads about 35 auctions per game per day so every game is measured the same way. The dedicated One Piece tracker further down this page reads the whole One Piece board — many times more listings, weighted far more heavily toward cheap singles — so its sell-through is lower. Neither is wrong; they are different samples, and only the bars above are comparable to each other.</p>
+        </details>
+      </div>
 
       <h2>Daily results — last 10 days</h2>
       <div style="overflow-x:auto">
@@ -85,15 +150,15 @@
         </tbody>
       </table>
       </div>
-      <p>Over the last 10 days, <strong>33% of the 8,898 auctions we tracked ended with a winning bid</strong>. Results differ by item type: single-card sell-through was 31%, while sealed booster-box sell-through was 80% in this sample. These figures describe only the auctions tracked in the stated window.</p>
+      <p>Sealed boxes clear at <strong>80%</strong>, single cards at <strong>31%</strong>. Tracked sample only, 10-day window.</p>
 
 
-      <h2>How One Piece compares to other trading card games</h2>
-      <p>Sell-through only means something next to a comparison. We run the same collector across 16 other trading card games on eBay — same method, same window, auctions read after they close — so these rates are directly comparable to the One Piece figures above.</p>
-      <div style="overflow-x:auto">
-      <table class="aTable">
-        <thead><tr><th class="l">Trading card game</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th></tr></thead>
-        <tbody>
+      <details class="noteFold" style="max-width:none">
+        <summary>All 16 games as a table (median winning bid, sold counts)</summary>
+        <div style="overflow-x:auto">
+        <table class="aTable">
+          <thead><tr><th class="l">Trading card game</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th></tr></thead>
+          <tbody>
 <tr><td class="l">Palworld TCG</td><td>190</td><td>147</td><td>77.4% <small style="color:var(--muted)">±5.9</small></td><td>$35</td></tr>
 <tr><td class="l">Dragon Ball Fusion World</td><td>201</td><td>130</td><td>64.7% <small style="color:var(--muted)">±6.6</small></td><td>$43</td></tr>
 <tr style="background:rgba(16,215,160,.06)"><td class="l">One Piece <small>this site's subject</small></td><td>221</td><td>142</td><td>64.3% <small style="color:var(--muted)">±6.3</small></td><td>$34</td></tr>
@@ -110,10 +175,11 @@
 <tr><td class="l">Flesh and Blood</td><td>179</td><td>39</td><td>21.8% <small style="color:var(--muted)">±6</small></td><td>$81</td></tr>
 <tr><td class="l">Star Wars Unlimited</td><td>171</td><td>34</td><td>19.9% <small style="color:var(--muted)">±6</small></td><td>$42</td></tr>
 <tr><td class="l">Digimon</td><td>202</td><td>27</td><td>13.4% <small style="color:var(--muted)">±4.7</small></td><td>$3</td></tr>
-        </tbody>
-      </table>
-      </div>
-      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">2026-08-07–2026-08-12 (6 days), 3,352 auctions read after close. ± is a Wilson 95% interval; two games differ only where their intervals do not overlap. Games with fewer than 100 tracked auctions are omitted rather than shown on a thin sample, and a median winning bid is shown only where at least 20 sales cleared $1 — penny-start bulk lots otherwise drag a median to a meaningless figure. This is our tracked sample, not a census of eBay.</p>
+          </tbody>
+        </table>
+        </div>
+        <p class="srcNoteA" style="font-size:12px;color:var(--muted)">A median winning bid is shown only where at least 20 sales cleared $1 — penny-start bulk lots otherwise drag a median to a meaningless figure.</p>
+      </details>
 
       <h2>Highest auction medians by card</h2>
       <div style="overflow-x:auto">
@@ -137,9 +203,11 @@
       </div>
       <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Rolling window, minimum 3 confirmed sales per card. Cards below that bar are omitted rather than shown on thin samples. Ranges are 25th–75th percentile of confirmed sales.</p>
 
-      <h2>How to use auction data</h2>
-      <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap can be a reason to inspect sample size, exact variant, condition, shipping and closing time before drawing a conclusion. On the latest full day (2026-08-12) we tracked 201 auctions ending, of which 90 sold.</p>
-      <p>Cross-reference with the rest of the site: each card's NM and PSA 10 prices live on the <a href="cards/">card price pages</a> and the <a href="psa10-ranking.html">PSA 10 value ranking</a>, sealed-box context on the <a href="sets/index.html">set guides</a>, and grading supply on the <a href="psa-grading.html">population page</a>. The daily aggregates here are downloadable as a <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
+      <details class="noteFold">
+        <summary>How to use this data · where the rest of the site is</summary>
+        <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion. On the latest full day (2026-08-12) we tracked 201 auctions ending, of which 90 sold.</p>
+        <p>Card NM and PSA 10 prices: <a href="cards/">card price pages</a> · <a href="psa10-ranking.html">PSA 10 value ranking</a>. Sealed-box context: <a href="sets/index.html">set guides</a>. Grading supply: <a href="psa-grading.html">population page</a>. Daily aggregates: <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
+      </details>
 
       <h2>Auction data — common questions</h2>
       <details class="faqItem"><summary>Where do these auction prices come from?</summary><p>Every auction is read again after it closed, so the price recorded is the final winning bid — not a mid-auction bid and not an asking price. Auctions that ended without a sale stay in the data as the denominator of sell-through. Where eBay does not report a sold state we store null rather than guessing.</p></details>
@@ -148,6 +216,56 @@
       <details class="faqItem"><summary>Can I download this data?</summary><p>Yes — the daily aggregates (auctions tracked, sold count, sell-through, median winning bid) are published as a free CSV under CC BY 4.0 on the free data page. Attribution with a link is the only requirement.</p></details>
       <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
     </main>
+    <script>
+      // 게임별 낙찰률/거래액/물량 막대. dataviz 검증 통과 6색(+중립) — 색은 익숙한 게임을
+      // 눈으로 찾게 하는 보조수단이고, 모든 막대에 이름표가 붙어 색만으로 구분하지 않는다.
+      (function () {
+        var rows = [{"key":"palworld","name":"Palworld TCG","isOp":false,"n":190,"sold":147,"rate":77.4,"ci":5.9,"med":34.88,"gmv":20802,"live":262},{"key":"dragonball","name":"Dragon Ball Fusion World","isOp":false,"n":201,"sold":130,"rate":64.7,"ci":6.6,"med":43,"gmv":25540,"live":1251},{"key":"onepiece","name":"One Piece","isOp":true,"n":221,"sold":142,"rate":64.3,"ci":6.3,"med":34.33,"gmv":18332,"live":14244},{"key":"lorcana","name":"Disney Lorcana","isOp":false,"n":203,"sold":130,"rate":64,"ci":6.5,"med":41,"gmv":34333,"live":4828},{"key":"riftbound","name":"Riftbound (LoL)","isOp":false,"n":200,"sold":124,"rate":62,"ci":6.7,"med":152.5,"gmv":139919,"live":1011},{"key":"unionarena","name":"Union Arena","isOp":false,"n":200,"sold":102,"rate":51,"ci":6.9,"med":102,"gmv":30163,"live":857},{"key":"gundam","name":"Gundam Card Game","isOp":false,"n":200,"sold":94,"rate":47,"ci":6.9,"med":51,"gmv":37291,"live":671},{"key":"pokemonjp","name":"Pokemon (Japanese)","isOp":false,"n":213,"sold":95,"rate":44.6,"ci":6.6,"med":20.5,"gmv":23551,"live":40452},{"key":"magic","name":"Magic: The Gathering","isOp":false,"n":221,"sold":73,"rate":33,"ci":6.2,"med":15.51,"gmv":5598,"live":30453},{"key":"vanguard","name":"Cardfight Vanguard","isOp":false,"n":140,"sold":45,"rate":32.1,"ci":7.6,"med":null,"gmv":519,"live":281},{"key":"weiss","name":"Weiss Schwarz","isOp":false,"n":202,"sold":53,"rate":26.2,"ci":6,"med":5.19,"gmv":2890,"live":2272},{"key":"yugioh","name":"Yu-Gi-Oh!","isOp":false,"n":212,"sold":53,"rate":25,"ci":5.8,"med":11.5,"gmv":9768,"live":17841},{"key":"pokemon","name":"Pokemon","isOp":false,"n":358,"sold":83,"rate":23.2,"ci":4.4,"med":12.27,"gmv":14001,"live":286783},{"key":"fab","name":"Flesh and Blood","isOp":false,"n":179,"sold":39,"rate":21.8,"ci":6,"med":81,"gmv":7067,"live":275},{"key":"swu","name":"Star Wars Unlimited","isOp":false,"n":171,"sold":34,"rate":19.9,"ci":6,"med":41.89,"gmv":1805,"live":818},{"key":"digimon","name":"Digimon","isOp":false,"n":202,"sold":27,"rate":13.4,"ci":4.7,"med":3.25,"gmv":1680,"live":1938}];
+        var el = document.getElementById("tcgBars");
+        var lg = document.getElementById("tcgLegend");
+        if (!el || !rows.length) return;
+        var HUE = { onepiece: "#14A882", pokemon: "#3987e5", pokemonjp: "#d95926", magic: "#9085e9", yugioh: "#c98500", lorcana: "#d55181" };
+        var GREY = "#5A6273";
+        var M = {
+          rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
+          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } },
+          live: { get: function (r) { return r.live; }, fmt: function (r) { return r.live.toLocaleString("en-US"); } }
+        };
+        function draw(key) {
+          var m = M[key];
+          var list = rows.slice().sort(function (a, b) { return m.get(b) - m.get(a); });
+          var max = m.get(list[0]) || 1;
+          el.innerHTML = list.map(function (r) {
+            var c = HUE[r.key] || GREY;
+            var w = Math.max(1.5, (m.get(r) / max) * 100);
+            var ci = m.ci && r.ci != null ? ' <span class="ci">±' + r.ci + "</span>" : "";
+            return '<div class="barRow' + (r.isOp ? " me" : "") + '">' +
+              '<div class="barName" title="' + r.name + '">' + r.name + "</div>" +
+              '<div class="barTrack"><div class="barFill" style="width:0;background:' + c + '" data-w="' + w.toFixed(1) + '"></div></div>' +
+              '<div class="barVal">' + m.fmt(r) + ci + "</div></div>";
+          }).join("");
+          // 강제 리플로우로 0 → 최종값 전이를 만든다. requestAnimationFrame 을 쓰면
+          // 화면에 안 뜬 탭(백그라운드/비합성)에서 콜백이 영영 안 돌아 막대가 0 인 채로 남는다.
+          // 동기 처리라 애니메이션이 없어도 너비는 항상 맞다.
+          void el.offsetWidth;
+          Array.prototype.forEach.call(el.querySelectorAll(".barFill"), function (b) { b.style.width = b.getAttribute("data-w") + "%"; });
+        }
+        if (lg) {
+          lg.innerHTML = Object.keys(HUE).map(function (k) {
+            var r = rows.filter(function (x) { return x.key === k; })[0];
+            return r ? '<span><i style="background:' + HUE[k] + '"></i>' + r.name + "</span>" : "";
+          }).join("") + '<span><i style="background:' + GREY + '"></i>All other games</span>';
+        }
+        var tabs = document.querySelectorAll(".metricTabs button");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            draw(b.getAttribute("data-metric"));
+          });
+        });
+        draw("rate");
+      })();
+    </script>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
