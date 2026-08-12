@@ -116,6 +116,44 @@ if (has("data/auction-market.json")) {
   else ok(`진행 중 매물 관측 최신 ${last}`);
 }
 
+// ── 7. 그레이딩 주간 데이터 — 이 감시자를 만들게 된 바로 그 사고가 여기서 났는데
+//    정작 검사 범위에 없었다(2026-08-12 발견). 실제로 PSA 판본별이 7/29 에 멈춘 채
+//    화면에는 그 값이 "THIS WEEK" 으로 나가고 있었다.
+//
+//    주간 수집이라 하루이틀 늦는 건 정상이다. 두 주를 통째로 건너뛰면 사고다.
+//    기관마다 공개 요일이 달라 날짜가 서로 다른 것 자체는 정상 — 각자 자기 기준으로만 본다.
+{
+  const WEEK_STALE = 10;  // 한 주(7일) + 여유 3일. 이걸 넘으면 한 주를 통째로 놓친 것이다.
+  // 객체 어디에 박혀 있든 YYYY-MM-DD 를 긁어 가장 최근을 찾는다 — 파일마다 구조가 달라서다.
+  const scanDates = (o, out = []) => {
+    if (o == null) return out;
+    if (typeof o === "string") { if (/^\d{4}-\d{2}-\d{2}$/.test(o)) out.push(o); return out; }
+    if (Array.isArray(o)) { for (const x of o) scanDates(x, out); return out; }
+    if (typeof o === "object") {
+      for (const [k, v] of Object.entries(o)) {
+        if (/^\d{4}-\d{2}-\d{2}$/.test(k)) out.push(k);
+        scanDates(v, out);
+      }
+    }
+    return out;
+  };
+  const GRADING = [
+    ["data/gemrate-psa-history.json", "PSA 주간 이력"],
+    ["data/psa-edition-weekly.json", "PSA 판본별 주간"],
+    ["data/cgc-grading-history.json", "CGC 이력"],
+    ["data/tag-grading-history.json", "TAG 이력"],
+  ];
+  for (const [f, label] of GRADING) {
+    if (!has(f)) { fail(`${label} 파일이 없다`); continue; }
+    const ds = [...new Set(scanDates(readJSON(f)))].sort();
+    if (!ds.length) { fail(`${label}에 날짜가 하나도 없다`); continue; }
+    const last = ds[ds.length - 1];
+    const age = daysAgo(last);
+    if (age > WEEK_STALE) fail(`${label}이 ${age}일째 안 늘었다 (마지막 ${last}) — 주간 수집을 건너뛴 것이다`);
+    else ok(`${label} 최신 ${last}`);
+  }
+}
+
 const out = { status: problems.length ? "FAIL" : "OK", today, problems, checked: notes };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
 if (problems.length) process.exit(1);
