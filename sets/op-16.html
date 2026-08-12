@@ -48,6 +48,15 @@
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
+      .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
+      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 700; color: var(--muted); list-style: none; }
+      .setMore > summary::-webkit-details-marker { display: none; }
+      .setMore > summary::before { content: "▸ "; color: var(--accent); }
+      .setMore[open] > summary::before { content: "▾ "; }
+      .setMore > summary:hover { color: var(--ink); }
+      .setMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
@@ -91,11 +100,6 @@
       
       <section id="key-facts" aria-label="Key facts">
         <ul class="keyFacts"><li>As of 2026-08-11, a sealed OP-16 Japanese booster box has a market value of about <strong>$134</strong>.</li><li>Current eBay asking prices run around <strong>$134</strong> (23 active listings).</li><li>The English OP-16 box runs about <strong>$188</strong> — 1.4x the Japanese box.</li><li>The most valuable OP-16 card is <strong>Sakazuki (Manga)</strong> (OP16-065) at about <strong>$3,065</strong> raw NM, with PSA 10 copies listed near $3,300.</li><li>Across the full OP-16 set, <strong>91%</strong> of PSA-graded cards received PSA 10, across 1,583 total grades.</li><li>The English edition of OP-16 released Jun 2026.</li></ul>
-      </section>
-      <section class="setStory" aria-label="OP-16 editorial">
-        <h2>Three admirals, one cycle</h2>
-        <p>The Time of Battle is the newest main set in the tracker, and its top three form something the run had not produced before in our table: a complete themed cycle. Manga-art Sakazuki, Kuzan and Borsalino — the three original admirals — sit together at the summit, and cycle chases invite completionism: plenty of buyers here want all three or none.</p>
-        <p>A box this fresh moves on opening-volume news more than anything durable. Our sell-through and auction figures for OP-16 will mean far more by autumn than they do today; the honest read is &quot;watch&quot;, and this page refreshes daily while the picture forms.</p>
       </section>
       
       <div class="liveBox" id="livePrice" hidden>
@@ -150,23 +154,35 @@
           </tbody>
         </table>
       </div>
-      <p class="priceNote">NM is Japanese near-mint retail; PSA 10 uses a sold median when marked "sold" and otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
-      
+      <p class="priceNote">NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
+      <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
+           지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
+           접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
+      <details class="setMore">
+        <summary>Set notes — price context, reprints, factory-seal check, background</summary>
+        
+        <section class="setStory" aria-label="OP-16 editorial">
+          <h2>Three admirals, one cycle</h2>
+          <p>The Time of Battle is the newest main set in the tracker, and its top three form something the run had not produced before in our table: a complete themed cycle. Manga-art Sakazuki, Kuzan and Borsalino — the three original admirals — sit together at the summit, and cycle chases invite completionism: plenty of buyers here want all three or none.</p>
+          <p>A box this fresh moves on opening-volume news more than anything durable. Our sell-through and auction figures for OP-16 will mean far more by autumn than they do today; the honest read is &quot;watch&quot;, and this page refreshes daily while the picture forms.</p>
+        </section>
+        
       <h2>OP-16 box price: the six-month trajectory</h2>
       <p>The Japanese The Time of Battle sealed box entered Apr 2026 around <strong>$220</strong> and stands near <strong>$134</strong> as of 2026-08-11 — it fell <strong>39%</strong> over the window, peaking at <strong>$220</strong> in the week of 2026-04-27. The English-language The Time of Battle box trades near <strong>$188</strong> over the same period (-53% since January) — about <strong>1.4x</strong> the Japanese box. This ratio does not explain why.</p>
-      
+        
       <h2>How the OP-16 box price compares with its tracked range (Aug 2026)</h2>
       <p>The current value is about <strong>39% below the tracked peak</strong> ($220 → $134). Past peaks do not set future floors. The top card alone (Sakazuki (Manga)) is worth about <strong>23x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.</p>
-      
+        
       <h2>Reprints &amp; original price</h2>
       <ul class="keyFacts">
         <li>Original Japanese MSRP: <strong>¥5,280</strong> per 24-pack box (about $32).</li>
         <li>Retailer/distributor reprint records: None in the current source ledger.</li>
       </ul>
-      
+        
       <h2>How fast is the OP-16 PSA population growing?</h2>
       <p>For The Time of Battle, between 2026-06-24 and 2026-08-05, the recorded PSA population increased by <strong>1,357</strong> grades — peaking at <strong>531</strong> in the week of 2026-08-05, with the latest week at 531 (still running near its peak). The all-time set total is <strong>1,583</strong>. Grades are not a box-opening count.</p>
-      
+        
+      </details>
       
       <section class="setFaq" aria-label="OP-16 The Time of Battle frequently asked questions">
         <h2>OP-16 The Time of Battle — frequently asked questions</h2>

@@ -48,6 +48,15 @@
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
+      .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
+      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 700; color: var(--muted); list-style: none; }
+      .setMore > summary::-webkit-details-marker { display: none; }
+      .setMore > summary::before { content: "▸ "; color: var(--accent); }
+      .setMore[open] > summary::before { content: "▾ "; }
+      .setMore > summary:hover { color: var(--ink); }
+      .setMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
@@ -91,11 +100,6 @@
       
       <section id="key-facts" aria-label="Key facts">
         <ul class="keyFacts"><li>As of 2026-07-11, a sealed EB-01 Japanese booster box has a market value of about <strong>$116</strong>.</li><li>Current eBay asking prices run around <strong>$190</strong> (8 active listings).</li><li>The English EB-01 box runs about <strong>$859</strong> — 7.4x the Japanese box.</li><li>The most valuable EB-01 card is <strong>Tony TonyChopper Alternate Art Manga</strong> (EB01-006) at about <strong>$2,142</strong> raw NM, with PSA 10 copies selling near $1,685.</li><li>Across the full EB-01 set, <strong>93.2%</strong> of PSA-graded cards received PSA 10, across 12,173 total grades.</li><li>The English edition of EB-01 released May 2024.</li></ul>
-      </section>
-      <section class="setStory" aria-label="EB-01 editorial">
-        <h2>The extra-booster formula, first try</h2>
-        <p>Memorial Collection introduced the extra-booster format to the Japanese run: a smaller checklist, heavy on reprints and celebration cards, sold as a look back at the game's opening stretch. Its market surprise was Tony Tony Chopper — the manga-art alternate became the face of the box — with a Mr. 2 Bon Kurei alternate as the run's best fan-service pick.</p>
-        <p>Extra boosters live or die on their alternates, because the base cards are known quantities. EB-01's alternates aged well, which is why this nominally minor product keeps a permanent place in our daily tracking alongside the main sets.</p>
       </section>
       
       <div class="liveBox" id="livePrice" hidden>
@@ -150,23 +154,35 @@
           </tbody>
         </table>
       </div>
-      <p class="priceNote">NM is Japanese near-mint retail; PSA 10 uses a sold median when marked "sold" and otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
-      
+      <p class="priceNote">NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
+      <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
+           지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
+           접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
+      <details class="setMore">
+        <summary>Set notes — price context, reprints, factory-seal check, background</summary>
+        
+        <section class="setStory" aria-label="EB-01 editorial">
+          <h2>The extra-booster formula, first try</h2>
+          <p>Memorial Collection introduced the extra-booster format to the Japanese run: a smaller checklist, heavy on reprints and celebration cards, sold as a look back at the game's opening stretch. Its market surprise was Tony Tony Chopper — the manga-art alternate became the face of the box — with a Mr. 2 Bon Kurei alternate as the run's best fan-service pick.</p>
+          <p>Extra boosters live or die on their alternates, because the base cards are known quantities. EB-01's alternates aged well, which is why this nominally minor product keeps a permanent place in our daily tracking alongside the main sets.</p>
+        </section>
+        
       <h2>EB-01 box price: the six-month trajectory</h2>
       <p>The Japanese Memorial Collection sealed box entered Jan 2026 around <strong>$90</strong> and stands near <strong>$116</strong> as of 2026-07-11 — it gained <strong>29%</strong> over the window, peaking at <strong>$125</strong> in the week of 2026-06-24. The English-language Memorial Collection box trades near <strong>$859</strong> over the same period (+4% since January) — about <strong>7.4x</strong> the Japanese box. This ratio does not explain why.</p>
-      
+        
       <h2>How the EB-01 box price compares with its tracked range (Aug 2026)</h2>
       <p>The box sits near its tracked high ($116 vs peak $125, +29% over our window). It is a comparison, not a forecast. The top card alone (Tony TonyChopper Alternate Art Manga) is worth about <strong>18x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.</p>
-      
+        
       <h2>Reprints &amp; original price</h2>
       <ul class="keyFacts">
         <li>Original Japanese MSRP: <strong>¥5,280</strong> per 24-pack box (about $32).</li>
         <li>Retailer/distributor reprint records: 2024-08-28 — <a href="https://mediaworld.co.jp/products/13917881000" target="_blank" rel="noopener nofollow">distributor</a>.</li>
       </ul>
-      
+        
       <h2>How fast is the EB-01 PSA population growing?</h2>
       <p>For Memorial Collection, between 2025-12-03 and 2026-08-05, the recorded PSA population increased by <strong>1,749</strong> grades — peaking at <strong>174</strong> in the week of 2026-07-29, with the latest week at 39 (cooling off from its peak). The all-time set total is <strong>12,173</strong>. Grades are not a box-opening count.</p>
-      
+        
+      </details>
       
       <section class="setFaq" aria-label="EB-01 Memorial Collection frequently asked questions">
         <h2>EB-01 Memorial Collection — frequently asked questions</h2>

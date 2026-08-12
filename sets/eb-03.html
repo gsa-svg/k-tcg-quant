@@ -48,6 +48,15 @@
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
+      .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
+      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 700; color: var(--muted); list-style: none; }
+      .setMore > summary::-webkit-details-marker { display: none; }
+      .setMore > summary::before { content: "▸ "; color: var(--accent); }
+      .setMore[open] > summary::before { content: "▾ "; }
+      .setMore > summary:hover { color: var(--ink); }
+      .setMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
@@ -91,17 +100,6 @@
       
       <section id="key-facts" aria-label="Key facts">
         <ul class="keyFacts"><li>As of 2026-07-12, a sealed EB-03 Japanese booster box has a market value of about <strong>$126</strong>.</li><li>Current eBay asking prices run around <strong>$144</strong> (14 active listings).</li><li>The English EB-03 box runs about <strong>$360</strong> — 2.9x the Japanese box.</li><li>The most valuable EB-03 card is <strong>Boa Hancock SP</strong> (EB03-026) at about <strong>$1,526</strong> raw NM, with PSA 10 copies selling near $2,018.</li><li>Across the full EB-03 set, <strong>87.1%</strong> of PSA-graded cards received PSA 10, across 20,338 total grades.</li><li>The English edition of EB-03 released Feb 2026.</li></ul>
-      </section>
-      <section class="searchIntent" aria-label="EB-03 price, reprint and factory-seal summary">
-        <h2>EB-03 box price, reprint record and original Bandai tape</h2>
-        <p>As of 2026-08-11, current eBay asks center near <strong>$144</strong> across 14 verified listings. The separate tracked market series last recorded about <strong>$126</strong> on 2026-07-12. EB-03 is driven by character collectors around Robin, Nami and Boa Hancock rather than by a conventional main-set chase mix. Because the tracking window is still young, dated sold and listing observations matter more than an isolated launch price.</p>
-        <p><strong>Reprint record:</strong> No dated EB-03 reprint entry is currently present in the source ledger. The product is still relatively recent, so the absence of a record must not be read as evidence that its print cycle has ended.</p>
-        <p><strong>Factory-seal check:</strong> For a Japanese EB-03 display, prioritize an uncut original Bandai security tape and photos of both side seams, the base and product code. Do not treat seller-added shrink as a substitute for the factory tape.</p>
-      </section>
-      <section class="setStory" aria-label="EB-03 editorial">
-        <h2>The all-heroines experiment</h2>
-        <p>Heroine's Edition is the run's clearest demographic experiment: a box whose entire premium end is female characters — Nico Robin, Nami and Boa Hancock in SP treatment. No other product in the game concentrates that collector segment so completely.</p>
-        <p>Products aimed at character collectors rather than players sell through differently: steadier, less tied to tournament news, more sensitive to gift-season timing. It released in February 2026, so our ledger on it is still young — the auction data lower on this page is the least filtered view of how the experiment is landing.</p>
       </section>
       
       <div class="liveBox" id="livePrice" hidden>
@@ -156,23 +154,41 @@
           </tbody>
         </table>
       </div>
-      <p class="priceNote">NM is Japanese near-mint retail; PSA 10 uses a sold median when marked "sold" and otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
-      
+      <p class="priceNote">NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
+      <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
+           지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
+           접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
+      <details class="setMore">
+        <summary>Set notes — price context, reprints, factory-seal check, background</summary>
+        
+      <section class="searchIntent" aria-label="EB-03 price, reprint and factory-seal summary">
+        <h2>EB-03 box price, reprint record and original Bandai tape</h2>
+        <p>As of 2026-08-11, current eBay asks center near <strong>$144</strong> across 14 verified listings. The separate tracked market series last recorded about <strong>$126</strong> on 2026-07-12. EB-03 is driven by character collectors around Robin, Nami and Boa Hancock rather than by a conventional main-set chase mix. Because the tracking window is still young, dated sold and listing observations matter more than an isolated launch price.</p>
+        <p><strong>Reprint record:</strong> No dated EB-03 reprint entry is currently present in the source ledger. The product is still relatively recent, so the absence of a record must not be read as evidence that its print cycle has ended.</p>
+        <p><strong>Factory-seal check:</strong> For a Japanese EB-03 display, prioritize an uncut original Bandai security tape and photos of both side seams, the base and product code. Do not treat seller-added shrink as a substitute for the factory tape.</p>
+      </section>
+        <section class="setStory" aria-label="EB-03 editorial">
+          <h2>The all-heroines experiment</h2>
+          <p>Heroine's Edition is the run's clearest demographic experiment: a box whose entire premium end is female characters — Nico Robin, Nami and Boa Hancock in SP treatment. No other product in the game concentrates that collector segment so completely.</p>
+          <p>Products aimed at character collectors rather than players sell through differently: steadier, less tied to tournament news, more sensitive to gift-season timing. It released in February 2026, so our ledger on it is still young — the auction data lower on this page is the least filtered view of how the experiment is landing.</p>
+        </section>
+        
       <h2>EB-03 box price: the six-month trajectory</h2>
       <p>The Japanese Heroine's Edition sealed box entered Jan 2026 around <strong>$84</strong> and stands near <strong>$126</strong> as of 2026-07-12 — it gained <strong>50%</strong> over the window, peaking at <strong>$131</strong> in the week of 2026-06-17. The English-language Heroine's Edition box trades near <strong>$360</strong> over the same period (+9% since January) — about <strong>2.9x</strong> the Japanese box. This ratio does not explain why.</p>
-      
+        
       <h2>How the EB-03 box price compares with its tracked range (Aug 2026)</h2>
       <p>The box sits near its tracked high ($126 vs peak $131, +50% over our window). It is a comparison, not a forecast. The top card alone (Boa Hancock SP) is worth about <strong>12x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.</p>
-      
+        
       <h2>Reprints &amp; original price</h2>
       <ul class="keyFacts">
         <li>Original Japanese MSRP: <strong>¥5,280</strong> per 24-pack box (about $32).</li>
         <li>Retailer/distributor reprint records: None in the current source ledger.</li>
       </ul>
-      
+        
       <h2>How fast is the EB-03 PSA population growing?</h2>
       <p>For Heroine's Edition, between 2025-12-03 and 2026-08-05, the recorded PSA population increased by <strong>19,935</strong> grades — peaking at <strong>1,176</strong> in the week of 2026-03-11, with the latest week at 616 (cooling off from its peak). The all-time set total is <strong>20,338</strong>. Grades are not a box-opening count.</p>
-      
+        
+      </details>
       
       <section class="setFaq" aria-label="EB-03 Heroine's Edition frequently asked questions">
         <h2>EB-03 Heroine's Edition — frequently asked questions</h2>

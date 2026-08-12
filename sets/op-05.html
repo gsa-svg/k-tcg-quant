@@ -48,6 +48,15 @@
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
+      .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
+      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 700; color: var(--muted); list-style: none; }
+      .setMore > summary::-webkit-details-marker { display: none; }
+      .setMore > summary::before { content: "▸ "; color: var(--accent); }
+      .setMore[open] > summary::before { content: "▾ "; }
+      .setMore > summary:hover { color: var(--ink); }
+      .setMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
@@ -91,17 +100,6 @@
       
       <section id="key-facts" aria-label="Key facts">
         <ul class="keyFacts"><li>As of 2026-07-13, a sealed OP-05 Japanese booster box has a market value of about <strong>$163</strong>.</li><li>Current eBay asking prices run around <strong>$176</strong> (6 active listings).</li><li>The English OP-05 box runs about <strong>$1,187</strong> — 7.3x the Japanese box.</li><li>The most valuable OP-05 card is <strong>Monkey D. Luffy</strong> (OP05-119) at about <strong>$7,877</strong> raw NM.</li><li>Across the full OP-05 set, <strong>88.8%</strong> of PSA-graded cards received PSA 10, across 71,390 total grades.</li><li>The English edition of OP-05 released Dec 2023.</li></ul>
-      </section>
-      <section class="searchIntent" aria-label="OP-05 price, reprint and factory-seal summary">
-        <h2>OP-05 box price, reprint status and Bandai tape checks</h2>
-        <p>As of 2026-08-11, current eBay asks center near <strong>$176</strong> across 6 verified listings. The separate tracked market series last recorded about <strong>$163</strong> on 2026-07-13. OP-05 demand is unusually concentrated around its Gear 5 and signed Luffy treatments, so sealed-box asks can move faster than the rest of the set. The dated market series and top-10 table should be read together.</p>
-        <p><strong>Reprint record:</strong> Our current source ledger has no dated OP-05 retailer or distributor reprint entry. Restock rumours and marketplace inventory are not labelled as a reprint unless a traceable source supports the claim.</p>
-        <p><strong>Factory-seal check:</strong> High demand makes seal photos especially important: verify the original Bandai security tape is present and uncut, then inspect the side flaps, bottom and product code. Extra shrink does not replace the tape check.</p>
-      </section>
-      <section class="setStory" aria-label="OP-05 editorial">
-        <h2>The watershed box</h2>
-        <p>If a single set moved One Piece cards from hobby corner to mainstream collecting, it is this one. Awakening of the New Era lands on the Gear 5 arc, and its chase — the alternate-art Luffy 119 with the gold-stamped signature — became the most talked-about card in the game's history. Law and Luffy alternates deepen the list, but this box's economics hang on one card to a degree no earlier set matched.</p>
-        <p>That concentration cuts both ways: when the flagship Luffy is strong, sealed OP-05 looks unstoppable, and when its graded supply builds, the box cools with it. The per-card rows under the chase table are the thing to watch here, more than the box price alone.</p>
       </section>
       
       <div class="liveBox" id="livePrice" hidden>
@@ -156,23 +154,41 @@
           </tbody>
         </table>
       </div>
-      <p class="priceNote">NM is Japanese near-mint retail; PSA 10 uses a sold median when marked "sold" and otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
-      
+      <p class="priceNote">NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask. <a href="../methodology.html">Source rules</a> · 2026-08-11</p>
+      <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
+           지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
+           접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
+      <details class="setMore">
+        <summary>Set notes — price context, reprints, factory-seal check, background</summary>
+        
+      <section class="searchIntent" aria-label="OP-05 price, reprint and factory-seal summary">
+        <h2>OP-05 box price, reprint status and Bandai tape checks</h2>
+        <p>As of 2026-08-11, current eBay asks center near <strong>$176</strong> across 6 verified listings. The separate tracked market series last recorded about <strong>$163</strong> on 2026-07-13. OP-05 demand is unusually concentrated around its Gear 5 and signed Luffy treatments, so sealed-box asks can move faster than the rest of the set. The dated market series and top-10 table should be read together.</p>
+        <p><strong>Reprint record:</strong> Our current source ledger has no dated OP-05 retailer or distributor reprint entry. Restock rumours and marketplace inventory are not labelled as a reprint unless a traceable source supports the claim.</p>
+        <p><strong>Factory-seal check:</strong> High demand makes seal photos especially important: verify the original Bandai security tape is present and uncut, then inspect the side flaps, bottom and product code. Extra shrink does not replace the tape check.</p>
+      </section>
+        <section class="setStory" aria-label="OP-05 editorial">
+          <h2>The watershed box</h2>
+          <p>If a single set moved One Piece cards from hobby corner to mainstream collecting, it is this one. Awakening of the New Era lands on the Gear 5 arc, and its chase — the alternate-art Luffy 119 with the gold-stamped signature — became the most talked-about card in the game's history. Law and Luffy alternates deepen the list, but this box's economics hang on one card to a degree no earlier set matched.</p>
+          <p>That concentration cuts both ways: when the flagship Luffy is strong, sealed OP-05 looks unstoppable, and when its graded supply builds, the box cools with it. The per-card rows under the chase table are the thing to watch here, more than the box price alone.</p>
+        </section>
+        
       <h2>OP-05 box price: the six-month trajectory</h2>
       <p>The Japanese Awakening of the New Era sealed box entered Jan 2026 around <strong>$126</strong> and stands near <strong>$163</strong> as of 2026-07-13 — it gained <strong>29%</strong> over the window, peaking at <strong>$213</strong> in the week of 2026-01-27. The English-language Awakening of the New Era box trades near <strong>$1,187</strong> over the same period (+41% since January) — about <strong>7.3x</strong> the Japanese box. This ratio does not explain why.</p>
-      
+        
       <h2>How the OP-05 box price compares with its tracked range (Aug 2026)</h2>
       <p>The current value is about <strong>23% below the tracked peak</strong> ($213 → $163). Past peaks do not set future floors. The top card alone (Monkey D. Luffy) is worth about <strong>48x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.</p>
-      
+        
       <h2>Reprints &amp; original price</h2>
       <ul class="keyFacts">
         <li>Original Japanese MSRP: <strong>¥5,280</strong> per 24-pack box (about $32).</li>
         <li>Retailer/distributor reprint records: None in the current source ledger.</li>
       </ul>
-      
+        
       <h2>How fast is the OP-05 PSA population growing?</h2>
       <p>For Awakening of the New Era, between 2025-12-03 and 2026-08-05, the recorded PSA population increased by <strong>13,829</strong> grades — peaking at <strong>958</strong> in the week of 2026-07-29, with the latest week at 761 (steady). The all-time set total is <strong>71,390</strong>. Grades are not a box-opening count.</p>
-      <p class="priceNote">Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</p>
+        <p class="priceNote">Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</p>
+      </details>
       
       <section class="setFaq" aria-label="OP-05 Awakening of the New Era frequently asked questions">
         <h2>OP-05 Awakening of the New Era — frequently asked questions</h2>

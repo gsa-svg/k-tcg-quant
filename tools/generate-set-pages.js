@@ -148,6 +148,15 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
+      .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
+      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 700; color: var(--muted); list-style: none; }
+      .setMore > summary::-webkit-details-marker { display: none; }
+      .setMore > summary::before { content: "▸ "; color: var(--accent); }
+      .setMore[open] > summary::before { content: "▾ "; }
+      .setMore > summary:hover { color: var(--ink); }
+      .setMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
@@ -511,11 +520,7 @@ function setPage(code, prev, next) {
         </div>
       </div>
       ${AFF_TOP}
-      ${keyFacts}${searchIntentBlock}
-      ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
-        <h2>${esc(story.heading)}</h2>
-        ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n        ")}
-      </section>` : ""}
+      ${keyFacts}
       ${liveWidget(code)}
       <div class="ctaRow">
         <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>
@@ -531,12 +536,23 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) uses TCGplayer market data while Japanese NM and PSA 10 sales are still being collected.` : `NM is Japanese near-mint retail; PSA 10 uses a sold median when marked "sold" and otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>
-      ${trajectory}
-      ${verdict}
-      ${reprintBlock}
-      ${momentum}
-      ${compareLink ? `<p class="priceNote">${compareLink.replace(/^<li>|<\/li>$/g, "")}</p>` : ""}
+      <p class="priceNote">${allTcg ? `NM (raw) uses TCGplayer market data.` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>
+      <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
+           지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
+           접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
+      <details class="setMore">
+        <summary>Set notes — price context, reprints, factory-seal check${story ? ", background" : ""}</summary>
+        ${searchIntentBlock}
+        ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
+          <h2>${esc(story.heading)}</h2>
+          ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n          ")}
+        </section>` : ""}
+        ${trajectory}
+        ${verdict}
+        ${reprintBlock}
+        ${momentum}
+        ${compareLink ? `<p class="priceNote">${compareLink.replace(/^<li>|<\/li>$/g, "")}</p>` : ""}
+      </details>
       ${faqHtml(code, nameEn)}
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
