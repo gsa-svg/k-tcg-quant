@@ -44,6 +44,53 @@ const dTr = daily.map((x) => `<tr><td class="l">${esc(x.d)}</td><td>${num(x.n)}<
 const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
 const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td></tr>`).join("\n");
 
+// ── 다른 TCG 교차 비교 ─────────────────────────────────────────────────────
+// 원피스 낙찰률만 보면 그게 높은지 낮은지 알 수 없다. 같은 방식·같은 기간으로 모은
+// 다른 TCG 가 있어야 비교가 성립한다. 이 표가 우리만 가진 자산이다.
+// 원칙: 표본 미달 게임은 숨긴다. 비율에는 윌슨 95% 구간을 붙인다. 추정하지 않는다.
+const TCG_MIN_N = 100;      // 낙찰률을 말하기 위한 최소 종료 건수
+const TCG_MIN_PRICE_N = 20; // 중앙 낙찰가를 말하기 위한 최소 낙찰 건수
+const wilson = (s, n) => {
+  if (!n) return null;
+  const z = 1.96, p = s / n;
+  return +((z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n)) / (1 + (z * z) / n)) * 100).toFixed(1);
+};
+let tcgRows = [], tcgDays = 0, tcgTotal = 0, tcgFrom = "", tcgTo = "";
+try {
+  const tSeries = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "tcg-series.json"), "utf8"));
+  const names = Object.fromEntries(Object.entries(tSeries.games || {}).map(([k, v]) => [k, v.name]));
+  const arcDir = path.join(ROOT, "data", "tcg-archive");
+  const files = fs.readdirSync(arcDir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+  tcgDays = files.length; tcgFrom = (files[0] || "").slice(0, 10); tcgTo = (files[files.length - 1] || "").slice(0, 10);
+  const agg = {};
+  for (const f of files) {
+    for (const s of JSON.parse(fs.readFileSync(path.join(arcDir, f), "utf8")).sales || []) {
+      const g = s.g; if (!g) continue;
+      agg[g] = agg[g] || { n: 0, sold: 0, prices: [] };
+      agg[g].n++; tcgTotal++;
+      if (s.sold) { agg[g].sold++; const p = Number(s.price); if (p > 0) agg[g].prices.push(p); }
+    }
+  }
+  tcgRows = Object.entries(agg)
+    .filter(([, v]) => v.n >= TCG_MIN_N)
+    .map(([k, v]) => {
+      const sorted = v.prices.slice().sort((a, b) => a - b);
+      const med = sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
+      return {
+        name: names[k] || k,
+        isOp: k === "onepiece",
+        n: v.n, sold: v.sold,
+        rate: +((v.sold / v.n) * 100).toFixed(1),
+        ci: wilson(v.sold, v.n),
+        // 1센트 시작 벌크 매물이 섞이면 중앙값이 $0.01 로 무너진다. 그런 값은 쓰지 않는다.
+        med: sorted.length >= TCG_MIN_PRICE_N && med >= 1 ? med : null,
+      };
+    })
+    .sort((a, b) => b.rate - a.rate);
+} catch { tcgRows = []; }
+
+const tcgTr = tcgRows.map((r) => `<tr${r.isOp ? ' style="background:rgba(16,215,160,.06)"' : ""}><td class="l">${esc(r.name)}${r.isOp ? " <small>this site's subject</small>" : ""}</td><td>${num(r.n)}</td><td>${num(r.sold)}</td><td>${r.rate}% <small style="color:var(--muted)">±${r.ci}</small></td><td>${r.med != null ? usd(r.med) : "—"}</td></tr>`).join("\n");
+
 const faqs = [
   { q: "Where do these auction prices come from?", a: "Every auction is read again after it closed, so the price recorded is the final winning bid — not a mid-auction bid and not an asking price. Auctions that ended without a sale stay in the data as the denominator of sell-through. Where eBay does not report a sold state we store null rather than guessing." },
   { q: "What share of One Piece card auctions actually sell?", a: `Across the last ${daily.length} days we tracked ${num(totN)} One Piece auctions to close and ${num(totSold)} of them sold — about ${st}%. Sealed boxes clear at a far higher rate than single cards${boxK.st != null && cardK.st != null ? ` (${boxK.st}% vs ${cardK.st}% in this window)` : ""}.` },
@@ -146,6 +193,19 @@ ${kTr}
       </div>
       <p>Over the last ${daily.length} days, <strong>${st}% of the ${num(totN)} auctions we tracked ended with a winning bid</strong>. Results differ by item type: single-card sell-through was${cardK.st != null ? ` ${cardK.st}%` : " not available"}, while sealed booster-box sell-through was${boxK.st != null ? ` ${boxK.st}%` : " not available"} in this sample. These figures describe only the auctions tracked in the stated window.</p>
 
+${tcgRows.length >= 5 ? `
+      <h2>How One Piece compares to other trading card games</h2>
+      <p>Sell-through only means something next to a comparison. We run the same collector across ${tcgRows.length} other trading card games on eBay — same method, same window, auctions read after they close — so these rates are directly comparable to the One Piece figures above.</p>
+      <div style="overflow-x:auto">
+      <table class="aTable">
+        <thead><tr><th class="l">Trading card game</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th></tr></thead>
+        <tbody>
+${tcgTr}
+        </tbody>
+      </table>
+      </div>
+      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">${tcgFrom}–${tcgTo} (${tcgDays} days), ${num(tcgTotal)} auctions read after close. ± is a Wilson 95% interval; two games differ only where their intervals do not overlap. Games with fewer than ${TCG_MIN_N} tracked auctions are omitted rather than shown on a thin sample, and a median winning bid is shown only where at least ${TCG_MIN_PRICE_N} sales cleared $1 — penny-start bulk lots otherwise drag a median to a meaningless figure. This is our tracked sample, not a census of eBay.</p>
+` : ""}
       <h2>Highest auction medians by card</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
