@@ -58,6 +58,7 @@ function seriesFor(records) {
   const rs = (records || [])
     .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number.isFinite(Number(r.unit)) && Number(r.unit) > 0)
     .filter((r) => !BIN_ONLY || r.fmt === "bin")
+    .filter((r) => !isFirstPrint(r))   // 초판은 별개 상품 — 선에 섞지 않는다
     .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit) }))
     .sort((a, b) => a.t - b.t);
   if (rs.length < MIN_N) return { points: [], windowDays: null };
@@ -119,6 +120,7 @@ function monthlyFor(records) {
   for (const r of records || []) {
     if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
     if (BIN_ONLY && r.fmt !== "bin") continue;
+    if (isFirstPrint(r)) continue;   // 초판은 별개 상품 — 월간에서도 뺀다
     const k = r.d.slice(0, 7);
     if (!buckets.has(k)) buckets.set(k, []);
     buckets.get(k).push(Number(r.unit));
@@ -161,14 +163,35 @@ function supplyFor(code) {
     .sort((a, b) => a.d.localeCompare(b.d));
 }
 
-// 영문판은 초판(Blue/White Bottom)과 이후 판본의 시세가 크게 다르다.
-// OP-01 은 영문판 실거래 36건 중 34건이 초판이라, 그 선은 사실상 초판 시세다.
-// 화면에 그 사실을 안 적으면 "영문판 $1,302" 를 아무 영문판 박스 값으로 읽는다.
-const FIRST_PRINT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
-function firstPrintShare(records) {
-  const rs = (records || []).filter((r) => r && r.fmt === "bin");
+// 영문판 OP-01 은 인쇄 차수가 둘이고 **시세가 2~3배 다른 별개 상품**이다.
+//   Blue Bottom = Wave 1 = 초판   (우리 실거래 5건 중앙 $4,143 · TCGplayer $5,622)
+//   White Bottom = Wave 2 = 재판  (우리 실거래 31건 중앙 $1,561 · TCGplayer $1,526)
+// TCGplayer 도 TCG Quant 도 둘을 별개 상품으로 관리한다.
+//
+// 그래서 **초판은 선에서 뺀다**. 한 선에 섞으면 재판 시세에 초판 몇 건이 얹혀 위쪽이 부풀고,
+// 무엇보다 "영문판 박스 시세"가 무엇을 가리키는지 알 수 없어진다.
+// 초판은 표본이 얇아(5건) 선을 못 그리므로, 현재가 한 숫자로만 따로 보여준다.
+//
+// 2026-08-13 정정: 처음엔 Blue 와 White 를 뭉뚱그려 "초판" 하나로 셌다. 정반대였다 —
+// 우리 영문판 실거래의 다수는 White(재판)다.
+const WAVE1_BLUE = /\b(blue\s*bottom|wave\s*1)\b/i;
+const WAVE2_WHITE = /\b(white\s*bottom|wave\s*2)\b/i;
+const isFirstPrint = (r) => WAVE1_BLUE.test((r && r.title) || "");
+
+// 선에서 뺀 초판을 "지금 얼마"로만 요약한다. 최근 90일 실거래의 중앙값.
+function firstPrintSpot(records) {
+  const rs = (records || []).filter((r) => r && r.fmt === "bin" && isFirstPrint(r));
+  if (rs.length < 3) return null;
+  const recent = rs.slice(-12).map((r) => r.unit).sort((a, b) => a - b);
+  return { median: Math.round(quant(recent, 0.5)), n: rs.length, last: rs[rs.length - 1].d };
+}
+
+// 남은 선이 재판 위주인지 알려준다 — 어느 쪽을 보고 있는지 화면에 적기 위한 값.
+function reprintShare(records) {
+  const rs = (records || []).filter((r) => r && r.fmt === "bin" && !isFirstPrint(r));
   if (rs.length < 5) return null;
-  return Math.round((rs.filter((r) => FIRST_PRINT.test(r.title || "")).length / rs.length) * 100);
+  const white = rs.filter((r) => WAVE2_WHITE.test(r.title || "")).length;
+  return white ? Math.round((white / rs.length) * 100) : null;
 }
 
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
@@ -188,7 +211,8 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
     windowDays: { jp: jp.windowDays, en: en.windowDays },
     monthly: { jp: mJp, en: mEn },
     supply: supplyFor(code),
-    firstPrintPct: { jp: firstPrintShare(eds.jp), en: firstPrintShare(eds.en) },
+    reprintPct: { jp: reprintShare(eds.jp), en: reprintShare(eds.en) },
+    firstPrint: { jp: firstPrintSpot(eds.jp), en: firstPrintSpot(eds.en) },
   };
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;
