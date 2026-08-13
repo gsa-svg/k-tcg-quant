@@ -239,6 +239,21 @@ if (exists("data/box-sold-series.json")) {
       if (sf.jpRelease && !sf.jpRelease.source) {
         errors.push(`R2: ${code}.jpRelease 에 source 가 없다 — 공식 페이지 링크 없이 발매일을 싣지 않는다`);
       }
+      // 추첨판매는 **발매 전에도** 열린다(초회 물량 선판매). 발매일과 대조하지 않고 "발매 후 추가 공급" 이라
+      // 부르면 공급이 늘지도 않았는데 늘었다고 쓰는 셈이다(2026-08-13: OP-17 은 발매 8/22 인데 추첨이 7/30 이었다).
+      for (const r of sf.reprintRecords || []) {
+        const isPost = /^official-lottery$/.test(r.kind || "");
+        if (!isPost) continue;
+        if (!sf.jpRelease || !sf.jpRelease.date) {
+          errors.push(`R2: ${code} 의 ${r.date} 추첨을 "발매 후" 로 분류했는데 발매일이 확인돼 있지 않다 — official-lottery-unverified-timing 으로 두거나 발매일을 먼저 확인할 것`);
+          continue;
+        }
+        // 월(YYYY-MM) 단위 비교. 발매월보다 앞서면 사전판매다.
+        const rel = sf.jpRelease.date.slice(0, 7);
+        if (String(r.date).slice(0, 7) < rel) {
+          errors.push(`R2: ${code} 의 ${r.date} 추첨이 발매(${sf.jpRelease.date}) 이전인데 "발매 후" 로 분류돼 있다 — pre-release-lottery 여야 한다`);
+        }
+      }
     }
   }
   // 생성된 세트 페이지가 매장 재입고를 공식 재판으로 표기하지 않는지 실물로 확인한다.

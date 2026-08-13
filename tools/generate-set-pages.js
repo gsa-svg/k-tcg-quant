@@ -440,7 +440,11 @@ function setPage(code, prev, next) {
       const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
       const recs = sf.reprintRecords || [];
       // 기록의 성격을 나눈다. 매장 재입고 공지를 "반다이가 재판을 발표했다" 처럼 읽히게 두면 안 된다.
-      const isOfficial = (r) => /official/i.test(r.kind || "");
+      // 추첨판매는 **발매 전**에도 열린다(초회 물량 선판매). 그건 물량이 다시 풀린 게 아니므로
+      // 재공급으로 세면 안 된다 — OP-17 은 발매 2026-08-22 인데 추첨이 7/30·8/7~18 이었다.
+      const isPre = (r) => /pre-release/i.test(r.kind || "");
+      const isUnverified = (r) => /unverified-timing/i.test(r.kind || "");
+      const isOfficial = (r) => /official/i.test(r.kind || "") && !isUnverified(r);
       const isDistributor = (r) => /distributor/i.test(r.kind || "");
       const monthOf = (d) => (d && /^\d{4}-\d{2}$/.test(d) ? monthYear(d + "-01") || d : d || "");
       // 소스 URL 이 살아있는 http 링크일 때만 클릭 링크. 죽은/빈 소스는 텍스트로(죽은 링크 노출 방지 — 2026-07-21 감사).
@@ -449,10 +453,14 @@ function setPage(code, prev, next) {
         const when = esc(monthOf(r.date));
         return live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${when}</a>` : when;
       };
+      const pre = recs.filter(isPre);
+      const unver = recs.filter(isUnverified);
       const official = recs.filter(isOfficial), distrib = recs.filter(isDistributor);
-      const retail = recs.filter((r) => !isOfficial(r) && !isDistributor(r));
+      const retail = recs.filter((r) => !isPre(r) && !isUnverified(r) && !isOfficial(r) && !isDistributor(r));
       const lines = [];
-      if (official.length) lines.push(`<li>Bandai official lottery sale: ${official.map(item).join(", ")} — a Premium Bandai / Bandai Namco shop draw. Bandai does not call these reprints, so we do not either.</li>`);
+      if (pre.length) lines.push(`<li>Pre-release lottery: ${pre.map(item).join(", ")} — Premium Bandai draw for the <strong>initial</strong> print run, before the release date. Advance allocation, not extra supply.</li>`);
+      if (official.length) lines.push(`<li>Post-release lottery sale: ${official.map(item).join(", ")} — a Premium Bandai / Bandai Namco shop draw held after release. Bandai does not call these reprints, so we do not either.</li>`);
+      if (unver.length) lines.push(`<li>Lottery sale: ${unver.map(item).join(", ")} — we could not verify whether this ran before or after the Japanese release, so we do not claim it added supply.</li>`);
       if (distrib.length) lines.push(`<li>Distributor reprint: ${distrib.map(item).join(", ")}.</li>`);
       if (retail.length) {
         lines.push(`<li>Retailer-reported restocks: ${retail.map(item).join(", ")} — store restock notices, not a Bandai reprint announcement.</li>`);

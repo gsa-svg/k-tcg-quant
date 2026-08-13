@@ -58,10 +58,10 @@
    "reprintRecords": [
     {
      "date": "2024-10",
-     "kind": "official-lottery",
+     "kind": "official-lottery-unverified-timing",
      "source": "https://bandainamco-am.co.jp/official_shop/onepiece-cardgame/topics/20241015.html",
      "sourceDead": true,
-     "note": "Bandai Namco shop 再販 pre-order lottery; original announcement page now 404, no Wayback snapshot (medium confidence)",
+     "note": "Bandai Namco shop 再販 pre-order lottery; original announcement page now 404, no Wayback snapshot (medium confidence) ⚠️ Japanese release date not verified from a primary source, so we cannot say whether this ran before or after release.",
      "kindWas": "Bandai Namco official-shop reprint lottery"
     }
    ]
@@ -149,15 +149,15 @@
    "reprintRecords": [
     {
      "date": "2026-05",
-     "kind": "official-lottery",
+     "kind": "official-lottery-unverified-timing",
      "source": "https://www.onepiece-cardgame.com/news/",
-     "note": "Premium Bandai official lottery sale, 1st round, entries opened 2026-05-29. Announced on Bandai's official news feed. Bandai does not describe it as a reprint. Verified 2026-08-13."
+     "note": "Premium Bandai official lottery sale, 1st round, entries opened 2026-05-29. Announced on Bandai's official news feed. Bandai does not describe it as a reprint. Verified 2026-08-13. ⚠️ Not yet confirmed whether this fell before or after the Japanese release date — OP-16's official product page is gone (404), so the release date could not be verified. Do not count as extra supply until checked."
     },
     {
      "date": "2026-06",
-     "kind": "official-lottery",
+     "kind": "official-lottery-unverified-timing",
      "source": "https://www.onepiece-cardgame.com/news/",
-     "note": "Premium Bandai official lottery sale, 2nd round (2次抽選販売), entries opened 2026-06-25. Verified 2026-08-13."
+     "note": "Premium Bandai official lottery sale, 2nd round (2次抽選販売), entries opened 2026-06-25. Verified 2026-08-13. ⚠️ Not yet confirmed whether this fell before or after the Japanese release date — OP-16's official product page is gone (404), so the release date could not be verified. Do not count as extra supply until checked."
     }
    ]
   },
@@ -204,18 +204,24 @@
    "reprintRecords": [
     {
      "date": "2026-07",
-     "kind": "official-lottery",
-     "source": "https://www.onepiece-cardgame.com/news/",
-     "note": "Premium Bandai official lottery sale, entries opened 2026-07-30. Verified 2026-08-13."
+     "kind": "pre-release-lottery",
+     "source": "https://www.onepiece-cardgame.com/products/boosters/op17/",
+     "note": "Premium Bandai lottery for the initial print run, entries 2026-07-30 and again 2026-08-07 to 08-18 — both BEFORE the 2026-08-22 release. This is advance allocation, not extra supply. Verified 2026-08-13."
     }
-   ]
+   ],
+   "jpRelease": {
+    "date": "2026-08-22",
+    "source": "https://www.onepiece-cardgame.com/products/boosters/op17/",
+    "verifiedOn": "2026-08-13"
+   }
   }
  },
  "note": " jpRelease is the original Japanese release date, taken only from Bandai official product pages; sets whose official page is no longer up are left without it rather than guessed. The release date shown at the top of each set page is the ENGLISH edition date and is a different thing.",
  "reprintAudit": {
   "checkedOn": "2026-08-13",
-  "source": "https://www.onepiece-cardgame.com/news/",
-  "coverage": "Bandai JP official news feed, newest entries back to 2026-06-06 only (the feed pages 10 at a time and the loader stalled below that). Older announcements — including anything from OP-13's 2025 window — are NOT yet checked.",
-  "finding": "Bandai writes 再販 (reprint) explicitly when it reprints — e.g. the Kumamoto premium card collection on 2026-04-10. For booster packs it instead announces プレミアムバンダイ抽選販売 (Premium Bandai lottery sales), sometimes in multiple rounds. So 'no reprint wording on a booster page' does not mean no additional supply."
+  "source": "https://www.onepiece-cardgame.com/news/ and per-set official product pages",
+  "rule": "A lottery sale only counts as extra supply if its entry period falls AFTER the Japanese release date. Bandai runs Premium Bandai lotteries for the initial print run too (OP-17: entries 2026-07-30 and 2026-08-07~18, release 2026-08-22), and those are advance allocation, not a restock.",
+  "coverage": "Bandai JP news feed read back to 2026-06-06 only. Official product pages exist for OP-13 and OP-17; OP-01~OP-12 and OP-14~OP-16 return 404, so their Japanese release dates are still unverified and any lottery found for them cannot yet be classified.",
+  "todo": "Verify Japanese release dates for the remaining sets from a primary source, then re-classify every lottery record as pre-release or post-release."
  }
 }
