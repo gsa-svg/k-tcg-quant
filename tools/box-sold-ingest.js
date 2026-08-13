@@ -84,7 +84,7 @@ function soldDateOf(caption) {
 // 다만 신고가 틀린 건도 있다(같은 실측에서 일본어 패싯에 영문 제목 8건). 그래서 그대로 믿지 않고
 // **제목이 정반대로 말하면 버린다**(lang-conflict). 둘이 일치하거나 제목이 침묵할 때만 채택한다.
 // declaredEd 가 없으면(구 덤프·가드 코퍼스) 종전대로 제목에서만 판별한다.
-function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd) {
+function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const t = String(item.t || "");
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
   if (BAD.test(t)) return { drop: "bad-word" };
@@ -108,7 +108,11 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd) {
   if (unit == null || unit < 90000 / fxUsdKrw || unit > 5000) return { drop: "price-out-of-range" };
   const d = soldDateOf(item.d);
   if (!d) return { drop: "bad-date" };
-  return { rec: { id: String(item.id), d, unit: Number(unit.toFixed(2)), total: Number(totalUsd.toFixed(2)), qty, title: t.slice(0, 140) }, ed };
+  // fmt: "bin"(즉시구매) | "auction"(경매). 시세 그래프는 즉시구매만 쓴다 — 경매는 입찰이 안 붙으면
+  // 시세보다 훨씬 낮게 끝나 섞으면 잡음이 된다. 구 덤프에는 이 값이 없어 undefined 로 남는다.
+  const rec = { id: String(item.id), d, unit: Number(unit.toFixed(2)), total: Number(totalUsd.toFixed(2)), qty, title: t.slice(0, 140) };
+  if (fmt === "bin" || fmt === "auction") rec.fmt = fmt;
+  return { rec, ed };
 }
 
 const med = (a) => {
@@ -135,6 +139,7 @@ function main(dumpFile) {
 
   const summary = {};
   const drops = {};
+  let backfilled = 0;   // 기존 레코드에 fmt 를 뒤늦게 채운 수
   for (const page of dump.pages || []) {
     const code = page.code;
     if (!data.sets[code]) continue;
@@ -145,10 +150,21 @@ function main(dumpFile) {
       // 덤프가 Language 패싯으로 수집됐다고 표시한 경우에만 신고값을 쓴다.
       // 구 덤프(langFacet 없음)는 종전대로 제목에서만 판별한다 — 과거 원장과 기준이 흔들리지 않게.
       const declaredEd = dump.langFacet ? (page.query === "jp" ? "jp" : "en") : null;
-      const j = judgeItem(item, code, fx, nameMap, declaredEd);
+      // 덤프가 즉구/경매를 나눠 받았다고 표시한 경우에만 fmt 를 붙인다.
+      const fmt = dump.fmtSplit ? (page.fmt === "auction" ? "auction" : "bin") : null;
+      const j = judgeItem(item, code, fx, nameMap, declaredEd, fmt);
       if (j.drop) { drops[j.drop] = (drops[j.drop] || 0) + 1; continue; }
       seen[j.ed].push(j.rec);
-      if (knownIds.has(j.rec.id)) continue;                       // 이미 원장에 있음 — 절대 덮어쓰지 않음
+      if (knownIds.has(j.rec.id)) {
+        // 가격·날짜는 절대 덮어쓰지 않는다. 다만 fmt 는 예전에 아예 수집하지 않던 값이라
+        // 비어 있을 때만 채운다 — 과거 레코드가 즉구였는지 경매였는지 알아낼 유일한 기회다.
+        if (j.rec.fmt) {
+          const arr = (ledger.sets[code] || {})[j.ed] || [];
+          const old = arr.find((r) => r.id === j.rec.id);
+          if (old && !old.fmt) { old.fmt = j.rec.fmt; backfilled++; }
+        }
+        continue;
+      }
       knownIds.add(j.rec.id);
       ledger.sets[code] = ledger.sets[code] || { jp: [], en: [] };
       ledger.sets[code][j.ed].push(j.rec);
@@ -181,7 +197,7 @@ function main(dumpFile) {
   fs.writeFileSync(dataPath, JSON.stringify(data) + "\n", "utf8");
 
   const totals = Object.values(ledger.sets).reduce((a, s) => a + (s.jp || []).length + (s.en || []).length, 0);
-  console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, ledgerTotal: totals }));
+  console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, backfilled, ledgerTotal: totals }));
 }
 
 module.exports = { judgeItem, editionOf, soldDateOf, buildNameMap, codesFromName };
