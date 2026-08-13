@@ -734,7 +734,7 @@ function mergeSeriesPoints(historyPoints, currentPoints) {
 // 그림은 box-chart.js 한 곳에서만 그린다 — 홈과 정적 세트 페이지가 같은 함수를 쓴다.
 //
 // 시계열(45KB)은 팩 데이터와 별도 파일이라 **처음 화면에는 안 받는다**. 세트 상세를 열 때
-// 그때 한 번만 받아 캐시하고, 도착하면 이미 그려진 자리(.bcMount)에 끼워 넣는다.
+// 그때 한 번만 받아 캐시하고, 도착하면 이미 그려진 자리(.opbcMount)에 끼워 넣는다.
 const SOLD_SERIES_URLS = ["data/box-sold-series.json", "https://opboxindex.com/data/box-sold-series.json"];
 let soldSeries = null;
 let soldSeriesPromise = null;
@@ -772,12 +772,12 @@ function renderBoxSeries(set, code) {
   // 아직 시계열을 안 받았으면 빈 자리만 남긴다. 받은 뒤에도 그릴 게 없으면 이 자리는 계속 비어 있다
   // (0 높이라 레이아웃을 밀지 않는다). 예전처럼 "준비 중" 안내문을 띄워 칸을 잡아먹지 않는다.
   if (!soldSeries && code) loadSoldSeries().then(() => fillBoxMounts());
-  return code ? `<div class="bcMount" data-code="${code}"></div>` : "";
+  return code ? `<div class="opbcMount" data-code="${code}"></div>` : "";
 }
 
 // 시계열이 도착한 뒤 빈 자리를 채운다. 이미 채워진 자리는 건드리지 않는다.
 function fillBoxMounts() {
-  document.querySelectorAll(".bcMount[data-code]").forEach((mount) => {
+  document.querySelectorAll(".opbcMount[data-code]").forEach((mount) => {
     if (mount.dataset.filled) return;
     const html = boxChartFor(mount.dataset.code);
     if (!html) return;
@@ -1833,7 +1833,7 @@ function renderDetail() {
   if (!cards.length) {
     // 카드 미집계 세트(예: 신규 OP-16)도 박스 시세가 있으면 죽은 페이지가 아니라 박스 시장을 먼저 보여준다.
     const boxBlocks = `${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}`;
-    const hasBox = /emVal|bmRows|spSvg|bcPane|bcMount/.test(boxBlocks);
+    const hasBox = /emVal|bmRows|spSvg|bcPane|opbcMount/.test(boxBlocks);
     const soon = hasBox
       ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
       : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");

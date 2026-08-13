@@ -68,7 +68,12 @@ function seriesFor(records) {
     const u = [];
     for (const r of rs) { if (r.t > lo && r.t <= t) u.push(r.unit); }
     if (u.length < MIN_N) return null;
-    return { d: iso(t), median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)), high: Math.round(quant(u, 0.75)), n: u.length };
+    // vol = 그 점 **직전 한 주**에 실제로 팔린 건수. 중앙값을 만든 n(창 전체, 28~56일)과 다르다.
+    // n 을 막대로 쓰면 창이 겹쳐 같은 판매를 여러 번 세게 되고, 막대 높이가 창 길이만 반영한다.
+    let vol = 0;
+    const volLo = t - STEP_DAYS * DAY;
+    for (const r of rs) { if (r.t > volLo && r.t <= t) vol++; }
+    return { d: iso(t), median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)), high: Math.round(quant(u, 0.75)), n: u.length, vol };
   };
 
   // 격자는 **마지막 판매일에서 거꾸로** 잡는다. 앞에서부터 7일씩 세면 마지막 점이 격자에 안 걸려
@@ -104,9 +109,25 @@ function monthlyFor(records) {
   return [...buckets.entries()].sort((a, b) => a[0].localeCompare(b[0]))
     .filter(([k, u]) => u.length >= (k === thisMonth ? MONTH_MIN_N - 1 : MONTH_MIN_N))
     .map(([k, u]) => ({
+      // 월간은 겹치지 않는 버킷이라 n 이 곧 그 달 거래량이다.
       d: k + "-01", median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
-      high: Math.round(quant(u, 0.75)), n: u.length,
+      high: Math.round(quant(u, 0.75)), n: u.length, vol: u.length,
     }));
+}
+
+// 진행 중 매물 수(공급)는 tools/update-supply-series.js 가 매일 쌓는다.
+// 가격과 함께 한 파일로 실어 보낸다 — 화면이 요청을 두 번 하지 않게. 원본(347KB)에서
+// 날짜와 jp/en 매물 수만 뽑는다. 나머지 필드(신규·이탈·판매자 구성)는 이 그래프가 안 쓴다.
+//
+// ⚠️ 이건 "팔린 개수"가 아니라 "지금 올라와 있는 개수"다. 절대 거래량으로 표기하지 말 것.
+let SUPPLY = { sets: {} };
+try { SUPPLY = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "supply-series.json"), "utf8")); } catch (e) {}
+function supplyFor(code) {
+  const pts = ((SUPPLY.sets || {})[code] || {}).points || [];
+  return pts
+    .filter((p) => p && /^\d{4}-\d{2}-\d{2}$/.test(p.d) && (Number.isFinite(p.jp) || Number.isFinite(p.en)))
+    .map((p) => ({ d: p.d, jp: Number.isFinite(p.jp) ? p.jp : null, en: Number.isFinite(p.en) ? p.en : null }))
+    .sort((a, b) => a.d.localeCompare(b.d));
 }
 
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
@@ -125,6 +146,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
     jp: jp.points, en: en.points,
     windowDays: { jp: jp.windowDays, en: en.windowDays },
     monthly: { jp: mJp, en: mEn },
+    supply: supplyFor(code),
   };
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;
