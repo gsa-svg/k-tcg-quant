@@ -37,6 +37,15 @@ const MAX_WINDOW = 56;    // 이보다 길면 "최근 시세"라고 부르기 �
 const STEP_DAYS = 7;      // 주 단위면 4개월치가 17점 남짓 — 선이 읽히면서 파일도 가볍다
 const MIN_N = 6;          // 창을 최대로 늘려도 이만큼 안 모이면 점을 찍지 않는다. 빈 구간이 틀린 값보다 낫다.
 
+// 이 그래프는 **즉시구매 시세**다. 경매 낙찰가는 입찰이 안 붙으면 시세보다 훨씬 낮게 끝나
+// 섞으면 시세가 아니라 잡음이 된다(2026-08-13: OP-01 일본판 한 세트에만 경매 69건이 섞여 있었다).
+// 경매는 별도로 모은다.
+//
+// fmt 는 2026-08-13 부터 수집한다. 그 이전 레코드는 오늘 즉구 목록에 다시 나타난 것만 소급 표시됐다 —
+// eBay 가 sold 를 90일까지만 보여줘서, 그보다 오래된 판매는 즉구였는지 확인할 방법이 없다.
+// 확인 안 된 건 버린다. 시계열이 짧아지지만, 경매가 섞인 시세보다 짧고 정확한 쪽이 낫다.
+const BIN_ONLY = true;
+
 const DAY = 86400000;
 const iso = (t) => new Date(t).toISOString().slice(0, 10);
 const quant = (arr, p) => {
@@ -48,6 +57,7 @@ const quant = (arr, p) => {
 function seriesFor(records) {
   const rs = (records || [])
     .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number.isFinite(Number(r.unit)) && Number(r.unit) > 0)
+    .filter((r) => !BIN_ONLY || r.fmt === "bin")
     .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit) }))
     .sort((a, b) => a.t - b.t);
   if (rs.length < MIN_N) return { points: [], windowDays: null };
@@ -98,6 +108,7 @@ function monthlyFor(records) {
   const buckets = new Map();
   for (const r of records || []) {
     if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
+    if (BIN_ONLY && r.fmt !== "bin") continue;
     const k = r.d.slice(0, 7);
     if (!buckets.has(k)) buckets.set(k, []);
     buckets.get(k).push(Number(r.unit));
@@ -156,7 +167,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
 }
 
 const store = {
-  note: `Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every ${STEP_DAYS} days and dated by SALE date (not collection date). The averaging window is chosen per series (${MIN_WINDOW}-${MAX_WINDOW} days) so that each point rests on roughly ${TARGET_N} sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than ${MIN_N} sales are omitted rather than estimated. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum ${MONTH_MIN_N} sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.`,
+  note: `Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every ${STEP_DAYS} days and dated by SALE date (not collection date). The averaging window is chosen per series (${MIN_WINDOW}-${MAX_WINDOW} days) so that each point rests on roughly ${TARGET_N} sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than ${MIN_N} sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum ${MONTH_MIN_N} sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.`,
   window: { targetSales: TARGET_N, minDays: MIN_WINDOW, maxDays: MAX_WINDOW, stepDays: STEP_DAYS, minSales: MIN_N, basis: "sold", datedBy: "saleDate" },
   builtFrom: { ledger: "data/box-sold-ledger.json", updated: ledger.updated || today },
   updated: today,

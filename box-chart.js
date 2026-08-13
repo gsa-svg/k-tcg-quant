@@ -86,11 +86,15 @@
     const pts = clean(rawPts);
     if (pts.length < MIN_POINTS) return "";
 
-    // y축은 중앙값 선 기준으로 잡되, 위아래 30% 여유를 준다 — 선이 화면 가운데를 제대로 쓴다.
+    // y축은 중앙값 선 기준으로 잡는다 — low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다.
+    // 다만 **최소 축 폭**을 둔다. 즉시구매만 남기고 나니 OP-01 일본판이 3개월 내내 1% 안에서
+    // 움직였는데, 축을 그 폭에 맞추니 $286~$289 짜리 흔들림이 화면을 가득 채워 큰 변동처럼 보였다.
+    // 축이 값의 최소 8% 는 담게 하면, 조용한 세트는 조용해 보이고 실제로 움직인 세트만 크게 보인다.
     const meds = pts.map((p) => p.median);
     const mLo = Math.min.apply(null, meds), mHi = Math.max.apply(null, meds);
-    const pad = Math.max((mHi - mLo) * 0.30, mHi * 0.015);
-    const yMin = mLo - pad, yMax = mHi + pad;
+    const yMid = (mHi + mLo) / 2;
+    const ySpan = Math.max((mHi - mLo) * 1.6, yMid * 0.08);
+    const yMin = yMid - ySpan / 2, yMax = yMid + ySpan / 2;
 
     const t0 = Date.parse(pts[0].d), t1 = Date.parse(pts[pts.length - 1].d);
     const span = t1 - t0 || 1;
@@ -279,9 +283,12 @@
     // 표본이 얇아 못 그리는 판은 자리를 비우지 않고 왜 없는지 한 줄로 알린다.
     // 월간을 눌렀는데 한쪽 패널이 소리 없이 사라지면 "고장났나" 로 읽힌다 — 실제로는 그 세트가
     // 그 판으로 한 달에 몇 개 안 팔린다는 뜻이고, 그건 알 만한 정보다.
-    const missing = (label) => '<figure class="opbcPane opbcPaneEmpty"><figcaption class="opbcHead">' +
+    const missing = (label, g) => '<figure class="opbcPane opbcPaneEmpty"><figcaption class="opbcHead">' +
       '<span class="opbcLabel">' + esc(label) + "</span></figcaption>" +
-      '<p class="opbcEmpty">' + (lang === "ko" ? "월간은 아직 표본이 얇습니다 — 주간으로 보세요." : "Not enough sales per month yet — use the weekly view.") + "</p></figure>";
+      '<p class="opbcEmpty">' + (g === "month"
+        ? (lang === "ko" ? "월간은 아직 표본이 얇습니다 — 주간으로 보세요." : "Not enough sales per month yet — use the weekly view.")
+        : (lang === "ko" ? "즉시구매 실거래가 아직 얇습니다." : "Not enough fixed-price sales yet."))
+      + "</p></figure>";
 
     const grid = (g, jpPts, enPts, hidden) => {
       const jpLabel = lang === "ko" ? "일본판" : "Japanese";
@@ -289,11 +296,14 @@
       let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g);
       let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g);
       if (!jp && !en) return "";
-      // 주간에 있는 판은 월간에서도 자리를 지킨다. 주간에도 없는 판(그 판 자체를 거의 안 파는 세트)은 그냥 뺀다.
-      if (g === "month") {
-        if (!jp && clean(series && series.jp).length >= MIN_POINTS) jp = missing(jpLabel);
-        if (!en && clean(series && series.en).length >= MIN_POINTS) en = missing(enLabel);
-      }
+      // 한쪽 판이 소리 없이 사라지면 "고장났나" 로 읽힌다. 왜 없는지 한 줄로 알린다.
+      // 주간은 원장에 그 판 기록이 있으면(=파는 세트면) 자리를 지키고,
+      // 월간은 주간에 있는 판이면 자리를 지킨다.
+      // 판단 기준은 둘 다 같다: 그 판의 기록이 조금이라도 있으면(=파는 세트면) 자리를 지킨다.
+      // 주간과 월간이 서로 다른 기준을 쓰면 탭을 오갈 때 패널이 하나씩 생겼다 사라진다.
+      const hasAny = (arr) => ((arr || []).length > 0);
+      if (!jp && hasAny(series && series.jp)) jp = missing(jpLabel, g);
+      if (!en && hasAny(series && series.en)) en = missing(enLabel, g);
       return '<div class="opbcGridWrap" data-grain="' + g + '"' + (hidden ? " hidden" : "") + ">" + jp + en + "</div>";
     };
 
