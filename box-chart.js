@@ -29,7 +29,11 @@
   const VOL_H = 46;                    // 막대가 쓰는 세로. 이 아래는 x축 라벨.
   const PRICE_BOTTOM = H - B - VOL_H;  // 가격선이 내려올 수 있는 바닥
   const MIN_N = 5;        // 이 미만의 표본으로 만든 중앙값은 안 그린다
-  const MIN_POINTS = 3;   // 점 두 개짜리 "추세"는 추세가 아니다
+  const MIN_POINTS = 3;        // 점 두 개짜리 "추세"는 추세가 아니다
+  // 월간만 예외로 2점을 허용한다. 한 점이 9~15건짜리 두꺼운 표본이라 "6월 → 7월" 두 점도 읽을 값이 있고,
+  // 3점을 요구하면 거래가 얇은 세트(OP-03·EB-01)에서 월간 패널이 통째로 빠져
+  // [주간|월간] 탭까지 사라진다 — 다른 세트엔 있는 탭이 여기만 없으면 고장으로 읽힌다.
+  const MIN_POINTS_MONTH = 2;
 
   const JP_COLOR = "#10d7a0";
   const EN_COLOR = "#5a9bf6";
@@ -86,7 +90,7 @@
 
   function panel(rawPts, label, color, gid, lang, windowDays, grain, badge) {
     const pts = clean(rawPts);
-    if (pts.length < MIN_POINTS) return "";
+    if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
 
     // y축은 중앙값 선 기준으로 잡는다 — low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다.
     // 다만 **최소 축 폭**을 둔다. 즉시구매만 남기고 나니 OP-01 일본판이 3개월 내내 1% 안에서
@@ -303,7 +307,7 @@
     if (!series) return false;
     const m = series.monthly || {};
     return clean(series.jp).length >= MIN_POINTS || clean(series.en).length >= MIN_POINTS ||
-      clean(m.jp).length >= MIN_POINTS || clean(m.en).length >= MIN_POINTS;
+      clean(m.jp).length >= MIN_POINTS_MONTH || clean(m.en).length >= MIN_POINTS_MONTH;
   }
 
   // series: {jp:[{d,median,low,high,n}], en:[...], windowDays:{jp,en}, monthly:{jp:[],en:[]}}
