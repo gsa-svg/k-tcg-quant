@@ -452,7 +452,7 @@ function setPage(code, prev, next) {
       const official = recs.filter(isOfficial), distrib = recs.filter(isDistributor);
       const retail = recs.filter((r) => !isOfficial(r) && !isDistributor(r));
       const lines = [];
-      if (official.length) lines.push(`<li>Bandai official-shop reprint: ${official.map(item).join(", ")}.</li>`);
+      if (official.length) lines.push(`<li>Bandai official lottery sale: ${official.map(item).join(", ")} — a Premium Bandai / Bandai Namco shop draw. Bandai does not call these reprints, so we do not either.</li>`);
       if (distrib.length) lines.push(`<li>Distributor reprint: ${distrib.map(item).join(", ")}.</li>`);
       if (retail.length) {
         lines.push(`<li>Retailer-reported restocks: ${retail.map(item).join(", ")} — store restock notices, not a Bandai reprint announcement.</li>`);

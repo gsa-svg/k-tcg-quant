@@ -191,7 +191,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260812b";
+const DATA_VERSION = "20260813a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -763,7 +763,9 @@ function boxChartFor(code) {
   if (!lib || !soldSeries || !code) return "";
   const series = (soldSeries.sets || {})[code];
   if (!lib.hasChart(series)) return "";
-  return lib.chartHTML(series, { lang: state.lang === "en" ? "en" : "ko" });
+  // ⚠️ 화면 언어는 state.hl 이다. state.lang 은 세트 그룹("jp" | "extra")이라 언어와 무관하다.
+  // 예전엔 state.lang 을 보고 판정해서 영문 사용자에게도 차트만 한국어로 나갔다(2026-08-13 수정).
+  return lib.chartHTML(series, { lang: state.hl === "en" ? "en" : "ko" });
 }
 
 function renderBoxSeries(set, code) {
