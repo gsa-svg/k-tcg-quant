@@ -12,7 +12,8 @@
 // 하는 일:
 //  1. 일본판 칸에 있는 영문판(EN_ONLY_TRAIT) → 영문판 칸으로 이동
 //  2. 한국판(korean) → excluded 로 이동 (이 원장은 일본판/영문판만 다룬다)
-//  3. 옮긴 내역은 ledger.repairs 에 날짜와 함께 남긴다 — 조용히 바꾸지 않는다
+//  3. 수량을 다시 세어 개당가가 틀린 레코드를 바로잡는다(예: "144 Packs" = 6박스인데 1박스로 적재됨)
+//  4. 옮긴 내역은 ledger.repairs 에 날짜와 함께 남긴다 — 조용히 바꾸지 않는다
 //
 // 가격·날짜·id 는 절대 건드리지 않는다. 재실행해도 결과가 같다(이미 옮긴 건 다시 안 옮긴다).
 // Run: node tools/repair-box-ledger.js [--dry]
@@ -22,6 +23,8 @@ const path = require("node:path");
 const ROOT = path.join(__dirname, "..");
 const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 
+const { parseLotQuantity, unitPrice } = require("./lot-quantity");
+
 const EN_ONLY_TRAIT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
 const KOREAN = /korean/i;
 
@@ -29,7 +32,7 @@ const dry = process.argv.includes("--dry");
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
 const today = new Date().toISOString().slice(0, 10);
 
-const moved = { toEn: [], toExcluded: [] };
+const moved = { toEn: [], toExcluded: [], requantified: [] };
 
 for (const [code, eds] of Object.entries(ledger.sets || {})) {
   eds.jp = eds.jp || [];
@@ -56,6 +59,25 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
     return true;
   });
 
+  // 3. 수량 재계산. 파서가 나아지면 예전에 1박스로 본 다박스 매물이 드러난다.
+  //    total(낙찰 총액)은 그대로 두고 qty·unit 만 다시 센다 — 거래 사실은 안 건드린다.
+  for (const ed of ["jp", "en"]) {
+    const keep = [];
+    for (const r of eds[ed]) {
+      const q = parseLotQuantity(r.title || "", "box");
+      if (q == null) { moved.toExcluded.push({ code, from: ed, ...r, reason: "uncountable-lot" }); continue; }
+      if (q !== r.qty) {
+        const u = unitPrice(r.total, q);
+        if (u != null) {
+          moved.requantified.push({ code, id: r.id, was: r.qty + "x $" + Math.round(r.unit), now: q + "x $" + Math.round(u), title: (r.title || "").slice(0, 62) });
+          r.qty = q; r.unit = u;
+        }
+      }
+      keep.push(r);
+    }
+    eds[ed] = keep;
+  }
+
   for (const ed of ["jp", "en"]) eds[ed].sort((a, b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
 }
 
@@ -63,15 +85,16 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
 if (moved.toExcluded.length) {
   ledger.excluded = ledger.excluded || [];
   const known = new Set(ledger.excluded.map((r) => r.id));
-  for (const r of moved.toExcluded) if (!known.has(r.id)) { ledger.excluded.push({ ...r, excludedAt: today, reason: "korean-edition" }); known.add(r.id); }
+  for (const r of moved.toExcluded) if (!known.has(r.id)) { ledger.excluded.push({ ...r, excludedAt: today, reason: r.reason || "korean-edition" }); known.add(r.id); }
 }
 
-if (moved.toEn.length || moved.toExcluded.length) {
+if (moved.toEn.length || moved.toExcluded.length || moved.requantified.length) {
   ledger.repairs = ledger.repairs || [];
   ledger.repairs.push({
     date: today,
     movedJpToEn: moved.toEn.length,
-    excludedKorean: moved.toExcluded.length,
+    excluded: moved.toExcluded.length,
+    requantified: moved.requantified.length,
     reason: "Sellers had declared English-edition boxes as Japanese; White/Blue Bottom and Wave 1/2 are English-only physical traits. Korean-edition boxes do not belong in a ledger that tracks only the Japanese and English editions. Records were moved, never deleted.",
   });
   ledger.updated = ledger.updated || today;
@@ -79,8 +102,9 @@ if (moved.toEn.length || moved.toExcluded.length) {
 
 const out = {
   movedJpToEn: moved.toEn.length,
-  excludedKorean: moved.toExcluded.length,
-  samples: moved.toEn.slice(0, 5),
+  excluded: moved.toExcluded.length,
+  requantified: moved.requantified.length,
+  requantifiedSamples: moved.requantified.slice(0, 5),
   dryRun: dry,
 };
 if (!dry) fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 1) + "\n", "utf8");

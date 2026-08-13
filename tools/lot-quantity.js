@@ -47,6 +47,24 @@ function parseLotQuantity(title, kind) {
     if (q > 1) return q;                          // 개수 명시된 묶음 (case 여부보다 우선)
     // q === 1 이면 아래 일반 판정으로 계속
   }
+  // 박스 매물이 개수 대신 **팩 수**로 적히는 경우: "OP16 Booster Box - 144 Packs".
+  // 한 박스는 24팩이므로 144팩이면 6박스다. 이걸 1박스로 보면 개당가가 6배로 뛴다
+  // (2026-08-13 실측: OP-16 영문판 $1,367 — 정상 시세의 6.9배로 남아 있었다).
+  // 24의 배수일 때만 인정한다. 애매한 수(예: 100팩)는 모름으로 두고 통계에서 뺀다.
+  if (kind === "box") {
+    const packs = [...new Set([...t.matchAll(/(?<![A-Za-z0-9.-])(\d{1,3})[\s-]*(?:booster\s*)?packs\b/gi)].map((m) => Number(m[1])))];
+    if (packs.length) {
+      // ⚠️ 박스당 팩 수가 제품군마다 다르다. 일반 부스터는 24팩, **프리미엄 부스터(PRB)는 20팩**이다.
+      //    24 로만 나누면 "PRB-01 Premium Booster Box 20 Packs" 같은 정상 1박스가 통째로 버려진다
+      //    (2026-08-13: 실제로 PRB 영문판 7건이 그렇게 빠질 뻔했다).
+      const perBox = /premium\s*booster/i.test(t) ? 20 : 24;
+      // 여럿 적혀 충돌하거나 박스 단위로 안 떨어지면 모름.
+      // 안 떨어지는 수(17·16·18팩)는 박스가 아니라 낱팩 묶음이다 — 박스 시세에 넣으면 안 된다.
+      if (packs.length > 1 || packs[0] % perBox !== 0) return null;
+      const boxes = packs[0] / perBox;
+      return boxes >= 1 && boxes <= 24 ? boxes : null;
+    }
+  }
   if (UNCOUNTABLE.test(t)) return null;           // 묶음인데 개수 불명
   if (kind === "box" && PLURAL_BOXES.test(t) && counts.size === 0) return null; // "boxes" 복수형·개수 없음
   if (kind === "pack" && PLURAL_PACKS.test(t) && counts.size === 0) return null; // "packs" 복수형·개수 없음
