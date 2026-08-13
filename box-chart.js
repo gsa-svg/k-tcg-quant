@@ -231,10 +231,21 @@
         '" r="4" fill="' + color + '"/>';
     };
 
+    // 훑기용 앵커. 가격 패널의 .opbcDot 자리를 대신한다 — 눈에 보이는 점은 아니지만
+    // 같은 방식으로 "가장 가까운 x" 를 찾을 수 있게 한다. 값은 data 속성에 실어 보낸다.
+    const jpWord = lang === "ko" ? "일본판" : "Japanese";
+    const enWord = lang === "ko" ? "영문판" : "English";
+    const anchors = pts.map((p) =>
+      '<circle class="opbcSupDot" cx="' + px(p).toFixed(1) + '" cy="' + (SUP_H - SUP_B) / 2 + '" r="0" fill="none"' +
+      ' data-d="' + p.d + '"' +
+      ' data-jp="' + (p.jp == null ? "" : p.jp) + '" data-en="' + (p.en == null ? "" : p.en) + '"' +
+      ' data-jpy="' + (p.jp == null ? "" : py(p.jp).toFixed(1)) + '" data-eny="' + (p.en == null ? "" : py(p.en).toFixed(1)) + '"/>').join("");
+
+    // JS 가 안 돌아도 값이 읽히도록 기본 툴팁도 남긴다.
     const hits = pts.map((p) =>
       '<circle class="opbcHitDot" cx="' + px(p).toFixed(1) + '" cy="' + (SUP_H - SUP_B) / 2 + '" r="10" fill="transparent">' +
-      "<title>" + p.d + " · " + (lang === "ko" ? "일본판 " : "Japanese ") + (p.jp == null ? "-" : p.jp) +
-      " · " + (lang === "ko" ? "영문판 " : "English ") + (p.en == null ? "-" : p.en) + "</title></circle>").join("");
+      "<title>" + p.d + " · " + jpWord + " " + (p.jp == null ? "-" : p.jp) +
+      " · " + enWord + " " + (p.en == null ? "-" : p.en) + "</title></circle>").join("");
 
     const xl = [pts[0], pts[pts.length - 1]].map((p, i) =>
       '<text class="opbcAx" x="' + px(p).toFixed(1) + '" y="' + (SUP_H - 10) + '" text-anchor="' +
@@ -253,11 +264,22 @@
       '<span class="opbcLeg"><i style="background:' + EN_COLOR + '"></i>' +
       (lang === "ko" ? "영문판 " : "EN ") + (lastP.en == null ? "-" : lastP.en) + delta("en") + "</span>";
 
-    return '<figure class="opbcPane opbcSupply">' +
+    return '<figure class="opbcPane opbcSupply" data-jpword="' + esc(jpWord) + '" data-enword="' + esc(enWord) + '">' +
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(title) + "</span>" + legend +
       '<span class="opbcSpan">' + md(firstP.d) + " – " + md(lastP.d) + "</span></figcaption>" +
       '<svg viewBox="0 0 ' + W + " " + SUP_H + '" role="img" aria-label="' + esc(title) + '">' +
-      grid + drawLine("jp", JP_COLOR) + drawLine("en", EN_COLOR) + hits + xl + "</svg></figure>";
+      grid + drawLine("jp", JP_COLOR) + drawLine("en", EN_COLOR) + anchors + hits +
+      '<line class="opbcCross" y1="' + SUP_T + '" y2="' + (SUP_H - SUP_B) + '" stroke="#8d95a7" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle class="opbcHl opbcHlJp" r="5" fill="' + JP_COLOR + '" stroke="#11141c" stroke-width="3" opacity="0"/>' +
+      '<circle class="opbcHl opbcHlEn" r="5" fill="' + EN_COLOR + '" stroke="#11141c" stroke-width="3" opacity="0"/>' +
+      '<g class="opbcTip" opacity="0" pointer-events="none">' +
+      '<rect class="opbcTipBg" rx="7" width="150" height="58"/>' +
+      '<text class="opbcTipD" x="10" y="17"></text>' +
+      '<text class="opbcTipV opbcTipJp" x="10" y="35"></text>' +
+      '<text class="opbcTipV opbcTipEn" x="10" y="51"></text></g>' +
+      xl +
+      '<rect class="opbcHit" x="' + L + '" y="' + SUP_T + '" width="' + (W - L - R) + '" height="' + (SUP_H - SUP_T - SUP_B) + '" fill="transparent"/>' +
+      "</svg></figure>";
   }
 
   // 그릴 만한 데이터가 있는지 — 호출부가 빈 상자를 띄우지 않도록 먼저 물어본다.
@@ -420,6 +442,50 @@
     hit.addEventListener("pointercancel", off);
   }
 
+  // 공급 패널은 선이 둘이라 값도 둘이다. 가격 패널과 이벤트 처리는 같지만
+  // 하이라이트와 툴팁 줄이 판마다 하나씩 붙는다.
+  function bindSupply(pane) {
+    if (pane.__opbcBound) return;
+    pane.__opbcBound = 1;
+    const svg = pane.querySelector("svg");
+    if (!svg) return;
+    const hit = svg.querySelector(".opbcHit"), cross = svg.querySelector(".opbcCross");
+    const hlJp = svg.querySelector(".opbcHlJp"), hlEn = svg.querySelector(".opbcHlEn");
+    const tip = svg.querySelector(".opbcTip"), tipD = svg.querySelector(".opbcTipD");
+    const tipJp = svg.querySelector(".opbcTipJp"), tipEn = svg.querySelector(".opbcTipEn");
+    const dots = [].slice.call(svg.querySelectorAll(".opbcSupDot"));
+    if (!hit || !dots.length) return;
+    const jpWord = pane.dataset.jpword || "JP", enWord = pane.dataset.enword || "EN";
+
+    function at(clientX) {
+      const r = svg.getBoundingClientRect();
+      const x = ((clientX - r.left) / r.width) * W;
+      let best = 0, bd = Infinity;
+      dots.forEach((d, i) => { const dd = Math.abs(+d.getAttribute("cx") - x); if (dd < bd) { bd = dd; best = i; } });
+      const d = dots[best], cx = +d.getAttribute("cx");
+      cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("opacity", ".45");
+      const put = (el, y) => {
+        if (y === "") { el.setAttribute("opacity", "0"); return; }
+        el.setAttribute("cx", cx); el.setAttribute("cy", y); el.setAttribute("opacity", "1");
+      };
+      put(hlJp, d.dataset.jpy); put(hlEn, d.dataset.eny);
+      tipD.textContent = d.dataset.d;
+      tipJp.textContent = d.dataset.jp === "" ? jpWord + " -" : jpWord + " " + d.dataset.jp;
+      tipEn.textContent = d.dataset.en === "" ? enWord + " -" : enWord + " " + d.dataset.en;
+      const tw = 150, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
+      tip.setAttribute("opacity", "1");
+      tip.setAttribute("transform", "translate(" + tx + "," + (SUP_T + 4) + ")");
+    }
+    const off = () => {
+      cross.setAttribute("opacity", "0"); hlJp.setAttribute("opacity", "0");
+      hlEn.setAttribute("opacity", "0"); tip.setAttribute("opacity", "0");
+    };
+    hit.addEventListener("pointerdown", (e) => { try { hit.setPointerCapture(e.pointerId); } catch (_) { /* 캡처 못 해도 값은 뜬다 */ } at(e.clientX); });
+    hit.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons) at(e.clientX); });
+    hit.addEventListener("pointerleave", off);
+    hit.addEventListener("pointercancel", off);
+  }
+
   // 이미 걸린 패널은 건너뛰므로 몇 번을 불러도 안전하다(홈은 세트를 열 때마다 다시 부른다).
   function bindTabs(wrap) {
     if (wrap.__opbcTabs) return;
@@ -439,7 +505,9 @@
   function scrub(root) {
     const scope = root && root.querySelectorAll ? root : (typeof document !== "undefined" ? document : null);
     if (!scope) return;
-    [].slice.call(scope.querySelectorAll(".opbcPane")).forEach(bindPane);
+    [].slice.call(scope.querySelectorAll(".opbcPane")).forEach((p) => {
+      if (p.classList.contains("opbcSupply")) bindSupply(p); else bindPane(p);
+    });
     [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach(bindTabs);
   }
 
