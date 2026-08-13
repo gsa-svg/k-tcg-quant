@@ -335,6 +335,8 @@
       '<span class="opbcLabel">' + esc(label) + "</span></figcaption>" +
       '<p class="opbcEmpty">' + (g === "month"
         ? (lang === "ko" ? "월간은 아직 표본이 얇습니다 — 주간으로 보세요." : "Not enough sales per month yet — use the weekly view.")
+        : g === "day"
+        ? (lang === "ko" ? "하루에 3건 넘게 팔리는 날이 거의 없습니다 — 주간으로 보세요." : "Rarely more than 3 sales on any single day — use the weekly view.")
         : (lang === "ko" ? "즉시구매 실거래가 아직 얇습니다." : "Not enough fixed-price sales yet."))
       + "</p></figure>";
 
@@ -348,15 +350,17 @@
       const enLabel = lang === "ko" ? "영문판" : "English";
       let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"));
       let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"));
-      if (!jp && !en) return "";
       // 한쪽 판이 소리 없이 사라지면 "고장났나" 로 읽힌다. 왜 없는지 한 줄로 알린다.
-      // 주간은 원장에 그 판 기록이 있으면(=파는 세트면) 자리를 지키고,
-      // 월간은 주간에 있는 판이면 자리를 지킨다.
-      // 판단 기준은 둘 다 같다: 그 판의 기록이 조금이라도 있으면(=파는 세트면) 자리를 지킨다.
-      // 주간과 월간이 서로 다른 기준을 쓰면 탭을 오갈 때 패널이 하나씩 생겼다 사라진다.
+      // 기준은 단위마다 같다: 그 판의 기록이 조금이라도 있으면(=파는 세트면) 자리를 지킨다.
+      // 서로 다른 기준을 쓰면 탭을 오갈 때 패널이 하나씩 생겼다 사라진다.
+      //
+      // 일간은 특히 그렇다 — 21세트 중 8개만 하루 3건을 넘긴다. 나머지 13개에서 탭을 통째로
+      // 없애면 "이 세트만 일간이 없네" 가 되고, 세트를 옮길 때마다 탭 개수가 바뀐다.
+      // 칸은 만들고 왜 못 그리는지 적는 편이 낫다.
       const hasAny = (arr) => ((arr || []).length > 0);
       if (!jp && hasAny(series && series.jp)) jp = missing(jpLabel, g);
       if (!en && hasAny(series && series.en)) en = missing(enLabel, g);
+      if (!jp && !en) return "";
       // 초판(Blue)은 별개 상품이라 칸을 따로 준다. 선을 그릴 만큼 쌓이면 선이, 아니면 숫자 카드가 뜬다.
       const bluePts = g === "month" ? ((series && series.monthly) || {}).enBlue
         : g === "day" ? ((series && series.daily) || {}).enBlue
