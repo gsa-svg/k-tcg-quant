@@ -160,28 +160,29 @@ if (has("data/auction-market.json")) {
 //    사람이 기억해야 하는 절차는 반드시 빠진다 — 빠졌다는 사실이라도 자동으로 알려야 한다.
 {
   const SOLD_STALE = 4;   // 월·수·금이면 최대 간격이 3일. 4일을 넘었으면 한 번 걸렀다는 뜻이다.
-  if (!has("data/box-sold-series.json")) fail("박스 sold 시계열 파일이 없다");
+  //
+  // 2026-08-13: 시계열이 "수집일 스냅샷"에서 "판매일 기준 롤링"으로 바뀌었다. 그래서 시계열 날짜는
+  // 더 이상 수집일이 아니고, 세트마다 마지막 판매일이 다른 게 정상이다(거래가 드문 세트는 며칠씩 안 팔린다).
+  // 옛 검사는 그걸 "부분 수집"으로 오판했다. 수집을 걸렀는지는 **원장**을 봐야 안다.
+  if (!has("data/box-sold-ledger.json")) fail("박스 sold 원장 파일이 없다");
   else {
-    const S = readJSON("data/box-sold-series.json");
-    const dates = [...new Set(Object.values(S.sets || {})
-      .flatMap((v) => [...(v.jp || []), ...(v.en || [])].map((p) => p.d)))].sort();
-    if (!dates.length) fail("박스 sold 시계열이 비었다");
-    else {
-      const last = dates[dates.length - 1];
-      const age = daysAgo(last);
-      if (age > SOLD_STALE) {
-        fail(`박스 sold 수집이 ${age}일째 없다 (마지막 ${last}) — 월·수·금 수동 수집을 걸렀다`);
-      } else ok(`박스 sold 최신 ${last}`);
-      // 세트 커버리지: 파일은 갱신됐는데 일부 세트만 들어온 날을 잡는다.
-      const sets = Object.keys(S.sets || {});
-      const onLast = sets.filter((k) => {
-        const v = S.sets[k];
-        return [...(v.jp || []), ...(v.en || [])].some((p) => p.d === last);
-      });
-      if (sets.length && onLast.length < sets.length * 0.8) {
-        fail(`박스 sold ${last} 수집이 ${onLast.length}/${sets.length} 세트뿐 — 부분 수집이다`);
-      }
-    }
+    const L = readJSON("data/box-sold-ledger.json");
+    const age = L.updated ? daysAgo(L.updated) : 999;
+    if (!L.updated) fail("박스 sold 원장에 updated(마지막 수집일)가 없다");
+    else if (age > SOLD_STALE) fail(`박스 sold 수집이 ${age}일째 없다 (마지막 ${L.updated}) — 월·수·금 수동 수집을 걸렀다`);
+    else ok(`박스 sold 원장 최신 ${L.updated}`);
+
+    // 커버리지: 최근 3주 안에 팔린 기록이 있는 세트가 몇 개인가.
+    // 세트 하나가 몇 주씩 조용한 건 있을 수 있지만, 절반 이상이 조용하면 수집이 반쪽으로 돌고 있는 것이다.
+    const sets = Object.keys(L.sets || {});
+    const cut = new Date(Date.parse(`${today}T00:00:00Z`) - 21 * 86400000).toISOString().slice(0, 10);
+    const live = sets.filter((k) => {
+      const v = L.sets[k] || {};
+      return [...(v.jp || []), ...(v.en || [])].some((r) => r && r.d > cut);
+    });
+    if (sets.length && live.length < sets.length * 0.6) {
+      fail(`최근 3주 실거래가 잡힌 세트가 ${live.length}/${sets.length}뿐 — 수집이 반쪽으로 돌고 있다`);
+    } else if (sets.length) ok(`박스 sold 최근 3주 거래 ${live.length}/${sets.length} 세트`);
   }
 }
 

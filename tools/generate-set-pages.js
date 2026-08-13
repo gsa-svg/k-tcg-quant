@@ -15,6 +15,17 @@ const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=1
 // but the copy intentionally avoids a permanent "best-selling" claim.
 const SLEEVE_EBAY = `https://www.ebay.com/itm/136768331994?${EPN}`;
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+// 박스 실거래 시세 그래프 — 그림은 box-chart.js 한 곳에서만 그린다(홈 화면과 같은 파일).
+const BoxChart = require(path.join(ROOT, "box-chart.js"));
+let SOLD_SERIES = { sets: {} };
+try { SOLD_SERIES = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch (e) {}
+// 서버에서 SVG 를 다 그려 보낸다 — JS 가 없어도 그래프와 숫자가 그대로 읽힌다.
+// 페이지의 box-chart.js 는 마우스로 훑을 때 값을 띄우는 향상 기능만 얹는다.
+function boxChartBlock(code) {
+  const series = SOLD_SERIES.sets && SOLD_SERIES.sets[code];
+  if (!BoxChart.hasChart(series)) return "";
+  return BoxChart.chartHTML(series, { lang: "en", title: `${code} sealed booster box — median completed eBay sale` });
+}
 
 const ORDER = [...data.jp.list, ...data.extra.list].filter((c) => (data.sets[c]?.cards || []).length > 0);
 const slug = (code) => code.toLowerCase();
@@ -179,6 +190,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .gearRec strong { color: #eef2ff; }
       .gearRec a { color: var(--accent); font-weight: 800; white-space: nowrap; }
     </style>
+    <style id="opBoxChartCss">${BoxChart.CSS}</style>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -195,6 +207,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
 const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>`;
 
 const FOOT = `
+      <script src="../box-chart.js?v=${CSS_VER}" defer></script>
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>
     </main>
     <footer class="footer">
@@ -521,6 +534,7 @@ function setPage(code, prev, next) {
       </div>
       ${AFF_TOP}
       ${keyFacts}
+      ${boxChartBlock(code)}
       ${liveWidget(code)}
       <div class="ctaRow">
         <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>

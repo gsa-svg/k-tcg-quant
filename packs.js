@@ -730,14 +730,61 @@ function mergeSeriesPoints(historyPoints, currentPoints) {
 
 // 2026-07-22 결정: 기존 박스 트렌드 차트(주간 시장시리즈 + eBay 매물호가 병합)는 소스 전환 지점에
 // 가짜 급등이 생겨 신뢰할 수 없다. 사용자 방침 — "우리 자체 eBay 실거래(sold)만 단일 기준으로 쌓아 보여준다".
-// 그 sold 시계열(data/box-sold-series.json, append-box-sold-series.js)이 충분히 쌓이기 전까지 차트는 숨기고,
-// 왜 비어있는지 정직하게 고지한다. (현재 최저가 CTA 는 renderBoxMarket 에서 별도로 계속 표시됨)
-function renderBoxSeries() {
-  return `<div class="boxChart boxChartPending"><div class="bcHead"><span class="bmLabel">${t("박스 가격 이력", "Box price history")}</span></div>` +
-    `<p class="note">${t(
-      "믿을 수 있는 단일 기준 그래프를 위해, 여러 소스를 섞는 대신 <strong>우리가 직접 모은 eBay 실거래(sold) 가격</strong>만 쌓고 있습니다. 데이터가 충분히 모이면 주간 실거래가와 판매량을 여기에 표시합니다. 현재 최저 매물가는 위 구매 버튼에서 확인하세요.",
-      "For a chart you can trust on one consistent basis, we're building a history from <strong>our own verified eBay sold prices</strong> rather than mixing sources. Weekly sold prices and volume will appear here once enough data accumulates. The current lowest listing is shown in the buy button above."
-    )}</p></div>`;
+// 2026-08-13: 그 sold 시계열이 21세트 × 10점까지 쌓여 실제 그래프로 교체했다.
+// 그림은 box-chart.js 한 곳에서만 그린다 — 홈과 정적 세트 페이지가 같은 함수를 쓴다.
+//
+// 시계열(45KB)은 팩 데이터와 별도 파일이라 **처음 화면에는 안 받는다**. 세트 상세를 열 때
+// 그때 한 번만 받아 캐시하고, 도착하면 이미 그려진 자리(.bcMount)에 끼워 넣는다.
+const SOLD_SERIES_URLS = ["data/box-sold-series.json", "https://opboxindex.com/data/box-sold-series.json"];
+let soldSeries = null;
+let soldSeriesPromise = null;
+
+function loadSoldSeries() {
+  if (soldSeries) return Promise.resolve(soldSeries);
+  if (soldSeriesPromise) return soldSeriesPromise;
+  soldSeriesPromise = (async () => {
+    for (const url of SOLD_SERIES_URLS) {
+      try {
+        const res = await fetch(withVersion(url), { cache: "default" });
+        if (!res.ok) continue;
+        soldSeries = await res.json();
+        return soldSeries;
+      } catch { /* 다음 주소로 */ }
+    }
+    // 못 받아도 화면은 멀쩡해야 한다 — 빈 자리는 그대로 비워 두고 넘어간다.
+    soldSeries = { sets: {} };
+    return soldSeries;
+  })();
+  return soldSeriesPromise;
+}
+
+function boxChartFor(code) {
+  const lib = typeof window !== "undefined" ? window.OPBoxChart : null;
+  if (!lib || !soldSeries || !code) return "";
+  const series = (soldSeries.sets || {})[code];
+  if (!lib.hasChart(series)) return "";
+  return lib.chartHTML(series, { lang: state.lang === "en" ? "en" : "ko" });
+}
+
+function renderBoxSeries(set, code) {
+  const html = boxChartFor(code);
+  if (html) return html;
+  // 아직 시계열을 안 받았으면 빈 자리만 남긴다. 받은 뒤에도 그릴 게 없으면 이 자리는 계속 비어 있다
+  // (0 높이라 레이아웃을 밀지 않는다). 예전처럼 "준비 중" 안내문을 띄워 칸을 잡아먹지 않는다.
+  if (!soldSeries && code) loadSoldSeries().then(() => fillBoxMounts());
+  return code ? `<div class="bcMount" data-code="${code}"></div>` : "";
+}
+
+// 시계열이 도착한 뒤 빈 자리를 채운다. 이미 채워진 자리는 건드리지 않는다.
+function fillBoxMounts() {
+  document.querySelectorAll(".bcMount[data-code]").forEach((mount) => {
+    if (mount.dataset.filled) return;
+    const html = boxChartFor(mount.dataset.code);
+    if (!html) return;
+    mount.innerHTML = html;
+    mount.dataset.filled = "1";
+  });
+  if (typeof window.OPBoxChartScrub === "function") window.OPBoxChartScrub();
 }
 
 async function fetchPackData() {
@@ -1785,8 +1832,8 @@ function renderDetail() {
   const cards = set.cards || [];
   if (!cards.length) {
     // 카드 미집계 세트(예: 신규 OP-16)도 박스 시세가 있으면 죽은 페이지가 아니라 박스 시장을 먼저 보여준다.
-    const boxBlocks = `${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}`;
-    const hasBox = /emVal|bmRows|spSvg/.test(boxBlocks);
+    const boxBlocks = `${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}`;
+    const hasBox = /emVal|bmRows|spSvg|bcPane|bcMount/.test(boxBlocks);
     const soon = hasBox
       ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
       : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
@@ -1796,6 +1843,7 @@ function renderDetail() {
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
     }));
     initBoxCharts(el);
+  fillBoxMounts();
     return;
   }
   const hasPsa = (set.psa || []).length > 0;
@@ -1808,7 +1856,7 @@ function renderDetail() {
       + renderHitList(cards);
   const fullPsaRate = set.psaFull?.gemRate ?? set.psaGem ?? "-";
   const fullPsaTotal = set.psaFull?.total ?? set.psaTotal;
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -1816,6 +1864,7 @@ function renderDetail() {
   }));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
   initBoxCharts(el);
+  fillBoxMounts();
 }
 
 function renderStats() {

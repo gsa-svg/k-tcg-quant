@@ -112,10 +112,25 @@ for (const [k, kind] of Object.entries(manifest)) {
 // D4. 2026-07-22 결정: 여러 소스(주간 시장시리즈 + eBay 매물 중간값)를 이어 붙이던 박스 "트렌드/이력" 차트는
 //     소스 전환 지점에 가짜 급등이 생겨 신뢰할 수 없다 → 의도적으로 숨긴다. 신뢰 그래프는 우리가 직접 모은
 //     eBay 실거래(sold, box-sold-series.json)만으로 데이터가 충분히 쌓인 뒤 렌더한다.
-//     재발 방지: (1) renderBoxSeries 의 정직한 '실거래 수집중' 플레이스홀더가 유지되어야 하고,
+//     2026-08-13: 시계열이 21세트 × 10점까지 쌓여 실제 그래프로 교체했다. 플레이스홀더는 사라졌지만
+//     지켜야 할 것은 그대로다 — **차트가 읽는 소스는 우리 sold 시계열 하나뿐**이어야 한다.
+//     재발 방지: (1) renderBoxSeries 가 box-sold-series 만 소스로 쓰고 boxSeries/boxSeriesEn(혼합소스 주간시리즈)에 손대지 않는다,
 //               (2) active(매물) 중간값을 sold/이력으로 오인시키는 혼합소스 트렌드 안내가 되살아나면 안 된다.
-if (!/boxChartPending/.test(packsJs)) {
-  errors.push("D4: renderBoxSeries 의 정직한 '실거래 수집중' 플레이스홀더(boxChartPending)가 사라짐 — 혼합소스 트렌드차트 재도입 위험");
+{
+  // 차트를 만드는 두 함수만 떼어 본다.
+  // 줄끝을 \n 으로 못 박지 말 것 — 이 저장소는 CRLF 로 체크아웃되어 `\n}\n` 이 매치되지 않는다.
+  // 그래서 이 검사가 통째로 빈 문자열을 보고 늘 통과했다(2026-08-13 역테스트로 발견).
+  const fnBody = (name) => (packsJs.match(new RegExp("function " + name + "[\\s\\S]*?\\r?\\n\\}\\r?\\n")) || [""])[0];
+  const chartZone = fnBody("renderBoxSeries") + fnBody("boxChartFor");
+  if (!chartZone.includes("soldSeries")) {
+    errors.push("D4: 박스 차트 함수(renderBoxSeries/boxChartFor)를 못 찾았다 — 이 가드가 아무것도 검사하지 못하고 있다");
+  }
+  if (!/box-sold-series\.json/.test(packsJs)) {
+    errors.push("D4: 박스 차트가 우리 sold 시계열(box-sold-series.json)을 더 이상 읽지 않는다 — 소스가 바뀌었는지 확인할 것");
+  }
+  if (/\bboxSeriesEn\b|\.boxSeries\b/.test(chartZone)) {
+    errors.push("D4: 박스 차트가 혼합소스 주간시리즈(boxSeries/boxSeriesEn)를 다시 읽는다 — 소스 전환 지점에 가짜 급등이 생긴다");
+  }
 }
 if (/source transition can appear as a larger move/i.test(packsJs)) {
   errors.push("D4: 혼합소스(시장→eBay매물) 트렌드 차트 안내가 되살아남 — active 중간값을 sold 이력으로 오인시킬 수 있음");
@@ -171,12 +186,27 @@ for (const [code, sset] of Object.entries(data.sets || {})) {
   }
 }
 
-// ── D5. 박스 SOLD 주간 시계열(append-only) 무결성 — 2026-07-22 차트 데이터 레이어.
-//    이 파일은 실거래(sold) 축적본이라 조작·역행이 곧 허위 데이터다. 내부 정합성만 검사(파일 없으면 스킵).
+// ── D5. 박스 SOLD 시계열 무결성 — 2026-07-22 차트 데이터 레이어.
+//    이 파일은 실거래(sold) 기반이라 조작·역행이 곧 허위 데이터다. 내부 정합성만 검사(파일 없으면 스킵).
+//    2026-08-13: 시계열은 이제 append-only 축적본이 아니라 **원장에서 매번 다시 만드는 파생물**이다.
+//    append-only 를 지켜야 하는 쪽은 원장(box-sold-ledger.json)으로 옮겨졌고, 아래에서 그쪽을 본다.
+//    시계열이 판매일 기준이라는 사실은 반드시 고지에 남아야 한다 — 수집일 스냅샷으로 되돌아가면
+//    수집 방식 변화가 다시 가격 급등으로 둔갑한다(8/13 실사고).
 if (exists("data/box-sold-series.json")) {
   const bs = JSON.parse(read("data/box-sold-series.json"));
-  if (bs.basis !== "sold") errors.push("D5: box-sold-series.basis 가 'sold' 가 아님 — active/추정 혼입 금지");
-  if (!/sold/i.test(bs.note || "") || !/append/i.test(bs.note || "")) errors.push("D5: box-sold-series.note 에 sold·append-only 고지 누락");
+  const basis = bs.basis || (bs.window && bs.window.basis);
+  if (basis !== "sold") errors.push("D5: box-sold-series 의 basis 가 'sold' 가 아님 — active/추정 혼입 금지");
+  if (!/sold/i.test(bs.note || "")) errors.push("D5: box-sold-series.note 에 sold 고지 누락");
+  if (!/date of sale|sale date/i.test(bs.note || "") || (bs.window && bs.window.datedBy !== "saleDate")) {
+    errors.push("D5: box-sold-series 가 판매일 기준이라는 고지를 잃음 — 수집일 스냅샷으로 되돌아가면 수집 방식 변화가 가격 급등으로 보인다");
+  }
+  // 원장 쪽의 append-only 고지. 시계열이 파생물이 된 뒤로 이 문구가 갈 곳은 여기뿐이다.
+  if (exists("data/box-sold-ledger.json")) {
+    const lg = JSON.parse(read("data/box-sold-ledger.json"));
+    if (!/never modified or deleted|append-only/i.test(lg.note || "")) {
+      errors.push("D5: box-sold-ledger.note 에 append-only(과거 기록 불변) 고지 누락 — 원장이 유일한 원본이다");
+    }
+  }
   for (const [code, eds] of Object.entries(bs.sets || {})) {
     for (const ed of ["jp", "en"]) {
       const arr = (eds || {})[ed];

@@ -11,7 +11,7 @@
 //
 // 절차: node tools/box-sold-urls.js --json → 각 URL로 navigate + EXTRACTOR 실행 → 결과를
 //   {collectedAt, pages:[{code, query:"jp"|"en", items:[...]}]} 덤프 파일로 모아 →
-//   node tools/box-sold-ingest.js <dump.json> → node tools/append-box-sold-series.js
+//   node tools/box-sold-ingest.js <dump.json> → node tools/build-box-sold-series.js
 // Run: node tools/box-sold-urls.js [--json]
 const fs = require("fs");
 const path = require("path");

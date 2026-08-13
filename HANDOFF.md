@@ -342,7 +342,7 @@
   "'sold 수집 돌려줘' 라고 말해라(자동 안 돎)"로 교체했다. 이제 그 알림이 유일한 방아쇠다.
 - **수집 절차 원문은 `C:\Users\kimtt\.claude\scheduled-tasks\opbox-sold-collection-mwf\SKILL.md` 에 그대로 남아 있다.**
   월·수·금에 사용자가 요청하면 그 SKILL.md 순서대로 하면 된다(브라우저 setup → __runBatch 4회 → __opDownload →
-  box-sold-ingest.js → append-box-sold-series.js → guard → 커밋·푸시).
+  box-sold-ingest.js → build-box-sold-series.js → guard → 커밋·푸시).
 - 데이터 보존 상태: 원장 `data/box-sold-ledger.json` 은 append-only 로 2025-03-02~2026-08-02 실거래 2,255건 전부 보유.
   **개별 거래는 eBay가 최근 ~90일만 보여주므로 90일 넘게 안 돌리면 그 구간은 영구 손실**이고,
   시계열 점(`box-sold-series.json`)은 돌린 날에만 생겨 건너뛴 날은 소급 불가다.

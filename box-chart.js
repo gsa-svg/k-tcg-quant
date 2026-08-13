@@ -1,0 +1,341 @@
+// 부스터 박스 실거래(sold) 시세 그래프 — 일본판/영문판 두 패널.
+//
+// 이 파일 하나가 **유일한 소스**다. 홈 화면(packs.js, 브라우저)과 정적 세트 페이지
+// (tools/generate-set-pages.js, node)가 같은 함수를 쓴다. 예전에 화면마다 차트를 따로 그렸다가
+// 같은 세트가 페이지마다 다른 숫자를 보여준 적이 있어, 두 벌로 나누지 않는다.
+//
+// 설계 결정 (2026-08-13):
+//  · **두 패널로 나눈다.** 일본판 $257 · 영문판 $1,525 로 6배 차이라 축을 공유하면
+//    일본판 선이 바닥에 눌러붙어 아무 움직임도 안 보인다. 각자 자기 축을 쓴다.
+//  · **y축은 중앙값 선 기준.** low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다(1차 시안 실패).
+//  · **x축은 날짜 비례.** 인덱스로 그리면 13일 공백과 1일 간격이 같은 폭이 된다.
+//  · **띠(low~high)는 안 그린다.** 축을 선 기준으로 좁히면 띠가 프레임을 덮어 회색 상자가 된다.
+//    범위는 훑을 때 툴팁에 숫자로 정확히 나온다.
+//  · **표본이 얇은 점은 뺀다.** 몇 건짜리 중앙값은 시세가 아니라 잡음이다.
+//    (시계열 자체가 이미 걸러 오지만, 남의 데이터를 그릴 때를 대비해 여기서도 막는다.)
+//  · 값은 **판매된 날** 기준이다(수집한 날이 아니라). tools/build-box-sold-series.js 참고 —
+//    수집 방식이 바뀌어도 그게 가격 움직임으로 둔갑하지 않게 하려는 것이다.
+//  · 선은 단조 3차(monotone cubic) — 일반 스플라인은 점 사이에서 튀어 없던 고점을 만든다.
+(function (root, factory) {
+  const api = factory();
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else root.OPBoxChart = api;
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  const W = 680, H = 360, L = 62, R = 18, T = 26, B = 42;
+  const MIN_N = 5;        // 이 미만의 표본으로 만든 중앙값은 안 그린다
+  const MIN_POINTS = 3;   // 점 두 개짜리 "추세"는 추세가 아니다
+
+  const JP_COLOR = "#10d7a0";
+  const EN_COLOR = "#5a9bf6";
+
+  const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const money = (v) => "$" + Math.round(v).toLocaleString("en-US");
+
+  // 눈금은 사람이 읽는 숫자로 — 1/2/2.5/5 배수에서 고른다. $224 같은 값은 축에 두지 않는다.
+  function niceTicks(min, max, want) {
+    want = want || 4;
+    const span = max - min || 1;
+    const raw = span / want;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) || 10 * mag;
+    const out = [];
+    for (let v = Math.ceil(min / step) * step; v <= max + 1e-9; v += step) out.push(Math.round(v));
+    return out;
+  }
+
+  // 단조 3차 보간 — 점 사이에서 절대 오버슈트하지 않는다(없던 고점·저점을 만들지 않는다).
+  function smoothPath(pts) {
+    if (pts.length < 3) return pts.map((p, i) => (i ? "L" : "M") + p.x.toFixed(1) + " " + p.y.toFixed(1)).join(" ");
+    const n = pts.length, d = [], m = [];
+    for (let i = 0; i < n - 1; i++) d[i] = (pts[i + 1].y - pts[i].y) / (pts[i + 1].x - pts[i].x);
+    m[0] = d[0]; m[n - 1] = d[n - 2];
+    for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+      if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+      const a = m[i] / d[i], b = m[i + 1] / d[i], h = Math.hypot(a, b);
+      if (h > 3) { m[i] = (3 / h) * a * d[i]; m[i + 1] = (3 / h) * b * d[i]; }
+    }
+    let out = "M" + pts[0].x.toFixed(1) + " " + pts[0].y.toFixed(1);
+    for (let i = 0; i < n - 1; i++) {
+      const dx = (pts[i + 1].x - pts[i].x) / 3;
+      out += " C" + (pts[i].x + dx).toFixed(1) + " " + (pts[i].y + m[i] * dx).toFixed(1) +
+        " " + (pts[i + 1].x - dx).toFixed(1) + " " + (pts[i + 1].y - m[i + 1] * dx).toFixed(1) +
+        " " + pts[i + 1].x.toFixed(1) + " " + pts[i + 1].y.toFixed(1);
+    }
+    return out;
+  }
+
+  function clean(points) {
+    return (points || [])
+      .filter((p) => p && p.d && Number.isFinite(Number(p.median)) && Number(p.median) > 0 && Number(p.n || 0) >= MIN_N)
+      .map((p) => ({ d: p.d, median: Number(p.median), low: Number(p.low || p.median), high: Number(p.high || p.median), n: Number(p.n) }))
+      .sort((a, b) => a.d.localeCompare(b.d));
+  }
+
+  const md = (d) => d.slice(5).replace("-", "/");
+  // 월간 보기는 날짜가 매달 1일이라 "05/01" 로 찍으면 그날 하루로 오해된다. 달 이름으로 보여준다.
+  const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
+
+  function panel(rawPts, label, color, gid, lang, windowDays, grain) {
+    const pts = clean(rawPts);
+    if (pts.length < MIN_POINTS) return "";
+
+    // y축은 중앙값 선 기준으로 잡되, 위아래 30% 여유를 준다 — 선이 화면 가운데를 제대로 쓴다.
+    const meds = pts.map((p) => p.median);
+    const mLo = Math.min.apply(null, meds), mHi = Math.max.apply(null, meds);
+    const pad = Math.max((mHi - mLo) * 0.30, mHi * 0.015);
+    const yMin = mLo - pad, yMax = mHi + pad;
+
+    const t0 = Date.parse(pts[0].d), t1 = Date.parse(pts[pts.length - 1].d);
+    const span = t1 - t0 || 1;
+    const px = (p) => L + ((Date.parse(p.d) - t0) / span) * (W - L - R);
+    const py = (v) => T + (1 - (v - yMin) / (yMax - yMin)) * (H - T - B);
+
+    const XY = pts.map((p) => ({ x: px(p), y: py(p.median) }));
+    const line = smoothPath(XY);
+    const area = line + " L" + XY[XY.length - 1].x.toFixed(1) + " " + (H - B) +
+      " L" + XY[0].x.toFixed(1) + " " + (H - B) + " Z";
+
+    let ticks = niceTicks(yMin, yMax, 4);
+    if (ticks.length < 3) ticks = niceTicks(yMin, yMax, 7);
+    const grid = ticks.map((v) =>
+      '<line class="bcGrid" x1="' + L + '" y1="' + py(v).toFixed(1) + '" x2="' + (W - R) + '" y2="' + py(v).toFixed(1) + '"/>' +
+      '<text class="bcAx" x="' + (L - 10) + '" y="' + (py(v) + 4).toFixed(1) + '" text-anchor="end">' + money(v) + "</text>").join("");
+
+    // x 라벨은 처음·중간·끝 3개만 — 더 넣으면 축이 데이터보다 시끄러워진다.
+    const mid = pts[Math.floor(pts.length / 2)];
+    const lab = (p) => (grain === "month" ? monthLabel(p.d, lang) : md(p.d));
+    const xl = [pts[0], mid, pts[pts.length - 1]].map((p, i) =>
+      '<text class="bcAx" x="' + px(p).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="' +
+      (i === 0 ? "start" : i === 2 ? "end" : "middle") + '">' + lab(p) + "</text>").join("");
+
+    const first = pts[0], last = pts[pts.length - 1];
+    const chg = Math.round(((last.median / first.median) - 1) * 1000) / 10;
+    const up = chg >= 0;
+    const sampleWord = lang === "ko" ? "건" : " sales";
+    const rangeWord = lang === "ko" ? "범위" : "range";
+
+    const dots = pts.map((p, i) =>
+      '<circle class="bcDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) +
+      '" r="' + (i === pts.length - 1 ? 5 : 3.2) + '" fill="' + color + '"/>').join("");
+
+    // JS 가 안 돌거나 막힌 환경(일부 인앱 브라우저·미리보기)에서도 숫자가 읽혀야 한다.
+    // 넉넉한 투명 원 + <title> 이면 브라우저 기본 툴팁으로 값이 나온다. 아래 스크럽 JS 는 그 위에 얹는 향상일 뿐이다.
+    const hits = pts.map((p, i) =>
+      '<circle class="bcHitDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) + '" r="14" fill="transparent">' +
+      "<title>" + (grain === "month" ? p.d.slice(0, 7) : p.d) + " · " + money(p.median) +
+      " (" + rangeWord + " " + money(p.low) + "–" + money(p.high) +
+      " · " + p.n + sampleWord + ")</title></circle>").join("");
+
+    return '<figure class="bcPane" data-ed="' + gid + '">' +
+      '<figcaption class="bcHead"><span class="bcLabel">' + esc(label) + "</span>" +
+      '<span class="bcNow">' + money(last.median) + "</span>" +
+      '<span class="bcChg ' + (up ? "up" : "dn") + '">' + (up ? "▲" : "▼") + " " + Math.abs(chg) + "%</span>" +
+      '<span class="bcSpan">' + lab(first) + " – " + lab(last) +
+      (grain === "month" ? (lang === "ko" ? " · 월별" : " · monthly")
+        : windowDays ? " · " + windowDays + (lang === "ko" ? "일 평균" : "-day avg") : "") +
+      " · n=" + last.n + "</span></figcaption>" +
+      '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(label) + " " +
+      esc(lang === "ko" ? "박스 실거래 중앙값 추이" : "sealed box median sold price over time") + '">' +
+      '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
+      '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>' +
+      grid +
+      '<path d="' + area + '" fill="url(#' + gid + ')"/>' +
+      '<path class="bcLine" d="' + line + '" stroke="' + color + '"/>' +
+      dots +
+      '<circle cx="' + XY[XY.length - 1].x.toFixed(1) + '" cy="' + XY[XY.length - 1].y.toFixed(1) +
+      '" r="11" fill="' + color + '" opacity=".18"/>' +
+      hits +
+      '<line class="bcCross" y1="' + T + '" y2="' + (H - B) + '" stroke="' + color + '" stroke-dasharray="3 3" opacity="0"/>' +
+      '<circle class="bcHl" r="6" fill="' + color + '" stroke="#11141c" stroke-width="3" opacity="0"/>' +
+      '<g class="bcTip" opacity="0" pointer-events="none">' +
+      '<rect class="bcTipBg" rx="7" width="168" height="46"/>' +
+      '<text class="bcTipD" x="10" y="18"></text><text class="bcTipV" x="10" y="36"></text></g>' +
+      xl +
+      '<rect class="bcHit" x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (H - T - B) + '" fill="transparent"/>' +
+      "</svg></figure>";
+  }
+
+  // 그릴 만한 데이터가 있는지 — 호출부가 빈 상자를 띄우지 않도록 먼저 물어본다.
+  function hasChart(series) {
+    if (!series) return false;
+    const m = series.monthly || {};
+    return clean(series.jp).length >= MIN_POINTS || clean(series.en).length >= MIN_POINTS ||
+      clean(m.jp).length >= MIN_POINTS || clean(m.en).length >= MIN_POINTS;
+  }
+
+  // series: {jp:[{d,median,low,high,n}], en:[...], windowDays:{jp,en}, monthly:{jp:[],en:[]}}
+  // opts: {lang:"ko"|"en", title, note}
+  //
+  // 주간·월간 두 벌을 **둘 다 서버에서 그려** 내보내고 버튼으로 바꿔 보인다.
+  // 눌렀을 때 새로 그리지 않으니 JS 가 없어도 주간은 그대로 읽히고, 전환도 즉시 끝난다.
+  function chartHTML(series, opts) {
+    opts = opts || {};
+    const lang = opts.lang === "en" ? "en" : "ko";
+    if (!hasChart(series)) return "";
+    const wd = (series && series.windowDays) || {};
+    const mo = (series && series.monthly) || {};
+
+    // 표본이 얇아 못 그리는 판은 자리를 비우지 않고 왜 없는지 한 줄로 알린다.
+    // 월간을 눌렀는데 한쪽 패널이 소리 없이 사라지면 "고장났나" 로 읽힌다 — 실제로는 그 세트가
+    // 그 판으로 한 달에 몇 개 안 팔린다는 뜻이고, 그건 알 만한 정보다.
+    const missing = (label) => '<figure class="bcPane bcPaneEmpty"><figcaption class="bcHead">' +
+      '<span class="bcLabel">' + esc(label) + "</span></figcaption>" +
+      '<p class="bcEmpty">' + (lang === "ko" ? "월간은 아직 표본이 얇습니다 — 주간으로 보세요." : "Not enough sales per month yet — use the weekly view.") + "</p></figure>";
+
+    const grid = (g, jpPts, enPts, hidden) => {
+      const jpLabel = lang === "ko" ? "일본판" : "Japanese";
+      const enLabel = lang === "ko" ? "영문판" : "English";
+      let jp = panel(jpPts, jpLabel, JP_COLOR, "bcJp" + g, lang, g === "week" ? wd.jp : null, g);
+      let en = panel(enPts, enLabel, EN_COLOR, "bcEn" + g, lang, g === "week" ? wd.en : null, g);
+      if (!jp && !en) return "";
+      // 주간에 있는 판은 월간에서도 자리를 지킨다. 주간에도 없는 판(그 판 자체를 거의 안 파는 세트)은 그냥 뺀다.
+      if (g === "month") {
+        if (!jp && clean(series && series.jp).length >= MIN_POINTS) jp = missing(jpLabel);
+        if (!en && clean(series && series.en).length >= MIN_POINTS) en = missing(enLabel);
+      }
+      return '<div class="bcGridWrap" data-grain="' + g + '"' + (hidden ? " hidden" : "") + ">" + jp + en + "</div>";
+    };
+
+    const week = grid("week", series && series.jp, series && series.en, false);
+    const month = grid("month", mo.jp, mo.en, true);
+    // 월간이 없으면(표본이 얇은 세트) 버튼도 내보내지 않는다 — 눌러도 아무 일 없는 버튼은 두지 않는다.
+    const tabs = month
+      ? '<div class="bcTabs" role="group" aria-label="' + (lang === "ko" ? "집계 단위" : "Time grain") + '">' +
+        '<button type="button" class="bcTab on" data-grain="week" aria-pressed="true">' + (lang === "ko" ? "주간" : "Weekly") + "</button>" +
+        '<button type="button" class="bcTab" data-grain="month" aria-pressed="false">' + (lang === "ko" ? "월간" : "Monthly") + "</button></div>"
+      : "";
+
+    const head = opts.title || tabs
+      ? '<div class="bcTop">' + (opts.title ? '<div class="bcTitle">' + esc(opts.title) + "</div>" : "<span></span>") + tabs + "</div>"
+      : "";
+    const note = opts.note === false ? "" : '<p class="bcNote">' + (lang === "ko"
+      ? "선은 우리가 직접 모은 eBay <b>실거래(sold)</b> 중앙값이며, <b>판매된 날</b> 기준입니다. 주간은 거래가 드문 세트일수록 평균 구간을 길게 잡고(위에 표시), 월간은 그 달에 팔린 것 전부를 묶습니다. 표본이 얇은 구간은 그리지 않습니다."
+      : "The line is the median of <b>completed eBay sales</b> we collect ourselves, plotted by <b>date of sale</b>. The weekly view widens its averaging window for thinly traded sets (shown above); the monthly view groups every sale within a calendar month. Thin periods are left blank rather than estimated.")
+      + "</p>";
+    return '<div class="bcWrap">' + head + week + month + note + "</div>";
+  }
+
+  const CSS = [
+    ".bcWrap{margin:16px 0 4px}",
+    ".bcTop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:760px;margin:0 0 10px}",
+    ".bcTitle{font-size:12px;font-weight:700;color:var(--muted,#8d95a7);letter-spacing:.02em}",
+    ".bcTabs{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line,#242936);border-radius:9px;background:var(--paper,#11141c)}",
+    ".bcTab{appearance:none;border:0;background:transparent;color:var(--muted,#8d95a7);font:inherit;font-size:12px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer}",
+    ".bcTab:hover{color:var(--ink,#eef2ff)}",
+    ".bcTab.on{background:rgba(16,215,160,.14);color:#10d7a0}",
+    ".bcTab:focus-visible{outline:2px solid #10d7a0;outline-offset:1px}",
+    // 두 칸으로 나누지 않는다. 본문 폭이 800px 남짓이라 반으로 쪼개면 차트가 눌려
+    // 세로 움직임이 안 보인다(2026-08-13 실측). 세로로 쌓으면 각 차트가 본문 폭을 다 쓴다.
+    // 폭 상한을 두는 이유: SVG 가 viewBox 비율을 지키느라 폭이 넓어질수록 세로도 같이 커진다.
+    // 홈(본문 1100px 남짓)에서는 차트 하나가 화면을 통째로 덮었다. 상한을 걸면 세트 페이지와 크기도 같아진다.
+    ".bcGridWrap{display:grid;gap:14px;max-width:760px}",
+    // display:grid 가 브라우저 기본 [hidden]{display:none} 을 이겨서, 숨겼는데 그대로 보였다(2026-08-13).
+    ".bcGridWrap[hidden]{display:none}",
+    ".bcPane{margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",
+    ".bcHead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}",
+    ".bcLabel{font-size:12px;font-weight:700;color:var(--muted,#8d95a7)}",
+    ".bcNow{font-size:26px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink,#eef2ff)}",
+    ".bcChg{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums}",
+    ".bcChg.up{color:#10d7a0}.bcChg.dn{color:#e5484d}",
+    ".bcSpan{margin-left:auto;font-size:11px;color:var(--muted,#8d95a7);font-variant-numeric:tabular-nums}",
+    ".bcPane svg{width:100%;height:auto;display:block;margin-top:4px;touch-action:pan-y}",
+    ".bcGrid{stroke:rgba(255,255,255,.055);stroke-width:1}",
+    ".bcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
+    ".bcLine{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}",
+    ".bcDot{stroke:var(--paper,#11141c);stroke-width:1.6}",
+    ".bcHitDot{cursor:pointer}.bcHit{cursor:crosshair}",
+    ".bcTipBg{fill:#151a22;stroke:rgba(255,255,255,.16)}",
+    ".bcTipD{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
+    ".bcTipV{fill:var(--ink,#eef2ff);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}",
+    ".bcPaneEmpty{display:flex;flex-direction:column;justify-content:center;min-height:96px;padding:14px 16px}",
+    ".bcEmpty{margin:6px 0 0;font-size:12.5px;color:var(--muted,#8d95a7)}",
+    ".bcNote{font-size:11.5px;color:var(--muted,#8d95a7);line-height:1.7;margin:10px 0 0}",
+    ".bcNote b{color:var(--ink,#eef2ff);font-weight:700}",
+  ].join("");
+
+  // 마우스/터치로 훑을 때 값을 띄우는 향상 기능. 정적 세트 페이지도 이 파일을 <script> 로 불러
+  // 같은 코드를 쓴다 — 페이지마다 문자열로 박아 넣으면 두 벌이 되어 언젠가 갈라진다.
+  // 서버가 이미 SVG 를 다 그려 보내므로, 이게 안 돌아도 그래프와 숫자는 그대로 읽힌다.
+  function bindPane(pane) {
+    if (pane.__bcBound) return;
+    pane.__bcBound = 1;
+    const svg = pane.querySelector("svg");
+    if (!svg) return;
+    const hit = svg.querySelector(".bcHit"), cross = svg.querySelector(".bcCross"), hl = svg.querySelector(".bcHl");
+    const tip = svg.querySelector(".bcTip"), tipD = svg.querySelector(".bcTipD"), tipV = svg.querySelector(".bcTipV");
+    const dots = [].slice.call(svg.querySelectorAll(".bcDot"));
+    const titles = [].slice.call(svg.querySelectorAll(".bcHitDot title")).map((t) => t.textContent);
+    if (!hit || !dots.length) return;
+
+    function at(clientX) {
+      const r = svg.getBoundingClientRect();
+      const x = ((clientX - r.left) / r.width) * W;
+      let best = 0, bd = Infinity;
+      dots.forEach((d, i) => { const dd = Math.abs(+d.getAttribute("cx") - x); if (dd < bd) { bd = dd; best = i; } });
+      const d = dots[best], cx = +d.getAttribute("cx"), cy = +d.getAttribute("cy");
+      cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("opacity", ".5");
+      hl.setAttribute("cx", cx); hl.setAttribute("cy", cy); hl.setAttribute("opacity", "1");
+      // 헤드라인(현재가)은 건드리지 않는다 — 훑을 때마다 바뀌면 "지금 얼마"를 잃는다.
+      // 문구는 <title> 에서 그대로 뽑는다: "2026-08-02 · $261 (범위 $209–$295 · 27건)"
+      const raw = titles[best] || "", parts = raw.split(" · ");
+      const tw = 168, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
+      const ty = cy - 58 < T ? cy + 14 : cy - 58;
+      tip.setAttribute("opacity", "1");
+      tip.setAttribute("transform", "translate(" + tx + "," + ty + ")");
+      const nWord = (raw.match(/\d+(?:건| sales)/) || [""])[0];
+      tipD.textContent = parts[0] || "";
+      tipV.textContent = (parts[1] || "").replace(/\s*\(.*$/, "") + (nWord ? "  ·  " + nWord : "");
+    }
+    const off = () => {
+      cross.setAttribute("opacity", "0"); hl.setAttribute("opacity", "0"); tip.setAttribute("opacity", "0");
+    };
+    hit.addEventListener("pointerdown", (e) => { try { hit.setPointerCapture(e.pointerId); } catch (_) { /* 캡처 못 해도 값은 뜬다 */ } at(e.clientX); });
+    hit.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons) at(e.clientX); });
+    hit.addEventListener("pointerleave", off);
+    hit.addEventListener("pointercancel", off);
+  }
+
+  // 이미 걸린 패널은 건너뛰므로 몇 번을 불러도 안전하다(홈은 세트를 열 때마다 다시 부른다).
+  function bindTabs(wrap) {
+    if (wrap.__bcTabs) return;
+    wrap.__bcTabs = 1;
+    const tabs = [].slice.call(wrap.querySelectorAll(".bcTab"));
+    const grids = [].slice.call(wrap.querySelectorAll(".bcGridWrap"));
+    if (!tabs.length || grids.length < 2) return;
+    tabs.forEach((btn) => btn.addEventListener("click", () => {
+      const g = btn.dataset.grain;
+      tabs.forEach((b) => { const on = b === btn; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
+      grids.forEach((gr) => { gr.hidden = gr.dataset.grain !== g; });
+      // 숨어 있던 쪽은 아직 훑기 이벤트가 안 걸렸을 수 있다.
+      [].slice.call(wrap.querySelectorAll(".bcPane")).forEach(bindPane);
+    }));
+  }
+
+  function scrub(root) {
+    const scope = root && root.querySelectorAll ? root : (typeof document !== "undefined" ? document : null);
+    if (!scope) return;
+    [].slice.call(scope.querySelectorAll(".bcPane")).forEach(bindPane);
+    [].slice.call(scope.querySelectorAll(".bcWrap")).forEach(bindTabs);
+  }
+
+  // 브라우저에서 이 파일을 읽으면 스타일도 스스로 넣는다.
+  // styles.css 에 복사해 두면 두 벌이 되어 언젠가 갈라진다 — 규칙은 이 파일에만 둔다.
+  if (typeof document !== "undefined" && !document.getElementById("opBoxChartCss")) {
+    const st = document.createElement("style");
+    st.id = "opBoxChartCss";
+    st.textContent = CSS;
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => scrub());
+    else scrub();
+    if (typeof window !== "undefined") window.OPBoxChartScrub = scrub;
+  }
+
+  return { chartHTML, hasChart, CSS, scrub, MIN_N, MIN_POINTS, clean, niceTicks, smoothPath };
+});
