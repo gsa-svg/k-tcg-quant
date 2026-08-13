@@ -161,6 +161,16 @@ function supplyFor(code) {
     .sort((a, b) => a.d.localeCompare(b.d));
 }
 
+// 영문판은 초판(Blue/White Bottom)과 이후 판본의 시세가 크게 다르다.
+// OP-01 은 영문판 실거래 36건 중 34건이 초판이라, 그 선은 사실상 초판 시세다.
+// 화면에 그 사실을 안 적으면 "영문판 $1,302" 를 아무 영문판 박스 값으로 읽는다.
+const FIRST_PRINT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
+function firstPrintShare(records) {
+  const rs = (records || []).filter((r) => r && r.fmt === "bin");
+  if (rs.length < 5) return null;
+  return Math.round((rs.filter((r) => FIRST_PRINT.test(r.title || "")).length / rs.length) * 100);
+}
+
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
 const today = new Date().toISOString().slice(0, 10);
 
@@ -178,6 +188,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
     windowDays: { jp: jp.windowDays, en: en.windowDays },
     monthly: { jp: mJp, en: mEn },
     supply: supplyFor(code),
+    firstPrintPct: { jp: firstPrintShare(eds.jp), en: firstPrintShare(eds.en) },
   };
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;

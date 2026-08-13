@@ -82,7 +82,7 @@
   // 월간 보기는 날짜가 매달 1일이라 "05/01" 로 찍으면 그날 하루로 오해된다. 달 이름으로 보여준다.
   const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
 
-  function panel(rawPts, label, color, gid, lang, windowDays, grain) {
+  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge) {
     const pts = clean(rawPts);
     if (pts.length < MIN_POINTS) return "";
 
@@ -161,6 +161,7 @@
 
     return '<figure class="opbcPane" data-ed="' + gid + '">' +
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
+      (badge ? '<span class="opbcBadge">' + esc(badge) + "</span>" : "") +
       '<span class="opbcNow">' + money(last.median) + "</span>" +
       '<span class="opbcChg ' + (up ? "up" : "dn") + '">' + (up ? "▲" : "▼") + " " + Math.abs(chg) + "%</span>" +
       '<span class="opbcSpan">' + lab(first) + " – " + lab(last) +
@@ -312,11 +313,16 @@
         : (lang === "ko" ? "즉시구매 실거래가 아직 얇습니다." : "Not enough fixed-price sales yet."))
       + "</p></figure>";
 
+    // 영문판 실거래 대부분이 초판(Blue/White Bottom)이면 그 선은 사실상 초판 시세다.
+    // 안 적으면 "영문판 $1,302" 를 아무 영문판 박스 값으로 읽는다 — OP-01 은 38건 중 36건이 초판이다.
+    const fp = (series && series.firstPrintPct) || {};
+    const badgeFor = (ed) => (fp[ed] >= 60 ? (lang === "ko" ? "대부분 초판" : "mostly 1st print") : null);
+
     const grid = (g, jpPts, enPts, hidden) => {
       const jpLabel = lang === "ko" ? "일본판" : "Japanese";
       const enLabel = lang === "ko" ? "영문판" : "English";
-      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g);
-      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g);
+      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"));
+      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"));
       if (!jp && !en) return "";
       // 한쪽 판이 소리 없이 사라지면 "고장났나" 로 읽힌다. 왜 없는지 한 줄로 알린다.
       // 주간은 원장에 그 판 기록이 있으면(=파는 세트면) 자리를 지키고,
@@ -338,6 +344,22 @@
         '<button type="button" class="opbcTab" data-grain="month" aria-pressed="false">' + (lang === "ko" ? "월간" : "Monthly") + "</button></div>"
       : "";
 
+    // 3초 안에 읽혀야 하는 것: 두 판이 지금 얼마이고 몇 배 차이인가.
+    // 패널이 위아래로 떨어져 있어 스크롤하지 않으면 비교가 안 된다 — 맨 위에 숫자로 못박는다.
+    const lastOf = (arr) => { const c = clean(arr); return c.length ? c[c.length - 1].median : null; };
+    const jpNow = lastOf(series && series.jp), enNow = lastOf(series && series.en);
+    let compare = "";
+    if (jpNow && enNow) {
+      const times = (Math.max(jpNow, enNow) / Math.min(jpNow, enNow)).toFixed(1).replace(/\.0$/, "");
+      const dearer = enNow >= jpNow ? (lang === "ko" ? "영문판" : "English") : (lang === "ko" ? "일본판" : "Japanese");
+      compare = '<div class="opbcCompare">' +
+        '<span class="opbcCmp"><i style="background:' + JP_COLOR + '"></i>' +
+        (lang === "ko" ? "일본판" : "Japanese") + " <b>" + money(jpNow) + "</b></span>" +
+        '<span class="opbcCmp"><i style="background:' + EN_COLOR + '"></i>' +
+        (lang === "ko" ? "영문판" : "English") + " <b>" + money(enNow) + "</b></span>" +
+        '<span class="opbcCmpX">' + (lang === "ko" ? dearer + "이 " + times + "배" : dearer + " " + times + "x") + "</span></div>";
+    }
+
     const head = opts.title || tabs
       ? '<div class="opbcTop">' + (opts.title ? '<div class="opbcTitle">' + esc(opts.title) + "</div>" : "<span></span>") + tabs + "</div>"
       : "";
@@ -352,13 +374,19 @@
       ? "<b>지금 올라와 있는 매물 수</b>입니다 — 팔린 개수가 아닙니다."
       : "Counts <b>listings currently on sale</b> — not units sold.") + "</p>" : "";
     const supWrap = supply ? '<div class="opbcGridWrap opbcSupWrap">' + supNote + supply + "</div>" : "";
-    return '<div class="opbcWrap">' + head + week + month + note + supWrap + "</div>";
+    return '<div class="opbcWrap">' + head + compare + week + month + note + supWrap + "</div>";
   }
 
   const CSS = [
     ".opbcWrap{margin:16px 0 4px}",
     ".opbcTop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;max-width:760px;margin:0 0 10px}",
     ".opbcTitle{font-size:12px;font-weight:700;color:var(--muted,#8d95a7);letter-spacing:.02em}",
+    ".opbcCompare{display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;max-width:760px;margin:0 0 12px;padding:12px 16px;border:1px solid var(--line,#242936);border-radius:12px;background:var(--paper,#11141c)}",
+    ".opbcCmp{display:inline-flex;align-items:baseline;gap:7px;font-size:13px;color:var(--muted,#8d95a7)}",
+    ".opbcCmp i{width:9px;height:9px;border-radius:2px;display:inline-block;align-self:center}",
+    ".opbcCmp b{font-size:21px;font-weight:800;letter-spacing:-.02em;color:var(--ink,#eef2ff);font-variant-numeric:tabular-nums}",
+    ".opbcCmpX{margin-left:auto;font-size:13px;font-weight:800;color:var(--ink,#eef2ff);font-variant-numeric:tabular-nums}",
+    ".opbcBadge{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;background:rgba(255,255,255,.07);color:var(--muted,#8d95a7);white-space:nowrap}",
     ".opbcTabs{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line,#242936);border-radius:9px;background:var(--paper,#11141c)}",
     ".opbcTab{appearance:none;border:0;background:transparent;color:var(--muted,#8d95a7);font:inherit;font-size:12px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer}",
     ".opbcTab:hover{color:var(--ink,#eef2ff)}",
