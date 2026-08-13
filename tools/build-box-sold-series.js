@@ -96,7 +96,17 @@ function seriesFor(records) {
     if (p) points.push(p);
   }
   points.reverse();
-  return { points, windowDays };
+
+  // 끊긴 앞부분은 버린다. 카테고리 필터를 켠 뒤 아주 오래된 판매가 한두 건씩 딸려 오는데,
+  // 그런 고립된 점과 최근 구간을 선으로 이으면 없던 추세가 생긴다
+  // (2026-08-13: OP-01 일본판이 2/1 $140 한 점 뒤 4개월 공백, 그다음 6/14 $286 — 선이 그 사이를 곧게 이었다).
+  // 점 간격이 창 길이를 넘으면 그 지점에서 잘라 **끊김 없이 이어지는 최근 구간**만 남긴다.
+  const maxGap = windowDays * DAY;
+  let cut = 0;
+  for (let i = points.length - 1; i > 0; i--) {
+    if (Date.parse(points[i].d) - Date.parse(points[i - 1].d) > maxGap) { cut = i; break; }
+  }
+  return { points: points.slice(cut), windowDays };
 }
 
 // 월간은 롤링이 아니라 **그 달에 팔린 것 전부**의 중앙값이다.
@@ -117,13 +127,23 @@ function monthlyFor(records) {
   // 다만 한 단계만 낮춘다 — 3건짜리 중앙값을 넣었더니 OP-01 일본판 8월이 $275 → $176 으로
   // 36% 급락한 것처럼 그려졌다. 표본 수(n)는 그대로 실어 보내 얼마나 얇은 값인지 화면에서 드러나게 한다.
   const thisMonth = new Date().toISOString().slice(0, 7);
-  return [...buckets.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  const monthGap = (a, b) => {
+    const [ay, am] = a.split("-").map(Number), [by, bm] = b.split("-").map(Number);
+    return (by * 12 + bm) - (ay * 12 + am);
+  };
+  const rows = [...buckets.entries()].sort((a, b) => a[0].localeCompare(b[0]))
     .filter(([k, u]) => u.length >= (k === thisMonth ? MONTH_MIN_N - 1 : MONTH_MIN_N))
     .map(([k, u]) => ({
       // 월간은 겹치지 않는 버킷이라 n 이 곧 그 달 거래량이다.
       d: k + "-01", median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
       high: Math.round(quant(u, 0.75)), n: u.length, vol: u.length,
     }));
+  // 달이 두 칸 이상 비면 그 앞은 버린다 — 주간과 같은 이유다(고립된 옛 점이 가짜 추세를 만든다).
+  let cut = 0;
+  for (let i = rows.length - 1; i > 0; i--) {
+    if (monthGap(rows[i - 1].d.slice(0, 7), rows[i].d.slice(0, 7)) > 2) { cut = i; break; }
+  }
+  return rows.slice(cut);
 }
 
 // 진행 중 매물 수(공급)는 tools/update-supply-series.js 가 매일 쌓는다.

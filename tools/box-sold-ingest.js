@@ -29,7 +29,9 @@ const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 // BOOSTER(/booster box/)가 이미 단품 카드·팩을 배제하므로 여기선 "박스인데 단일 봉인박스가 아닌"
 // 신호만 거른다. ⚠️ "packs"(박스는 24팩을 담는다)·"card"("Card Game" 정품 박스명)를 넣으면 정상 박스가
 // 대량 탈락한다(2026-07-22 레드팀 지적). lot/case/carton/display/bundle/sleeve/blister 등만.
-const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified/i;
+// 한국판(korean)도 뺀다 — 이 원장은 일본판/영문판 두 판만 다루는데, 한국판이 일본판 검색에 섞여 들어왔다
+// (2026-08-13: "Romance Dawn OP01 Booster Box Korean" $98 이 OP-01 일본판으로 적재됨).
+const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean/i;
 const BOOSTER = /booster box/i;
 const SET_CODE = /\b(OP|EB|PRB|ST)[-\s]?(\d{2})\b/gi;
 
@@ -61,8 +63,16 @@ function codesFromName(title, nameMap) {
   return out;
 }
 
+// 영문판에만 있는 물리적 특징. 판매자가 Language 를 Japanese 로 잘못 신고해도 이건 안 바뀐다.
+//  · White/Blue Bottom — 영문판 초판 박스 바닥 색. 일본판에는 이 구분 자체가 없다.
+//  · Wave 1/2 — 영문판 재생산 차수 표기. 일본판은 이렇게 부르지 않는다.
+// 2026-08-13 실사고: 이 신호가 없어서 White Bottom $1,458~$1,686, Blue Bottom $4,101 짜리
+// 영문판이 OP-01 "일본판" 시세로 들어갔고 5월 중앙값이 $1,437 로 찍혔다(실제 일본판은 $290 대).
+const EN_ONLY_TRAIT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
+
 function editionOf(title) {
   if (/english|\beng\b/i.test(title)) return "en";
+  if (EN_ONLY_TRAIT.test(title)) return "en";
   if (/japanese|japan\b/i.test(title)) return "jp";
   return null;   // 언어 표기 없음 — 추측하지 않는다
 }
@@ -140,9 +150,14 @@ function main(dumpFile) {
   const summary = {};
   const drops = {};
   let backfilled = 0;   // 기존 레코드에 fmt 를 뒤늦게 채운 수
+  const seenBySet = {};  // 세트별로 이번 덤프에서 본 유효 sold (스냅샷 계산용)
+  // eBay 는 한 검색에 240~265건까지만 준다(_pgn 은 무시된다). 그 수에 닿은 페이지는 **잘린 것**이라
+  // 그 구간의 오래된 판매를 못 봤다는 뜻이다. 조용히 넘어가면 "다 모았다"고 착각한다.
+  const cappedPages = [];
   for (const page of dump.pages || []) {
     const code = page.code;
     if (!data.sets[code]) continue;
+    if (Number(page.rawN) >= 240) cappedPages.push(code + "/" + page.query + (page.band != null ? "/" + page.band : ""));
     // 이번 덤프에서 유효 판정된 건 전부(이미 아는 id 포함) — 스냅샷 계산용
     const seen = { jp: [], en: [] };
     let appended = 0;
@@ -170,9 +185,28 @@ function main(dumpFile) {
       ledger.sets[code][j.ed].push(j.rec);
       appended++;
     }
-    // 스냅샷(기존 시리즈 연속성): 이번 페이지에서 보인 유효 sold 전체 기준, n>=3일 때만.
+    // 스냅샷은 페이지마다 계산하면 안 된다 — 한 세트가 언어 2 × 가격대 5 = 10 페이지로 나뉘어 오므로
+    // 페이지마다 쓰면 마지막 가격대(600k+)의 값이 세트 전체 시세로 남는다(2026-08-13 수정).
+    // 세트별로 모아 두었다가 루프가 끝난 뒤 한 번만 계산한다.
+    const bucket = seenBySet[code] || (seenBySet[code] = { jp: [], en: [] });
+    bucket.jp.push(...seen.jp);
+    bucket.en.push(...seen.en);
+
+    // 요약도 페이지마다 덮어쓰지 말고 더한다.
+    // 예전엔 덮어써서 jp 페이지 결과가 en 페이지에 지워졌고, jpSeen 이 늘 0 으로 보였다(2026-08-13 수정).
+    const s = summary[code] || (summary[code] = { jpSeen: 0, enSeen: 0, appended: 0 });
+    s.jpSeen += seen.jp.length;
+    s.enSeen += seen.en.length;
+    s.appended += appended;
+  }
+
+  // 세트별 스냅샷: 이번 덤프에서 그 세트로 본 유효 sold 전체 기준, n>=3 일 때만.
+  // 같은 id 가 여러 가격대 페이지에 겹쳐 나올 일은 없지만(가격이 하나뿐), 안전하게 id 로 한 번 걸러낸다.
+  for (const [code, seen] of Object.entries(seenBySet)) {
     for (const ed of ["jp", "en"]) {
-      const units = seen[ed].map((r) => r.unit);
+      const byId = new Map();
+      for (const r of seen[ed]) byId.set(r.id, r);
+      const units = [...byId.values()].map((r) => r.unit);
       if (units.length >= 3) {
         data.sets[code].boxMarket = data.sets[code].boxMarket || {};
         data.sets[code].boxMarket[ed] = data.sets[code].boxMarket[ed] || {};
@@ -182,12 +216,6 @@ function main(dumpFile) {
         };
       }
     }
-    // 한 세트에 페이지가 둘(jp/en)이므로 덮어쓰지 말고 더한다.
-    // 예전엔 덮어써서 jp 페이지 결과가 en 페이지에 지워졌고, jpSeen 이 늘 0 으로 보였다(2026-08-13 수정).
-    const s = summary[code] || (summary[code] = { jpSeen: 0, enSeen: 0, appended: 0 });
-    s.jpSeen += seen.jp.length;
-    s.enSeen += seen.en.length;
-    s.appended += appended;
   }
 
   for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) arr.sort((a, b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
@@ -197,7 +225,10 @@ function main(dumpFile) {
   fs.writeFileSync(dataPath, JSON.stringify(data) + "\n", "utf8");
 
   const totals = Object.values(ledger.sets).reduce((a, s) => a + (s.jp || []).length + (s.en || []).length, 0);
-  console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, backfilled, ledgerTotal: totals }));
+  const cappedNote = cappedPages.length
+    ? `${cappedPages.length}/${(dump.pages || []).length} pages hit eBay's ~240-result ceiling — older sales in those slices were not visible. Narrow the price bands to recover them.`
+    : null;
+  console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, backfilled, capped: cappedPages.length, cappedNote, ledgerTotal: totals }));
 }
 
 module.exports = { judgeItem, editionOf, soldDateOf, buildNameMap, codesFromName };
