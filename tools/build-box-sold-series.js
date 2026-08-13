@@ -159,6 +159,34 @@ function monthlyFor(records, wave) {
   return rows.slice(cut);
 }
 
+// 일별 — 그날 팔린 것만 센다. 롤링이 아니다.
+// 박스는 하루 0.45건(중앙값 계열)이라 대부분의 날이 비어 있다. 그게 사실이므로 억지로 채우지 않는다:
+// **3건 이상 팔린 날만** 점을 찍고, 나머지는 비운다. 1~2건짜리 "중앙값" 은 그날 팔린 한 건의 가격일 뿐이다.
+const DAY_MIN_N = 3;
+function dailyFor(records, wave) {
+  const buckets = new Map();
+  for (const r of records || []) {
+    if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
+    if (BIN_ONLY && r.fmt !== "bin") continue;
+    if (wave === "blue" && !isFirstPrint(r)) continue;
+    if (wave === "white" && isFirstPrint(r)) continue;
+    if (!buckets.has(r.d)) buckets.set(r.d, []);
+    buckets.get(r.d).push(Number(r.unit));
+  }
+  const rows = [...buckets.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+    .filter(([, u]) => u.length >= DAY_MIN_N)
+    .map(([d, u]) => ({
+      d, median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
+      high: Math.round(quant(u, 0.75)), n: u.length, vol: u.length,
+    }));
+  // 앞쪽에 뚝 떨어진 점 하나가 남으면 선이 그 사이를 곧게 이어 없던 추세를 만든다(주간·월간과 같은 이유).
+  let cut = 0;
+  for (let i = rows.length - 1; i > 0; i--) {
+    if (Date.parse(rows[i].d) - Date.parse(rows[i - 1].d) > 21 * DAY) { cut = i; break; }
+  }
+  return rows.slice(cut);
+}
+
 // 진행 중 매물 수(공급)는 tools/update-supply-series.js 가 매일 쌓는다.
 // 가격과 함께 한 파일로 실어 보낸다 — 화면이 요청을 두 번 하지 않게. 원본(347KB)에서
 // 날짜와 jp/en 매물 수만 뽑는다. 나머지 필드(신규·이탈·판매자 구성)는 이 그래프가 안 쓴다.
@@ -212,21 +240,25 @@ const sets = {};
 let points = 0, drawable = 0;
 const windowsUsed = {};
 let monthPoints = 0;
+let dayPoints = 0;
 for (const [code, eds] of Object.entries(ledger.sets || {})) {
   const jp = seriesFor(eds.jp), en = seriesFor(eds.en, "white"), enBlue = seriesFor(eds.en, "blue");
   if (!jp.points.length && !en.points.length) continue;
   const mJp = monthlyFor(eds.jp), mEn = monthlyFor(eds.en, "white"), mEnBlue = monthlyFor(eds.en, "blue");
+  const dJp = dailyFor(eds.jp), dEn = dailyFor(eds.en, "white"), dEnBlue = dailyFor(eds.en, "blue");
   sets[code] = {
     // 기존 키(jp/en)는 그대로 둔다 — 주간이 기본 보기이고, 이 키를 읽는 곳이 여럿이다.
     jp: jp.points, en: en.points, enBlue: enBlue.points,
     windowDays: { jp: jp.windowDays, en: en.windowDays, enBlue: enBlue.windowDays },
     monthly: { jp: mJp, en: mEn, enBlue: mEnBlue },
+    daily: { jp: dJp, en: dEn, enBlue: dEnBlue },
     supply: supplyFor(code),
     reprintPct: { jp: reprintShare(eds.jp), en: reprintShare(eds.en) },
     firstPrint: { jp: firstPrintSpot(eds.jp), en: firstPrintSpot(eds.en) },
   };
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;
+  dayPoints += dJp.length + dEn.length;
   for (const s of [jp, en]) {
     if (s.points.length >= 3) { drawable++; windowsUsed[s.windowDays] = (windowsUsed[s.windowDays] || 0) + 1; }
   }
@@ -247,6 +279,7 @@ const out = {
   sets: Object.keys(sets).length,
   points,
   monthPoints,
+  dayPoints,
   drawableSeries: `${drawable}/${Object.keys(sets).length * 2}`,
   windowsUsed,
   range: dates.length ? `${dates[0]} ~ ${dates[dates.length - 1]}` : null,

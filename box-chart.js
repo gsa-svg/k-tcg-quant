@@ -29,6 +29,7 @@
   const VOL_H = 46;                    // 막대가 쓰는 세로. 이 아래는 x축 라벨.
   const PRICE_BOTTOM = H - B - VOL_H;  // 가격선이 내려올 수 있는 바닥
   const MIN_N = 5;        // 이 미만의 표본으로 만든 중앙값은 안 그린다
+  const MIN_N_DAY = 3;    // 일별은 빌더가 이미 하루 3건 이상만 내보낸다 — 여기서 또 5건을 요구하면 통째로 빈다
   const MIN_POINTS = 3;        // 점 두 개짜리 "추세"는 추세가 아니다
   // 월간만 예외로 2점을 허용한다. 한 점이 9~15건짜리 두꺼운 표본이라 "6월 → 7월" 두 점도 읽을 값이 있고,
   // 3점을 요구하면 거래가 얇은 세트(OP-03·EB-01)에서 월간 패널이 통째로 빠져
@@ -77,9 +78,12 @@
     return out;
   }
 
-  function clean(points) {
+  // minN 을 넘겨 받으면 그걸 쓴다 — 일별은 애초에 하루 3건 이상인 날만 빌더가 내보내므로
+  // 여기서 5건을 다시 요구하면 일간 보기가 통째로 비어버린다.
+  function clean(points, minN) {
+    const floor = Number.isFinite(minN) ? minN : MIN_N;
     return (points || [])
-      .filter((p) => p && p.d && Number.isFinite(Number(p.median)) && Number(p.median) > 0 && Number(p.n || 0) >= MIN_N)
+      .filter((p) => p && p.d && Number.isFinite(Number(p.median)) && Number(p.median) > 0 && Number(p.n || 0) >= floor)
       .map((p) => ({ d: p.d, median: Number(p.median), low: Number(p.low || p.median), high: Number(p.high || p.median), n: Number(p.n), vol: Number.isFinite(Number(p.vol)) ? Number(p.vol) : null }))
       .sort((a, b) => a.d.localeCompare(b.d));
   }
@@ -89,7 +93,7 @@
   const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
 
   function panel(rawPts, label, color, gid, lang, windowDays, grain, badge) {
-    const pts = clean(rawPts);
+    const pts = clean(rawPts, grain === "day" ? MIN_N_DAY : null);
     if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
 
     // y축은 중앙값 선 기준으로 잡는다 — low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다.
@@ -121,6 +125,8 @@
     // x 라벨은 처음·중간·끝 3개만 — 더 넣으면 축이 데이터보다 시끄러워진다.
     const mid = pts[Math.floor(pts.length / 2)];
     const lab = (p) => (grain === "month" ? monthLabel(p.d, lang) : md(p.d));
+    const grainWord = grain === "month" ? (lang === "ko" ? "월별" : "monthly")
+      : grain === "day" ? (lang === "ko" ? "일별" : "daily") : null;
     const xl = [pts[0], mid, pts[pts.length - 1]].map((p, i) =>
       '<text class="opbcAx" x="' + px(p).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="' +
       (i === 0 ? "start" : i === 2 ? "end" : "middle") + '">' + lab(p) + "</text>").join("");
@@ -171,7 +177,7 @@
       '<span class="opbcNow">' + money(last.median) + "</span>" +
       '<span class="opbcChg ' + (up ? "up" : "dn") + '">' + (up ? "▲" : "▼") + " " + Math.abs(chg) + "%</span>" +
       '<span class="opbcSpan">' + lab(first) + " – " + lab(last) +
-      (grain === "month" ? (lang === "ko" ? " · 월별" : " · monthly")
+      (grainWord ? " · " + grainWord
         : windowDays ? " · " + windowDays + (lang === "ko" ? "일 평균" : "-day avg") : "") +
       " · n=" + last.n + "</span></figcaption>" +
       '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(label) + " " +
@@ -352,7 +358,9 @@
       if (!jp && hasAny(series && series.jp)) jp = missing(jpLabel, g);
       if (!en && hasAny(series && series.en)) en = missing(enLabel, g);
       // 초판(Blue)은 별개 상품이라 칸을 따로 준다. 선을 그릴 만큼 쌓이면 선이, 아니면 숫자 카드가 뜬다.
-      const bluePts = g === "month" ? ((series && series.monthly) || {}).enBlue : (series && series.enBlue);
+      const bluePts = g === "month" ? ((series && series.monthly) || {}).enBlue
+        : g === "day" ? ((series && series.daily) || {}).enBlue
+        : (series && series.enBlue);
       const blueLabel = lang === "ko" ? "영문판 초판 Blue" : "English 1st print (Blue)";
       let blue = panel(bluePts, blueLabel, BLUE_COLOR, "opbcBlue" + g, lang,
         g === "week" ? wd.enBlue : null, g, null);
@@ -364,13 +372,21 @@
       return '<div class="opbcGridWrap" data-grain="' + g + '"' + (hidden ? " hidden" : "") + ">" + jp + en + blue + "</div>";
     };
 
+    const da = (series && series.daily) || {};
     const week = grid("week", series && series.jp, series && series.en, false);
     const month = grid("month", mo.jp, mo.en, true);
-    // 월간이 없으면(표본이 얇은 세트) 버튼도 내보내지 않는다 — 눌러도 아무 일 없는 버튼은 두지 않는다.
-    const tabs = month
+    const day = grid("day", da.jp, da.en, true);
+    // 눌러도 아무것도 안 뜨는 버튼은 만들지 않는다 — 그릴 게 있는 단위만 탭으로 낸다.
+    const tabDefs = [
+      day ? ["day", lang === "ko" ? "일간" : "Daily"] : null,
+      ["week", lang === "ko" ? "주간" : "Weekly"],
+      month ? ["month", lang === "ko" ? "월간" : "Monthly"] : null,
+    ].filter(Boolean);
+    const tabs = tabDefs.length > 1
       ? '<div class="opbcTabs" role="group" aria-label="' + (lang === "ko" ? "집계 단위" : "Time grain") + '">' +
-        '<button type="button" class="opbcTab on" data-grain="week" aria-pressed="true">' + (lang === "ko" ? "주간" : "Weekly") + "</button>" +
-        '<button type="button" class="opbcTab" data-grain="month" aria-pressed="false">' + (lang === "ko" ? "월간" : "Monthly") + "</button></div>"
+        tabDefs.map(([g, label]) =>
+          '<button type="button" class="opbcTab' + (g === "week" ? " on" : "") + '" data-grain="' + g +
+          '" aria-pressed="' + (g === "week" ? "true" : "false") + '">' + label + "</button>").join("") + "</div>"
       : "";
 
     // 3초 안에 읽혀야 하는 것: 두 판이 지금 얼마이고 몇 배 차이인가.
@@ -404,7 +420,7 @@
       ? "<b>지금 올라와 있는 매물 수</b>입니다 — 팔린 개수가 아닙니다."
       : "Counts <b>listings currently on sale</b> — not units sold.") + "</p>" : "";
     const supWrap = supply ? '<div class="opbcGridWrap opbcSupWrap">' + supNote + supply + "</div>" : "";
-    return '<div class="opbcWrap">' + head + compare + week + month + note + supWrap + "</div>";
+    return '<div class="opbcWrap">' + head + compare + day + week + month + note + supWrap + "</div>";
   }
 
   const CSS = [
@@ -554,7 +570,9 @@
     if (wrap.__opbcTabs) return;
     wrap.__opbcTabs = 1;
     const tabs = [].slice.call(wrap.querySelectorAll(".opbcTab"));
-    const grids = [].slice.call(wrap.querySelectorAll(".opbcGridWrap"));
+    // data-grain 이 있는 격자만 탭 대상이다. 매물 패널도 레이아웃 때문에 .opbcGridWrap 을 쓰는데,
+    // 그것까지 잡으면 탭을 누르는 순간 매물 그래프가 숨겨진다(2026-08-13 실측 — 일간 탭 추가하며 드러남).
+    const grids = [].slice.call(wrap.querySelectorAll(".opbcGridWrap[data-grain]"));
     if (!tabs.length || grids.length < 2) return;
     tabs.forEach((btn) => btn.addEventListener("click", () => {
       const g = btn.dataset.grain;
