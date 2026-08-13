@@ -27,6 +27,8 @@ const { parseLotQuantity, unitPrice } = require("./lot-quantity");
 
 const EN_ONLY_TRAIT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
 const KOREAN = /korean/i;
+// 낱팩을 팔면서 설명에 "from a fresh booster box" 를 적는 매물. 박스 시세에 섞이면 안 된다.
+const SINGLE_PACK = /\bbooster pack\b(?!s)/i;
 
 const dry = process.argv.includes("--dry");
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
@@ -44,6 +46,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   const keepJp = [];
   for (const r of eds.jp) {
     if (KOREAN.test(r.title || "")) { moved.toExcluded.push({ code, from: "jp", ...r }); continue; }
+    if (SINGLE_PACK.test(r.title || "")) { moved.toExcluded.push({ code, from: "jp", ...r, reason: "single-pack" }); continue; }
     if (EN_ONLY_TRAIT.test(r.title || "")) {
       moved.toEn.push({ code, id: r.id, unit: r.unit, title: (r.title || "").slice(0, 70) });
       if (!enIds.has(r.id)) { eds.en.push(r); enIds.add(r.id); }
@@ -56,6 +59,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   // 2. 영문판 칸의 한국판 → 제외
   eds.en = eds.en.filter((r) => {
     if (KOREAN.test(r.title || "")) { moved.toExcluded.push({ code, from: "en", ...r }); return false; }
+    if (SINGLE_PACK.test(r.title || "")) { moved.toExcluded.push({ code, from: "en", ...r, reason: "single-pack" }); return false; }
     return true;
   });
 

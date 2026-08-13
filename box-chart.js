@@ -33,6 +33,8 @@
 
   const JP_COLOR = "#10d7a0";
   const EN_COLOR = "#5a9bf6";
+  // 초판(Blue Bottom)은 재판과 다른 상품이라 선 색도 나눈다. 파랑끼리 두면 구분이 안 된다.
+  const BLUE_COLOR = "#c9a227";
 
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const money = (v) => "$" + Math.round(v).toLocaleString("en-US");
@@ -283,6 +285,19 @@
       "</svg></figure>";
   }
 
+  // 선을 그릴 만큼은 아니지만 값이 있는 계열(초판처럼 몇 달에 몇 건)을 위한 카드.
+  // 빈칸으로 두면 "없는 상품" 으로 읽힌다 — 실제로는 3배 비싼 별개 상품이 존재한다.
+  function spotPane(rawPts, label, color, lang, note) {
+    const pts = (rawPts || []).filter((p) => p && p.d && Number(p.median) > 0);
+    if (!pts.length) return "";
+    const last = pts[pts.length - 1];
+    return '<figure class="opbcPane opbcPaneSpot">' +
+      '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
+      '<span class="opbcNow" style="color:' + color + '">' + money(last.median) + "</span>" +
+      '<span class="opbcSpan">' + md(last.d) + " · n=" + last.n + "</span></figcaption>" +
+      '<p class="opbcEmpty">' + esc(note) + "</p></figure>";
+  }
+
   // 그릴 만한 데이터가 있는지 — 호출부가 빈 상자를 띄우지 않도록 먼저 물어본다.
   function hasChart(series) {
     if (!series) return false;
@@ -332,7 +347,17 @@
       const hasAny = (arr) => ((arr || []).length > 0);
       if (!jp && hasAny(series && series.jp)) jp = missing(jpLabel, g);
       if (!en && hasAny(series && series.en)) en = missing(enLabel, g);
-      return '<div class="opbcGridWrap" data-grain="' + g + '"' + (hidden ? " hidden" : "") + ">" + jp + en + "</div>";
+      // 초판(Blue)은 별개 상품이라 칸을 따로 준다. 선을 그릴 만큼 쌓이면 선이, 아니면 숫자 카드가 뜬다.
+      const bluePts = g === "month" ? ((series && series.monthly) || {}).enBlue : (series && series.enBlue);
+      const blueLabel = lang === "ko" ? "영문판 초판 Blue" : "English 1st print (Blue)";
+      let blue = panel(bluePts, blueLabel, BLUE_COLOR, "opbcBlue" + g, lang,
+        g === "week" ? wd.enBlue : null, g, null);
+      if (!blue) {
+        blue = spotPane(bluePts, blueLabel, BLUE_COLOR, lang, lang === "ko"
+          ? "거래가 드물어 선을 그리지 못합니다 — 최근 실거래 값입니다."
+          : "Too few sales to plot a line — this is the latest completed sale level.");
+      }
+      return '<div class="opbcGridWrap" data-grain="' + g + '"' + (hidden ? " hidden" : "") + ">" + jp + en + blue + "</div>";
     };
 
     const week = grid("week", series && series.jp, series && series.en, false);
@@ -349,13 +374,6 @@
     const lastOf = (arr) => { const c = clean(arr); return c.length ? c[c.length - 1].median : null; };
     const jpNow = lastOf(series && series.jp), enNow = lastOf(series && series.en);
     let compare = "";
-    // 선에서 뺀 초판(Blue)은 "지금 얼마" 한 숫자로만 요약 줄에 붙인다 — 표본이 얇아 선을 못 그린다.
-    const fpSpot = ((series && series.firstPrint) || {}).en;
-    const fpChip = fpSpot
-      ? '<span class="opbcCmp opbcCmpAlt">' + (lang === "ko" ? "영문판 초판 Blue" : "English 1st print (Blue)") +
-        " <b>" + money(fpSpot.median) + "</b><small> n=" + fpSpot.n + "</small></span>"
-      : "";
-
     if (jpNow && enNow) {
       const times = (Math.max(jpNow, enNow) / Math.min(jpNow, enNow)).toFixed(1).replace(/\.0$/, "");
       const dearer = enNow >= jpNow ? (lang === "ko" ? "영문판" : "English") : (lang === "ko" ? "일본판" : "Japanese");
@@ -365,7 +383,7 @@
         '<span class="opbcCmp"><i style="background:' + EN_COLOR + '"></i>' +
         (lang === "ko" ? "영문판" : "English") + " <b>" + money(enNow) + "</b></span>" +
         '<span class="opbcCmpX">' + (lang === "ko" ? dearer + "이 " + times + "배" : dearer + " " + times + "x") + "</span>" +
-        fpChip + "</div>";
+        "</div>";
     }
 
     const head = opts.title || tabs
@@ -434,6 +452,8 @@
     ".opbcTipD{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcTipV{fill:var(--ink,#eef2ff);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}",
     ".opbcPaneEmpty{display:flex;flex-direction:column;justify-content:center;min-height:96px;padding:14px 16px}",
+    ".opbcPaneSpot{padding:14px 16px}",
+    ".opbcPaneSpot .opbcEmpty{margin-top:8px}",
     ".opbcEmpty{margin:6px 0 0;font-size:12.5px;color:var(--muted,#8d95a7)}",
     ".opbcNote{font-size:11.5px;color:var(--muted,#8d95a7);line-height:1.7;margin:10px 0 0}",
     ".opbcNote b{color:var(--ink,#eef2ff);font-weight:700}",

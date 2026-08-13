@@ -33,6 +33,10 @@ const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 // (2026-08-13: "Romance Dawn OP01 Booster Box Korean" $98 이 OP-01 일본판으로 적재됨).
 const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean/i;
 const BOOSTER = /booster box/i;
+// "Booster Pack ... x1 -From Fresh booster box" 처럼 **낱팩**을 팔면서 설명에 booster box 를
+// 적는 매물이 있다. 단수 "booster pack" 이 보이면 박스가 아니다 — 박스는 "24 booster packs"(복수)로 쓴다.
+// 2026-08-13: 이 두 건이 박스 시세에 $251(OP-01 영문 초판) · $66(PRB-01 영문)으로 섞여 있었다.
+const SINGLE_PACK = /\bbooster pack\b(?!s)/i;
 const SET_CODE = /\b(OP|EB|PRB|ST)[-\s]?(\d{2})\b/gi;
 
 // 세트 이름으로도 코드를 잡는다 — 2026-08-12 신설.
@@ -97,6 +101,7 @@ function soldDateOf(caption) {
 function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const t = String(item.t || "");
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
+  if (SINGLE_PACK.test(t)) return { drop: "single-pack" };
   if (BAD.test(t)) return { drop: "bad-word" };
   const codes = new Set();
   for (const m of t.matchAll(SET_CODE)) codes.add(`${m[1].toUpperCase()}-${m[2]}`);

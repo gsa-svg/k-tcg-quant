@@ -963,15 +963,6 @@
      "title": "One Piece TCG OP-01 Romance Dawn White Bottom Booster Box SEALED ENGLISH"
     },
     {
-     "id": "147160773459",
-     "d": "2026-06-29",
-     "unit": 250.59,
-     "total": 250.59,
-     "qty": 1,
-     "title": "One Piece OP-01 Romance Dawn Booster Pack Blue Bottom x1 -From Fresh booster box",
-     "fmt": "bin"
-    },
-    {
      "id": "267707517887",
      "d": "2026-06-30",
      "unit": 430.57,
@@ -28903,15 +28894,6 @@
      "fmt": "bin"
     },
     {
-     "id": "257304165406",
-     "d": "2026-06-01",
-     "unit": 66.02,
-     "total": 66.02,
-     "qty": 1,
-     "title": "The Best Premium Booster Pack One Piece Card Game PRB01 English W Booster Box",
-     "fmt": "bin"
-    },
-    {
      "id": "178184376504",
      "d": "2026-06-02",
      "unit": 1004.65,
@@ -30958,6 +30940,32 @@
    "title": "One Piece PRB-02 The Best BOOSTER BOX Factory Sealed English 20 Packs",
    "reason": "uncountable-lot",
    "excludedAt": "2026-08-13"
+  },
+  {
+   "code": "OP-01",
+   "from": "en",
+   "id": "147160773459",
+   "d": "2026-06-29",
+   "unit": 250.59,
+   "total": 250.59,
+   "qty": 1,
+   "title": "One Piece OP-01 Romance Dawn Booster Pack Blue Bottom x1 -From Fresh booster box",
+   "fmt": "bin",
+   "reason": "single-pack",
+   "excludedAt": "2026-08-13"
+  },
+  {
+   "code": "PRB-01",
+   "from": "en",
+   "id": "257304165406",
+   "d": "2026-06-01",
+   "unit": 66.02,
+   "total": 66.02,
+   "qty": 1,
+   "title": "The Best Premium Booster Pack One Piece Card Game PRB01 English W Booster Box",
+   "fmt": "bin",
+   "reason": "single-pack",
+   "excludedAt": "2026-08-13"
   }
  ],
  "repairs": [
@@ -30972,6 +30980,13 @@
    "movedJpToEn": 0,
    "excluded": 7,
    "requantified": 1,
+   "reason": "Sellers had declared English-edition boxes as Japanese; White/Blue Bottom and Wave 1/2 are English-only physical traits. Korean-edition boxes do not belong in a ledger that tracks only the Japanese and English editions. Records were moved, never deleted."
+  },
+  {
+   "date": "2026-08-13",
+   "movedJpToEn": 0,
+   "excluded": 2,
+   "requantified": 0,
    "reason": "Sellers had declared English-edition boxes as Japanese; White/Blue Bottom and Wave 1/2 are English-only physical traits. Korean-edition boxes do not belong in a ledger that tracks only the Japanese and English editions. Records were moved, never deleted."
   }
  ]

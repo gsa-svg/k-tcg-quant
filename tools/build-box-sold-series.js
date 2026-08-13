@@ -34,6 +34,9 @@ const seriesPath = path.join(ROOT, "data", "box-sold-series.json");
 const TARGET_N = 12;      // 한 점에 이 정도가 모이도록 창을 잡는다
 const MIN_WINDOW = 28;
 const MAX_WINDOW = 56;    // 이보다 길면 "최근 시세"라고 부르기 어렵다
+// 초판(Blue)처럼 몇 달에 몇 건뿐인 계열은 56일로는 점이 하나도 안 나온다.
+// 이런 계열만 창을 더 늘린다 — 창 길이는 화면에 그대로 표시되므로 얼마나 넓게 평균했는지 드러난다.
+const RARE_MAX_WINDOW = 120;
 const STEP_DAYS = 7;      // 주 단위면 4개월치가 17점 남짓 — 선이 읽히면서 파일도 가볍다
 const MIN_N = 6;          // 창을 최대로 늘려도 이만큼 안 모이면 점을 찍지 않는다. 빈 구간이 틀린 값보다 낫다.
 
@@ -54,14 +57,17 @@ const quant = (arr, p) => {
   return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (i - lo);
 };
 
-function seriesFor(records) {
+function seriesFor(records, wave) {
   const rs = (records || [])
     .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number.isFinite(Number(r.unit)) && Number(r.unit) > 0)
     .filter((r) => !BIN_ONLY || r.fmt === "bin")
-    .filter((r) => !isFirstPrint(r))   // 초판은 별개 상품 — 선에 섞지 않는다
+    .filter((r) => (wave === "blue" ? isFirstPrint(r) : wave === "white" ? !isFirstPrint(r) : true))
     .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit) }))
     .sort((a, b) => a.t - b.t);
-  if (rs.length < MIN_N) return { points: [], windowDays: null };
+  // 초판(Blue)은 몇 달에 4건뿐이라 일반 기준(6건)으로는 아무것도 안 나온다.
+  // 이 계열만 3건으로 낮춘다 — 얇은 건 사실이라, 화면에 n 과 창 길이를 그대로 실어 보낸다.
+  const minN = wave === "blue" ? 3 : MIN_N;
+  if (rs.length < minN) return { points: [], windowDays: null };
 
   const first = rs[0].t, last = rs[rs.length - 1].t;
 
@@ -72,13 +78,14 @@ function seriesFor(records) {
   const spanDays = Math.max(1, Math.min(56, (last - first) / DAY));
   const perDay = recent / spanDays;
   const need = perDay > 0 ? Math.ceil(TARGET_N / perDay / 7) * 7 : MAX_WINDOW;
-  const windowDays = Math.max(MIN_WINDOW, Math.min(MAX_WINDOW, need));
+  const cap = wave === "blue" ? RARE_MAX_WINDOW : MAX_WINDOW;
+  const windowDays = Math.max(MIN_WINDOW, Math.min(cap, need));
 
   const at = (t) => {
     const lo = t - windowDays * DAY;
     const u = [];
     for (const r of rs) { if (r.t > lo && r.t <= t) u.push(r.unit); }
-    if (u.length < MIN_N) return null;
+    if (u.length < minN) return null;
     // vol = 그 점 **직전 한 주**에 실제로 팔린 건수. 중앙값을 만든 n(창 전체, 28~56일)과 다르다.
     // n 을 막대로 쓰면 창이 겹쳐 같은 판매를 여러 번 세게 되고, 막대 높이가 창 길이만 반영한다.
     let vol = 0;
@@ -91,8 +98,11 @@ function seriesFor(records) {
   // 따로 끼워 넣게 되는데, 그러면 직전 점과 며칠밖에 안 떨어진 점이 하나 더 생겨
   // 창이 거의 같은데도 값이 달라 보이는 절벽이 만들어진다(OP-01 일본판 $290 → $258, 2026-08-13 실측).
   // 뒤에서부터 세면 마지막 점이 항상 격자 위에 있고, 점 간격도 일정해진다.
+  // 창이 관측 기간보다 길 수 있다(초판처럼 창을 120일까지 늘린 계열). 그때 `first + 창` 을
+  // 그대로 하한으로 쓰면 루프가 한 번도 안 돌아 점이 0개가 된다 — 최소한 마지막 날 한 점은 찍는다.
+  const floor = Math.min(first + windowDays * DAY, last);
   const points = [];
-  for (let t = last; t >= first + windowDays * DAY; t -= STEP_DAYS * DAY) {
+  for (let t = last; t >= floor; t -= STEP_DAYS * DAY) {
     const p = at(t);
     if (p) points.push(p);
   }
@@ -115,12 +125,13 @@ function seriesFor(records) {
 // $395 까지 팔린다(상태·경매 종료가 차이). 표본 13건짜리 주간 중앙값은 그 안에서 계속 흔들린다.
 // 달 단위로 묶으면 표본이 두세 배가 되어 흔들림이 줄고, 대신 반응은 느려진다 — 둘 다 보여주고 고르게 한다.
 const MONTH_MIN_N = 6;
-function monthlyFor(records) {
+function monthlyFor(records, wave) {
   const buckets = new Map();
   for (const r of records || []) {
     if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
     if (BIN_ONLY && r.fmt !== "bin") continue;
-    if (isFirstPrint(r)) continue;   // 초판은 별개 상품 — 월간에서도 뺀다
+    if (wave === "blue" && !isFirstPrint(r)) continue;
+    if (wave === "white" && isFirstPrint(r)) continue;
     const k = r.d.slice(0, 7);
     if (!buckets.has(k)) buckets.set(k, []);
     buckets.get(k).push(Number(r.unit));
@@ -168,9 +179,9 @@ function supplyFor(code) {
 //   White Bottom = Wave 2 = 재판  (우리 실거래 31건 중앙 $1,561 · TCGplayer $1,526)
 // TCGplayer 도 TCG Quant 도 둘을 별개 상품으로 관리한다.
 //
-// 그래서 **초판은 선에서 뺀다**. 한 선에 섞으면 재판 시세에 초판 몇 건이 얹혀 위쪽이 부풀고,
+// 그래서 **따로 그린다**. 한 선에 섞으면 재판 시세에 초판 몇 건이 얹혀 위쪽이 부풀고,
 // 무엇보다 "영문판 박스 시세"가 무엇을 가리키는지 알 수 없어진다.
-// 초판은 표본이 얇아(5건) 선을 못 그리므로, 현재가 한 숫자로만 따로 보여준다.
+// 초판은 거래가 드물어(4건) 창을 넓게 잡아야 점이 나온다 — 못 그리면 요약 줄의 숫자만 남는다.
 //
 // 2026-08-13 정정: 처음엔 Blue 와 White 를 뭉뚱그려 "초판" 하나로 셌다. 정반대였다 —
 // 우리 영문판 실거래의 다수는 White(재판)다.
@@ -202,14 +213,14 @@ let points = 0, drawable = 0;
 const windowsUsed = {};
 let monthPoints = 0;
 for (const [code, eds] of Object.entries(ledger.sets || {})) {
-  const jp = seriesFor(eds.jp), en = seriesFor(eds.en);
+  const jp = seriesFor(eds.jp), en = seriesFor(eds.en, "white"), enBlue = seriesFor(eds.en, "blue");
   if (!jp.points.length && !en.points.length) continue;
-  const mJp = monthlyFor(eds.jp), mEn = monthlyFor(eds.en);
+  const mJp = monthlyFor(eds.jp), mEn = monthlyFor(eds.en, "white"), mEnBlue = monthlyFor(eds.en, "blue");
   sets[code] = {
     // 기존 키(jp/en)는 그대로 둔다 — 주간이 기본 보기이고, 이 키를 읽는 곳이 여럿이다.
-    jp: jp.points, en: en.points,
-    windowDays: { jp: jp.windowDays, en: en.windowDays },
-    monthly: { jp: mJp, en: mEn },
+    jp: jp.points, en: en.points, enBlue: enBlue.points,
+    windowDays: { jp: jp.windowDays, en: en.windowDays, enBlue: enBlue.windowDays },
+    monthly: { jp: mJp, en: mEn, enBlue: mEnBlue },
     supply: supplyFor(code),
     reprintPct: { jp: reprintShare(eds.jp), en: reprintShare(eds.en) },
     firstPrint: { jp: firstPrintSpot(eds.jp), en: firstPrintSpot(eds.en) },
