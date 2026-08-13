@@ -269,6 +269,24 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── R3. sold 수집 URL 에 카테고리를 걸지 않는다 — 2026-08-13 신설.
+//    _sacat 을 붙이면 eBay 가 &Language= 패싯을 무시한다. 실측(OP-13 즉구):
+//      카테고리 없음  jp 70 · en 72 · 겹침 1      ← 언어가 제대로 나뉜다
+//      _sacat=261068 jp 87 · en 87 · 겹침 87     ← 완전히 같은 결과
+//    노이즈가 확 줄어 보여서 다시 넣고 싶어지는 종류의 실수다. 그래서 코드로 막는다.
+{
+  const f = "tools/box-sold-urls.js";
+  if (exists(f)) {
+    const src = read(f);
+    if (/_sacat=/.test(src.replace(/^\s*\/\/.*$/gm, ""))) {
+      errors.push("R3: box-sold-urls.js 가 _sacat(카테고리)을 다시 걸고 있다 — eBay 가 Language 패싯을 무시해 일본판/영문판이 같은 결과가 된다");
+    }
+    if (!/Language=/.test(src)) {
+      errors.push("R3: box-sold-urls.js 에서 Language 패싯이 사라졌다 — 판별 근거가 제목 추측으로 되돌아간다");
+    }
+  }
+}
+
 // ── Q1. 다수량(lot) 개당가 규칙 — 2026-07-22. "3박스 낙찰 총액"이 1박스 가격으로 오염되지 않아야 한다.
 //    경매(tools/lot-quantity.js)와 브라우저 sold 수집(box-sold-urls.js 추출기)이 같은 규칙으로 동작하는지
 //    함정 제목(세트코드 13, 연도, 케이스, 복수형)까지 실제로 실행해 검증한다.
@@ -1249,4 +1267,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3"] }));
