@@ -146,7 +146,20 @@
   "OP-16": {
    "jpMsrpYen": 5280,
    "packsPerBox": 24,
-   "reprintRecords": []
+   "reprintRecords": [
+    {
+     "date": "2026-05",
+     "kind": "official-lottery",
+     "source": "https://www.onepiece-cardgame.com/news/",
+     "note": "Premium Bandai official lottery sale, 1st round, entries opened 2026-05-29. Announced on Bandai's official news feed. Bandai does not describe it as a reprint. Verified 2026-08-13."
+    },
+    {
+     "date": "2026-06",
+     "kind": "official-lottery",
+     "source": "https://www.onepiece-cardgame.com/news/",
+     "note": "Premium Bandai official lottery sale, 2nd round (2次抽選販売), entries opened 2026-06-25. Verified 2026-08-13."
+    }
+   ]
   },
   "EB-01": {
    "jpMsrpYen": 5280,
@@ -186,7 +199,23 @@
    "jpMsrpYen": 5500,
    "packsPerBox": 10,
    "reprintRecords": []
+  },
+  "OP-17": {
+   "reprintRecords": [
+    {
+     "date": "2026-07",
+     "kind": "official-lottery",
+     "source": "https://www.onepiece-cardgame.com/news/",
+     "note": "Premium Bandai official lottery sale, entries opened 2026-07-30. Verified 2026-08-13."
+    }
+   ]
   }
  },
- "note": " jpRelease is the original Japanese release date, taken only from Bandai official product pages; sets whose official page is no longer up are left without it rather than guessed. The release date shown at the top of each set page is the ENGLISH edition date and is a different thing."
+ "note": " jpRelease is the original Japanese release date, taken only from Bandai official product pages; sets whose official page is no longer up are left without it rather than guessed. The release date shown at the top of each set page is the ENGLISH edition date and is a different thing.",
+ "reprintAudit": {
+  "checkedOn": "2026-08-13",
+  "source": "https://www.onepiece-cardgame.com/news/",
+  "coverage": "Bandai JP official news feed, newest entries back to 2026-06-06 only (the feed pages 10 at a time and the loader stalled below that). Older announcements — including anything from OP-13's 2025 window — are NOT yet checked.",
+  "finding": "Bandai writes 再販 (reprint) explicitly when it reprints — e.g. the Kumamoto premium card collection on 2026-04-10. For booster packs it instead announces プレミアムバンダイ抽選販売 (Premium Bandai lottery sales), sometimes in multiple rounds. So 'no reprint wording on a booster page' does not mean no additional supply."
+ }
 }
