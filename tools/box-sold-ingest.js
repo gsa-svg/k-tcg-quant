@@ -33,6 +33,34 @@ const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbul
 const BOOSTER = /booster box/i;
 const SET_CODE = /\b(OP|EB|PRB|ST)[-\s]?(\d{2})\b/gi;
 
+// 세트 이름으로도 코드를 잡는다 — 2026-08-12 신설.
+// eBay 제목 상당수가 코드 없이 이름만 쓴다: "One Piece Card Game Romance Dawn Booster Box English".
+// 코드만 보던 때는 이런 건이 code-missing 으로 통째로 버려졌다.
+//
+// ⚠️ 이름이 겹치는 세트는 제외한다. PRB-01·PRB-02 는 둘 다 nameEn 이 "Premium Booster" 라
+//    이름만으로는 어느 쪽인지 알 수 없다 — 그런 건 추측하지 않고 코드에만 의존한다.
+// 이름표는 onepiece-packs.json 을 그대로 읽는다(하드코딩하면 세트가 늘 때 조용히 어긋난다).
+const normName = (s) => String(s).toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+function buildNameMap(packs) {
+  const byName = new Map();
+  const codes = [...(packs.jp?.list || []), ...(packs.extra?.list || [])];
+  for (const code of codes) {
+    const n = normName(packs.sets[code]?.nameEn || "");
+    if (n.length < 6) continue;             // 너무 짧은 이름은 오탐 위험 — 쓰지 않는다
+    if (byName.has(n)) byName.set(n, null); // 중복 이름 → 판별 불가로 표시
+    else byName.set(n, code);
+  }
+  // null(중복)은 버리고 유일한 이름만 남긴다
+  return [...byName.entries()].filter(([, v]) => v).sort((a, b) => b[0].length - a[0].length);
+}
+// 제목에서 세트 이름을 찾아 코드를 돌려준다(긴 이름부터 — 짧은 이름이 긴 이름 안에 묻히지 않게).
+function codesFromName(title, nameMap) {
+  const t = normName(title);
+  const out = [];
+  for (const [n, code] of nameMap) if (t.includes(n)) out.push(code);
+  return out;
+}
+
 function editionOf(title) {
   if (/english|\beng\b/i.test(title)) return "en";
   if (/japanese|japan\b/i.test(title)) return "jp";
@@ -50,15 +78,27 @@ function soldDateOf(caption) {
 }
 
 // 한 건 판정. 통과하면 원장 레코드, 아니면 {drop:이유}. (가드 Q1이 코퍼스로 검증하는 진입점)
-function judgeItem(item, targetCode, fxUsdKrw) {
+// declaredEd — 2026-08-12 신설. eBay 검색의 `&Language=Japanese|English` 패싯으로 받아온 페이지면
+// 그 판별은 **판매자가 신고한 값**이다. 제목 키워드 추측보다 훨씬 정확하다.
+//   실측(OP-01): 제목만 보면 언어 미표기로 614건을 버렸는데, 패싯으로 받으면 일본판만 226건이다.
+// 다만 신고가 틀린 건도 있다(같은 실측에서 일본어 패싯에 영문 제목 8건). 그래서 그대로 믿지 않고
+// **제목이 정반대로 말하면 버린다**(lang-conflict). 둘이 일치하거나 제목이 침묵할 때만 채택한다.
+// declaredEd 가 없으면(구 덤프·가드 코퍼스) 종전대로 제목에서만 판별한다.
+function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd) {
   const t = String(item.t || "");
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
   if (BAD.test(t)) return { drop: "bad-word" };
   const codes = new Set();
   for (const m of t.matchAll(SET_CODE)) codes.add(`${m[1].toUpperCase()}-${m[2]}`);
+  // 코드가 없으면 세트 이름으로 찾아본다. 이름으로 찾은 코드도 같은 집합에 넣어야
+  // 아래 cross-set 검사(다른 세트가 같이 적힌 제목 배제)가 그대로 적용된다.
+  if (nameMap) for (const c of codesFromName(t, nameMap)) codes.add(c);
   if (!codes.has(targetCode)) return { drop: "code-missing" };
   if ([...codes].some((c) => c !== targetCode)) return { drop: "cross-set" };
-  const ed = editionOf(t);
+  const fromTitle = editionOf(t);
+  // 신고값이 있으면 그걸 쓰되, 제목이 정반대로 말하면 버린다(판매자 오신고 방어).
+  if (declaredEd && fromTitle && fromTitle !== declaredEd) return { drop: "lang-conflict" };
+  const ed = declaredEd || fromTitle;
   if (!ed) return { drop: "no-language" };
   const qty = parseLotQuantity(t, "box");
   if (qty == null) return { drop: "uncountable-lot" };
@@ -83,6 +123,7 @@ function main(dumpFile) {
   const dump = JSON.parse(fs.readFileSync(dumpFile, "utf8"));
   const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
   const fx = data.fx.usdKrw;
+  const nameMap = buildNameMap(data);
   const today = dump.collectedAt;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today || "")) throw new Error("dump.collectedAt 필요 (YYYY-MM-DD)");
 
@@ -101,7 +142,10 @@ function main(dumpFile) {
     const seen = { jp: [], en: [] };
     let appended = 0;
     for (const item of page.items || []) {
-      const j = judgeItem(item, code, fx);
+      // 덤프가 Language 패싯으로 수집됐다고 표시한 경우에만 신고값을 쓴다.
+      // 구 덤프(langFacet 없음)는 종전대로 제목에서만 판별한다 — 과거 원장과 기준이 흔들리지 않게.
+      const declaredEd = dump.langFacet ? (page.query === "jp" ? "jp" : "en") : null;
+      const j = judgeItem(item, code, fx, nameMap, declaredEd);
       if (j.drop) { drops[j.drop] = (drops[j.drop] || 0) + 1; continue; }
       seen[j.ed].push(j.rec);
       if (knownIds.has(j.rec.id)) continue;                       // 이미 원장에 있음 — 절대 덮어쓰지 않음
@@ -122,7 +166,12 @@ function main(dumpFile) {
         };
       }
     }
-    summary[code] = { jpSeen: seen.jp.length, enSeen: seen.en.length, appended };
+    // 한 세트에 페이지가 둘(jp/en)이므로 덮어쓰지 말고 더한다.
+    // 예전엔 덮어써서 jp 페이지 결과가 en 페이지에 지워졌고, jpSeen 이 늘 0 으로 보였다(2026-08-13 수정).
+    const s = summary[code] || (summary[code] = { jpSeen: 0, enSeen: 0, appended: 0 });
+    s.jpSeen += seen.jp.length;
+    s.enSeen += seen.en.length;
+    s.appended += appended;
   }
 
   for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) arr.sort((a, b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
@@ -135,7 +184,7 @@ function main(dumpFile) {
   console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, ledgerTotal: totals }));
 }
 
-module.exports = { judgeItem, editionOf, soldDateOf };
+module.exports = { judgeItem, editionOf, soldDateOf, buildNameMap, codesFromName };
 if (require.main === module) {
   if (!process.argv[2]) { console.error("usage: node tools/box-sold-ingest.js <dump.json>"); process.exit(1); }
   main(process.argv[2]);
