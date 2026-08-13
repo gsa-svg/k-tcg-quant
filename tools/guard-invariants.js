@@ -223,6 +223,37 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── R2. 재판 출처 구분 — 2026-08-13 신설.
+//    우리가 가진 "재판" 기록은 대부분 **매장·유통처의 재입고 공지**이지, 반다이가 재판을 발표한 일정이 아니다.
+//    둘을 한 줄에 뭉쳐 "reprint records" 라고 쓰면 공식 발표처럼 읽힌다.
+//    또 페이지 상단의 발매일은 **영문판** 날짜라, 일본판 재판 기록의 기준일로 쓸 수 없다.
+{
+  const factsPath = "data/set-facts.json";
+  if (exists(factsPath)) {
+    const F = JSON.parse(read(factsPath));
+    for (const [code, sf] of Object.entries(F.sets || {})) {
+      for (const r of sf.reprintRecords || []) {
+        if (!r.kind) errors.push(`R2: ${code} 재판 기록에 kind(출처 구분)가 없다 — retailer/distributor/official 중 하나여야 한다`);
+      }
+      // 공식 발매일은 반드시 출처와 함께. 출처 없는 날짜는 추측과 구분되지 않는다.
+      if (sf.jpRelease && !sf.jpRelease.source) {
+        errors.push(`R2: ${code}.jpRelease 에 source 가 없다 — 공식 페이지 링크 없이 발매일을 싣지 않는다`);
+      }
+    }
+  }
+  // 생성된 세트 페이지가 매장 재입고를 공식 재판으로 표기하지 않는지 실물로 확인한다.
+  for (const f of PUBLIC_HTML.filter((p) => /^sets\/(op|eb|prb)-\d+\.html$/.test(p))) {
+    const html = read(f);
+    const m = html.match(/Retailer-reported restocks:[\s\S]{0,400}?<\/li>/);
+    if (m && !/not a Bandai reprint announcement/.test(m[0])) {
+      errors.push(`R2: ${f} 매장 재입고 줄에 "공식 발표가 아님" 단서가 빠졌다`);
+    }
+    if (/Retailer\/distributor reprint records/.test(html)) {
+      errors.push(`R2: ${f} 옛 문구(Retailer/distributor reprint records)가 남아 있다 — 출처가 뭉뚱그려진다`);
+    }
+  }
+}
+
 // ── Q1. 다수량(lot) 개당가 규칙 — 2026-07-22. "3박스 낙찰 총액"이 1박스 가격으로 오염되지 않아야 한다.
 //    경매(tools/lot-quantity.js)와 브라우저 sold 수집(box-sold-urls.js 추출기)이 같은 규칙으로 동작하는지
 //    함정 제목(세트코드 13, 연도, 케이스, 복수형)까지 실제로 실행해 검증한다.
@@ -1203,4 +1234,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2"] }));

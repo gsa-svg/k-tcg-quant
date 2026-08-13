@@ -439,19 +439,38 @@ function setPage(code, prev, next) {
       const nowU = pts2.length ? krwUsd(pts2[pts2.length - 1].p) : null;
       const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
       const recs = sf.reprintRecords || [];
-      const rpLine = recs.length
-        ? `${recs.map((r) => {
-            // 소스 URL 이 살아있는 http 링크일 때만 클릭 링크. 죽은/빈 소스는 출처명만 텍스트로(죽은 링크 노출 방지 — 2026-07-21 감사).
-            const live = typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead;
-            const label = live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${esc(r.kind)}</a>` : esc(r.kind);
-            return `${r.date ? `${esc(r.date)} — ` : ""}${label}`;
-          }).join(", ")}`
-        : "None in the current source ledger";
+      // 기록의 성격을 나눈다. 매장 재입고 공지를 "반다이가 재판을 발표했다" 처럼 읽히게 두면 안 된다.
+      const isOfficial = (r) => /official/i.test(r.kind || "");
+      const isDistributor = (r) => /distributor/i.test(r.kind || "");
+      const monthOf = (d) => (d && /^\d{4}-\d{2}$/.test(d) ? monthYear(d + "-01") || d : d || "");
+      // 소스 URL 이 살아있는 http 링크일 때만 클릭 링크. 죽은/빈 소스는 텍스트로(죽은 링크 노출 방지 — 2026-07-21 감사).
+      const item = (r) => {
+        const live = typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead;
+        const when = esc(monthOf(r.date));
+        return live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${when}</a>` : when;
+      };
+      const official = recs.filter(isOfficial), distrib = recs.filter(isDistributor);
+      const retail = recs.filter((r) => !isOfficial(r) && !isDistributor(r));
+      const lines = [];
+      if (official.length) lines.push(`<li>Bandai official-shop reprint: ${official.map(item).join(", ")}.</li>`);
+      if (distrib.length) lines.push(`<li>Distributor reprint: ${distrib.map(item).join(", ")}.</li>`);
+      if (retail.length) {
+        lines.push(`<li>Retailer-reported restocks: ${retail.map(item).join(", ")} — store restock notices, not a Bandai reprint announcement.</li>`);
+      }
+      if (!lines.length) lines.push("<li>No reprint or restock record in our source ledger.</li>");
+      // 재판은 "최초 발매 대비" 개념이라 기준일이 있어야 읽힌다. 공식 출처로 확인한 일본판 발매일만 싣는다
+      // (페이지 상단의 release 는 영문판 날짜라 여기 기준으로 쓸 수 없다).
+      const jpRel = sf.jpRelease && sf.jpRelease.date
+        ? `<li>Original Japanese release: <strong>${esc(sf.jpRelease.date)}</strong>${
+            sf.jpRelease.source ? ` (<a href="${esc(sf.jpRelease.source)}" target="_blank" rel="noopener nofollow">Bandai official</a>)` : ""
+          }.</li>`
+        : "";
       reprintBlock = `
       <h2>Reprints &amp; original price</h2>
       <ul class="keyFacts">
+        ${jpRel}
         <li>Original Japanese MSRP: <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd}).</li>
-        <li>Retailer/distributor reprint records: ${rpLine}.</li>
+        ${lines.join("\n        ")}
       </ul>`;
     }
   }
