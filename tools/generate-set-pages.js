@@ -458,7 +458,8 @@ function setPage(code, prev, next) {
       const official = recs.filter(isOfficial), distrib = recs.filter(isDistributor);
       const retail = recs.filter((r) => !isPre(r) && !isUnverified(r) && !isOfficial(r) && !isDistributor(r));
       const lines = [];
-      if (pre.length) lines.push(`<li>Pre-release lottery: ${pre.map(item).join(", ")} — Premium Bandai draw for the <strong>initial</strong> print run, before the release date. Advance allocation, not extra supply.</li>`);
+      // 사전추첨(발매 전 초회 물량 선배분)은 이 섹션에 싣지 않는다 — 추가 공급이 아니라서
+      // "재판·공급" 맥락에 두면 물량이 늘어난 것처럼 읽힌다. 데이터에는 남아 있다(pre-release-lottery).
       if (official.length) lines.push(`<li>Post-release lottery sale: ${official.map(item).join(", ")} — a Premium Bandai / Bandai Namco shop draw held after release. Bandai does not call these reprints, so we do not either.</li>`);
       if (unver.length) lines.push(`<li>Lottery sale: ${unver.map(item).join(", ")} — we could not verify whether this ran before or after the Japanese release, so we do not claim it added supply.</li>`);
       if (distrib.length) lines.push(`<li>Distributor reprint: ${distrib.map(item).join(", ")}.</li>`);
