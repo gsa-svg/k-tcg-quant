@@ -716,3 +716,15 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 - Duplicate dates are no-ops; changed data on an already stored date, cumulative regressions, mixed dates, and non-weekly intervals fail closed.
 - The Monday market workflow runs the updater, commits the snapshot archive, and performs a final freshness check. If the upstream cumulative PSA source is older than 8 days, Actions now fails visibly instead of silently publishing a frozen "live" meter.
 - Important remaining source limitation: the repository still has no approved automatic PSA/GemRate cumulative collector. PSA's unauthenticated public API quota is not sufficient for all sets, and the historical data was manually imported. Do not scrape TCG Quant or invent weekly totals. Connect an approved PSA population source before calling the meter fully unattended.
+
+## 애드센스 통과 후 정리 목록 (2026-08-14 기록 — 사용자 지시: "통과하면 없애자")
+
+심사 때문에 남겨둔 콘텐츠들. **애드센스 승인 전에는 건드리지 말 것** — 지금 지우면 심사 대상 페이지가 얇아진다.
+승인 뒤에 아래를 정리한다.
+
+- **홈 하단 21세트 가격표**( .homeSummary) — 근거가 (우리가 버린 혼합소스)라
+  같은 페이지의 그래프와 숫자가 다르다(OP-01 일본판 표 $313 vs 실거래 $292, 표는 2026-07-12 로 한 달 낡음).
+  없애거나, 남긴다면 실거래(sold) 기준으로 갈아끼울 것.
+- **compare.html** — 사용자 평: 애드센스 아니면 지울 페이지. 글이 길고 일반 독자가 안 읽는다.
+- PSA 메뉴 항목 정리(사용자가 한 번 지적, 애드센스 결과 후 결정으로 보류).
+- 한국어 세트페이지 21장 noindex 해제 여부도 이때 함께 결정.
