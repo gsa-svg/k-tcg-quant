@@ -1807,22 +1807,40 @@ function setBadges(code) {
   const bySet = mi.reprints.bySet[code];
   if (!bySet) return ""; // 조사 안 된 세트(예: 신규)는 표시 안 함 — 모르는 걸 아는 척 안 함
   const href = `sets/${code.toLowerCase()}.html${state.hl === "ko" ? "?hl=ko" : ""}`;
-  const recs = bySet.reprintRecords || [];
-  if (recs.length) {
-    const ym = (dstr) => (dstr ? dstr.slice(0, 7).replace("-", ".") : t("날짜미상", "n/a"));
-    const dates = recs.map((r) => ym(r.date)).join(", ");
-    const tip = t(
-      `유통사·리테일러 재판(再販) 출하 기록 ${recs.length}건: ${dates}. 반다이는 세트별 재판을 공식 발표하지 않습니다.`,
-      `${recs.length} retailer/distributor reprint (再販) shipment record(s): ${dates}. Bandai does not officially announce per-set reprints.`
+  const ym = (d) => (d ? d.slice(0, 7).replace("-", ".") : "");
+  const out = [];
+
+  // 1) 일본판 공식 발매일. 이 원장은 일본판 박스가 기준이고, 페이지 상단의 release 는 영문판 날짜라
+  //    여기서 쓰면 안 된다. 반다이 공식 페이지(또는 그 웨이백 사본)로 확인한 것만 싣는다.
+  const rel = bySet.jpRelease && bySet.jpRelease.date;
+  if (rel) {
+    const tipRel = t(
+      `일본판 발매일 ${rel} — 반다이 공식 제품 페이지 기준. 위의 release 는 영문판 날짜라 다릅니다.`,
+      `Japanese release ${rel}, from Bandai's official product page. The release date shown above is the English edition and differs.`
     ).replace(/"/g, "'");
-    return `<span class="setBadges"><a class="setBadge reprint" href="${href}" title="${tip}">${t("재판", "Reprint")} ${dates} <span class="rpSrc">${t("유통사", "retailer")}</span></a></span>`;
+    out.push(`<a class="setBadge relDate" href="${href}" title="${tipRel}">${t("일본판 발매", "JP release")} ${rel}</a>`);
   }
-  // 기록 없음 — 조사했으나 못 찾음(빈칸으로 안 두고 명시). "재판 안 됨"이 아님을 툴팁으로 분명히.
-  const tipNone = t(
-    `우리 소스에서 날짜 있는 재판(再販) 기록을 찾지 못함. 반다이는 세트별 재판을 공식 발표하지 않으므로 '재판된 적 없음'을 뜻하지는 않습니다.`,
-    `No dated reprint (再販) record found in our sources. Bandai does not officially announce per-set reprints, so this does NOT mean the set was never reprinted.`
-  ).replace(/"/g, "'");
-  return `<span class="setBadges"><a class="setBadge reprintNone" href="${href}" title="${tipNone}">${t("재판 기록 없음", "No reprint on record")}</a></span>`;
+
+  // 2) **발매 후** 공식 추첨판매만. 사전추첨(초회 물량 선배분)과 매장 재입고는 뺀다.
+  const recs = bySet.reprintRecords || [];
+  const post = recs.filter((r) => r.kind === "official-lottery");
+  if (post.length) {
+    const dates = post.map((r) => ym(r.date)).filter(Boolean).join(", ");
+    const tipPost = t(
+      `발매 후 반다이 공식 추첨판매 ${post.length}회: ${dates}. 프리미엄 반다이·반다이남코샵 추첨입니다. 반다이는 이를 '재판'이라 부르지 않습니다.`,
+      `${post.length} Bandai official lottery sale(s) after release: ${dates}. Premium Bandai / Bandai Namco shop draws. Bandai does not call these reprints.`
+    ).replace(/"/g, "'");
+    out.push(`<a class="setBadge lottery" href="${href}" title="${tipPost}">${t("공식 추첨", "Official draw")} ${dates}</a>`);
+  } else if (rel) {
+    // 발매일은 아는데 발매 후 추첨이 없다 — 조사했고 없었다는 뜻이라 빈칸으로 두지 않는다.
+    const tipNone = t(
+      `발매 후 반다이 공식 추첨판매 기록을 찾지 못했습니다. 매장 재입고는 세트 페이지에 따로 적어 둡니다.`,
+      `No Bandai official lottery sale found after release. Retailer restocks, if any, are listed on the set page.`
+    ).replace(/"/g, "'");
+    out.push(`<a class="setBadge reprintNone" href="${href}" title="${tipNone}">${t("발매 후 추첨 없음", "No post-release draw")}</a>`);
+  }
+
+  return out.length ? `<span class="setBadges">${out.join("")}</span>` : "";
 }
 
 function renderDetail() {

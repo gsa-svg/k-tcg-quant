@@ -1174,6 +1174,10 @@ h2 {
 .setBadge b { font-weight: 800; }
 .setBadge.msrp { background: rgba(80,218,217,.12); color: #7fe3e2; border: 1px solid rgba(80,218,217,.3); cursor: help; }
 .setBadge.reprint { background: rgba(255,125,60,.13); color: #ff9d6c; border: 1px solid rgba(255,125,60,.35); }
+/* 일본판 공식 발매일 — 사실 표기라 차분하게. */
+.setBadge.relDate { background: rgba(255,255,255,.06); color: #b9c2d4; border: 1px solid rgba(255,255,255,.12); }
+/* 발매 후 공식 추첨판매 — 실제로 물량이 더 풀린 신호라 눈에 띄게. */
+.setBadge.lottery { background: rgba(201,162,39,.14); color: #e0bd52; border: 1px solid rgba(201,162,39,.38); }
 .setBadge.reprint:hover { background: rgba(255,125,60,.22); }
 
 /* 재판 배지 출처 표기 */
