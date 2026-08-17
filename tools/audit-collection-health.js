@@ -186,6 +186,35 @@ if (has("data/auction-market.json")) {
   }
 }
 
+// ── 9. 환율(fx.json) 신선도 — 2026-08-17 추가.
+//    fx.json 이 07-01 값에 47일 멈춰 있었는데 아무도 몰랐다. 갱신 워크플로우가 없었던 데다,
+//    "가격이 안 변하는 것"과 달리 "환율이 안 변하는 것"은 화면에 아무 표시도 남기지 않기 때문이다.
+//    그 사이 실제 환율은 8.9% 움직였고, eBay 원화 표시를 달러로 바꾸는 12개 파일이 전부 틀린 값을 썼다.
+//    환율은 우리가 만드는 데이터가 아니라 남의 숫자를 베끼는 것이라, 늦었다는 사실 자체가 유일한 신호다.
+{
+  const FX_STALE = 4;   // ECB 는 영업일만 고시한다. 주말+공휴일이 붙어도 4일이면 반드시 새 값이 있다.
+  if (!has("data/fx.json")) fail("data/fx.json 이 없다");
+  else {
+    const fx = readJSON("data/fx.json");
+    const age = fx.date ? daysAgo(fx.date) : 999;
+    if (!fx.date) fail("fx.json 에 date 가 없다");
+    else if (age > FX_STALE) fail(`환율이 ${age}일째 그대로다 (${fx.date} ${fx.usdKrw}) — 이 값으로 환산되는 달러 가격이 전부 틀어진다`);
+    else ok(`환율 최신 ${fx.date} (USD/KRW ${fx.usdKrw})`);
+
+    // 이력도 같이 본다. 이력이 안 쌓이면 나중에 "이 기록은 어느 환율로 환산됐나"를 되짚을 수 없다 —
+    // 그리고 그건 소급이 안 된다(무료 API 는 과거를 며칠치밖에 안 준다).
+    if (!has("data/fx-history.json")) fail("data/fx-history.json 이 없다 — 환율 이력은 소급 수집이 안 된다");
+    else {
+      const h = readJSON("data/fx-history.json");
+      const days = Object.keys(h.rates || {}).sort();
+      const last = days[days.length - 1];
+      if (!last) fail("환율 이력이 비어 있다");
+      else if (daysAgo(last) > FX_STALE) fail(`환율 이력이 ${daysAgo(last)}일째 안 늘었다 (마지막 ${last})`);
+      else ok(`환율 이력 ${days.length}일치, 최신 ${last}`);
+    }
+  }
+}
+
 const out = { status: problems.length ? "FAIL" : "OK", today, problems, checked: notes };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
 if (problems.length) process.exit(1);
