@@ -120,13 +120,19 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const totalUsd = item.cur === "USD" ? item.k : item.cur === "KRW" ? item.k / fxUsdKrw : null;
   if (!Number.isFinite(totalUsd)) return { drop: "bad-currency" };
   const unit = unitPrice(totalUsd, qty);
-  if (unit == null || unit < 90000 / fxUsdKrw || unit > 5000) return { drop: "price-out-of-range" };
+  // 상한 8000 — OP-01 영문 Blue Bottom(초판)은 실제 $4~6천대다. 5000 이면 그 세트의 진짜 거래를 버린다.
+  if (unit == null || unit < 90000 / fxUsdKrw || unit > 8000) return { drop: "price-out-of-range" };
   const d = soldDateOf(item.d);
   if (!d) return { drop: "bad-date" };
   // fmt: "bin"(즉시구매) | "auction"(경매). 시세 그래프는 즉시구매만 쓴다 — 경매는 입찰이 안 붙으면
   // 시세보다 훨씬 낮게 끝나 섞으면 잡음이 된다. 구 덤프에는 이 값이 없어 undefined 로 남는다.
   const rec = { id: String(item.id), d, unit: Number(unit.toFixed(2)), total: Number(totalUsd.toFixed(2)), qty, title: t.slice(0, 140) };
   if (fmt === "bin" || fmt === "auction") rec.fmt = fmt;
+  // 원화 원본과 적용 환율을 함께 박는다 — 2026-08-17.
+  // 그 전에는 달러값만 남겼는데, fx.json 이 47일 멈춰 있던 걸 뒤늦게 발견했을 때
+  // "이 기록은 어느 환율로 환산됐나"를 알 길이 없어 git 이력으로 수집일을 역추적해야 했다
+  // (tools/restore-box-fx.js). 두 번 다시 추정하지 않도록 원본을 그대로 보관한다.
+  if (item.cur === "KRW") { rec.krw = Math.round(item.k / qty); rec.fx = Number(fxUsdKrw.toFixed(2)); }
   return { rec, ed };
 }
 

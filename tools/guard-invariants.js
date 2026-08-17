@@ -725,7 +725,10 @@ if (exists("data/box-sold-ledger.json")) {
         if (!r.id || ids.has(r.id)) { errors.push(`D6: ${code}.${ed} id 누락/중복 (${r.id})`); break; }
         ids.add(r.id);
         if (!/^\d{4}-\d{2}-\d{2}$/.test(r.d || "")) { errors.push(`D6: ${code}.${ed} ${r.id} 날짜 형식 이상 (${r.d})`); break; }
-        if (!(Number.isFinite(r.unit) && r.unit > 0 && r.unit <= 5000)) { errors.push(`D6: ${code}.${ed} ${r.id} unit 이상 (${r.unit})`); break; }
+        // 상한 8000: OP-01 영문 Blue Bottom(초판)은 실제로 $4~6천대에서 팔린다. 5000 이던 상한은
+        // 2026-08-17 환율 보정(tools/restore-box-fx.js) 후 실거래 1건($5,205)을 튕겨냈다 — 데이터가
+        // 이상한 게 아니라 상한이 이 세트의 현실을 몰랐던 것이라 올린다. box-sold-ingest.js 와 같은 값.
+        if (!(Number.isFinite(r.unit) && r.unit > 0 && r.unit <= 8000)) { errors.push(`D6: ${code}.${ed} ${r.id} unit 이상 (${r.unit})`); break; }
         if (!(Number.isInteger(r.qty) && r.qty >= 1 && r.qty <= 24)) { errors.push(`D6: ${code}.${ed} ${r.id} qty 이상 (${r.qty})`); break; }
       }
     }
