@@ -58,6 +58,20 @@ const get = async (url) => {
   fs.writeFileSync(FX, JSON.stringify(next, null, 2) + "\n", "utf8");
   fs.writeFileSync(HIST, JSON.stringify(hist, null, 1) + "\n", "utf8");
 
+  // 화면이 실제로 읽는 환율은 여기다 — 2026-08-17.
+  // data/fx.json 은 수집 스크립트용이고, 브라우저(packs.js triMain)와 페이지 생성기는
+  // onepiece-packs.json 안에 복사돼 있는 fx 를 쓴다. 둘이 따로 놀 수 있다는 걸 몰라서
+  // fx.json 만 고쳤을 때 화면은 여전히 2026-07-14 값(1548.63)을 쓰고 있었다.
+  // 한 곳만 고치면 반드시 다시 어긋나므로 같이 쓴다.
+  const PACKS = path.join(DATA, "onepiece-packs.json");
+  let packsWas = null;
+  if (fs.existsSync(PACKS)) {
+    const p = JSON.parse(fs.readFileSync(PACKS, "utf8"));
+    packsWas = p.fx ? p.fx.date + " " + p.fx.usdKrw : null;
+    p.fx = { ...next };
+    fs.writeFileSync(PACKS, JSON.stringify(p, null, 1) + "\n", "utf8");
+  }
+
   const drift = prev.usdKrw ? ((next.usdKrw / prev.usdKrw - 1) * 100).toFixed(2) : null;
   console.log(JSON.stringify({
     status: "ok",
@@ -66,5 +80,6 @@ const get = async (url) => {
     driftPct: drift,
     historyAdded: added,
     historyDays: hist.days,
+    packsWas,
   }));
 })().catch((e) => { console.error(String(e)); process.exit(1); });

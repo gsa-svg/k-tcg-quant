@@ -150,14 +150,17 @@ function marketKrw(value, currency) {
   return null;
 }
 
-// 글로벌 표기: 달러 메인 + 원화·엔화 병기. 원본 통화는 환산 기준점으로만 사용.
+// 표기는 **달러 하나로** 통일한다 — 2026-08-17. 그전에는 달러 아래에 원화·엔화를 병기했는데,
+// 셋을 나란히 두면 한 줄에 숫자가 셋이라 정작 비교해야 할 달러 값이 묻혔다. 그리고 병기된 원화·엔화는
+// 우리가 환율로 만든 파생값이지 누가 그 값에 판 게 아니다 — 시세처럼 보이면 안 된다.
+// krw/jpy 는 계속 돌려준다(정렬·구간 계산 등 내부 용도). 화면에 쓰는 것은 main 뿐이다.
 function triMain(value, currency) {
   const fx = (state.data && state.data.fx) || {};
-  if (value == null) return { usd: null, krw: null, jpy: null, main: "-", sub: "" };
+  if (value == null) return { usd: null, krw: null, jpy: null, main: "-" };
   const krw = marketKrw(value, currency);
   const usd = currency === "USD" ? value : krw / (fx.usdKrw || 1388.2);
   const jpy = currency === "JPY" ? value : krw / (fx.jpyKrw || 9.1);
-  return { usd, krw, jpy, main: fmtUsd(usd), sub: `${fmtKrw(krw)} · ${fmtJpy(jpy)}` };
+  return { usd, krw, jpy, main: fmtUsd(usd) };
 }
 
 function priceBandRows(market) {
@@ -174,7 +177,6 @@ function priceBandRows(market) {
         <span class="bandRow">
           <i>${label}</i>
           <b>${t.main}</b>
-          <small>${t.sub}</small>
         </span>`;
     })
     .join("");
@@ -191,7 +193,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260814a";
+const DATA_VERSION = "20260817a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -989,16 +991,16 @@ function priceLines(c) {
   // 일본 NM 리서치 전 세트(예: OP-16 신작)는 TCGplayer USD 시세를 폴백 표시. 소스 라벨은 정직하게 TCGplayer 명시.
   if (c.nmJpy == null && c.priceUsd != null) {
     const p = triMain(c.priceUsd, "USD");
-    return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small>${p.sub} <em>TCGplayer</em></small></span></div>`;
+    return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small><em>TCGplayer</em></small></span></div>`;
   }
   if (c.nmJpy != null) {
     const p = triMain(c.nmJpy, "JPY");
-    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small>${p.sub} <em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
+    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small><em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const p = triMain(c.psa10Usd, "USD");
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
-    h += `<span class="pl psa"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <b>${p.main}</b> <small>${p.sub}${d ? " · " + d : ""} <em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
+    h += `<span class="pl psa"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <b>${p.main}</b> <small>${d ? d + " " : ""}<em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
   } else if ((c.psa10Ebay?.sampleSize || 0) >= 3) {
     h += `<span class="pl psaEbay"><i>${t("일본어판 PSA10 eBay", "Japanese PSA 10 eBay")}</i><span class="bandRows">${priceBandRows(c.psa10Ebay)}</span><small>eBay Sold · ${t(`표본 ${c.psa10Ebay.sampleSize}건`, `${c.psa10Ebay.sampleSize} samples`)}</small></span>`;
   } else {

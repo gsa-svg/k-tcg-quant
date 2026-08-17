@@ -201,6 +201,16 @@ if (has("data/auction-market.json")) {
     else if (age > FX_STALE) fail(`환율이 ${age}일째 그대로다 (${fx.date} ${fx.usdKrw}) — 이 값으로 환산되는 달러 가격이 전부 틀어진다`);
     else ok(`환율 최신 ${fx.date} (USD/KRW ${fx.usdKrw})`);
 
+    // 화면이 읽는 환율은 fx.json 이 아니라 onepiece-packs.json 안에 복사된 fx 다. 둘이 어긋나면
+    // 원장은 새 환율로, 화면은 옛 환율로 돌아간다 — 2026-08-17 실제로 그랬다(fx.json 7/1, 화면 7/14).
+    // 값이 다르면 어느 쪽이 맞는지 사람이 알 수 없으므로 여기서 막는다.
+    if (has("data/onepiece-packs.json")) {
+      const pf = (readJSON("data/onepiece-packs.json") || {}).fx || {};
+      if (pf.usdKrw !== fx.usdKrw || pf.date !== fx.date) {
+        fail(`화면 환율이 fx.json 과 다르다 — 화면 ${pf.date} ${pf.usdKrw} vs fx.json ${fx.date} ${fx.usdKrw}`);
+      } else ok("화면 환율 = fx.json 일치");
+    }
+
     // 이력도 같이 본다. 이력이 안 쌓이면 나중에 "이 기록은 어느 환율로 환산됐나"를 되짚을 수 없다 —
     // 그리고 그건 소급이 안 된다(무료 API 는 과거를 며칠치밖에 안 준다).
     if (!has("data/fx-history.json")) fail("data/fx-history.json 이 없다 — 환율 이력은 소급 수집이 안 된다");

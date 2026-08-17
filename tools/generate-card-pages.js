@@ -141,10 +141,10 @@ for (const { code, set: s, card: c } of cands) {
 
   // 타이틀은 실제 검색 문구("<카드> psa 10 price") 매칭 + 월 표기 자동 갱신(야간 재생성)
   const title = `${c.name} (${c.number}) PSA 10 Price & Population — ${MON_LABEL} | OP Box Index`;
-  const desc = `${c.name} ${c.number} current prices: raw Japanese NM ${jpy(c.nmJpy)} (about ${usd(nmUsd)})${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} near ${usd(p10.v)}` : ""}${pop ? `, PSA population ${intl(pop.total)} (${pop.gem}% gem rate)` : ""}. Variant-verified, updated ${DATA_DATE}.`;
+  const desc = `${c.name} ${c.number} current prices: raw Japanese NM ${usd(nmUsd)}${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} near ${usd(p10.v)}` : ""}${pop ? `, PSA population ${intl(pop.total)} (${pop.gem}% gem rate)` : ""}. Variant-verified, updated ${DATA_DATE}.`;
 
   const faq = [
-    { q: `How much is ${c.name} (${c.number}) worth?`, a: `On ${DATA_DATE}, ${c.name} ${c.number} was tracked near ${jpy(c.nmJpy)} (${usd(nmUsd)}) in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}` : "; no PSA 10 figure met the exact-variant sales rule"}.` },
+    { q: `How much is ${c.name} (${c.number}) worth?`, a: `On ${DATA_DATE}, ${c.name} ${c.number} was tracked near ${usd(nmUsd)} in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}` : "; no PSA 10 figure met the exact-variant sales rule"}.` },
     ...(pop ? [{ q: `How rare is a PSA 10 ${c.name}?`, a: `PSA reports ${intl(pop.total)} graded copies of the tracked ${c.name} ${c.number} printing, including ${intl(pop.psa10)} in PSA 10 for a ${pop.gem}% gem rate.` }] : []),
     { q: `Which ${c.name} printing does this page track?`, a: `The ${c.name} value on this page applies only to the ${c.number} artwork shown above; buyers should match its artwork, finish, card number and graded-label variant.` },
   ];
@@ -222,7 +222,9 @@ for (const { code, set: s, card: c } of cands) {
         ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="716" height="1000" loading="eager" decoding="async" fetchpriority="high" />` : ""}
         <div style="flex:1;min-width:260px;">
           <div class="priceCards">
-            <div class="pc hl"><span>Japanese NM (raw)</span><b>${usd(nmUsd)}</b><small>${jpy(c.nmJpy)} · Japanese retail${c.nmVenue ? "" : ""} · as of ${esc(DATA_DATE)}</small></div>
+            <!-- 표기는 달러 하나로 통일한다(2026-08-17). 엔화 원본은 화면에서 빼고 데이터(CSV/JSON)에 남긴다 —
+                 한 줄에 통화가 둘이면 정작 비교해야 할 달러 값이 묻힌다. -->
+            <div class="pc hl"><span>Japanese NM (raw)</span><b>${usd(nmUsd)}</b><small>Japanese retail · as of ${esc(DATA_DATE)}</small></div>
             ${p10 ? `<div class="pc"><span>PSA 10 ${p10.kind === "sold" ? "(sold median)" : "(lowest listing)"}</span><b>${usd(p10.v)}</b><small>${p10.kind === "sold" ? `${p10.n} sales` : "ask, not a sale"} · ${esc(p10.date || "")}</small></div>` : ""}
             ${pop ? `<div class="pc"><span>PSA population</span><b>${intl(pop.total)}</b><small>${intl(pop.psa10)} in PSA 10 · ${pop.gem}% gem rate</small></div>` : ""}
           </div>

@@ -63,7 +63,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/fx.json data/fx-history.json
+          # onepiece-packs.json 도 같이 커밋한다 — 화면(packs.js triMain)과 페이지 생성기가
+          # 읽는 환율은 fx.json 이 아니라 이 파일 안에 복사된 fx 다. 빠뜨리면 원장만 새 환율로
+          # 가고 화면은 옛 환율에 남는다(2026-08-17 실제 사고).
+          git add data/fx.json data/fx-history.json data/onepiece-packs.json
           git diff --cached --quiet && echo "변경 없음(영업일 아님이거나 동일 고시)" && exit 0
           git commit -m "Update FX rate"
           git pull --rebase origin main
