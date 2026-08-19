@@ -28,6 +28,7 @@ node tools/cgc-card-pop-api-ingest.js "$TMP/cgc-dump.json"
 # 4) 세트 누적을 화면에 반영 + 검증
 node tools/inject-grader-editions.js          # → packs.json 의 graders (CGC·TAG 누적)
 node tools/generate-set-pages.js && node tools/generate-card-pages.js && node tools/generate-ko-pages.js
+node tools/build-grading-series.js            # 세트 × 등급사 × 주차 시계열(그래프용)
 node tools/audit-grading-numbers.js           # 숫자 검증 — 실패하면 배포 금지
 node tools/guard-invariants.js
 ```
@@ -60,3 +61,22 @@ SPA 라 느리고 렌더러가 얼기도 한다. 결과 회수는 다운로드�
 `psaTotal` · `psaGem` 은 2026-07-15 수동 기입 후 갱신하는 코드가 없다.
 화면은 `psaFull?.total ?? psaTotal` 순서라 지금은 안 쓰이지만, `psaFull` 이 빈 세트가
 생기면 한 달 묵은 값이 조용히 나간다. 정리 대상.
+
+## 그래프용 시계열
+
+`data/grading-series.json` — 세트 × 등급사 × 주차 누적 감정. 증감(`add`)까지 계산돼 있다.
+원장 셋(PSA `weekly`/CGC·TAG `jp`|`en`)이 구조가 달라서 그래프마다 형식을 맞추지 않도록
+한 번만 정규화해 둔 파생 파일이다. 언제 다시 구워도 같은 값이 나온다.
+
+```
+OP-01 일본판
+  PSA  2026-08-12  57,000  (+291)
+  CGC  2026-08-17   6,666  (+11)
+  TAG  2026-08-17     257  (+0)
+  합계 63,923
+```
+
+`latestTotal` 은 각 등급사의 **최신 점**을 더한 값이다. 관측일이 회사마다 달라
+"같은 날 합계"는 만들 수 없어서, 어느 날짜를 더했는지 `asOf` 에 같이 적는다.
+젬 수는 합치지 않는다 — CGC 는 Pristine 10 과 Gem Mint 10 을 나누고 TAG 는 10 과 10P 가
+따로라, 합치면 세 회사의 다른 잣대를 한 숫자로 뭉개게 된다.

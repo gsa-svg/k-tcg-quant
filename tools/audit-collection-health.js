@@ -208,6 +208,16 @@ if (has("data/auction-market.json")) {
   }
 }
 
+// ── 8c. 그레이딩 시계열(grading-series.json) — 2026-08-19 추가.
+//    세트별 누적 감정을 등급사별·주차별로 담은 파생 파일이다. 원장은 갱신됐는데 이게 안 구워지면
+//    화면 그래프만 지난주에 머문다 — 파생이 뒤처지는 사고는 조용해서 제일 늦게 발견된다.
+if (has("data/grading-series.json")) {
+  const S = readJSON("data/grading-series.json");
+  const age = S.updated ? daysAgo(S.updated) : 999;
+  if (age > 10) fail(`그레이딩 시계열이 ${age}일째 안 구워졌다 (마지막 ${S.updated})`);
+  else ok(`그레이딩 시계열 최신 ${S.updated} (${Object.keys(S.sets || {}).length}세트)`);
+}
+
 // ── 9. 환율(fx.json) 신선도 — 2026-08-17 추가.
 //    fx.json 이 07-01 값에 47일 멈춰 있었는데 아무도 몰랐다. 갱신 워크플로우가 없었던 데다,
 //    "가격이 안 변하는 것"과 달리 "환율이 안 변하는 것"은 화면에 아무 표시도 남기지 않기 때문이다.

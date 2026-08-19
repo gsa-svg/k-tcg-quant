@@ -132,6 +132,12 @@ jobs:
 
       # 등급 숫자는 틀리면 안 된다(소유자 지시). 젬률 계산, 주간 증감, 등급사별 증감 구간 라벨이
       # 원본과 맞는지 여기서 막는다. 위 수집이 건너뛰어졌더라도 **이 검증만은 반드시 통과해야 한다**.
+      # 세트 × 등급사 × 주차 누적 시계열을 다시 굽는다 — 2026-08-19.
+      # 원장 셋(PSA·CGC·TAG)이 구조가 달라서, 그래프를 그릴 때마다 형식을 맞추지 않도록
+      # 한 파일로 정규화해 둔다. 파생이라 언제 다시 구워도 같은 값이 나온다.
+      - name: Build grading series
+        run: node tools/build-grading-series.js
+
       - name: Audit grading numbers
         run: |
           set -o pipefail
@@ -177,13 +183,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html sitemap.xml; then
+          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html sitemap.xml; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html sitemap.xml
+          git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
