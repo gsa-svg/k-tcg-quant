@@ -162,13 +162,19 @@ function main(dumpFile) {
   const drops = {};
   let backfilled = 0;   // 기존 레코드에 fmt 를 뒤늦게 채운 수
   const seenBySet = {};  // 세트별로 이번 덤프에서 본 유효 sold (스냅샷 계산용)
-  // eBay 는 한 검색에 240~265건까지만 준다(_pgn 은 무시된다). 그 수에 닿은 페이지는 **잘린 것**이라
-  // 그 구간의 오래된 판매를 못 봤다는 뜻이다. 조용히 넘어가면 "다 모았다"고 착각한다.
+  // eBay 는 한 검색에 240~265건까지만 준다(_pgn 은 무시된다). 그 수에 닿은 구간은 잘린 것이라
+  // 오래된 판매를 못 봤다는 뜻이다. 조용히 넘어가면 "다 모았다"고 착각한다.
+  //
+  // ⚠️ 판정에 rawN 을 쓰면 안 된다 — 2026-08-18 실측: OP-16 영문 15만~30만 구간이 rawN 242 였는데
+  //    실제 부스터박스는 135건이고 나머지 107개는 eBay 가 채운 유사 상품이었다. 그 구간을 반으로
+  //    쪼개 봤더니 145건(+7%)에 그쳤다 — rawN 으로 세면 "137/210 페이지가 잘렸다"는 잘못된 경보가 난다.
+  //    실제로 잘렸는지는 **우리가 박스로 판정한 건수(kept)** 가 240 에 닿았는지로 본다.
   const cappedPages = [];
   for (const page of dump.pages || []) {
     const code = page.code;
     if (!data.sets[code]) continue;
-    if (Number(page.rawN) >= 240) cappedPages.push(code + "/" + page.query + (page.band != null ? "/" + page.band : ""));
+    const boxLike = (page.items || []).filter((it) => /booster\s*box/i.test(String(it.t || ""))).length;
+    if (boxLike >= 235) cappedPages.push(code + "/" + page.query + (page.band != null ? "/" + page.band : ""));
     // 이번 덤프에서 유효 판정된 건 전부(이미 아는 id 포함) — 스냅샷 계산용
     const seen = { jp: [], en: [] };
     let appended = 0;
@@ -237,7 +243,7 @@ function main(dumpFile) {
 
   const totals = Object.values(ledger.sets).reduce((a, s) => a + (s.jp || []).length + (s.en || []).length, 0);
   const cappedNote = cappedPages.length
-    ? `${cappedPages.length}/${(dump.pages || []).length} pages hit eBay's ~240-result ceiling — older sales in those slices were not visible. Narrow the price bands to recover them.`
+    ? `${cappedPages.length}/${(dump.pages || []).length} slices returned 235+ real booster-box rows — those hit eBay's ~240 ceiling and their older sales were not visible. Narrow those price bands. (rawN is not a ceiling signal: eBay pads short result sets with similar items.)`
     : null;
   console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, backfilled, capped: cappedPages.length, cappedNote, ledgerTotal: totals }));
 }
