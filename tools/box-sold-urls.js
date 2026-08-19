@@ -41,7 +41,19 @@
 const fs = require("fs");
 const path = require("path");
 const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "onepiece-packs.json"), "utf8"));
+// 발매 임박 세트 — 2026-08-19 신설. packs.json 에는 아직 없지만(화면에 빈 세트를 띄우지 않으려고)
+// 수집은 발매일부터 해야 한다. 발매 직후 며칠은 다시 못 얻는다 —
+// 팰월드 BP-01 에서 발매 2주차 궤적이 없어 아쉬웠던 게 정확히 이 문제다.
+// 데이터가 쌓이고 화면에 올릴 때 packs.json 으로 옮기고 여기서는 지운다.
+const UPCOMING = [
+  { code: "OP-17", nameEn: "The World's Strongest Warriors", release: "2026-08-22" },
+];
 const ORDER = [...data.jp.list, ...data.extra.list].filter((c) => data.sets[c]);
+for (const u of UPCOMING) {
+  if (data.sets[u.code]) continue;              // packs.json 으로 옮겨졌으면 그쪽을 쓴다
+  data.sets[u.code] = { nameEn: u.nameEn };     // 이 스크립트 안에서만 쓰는 임시 항목(파일에 안 쓴다)
+  ORDER.push(u.code);
+}
 const q = (s) => encodeURIComponent(s).replace(/%20/g, "+");
 const base = "https://www.ebay.com/sch/i.html?_nkw=";
 // _sop=13 = 최근 종료순 정렬. 240건 상한에 걸릴 때 최신 판매가 잘리지 않게 한다.
@@ -82,7 +94,9 @@ function collectorScript() {
 //   3) window.__opDownload('opbox-box-sold-YYYY-MM-DD.json')                    → Downloads 에 저장
 // 그 뒤 노드에서 그 파일을 box-sold-ingest.js 에 투입.
 function setupScript() {
-  const codes = [...data.jp.list, ...data.extra.list].filter((c) => data.sets[c]);
+  // ORDER 를 그대로 쓴다 — 실제 수집은 이 배치 경로로 돈다. 위에서 UPCOMING 을 넣고
+  // 여기서 빼먹으면 발매 임박 세트가 목록에만 뜨고 정작 수집은 안 된다(2026-08-19 실수).
+  const codes = ORDER;
   return `(()=>{const CODES=${JSON.stringify(codes)};const q=s=>encodeURIComponent(s).replace(/%20/g,'+');const BANDS=[[0,80000],[80000,150000],[150000,300000],[300000,600000],[600000,0]];const mk=(kw,lang,lo,hi)=>'https://www.ebay.com/sch/i.html?_nkw='+q(kw)+'&LH_Sold=1&LH_Complete=1&_ipg=240&_sop=13&LH_BIN=1&Language='+lang+(lo?'&_udlo='+lo:'')+(hi?'&_udhi='+hi:'');const P=[];for(const c of CODES){const prb=c.startsWith('PRB');const kw=prb?'One Piece '+c+' Premium Booster box':'One Piece '+c+' booster box';for(const [lo,hi] of BANDS){P.push({code:c,query:'jp',fmt:'bin',band:lo,url:mk(kw,'Japanese',lo,hi)});P.push({code:c,query:'en',fmt:'bin',band:lo,url:mk(kw,'English',lo,hi)});}}window.__PAGES=P;window.__opDump={collectedAt:new Date().toISOString().slice(0,10),langFacet:true,fmtSplit:true,pages:[]};window.__grab=async u=>{let h;try{h=await fetch(u,{credentials:'include'}).then(r=>r.text());}catch(e){return{robot:false,items:[]};}if(/Pardon our interruption|Checking your browser|captcha/i.test(h.slice(0,4000)))return{robot:true,items:[]};const doc=new DOMParser().parseFromString(h,'text/html');const cards=doc.querySelectorAll('.s-card,li.s-item');const rawN=cards.length;const out=[];for(const c of cards){const a=c.querySelector('a[href*="/itm/"]');const m=a&&(a.getAttribute('href')||'').match(/\\/itm\\/(\\d+)/);if(!m||m[1]==='123456')continue;const t=((c.querySelector('.su-styled-text.primary')||c.querySelector('.s-item__title'))?.textContent||'').replace(/New Listing/ig,'').trim();if(!/booster box/i.test(t))continue;const d=((c.querySelector('.s-card__caption,.s-item__caption'))?.textContent||'').trim();const pT=((c.querySelector('.s-card__price,.s-item__price'))?.textContent||'').trim();const p=pT.replace(/,/g,'').match(/([\\d.]+)/);if(!t||!d||!p)continue;out.push({id:m[1],t:t.slice(0,140),d:d.slice(0,32),k:parseFloat(p[1]),cur:/KRW|\\u20a9/.test(pT)?'KRW':/\\$/.test(pT)?'USD':'OTHER'});}return{robot:false,items:out,rawN};};window.__runBatch=async(s,n)=>{const e=Math.min(s+n,window.__PAGES.length);let rob=0,cap=0;for(let i=s;i<e;i++){const pg=window.__PAGES[i];const r=await window.__grab(pg.url);if(r.robot)rob++;if(r.rawN>=240)cap++;window.__opDump.pages.push({code:pg.code,query:pg.query,fmt:pg.fmt,band:pg.band,items:r.items,rawN:r.rawN});await new Promise(z=>setTimeout(z,550));}return JSON.stringify({done:window.__opDump.pages.length,of:window.__PAGES.length,robots:rob,capped:cap,items:window.__opDump.pages.reduce((a,p)=>a+p.items.length,0)});};window.__opDownload=fn=>{const seen=new Set(),uniq=[];for(const p of window.__opDump.pages){const k=p.code+'/'+p.query+'/'+p.fmt+'/'+p.band;if(seen.has(k))continue;seen.add(k);uniq.push(p);}const full=JSON.stringify({collectedAt:window.__opDump.collectedAt,langFacet:true,fmtSplit:true,pages:uniq});const b=new Blob([full],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);return JSON.stringify({saved:fn,bytes:full.length,pages:uniq.length,items:uniq.reduce((x,p)=>x+p.items.length,0)});};return 'ready:'+window.__PAGES.length+' pages';})()`;
 }
 
