@@ -20,7 +20,6 @@ const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
 const { parseLotQuantity } = require("./lot-quantity");
 
 const ROOT = path.join(__dirname, "..");
-const outPath = path.join(ROOT, "data", "auction-market.json");
 
 // 보관 기간. 이 파일은 하루 4번 다시 쓰인다(=커밋마다 새 blob) — 무한정 키우면 저장소가 불어난다.
 // 180일이면 계절성·발매 전후 비교에 충분하다.
@@ -33,21 +32,70 @@ const PAGE_SIZE = 200;
 
 // fetch-auction-deals.js 와 같은 배제 규칙 — 시세에서 뺀 걸 관측에 넣으면 통계가 오염된다.
 const JUNK = /proxy|custom|orica|digital|reprint\s*card|fan\s*made|not\s*official|sticker|playmat|sleeve|binder|deck\s*box|empty|damaged|water|bent/i;
-const NOT_OPTCG = /berry\s*match|onepy|one\s*py|wafer|gumi|shokugan|ichiban\s*kuji|figure|keychain|poster|manga\s*volume|dvd|blu-?ray/i;
-const ONEPIECE = /one\s*piece|ワンピース/i;
 
 // ⚠️ 표본 편향 주의: endingSoonest 로 검색어당 600건만 긁으므로, 일반 검색어만 쓰면 회전이 빠른
 //    싱글카드가 표본을 독점한다(실측: 1,158건 중 박스 1건). 박스·팩은 전용 검색어로 따로 표본을 잡는다.
 //    kind 별 비율을 "시장 구성비"로 읽으면 안 되는 이유이기도 하다 — note 에 명시할 것.
-const QUERIES = [
-  "One Piece Card Game",
-  "One Piece Card Game Japanese",
-  "One Piece TCG",
-  "ワンピースカードゲーム",
-  "One Piece Card Game booster box",
-  "One Piece Card Game booster pack sealed",
-  "ワンピースカードゲーム BOX 未開封",
-];
+// 쿼리는 "무엇을 세분해서 볼 것인가"를 그대로 반영한다. 넓은 쿼리만 두면 흔한 물건(카드)이
+// 표본을 다 먹고 드문 물건(카톤)은 우연히 걸린 것만 잡힌다 — 2026-08-19 실측: 카톤 3건,
+// 그중 낙찰 2건. 같은 기간 박스는 전용 쿼리가 있어 125건이 모였다.
+// 카톤/케이스는 전용 쿼리를 붙여야 그나마 관측된다(원래 드문 물건이라 많이 모이진 않는다).
+//
+// 게임별 설정 — 2026-08-19. 팰월드도 원피스와 같은 깊이로 본다(종류별·세트별·수량별).
+// 다른 TCG 16종은 collect-tcg-snapshot.js 가 게임당 쿼리 하나로 경매수·입찰률·거래액만 훑는다.
+// 그 둘을 한 도구에 섞지 않는 이유: 여기서는 제목에서 세트코드를 뽑아내는데, 그건 게임마다
+// 코드 체계가 달라 게임 하나하나 실측해야 한다. 개괄만 필요한 게임까지 그 비용을 낼 이유가 없다.
+const GAMES = {
+  onepiece: {
+    out: "auction-market.json",
+    label: "One Piece Card Game",
+    // 제목이 이 게임인지 — 이게 없으면 검색어에 걸린 남의 카드가 섞인다.
+    is: /one\s*piece|ワンピース/i,
+    // 이 게임 이름이 붙었지만 카드게임이 아닌 물건(과자 카드·피규어·굿즈).
+    not: /berry\s*match|onepy|one\s*py|wafer|gumi|shokugan|ichiban\s*kuji|figure|keychain|poster|manga\s*volume|dvd|blu-?ray/i,
+    cardId: /(OP|EB|PRB|ST)[-\s]?(\d{2})[-\s]?(\d{3})/i,
+    setOnly: /(OP|EB|PRB|ST)[-\s]?(\d{2})/i,
+    queries: [
+      "One Piece Card Game",
+      "One Piece Card Game Japanese",
+      "One Piece TCG",
+      "ワンピースカードゲーム",
+      "One Piece Card Game booster box",
+      "One Piece Card Game booster pack sealed",
+      "ワンピースカードゲーム BOX 未開封",
+      "One Piece Card Game carton",
+      "One Piece Card Game sealed case",
+      "ワンピースカードゲーム カートン",
+    ],
+  },
+  palworld: {
+    out: "palworld-auction-market.json",
+    label: "Palworld Card Game",
+    is: /palworld|パルワールド/i,
+    // 팰월드는 게임 본편·굿즈가 훨씬 유명하다. 카드가 아닌 것을 세게 걸러야 한다.
+    not: /steam|xbox|playstation|ps[45]|game\s*key|dlc|plush|figure|keychain|poster|amiibo|nintendo/i,
+    // BP01-001 형식(실측 2026-08-18: 매물 제목에 카드번호가 붙는 경우가 아직 드물다).
+    cardId: /(BP)[-\s]?(\d{2})[-\s]?(\d{3})/i,
+    setOnly: /(BP)[-\s]?(\d{2})/i,
+    // 이름으로도 세트를 잡는다. 팰월드 매물은 코드를 거의 안 쓴다(첫 수집 437건 전부 미분류였다).
+    // 이름이 확실히 한 세트를 가리킬 때만 넣는다 — 애매하면 unclassified 로 두는 원칙은 그대로다.
+    setNames: [[/dawn\s+of\s+palpagos|パルパゴスの夜明け/i, "BP-01"]],
+    queries: [
+      "Palworld Card Game",
+      "Palworld TCG",
+      "パルワールドカードゲーム",
+      "Palworld Dawn of Palpagos booster box",
+      "Palworld TCG booster pack sealed",
+      "Palworld Card Game carton",
+    ],
+  },
+};
+
+const GAME_KEY = (process.argv.find((a) => a.startsWith("--game=")) || "--game=onepiece").split("=")[1];
+const GAME = GAMES[GAME_KEY];
+if (!GAME) throw new Error(`알 수 없는 게임: ${GAME_KEY} (가능: ${Object.keys(GAMES).join(", ")})`);
+const QUERIES = GAME.queries;
+const outPath = path.join(ROOT, "data", GAME.out);
 
 function loadEnv(p) {
   if (!fs.existsSync(p)) return {};
@@ -99,6 +147,7 @@ function classify(title) {
   }
   const s = title.match(SET_ONLY);
   if (s) return { set: `${s[1].toUpperCase()}-${s[2]}`, cardId: null };
+  for (const [re, code] of GAME.setNames || []) if (re.test(title)) return { set: code, cardId: null };
   return { set: null, cardId: null };   // 억지로 추측하지 않는다
 }
 
@@ -146,7 +195,7 @@ function summarize(rows) {
         const id = it.itemId;
         const title = it.title || "";
         if (!id || seen.has(id)) continue;
-        if (!ONEPIECE.test(title) || JUNK.test(title) || NOT_OPTCG.test(title)) continue;
+        if (!GAME.is.test(title) || JUNK.test(title) || GAME.not.test(title)) continue;
         if (isExcludedEbaySellerOrLocation(it)) continue;
         seen.add(id);
         const bid = Number(it.currentBidPrice?.value);
@@ -178,7 +227,7 @@ function summarize(rows) {
   // 진짜 낙찰가를 가져온다. 스캔이 6시간마다이므로 다음 스캔 전에 끝날 것들을 모두 담아야 한다
   // (여유 1시간). 감시목록에 없으면 그 경매의 낙찰가는 영원히 못 얻는다.
   const WATCH_HORIZON_MIN = 420;   // 7시간
-  const watchPath = path.join(ROOT, "data", "auction-watch.json");
+  const watchPath = path.join(ROOT, "data", GAME_KEY === "onepiece" ? "auction-watch.json" : `${GAME_KEY}-auction-watch.json`);
   let watch;
   try { watch = JSON.parse(fs.readFileSync(watchPath, "utf8")); } catch { watch = { pending: [] }; }
   const pend = new Map(watch.pending.map((w) => [w.id, w]));
@@ -278,7 +327,7 @@ function summarize(rows) {
     topCards,
     priceObs,                                               // 당일 누적 원표본. 날이 바뀌면 아래에서 제거된다.
   };
-  out.note = "Daily sample of live One Piece Card Game auctions on eBay: how many are running by set and item type, how many have attracted bids, and the median current bid. Bids are live, not final sale prices — eBay does not expose completed-sale data at this access tier. Sellers and locations excluded from our price data are excluded here too. Set and card codes are parsed from listing titles; titles we cannot classify confidently are counted under 'unclassified' rather than guessed. Price figures (medBid) are measured only on auctions ending within 6 hours that already have bids, because a freshly listed auction still shows its opening price, not its value; nPrice reports how many listings each price is based on. This is a sample, not a census: boxes and packs are sampled with dedicated queries, so the box/pack/card split is not a market share figure — compare each category against its own history, not against the others. Price figures are per unit: multi-item lots are divided by the quantity parsed from the title, and listings whose quantity cannot be determined (case/lot/bulk) are excluded from price samples while still counted in listing volume.";
+  out.note = `Daily sample of live ${GAME.label} auctions on eBay: how many are running by set and item type, how many have attracted bids, and the median current bid. Bids are live, not final sale prices — eBay does not expose completed-sale data at this access tier. Sellers and locations excluded from our price data are excluded here too. Set and card codes are parsed from listing titles; titles we cannot classify confidently are counted under 'unclassified' rather than guessed. Price figures (medBid) are measured only on auctions ending within 6 hours that already have bids, because a freshly listed auction still shows its opening price, not its value; nPrice reports how many listings each price is based on. This is a sample, not a census: boxes and packs are sampled with dedicated queries, so the box/pack/card split is not a market share figure — compare each category against its own history, not against the others. Price figures are per unit: multi-item lots are divided by the quantity parsed from the title, and listings whose quantity cannot be determined (case/lot/bulk) are excluded from price samples while still counted in listing volume.`;
   out.updated = today;
   out.points = [...out.points.filter((p) => p.d !== today), point]
     .sort((a, b) => a.d.localeCompare(b.d))
@@ -292,7 +341,7 @@ function summarize(rows) {
   fs.writeFileSync(outPath, JSON.stringify(out) + "\n", "utf8");
 
   console.log(JSON.stringify({
-    run: point.runs, scanned: point.scanned, totalReported, unclassified: point.unclassified,
+    game: GAME_KEY, run: point.runs, scanned: point.scanned, totalReported, unclassified: point.unclassified,
     contested: point.contested, sets: Object.keys(setStats).length,
     priceSamples: priceObs.length, watchAdded: added, watchPending: watch.pending.length,
   }));

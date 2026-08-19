@@ -23,8 +23,12 @@ const { extraFields } = require("./auction-fields");
 const { appendSales, readRecent } = require("./auction-archive");
 
 const ROOT = path.join(__dirname, "..");
-const watchPath = path.join(ROOT, "data", "auction-watch.json");
-const soldPath = path.join(ROOT, "data", "auction-sold.json");
+// 게임별 정산 — 2026-08-19. collect-auction-market.js --game=palworld 가 쌓은 감시목록을
+// 같은 플래그로 정산한다. 기본은 원피스라 기존 실행(인자 없음)은 그대로다.
+const GAME = (process.argv.find((a) => a.startsWith("--game=")) || "--game=onepiece").split("=")[1];
+const pre = GAME === "onepiece" ? "" : `${GAME}-`;
+const watchPath = path.join(ROOT, "data", `${pre}auction-watch.json`);
+const soldPath = path.join(ROOT, "data", `${pre}auction-sold.json`);
 
 // 개별 낙찰 기록은 data/auction-archive/<날짜>.json 이 원장이다(하루가 지나면 다시 안 쓰임).
 // auction-sold.json 은 파생 집계 + 최근 창만 담는 얇은 파일로 남긴다 — 2시간마다 재작성되므로
@@ -193,7 +197,7 @@ const med = (a) => {
   const priorDaily = (out.daily || []).filter((p) => p.d >= cutDaily && !days.includes(p.d));
   out.daily = [...priorDaily, ...daily].sort((a, b) => a.d.localeCompare(b.d));
 
-  out.note = "Completed eBay auction results for One Piece Card Game items. The full ledger lives in data/auction-archive/<date>.json (one file per day, written once and not rewritten); 'sales' here is only the most recent " + HOT_DAYS + " days and 'daily' is the aggregate series. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.";
+  out.note = `Completed eBay auction results for ${GAME === "onepiece" ? "One Piece Card Game" : "Palworld Card Game"} items. The full ledger lives in data/${pre}auction-archive/<date>.json (one file per day, written once and not rewritten); 'sales' here is only the most recent " + HOT_DAYS + " days and 'daily' is the aggregate series. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.`;
   out.updated = new Date(now).toISOString();
   fs.writeFileSync(soldPath, JSON.stringify(out) + "\n", "utf8");
 

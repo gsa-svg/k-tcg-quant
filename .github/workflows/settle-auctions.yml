@@ -45,6 +45,13 @@ jobs:
       - name: Settle
         run: node tools/settle-auctions.js
 
+      # 팰월드 정산 — 2026-08-19. 감시목록·아카이브가 원피스와 분리돼 있다.
+      # 종료된 경매가 없으면 exit 2 ("nothing due")로 끝나므로 그걸 실패로 보지 않는다.
+      # continue-on-error 로 덮지 않는 이유: 진짜 실패(자격증명·API 오류)는 여기서 멈춰야 한다.
+      - name: Settle (Palworld)
+        run: |
+          node tools/settle-auctions.js --game=palworld || [ $? -eq 2 ]
+
       - name: Card auction stats
         run: node tools/auction-card-stats.js
 
@@ -60,13 +67,13 @@ jobs:
           # 원장은 data/auction-archive/ 의 새 파일로 생긴다(추적되지 않는 파일).
           # git diff 는 추적 안 된 파일을 못 보므로 status 로 판단해야 한다 —
           # diff 로만 보면 "Nothing settled" 로 빠져나가 원장이 영영 커밋되지 않는다.
-          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive)" ]; then
+          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive data/palworld-auction-sold.json data/palworld-auction-watch.json data/palworld-auction-archive)" ]; then
             echo "Nothing settled."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive
+          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive data/palworld-auction-sold.json data/palworld-auction-watch.json data/palworld-auction-archive
           git commit -m "Settle completed auctions"
           for attempt in 1 2 3; do
             if git push; then

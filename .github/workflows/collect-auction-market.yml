@@ -37,18 +37,26 @@ jobs:
       - name: Collect
         run: node tools/collect-auction-market.js
 
+      # 팰월드도 같은 깊이로 본다(종류별·세트별·수량별) — 2026-08-19.
+      # 다른 TCG 16종은 collect-tcg-snapshot.js 가 개괄만 훑는다. 팰월드는 우리가 원장을
+      # 따로 쌓는 두 번째 게임이라 여기서 세분한다.
+      # 실패해도 원피스 수집을 막지 않는다: 팰월드가 없다고 원피스 관측을 버릴 이유가 없다.
+      - name: Collect (Palworld)
+        continue-on-error: true
+        run: node tools/collect-auction-market.js --game=palworld
+
       - name: Guard
         run: node tools/guard-invariants.js
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/auction-market.json data/auction-watch.json; then
+          if git diff --quiet data/auction-market.json data/auction-watch.json data/palworld-auction-market.json data/palworld-auction-watch.json; then
             echo "No auction market changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-market.json data/auction-watch.json
+          git add data/auction-market.json data/auction-watch.json data/palworld-auction-market.json data/palworld-auction-watch.json
           git commit -m "Collect auction market snapshot"
           # 야간 워크플로나 사람 커밋과 겹칠 수 있다. 실패하면 리베이스 후 재시도.
           for attempt in 1 2 3; do
