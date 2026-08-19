@@ -33,7 +33,18 @@ const soldPath = path.join(ROOT, "data", `${pre}auction-sold.json`);
 // 개별 낙찰 기록은 data/auction-archive/<날짜>.json 이 원장이다(하루가 지나면 다시 안 쓰임).
 // auction-sold.json 은 파생 집계 + 최근 창만 담는 얇은 파일로 남긴다 — 2시간마다 재작성되므로
 // 여기에 45일치를 넣으면 저장소가 하루 수십 MB씩 불어난다(2026-07-29 실측: 8일치로 blob 20.8MB).
-const HOT_DAYS = 14;           // 파생 집계가 읽는 창
+// 이 파일에 개별 판매를 며칠치 실어 둘 것인가. 2026-08-19: 14 → 3.
+//
+// 왜 줄이나: 이 파일은 2시간마다 통째로 다시 쓰인다(=커밋마다 새 blob). 14일치면 8MB 라
+// 저장소 이력에서 이 파일 하나가 1.19GB, 전체 .git 204MB 중 압도적 1위였다.
+//
+// 줄여도 되는 이유: 개별 판매의 원장은 data/<game>auction-archive/<날짜>.json 이고 그건 하루치를
+// 한 번만 쓰고 다시 안 건드린다. 여기 sales 는 파생 창이라 언제든 아카이브에서 되만든다.
+// 화면·페이지 생성기(generate-free-data·generate-ko-topic-pages)는 daily 만 읽고,
+// 집계(daily)는 별도로 KEEP_SALES_DAYS(45일) 창에서 계산하므로 이 값과 무관하다.
+// 실제 소비처는 guard A1 의 "파생이 원장에 없는 기록을 만들지 않았는지" 대조 하나뿐인데,
+// 그 검사는 3일치로도 똑같이 동작한다.
+const HOT_DAYS = 3;            // 이 파일에 싣는 개별 판매 창(원장은 아카이브)
 const KEEP_SALES_DAYS = 45;    // 아카이브 기준 집계 재계산 범위
 const KEEP_DAILY_DAYS = 365;   // 일별 집계는 더 오래
 const MAX_PER_RUN = 250;       // 한 번에 조회할 최대 건수 (API 한도 보호)
