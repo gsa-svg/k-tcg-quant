@@ -231,13 +231,13 @@ ${tcgRows.length >= 5 ? `
       <div class="chartCard">
         <div class="chartHead">
           <div>
-            <h2>Which card games actually sell</h2>
-            <p class="sub">${tcgFrom}–${tcgTo} · ${num(tcgTotal)} auctions read after close</p>
+            <h2>How many card auctions end each day</h2>
+            <p class="sub">Auctions ending today is eBay's own count of listings closing within 24 hours. The other two are the ones we re-opened after they closed to see the result — a sample, not all of them. ${tcgFrom}–${tcgTo}</p>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-metric="ending" aria-pressed="true">Auctions closing/day</button>
-            <button type="button" data-metric="sold" aria-pressed="false">We saw won</button>
-            <button type="button" data-metric="ended" aria-pressed="false">We saw close</button>
+            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
+            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
+            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
             <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
             <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
           </div>
@@ -320,9 +320,9 @@ ${tcgRows.length >= 5 ? `    <script>
         var HUE = { onepiece: "#14A882", pokemon: "#3987e5", pokemonjp: "#d95926", magic: "#9085e9", yugioh: "#c98500", lorcana: "#d55181" };
         var GREY = "#5A6273";
         var M = {
-          ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + "/day"; } },
+          ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + " ending today"; } },
           sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " won"; } },
-          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " ended"; } },
+          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " checked"; } },
           rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
           gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
         };
