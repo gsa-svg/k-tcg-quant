@@ -23,7 +23,14 @@ const path = require("node:path");
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "data", "tcg-snapshot.json");
 const WATCH = path.join(ROOT, "data", "tcg-watch.json");
-const SAMPLE = 200;        // 게임당 표본(종료 임박 순). 중앙값·입찰 비율을 내기에 충분하다.
+// 게임당 표본(종료 임박 순). 2026-08-19: 200 → 1000.
+// 왜 늘리나: 200 건이면 입찰률 오차가 ±3%p 라 게임 간 차이를 말하기엔 거칠었다. 1000 이면 ±1.4%p.
+// 전 게임을 같은 크기로 본다 — 게임마다 표본이 다르면 비교표에서 숫자의 무게가 달라져 읽는 쪽이 오해한다.
+// ⚠️ eBay Browse API 는 한 호출에 limit 200 이 상한이라 5장을 이어 받는다(PAGE_SIZE × PAGES).
+//    offset 은 9,999 까지라 이 방식으로도 한 검색당 최대 1만 건이다. 전수 조사는 불가능하다.
+const PAGE_SIZE = 200;
+const PAGES = 5;
+const SAMPLE = PAGE_SIZE * PAGES;
 const KEEP_DAYS = 730;
 // 정산(낙찰 여부·낙찰가)까지 볼 표본. 게임당 이만큼만 감시 목록에 넣는다.
 // 8게임 × 150 = 하루 1,200건. 원피스(하루 871건)와 합쳐도 API 한도 안에 든다.
@@ -83,11 +90,12 @@ async function token() {
   return j.access_token;
 }
 
-async function search(tok, q, limit, sort, buying = "AUCTION") {
+async function search(tok, q, limit, sort, buying = "AUCTION", offset = 0) {
   const u = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
   u.searchParams.set("q", q);
   u.searchParams.set("filter", `buyingOptions:{${buying}}`);
   u.searchParams.set("limit", String(limit));
+  if (offset) u.searchParams.set("offset", String(offset));
   if (sort) u.searchParams.set("sort", sort);
   const r = await fetch(u, { headers: { Authorization: `Bearer ${tok}`, "X-EBAY-C-MARKETPLACE-ID": marketplaceId } });
   if (!r.ok) throw new Error(`search ${r.status} ${q}`);
@@ -117,7 +125,13 @@ const median = (a) => {
     // "지금 걸린 개수"일 뿐이고, 낙찰률 같은 걸 낼 수는 없다 — 그래서 건수만 적는다.
     const fixed = await search(tok, g.q, 1, null, "FIXED_PRICE");
     // 2) 종료 임박 순 표본 — 입찰이 붙은 비율과 현재가 분포를 본다
-    const { items } = await search(tok, g.q, SAMPLE, "endingSoonest");
+    const items = [];
+    for (let pg = 0; pg < PAGES; pg++) {
+      const r = await search(tok, g.q, PAGE_SIZE, "endingSoonest", "AUCTION", pg * PAGE_SIZE);
+      if (!r.items.length) break;              // 매물이 표본보다 적은 게임(디지몬 등)은 일찍 끝난다
+      items.push(...r.items);
+      if (r.items.length < PAGE_SIZE) break;
+    }
     let withBids = 0;
     const bids = [];
     let bidSum = 0;
@@ -170,7 +184,7 @@ const median = (a) => {
 
   fs.writeFileSync(OUT, `${JSON.stringify({
     basis: "Live eBay auction listings by trading card game, sampled once a day",
-    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 200 listings ending soonest: withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms of use: https://opboxindex.com/free-data.html#terms",
+    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 1,000 listings ending soonest (every game is sampled the same way): withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms of use: https://opboxindex.com/free-data.html#terms",
     marketplace: marketplaceId,
     sampleSize: SAMPLE,
     terms: Object.fromEntries(TCGS.map((g, i) => [g.k, { name: g.nm, query: g.q, order: i }])),
