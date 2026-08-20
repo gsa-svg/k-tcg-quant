@@ -176,6 +176,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
+      .statHint { margin-top: 6px; font-size: 11px; color: var(--muted, #8090b0); line-height: 1.45; }
       .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
@@ -643,9 +644,27 @@ function setPage(code, prev, next) {
       cell("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `21-set median ${base.chg > 0 ? "+" : ""}${base.chg}%`);
     }
     // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 낮을수록 물건이 빨리 빠진다는 뜻이라 higherIsBetter=false.
-    if (m.days != null) cell("Days of inventory", `${m.days}d`, `${m.stock} listed · 21-set median ${base.days}d ${cmp(m.days, base.days, false)}`);
+    if (m.days != null) cells.push(`<div class="statCard"><div class="statLabel">Days of inventory</div><div class="statValue">${m.days}d</div><div class="statBase">${m.stock} listed · 21-set median ${base.days}d ${cmp(m.days, base.days, false)}</div><div class="statHint">How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</div></div>`);
     if (m.psa != null) cell("PSA graded", intl(m.psa), `21-set median ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
-    if (m.gem != null) cell("PSA 10 rate", `${m.gem}%`, `21-set median ${base.gem}% ${cmp(m.gem, base.gem)}`);
+    if (m.gem != null) cells.push(`<div class="statCard"><div class="statLabel">PSA 10 rate</div><div class="statValue">${m.gem}%</div><div class="statBase">21-set median ${base.gem}% ${cmp(m.gem, base.gem)}</div><div class="statHint">Share of PSA submissions from this set that came back a 10.</div></div>`);
+    // ── 싱글카드 구성 — 2026-08-20. TCG 퀀트의 SINGLES INTEL 을 우리 데이터로 낸다.
+    // 박스를 뜯는 사람이 실제로 묻는 것: "대박 하나에 몰려 있나, 아니면 두루 값이 나가나".
+    // 그쪽과 대조해 보니 OP-01 chase concentration 이 53% 로 정확히 일치했다.
+    {
+      const top = (s.cards || []).slice(0, 10)
+        .map((c) => (c.nmJpy != null && FX.jpyKrw && FX.usdKrw ? (c.nmJpy * FX.jpyKrw) / FX.usdKrw : c.priceUsd ?? null))
+        .filter((v) => v != null && v > 0)
+        .sort((a, b) => b - a);
+      if (top.length >= 5) {
+        const total = top.reduce((a, v) => a + v, 0);
+        const dense = top.filter((v) => v >= 25).length;
+        const conc = Math.round((top[0] / total) * 100);
+        cells.push(`<div class="statCard"><div class="statLabel">Value density</div><div class="statValue">${dense} / ${top.length}</div><div class="statHint">Cards worth $25+ in the top ${top.length}. More means demand spreads beyond one chase.</div></div>`);
+        cells.push(`<div class="statCard"><div class="statLabel">Chase concentration</div><div class="statValue">${conc}%</div><div class="statHint">Share of top-${top.length} value held by the #1 card. The higher this runs, the more the set rides on one pull.</div></div>`);
+        cells.push(`<div class="statCard"><div class="statLabel">Floor of the top ${top.length}</div><div class="statValue">${usd(Math.round(top[top.length - 1]))}</div><div class="statHint">What the cheapest tracked chase card is worth — value without hitting the big one.</div></div>`);
+      }
+    }
+
     if (cells.length >= 3) statGrid = `<section aria-label="Set metrics"><div class="statGrid">${cells.join("")}</div></section>`;
   }
 
