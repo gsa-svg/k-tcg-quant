@@ -89,7 +89,6 @@ try {
         // 1센트 시작 벌크 매물이 섞이면 중앙값이 $0.01 로 무너진다. 그런 값은 쓰지 않는다.
         med: sorted.length >= TCG_MIN_PRICE_N && med >= 1 ? med : null,
         gmv: Math.round(v.gmv || 0),
-        live: Number(g.live) || 0,
       };
     })
     .sort((a, b) => b.rate - a.rate);
@@ -234,9 +233,10 @@ ${tcgRows.length >= 5 ? `
             <p class="sub">${tcgFrom}–${tcgTo} · ${num(tcgTotal)} auctions read after close</p>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-metric="rate" aria-pressed="true">Sell-through</button>
+            <button type="button" data-metric="sold" aria-pressed="true">Auctions won</button>
+            <button type="button" data-metric="ended" aria-pressed="false">Auctions ended</button>
+            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
             <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
-            <button type="button" data-metric="live" aria-pressed="false">Live auctions</button>
           </div>
         </div>
         <div class="barList" id="tcgBars"></div>
@@ -317,9 +317,10 @@ ${tcgRows.length >= 5 ? `    <script>
         var HUE = { onepiece: "#14A882", pokemon: "#3987e5", pokemonjp: "#d95926", magic: "#9085e9", yugioh: "#c98500", lorcana: "#d55181" };
         var GREY = "#5A6273";
         var M = {
+          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " won"; } },
+          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " ended"; } },
           rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
-          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } },
-          live: { get: function (r) { return r.live; }, fmt: function (r) { return r.live.toLocaleString("en-US"); } }
+          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
         };
         function draw(key) {
           var m = M[key];
@@ -353,7 +354,7 @@ ${tcgRows.length >= 5 ? `    <script>
             draw(b.getAttribute("data-metric"));
           });
         });
-        draw("rate");
+        draw("sold");
       })();
     </script>
 ` : ""}    <footer class="footer">
