@@ -242,7 +242,7 @@ function liveWidget(code) {
               if (lo != null && hi != null) meta.push("Range $" + Math.round(lo).toLocaleString("en-US") + " – $" + Math.round(hi).toLocaleString("en-US"));
               if (m.sampleSize) meta.push(m.sampleSize + " listings");
               meta.push("Updated " + (m.updated || d.updated || ""));
-              var fullRate = s.psaFull && s.psaFull.gemRate != null ? s.psaFull.gemRate : s.psaGem;
+              var fullRate = s.psaFull && s.psaFull.gemRate;
               if (fullRate != null) meta.push("Full-set PSA10 rate " + fullRate + "%");
               document.getElementById("lpMeta").textContent = meta.join(" · ");
               document.getElementById("livePrice").hidden = false;
@@ -324,10 +324,12 @@ function productLd(code, nameEn, s) {
 
 function setPage(code, prev, next) {
   const s = data.sets[code];
-  // Full-set GemRate totals are the canonical set-level PSA figures. The legacy
-  // psaGem/psaTotal fields only summarize the tracked chase-card subset.
-  const fullPsaRate = s.psaFull?.gemRate ?? s.psaGem;
-  const fullPsaTotal = s.psaFull?.total ?? s.psaTotal;
+  // psaFull 이 세트 단위 PSA 수치의 유일한 출처다 — 2026-08-19.
+  // 종전에는 psaGem/psaTotal 로 폴백했는데 그 둘은 2026-07-15 수동 기입 후 갱신하는 코드가 없었다.
+  // 폴백이 있으면 psaFull 이 빈 세트에서 한 달 묵은 값이 아무 표시 없이 화면에 나간다.
+  // 값이 없으면 비워 두는 편이 낫다 — 빈칸은 눈에 띄지만 낡은 숫자는 안 띈다.
+  const fullPsaRate = s.psaFull?.gemRate;
+  const fullPsaTotal = s.psaFull?.total;
   const nameEn = s.nameEn || code;
   const cards = (s.cards || []).slice(0, 10);
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)

@@ -12,6 +12,7 @@
 //
 // Run: node tools/fetch-auction-deals.js
 const fs = require("fs");
+const { categorize } = require("./auction-classify");
 const path = require("path");
 const { isExcludedEbaySellerOrLocation } = require("./ebay-listing-filters");
 
@@ -69,11 +70,6 @@ async function search(tok, q) {
   return (await r.json()).itemSummaries || [];
 }
 
-function categorize(title) {
-  if (/booster\s*box|display\s*box|carton/i.test(title)) return "box";
-  if (/booster\s*pack|\d+\s*pack|sealed\s*pack/i.test(title)) return "pack";
-  return "card";
-}
 
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("Missing eBay credentials");

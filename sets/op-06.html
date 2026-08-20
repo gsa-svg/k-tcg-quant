@@ -125,7 +125,7 @@
               if (lo != null && hi != null) meta.push("Range $" + Math.round(lo).toLocaleString("en-US") + " – $" + Math.round(hi).toLocaleString("en-US"));
               if (m.sampleSize) meta.push(m.sampleSize + " listings");
               meta.push("Updated " + (m.updated || d.updated || ""));
-              var fullRate = s.psaFull && s.psaFull.gemRate != null ? s.psaFull.gemRate : s.psaGem;
+              var fullRate = s.psaFull && s.psaFull.gemRate;
               if (fullRate != null) meta.push("Full-set PSA10 rate " + fullRate + "%");
               document.getElementById("lpMeta").textContent = meta.join(" · ");
               document.getElementById("livePrice").hidden = false;
