@@ -174,6 +174,16 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .affTop b { color: inherit; font-weight: 600; }
       .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
       .dataSummary b { color: var(--accent); font-weight: 800; }
+      /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
+         모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
+      .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
+      .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
+      .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
+      .statValue { margin-top: 5px; font-size: 23px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+      .statBase { margin-top: 5px; font-size: 11.5px; color: var(--muted, #9aa4b6); line-height: 1.45; }
+      .statUp { color: #10d7a0; font-weight: 700; }
+      .statDown { color: #f0784b; font-weight: 700; }
+      .statFlat { color: #9aa4b6; font-weight: 700; }
       .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 13.5px; line-height: 1.65; }
       .keyFacts li { margin: 3px 0; }
       .keyFacts strong { color: var(--accent); }
@@ -321,6 +331,48 @@ function productLd(code, nameEn, s) {
   };
   return `<script type="application/ld+json">${JSON.stringify(prod)}</script>`;
 }
+
+// ── 세트 지표와 그 기준선 — 2026-08-20.
+// 값 하나만 보여주면 읽는 쪽이 그게 높은지 낮은지 알 수 없다. 전 세트를 한 번 훑어 중앙값을 구해 두고
+// 각 페이지에서 "21-set median 대비 ±%"를 같이 낸다.
+//
+// 중앙값을 쓰는 이유: OP-01(PSA 57,143 · 박스 $305)이 평균을 통째로 끌어올린다. 평균 대비로 보면
+// 대부분의 세트가 "평균 이하"로 나와 정보가 안 된다.
+//
+// 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도(주간 거래건수 ÷ 7). 물건이 며칠 만에 빠지는가를 뜻한다.
+// 매물 수만으로는 큰 세트와 작은 세트를 비교할 수 없어서 속도로 나눈다.
+const SET_METRICS = (() => {
+  let series;
+  try { series = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch { return {}; }
+  const out = {};
+  for (const [code, v] of Object.entries(series.sets || {})) {
+    const jp = v.jp;
+    if (!Array.isArray(jp) || jp.length < 5) continue;
+    const last = jp[jp.length - 1];
+    const prior = jp[Math.max(0, jp.length - 5)];   // 4주 전
+    const sup = (v.supply || []).slice(-1)[0];
+    const set = data.sets[code] || {};
+    const weekN = last.n || 0;
+    const stock = sup ? sup.jp : null;
+    out[code] = {
+      price: last.median != null ? Math.round(last.median) : null,
+      chg: prior && prior.median ? Number(((last.median / prior.median - 1) * 100).toFixed(1)) : null,
+      stock,
+      days: stock != null && weekN ? Number((stock / (weekN / 7)).toFixed(1)) : null,
+      psa: set.psaFull?.total ?? null,
+      gem: set.psaFull?.gemRate ?? null,
+    };
+  }
+  return out;
+})();
+
+const SET_BASELINE = (() => {
+  const med = (key) => {
+    const a = Object.values(SET_METRICS).map((m) => m[key]).filter((x) => x != null).sort((x, y) => x - y);
+    return a.length ? a[Math.floor(a.length / 2)] : null;
+  };
+  return { price: med("price"), chg: med("chg"), days: med("days"), psa: med("psa"), gem: med("gem") };
+})();
 
 function setPage(code, prev, next) {
   const s = data.sets[code];
@@ -523,6 +575,36 @@ function setPage(code, prev, next) {
 
   // Key facts — AI 답변엔진(ChatGPT/Gemini/Claude/Perplexity)이 그대로 인용할 수 있는
   // 날짜 박힌 선언문. 전부 실데이터, 야간 재생성으로 매일 갱신(신선도 신호).
+  // ── 세트 지표 격자 — 2026-08-20.
+  // TCG 퀀트가 하는 방식: 값 하나를 던지지 않고 항상 "전체 대비 어디쯤인가"를 같이 준다.
+  // 기준선은 21세트 중앙값이다(평균이 아니라 중앙값 — OP-01 같은 극단값이 기준을 끌어올린다).
+  let statGrid = "";
+  {
+    const base = SET_BASELINE;   // 아래에서 전 세트를 한 번 훑어 만들어 둔 값
+    const cells = [];
+    const cmp = (v, b, higherIsBetter = true, unit = "") => {
+      if (v == null || b == null || !b) return "";
+      const pct = Math.round((v / b - 1) * 100);
+      if (pct === 0) return `<span class="statFlat">= median</span>`;
+      const cls = (pct > 0) === higherIsBetter ? "statUp" : "statDown";
+      return `<span class="${cls}">${pct > 0 ? "▲" : "▼"} ${pct > 0 ? "+" : ""}${pct}%</span>`;
+    };
+    const cell = (label, value, baseText) => cells.push(
+      `<div class="statCard"><div class="statLabel">${label}</div><div class="statValue">${value}</div><div class="statBase">${baseText}</div></div>`);
+
+    const m = SET_METRICS[code] || {};
+    if (m.price != null) cell("Box price (JP)", usd(m.price), `21-set median ${usd(base.price)} ${cmp(m.price, base.price)}`);
+    if (m.chg != null) {
+      const cls = m.chg > 0 ? "statUp" : m.chg < 0 ? "statDown" : "statFlat";
+      cell("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `21-set median ${base.chg > 0 ? "+" : ""}${base.chg}%`);
+    }
+    // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 낮을수록 물건이 빨리 빠진다는 뜻이라 higherIsBetter=false.
+    if (m.days != null) cell("Days of inventory", `${m.days}d`, `${m.stock} listed · 21-set median ${base.days}d ${cmp(m.days, base.days, false)}`);
+    if (m.psa != null) cell("PSA graded", intl(m.psa), `21-set median ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
+    if (m.gem != null) cell("PSA 10 rate", `${m.gem}%`, `21-set median ${base.gem}% ${cmp(m.gem, base.gem)}`);
+    if (cells.length >= 3) statGrid = `<section aria-label="Set metrics"><div class="statGrid">${cells.join("")}</div></section>`;
+  }
+
   let keyFacts = "";
   {
     const facts = [];
@@ -563,6 +645,7 @@ function setPage(code, prev, next) {
         </div>
       </div>
       ${AFF_TOP}
+      ${statGrid}
       ${keyFacts}
       ${boxChartBlock(code)}
       ${liveWidget(code)}

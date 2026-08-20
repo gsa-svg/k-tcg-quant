@@ -232,7 +232,7 @@ ${tcgRows.length >= 5 ? `
         <div class="chartHead">
           <div>
             <h2>How many card auctions end each day</h2>
-            <p class="sub">Auctions ending today is eBay's own count of listings closing within 24 hours. The other two are the ones we re-opened after they closed to see the result — a sample, not all of them. ${tcgFrom}–${tcgTo}</p>
+            <p class="sub">${tcgFrom}–${tcgTo}</p>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
             <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
