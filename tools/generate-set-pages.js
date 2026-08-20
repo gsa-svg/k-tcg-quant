@@ -180,11 +180,13 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
-      .statValue { margin-top: 5px; font-size: 23px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+      /* 숫자가 주인공이다 — 28px/700. 라벨은 10.5px 대문자로 물러난다(TCG 퀀트 실측 규칙).
+         tabular-nums 로 자릿수를 고정해야 카드끼리 세로로 줄이 맞는다. */
+      .statValue { margin-top: 5px; font-size: 28px; font-weight: 700; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
       .statBase { margin-top: 5px; font-size: 11.5px; color: var(--muted, #9aa4b6); line-height: 1.45; }
-      .statUp { color: #10d7a0; font-weight: 700; }
-      .statDown { color: #f0784b; font-weight: 700; }
-      .statFlat { color: #9aa4b6; font-weight: 700; }
+      .statUp { color: #00e5a0; font-weight: 700; }
+      .statDown { color: #ff5f6e; font-weight: 700; }
+      .statFlat { color: #8090b0; font-weight: 700; }
       .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 13.5px; line-height: 1.65; }
       .keyFacts li { margin: 3px 0; }
       .keyFacts strong { color: var(--accent); }

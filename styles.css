@@ -4,10 +4,17 @@
   --ink: #eef2ff;
   --muted: #8d95a7;
   --line: #242936;
-  --green: #1f7a4d;
-  --blue: #2367a3;
-  --red: #b54848;
-  --gold: #b98523;
+  /* 신호색 — 2026-08-20. 종전 값은 밝은 배경 기준이라 다크 화면에서 죽었다(#b98523 이 회색으로 보였다).
+     다크 대시보드는 어두운 바탕에서 튀는 채도가 필요하다. 각 색마다 8% 배경 변형을 같이 둬서
+     칩·배지를 "밝은 판 + 어두운 글자"가 아니라 "어두운 판 + 밝은 글자"로 만든다. */
+  --green: #00e5a0;
+  --green-dim: rgba(0, 229, 160, 0.10);
+  --blue: #4f9dff;
+  --blue-dim: rgba(79, 157, 255, 0.10);
+  --red: #ff5f6e;
+  --red-dim: rgba(255, 95, 110, 0.10);
+  --gold: #f5c842;
+  --gold-dim: rgba(245, 200, 66, 0.10);
   --accent: #10d7a0;
   --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
 }
@@ -671,26 +678,6 @@ h2 {
   padding: 0 9px;
   border-radius: 999px;
   font-size: 12px;
-  font-weight: 800;
-}
-
-.gradeA {
-  background: #dff2e7;
-  color: var(--green);
-}
-
-.gradeB {
-  background: #e6f0fa;
-  color: var(--blue);
-}
-
-.gradeC {
-  background: #fff2d8;
-  color: var(--gold);
-}
-
-.riskHigh {
-  color: var(--red);
   font-weight: 800;
 }
 
