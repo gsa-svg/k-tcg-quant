@@ -176,6 +176,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
+      .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
@@ -332,6 +333,39 @@ function productLd(code, nameEn, s) {
   return `<script type="application/ld+json">${JSON.stringify(prod)}</script>`;
 }
 
+// ── top10 카드의 등급사별 감정 현황 — 2026-08-20.
+// TCG 퀀트에는 없는 우리 데이터다. 그쪽은 카드 시세만 주지, "그 카드가 어디에 몇 장 맡겨졌고
+// 10 이 몇 %인가"는 없다. 우리는 PSA·CGC·TAG 를 각각 카드 단위로 쌓고 있으므로 그걸 보여준다.
+//
+// 10 의 정의가 회사마다 달라(CGC 는 Pristine 10 과 Gem Mint 10 이 따로, TAG 는 10 과 10P)
+// 회사별로 따로 적고 합계를 만들지 않는다. 합치면 서로 다른 기준을 한 숫자로 뭉개는 셈이다.
+const CARD_GRADES = (() => {
+  const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", f), "utf8")); } catch { return null; } };
+  const psa = read("psa-card-pop.json"), cgc = read("cgc-card-pop.json"), tag = read("tag-card-pop.json");
+  let ourTier;
+  try { ({ ourTier } = require("./cgc-card-pop-ingest.js")); } catch { return {}; }
+  const pick = (src, code, key) => {
+    const st = src?.sets?.[code];
+    if (!st) return null;
+    const node = st[key] || st.jp?.[key];
+    return Array.isArray(node) && node.length ? node[node.length - 1] : null;
+  };
+  const out = {};
+  for (const [code, set] of Object.entries(data.sets || {})) {
+    for (const c of set.cards || []) {
+      if (!c.number) continue;
+      const key = c.number + "|" + ourTier(c.name);
+      const p = pick(psa, code, key), g = pick(cgc, code, key), t = pick(tag, code, key);
+      const row = {};
+      if (p?.total) row.psa = { n: p.total, gem: p.g10 != null ? Math.round((p.g10 / p.total) * 100) : null };
+      if (g?.total) row.cgc = { n: g.total, gem: g.g ? Math.round((((g.g["Gem Mint 10"] || 0) + (g.g["Pristine 10"] || 0)) / g.total) * 100) : null };
+      if (t?.total) row.tag = { n: t.total, gem: t.g ? Math.round((((t.g["10"] || 0) + (t.g["10P"] || 0)) / t.total) * 100) : null };
+      if (Object.keys(row).length) out[code + "|" + c.number] = row;
+    }
+  }
+  return out;
+})();
+
 // ── 세트 지표와 그 기준선 — 2026-08-20.
 // 값 하나만 보여주면 읽는 쪽이 그게 높은지 낮은지 알 수 없다. 전 세트를 한 번 훑어 중앙값을 구해 두고
 // 각 페이지에서 "21-set median 대비 ±%"를 같이 낸다.
@@ -401,11 +435,19 @@ function setPage(code, prev, next) {
 
   // 실데이터 표(구워넣기): 순위·카드·NM(생)·PSA10(sold 우선). 값 없으면 "—"
   // 개별 카드 페이지가 있으면 이름에 링크 (cards/card-map.json — generate-card-pages.js 산출물)
+  // 등급사별 감정 수와 10 비율. 회사마다 10 의 정의가 달라 합치지 않고 나란히 적는다.
+  const gradeCell = (setCode, num) => {
+    const g = CARD_GRADES[setCode + "|" + (num || "")];
+    if (!g) return "—";
+    const bit = (o) => (o ? `${intl(o.n)}${o.gem != null ? ` <span class="psaKind">${o.gem}%</span>` : ""}` : "—");
+    return `<span class="gradeTrio">${bit(g.psa)} / ${bit(g.cgc)} / ${bit(g.tag)}</span>`;
+  };
+
   const rows = cards.map((c, i) => {
     const p = cardPrices(c);
     const cardHref = CARD_MAP[(c.number || "") + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")];
     const nameCell = cardHref ? `<a href="../cards/${cardHref}"><strong>${esc(c.name)}</strong></a>` : `<strong>${esc(c.name)}</strong>`;
-    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td></tr>`;
+    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td><td class="num">${gradeCell(code, c.number)}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 라인 (안정 데이터)
@@ -657,7 +699,7 @@ function setPage(code, prev, next) {
       <p>${analysis}</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
-          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th></tr></thead>
+          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th><th>Graded (PSA / CGC / TAG)</th></tr></thead>
           <tbody>
             ${rows}
           </tbody>

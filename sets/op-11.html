@@ -65,6 +65,7 @@
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
+      .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
@@ -152,18 +153,18 @@
       <p>The chase in OP-11 is led by <strong>Monkey D. Luffy 119 SP Gold</strong> (Secret Rare), whose raw Japanese NM copy runs about $9,307.</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
-          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th></tr></thead>
+          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th><th>Graded (PSA / CGC / TAG)</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td><a href="../cards/op05-119-monkey-d-luffy-119-sp-gold.html"><strong>Monkey D. Luffy 119 SP Gold</strong></a><span class="cNum">OP05-119 · Secret Rare</span></td><td class="num">$9,307</td><td class="num">—</td></tr>
-            <tr><td>2</td><td><strong>Monkey D. Luffy 119 SP</strong><span class="cNum">OP05-119 · Secret Rare</span></td><td class="num">$502</td><td class="num">—</td></tr>
-            <tr><td>3</td><td><a href="../cards/op11-118-monkey-d-luffy-118-manga.html"><strong>Monkey D. Luffy 118 Manga</strong></a><span class="cNum">OP11-118 · Secret Rare</span></td><td class="num">$1,245</td><td class="num">$1,489 <span class="psaKind">sold</span></td></tr>
-            <tr><td>4</td><td><strong>Gear Two Alternate Art</strong><span class="cNum">OP11-080 · Rare</span></td><td class="num">$439</td><td class="num">$706 <span class="psaKind">sold</span></td></tr>
-            <tr><td>5</td><td><strong>Luffy Tarou SP</strong><span class="cNum">ST18-005 · Super Rare</span></td><td class="num">$313</td><td class="num">$546 <span class="psaKind">sold</span></td></tr>
-            <tr><td>6</td><td><strong>Shanks SP</strong><span class="cNum">ST16-004 · Super Rare</span></td><td class="num">$156</td><td class="num">$364 <span class="psaKind">sold</span></td></tr>
-            <tr><td>7</td><td><strong>Sanji SP</strong><span class="cNum">OP06-119 · Secret Rare</span></td><td class="num">$93</td><td class="num">$250 <span class="psaKind">ask</span></td></tr>
-            <tr><td>8</td><td><strong>Stussy SP</strong><span class="cNum">OP07-085 · Super Rare</span></td><td class="num">$112</td><td class="num">$187 <span class="psaKind">sold</span></td></tr>
-            <tr><td>9</td><td><strong>Shirahoshi SP</strong><span class="cNum">EB01-057 · Super Rare</span></td><td class="num">$93</td><td class="num">$230 <span class="psaKind">sold</span></td></tr>
-            <tr><td>10</td><td><strong>Nami 041 Alternate Art</strong><span class="cNum">OP11-041 · Leader</span></td><td class="num">$80</td><td class="num">$145 <span class="psaKind">sold</span></td></tr>
+            <tr><td>1</td><td><a href="../cards/op05-119-monkey-d-luffy-119-sp-gold.html"><strong>Monkey D. Luffy 119 SP Gold</strong></a><span class="cNum">OP05-119 · Secret Rare</span></td><td class="num">$9,307</td><td class="num">—</td><td class="num"><span class="gradeTrio">— / — / 15 <span class="psaKind">80%</span></span></td></tr>
+            <tr><td>2</td><td><strong>Monkey D. Luffy 119 SP</strong><span class="cNum">OP05-119 · Secret Rare</span></td><td class="num">$502</td><td class="num">—</td><td class="num"><span class="gradeTrio">— / — / 15 <span class="psaKind">80%</span></span></td></tr>
+            <tr><td>3</td><td><a href="../cards/op11-118-monkey-d-luffy-118-manga.html"><strong>Monkey D. Luffy 118 Manga</strong></a><span class="cNum">OP11-118 · Secret Rare</span></td><td class="num">$1,245</td><td class="num">$1,489 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">4,199 <span class="psaKind">87%</span> / 58 <span class="psaKind">72%</span> / 32 <span class="psaKind">75%</span></span></td></tr>
+            <tr><td>4</td><td><strong>Gear Two Alternate Art</strong><span class="cNum">OP11-080 · Rare</span></td><td class="num">$439</td><td class="num">$706 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">2,874 <span class="psaKind">93%</span> / 112 <span class="psaKind">90%</span> / 72 <span class="psaKind">85%</span></span></td></tr>
+            <tr><td>5</td><td><strong>Luffy Tarou SP</strong><span class="cNum">ST18-005 · Super Rare</span></td><td class="num">$313</td><td class="num">$546 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">— / 99 <span class="psaKind">82%</span> / 51 <span class="psaKind">63%</span></span></td></tr>
+            <tr><td>6</td><td><strong>Shanks SP</strong><span class="cNum">ST16-004 · Super Rare</span></td><td class="num">$156</td><td class="num">$364 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">— / 52 <span class="psaKind">77%</span> / 36 <span class="psaKind">78%</span></span></td></tr>
+            <tr><td>7</td><td><strong>Sanji SP</strong><span class="cNum">OP06-119 · Secret Rare</span></td><td class="num">$93</td><td class="num">$250 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 59 <span class="psaKind">81%</span> / 24 <span class="psaKind">88%</span></span></td></tr>
+            <tr><td>8</td><td><strong>Stussy SP</strong><span class="cNum">OP07-085 · Super Rare</span></td><td class="num">$112</td><td class="num">$187 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">— / 70 <span class="psaKind">87%</span> / 43 <span class="psaKind">63%</span></span></td></tr>
+            <tr><td>9</td><td><strong>Shirahoshi SP</strong><span class="cNum">EB01-057 · Super Rare</span></td><td class="num">$93</td><td class="num">$230 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">— / 80 <span class="psaKind">81%</span> / 46 <span class="psaKind">78%</span></span></td></tr>
+            <tr><td>10</td><td><strong>Nami 041 Alternate Art</strong><span class="cNum">OP11-041 · Leader</span></td><td class="num">$80</td><td class="num">$145 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">1,142 <span class="psaKind">93%</span> / 128 <span class="psaKind">88%</span> / 34 <span class="psaKind">71%</span></span></td></tr>
           </tbody>
         </table>
       </div>

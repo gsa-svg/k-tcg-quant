@@ -65,6 +65,7 @@
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
+      .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
@@ -152,18 +153,18 @@
       <p>The chase in EB-02 is led by <strong>Boa Hancock SP</strong> (Leader) and whose PSA 10 copies list near $2,680.</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
-          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th></tr></thead>
+          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th><th>Graded (PSA / CGC / TAG)</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td><strong>Boa Hancock SP</strong><span class="cNum">OP07-038 · Leader</span></td><td class="num">—</td><td class="num">$2,680 <span class="psaKind">ask</span></td></tr>
-            <tr><td>2</td><td><a href="../cards/eb02-061-monkey-d-luffy-061-manga.html"><strong>Monkey D. Luffy 061 Manga</strong></a><span class="cNum">EB02-061 · Secret Rare</span></td><td class="num">$5,018</td><td class="num">$2,928 <span class="psaKind">sold</span></td></tr>
-            <tr><td>3</td><td><a href="../cards/eb02-061-monkey-d-luffy.html"><strong>Monkey D. Luffy</strong></a><span class="cNum">EB02-061</span></td><td class="num">$3,760</td><td class="num">—</td></tr>
-            <tr><td>4</td><td><strong>Tony TonyChopper SP</strong><span class="cNum">OP08-001 · Leader</span></td><td class="num">$2,856 <span class="psaKind">TCG</span></td><td class="num">—</td></tr>
-            <tr><td>5</td><td><strong>Charlotte Pudding SP</strong><span class="cNum">OP08-058 · Leader</span></td><td class="num">$833 <span class="psaKind">TCG</span></td><td class="num">$1,864 <span class="psaKind">ask</span></td></tr>
-            <tr><td>6</td><td><strong>Monkey D. Luffy 010 Alternate Art</strong><span class="cNum">EB02-010 · Leader</span></td><td class="num">$805</td><td class="num">$2,649 <span class="psaKind">ask</span></td></tr>
-            <tr><td>7</td><td><strong>Perona SP</strong><span class="cNum"> · Leader</span></td><td class="num">—</td><td class="num">—</td></tr>
-            <tr><td>8</td><td><strong>Sabo SP</strong><span class="cNum">OP05-001 · Leader</span></td><td class="num">$817 <span class="psaKind">TCG</span></td><td class="num">$1,943 <span class="psaKind">ask</span></td></tr>
-            <tr><td>9</td><td><strong>Yamato SP</strong><span class="cNum">OP06-022 · Leader</span></td><td class="num">$907 <span class="psaKind">TCG</span></td><td class="num">$1,056 <span class="psaKind">ask</span></td></tr>
-            <tr><td>10</td><td><strong>Uta SP</strong><span class="cNum">OP06-001 · Leader</span></td><td class="num">$38</td><td class="num">$540 <span class="psaKind">sold</span></td></tr>
+            <tr><td>1</td><td><strong>Boa Hancock SP</strong><span class="cNum">OP07-038 · Leader</span></td><td class="num">—</td><td class="num">$2,680 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 16 <span class="psaKind">81%</span> / —</span></td></tr>
+            <tr><td>2</td><td><a href="../cards/eb02-061-monkey-d-luffy-061-manga.html"><strong>Monkey D. Luffy 061 Manga</strong></a><span class="cNum">EB02-061 · Secret Rare</span></td><td class="num">$5,018</td><td class="num">$2,928 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">850 <span class="psaKind">89%</span> / 740 <span class="psaKind">83%</span> / 31 <span class="psaKind">77%</span></span></td></tr>
+            <tr><td>3</td><td><a href="../cards/eb02-061-monkey-d-luffy.html"><strong>Monkey D. Luffy</strong></a><span class="cNum">EB02-061</span></td><td class="num">$3,760</td><td class="num">—</td><td class="num"><span class="gradeTrio">850 <span class="psaKind">89%</span> / 740 <span class="psaKind">83%</span> / 31 <span class="psaKind">77%</span></span></td></tr>
+            <tr><td>4</td><td><strong>Tony TonyChopper SP</strong><span class="cNum">OP08-001 · Leader</span></td><td class="num">$2,856 <span class="psaKind">TCG</span></td><td class="num">—</td><td class="num"><span class="gradeTrio">— / 3 <span class="psaKind">33%</span> / —</span></td></tr>
+            <tr><td>5</td><td><strong>Charlotte Pudding SP</strong><span class="cNum">OP08-058 · Leader</span></td><td class="num">$833 <span class="psaKind">TCG</span></td><td class="num">$1,864 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 10 <span class="psaKind">60%</span> / —</span></td></tr>
+            <tr><td>6</td><td><strong>Monkey D. Luffy 010 Alternate Art</strong><span class="cNum">EB02-010 · Leader</span></td><td class="num">$805</td><td class="num">$2,649 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">1,093 <span class="psaKind">92%</span> / 59 <span class="psaKind">90%</span> / 30 <span class="psaKind">67%</span></span></td></tr>
+            <tr><td>7</td><td><strong>Perona SP</strong><span class="cNum"> · Leader</span></td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+            <tr><td>8</td><td><strong>Sabo SP</strong><span class="cNum">OP05-001 · Leader</span></td><td class="num">$817 <span class="psaKind">TCG</span></td><td class="num">$1,943 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 2 <span class="psaKind">100%</span> / —</span></td></tr>
+            <tr><td>9</td><td><strong>Yamato SP</strong><span class="cNum">OP06-022 · Leader</span></td><td class="num">$907 <span class="psaKind">TCG</span></td><td class="num">$1,056 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 10 <span class="psaKind">100%</span> / —</span></td></tr>
+            <tr><td>10</td><td><strong>Uta SP</strong><span class="cNum">OP06-001 · Leader</span></td><td class="num">$38</td><td class="num">$540 <span class="psaKind">sold</span></td><td class="num"><span class="gradeTrio">— / 9 <span class="psaKind">67%</span> / —</span></td></tr>
           </tbody>
         </table>
       </div>

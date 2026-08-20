@@ -65,6 +65,7 @@
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
+      .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
@@ -152,18 +153,18 @@
       <p>The chase in OP-15 is led by <strong>Enel OP15 118 Manga</strong> (Secret Rare), whose raw Japanese NM copy runs about $1,119 and whose PSA 10 copies list near $1,600.</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
-          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th></tr></thead>
+          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th><th>Graded (PSA / CGC / TAG)</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td><strong>Enel OP15 118 Manga</strong><span class="cNum">OP15-118 · Secret Rare</span></td><td class="num">$1,119</td><td class="num">$1,600 <span class="psaKind">ask</span></td></tr>
-            <tr><td>2</td><td><strong>Koby EB04 044 Manga</strong><span class="cNum">EB04-044 · Super Rare</span></td><td class="num">$652 <span class="psaKind">TCG</span></td><td class="num">$989 <span class="psaKind">sold</span></td></tr>
-            <tr><td>3</td><td><strong>Boa Hancock SP</strong><span class="cNum">OP12-014 · Super Rare</span></td><td class="num">$565</td><td class="num">$650 <span class="psaKind">ask</span></td></tr>
-            <tr><td>4</td><td><strong>Monkey D. Luffy SP</strong><span class="cNum">ST26-005 · Super Rare</span></td><td class="num">$502</td><td class="num">$658 <span class="psaKind">ask</span></td></tr>
-            <tr><td>5</td><td><strong>Zeus SP</strong><span class="cNum">OP11-106 · Rare</span></td><td class="num">$38</td><td class="num">$951 <span class="psaKind">sold</span></td></tr>
-            <tr><td>6</td><td><strong>Roronoa Zoro OP13 037</strong><span class="cNum">OP13-037 · TR</span></td><td class="num">$313 <span class="psaKind">TCG</span></td><td class="num">—</td></tr>
-            <tr><td>7</td><td><strong>Nami OP15 086 Alternate Art</strong><span class="cNum">OP15-086 · Super Rare</span></td><td class="num">$376</td><td class="num">$459 <span class="psaKind">ask</span></td></tr>
-            <tr><td>8</td><td><strong>Trafalgar Law SP</strong><span class="cNum">OP13-031 · Rare</span></td><td class="num">$187</td><td class="num">$433 <span class="psaKind">ask</span></td></tr>
-            <tr><td>9</td><td><strong>EdwardNewgate SP</strong><span class="cNum">OP13-042 · Super Rare</span></td><td class="num">$125</td><td class="num">$369 <span class="psaKind">ask</span></td></tr>
-            <tr><td>10</td><td><strong>Sabo PRB02 014 SP</strong><span class="cNum">PRB02-014 · Super Rare</span></td><td class="num">$231 <span class="psaKind">TCG</span></td><td class="num">$392 <span class="psaKind">sold</span></td></tr>
+            <tr><td>1</td><td><strong>Enel OP15 118 Manga</strong><span class="cNum">OP15-118 · Secret Rare</span></td><td class="num">$1,119</td><td class="num">$1,600 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">1,357 <span class="psaKind">92%</span> / 19 <span class="psaKind">74%</span> / 11 <span class="psaKind">91%</span></span></td></tr>
+            <tr><td>2</td><td><strong>Koby EB04 044 Manga</strong><span class="cNum">EB04-044 · Super Rare</span></td><td class="num">$652 <span class="psaKind">TCG</span></td><td class="num">$989 <span class="psaKind">sold</span></td><td class="num">—</td></tr>
+            <tr><td>3</td><td><strong>Boa Hancock SP</strong><span class="cNum">OP12-014 · Super Rare</span></td><td class="num">$565</td><td class="num">$650 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 51 <span class="psaKind">84%</span> / 17 <span class="psaKind">94%</span></span></td></tr>
+            <tr><td>4</td><td><strong>Monkey D. Luffy SP</strong><span class="cNum">ST26-005 · Super Rare</span></td><td class="num">$502</td><td class="num">$658 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 49 <span class="psaKind">78%</span> / 12 <span class="psaKind">92%</span></span></td></tr>
+            <tr><td>5</td><td><strong>Zeus SP</strong><span class="cNum">OP11-106 · Rare</span></td><td class="num">$38</td><td class="num">$951 <span class="psaKind">sold</span></td><td class="num">—</td></tr>
+            <tr><td>6</td><td><strong>Roronoa Zoro OP13 037</strong><span class="cNum">OP13-037 · TR</span></td><td class="num">$313 <span class="psaKind">TCG</span></td><td class="num">—</td><td class="num">—</td></tr>
+            <tr><td>7</td><td><strong>Nami OP15 086 Alternate Art</strong><span class="cNum">OP15-086 · Super Rare</span></td><td class="num">$376</td><td class="num">$459 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">1,099 <span class="psaKind">90%</span> / 247 <span class="psaKind">82%</span> / 8 <span class="psaKind">88%</span></span></td></tr>
+            <tr><td>8</td><td><strong>Trafalgar Law SP</strong><span class="cNum">OP13-031 · Rare</span></td><td class="num">$187</td><td class="num">$433 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 37 <span class="psaKind">89%</span> / 8 <span class="psaKind">63%</span></span></td></tr>
+            <tr><td>9</td><td><strong>EdwardNewgate SP</strong><span class="cNum">OP13-042 · Super Rare</span></td><td class="num">$125</td><td class="num">$369 <span class="psaKind">ask</span></td><td class="num"><span class="gradeTrio">— / 29 <span class="psaKind">83%</span> / 8 <span class="psaKind">63%</span></span></td></tr>
+            <tr><td>10</td><td><strong>Sabo PRB02 014 SP</strong><span class="cNum">PRB02-014 · Super Rare</span></td><td class="num">$231 <span class="psaKind">TCG</span></td><td class="num">$392 <span class="psaKind">sold</span></td><td class="num">—</td></tr>
           </tbody>
         </table>
       </div>
