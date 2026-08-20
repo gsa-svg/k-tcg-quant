@@ -99,10 +99,10 @@ async function token() {
   return j.access_token;
 }
 
-async function search(tok, q, limit, sort, buying = "AUCTION", offset = 0) {
+async function search(tok, q, limit, sort, buying = "AUCTION", offset = 0, extraFilter = "") {
   const u = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
   u.searchParams.set("q", q);
-  u.searchParams.set("filter", `buyingOptions:{${buying}}`);
+  u.searchParams.set("filter", `buyingOptions:{${buying}}` + (extraFilter ? `,${extraFilter}` : ""));
   u.searchParams.set("limit", String(limit));
   if (offset) u.searchParams.set("offset", String(offset));
   if (sort) u.searchParams.set("sort", sort);
@@ -133,6 +133,14 @@ const median = (a) => {
     // 경매만 보고 "시장"이라 하면 100배를 빠뜨린 얘기가 된다. 다만 즉구는 팔릴 때까지 몇 달도 걸려
     // "지금 걸린 개수"일 뿐이고, 낙찰률 같은 걸 낼 수는 없다 — 그래서 건수만 적는다.
     const fixed = await search(tok, g.q, 1, null, "FIXED_PRICE");
+    // 24시간 안에 끝나는 경매가 몇 개인가 — eBay 가 직접 알려주는 **실제 수**다(표본이 아니다).
+    // 2026-08-20 실측: 포켓몬 37,988건. 우리가 종료 후 실제로 읽는 건 그중 200건뿐이라,
+    // 화면에 "종료 200건"만 내보내면 그게 하루 규모처럼 읽힌다. 둘을 나란히 둔다.
+    //   endingToday = 그날 실제로 끝나는 수 · ended/sold = 우리가 확인한 수
+    // ⚠️ 종료일 필터는 itemEndDate:[..날짜] 형식이어야 먹는다. [시작..끝] 로 주면 조용히 무시된다
+    //    (실측: 필터 없음 292,720 vs 잘못된 범위 293,469 — 오히려 늘었다).
+    const endAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+    const ending = await search(tok, g.q, 1, null, "AUCTION", 0, `itemEndDate:[..${endAt}]`);
     // 2) 종료 임박 순 표본 — 입찰이 붙은 비율과 현재가 분포를 본다
     const items = [];
     for (let pg = 0; pg < PAGES; pg++) {
@@ -166,7 +174,8 @@ const median = (a) => {
     }
     games.push({
       k: g.k,
-      live: head.total,                                   // eBay 가 알려준 진행 중 경매 수
+      live: head.total,                                   // eBay 가 알려준 진행 중 경매 수(재고)
+      endingToday: ending.total ?? null,                  // 24시간 안에 끝나는 실제 수 — 표본이 아니다
       liveFixed: fixed.total,                             // 진행 중 즉시구매 수 (건수만 — 낙찰 개념이 없다)
       sampled: items.length,
       withBids,                                           // 표본 중 입찰이 하나라도 붙은 건수

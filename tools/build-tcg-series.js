@@ -81,6 +81,10 @@ function main() {
       games[k] = {
         live: avg((g) => g.live),
         liveFixed: avg((g) => g.liveFixed),
+        // 그날 실제로 끝난 경매 수(eBay 가 알려준 값). live 와 달리 기간 안에서 일어난 일이라
+        // 주·월은 평균이 아니라 합이어야 맞지만, 스냅샷을 하루 한 번만 찍으므로 여기서는 일별 값만 쓴다.
+        // 우리가 종료 후 실제로 확인한 수(ended)와는 다른 값이다 — 그쪽이 훨씬 작다.
+        endingToday: avg((g) => g.endingToday),
         bidRate: avg((g) => g.bidRate),
         ended, sold,
         // 표본이 얇으면 비율을 만들지 않는다. n 은 항상 같이 실어 무게를 독자가 판단하게 한다.
@@ -106,7 +110,7 @@ function main() {
 
   const out = {
     basis: "eBay listings and settled auctions by trading card game",
-    note: "Two different kinds of number live here, and they are combined differently. live and liveFixed are how many listings were open when we looked, so a week is the AVERAGE of its days -- adding them would count the same listing every day it stayed up. ended, sold and amount are things that happened inside the period, so a week is the SUM. Sell-through is left null under 20 settled auctions and medPrice under 5, because a rate built on a handful of listings is noise. None of this is the size of a game's market: eBay is one channel, fixed-price listings are counted but we cannot see whether they sold, and shipping is excluded. What it is good for is comparing games with each other, since every game is measured the same way. Terms of use: https://opboxindex.com/free-data.html#terms",
+    note: "Three different kinds of number live here. endingToday is how many auctions eBay says close within 24 hours -- a real count, not a sample -- while ended/sold are the ones we actually re-read after close, which is a small fraction of that. live and liveFixed are how many listings were open when we looked, so a week is the AVERAGE of its days -- adding them would count the same listing every day it stayed up. ended, sold and amount are things that happened inside the period, so a week is the SUM. Sell-through is left null under 20 settled auctions and medPrice under 5, because a rate built on a handful of listings is noise. None of this is the size of a game's market: eBay is one channel, fixed-price listings are counted but we cannot see whether they sold, and shipping is excluded. What it is good for is comparing games with each other, since every game is measured the same way. Terms of use: https://opboxindex.com/free-data.html#terms",
     games: terms,
     minRateSample: MIN_RATE_N,
     builtFrom: { first: days[0] || null, last: days[days.length - 1] || null, days: days.length },
