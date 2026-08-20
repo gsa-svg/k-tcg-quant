@@ -201,6 +201,19 @@ const med = (a) => {
       // 박스는 판(JP/EN)별 + 갯수(single/multi)별로도 집계. carton 은 위 byKind.carton 으로 분리됨 — box 에 안 섞임.
       boxByEd: Object.fromEntries(["jp", "en"].map((e) => [e, agg(rows.filter((r) => r.kind === "box" && r.ed === e))])),
       boxByQty: { single: agg(rows.filter((r) => r.kind === "box" && r.qty === 1)), multi: agg(rows.filter((r) => r.kind === "box" && Number.isFinite(r.qty) && r.qty > 1)) },
+      // 등급 카드 축 — 2026-08-20 추가. 레코드에는 grade 가 붙어 있었는데(PSA 10 · CGC Pristine 10 …)
+      // 일별 집계에 축이 없어서 "등급 카드가 무등급보다 얼마나 비싼가"를 낼 수 없었다.
+      // 회사별로 10 의 이름이 다르다(PSA 10 / PSA Gem Mint 10 / CGC 10 / CGC Gem Mint 10 / CGC Pristine 10 …).
+      // 여기서는 그걸 회사 단위로만 묶는다 — 등급 라벨끼리 합치면 서로 다른 기준을 한 칸에 뭉개게 된다.
+      byGrade: (() => {
+        const graded = rows.filter((r) => r.grade);
+        const out = { raw: agg(rows.filter((r) => !r.grade)), graded: agg(graded) };
+        for (const co of ["PSA", "CGC", "BGS", "TAG"]) {
+          const rs = graded.filter((r) => String(r.grade).toUpperCase().startsWith(co));
+          if (rs.length) out[co.toLowerCase()] = agg(rs);
+        }
+        return out;
+      })(),
       bySet,
     };
   });

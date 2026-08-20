@@ -86,7 +86,8 @@ const GAMES = {
       "パルワールドカードゲーム",
       "Palworld Dawn of Palpagos booster box",
       "Palworld TCG booster pack sealed",
-      "Palworld Card Game carton",
+      // 카톤 전용 쿼리는 원피스에만 둔다 — 팰월드는 발매 3주차라 카톤 매물 자체가 거의 없고,
+      // 쿼리만 늘리면 호출 비용만 든다. 필요해지면 그때 추가한다.
     ],
   },
 };
