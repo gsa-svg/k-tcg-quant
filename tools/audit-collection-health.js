@@ -80,7 +80,11 @@ if (has("data/tcg-watch.json")) {
   const now = Date.now();
   const overdue = pending.filter((p) => Date.parse(p.end) < now - 30 * 3600 * 1000);
   if (overdue.length > 50) fail(`TCG 감시 목록에 시한 넘긴 건이 ${overdue.length}건 — 정산이 밀리고 있다`);
-  if (pending.length > 6000) fail(`TCG 감시 목록이 ${pending.length}건까지 불었다 — 유입 대비 처리량 부족`);
+  // 대기 건수 자체는 위험 신호가 아니다 — 아직 종료 전인 경매가 대부분이고, 감시량을 늘리면 당연히 는다.
+  // 진짜 위험은 위의 overdue(종료 후 30시간을 넘겨 조회가 막힌 건)다. 그건 영원한 빈칸이 된다.
+  // 2026-08-20: 감시를 게임당 100 → 200 으로 올리며 상한을 6,000 → 12,000 으로 맞췄다.
+  // (실측: 6,878건 대기 중 종료된 건 12건, 30시간 넘김 0건 — 밀린 게 아니라 대기 중이었다.)
+  if (pending.length > 12000) fail(`TCG 감시 목록이 ${pending.length}건까지 불었다 — 유입 대비 처리량 부족`);
   else ok(`TCG 감시 대기 ${pending.length}건`);
 }
 
