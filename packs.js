@@ -193,7 +193,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260821c";
+const DATA_VERSION = "20260821d";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1135,13 +1135,21 @@ function renderEditionTable(set) {
   const jp = set.psaFull, en = set.psaFullEn;
   if (!jp) return "";
   const w = set.psaWow;
-  const wk = (d) => (d && d.wowAdd != null
-    ? `<td class="edNum edAdd">+${num(d.wowAdd)}</td><td class="edGem">${d.wowPct >= 0 ? "+" : ""}${d.wowPct}%</td>`
+  // 12주 궤적(inject-psa-wow.js 의 wowSpark). 세트마다 절대량이 수십~수천으로 갈리므로
+  // 각자의 최대값에 맞춰 그린다 — 선은 방향만 말하고, 크기 비교는 옆의 숫자로 한다.
+  const spark = (v, cls) => {
+    if (!Array.isArray(v) || v.length < 4) return "";
+    const W = 58, H = 15, max = Math.max(...v, 1), step = W / (v.length - 1);
+    const d = v.map((x, i) => `${i ? "L" : "M"}${(i * step).toFixed(1)} ${(H - 1 - (x / max) * (H - 2)).toFixed(1)}`).join(" ");
+    return `<svg class="edSpark ${cls}" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" aria-hidden="true"><path d="${d}"/></svg>`;
+  };
+  const wk = (d, cls) => (d && d.wowAdd != null
+    ? `<td class="edNum edAdd">+${num(d.wowAdd)}${spark(d.wowSpark, cls)}</td><td class="edGem">${d.wowPct >= 0 ? "+" : ""}${d.wowPct}%</td>`
     : `<td class="edNum">&mdash;</td><td class="edGem">&mdash;</td>`);
-  const row = (label, d, note) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d)}</tr>`;
+  const row = (label, d, note, cls) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d, cls)}</tr>`;
   return `<div class="edWrap"><table class="edTable"><thead><tr><th class="gHead gPsa">${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
-    ${row(t("일본판", "Japanese"), jp, "")}
-    ${row(t("영문판", "English"), en, t("집계중", "collecting"))}
+    ${row(t("일본판", "Japanese"), jp, "", "edJp")}
+    ${row(t("영문판", "English"), en, t("집계중", "collecting"), "edEn")}
   </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
 }
 

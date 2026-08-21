@@ -179,10 +179,6 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .statHint { margin-top: 6px; font-size: 11px; color: var(--muted, #8090b0); line-height: 1.45; }
       .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
-      .spark { display: block; margin: 6px 0 2px; width: 100%; height: 26px; overflow: visible; }
-      .sparkLine { fill: none; stroke: var(--blue, #4f9dff); stroke-width: 1.5; stroke-linejoin: round; }
-      .sparkFill { fill: var(--blue-dim, rgba(79,157,255,.10)); stroke: none; }
-      .sparkDot { fill: var(--blue, #4f9dff); }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
       /* 숫자가 주인공이다 — 28px/700. 라벨은 10.5px 대문자로 물러난다(TCG 퀀트 실측 규칙).
@@ -372,53 +368,6 @@ const CARD_GRADES = (() => {
   }
   return out;
 })();
-
-// ── 주간 감정 유입 — 2026-08-21. build-grading-series.js 산출물을 화면에 처음 붙인다.
-// 누적 총계는 이미 있는데 "지금 얼마나 빠르게 늘고 있나"가 없었다. 누적 6만은 3년치일 수도,
-// 지난달치일 수도 있다.
-//
-// PSA 만 쓴다. 세 회사를 합치려 해 봤지만 관측일이 안 맞는다 — PSA 는 매주 화요일 37주치인데
-// CGC/TAG 는 2026-07-27 부터 6포인트뿐이고 간격도 1일~11일로 들쭉날쭉하다. 그대로 더하면
-// "4주 유입"이 실제로는 회사마다 다른 기간의 합이 된다. CGC/TAG 시계열이 넉 주 넘게 쌓이면 합산한다.
-const GRADE_FLOW = (() => {
-  let src;
-  try { src = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "grading-series.json"), "utf8")); } catch { return {}; }
-  const out = {};
-  for (const [code, node] of Object.entries(src.sets || {})) {
-    const byWeek = new Map();
-    for (const ed of ["jp", "en"]) {
-      const pts = node[ed] && node[ed].psa;
-      if (!Array.isArray(pts)) continue;
-      for (const pt of pts) if (pt.add != null) byWeek.set(pt.d, (byWeek.get(pt.d) || 0) + pt.add);
-    }
-    if (byWeek.size < 8) continue;
-    const weeks = [...byWeek.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([d, v]) => ({ d, v }));
-    const sum = (a) => a.reduce((t, w) => t + w.v, 0);
-    out[code] = { weeks, last4: sum(weeks.slice(-4)), prev4: sum(weeks.slice(-8, -4)), asOf: weeks[weeks.length - 1].d };
-  }
-  return out;
-})();
-
-const FLOW_MEDIAN = (() => {
-  const a = Object.values(GRADE_FLOW).map((f) => f.last4).filter((x) => x != null).sort((x, y) => x - y);
-  return a.length ? a[Math.floor(a.length / 2)] : null;
-})();
-
-// 스파크라인. 주간 유입은 절대량 차이가 커서(수백 ~ 수천) 세트별로 자체 최대값에 맞춰 그린다.
-// 세트 간 높이 비교는 옆의 숫자와 중앙값 대비로 하고, 선은 "늘고 있나 줄고 있나"만 말한다.
-function sparkline(weeks, w = 132, h = 26) {
-  const pts = weeks.slice(-26);
-  if (pts.length < 3) return "";
-  const max = Math.max(...pts.map((p) => p.v), 1);
-  const step = pts.length > 1 ? w / (pts.length - 1) : 0;
-  const xy = pts.map((p, i) => [i * step, h - 2 - (p.v / max) * (h - 4)]);
-  const line = xy.map(([x, y], i) => (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1)).join(" ");
-  const area = line + " L" + w + " " + h + " L0 " + h + " Z";
-  const [lx, ly] = xy[xy.length - 1];
-  return '<svg class="spark" viewBox="0 0 ' + w + " " + h + '" width="' + w + '" height="' + h + '" aria-hidden="true">' +
-    '<path class="sparkFill" d="' + area + '"/><path class="sparkLine" d="' + line + '"/>' +
-    '<circle class="sparkDot" cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="2.2"/></svg>';
-}
 
 // ── 세트 지표와 그 기준선 — 2026-08-20.
 // 값 하나만 보여주면 읽는 쪽이 그게 높은지 낮은지 알 수 없다. 전 세트를 한 번 훑어 중앙값을 구해 두고
@@ -697,16 +646,6 @@ function setPage(code, prev, next) {
     // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 낮을수록 물건이 빨리 빠진다는 뜻이라 higherIsBetter=false.
     if (m.days != null) cells.push(`<div class="statCard"><div class="statLabel">Days of inventory</div><div class="statValue">${m.days}d</div><div class="statBase">${m.stock} listed · 21-set median ${base.days}d ${cmp(m.days, base.days, false)}</div><div class="statHint">How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</div></div>`);
     if (m.psa != null) cell("PSA graded", intl(m.psa), `21-set median ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
-    // 감정 유입 — 누적 총계 바로 옆에 둔다. "6만 장"과 "이번 달 +6,059"는 다른 이야기다.
-    {
-      const f = GRADE_FLOW[code];
-      if (f && f.last4 != null) {
-        const trend = f.prev4 ? Math.round((f.last4 / f.prev4 - 1) * 100) : null;
-        const tcls = trend == null ? "statFlat" : trend > 0 ? "statUp" : trend < 0 ? "statDown" : "statFlat";
-        const trendTx = trend == null ? "" : ` · <span class="${tcls}">${trend > 0 ? "▲ +" : trend < 0 ? "▼ " : ""}${trend}%</span> vs prior 4 wks`;
-        cells.push(`<div class="statCard"><div class="statLabel">PSA inflow · 4 wks</div><div class="statValue">+${intl(f.last4)}</div>${sparkline(f.weeks)}<div class="statBase">${FLOW_MEDIAN != null ? `21-set median +${intl(FLOW_MEDIAN)}` : ""}${trendTx}</div><div class="statHint">Cards from this set that entered the PSA population over the last four weeks. This is submission volume, not how many boxes were opened.</div></div>`);
-      }
-    }
     if (m.gem != null) cells.push(`<div class="statCard"><div class="statLabel">PSA 10 rate</div><div class="statValue">${m.gem}%</div><div class="statBase">21-set median ${base.gem}% ${cmp(m.gem, base.gem)}</div><div class="statHint">Share of PSA submissions from this set that came back a 10.</div></div>`);
     // ── 싱글카드 구성 — 2026-08-20. TCG 퀀트의 SINGLES INTEL 을 우리 데이터로 낸다.
     // 박스를 뜯는 사람이 실제로 묻는 것: "대박 하나에 몰려 있나, 아니면 두루 값이 나가나".
