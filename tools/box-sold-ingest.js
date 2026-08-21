@@ -170,9 +170,15 @@ function main(dumpFile) {
   //    쪼개 봤더니 145건(+7%)에 그쳤다 — rawN 으로 세면 "137/210 페이지가 잘렸다"는 잘못된 경보가 난다.
   //    실제로 잘렸는지는 **우리가 박스로 판정한 건수(kept)** 가 240 에 닿았는지로 본다.
   const cappedPages = [];
+  // UPCOMING(발매 임박, packs.json 미등재) 세트도 원장에는 받는다 — 2026-08-21.
+  // 종전엔 여기서 무음 스킵됐다: 수집 배치는 OP-17 페이지를 만드는데 ingest 가 통째로 버려서,
+  // 발매 직후 데이터가 영영 사라질 뻔했다(240건 상한+최근순이라 소급 불가 — 팰월드 BP-01 전례).
+  // 스냅샷(packs.json 반영)은 여전히 등재된 세트만 — 화면은 세트 등재 후에 열린다.
+  const { UPCOMING } = require("./box-sold-urls.js");
+  const upcomingCodes = new Set(UPCOMING.map((u) => u.code));
   for (const page of dump.pages || []) {
     const code = page.code;
-    if (!data.sets[code]) continue;
+    if (!data.sets[code] && !upcomingCodes.has(code)) continue;
     const boxLike = (page.items || []).filter((it) => /booster\s*box/i.test(String(it.t || ""))).length;
     if (boxLike >= 235) cappedPages.push(code + "/" + page.query + (page.band != null ? "/" + page.band : ""));
     // 이번 덤프에서 유효 판정된 건 전부(이미 아는 id 포함) — 스냅샷 계산용
@@ -220,6 +226,7 @@ function main(dumpFile) {
   // 세트별 스냅샷: 이번 덤프에서 그 세트로 본 유효 sold 전체 기준, n>=3 일 때만.
   // 같은 id 가 여러 가격대 페이지에 겹쳐 나올 일은 없지만(가격이 하나뿐), 안전하게 id 로 한 번 걸러낸다.
   for (const [code, seen] of Object.entries(seenBySet)) {
+    if (!data.sets[code]) continue;   // UPCOMING: 원장에만 쌓고 스냅샷은 등재 후
     for (const ed of ["jp", "en"]) {
       const byId = new Map();
       for (const r of seen[ed]) byId.set(r.id, r);
