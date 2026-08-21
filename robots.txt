@@ -79,9 +79,25 @@ Disallow: /SECURITY.md
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Perplexity-User
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Claude-User
 Allow: /
@@ -118,21 +134,53 @@ Disallow: /CLAUDE.md
 Disallow: /AGENTS.md
 Disallow: /SECURITY.md
 
-# xAI Grok fetchers — allowed. Any AI agent not named here is covered by the
-# default "User-agent: *" allow group at the top (only internal dirs blocked).
+# xAI Grok fetchers — allowed. Unnamed agents use the default group, where the
+# root AI feed stays public while raw runtime data and internal paths stay blocked.
 User-agent: GrokBot
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: xAI-Crawler
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 # Social link-preview crawlers — ALLOWED so Threads / Facebook / Instagram render
 # rich link cards when we share the site.
 User-agent: FacebookBot
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 User-agent: Meta-ExternalAgent
 Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
 # Training-only scrapers — BLOCKED (bulk-harvest for model training, no exposure benefit).
 User-agent: GPTBot

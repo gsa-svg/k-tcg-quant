@@ -741,7 +741,7 @@ if (exists("data/box-sold-ledger.json")) {
 //    우리 자체 eBay 시계열(boxSeriesEbay / boxSeriesEnEbay)은 계속 쌓이며, 9월에 일판/영문판
 //    두 지수로 다시 세울 예정이다(기준일은 중국셀러 정리 이후인 2026-07-17 이후로 잡을 것).
 // ── S1. 외부 소스명 공개 금지 (영구 규칙)
-for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.txt", "feed.xml"]) {
+for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "opbox-ai-data.json", "llms.txt", "feed.xml"]) {
   if (!exists(f)) continue;
   if (/collectr/i.test(read(f))) errors.push(`S1: ${f} 에 외부 소스명 노출 (Weekly ungraded market 라벨 사용)`);
 }
@@ -782,7 +782,7 @@ for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "llms.t
 }
 
 // ── F1. 삭제 금지 파일 존재 확인
-for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "naver933afc5e4330d8e58701ba45b0319b4a.html", "3d439f302e46fc08f76ddba4eee3726f.txt", "robots.txt", "sitemap.xml", "llms.txt", "data/set-facts.json"]) {
+for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "naver933afc5e4330d8e58701ba45b0319b4a.html", "3d439f302e46fc08f76ddba4eee3726f.txt", "ads.txt", "robots.txt", "sitemap.xml", "llms.txt", "opbox-ai-data.json", "data/set-facts.json"]) {
   if (!exists(f)) errors.push(`F1: 필수 파일 삭제됨: ${f}`);
 }
 
@@ -909,7 +909,7 @@ for (const f of ["index.html", "packs.html"]) {
     if (codes.length < 15) errors.push(`P1: 공급 시계열 세트 부족 (${codes.length})`);
   }
   // 공개 산출물에서 gone을 sold로 표기하지 않았는지 확인(라벨 오염 차단)
-  for (const f of [...PUBLIC_HTML, "opbox-set-prices.csv", "llms.txt"]) {
+  for (const f of [...PUBLIC_HTML, "opbox-set-prices.csv", "opbox-ai-data.json", "llms.txt"]) {
     if (!exists(f)) continue;
     const t = read(f);
     if (/(sold|판매)\s*(count|건수|volume|량)/i.test(t) && /gone|delist/i.test(t))
@@ -957,6 +957,14 @@ for (const f of ["index.html", "packs.html"]) {
     }
     if (tools.includes("backfill-english-box-series.js") && !addLine.includes("logs/en-backfill-status.json")) {
       errors.push(`W1: logs/en-backfill-status.json 은 ${wf} 의 산출물인데 커밋 목록에 없음 — rebase 실패를 유발함`);
+    }
+    if (tools.includes("generate-ai-data.js") && !addLine.includes("opbox-ai-data.json")) {
+      errors.push(`W1: opbox-ai-data.json 은 ${wf} 의 산출물인데 커밋 목록에 없음 — AI 데이터가 구버전으로 남음`);
+    }
+    if (tools.includes("generate-free-data.js")) {
+      for (const output of ["free-data.html", "opbox-set-prices.csv", "opbox-grading-population.csv", "opbox-auction-daily.csv", "sitemap.xml"]) {
+        if (!addLine.includes(output)) errors.push(`W1: ${output} 은 ${wf} 의 산출물인데 커밋 목록에 없음 — 무료 데이터가 구버전으로 남음`);
+      }
     }
     const src = [...new Set(tools)]
       .filter((f) => exists(`tools/${f}`))

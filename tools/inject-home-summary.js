@@ -70,7 +70,7 @@ const faqs = [
   },
   {
     q: "Where can I check One Piece card and booster box prices for free?",
-    a: `This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and PSA / CGC / TAG grading population by set and edition, or download the full per-set dataset as a CSV under a CC BY 4.0 licence at /free-data.html.`,
+    a: `This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and PSA / CGC / TAG grading population by set and edition, or download citable JSON and CSV datasets under a CC BY 4.0 licence at /free-data.html.`,
   },
 ];
 const faqLd = JSON.stringify({
@@ -79,13 +79,16 @@ const faqLd = JSON.stringify({
 });
 const dsLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
-  name: "One Piece booster box prices (Japanese sets)",
-  description: `Daily prices for ${rows.length} Japanese One Piece Card Game booster boxes with change since tracking start, original MSRP multiple, reprint records and PSA population.`,
+  name: "One Piece TCG box markets and Top 7 card data",
+  description: `Citable data for ${rows.length} tracked One Piece Card Game products: Japanese and English completed-sale and active-ask box markets, Top 7 exact card variants, and field-level observation dates and sample sizes.`,
   url: "https://opboxindex.com/free-data.html",
   license: "https://creativecommons.org/licenses/by/4.0/",
   isAccessibleForFree: true, dateModified: DATA_DATE,
   creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" },
-  distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: "https://opboxindex.com/opbox-set-prices.csv" }],
+  distribution: [
+    { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: "https://opboxindex.com/opbox-ai-data.json" },
+    { "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: "https://opboxindex.com/opbox-set-prices.csv" },
+  ],
 });
 const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n          ");
 
@@ -102,7 +105,7 @@ ${tr}
             </tbody>
           </table>
           </div>
-          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auction results</a> · <a href="ko/">한국어 시세</a></p>
+          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download citable data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auction results</a> · <a href="ko/">한국어 시세</a></p>
           </details>
         </section>
         <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">

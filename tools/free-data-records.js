@@ -1,0 +1,97 @@
+"use strict";
+
+const { SITE, buildBoxMarket } = require("./market-data-normalizers");
+
+const BOX_HEAD = [
+  "set_code", "set_name_en", "set_name_ko", "english_release_date", "canonical_url",
+  "jp_sold_median_usd", "jp_sold_p25_usd", "jp_sold_p75_usd", "jp_sold_sample_size", "jp_sold_sample_collected_on",
+  "jp_active_ask_median_usd", "jp_active_ask_p15_usd", "jp_active_ask_p85_usd", "jp_active_listing_count", "jp_active_observed_on",
+  "en_sold_median_usd", "en_sold_p25_usd", "en_sold_p75_usd", "en_sold_sample_size", "en_sold_sample_collected_on",
+  "en_active_ask_median_usd", "en_active_ask_p15_usd", "en_active_ask_p85_usd", "en_active_listing_count", "en_active_observed_on",
+];
+const GRADE_HEAD = [
+  "set_code", "set_name_en", "edition",
+  "psa_total", "psa10_rate_pct", "psa_weekly_add", "psa_total_as_of", "psa_weekly_add_as_of",
+  "cgc_total", "cgc_total_as_of", "cgc_pristine10", "cgc_gem_mint10", "cgc_grade_split_as_of",
+  "tag_total", "tag_total_as_of", "tag_10", "tag_10p", "tag_grade_split_as_of",
+];
+const AUCTION_HEAD = ["date", "kind", "auctions", "sold", "sell_through_pct", "median_price_usd", "median_bids"];
+
+function orderKey(code) {
+  const match = code.match(/^([A-Z]+)-?(\d+)/);
+  const family = { OP: 0, EB: 1, PRB: 2 }[match?.[1] || "OP"] ?? 9;
+  return family * 1000 + (match ? parseInt(match[2], 10) : 0);
+}
+
+function trackedCodes(data) {
+  return [...(data.jp?.list || []), ...(data.extra?.list || [])]
+    .filter((code) => data.sets?.[code])
+    .sort((a, b) => orderKey(a) - orderKey(b));
+}
+
+/** One truthful row per product; sold and active snapshots never share a field. */
+function buildBoxRecords(data) {
+  const dates = [];
+  const records = trackedCodes(data).map((code) => {
+    const set = data.sets[code];
+    const market = buildBoxMarket(set, data.updated);
+    const js = market.japanese.sold, ja = market.japanese.activeAsk;
+    const es = market.english.sold, ea = market.english.activeAsk;
+    dates.push(js?.sampleCollectedOn, ja?.observedOn, es?.sampleCollectedOn, ea?.observedOn);
+    return {
+      set_code: code, set_name_en: set.nameEn ?? "", set_name_ko: set.nameKo ?? "",
+      english_release_date: set.release ?? "", canonical_url: `${SITE}/sets/${code.toLowerCase()}.html`,
+      jp_sold_median_usd: js?.medianUsd ?? "", jp_sold_p25_usd: js?.p25Usd ?? "", jp_sold_p75_usd: js?.p75Usd ?? "", jp_sold_sample_size: js?.sampleSize ?? "", jp_sold_sample_collected_on: js?.sampleCollectedOn ?? "",
+      jp_active_ask_median_usd: ja?.medianUsd ?? "", jp_active_ask_p15_usd: ja?.p15Usd ?? "", jp_active_ask_p85_usd: ja?.p85Usd ?? "", jp_active_listing_count: ja?.listingCount ?? "", jp_active_observed_on: ja?.observedOn ?? "",
+      en_sold_median_usd: es?.medianUsd ?? "", en_sold_p25_usd: es?.p25Usd ?? "", en_sold_p75_usd: es?.p75Usd ?? "", en_sold_sample_size: es?.sampleSize ?? "", en_sold_sample_collected_on: es?.sampleCollectedOn ?? "",
+      en_active_ask_median_usd: ea?.medianUsd ?? "", en_active_ask_p15_usd: ea?.p15Usd ?? "", en_active_ask_p85_usd: ea?.p85Usd ?? "", en_active_listing_count: ea?.listingCount ?? "", en_active_observed_on: ea?.observedOn ?? "",
+    };
+  });
+  return { records, dates };
+}
+
+const series = (src, code, edition) => src?.sets?.[code]?.[edition] || [];
+const latest = (src, code, edition, predicate = () => true) => [...series(src, code, edition)].reverse().find(predicate) || null;
+
+/** Keep total, weekly-change and grade-split dates separate across every grader. */
+function buildGradeRecords(data, cgc, tag) {
+  const records = [], dates = [];
+  for (const code of trackedCodes(data)) for (const edition of ["jp", "en"]) {
+    const set = data.sets[code];
+    const psa = edition === "jp" ? set.psaFull : set.psaFullEn;
+    const psaWeekly = edition === "jp" ? set.psaWeekly?.points?.at(-1)?.d : psa?.updated;
+    const cgcTotal = latest(cgc, code, edition);
+    const cgcSplit = latest(cgc, code, edition, (point) => point?.grades && Object.keys(point.grades).length);
+    const tagTotal = latest(tag, code, edition);
+    const tagSplit = latest(tag, code, edition, (point) => Number.isFinite(point?.g10) && Number.isFinite(point?.g10p));
+    if (!psa && !cgcTotal && !tagTotal) continue;
+    const record = {
+      set_code: code, set_name_en: set.nameEn ?? "", edition: edition === "jp" ? "japanese" : "english",
+      psa_total: psa?.total ?? "", psa10_rate_pct: psa?.gemRate ?? "", psa_weekly_add: psa?.wowAdd ?? "",
+      psa_total_as_of: psa?.updated ?? "", psa_weekly_add_as_of: psa?.wowAdd == null ? "" : (psaWeekly ?? ""),
+      cgc_total: cgcTotal?.total ?? "", cgc_total_as_of: cgcTotal?.d ?? "",
+      cgc_pristine10: cgcSplit?.grades?.["Pristine 10"] ?? "", cgc_gem_mint10: cgcSplit?.grades?.["Gem Mint 10"] ?? "", cgc_grade_split_as_of: cgcSplit?.d ?? "",
+      tag_total: tagTotal?.total ?? "", tag_total_as_of: tagTotal?.d ?? "",
+      tag_10: tagSplit?.g10 ?? "", tag_10p: tagSplit?.g10p ?? "", tag_grade_split_as_of: tagSplit?.d ?? "",
+    };
+    dates.push(record.psa_total_as_of, record.psa_weekly_add_as_of, record.cgc_total_as_of, record.cgc_grade_split_as_of, record.tag_total_as_of, record.tag_grade_split_as_of);
+    records.push(record);
+  }
+  return { records, dates };
+}
+
+function buildAuctionRecords(source) {
+  const records = [], dates = [];
+  for (const point of source?.daily || []) {
+    dates.push(point.d);
+    const put = (kind, value) => {
+      if (!value?.n) return;
+      records.push({ date: point.d, kind, auctions: value.n, sold: value.sold, sell_through_pct: value.sellThrough ?? "", median_price_usd: value.medPrice ?? "", median_bids: value.medBids ?? "" });
+    };
+    put("all", point);
+    for (const kind of ["box", "card", "pack"]) put(kind, point.byKind?.[kind]);
+  }
+  return { records, dates };
+}
+
+module.exports = { AUCTION_HEAD, BOX_HEAD, GRADE_HEAD, buildAuctionRecords, buildBoxRecords, buildGradeRecords };

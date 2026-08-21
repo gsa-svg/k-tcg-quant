@@ -57,9 +57,16 @@ jobs:
           node --check tools/generate-ko-pages.js
           node --check tools/generate-ko-topic-pages.js
           node --check tools/generate-auction-page.js
+          node --check tools/generate-free-data.js
+          node --check tools/free-data-records.js
+          node --check tools/market-data-normalizers.js
+          node --check tools/ai-data-model.js
+          node --check tools/generate-ai-data.js
+          node --check tools/test-ai-data.js
           node --check tools/guard-invariants.js
           node --check tools/audit-adsense-readiness.js
           node --check tools/audit-seo.js
+          node --check tools/robots-policy.js
           node --check tools/audit-ai-discovery.js
           node --check tools/run-with-retry.js
           node tools/test-price-outliers.js
@@ -171,6 +178,9 @@ jobs:
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log
+          node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
+          node tools/generate-ai-data.js 2>&1 | tee logs/generate-ai-data.log
+          node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
           node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
           node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
           node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
@@ -189,13 +199,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html sitemap.xml; then
+          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html free-data.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html sitemap.xml
+          git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html free-data.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short

@@ -12,12 +12,16 @@
 // Run: node tools/generate-free-data.js
 const fs = require("fs");
 const path = require("path");
+const {
+  AUCTION_HEAD, BOX_HEAD, GRADE_HEAD,
+  buildAuctionRecords, buildBoxRecords, buildGradeRecords,
+} = require("./free-data-records");
+const { buildAiData } = require("./ai-data-model");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
 const CACHE = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩 금지 — 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const mi = d.marketIndex;
 const fx = d.fx || {};
 const DATA_DATE = d.updated || "";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -28,118 +32,63 @@ const cell = (v) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 
-function orderKey(code) {
-  const m = code.match(/^([A-Z]+)-?(\d+)/);
-  const fam = { OP: 0, EB: 1, PRB: 2 }[m ? m[1] : "OP"] ?? 9;
-  return fam * 1000 + (m ? parseInt(m[2], 10) : 0);
-}
-const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
+const maxDate = (dates) => dates.filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "")).sort().at(-1) || "";
+const temporalCoverage = (dates) => {
+  const valid = dates.filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value || "")).sort();
+  return valid.length ? `${valid[0]}/${valid.at(-1)}` : null;
+};
 
-function boxKrw(code, nowUsd) {
-  const s = d.sets[code];
-  const pts = s && s.boxSeries && s.boxSeries.points;
-  if (pts && pts.length) return pts[pts.length - 1].p;
-  return nowUsd != null && fx.usdKrw ? Math.round(nowUsd * fx.usdKrw) : null;
-}
-
-const writeCsv = (name, head, lines) => {
+const writeCsv = (name, head, records) => {
+  const lines = records.map((record) => head.map((key) => cell(record[key])).join(","));
   fs.writeFileSync(path.join(ROOT, name), [head.join(","), ...lines].join("\n") + "\n", "utf8");
   return lines.length;
 };
 
-// ---- ① 박스 시세 (파생 집계만)
-// 정가 대비 배수·재판 횟수는 뺐다 — 배수는 쓰지 않기로 했고(소유자 판단), 재판 기록은
-// 세트 페이지에서 소스와 함께 보여주는 편이 정확하다.
-const HEAD = [
-  "set_code", "set_name_en", "set_name_ko", "box_price_krw", "box_price_usd",
-  "change_pct_since_base", "base_date", "launch_tracked", "as_of",
-];
-const nPrices = writeCsv("opbox-set-prices.csv", HEAD, rows.map((b) => {
-  const s = d.sets[b.code] || {};
-  return [
-    b.code, s.nameEn ?? "", s.nameKo ?? "",
-    boxKrw(b.code, b.nowUsd) ?? "", b.nowUsd ?? "",
-    b.changePct ?? "", b.baseDate ?? "", b.launchTracked ? "true" : "false", DATA_DATE,
-  ].map(cell).join(",");
-}));
-
-// ---- ② 등급 인구 (세트 × 판별 × 등급사)
-// 한 행 = 한 세트의 한 판(일본판 또는 영문판). 세 등급사를 나란히 두되 절대 더하지 않는다 —
-// PSA 10, CGC Pristine 10, TAG 10 은 기준이 다른 등급이라 합계에 의미가 없다.
-const GRADE_HEAD = [
-  "set_code", "set_name_en", "edition",
-  "psa_total", "psa10_rate_pct", "psa_weekly_add",
-  "cgc_total", "cgc_pristine10", "cgc_gem_mint10",
-  "tag_total", "tag_10", "tag_10p",
-  "as_of",
-];
 const readJson = (p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", p), "utf8")); } catch { return null; } };
-const cgcSrc = readJson("cgc-grading-history.json");
-const tagSrc = readJson("tag-grading-history.json");
-const latest = (src, code, ed) => {
-  const arr = src && src.sets && src.sets[code] && src.sets[code][ed];
-  return Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null;
-};
-const gradeLines = [];
-for (const b of rows) {
-  const s = d.sets[b.code] || {};
-  for (const ed of ["jp", "en"]) {
-    const psa = ed === "jp" ? s.psaFull : s.psaFullEn;
-    const cgc = latest(cgcSrc, b.code, ed);
-    const tag = latest(tagSrc, b.code, ed);
-    if (!psa && !cgc && !tag) continue;                       // 세 곳 다 없으면 행을 만들지 않는다
-    const g = (cgc && cgc.grades) || {};
-    gradeLines.push([
-      b.code, s.nameEn ?? "", ed === "jp" ? "japanese" : "english",
-      psa?.total ?? "", psa?.gemRate ?? "", psa?.wowAdd ?? "",
-      cgc?.total ?? "", g["Pristine 10"] ?? "", g["Gem Mint 10"] ?? "",
-      tag?.total ?? "", tag?.g10 ?? "", tag?.g10p ?? "",
-      psa?.updated || cgc?.d || tag?.d || DATA_DATE,
-    ].map(cell).join(","));
-  }
+const { records: priceRecords, dates: priceDates } = buildBoxRecords(d);
+const { records: gradeRecords, dates: gradeDates } = buildGradeRecords(d, readJson("cgc-grading-history.json"), readJson("tag-grading-history.json"));
+const { records: auctionRecords, dates: auctionDates } = buildAuctionRecords(readJson("auction-sold.json"));
+const aiData = buildAiData(d);
+const aiDates = [aiData.fx.observedOn];
+for (const set of aiData.sets) {
+  for (const market of Object.values(set.boxMarket)) aiDates.push(market.sold?.sampleCollectedOn, market.activeAsk?.observedOn);
+  for (const hit of set.topHits) aiDates.push(hit.rawNmAsk?.observedOn, hit.rawNmAsk?.fxObservedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
 }
-const nGrades = writeCsv("opbox-grading-population.csv", GRADE_HEAD, gradeLines);
-
-// ---- ③ 경매 실거래 (일별)
-// 낙찰가는 경매가 끝난 뒤에 읽은 값이라 호가가 아니다. 유찰도 그대로 남겨 낙찰률의 분모로 쓴다.
-const AUCTION_HEAD = [
-  "date", "kind", "auctions", "sold", "sell_through_pct", "median_price_usd", "median_bids",
-];
-const auctionSrc = readJson("auction-sold.json");
-const auctionLines = [];
-for (const p of (auctionSrc && auctionSrc.daily) || []) {
-  const put = (kind, a) => {
-    if (!a || !a.n) return;
-    auctionLines.push([p.d, kind, a.n, a.sold, a.sellThrough ?? "", a.medPrice ?? "", a.medBids ?? ""].map(cell).join(","));
-  };
-  put("all", p);
-  for (const k of ["box", "card", "pack"]) put(k, (p.byKind || {})[k]);
-}
-const nAuctions = writeCsv("opbox-auction-daily.csv", AUCTION_HEAD, auctionLines);
+const nPrices = writeCsv("opbox-set-prices.csv", BOX_HEAD, priceRecords);
+const nGrades = writeCsv("opbox-grading-population.csv", GRADE_HEAD, gradeRecords);
+const nAuctions = writeCsv("opbox-auction-daily.csv", AUCTION_HEAD, auctionRecords);
 
 // ---- 랜딩 페이지
 // 미리보기 — 등급 인구를 앞세운다. 이게 이 페이지에서 유일하게 다른 데 없는 표다.
-const gradePreview = gradeLines.slice(0, 8).map((line) => {
-  const c = line.split(",");
+const gradePreview = gradeRecords.slice(0, 8).map((record) => {
   const td = (v) => `<td class="num">${v === "" ? "—" : esc(v)}</td>`;
-  return `<tr><td>${esc(c[0])}</td><td>${c[2] === "japanese" ? "Japanese" : "English"}</td>${td(c[3])}${td(c[4] === "" ? "" : c[4] + "%")}${td(c[6])}${td(c[7])}${td(c[9])}</tr>`;
+  return `<tr><td>${esc(record.set_code)}</td><td>${record.edition === "japanese" ? "Japanese" : "English"}</td>${td(record.psa_total)}${td(record.psa10_rate_pct === "" ? "" : record.psa10_rate_pct + "%")}${td(record.cgc_total)}${td(record.cgc_pristine10)}${td(record.tag_total)}</tr>`;
 }).join("\n");
 
-const datasetLd = JSON.stringify({
-  "@context": "https://schema.org", "@type": "Dataset",
-  name: "One Piece Card Game grading population and auction results (free CSV)",
-  description: `Three free CSVs, updated daily. Grading population: PSA, CGC and TAG graded counts per set with Japanese and English printings recorded separately and never summed (${nGrades} set-edition rows). Completed eBay auction results by day: number of auctions, how many sold, sell-through rate, median winning bid and median bid count, split by sealed box, single card and pack. Japanese booster box prices for ${nPrices} sets with change since tracking start.`,
-  url: `${SITE}/free-data.html`,
+const publisher = { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` };
+const dataset = ({ id, name, description, modified, dates, variables, format, contentUrl }) => ({
+  "@type": "Dataset", "@id": `${SITE}/free-data.html#${id}`, name, description,
+  url: `${SITE}/free-data.html#${id}`,
   license: "https://creativecommons.org/licenses/by/4.0/",
   isAccessibleForFree: true,
-  dateModified: DATA_DATE,
-  creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },
-  distribution: [
-    { "@type": "DataDownload", name: "Grading population by set and edition", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-grading-population.csv` },
-    { "@type": "DataDownload", name: "Completed auction results by day", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` },
-    { "@type": "DataDownload", name: "Japanese booster box prices", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` },
+  dateModified: modified,
+  ...(temporalCoverage(dates) ? { temporalCoverage: temporalCoverage(dates) } : {}),
+  creator: publisher,
+  variableMeasured: variables,
+  distribution: { "@type": "DataDownload", encodingFormat: format, contentUrl },
+});
+const datasets = [
+  dataset({ id: "ai-json", name: "One Piece TCG box markets and Top 7 hits", description: `Compact AI-ready JSON for ${nPrices} tracked sets, with completed sales and active asking prices separated and field-level freshness and sample sizes.`, modified: DATA_DATE, dates: aiDates, variables: ["setCode", "boxMarket", "topHits", "rawNmAsk", "psa10Sold", "psaPopulation", "citationUrl"], format: "application/json", contentUrl: `${SITE}/opbox-ai-data.json` }),
+  dataset({ id: "grading-csv", name: "Grading population by set, printing and grader", description: `${nGrades} set-edition rows. PSA, CGC and TAG counts remain separate and each grader keeps its own observation date.`, modified: maxDate(gradeDates) || DATA_DATE, dates: gradeDates, variables: GRADE_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-grading-population.csv` }),
+  dataset({ id: "auction-csv", name: "Completed auction results by day", description: "Settled auction counts, sold counts, sell-through, median winning bids and bid counts by product type.", modified: maxDate(auctionDates) || DATA_DATE, dates: auctionDates, variables: AUCTION_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` }),
+  dataset({ id: "box-csv", name: "Japanese and English booster box market snapshots", description: `${nPrices} sets with completed-sale medians and active asking-price medians kept separate, including sample sizes and observation dates.`, modified: maxDate(priceDates) || DATA_DATE, dates: priceDates, variables: BOX_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }),
+];
+const datasetLd = JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "DataCatalog", "@id": `${SITE}/free-data.html#catalog`, name: "OP Box Index free One Piece TCG datasets", description: "Citable box-market, Top 7 card, grading-population and completed-auction aggregates.", url: `${SITE}/free-data.html`, dateModified: DATA_DATE, publisher, dataset: datasets.map((item) => ({ "@id": item["@id"] })) },
+    ...datasets,
   ],
-  variableMeasured: [...GRADE_HEAD, ...AUCTION_HEAD, ...HEAD].filter((v, i, a) => a.indexOf(v) === i),
 });
 
 const html = `<!doctype html>
@@ -153,12 +102,12 @@ const html = `<!doctype html>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/free-data.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <title>Free One Piece TCG Data — Grading Population &amp; Auction Results (CSV) | OP Box Index</title>
-    <meta name="description" content="Free CSV data for the One Piece Card Game: PSA, CGC and TAG grading population per set with Japanese and English kept separate, completed eBay auction results by day (sell-through, median winning bid, bid counts), and Japanese booster box prices. Updated daily, CC BY 4.0." />
+    <title>Free One Piece TCG Data — Box Prices, Top 7 Cards &amp; Grading | OP Box Index</title>
+    <meta name="description" content="Free CC BY 4.0 One Piece TCG data in JSON and CSV: Japanese and English box sold prices versus active asks, Top 7 chase cards, grading population and completed auctions, with sample sizes and observation dates." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Free One Piece TCG Data — Grading Population &amp; Auction Results (CSV)" />
-    <meta property="og:description" content="PSA / CGC / TAG population by set and printing, plus daily completed-auction results. Free, updated daily, CC BY 4.0." />
+    <meta property="og:title" content="Free One Piece TCG Data — Box Prices, Top 7 Cards &amp; Grading" />
+    <meta property="og:description" content="AI-ready JSON plus CSV downloads with explicit sold/ask labels, samples and observation dates. Free under CC BY 4.0." />
     <meta property="og:url" content="${SITE}/free-data.html" />
     <meta property="og:image" content="${SITE}/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -189,24 +138,35 @@ const html = `<!doctype html>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Free data</p>
-      <h1>Free One Piece TCG data — grading population and auction results</h1>
-      <p>Three CSVs, regenerated daily, free under CC BY 4.0. They cover <strong>grading population split by grader and printing</strong>, <strong>completed eBay auction outcomes</strong>, and Japanese booster-box prices. Auction rows record settled outcomes rather than active asking prices.</p>
+      <h1>Free One Piece TCG data — box markets, Top 7 cards and grading</h1>
+      <p>One compact JSON feed and three CSVs, free under CC BY 4.0. They cover <strong>Japanese and English box markets</strong>, <strong>each set's Top 7 chase cards</strong>, <strong>grading population split by grader and printing</strong>, and <strong>completed auction outcomes</strong>. Completed sales and active asking prices are always separate.</p>
 
       <div class="dlRow">
+        <a class="primary" href="opbox-ai-data.json" download>AI-ready market data (JSON)</a>
         <a class="primary" href="opbox-grading-population.csv" download>Grading population (${nGrades} rows)</a>
         <a class="primary" href="opbox-auction-daily.csv" download>Auction results by day (${nAuctions} rows)</a>
-        <a class="ghost" href="opbox-set-prices.csv" download>Box prices (${nPrices} sets)</a>
+        <a class="ghost" href="opbox-set-prices.csv" download>Box market snapshots (${nPrices} sets)</a>
       </div>
-      <p class="note">Last updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
+      <p class="note">Page regenerated ${esc(DATA_DATE)} · every value keeps its own observation date · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
 
-      <h2>1. Grading population — <code>opbox-grading-population.csv</code></h2>
+      <h2 id="ai-json">1. AI-ready box and Top 7 data — <code>opbox-ai-data.json</code></h2>
+      <p>A compact public contract for answer engines and researchers. It covers ${nPrices} tracked products and the Top 7 exact card variants in each set. Every set record links back to its human-readable guide. Box <code>sold</code> values are completed-sale samples; <code>activeAsk</code> values are listings still for sale. The feed excludes seller names, listing IDs, affiliate URLs and raw marketplace dumps.</p>
+      <div class="fields">
+        <code>schemaVersion</code> · <code>datasetUpdatedOn</code> · <code>license</code> — stable contract and reuse terms<br />
+        <code>boxMarket.japanese</code> · <code>boxMarket.english</code> — completed sales and active asks, never combined<br />
+        <code>topHits</code> — rank, exact card number and variant name, raw NM ask, verified PSA 10 sold sample and PSA population where available<br />
+        <code>sampleSize</code> · <code>observedOn</code> · <code>ageDaysAtDatasetUpdate</code> — enough context to judge freshness<br />
+        <code>citationUrl</code> — the OP Box Index page that explains the product and its data
+      </div>
+
+      <h2 id="grading-csv">2. Grading population — <code>opbox-grading-population.csv</code></h2>
       <p>One row per set <em>per printing</em>. Japanese and English are different print runs with different pull rates, so we record them separately and <strong>never add them together</strong> — a combined gem rate describes neither. The same applies across graders: a PSA 10, a CGC Pristine 10 and a TAG 10 are different standards, so the columns sit side by side and are never summed.</p>
       <div class="fields">
         <code>set_code</code> · <code>edition</code> — <code>japanese</code> or <code>english</code><br />
         <code>psa_total</code> · <code>psa10_rate_pct</code> · <code>psa_weekly_add</code> — cumulative PSA count, PSA 10 share, and how many were added in the latest week we recorded<br />
         <code>cgc_total</code> · <code>cgc_pristine10</code> · <code>cgc_gem_mint10</code> — CGC splits its top grade in two; Pristine 10 is the stricter one<br />
         <code>tag_total</code> · <code>tag_10</code> · <code>tag_10p</code> — TAG's 10 and its stricter 10P<br />
-        <code>as_of</code> — the date that row was collected. Blank means we have not confirmed a figure, not zero.
+        <code>*_as_of</code> — each total, weekly change and grade split keeps its own source date. Blank means unverified, not zero.
       </div>
 
       <h2>Preview — grading population</h2>
@@ -219,7 +179,7 @@ ${gradePreview}
       </table>
       </div>
 
-      <h2>2. Auction results by day — <code>opbox-auction-daily.csv</code></h2>
+      <h2 id="auction-csv">3. Auction results by day — <code>opbox-auction-daily.csv</code></h2>
       <p>Every row is one day and one product type. The same data is explained and charted on the <a href="auction.html">auction results page</a>. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
       <div class="fields">
         <code>date</code> · <code>kind</code> — <code>all</code>, <code>box</code>, <code>card</code> or <code>pack</code><br />
@@ -228,19 +188,19 @@ ${gradePreview}
         <code>median_bids</code> — median bid count, a rough read on competition
       </div>
 
-      <h2>3. Japanese booster box prices — <code>opbox-set-prices.csv</code></h2>
-      <p>Current sealed box price per set in KRW and USD, with change measured from each set's tracking start date — <strong>not</strong> from its release date, except where <code>launch_tracked</code> is true. Reprint history moved to the individual <a href="sets/index.html">set guides</a>, where it can be shown with its sources.</p>
+      <h2 id="box-csv">4. Japanese and English booster box markets — <code>opbox-set-prices.csv</code></h2>
+      <p>One row per tracked product. Japanese and English printings are separate. Completed-sale medians include the 25th/75th percentile, sample size and sample-collection date. Active asking-price medians include the 15th/85th percentile, verified listing count and observation date. There is no generic “current price” column that silently mixes the two.</p>
 
       <h2>How it's built</h2>
-      <p>Prices are aggregates of real completed sales and verified active listings, normalised to one sealed Japanese booster box. Grading counts come from each grader's own public population reporting, collected weekly and appended to a ledger we never rewrite. Auction figures are read from listings after they close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
+      <p>Box prices are aggregates of completed sales or verified active listings, normalised to one booster box and labelled by printing. Grading counts come from each grader's public population reporting, collected on its own cadence and appended to ledgers we never rewrite. Auction figures are read after listings close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
 
-      <div class="attrBox">
+      <div class="attrBox" id="terms">
         <strong>Attribution (CC BY 4.0)</strong> — free to use, including commercially, if you credit the source:
         <code>Data: OP Box Index — https://opboxindex.com/free-data.html</code>
       </div>
 
       <h2>Update frequency</h2>
-      <p>All three files are regenerated every night alongside the site's data pipeline, so the download URLs always serve current data. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
+      <p>The files are regenerated by the site's daily data pipeline and keep stable URLs. Source cadences differ: active listings and settled auctions can update daily, while completed-sale samples and grading populations update less often. Use each field's own observation date rather than the file-generation date. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

@@ -57,6 +57,11 @@ jobs:
           node --check tools/generate-ko-topic-pages.js
           node --check tools/generate-auction-page.js
           node --check tools/generate-free-data.js
+          node --check tools/free-data-records.js
+          node --check tools/market-data-normalizers.js
+          node --check tools/ai-data-model.js
+          node --check tools/generate-ai-data.js
+          node --check tools/test-ai-data.js
           node --check tools/build-market-index.js
           node --check tools/inject-home-summary.js
           node --check tools/guard-invariants.js
@@ -70,6 +75,7 @@ jobs:
           # 진짜 관문은 아래 "Guard invariants (block bad deploys)" — 갱신 뒤 커밋 직전에 돈다.
           node --check tools/audit-active-listings.js
           node --check tools/audit-seo.js
+          node --check tools/robots-policy.js
           node --check tools/audit-ai-discovery.js
           node --check tools/run-with-retry.js
           node tools/test-ebay-listing-filters.js
@@ -150,6 +156,9 @@ jobs:
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
+          node tools/generate-ai-data.js 2>&1 | tee logs/generate-ai-data.log
+          node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
+          node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
           node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
 
       # 가드 실패 이유를 실행 화면(annotation + summary)에 직접 띄운다 — 2026-07-27.
@@ -187,13 +196,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
