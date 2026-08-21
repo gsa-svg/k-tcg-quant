@@ -274,6 +274,43 @@ const store = {
 
 fs.writeFileSync(seriesPath, JSON.stringify(store, null, 1) + "\n", "utf8");
 
+// ── boxMarket.ebaySold 를 시리즈 최신점으로 동기화 — 2026-08-21.
+// 종전에는 ingest 가 "그날 덤프에 보인 sold 전체"로 스냅샷을 만들었는데, 이 파일 머리에 적힌
+// 바로 그 이유(수집 방식이 바뀌면 값이 튀고, 사실상 90일 평균이라 후행)로 원장과 크게 어긋났다.
+// 실측(2026-08-21 감사): 42개 (세트x언어) 중 29개가 ±10% 초과, OP-05 일판은 +251% —
+// 스냅샷 n=70 인데 그 언어의 원장 누적이 43건뿐이었다(영문판이 일판 버킷에 섞임).
+// 이 값은 AI 피드(opbox-ai-data.json)·CSV·화면(packs.js 실거래 카드)에 그대로 나가므로
+// 여기서 시리즈 최신점(판매일 기준 롤링 중앙값)을 그대로 미러링한다. low/high = p25/p75 동일.
+{
+  const packsPath = path.join(ROOT, "data", "onepiece-packs.json");
+  const packs = JSON.parse(fs.readFileSync(packsPath, "utf8"));
+  let synced = 0, cleared = 0;
+  for (const [code, node] of Object.entries(sets)) {
+    const target = packs.sets[code];
+    if (!target) continue;   // UPCOMING(미등재) 세트는 시리즈만 쌓는다
+    for (const ed of ["jp", "en"]) {
+      const pts = (node[ed] || []).filter((pt) => pt && pt.median != null);
+      target.boxMarket = target.boxMarket || {};
+      target.boxMarket[ed] = target.boxMarket[ed] || {};
+      const last = pts[pts.length - 1];
+      if (last) {
+        target.boxMarket[ed].ebaySold = {
+          median: last.median, low: last.low, high: last.high,
+          sampleSize: last.n, basis: "sold", currency: "USD",
+          updated: last.d,   // 판매일 기준 관측일 — 수집일이 아니다
+          windowDays: (node.windowDays && node.windowDays[ed]) || undefined,
+        };
+        synced++;
+      } else if (target.boxMarket[ed].ebaySold) {
+        delete target.boxMarket[ed].ebaySold;   // 표본 부족이면 낡은 값을 남기지 않는다
+        cleared++;
+      }
+    }
+  }
+  fs.writeFileSync(packsPath, JSON.stringify(packs));
+  console.error(JSON.stringify({ ebaySoldSynced: synced, cleared }));
+}
+
 const dates = [...new Set(Object.values(sets).flatMap((v) => [...v.jp, ...v.en].map((p) => p.d)))].sort();
 const out = {
   sets: Object.keys(sets).length,

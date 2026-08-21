@@ -136,13 +136,6 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   return { rec, ed };
 }
 
-const med = (a) => {
-  const x = a.filter(Number.isFinite).sort((m, n) => m - n);
-  if (!x.length) return null;
-  const i = Math.floor(x.length / 2);
-  return x.length % 2 ? x[i] : (x[i - 1] + x[i]) / 2;
-};
-const q = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.max(0, Math.round(p * (s.length - 1))))]; };
 
 function main(dumpFile) {
   const dump = JSON.parse(fs.readFileSync(dumpFile, "utf8"));
@@ -161,7 +154,6 @@ function main(dumpFile) {
   const summary = {};
   const drops = {};
   let backfilled = 0;   // 기존 레코드에 fmt 를 뒤늦게 채운 수
-  const seenBySet = {};  // 세트별로 이번 덤프에서 본 유효 sold (스냅샷 계산용)
   // eBay 는 한 검색에 240~265건까지만 준다(_pgn 은 무시된다). 그 수에 닿은 구간은 잘린 것이라
   // 오래된 판매를 못 봤다는 뜻이다. 조용히 넘어가면 "다 모았다"고 착각한다.
   //
@@ -208,12 +200,6 @@ function main(dumpFile) {
       ledger.sets[code][j.ed].push(j.rec);
       appended++;
     }
-    // 스냅샷은 페이지마다 계산하면 안 된다 — 한 세트가 언어 2 × 가격대 5 = 10 페이지로 나뉘어 오므로
-    // 페이지마다 쓰면 마지막 가격대(600k+)의 값이 세트 전체 시세로 남는다(2026-08-13 수정).
-    // 세트별로 모아 두었다가 루프가 끝난 뒤 한 번만 계산한다.
-    const bucket = seenBySet[code] || (seenBySet[code] = { jp: [], en: [] });
-    bucket.jp.push(...seen.jp);
-    bucket.en.push(...seen.en);
 
     // 요약도 페이지마다 덮어쓰지 말고 더한다.
     // 예전엔 덮어써서 jp 페이지 결과가 en 페이지에 지워졌고, jpSeen 이 늘 0 으로 보였다(2026-08-13 수정).
@@ -223,24 +209,11 @@ function main(dumpFile) {
     s.appended += appended;
   }
 
-  // 세트별 스냅샷: 이번 덤프에서 그 세트로 본 유효 sold 전체 기준, n>=3 일 때만.
-  // 같은 id 가 여러 가격대 페이지에 겹쳐 나올 일은 없지만(가격이 하나뿐), 안전하게 id 로 한 번 걸러낸다.
-  for (const [code, seen] of Object.entries(seenBySet)) {
-    if (!data.sets[code]) continue;   // UPCOMING: 원장에만 쌓고 스냅샷은 등재 후
-    for (const ed of ["jp", "en"]) {
-      const byId = new Map();
-      for (const r of seen[ed]) byId.set(r.id, r);
-      const units = [...byId.values()].map((r) => r.unit);
-      if (units.length >= 3) {
-        data.sets[code].boxMarket = data.sets[code].boxMarket || {};
-        data.sets[code].boxMarket[ed] = data.sets[code].boxMarket[ed] || {};
-        data.sets[code].boxMarket[ed].ebaySold = {
-          median: Math.round(med(units)), low: Math.round(q(units, 0.25)), high: Math.round(q(units, 0.75)),
-          sampleSize: units.length, basis: "sold", currency: "USD", updated: today,
-        };
-      }
-    }
-  }
+  // ebaySold 스냅샷은 여기서 만들지 않는다 — 2026-08-21 삭제.
+  // "이번 덤프에 보인 sold 전체의 사분위"는 날짜 창이 없어 사실상 90일 평균이었고, 덤프의
+  // 언어 오염이 그대로 실렸다(감사 실측: 42쌍 중 29쌍 ±10% 초과, OP-05 일판 +251%).
+  // 이제 build-box-sold-series.js 가 원장 기반 시리즈 최신점을 boxMarket.ebaySold 로 미러링한다.
+  // ingest 후 반드시 build-box-sold-series.js 를 돌릴 것.
 
   for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) arr.sort((a, b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
   ledger.note = "Append-only ledger of individual completed eBay sales of sealed One Piece booster boxes, one record per sold listing (deduplicated by eBay item id). Collected via a real browser because eBay blocks server access to completed-sale data. Prices are per box: multi-box lots are divided by the quantity stated in the title, and listings whose quantity or language cannot be determined are excluded rather than guessed. Weekly medians, sold counts, and sales volume are derived from this file. Past records are never modified or deleted.";

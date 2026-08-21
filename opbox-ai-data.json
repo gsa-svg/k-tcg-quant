@@ -48,12 +48,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 273,
-            "p25Usd": 209,
-            "p75Usd": 379,
-            "sampleSize": 45,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 305,
+            "p25Usd": 231,
+            "p75Usd": 371,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-08-09",
+            "ageDaysAtDatasetUpdate": 12
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -67,7 +67,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.84,
+          "soldToActiveMedianRatio": 0.93,
           "qualityFlags": []
         },
         "english": {
@@ -75,12 +75,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 1463,
-            "p25Usd": 1230,
-            "p75Usd": 1663,
-            "sampleSize": 43,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 1475,
+            "p25Usd": 1342,
+            "p75Usd": 1682,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-15",
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -94,7 +94,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.77,
+          "soldToActiveMedianRatio": 0.78,
           "qualityFlags": [
             "active_ask_spread_over_5x"
           ]
@@ -414,12 +414,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 519,
-            "p25Usd": 273,
-            "p75Usd": 560,
-            "sampleSize": 25,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 157,
+            "p25Usd": 125,
+            "p75Usd": 216,
+            "sampleSize": 6,
+            "sampleCollectedOn": "2026-07-28",
+            "ageDaysAtDatasetUpdate": 24
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -433,22 +433,20 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 2.88,
-          "qualityFlags": [
-            "sold_active_median_divergence_over_2x"
-          ]
+          "soldToActiveMedianRatio": 0.87,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 547,
-            "p25Usd": 501,
-            "p75Usd": 572,
-            "sampleSize": 54,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 574,
+            "p25Usd": 547,
+            "p75Usd": 630,
+            "sampleSize": 16,
+            "sampleCollectedOn": "2026-08-14",
+            "ageDaysAtDatasetUpdate": 7
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -462,7 +460,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.81,
+          "soldToActiveMedianRatio": 0.85,
           "qualityFlags": []
         }
       },
@@ -765,12 +763,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 428,
-            "p25Usd": 141,
-            "p75Usd": 528,
-            "sampleSize": 34,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 157,
+            "p25Usd": 124,
+            "p75Usd": 280,
+            "sampleSize": 8,
+            "sampleCollectedOn": "2026-08-02",
+            "ageDaysAtDatasetUpdate": 19
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -784,20 +782,18 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 2.49,
-          "qualityFlags": [
-            "sold_active_median_divergence_over_2x"
-          ]
+          "soldToActiveMedianRatio": 0.91,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 522,
-            "p25Usd": 492,
-            "p75Usd": 547,
-            "sampleSize": 35,
+            "medianUsd": 580,
+            "p25Usd": 544,
+            "p75Usd": 596,
+            "sampleSize": 15,
             "sampleCollectedOn": "2026-08-13",
             "ageDaysAtDatasetUpdate": 8
           },
@@ -813,7 +809,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.81,
+          "soldToActiveMedianRatio": 0.9,
           "qualityFlags": []
         }
       },
@@ -1080,12 +1076,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 149,
-            "p25Usd": 114,
-            "p75Usd": 203,
-            "sampleSize": 20,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 195,
+            "p25Usd": 125,
+            "p75Usd": 210,
+            "sampleSize": 9,
+            "sampleCollectedOn": "2026-08-03",
+            "ageDaysAtDatasetUpdate": 18
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1099,7 +1095,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.68,
+          "soldToActiveMedianRatio": 0.89,
           "qualityFlags": []
         },
         "english": {
@@ -1107,12 +1103,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 455,
-            "p25Usd": 437,
-            "p75Usd": 465,
-            "sampleSize": 35,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 482,
+            "p25Usd": 462,
+            "p75Usd": 510,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-15",
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1126,7 +1122,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.8,
+          "soldToActiveMedianRatio": 0.85,
           "qualityFlags": []
         }
       },
@@ -1371,12 +1367,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 835,
-            "p25Usd": 217,
-            "p75Usd": 1002,
-            "sampleSize": 70,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 238,
+            "p25Usd": 220,
+            "p75Usd": 285,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-08",
+            "ageDaysAtDatasetUpdate": 13
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1390,22 +1386,20 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 5.09,
-          "qualityFlags": [
-            "sold_active_median_divergence_over_2x"
-          ]
+          "soldToActiveMedianRatio": 1.45,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 980,
-            "p25Usd": 910,
-            "p75Usd": 1048,
-            "sampleSize": 131,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 1083,
+            "p25Usd": 999,
+            "p75Usd": 1149,
+            "sampleSize": 34,
+            "sampleCollectedOn": "2026-08-15",
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1419,7 +1413,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.78,
+          "soldToActiveMedianRatio": 0.87,
           "qualityFlags": []
         }
       },
@@ -1673,12 +1667,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 202,
-            "p25Usd": 109,
-            "p75Usd": 333,
-            "sampleSize": 18,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 148,
+            "p25Usd": 125,
+            "p75Usd": 199,
+            "sampleSize": 7,
+            "sampleCollectedOn": "2026-08-06",
+            "ageDaysAtDatasetUpdate": 15
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1692,7 +1686,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.88,
+          "soldToActiveMedianRatio": 0.64,
           "qualityFlags": []
         },
         "english": {
@@ -1700,12 +1694,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 258,
-            "p25Usd": 245,
-            "p75Usd": 342,
-            "sampleSize": 94,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 287,
+            "p25Usd": 273,
+            "p75Usd": 372,
+            "sampleSize": 26,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1719,7 +1713,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.52,
+          "soldToActiveMedianRatio": 0.57,
           "qualityFlags": []
         }
       },
@@ -1964,12 +1958,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 153,
-            "p25Usd": 84,
-            "p75Usd": 273,
-            "sampleSize": 64,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 81,
+            "p25Usd": 79,
+            "p75Usd": 101,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-08-12",
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": null,
           "soldToActiveMedianRatio": null,
@@ -1982,12 +1976,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 234,
-            "p25Usd": 222,
-            "p75Usd": 301,
-            "sampleSize": 117,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 255,
+            "p25Usd": 254,
+            "p75Usd": 303,
+            "sampleSize": 29,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2001,7 +1995,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.62,
+          "soldToActiveMedianRatio": 0.67,
           "qualityFlags": []
         }
       },
@@ -2266,12 +2260,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 80,
-            "p25Usd": 73,
-            "p75Usd": 105,
-            "sampleSize": 37,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 79,
+            "p25Usd": 74,
+            "p75Usd": 92,
+            "sampleSize": 12,
+            "sampleCollectedOn": "2026-08-12",
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2285,7 +2279,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.75,
+          "soldToActiveMedianRatio": 0.74,
           "qualityFlags": []
         },
         "english": {
@@ -2293,12 +2287,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 210,
-            "p25Usd": 197,
-            "p75Usd": 228,
-            "sampleSize": 68,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 254,
+            "p25Usd": 240,
+            "p75Usd": 270,
+            "sampleSize": 20,
+            "sampleCollectedOn": "2026-08-15",
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2312,7 +2306,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.7,
+          "soldToActiveMedianRatio": 0.85,
           "qualityFlags": []
         }
       },
@@ -2594,12 +2588,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 141,
-            "p25Usd": 109,
-            "p75Usd": 450,
-            "sampleSize": 75,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 120,
+            "p25Usd": 118,
+            "p75Usd": 138,
+            "sampleSize": 16,
+            "sampleCollectedOn": "2026-08-10",
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2613,7 +2607,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.73,
+          "soldToActiveMedianRatio": 0.62,
           "qualityFlags": []
         },
         "english": {
@@ -2621,12 +2615,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 554,
-            "p25Usd": 480,
-            "p75Usd": 597,
-            "sampleSize": 113,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 631,
+            "p25Usd": 566,
+            "p75Usd": 670,
+            "sampleSize": 28,
+            "sampleCollectedOn": "2026-08-15",
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2640,7 +2634,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.74,
+          "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
         }
       },
@@ -2919,12 +2913,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 143,
-            "p25Usd": 90,
-            "p75Usd": 236,
-            "sampleSize": 34,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 107,
+            "p25Usd": 81,
+            "p75Usd": 213,
+            "sampleSize": 14,
+            "sampleCollectedOn": "2026-08-12",
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2938,7 +2932,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1.43,
+          "soldToActiveMedianRatio": 1.07,
           "qualityFlags": []
         },
         "english": {
@@ -2946,12 +2940,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 219,
-            "p25Usd": 205,
-            "p75Usd": 235,
-            "sampleSize": 81,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 243,
+            "p25Usd": 230,
+            "p75Usd": 257,
+            "sampleSize": 19,
+            "sampleCollectedOn": "2026-08-17",
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2965,7 +2959,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.81,
+          "soldToActiveMedianRatio": 0.9,
           "qualityFlags": []
         }
       },
@@ -3239,12 +3233,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 309,
-            "p25Usd": 133,
-            "p75Usd": 490,
-            "sampleSize": 66,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 146,
+            "p25Usd": 139,
+            "p75Usd": 198,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-07",
+            "ageDaysAtDatasetUpdate": 14
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3258,22 +3252,20 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 2.21,
-          "qualityFlags": [
-            "sold_active_median_divergence_over_2x"
-          ]
+          "soldToActiveMedianRatio": 1.04,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 456,
-            "p25Usd": 404,
-            "p75Usd": 547,
-            "sampleSize": 100,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 619,
+            "p25Usd": 595,
+            "p75Usd": 646,
+            "sampleSize": 20,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3287,7 +3279,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.66,
+          "soldToActiveMedianRatio": 0.9,
           "qualityFlags": []
         }
       },
@@ -3555,12 +3547,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 96,
-            "p25Usd": 77,
-            "p75Usd": 228,
-            "sampleSize": 42,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 105,
+            "p25Usd": 86,
+            "p75Usd": 137,
+            "sampleSize": 14,
+            "sampleCollectedOn": "2026-08-12",
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3574,7 +3566,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.56,
+          "soldToActiveMedianRatio": 0.62,
           "qualityFlags": []
         },
         "english": {
@@ -3582,12 +3574,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 228,
-            "p25Usd": 210,
-            "p75Usd": 237,
-            "sampleSize": 80,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 271,
+            "p25Usd": 258,
+            "p75Usd": 285,
+            "sampleSize": 19,
+            "sampleCollectedOn": "2026-08-15",
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3601,7 +3593,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.8,
+          "soldToActiveMedianRatio": 0.95,
           "qualityFlags": []
         }
       },
@@ -3839,12 +3831,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 364,
-            "p25Usd": 141,
-            "p75Usd": 410,
-            "sampleSize": 86,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 153,
+            "p25Usd": 129,
+            "p75Usd": 211,
+            "sampleSize": 22,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3858,7 +3850,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1.59,
+          "soldToActiveMedianRatio": 0.67,
           "qualityFlags": []
         },
         "english": {
@@ -3866,12 +3858,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 418,
-            "p25Usd": 396,
-            "p75Usd": 442,
-            "sampleSize": 210,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 467,
+            "p25Usd": 447,
+            "p75Usd": 492,
+            "sampleSize": 165,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3885,7 +3877,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.7,
+          "soldToActiveMedianRatio": 0.78,
           "qualityFlags": []
         }
       },
@@ -4129,12 +4121,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 172,
-            "p25Usd": 82,
-            "p75Usd": 219,
-            "sampleSize": 80,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 100,
+            "p25Usd": 89,
+            "p75Usd": 120,
+            "sampleSize": 15,
+            "sampleCollectedOn": "2026-08-12",
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4148,7 +4140,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1.72,
+          "soldToActiveMedianRatio": 1,
           "qualityFlags": []
         },
         "english": {
@@ -4156,12 +4148,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 228,
-            "p25Usd": 209,
-            "p75Usd": 241,
-            "sampleSize": 119,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 262,
+            "p25Usd": 251,
+            "p75Usd": 272,
+            "sampleSize": 32,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4175,7 +4167,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.76,
+          "soldToActiveMedianRatio": 0.87,
           "qualityFlags": []
         }
       },
@@ -4449,12 +4441,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 99,
-            "p25Usd": 82,
-            "p75Usd": 125,
-            "sampleSize": 40,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 105,
+            "p25Usd": 89,
+            "p75Usd": 117,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-11",
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4468,7 +4460,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.72,
+          "soldToActiveMedianRatio": 0.76,
           "qualityFlags": []
         },
         "english": {
@@ -4476,12 +4468,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 182,
-            "p25Usd": 123,
-            "p75Usd": 182,
-            "sampleSize": 33,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 248,
+            "p25Usd": 202,
+            "p75Usd": 258,
+            "sampleSize": 17,
+            "sampleCollectedOn": "2026-08-12",
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4495,7 +4487,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.61,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         }
       },
@@ -4722,12 +4714,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 169,
-            "p25Usd": 109,
-            "p75Usd": 182,
-            "sampleSize": 79,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 113,
+            "p25Usd": 107,
+            "p75Usd": 124,
+            "sampleSize": 14,
+            "sampleCollectedOn": "2026-08-05",
+            "ageDaysAtDatasetUpdate": 16
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4741,7 +4733,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1.25,
+          "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
         },
         "english": {
@@ -4749,12 +4741,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 182,
-            "p25Usd": 180,
-            "p75Usd": 190,
-            "sampleSize": 140,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 209,
+            "p25Usd": 199,
+            "p75Usd": 231,
+            "sampleSize": 113,
+            "sampleCollectedOn": "2026-08-17",
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4768,7 +4760,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.72,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         }
       },
@@ -4967,12 +4959,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 117,
-            "p25Usd": 100,
-            "p75Usd": 137,
-            "sampleSize": 16,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 129,
+            "p25Usd": 109,
+            "p75Usd": 141,
+            "sampleSize": 9,
+            "sampleCollectedOn": "2026-08-01",
+            "ageDaysAtDatasetUpdate": 20
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4986,7 +4978,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.65,
+          "soldToActiveMedianRatio": 0.72,
           "qualityFlags": []
         },
         "english": {
@@ -4994,12 +4986,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 777,
-            "p25Usd": 720,
-            "p75Usd": 837,
-            "sampleSize": 32,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 936,
+            "p25Usd": 899,
+            "p75Usd": 991,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-17",
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5013,7 +5005,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.81,
+          "soldToActiveMedianRatio": 0.98,
           "qualityFlags": []
         }
       },
@@ -5286,12 +5278,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 178,
-            "p25Usd": 123,
-            "p75Usd": 581,
-            "sampleSize": 52,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 147,
+            "p25Usd": 134,
+            "p75Usd": 180,
+            "sampleSize": 17,
+            "sampleCollectedOn": "2026-08-17",
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5305,7 +5297,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.77,
+          "soldToActiveMedianRatio": 0.64,
           "qualityFlags": []
         },
         "english": {
@@ -5313,10 +5305,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 601,
-            "p25Usd": 556,
-            "p75Usd": 767,
-            "sampleSize": 62,
+            "medianUsd": 893,
+            "p25Usd": 859,
+            "p75Usd": 965,
+            "sampleSize": 11,
             "sampleCollectedOn": "2026-08-13",
             "ageDaysAtDatasetUpdate": 8
           },
@@ -5332,7 +5324,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.68,
+          "soldToActiveMedianRatio": 1.01,
           "qualityFlags": []
         }
       },
@@ -5532,12 +5524,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 116,
-            "p25Usd": 100,
-            "p75Usd": 122,
-            "sampleSize": 22,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 128,
+            "p25Usd": 123,
+            "p75Usd": 142,
+            "sampleSize": 8,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5551,7 +5543,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.89,
+          "soldToActiveMedianRatio": 0.98,
           "qualityFlags": []
         },
         "english": {
@@ -5559,12 +5551,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 322,
-            "p25Usd": 273,
-            "p75Usd": 373,
-            "sampleSize": 7,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 350,
+            "p25Usd": 323,
+            "p75Usd": 361,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-08-11",
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5578,7 +5570,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.89,
+          "soldToActiveMedianRatio": 0.97,
           "qualityFlags": []
         }
       },
@@ -5866,12 +5858,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 92,
-            "p25Usd": 84,
-            "p75Usd": 693,
-            "sampleSize": 19,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 150,
+            "p25Usd": 145,
+            "p75Usd": 158,
+            "sampleSize": 10,
+            "sampleCollectedOn": "2026-08-11",
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5885,22 +5877,20 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.43,
-          "qualityFlags": [
-            "sold_active_median_divergence_over_2x"
-          ]
+          "soldToActiveMedianRatio": 0.7,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 875,
-            "p25Usd": 849,
-            "p75Usd": 911,
-            "sampleSize": 32,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 994,
+            "p25Usd": 961,
+            "p75Usd": 1001,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-08-10",
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5914,7 +5904,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.73,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         }
       },
@@ -6080,12 +6070,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 91,
-            "p25Usd": 68,
-            "p75Usd": 354,
-            "sampleSize": 58,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 87,
+            "p25Usd": 76,
+            "p75Usd": 108,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6099,7 +6089,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.85,
+          "soldToActiveMedianRatio": 0.82,
           "qualityFlags": []
         },
         "english": {
@@ -6107,12 +6097,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 331,
-            "p25Usd": 292,
-            "p75Usd": 364,
-            "sampleSize": 79,
-            "sampleCollectedOn": "2026-08-13",
-            "ageDaysAtDatasetUpdate": 8
+            "medianUsd": 394,
+            "p25Usd": 371,
+            "p75Usd": 397,
+            "sampleSize": 18,
+            "sampleCollectedOn": "2026-08-16",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6126,7 +6116,7 @@
             "observedOn": "2026-08-21",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.79,
+          "soldToActiveMedianRatio": 0.94,
           "qualityFlags": []
         }
       },
