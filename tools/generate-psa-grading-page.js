@@ -99,13 +99,28 @@ const aj = sum((r) => r.jpD?.add), ae = sum((r) => r.enD?.add);
 const updated = pk.sets[codes[0]].psaFull.updated;
 const enCount = rows.filter((r) => r.en).length;
 
-const cell = (d, ed) => (d
-  ? `<td class="pgAdd">+${n(d.add)}</td><td class="pgPct ${ed}">${pc(d.pct)}</td>`
+// 주간 증감 한 칸으로는 늘고 있는지 줄고 있는지 알 수 없다. 최근 12주 궤적을 셀 안에 겹쳐 둔다.
+// 세트마다 절대량이 수십~수천으로 갈리므로 각자의 최대값에 맞춰 그린다 — 선은 방향만 말하고,
+// 크기 비교는 옆의 숫자로 한다.
+const spark = (ed, code, w = 54, h = 15) => {
+  const arr = (led.sets[code] || {})[ed] || [];
+  const pts = [];
+  for (let i = 1; i < arr.length; i++) pts.push(Math.max(0, arr[i].g - arr[i - 1].g));
+  const tail = pts.slice(-12);
+  if (tail.length < 4) return "";
+  const max = Math.max(...tail, 1);
+  const step = w / (tail.length - 1);
+  const d = tail.map((v, i) => (i ? "L" : "M") + (i * step).toFixed(1) + " " + (h - 1 - (v / max) * (h - 2)).toFixed(1)).join(" ");
+  return `<svg class="pgSpark ${ed}" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><path d="${d}"/></svg>`;
+};
+
+const cell = (d, ed, code) => (d
+  ? `<td class="pgAdd">+${n(d.add)}${spark(ed, code)}</td><td class="pgPct ${ed}">${pc(d.pct)}</td>`
   : `<td class="pgAdd">&mdash;</td><td class="pgPct"><span class="pgNa">collecting</span></td>`);
 const tr = (r) => `        <tr data-code="${r.code}">
           <th scope="row"><a href="sets/${r.code.toLowerCase()}.html"><b>${r.code}</b><span>${esc(r.name)}</span></a></th>
-          <td class="pgNum">${n(r.jp?.total)}</td><td class="pgGem">${r.jp ? r.jp.gem + "%" : "&mdash;"}</td>${cell(r.jpD, "jp")}
-          <td class="pgNum pgSplit">${n(r.en?.total)}</td><td class="pgGem">${r.en ? r.en.gem + "%" : "&mdash;"}</td>${cell(r.enD, "en")}
+          <td class="pgNum">${n(r.jp?.total)}</td><td class="pgGem">${r.jp ? r.jp.gem + "%" : "&mdash;"}</td>${cell(r.jpD, "jp", r.code)}
+          <td class="pgNum pgSplit">${n(r.en?.total)}</td><td class="pgGem">${r.en ? r.en.gem + "%" : "&mdash;"}</td>${cell(r.enD, "en", r.code)}
         </tr>`;
 
 // ── 해설용 파생 수치 — 표 데이터에서만 계산. 숫자가 바뀌면 문장도 바뀐다(2026-07-30 애드센스 대응).
@@ -200,6 +215,9 @@ const html = `<!doctype html>
       .pgPct { font-weight: 800; }
       .pgPct.jp { color: #55d8ea; } .pgPct.en { color: #4ad9a4; }
       .pgNa { color: #6f7889; font-weight: 400; font-family: system-ui, sans-serif; font-size: 11.5px; }
+      .pgSpark { display: block; margin: 2px 0 -1px; opacity: .8; }
+      .pgSpark path { fill: none; stroke-width: 1.2; stroke-linejoin: round; }
+      .pgSpark.jp path { stroke: #55d8ea; } .pgSpark.en path { stroke: #4ad9a4; }
       .pgSplit { border-left: 1px solid var(--line); }
       .pgTable tfoot th, .pgTable tfoot td { border-top: 1px solid var(--line); border-bottom: 0; font-weight: 800; padding-top: 11px; }
       .pgNotes { margin: 14px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.65; }
@@ -240,7 +258,7 @@ ${rows.map(tr).join("\n")}
       </table>
       </div>
       <h2>How to read this</h2>
-      <p class="pgNotes"><b>Total graded</b> is every card from that set sitting in a PSA holder, at any grade &mdash; not one specific card. <b>Gem</b> is the share that came back PSA 10. <b>Week</b> is how many new grades appeared between ${wPrev} and ${wNow}, and <b>%</b> is that change against the earlier total.</p>
+      <p class="pgNotes"><b>Total graded</b> is every card from that set sitting in a PSA holder, at any grade &mdash; not one specific card. <b>Gem</b> is the share that came back PSA 10. <b>Week</b> is how many new grades appeared between ${wPrev} and ${wNow}, and <b>%</b> is that change against the earlier total. The line under each weekly figure is the last 12 weeks of that set&rsquo;s own additions &mdash; it shows direction, not size.</p>
       <p class="pgNotes"><b>We never add the two editions together.</b> Japanese and English are separate print runs with different card stock and different print quality, so a combined gem rate would describe neither. ${rows.length - enCount} set${rows.length - enCount === 1 ? " has" : "s have"} no English row at all &mdash; those printings have not been released, which is different from zero cards graded.</p>
       <p class="pgNotes">A high weekly number is not automatically bullish and does not prove that the cards were pulled that week. It does show more graded copies entering the recorded population. Read it next to release timing and the box price on each <a href="sets/index.html">set guide</a>, and against completed sales on the <a href="psa10-ranking.html">PSA 10 value ranking</a>.</p>
       <p class="pgNotes">Population figures are compiled from public PSA population reporting. We publish weekly change only from the point we began recording it ourselves; we do not republish historical series compiled by others.</p>
