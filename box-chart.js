@@ -92,7 +92,7 @@
   // 월간 보기는 날짜가 매달 1일이라 "05/01" 로 찍으면 그날 하루로 오해된다. 달 이름으로 보여준다.
   const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
 
-  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge) {
+  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today) {
     const pts = clean(rawPts, grain === "day" ? MIN_N_DAY : null);
     if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
 
@@ -106,7 +106,15 @@
     const ySpan = Math.max((mHi - mLo) * 1.6, yMid * 0.08);
     const yMin = yMid - ySpan / 2, yMax = yMid + ySpan / 2;
 
-    const t0 = Date.parse(pts[0].d), t1 = Date.parse(pts[pts.length - 1].d);
+    const tLast = Date.parse(pts[pts.length - 1].d);
+    const t0 = Date.parse(pts[0].d);
+    // 축을 마지막 거래일이 아니라 오늘(또는 더 늦은 공급 관측)까지 연다.
+    // 그래야 거래가 끊긴 구간이 빈칸으로 드러난다 — 선이 끝나는 곳이 축 끝이면
+    // 11일째 멈춘 값도 "최신"처럼 보인다.
+    const supArr = (supplyPts || []).filter((p) => p && p.v != null && Date.parse(p.d) >= t0);
+    const tSup = supArr.length ? Date.parse(supArr[supArr.length - 1].d) : 0;
+    const tNow = today ? Date.parse(today) : 0;
+    const t1 = Math.max(tLast, tSup, tNow);
     const span = t1 - t0 || 1;
     const px = (p) => L + ((Date.parse(p.d) - t0) / span) * (W - L - R);
     const py = (v) => T + (1 - (v - yMin) / (yMax - yMin)) * (PRICE_BOTTOM - T);
@@ -158,6 +166,43 @@
     const volAxis = '<text class="opbcAx opbcVolAx" x="' + (L - 10) + '" y="' + (PRICE_BOTTOM + 14) + '" text-anchor="end">' + volLabel + "</text>" +
       '<line class="opbcGrid" x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '"/>';
 
+    // ── 공급선(오른쪽 축). 가격만 보면 시장을 반만 읽는다 — 매물이 마르면서 오르는 것과
+    //    매물이 쌓이는데 버티는 것은 완전히 다른 신호다. 같은 판에 겹쳐야 그 관계가 보인다.
+    //    개수는 가격과 자릿수가 달라 별도 축을 쓰고, 옅은 점선으로 깔아 가격선을 가리지 않는다.
+    let supplyLayer = "", supplyAx = "";
+    if (supArr.length >= 3) {
+      const sv = supArr.map((p) => p.v);
+      const sLo = Math.min.apply(null, sv), sHi = Math.max.apply(null, sv);
+      const sPad = Math.max(1, (sHi - sLo) * 0.35);
+      const s0 = Math.max(0, sLo - sPad), s1 = sHi + sPad;
+      const sy = (v) => T + (1 - (v - s0) / ((s1 - s0) || 1)) * (PRICE_BOTTOM - T);
+      const sxy = supArr.map((p) => ({ x: px(p), y: sy(p.v) }));
+      const sLine = sxy.map((q, i) => (i ? "L" : "M") + q.x.toFixed(1) + " " + q.y.toFixed(1)).join(" ");
+      supplyLayer =
+        '<path class="opbcSupFill" d="' + sLine + " L" + sxy[sxy.length - 1].x.toFixed(1) + " " + PRICE_BOTTOM +
+        " L" + sxy[0].x.toFixed(1) + " " + PRICE_BOTTOM + ' Z"/>' +
+        '<path class="opbcSupLine" d="' + sLine + '"/>';
+      const supWord = lang === "ko" ? "매물" : "listed";
+      supplyAx = [s1, s0].map((v) =>
+        '<text class="opbcAx opbcSupAx" x="' + (W - R + 4) + '" y="' + (sy(v) + 4).toFixed(1) + '">' +
+        Math.round(v) + "</text>").join("") +
+        '<text class="opbcAx opbcSupAx" x="' + (W - R + 4) + '" y="' + (T - 8) + '">' + supWord + "</text>";
+    }
+
+    // ── 거래가 끊긴 구간. 억지로 선을 이어 그리면 없는 거래를 만드는 셈이라 칠하고 이름을 붙인다.
+    let staleLayer = "", staleBadge = "";
+    if (t1 > tLast + 86400000 * 2) {
+      const gx0 = px({ d: pts[pts.length - 1].d }), gx1 = W - R;
+      const days = Math.round((t1 - tLast) / 86400000);
+      staleLayer =
+        '<rect class="opbcStale" x="' + gx0.toFixed(1) + '" y="' + T + '" width="' + (gx1 - gx0).toFixed(1) +
+        '" height="' + (PRICE_BOTTOM - T) + '"/>' +
+        '<line class="opbcStaleEdge" x1="' + gx0.toFixed(1) + '" y1="' + T + '" x2="' + gx0.toFixed(1) + '" y2="' + PRICE_BOTTOM + '"/>' +
+        (gx1 - gx0 > 70 ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 14) +
+          '" text-anchor="middle">' + (lang === "ko" ? "거래 없음" : "no sales") + "</text>" : "");
+      staleBadge = lang === "ko" ? days + "일째 거래 없음" : days + "d since last sale";
+    }
+
     const dots = pts.map((p, i) =>
       '<circle class="opbcDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) +
       '" r="' + (i === pts.length - 1 ? 5 : 3.2) + '" fill="' + color + '"/>').join("");
@@ -179,13 +224,14 @@
       '<span class="opbcSpan">' + lab(first) + " – " + lab(last) +
       (grainWord ? " · " + grainWord
         : windowDays ? " · " + windowDays + (lang === "ko" ? "일 평균" : "-day avg") : "") +
-      " · n=" + last.n + "</span></figcaption>" +
+      " · n=" + last.n + "</span>" +
+      (staleBadge ? '<span class="opbcStaleBadge">' + staleBadge + "</span>" : "") + "</figcaption>" +
       '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + esc(label) + " " +
       esc(lang === "ko" ? "박스 실거래 중앙값 추이" : "sealed box median sold price over time") + '">' +
       '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
       '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>' +
-      grid + volAxis + bars +
+      staleLayer + grid + volAxis + supplyLayer + supplyAx + bars +
       '<path d="' + area + '" fill="url(#' + gid + ')"/>' +
       '<path class="opbcLine" d="' + line + '" stroke="' + color + '"/>' +
       dots +
@@ -345,11 +391,16 @@
     const rp = (series && series.reprintPct) || {};
     const badgeFor = (ed) => (rp[ed] >= 60 ? (lang === "ko" ? "재판 White" : "reprint (White)") : null);
 
+    // 공급 관측을 판본별로 갈라 각 패널에 넘긴다. 그날 기준 "지금 걸려 있는 매물 수"다.
+    const supRaw = (series && series.supply) || [];
+    const supOf = (ed) => supRaw.map((p) => ({ d: p.d, v: p && p[ed] != null ? p[ed] : null })).filter((p) => p.v != null);
+    const today = new Date().toISOString().slice(0, 10);
+
     const grid = (g, jpPts, enPts, hidden) => {
       const jpLabel = lang === "ko" ? "일본판" : "Japanese";
       const enLabel = lang === "ko" ? "영문판" : "English";
-      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"));
-      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"));
+      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today);
+      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today);
       // 한쪽 판이 소리 없이 사라지면 "고장났나" 로 읽힌다. 왜 없는지 한 줄로 알린다.
       // 기준은 단위마다 같다: 그 판의 기록이 조금이라도 있으면(=파는 세트면) 자리를 지킨다.
       // 서로 다른 기준을 쓰면 탭을 오갈 때 패널이 하나씩 생겼다 사라진다.
@@ -469,6 +520,13 @@
     ".opbcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcLine{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}",
     ".opbcDot{stroke:var(--paper,#11141c);stroke-width:1.6}",
+    ".opbcSupFill{fill:rgba(128,144,176,.10)}",
+    ".opbcSupLine{fill:none;stroke:rgba(128,144,176,.55);stroke-width:1.4;stroke-dasharray:5 3;stroke-linejoin:round}",
+    ".opbcSupAx{fill:#8090b0}",
+    ".opbcStale{fill:rgba(245,200,66,.05)}",
+    ".opbcStaleEdge{stroke:rgba(245,200,66,.4);stroke-width:1;stroke-dasharray:3 3}",
+    ".opbcStaleTx{fill:#f5c842;font-size:10px;font-weight:700}",
+    ".opbcStaleBadge{margin-left:8px;padding:2px 8px;border-radius:20px;background:rgba(245,200,66,.12);color:#f5c842;font-size:10px;font-weight:800;white-space:nowrap}",
     ".opbcBar{opacity:.34;rx:1}",
     ".opbcVolAx{font-size:10px;opacity:.8}",
     ".opbcHitDot{cursor:pointer}.opbcHit{cursor:crosshair}",
