@@ -29,7 +29,12 @@ const kinds = ["card", "box", "pack"].map((k) => {
   return { k, n, sold, st: n ? Math.round((sold / n) * 100) : null };
 });
 const cardK = kinds[0], boxK = kinds[1];
-const last = daily[daily.length - 1];
+// "latest full day" 문구가 진행 중인 오늘을 가리키면 그날 저녁까지 숫자가 계속 변한다
+// (실측 08-21 낮: 324건 vs 전날 완결 960건). auction-sold 의 daily 엔 partial 플래그가
+// 없으므로 생성일(UTC 오늘) 당일 행을 완결일에서 제외한다.
+const todayIso = new Date().toISOString().slice(0, 10);
+const fullDays = daily.filter((x) => x.d < todayIso);
+const last = fullDays[fullDays.length - 1];
 
 const nameOf = (set, id) => {
   const cs = (d.sets[set] || {}).cards || [];
