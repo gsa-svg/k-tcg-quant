@@ -74,7 +74,7 @@ if (!fs.existsSync(aiPath)) {
   let aiData;
   try { aiData = JSON.parse(fs.readFileSync(aiPath, "utf8")); } catch { errors.push("opbox-ai-data.json: invalid JSON"); }
   if (aiData) {
-    if (aiData.schemaVersion !== "1.0.0") errors.push("opbox-ai-data.json: unsupported schemaVersion");
+    if (aiData.schemaVersion !== "1.0.1") errors.push("opbox-ai-data.json: unsupported schemaVersion");
     if (aiData.license?.url !== "https://creativecommons.org/licenses/by/4.0/") errors.push("opbox-ai-data.json: CC BY 4.0 licence missing");
     if (!Array.isArray(aiData.sets) || aiData.sets.length < 20) errors.push("opbox-ai-data.json: tracked set coverage is incomplete");
     for (const set of aiData.sets || []) {

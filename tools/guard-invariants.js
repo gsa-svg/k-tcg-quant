@@ -932,15 +932,19 @@ for (const f of ["index.html", "packs.html"]) {
 
   for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
     const y = read(`.github/workflows/${wf}`);
-    const addLine = (y.match(/git add ([^\n]+)/) || [])[1] || "";
-    const diffLine = (y.match(/git diff --quiet ([^\n]+?);\s*then/) || [])[1] || "";
-    if (!addLine && !diffLine) continue;    // 커밋하지 않는 워크플로는 대상 아님
+    const addLines = [...y.matchAll(/^\s*git add ([^\n]+)/gm)].map((match) => match[1]);
+    const diffLines = [...y.matchAll(/git diff --quiet ([^\n]+?);\s*then/g)].map((match) => match[1]);
+    const addLine = addLines[0] || "";
+    if (!addLine && !diffLines.length) continue;    // 커밋하지 않는 워크플로는 대상 아님
 
     // 두 목록이 어긋나면 "변경은 감지되는데 커밋은 안 되는" 구멍이 생긴다.
     // `--` 는 경로 구분자일 뿐 대상 목록이 아니다. 빼고 비교하지 않으면 오탐이 난다.
     const norm = (t) => t.trim().split(/\s+/).filter((x) => x && x !== "--").sort().join(" ");
-    if (addLine && diffLine && norm(addLine) !== norm(diffLine)) {
-      errors.push(`W1: ${wf} 의 git diff 목록과 git add 목록 불일치 — 커밋 누락 구멍`);
+    for (const [index, candidate] of addLines.entries()) {
+      if (norm(candidate) !== norm(addLine)) errors.push(`W1: ${wf} 의 ${index + 1}번째 git add 범위가 최초 커밋 범위와 불일치 — rebase 후 누락 구멍`);
+    }
+    for (const candidate of diffLines) {
+      if (addLine && norm(candidate) !== norm(addLine)) errors.push(`W1: ${wf} 의 git diff 목록과 git add 목록 불일치 — 커밋 누락 구멍`);
     }
 
     // 이 워크플로가 돌리는 도구가 기록하는 data/*.json 은 전부 커밋 목록에 있어야 한다.

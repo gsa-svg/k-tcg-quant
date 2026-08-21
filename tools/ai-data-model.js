@@ -25,14 +25,19 @@ function psa10Sold(card, datasetUpdatedOn) {
   if (!sold?.soldBased || !Number.isInteger(sold.sampleSize) || sold.sampleSize < 3 || !isDate(sold.updated)) return null;
   if (![sold.low, sold.middle, sold.high].every(isPositive) || !(sold.low <= sold.middle && sold.middle <= sold.high)) return null;
   if (!["USD", "KRW", "JPY"].includes(sold.currency)) return null;
+  const rangePercentiles = /manual, variant-matched/i.test(sold.source || "")
+    ? [25, 75]
+    : /completed search/i.test(sold.source || "") ? [15, 85] : null;
+  if (!rangePercentiles) return null;
   return {
     basis: "completed_sales",
     grade: "PSA 10",
     market: "eBay",
     currency: sold.currency,
     median: sold.middle,
-    p25: sold.low,
-    p75: sold.high,
+    rangeLow: sold.low,
+    rangeHigh: sold.high,
+    rangePercentiles,
     sampleSize: sold.sampleSize,
     sampleCollectedOn: sold.updated,
     ageDaysAtDatasetUpdate: ageDays(datasetUpdatedOn, sold.updated),
@@ -108,7 +113,7 @@ function buildAiData(data) {
     };
   });
   return {
-    schemaVersion: "1.0.0",
+    schemaVersion: "1.0.1",
     datasetId: "opbox-ai-market-data",
     name: "OP Box Index — One Piece TCG box markets and Top 7 hits",
     datasetUpdatedOn,
@@ -122,7 +127,7 @@ function buildAiData(data) {
       sold: "Median and interquartile range from verified completed-sale samples. sampleCollectedOn is the search-sample collection date; individual sales may predate it.",
       activeAsk: "Median plus 15th/85th percentiles from verified active asking prices; not completed sales.",
       rawNmAsk: "Exact-variant Japanese near-mint retail asking price; stock status is explicit and the USD equivalent uses the dated FX reference.",
-      psa10Sold: "Completed-sale sample in its stored source currency; no current-rate rewrite of historical observations.",
+      psa10Sold: "Median plus source-specific percentile bounds from completed-sale samples. rangePercentiles identifies whether rangeLow/rangeHigh are P15/P85 or P25/P75; historical values stay in their stored source currency.",
       qualityFlags: "Large sold-versus-active divergence and extreme active-ask spreads are retained but explicitly flagged; no unified current price is calculated.",
     },
     fx: {

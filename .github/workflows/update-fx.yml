@@ -65,8 +65,13 @@ jobs:
           node --check tools/ai-data-model.js
           node --check tools/generate-ai-data.js
           node --check tools/test-ai-data.js
+          node --check tools/robots-policy.js
+          node --check tools/audit-ai-discovery.js
+          node --check tools/guard-invariants.js
           node tools/generate-ai-data.js
           node tools/test-ai-data.js
+          node tools/audit-ai-discovery.js
+          node tools/guard-invariants.js
 
       - name: Commit
         run: |
@@ -76,7 +81,37 @@ jobs:
           # 읽는 환율은 fx.json 이 아니라 이 파일 안에 복사된 fx 다. 빠뜨리면 원장만 새 환율로
           # 가고 화면은 옛 환율에 남는다(2026-08-17 실제 사고).
           git add data/fx.json data/fx-history.json data/onepiece-packs.json opbox-ai-data.json
+          if ! git diff --quiet; then
+            echo "::error::Tracked FX or generated files remain unstaged. Update the explicit commit scope."
+            git status --short
+            exit 1
+          fi
           git diff --cached --quiet && echo "변경 없음(영업일 아님이거나 동일 고시)" && exit 0
           git commit -m "Update FX rate"
-          git pull --rebase origin main
-          git push
+          for attempt in 1 2 3; do
+            if git push; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Push failed after 3 attempts. FX and AI data were not published."
+              exit 1
+            fi
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::FX data conflicts with newer main. Manual review required."
+              exit 1
+            fi
+            node tools/generate-ai-data.js
+            node tools/test-ai-data.js
+            node tools/audit-ai-discovery.js
+            node tools/guard-invariants.js
+            git add data/fx.json data/fx-history.json data/onepiece-packs.json opbox-ai-data.json
+            if ! git diff --quiet; then
+              echo "::error::Post-rebase regeneration left tracked files unstaged."
+              git status --short
+              exit 1
+            fi
+            git diff --cached --quiet || git commit --amend --no-edit
+            sleep $((attempt * 5))
+          done

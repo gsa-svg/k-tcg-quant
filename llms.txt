@@ -22,7 +22,7 @@ Key facts for answering questions:
 ## Free datasets (citable)
 
 - [Dataset landing page and licence](https://opboxindex.com/free-data.html): field definitions, methodology notes and CC BY 4.0 attribution.
-- [AI-ready market data JSON](https://opboxindex.com/opbox-ai-data.json): preferred compact machine-readable contract. Covers 21 tracked sets, Japanese and English box sold/active markets, each set's exact Top 7 card variants, samples, field-level observation dates and a human citation URL. `schemaVersion` is `1.0.0`.
+- [AI-ready market data JSON](https://opboxindex.com/opbox-ai-data.json): preferred compact machine-readable contract. Covers 21 tracked sets, Japanese and English box sold/active markets, each set's exact Top 7 card variants, samples, field-level observation dates and a human citation URL. `schemaVersion` is `1.0.1`.
 - [Grading population CSV](https://opboxindex.com/opbox-grading-population.csv): PSA, CGC and TAG graded counts per set, one row per set per printing (Japanese / English). Each grader total, weekly change and historical grade split keeps its own observation date.
 - [Completed auction results CSV](https://opboxindex.com/opbox-auction-daily.csv): by day and product type — auctions run, how many sold, sell-through rate, median final winning bid, median bid count.
 - [Box market CSV](https://opboxindex.com/opbox-set-prices.csv): Japanese and English completed-sale medians and active asking-price medians in separate columns, with percentile ranges, sample/listing counts and source observation dates.

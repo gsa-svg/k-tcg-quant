@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.0.1",
   "datasetId": "opbox-ai-market-data",
   "name": "OP Box Index — One Piece TCG box markets and Top 7 hits",
   "datasetUpdatedOn": "2026-08-21",
@@ -19,7 +19,7 @@
     "sold": "Median and interquartile range from verified completed-sale samples. sampleCollectedOn is the search-sample collection date; individual sales may predate it.",
     "activeAsk": "Median plus 15th/85th percentiles from verified active asking prices; not completed sales.",
     "rawNmAsk": "Exact-variant Japanese near-mint retail asking price; stock status is explicit and the USD equivalent uses the dated FX reference.",
-    "psa10Sold": "Completed-sale sample in its stored source currency; no current-rate rewrite of historical observations.",
+    "psa10Sold": "Median plus source-specific percentile bounds from completed-sale samples. rangePercentiles identifies whether rangeLow/rangeHigh are P15/P85 or P25/P75; historical values stay in their stored source currency.",
     "qualityFlags": "Large sold-versus-active divergence and extreme active-ask spreads are retained but explicitly flagged; no unified current price is calculated."
   },
   "fx": {
@@ -159,8 +159,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 926081,
-            "p25": 715467,
-            "p75": 1257488,
+            "rangeLow": 715467,
+            "rangeHigh": 1257488,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 26,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -202,8 +206,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 794996,
-            "p25": 490807,
-            "p75": 1142510,
+            "rangeLow": 490807,
+            "rangeHigh": 1142510,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -245,8 +253,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 415907,
-            "p25": 275939,
-            "p75": 603963,
+            "rangeLow": 275939,
+            "rangeHigh": 603963,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 9,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -288,8 +300,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 532366,
-            "p25": 383689,
-            "p75": 1613799,
+            "rangeLow": 383689,
+            "rangeHigh": 1613799,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 26,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -363,8 +379,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 303884,
-            "p25": 213631,
-            "p75": 920791,
+            "rangeLow": 213631,
+            "rangeHigh": 920791,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -537,8 +557,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 271654,
-            "p25": 156700,
-            "p75": 285621,
+            "rangeLow": 156700,
+            "rangeHigh": 285621,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -580,8 +604,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 148663,
-            "p25": 122782,
-            "p75": 201100,
+            "rangeLow": 122782,
+            "rangeHigh": 201100,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -655,8 +683,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 290838,
-            "p25": 190680,
-            "p75": 337649,
+            "rangeLow": 190680,
+            "rangeHigh": 337649,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -698,8 +730,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 266582,
-            "p25": 181291,
-            "p75": 316163,
+            "rangeLow": 181291,
+            "rangeHigh": 316163,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -808,8 +844,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1147931,
-            "p25": 1006572,
-            "p75": 1248743,
+            "rangeLow": 1006572,
+            "rangeHigh": 1248743,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -841,8 +881,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 478885,
-            "p25": 313078,
-            "p75": 1006398,
+            "rangeLow": 313078,
+            "rangeHigh": 1006398,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -877,8 +921,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 188009,
-            "p25": 185323,
-            "p75": 413513,
+            "rangeLow": 185323,
+            "rangeHigh": 413513,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -910,8 +958,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 168103,
-            "p25": 160575,
-            "p75": 203859,
+            "rangeLow": 160575,
+            "rangeHigh": 203859,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -936,8 +988,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 145803,
-            "p25": 117827,
-            "p75": 183351,
+            "rangeLow": 117827,
+            "rangeHigh": 183351,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1101,8 +1157,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1338749,
-            "p25": 749704,
-            "p75": 1688247,
+            "rangeLow": 749704,
+            "rangeHigh": 1688247,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1137,8 +1197,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1225327,
-            "p25": 1174935,
-            "p75": 1333325,
+            "rangeLow": 1174935,
+            "rangeHigh": 1333325,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1445,8 +1509,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 2302002,
-            "p25": 1718933,
-            "p75": 3509239,
+            "rangeLow": 1718933,
+            "rangeHigh": 3509239,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1520,8 +1588,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 452757,
-            "p25": 375018,
-            "p75": 2224876,
+            "rangeLow": 375018,
+            "rangeHigh": 2224876,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 25,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1678,8 +1750,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 3520732,
-            "p25": 1390885,
-            "p75": 4843331,
+            "rangeLow": 1390885,
+            "rangeHigh": 4843331,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1736,8 +1812,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 429736,
-            "p25": 383693,
-            "p75": 621568,
+            "rangeLow": 383693,
+            "rangeHigh": 621568,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1831,8 +1911,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 289396,
-            "p25": 260757,
-            "p75": 296346,
+            "rangeLow": 260757,
+            "rangeHigh": 296346,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -1948,8 +2032,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 2976467,
-            "p25": 2682227,
-            "p75": 3315617,
+            "rangeLow": 2682227,
+            "rangeHigh": 3315617,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 19,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -1991,8 +2079,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 824939,
-            "p25": 644588,
-            "p75": 1192516,
+            "rangeLow": 644588,
+            "rangeHigh": 1192516,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2042,8 +2134,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 405179,
-            "p25": 204032,
-            "p75": 3194464,
+            "rangeLow": 204032,
+            "rangeHigh": 3194464,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2110,8 +2206,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 106578,
-            "p25": 104831,
-            "p75": 153462,
+            "rangeLow": 104831,
+            "rangeHigh": 153462,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2243,8 +2343,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 978408,
-            "p25": 845651,
-            "p75": 1496266,
+            "rangeLow": 845651,
+            "rangeHigh": 1496266,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2276,8 +2380,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 285843,
-            "p25": 222788,
-            "p75": 364793,
+            "rangeLow": 222788,
+            "rangeHigh": 364793,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2346,8 +2454,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 352997,
-            "p25": 277176,
-            "p75": 367137,
+            "rangeLow": 277176,
+            "rangeHigh": 367137,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 9,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2382,8 +2494,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 253568,
-            "p25": 237874,
-            "p75": 263367,
+            "rangeLow": 237874,
+            "rangeHigh": 263367,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2450,8 +2566,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 245548,
-            "p25": 161918,
-            "p75": 260779,
+            "rangeLow": 161918,
+            "rangeHigh": 260779,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2573,8 +2693,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 2742624,
-            "p25": 2710103,
-            "p75": 2773596,
+            "rangeLow": 2710103,
+            "rangeHigh": 2773596,
+            "rangePercentiles": [
+              25,
+              75
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -2616,8 +2740,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1635657,
-            "p25": 1340852,
-            "p75": 2218280,
+            "rangeLow": 1340852,
+            "rangeHigh": 2218280,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2691,8 +2819,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1573139,
-            "p25": 1270015,
-            "p75": 1803347,
+            "rangeLow": 1270015,
+            "rangeHigh": 1803347,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2734,8 +2866,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 982701,
-            "p25": 306954,
-            "p75": 1227816,
+            "rangeLow": 306954,
+            "rangeHigh": 1227816,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2860,8 +2996,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1074339,
-            "p25": 980174,
-            "p75": 1530629,
+            "rangeLow": 980174,
+            "rangeHigh": 1530629,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2903,8 +3043,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 459656,
-            "p25": 304594,
-            "p75": 532957,
+            "rangeLow": 304594,
+            "rangeHigh": 532957,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -2963,8 +3107,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 389816,
-            "p25": 275209,
-            "p75": 454393,
+            "rangeLow": 275209,
+            "rangeHigh": 454393,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3056,8 +3204,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 207194,
-            "p25": 195524,
-            "p75": 312470,
+            "rangeLow": 195524,
+            "rangeHigh": 312470,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3216,8 +3368,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 2072067,
-            "p25": 1732917,
-            "p75": 2485551,
+            "rangeLow": 1732917,
+            "rangeHigh": 2485551,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -3259,8 +3415,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 982237,
-            "p25": 565935,
-            "p75": 1139567,
+            "rangeLow": 565935,
+            "rangeHigh": 1139567,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3302,8 +3462,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 759711,
-            "p25": 547913,
-            "p75": 1492997,
+            "rangeLow": 547913,
+            "rangeHigh": 1492997,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3338,8 +3502,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 506321,
-            "p25": 398940,
-            "p75": 506428,
+            "rangeLow": 398940,
+            "rangeHigh": 506428,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3514,8 +3682,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1189447,
-            "p25": 1069428,
-            "p75": 1650799,
+            "rangeLow": 1069428,
+            "rangeHigh": 1650799,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 9,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3557,8 +3729,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 475779,
-            "p25": 360287,
-            "p75": 544282,
+            "rangeLow": 360287,
+            "rangeHigh": 544282,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -3740,8 +3916,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 21270433,
-            "p25": 21270433,
-            "p75": 21962671,
+            "rangeLow": 21270433,
+            "rangeHigh": 21962671,
+            "rangePercentiles": [
+              25,
+              75
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -4073,8 +4253,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1534755,
-            "p25": 890243,
-            "p75": 2420418,
+            "rangeLow": 890243,
+            "rangeHigh": 2420418,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -4143,8 +4327,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 786570,
-            "p25": 580680,
-            "p75": 1319776,
+            "rangeLow": 580680,
+            "rangeHigh": 1319776,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -4186,8 +4374,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 476249,
-            "p25": 438339,
-            "p75": 680033,
+            "rangeLow": 438339,
+            "rangeHigh": 680033,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -4229,8 +4421,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 384690,
-            "p25": 281477,
-            "p75": 431860,
+            "rangeLow": 281477,
+            "rangeHigh": 431860,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -4352,8 +4548,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1376395,
-            "p25": 1241763,
-            "p75": 1481172,
+            "rangeLow": 1241763,
+            "rangeHigh": 1481172,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -4438,8 +4638,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1323739,
-            "p25": 759711,
-            "p75": 1609744,
+            "rangeLow": 759711,
+            "rangeHigh": 1609744,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -4840,8 +5044,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 2609109,
-            "p25": 2532361,
-            "p75": 4389436,
+            "rangeLow": 2532361,
+            "rangeHigh": 4389436,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -5043,8 +5251,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 84397,
-            "p25": 69367,
-            "p75": 84588,
+            "rangeLow": 69367,
+            "rangeHigh": 84588,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -5168,8 +5380,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 4074446,
-            "p25": 3688837,
-            "p75": 8282073,
+            "rangeLow": 3688837,
+            "rangeHigh": 8282073,
+            "rangePercentiles": [
+              25,
+              75
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-07-09",
             "ageDaysAtDatasetUpdate": 43
@@ -5393,8 +5609,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 3125135,
-            "p25": 2937751,
-            "p75": 3616051,
+            "rangeLow": 2937751,
+            "rangeHigh": 3616051,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -5436,8 +5656,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 2561434,
-            "p25": 1959017,
-            "p75": 3465834,
+            "rangeLow": 1959017,
+            "rangeHigh": 3465834,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -5479,8 +5703,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1372086,
-            "p25": 1045325,
-            "p75": 1875391,
+            "rangeLow": 1045325,
+            "rangeHigh": 1875391,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-07-10",
             "ageDaysAtDatasetUpdate": 42
@@ -5929,8 +6157,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 1688247,
-            "p25": 1534770,
-            "p75": 2294481,
+            "rangeLow": 1534770,
+            "rangeHigh": 2294481,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 9,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -5965,8 +6197,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 577036,
-            "p25": 571668,
-            "p75": 901086,
+            "rangeLow": 571668,
+            "rangeHigh": 901086,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53
@@ -6001,8 +6237,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 4074446,
-            "p25": 3688837,
-            "p75": 8282073,
+            "rangeLow": 3688837,
+            "rangeHigh": 8282073,
+            "rangePercentiles": [
+              25,
+              75
+            ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-07-09",
             "ageDaysAtDatasetUpdate": 43
@@ -6062,8 +6302,12 @@
             "market": "eBay",
             "currency": "KRW",
             "median": 519605,
-            "p25": 381187,
-            "p75": 768843,
+            "rangeLow": 381187,
+            "rangeHigh": 768843,
+            "rangePercentiles": [
+              15,
+              85
+            ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-06-29",
             "ageDaysAtDatasetUpdate": 53

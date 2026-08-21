@@ -49,10 +49,10 @@ const { records: priceRecords, dates: priceDates } = buildBoxRecords(d);
 const { records: gradeRecords, dates: gradeDates } = buildGradeRecords(d, readJson("cgc-grading-history.json"), readJson("tag-grading-history.json"));
 const { records: auctionRecords, dates: auctionDates } = buildAuctionRecords(readJson("auction-sold.json"));
 const aiData = buildAiData(d);
-const aiDates = [aiData.fx.observedOn];
+const aiDates = [];
 for (const set of aiData.sets) {
   for (const market of Object.values(set.boxMarket)) aiDates.push(market.sold?.sampleCollectedOn, market.activeAsk?.observedOn);
-  for (const hit of set.topHits) aiDates.push(hit.rawNmAsk?.observedOn, hit.rawNmAsk?.fxObservedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
+  for (const hit of set.topHits) aiDates.push(hit.rawNmAsk?.observedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
 }
 const nPrices = writeCsv("opbox-set-prices.csv", BOX_HEAD, priceRecords);
 const nGrades = writeCsv("opbox-grading-population.csv", GRADE_HEAD, gradeRecords);

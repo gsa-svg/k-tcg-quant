@@ -39,7 +39,7 @@ function latest(src, code, edition, predicate = () => true) {
 }
 
 assert.deepEqual(actual, expected, "generated AI data must exactly match the verified source snapshot");
-assert.equal(actual.schemaVersion, "1.0.0");
+assert.equal(actual.schemaVersion, "1.0.1");
 assert.equal(actual.datasetUpdatedOn, source.updated);
 assert.equal(actual.sets.length, [...source.jp.list, ...source.extra.list].length);
 assert.equal(new Set(actual.sets.map((set) => set.setCode)).size, actual.sets.length, "set codes must be unique");
@@ -48,6 +48,15 @@ for (const set of actual.sets) {
   assert.match(set.canonicalUrl, /^https:\/\/opboxindex\.com\/sets\/[a-z0-9-]+\.html$/);
   assert.equal(set.topHits.length, 7, `${set.setCode} must publish exactly seven ranked hits`);
   assert.deepEqual(set.topHits.map((card) => card.rank), [1, 2, 3, 4, 5, 6, 7]);
+  for (const hit of set.topHits) if (hit.psa10Sold) {
+    const raw = source.sets[set.setCode].cards.find((card) => card.rank === hit.rank).psa10Ebay;
+    const expectedPercentiles = /manual, variant-matched/i.test(raw.source || "") ? [25, 75] : [15, 85];
+    assert.deepEqual(hit.psa10Sold.rangePercentiles, expectedPercentiles);
+    assert.equal(hit.psa10Sold.rangeLow, raw.low);
+    assert.equal(hit.psa10Sold.rangeHigh, raw.high);
+    assert.ok(hit.psa10Sold.rangeLow <= hit.psa10Sold.median && hit.psa10Sold.median <= hit.psa10Sold.rangeHigh);
+    for (const oldName of ["p15", "p25", "p75", "p85"]) assert.ok(!(oldName in hit.psa10Sold), `PSA 10 sold must use explicit range metadata, not ${oldName}`);
+  }
   for (const edition of Object.values(set.boxMarket)) {
     if (edition.sold) {
       assert.equal(edition.sold.basis, "completed_sales");
@@ -119,11 +128,11 @@ for (const name of ["opbox-ai-data.json", "opbox-set-prices.csv", "opbox-grading
   assert.ok(downloads.some((url) => url?.endsWith(`/${name}`)), `Dataset JSON-LD must list ${name}`);
 }
 
-const factDates = [actual.fx.observedOn];
+const factDates = [];
 for (const set of actual.sets) {
   for (const market of Object.values(set.boxMarket)) factDates.push(market.sold?.sampleCollectedOn, market.activeAsk?.observedOn);
   for (const hit of set.topHits) {
-    factDates.push(hit.rawNmAsk?.observedOn, hit.rawNmAsk?.fxObservedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
+    factDates.push(hit.rawNmAsk?.observedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
     if (hit.psaPopulation?.grade10 != null) assert.ok(hit.psaPopulation.grade10 <= hit.psaPopulation.total);
     if (hit.psaPopulation?.grade9 != null) assert.ok(hit.psaPopulation.grade9 <= hit.psaPopulation.total);
     if (hit.psaPopulation?.grade10 != null && hit.psaPopulation?.grade9 != null) assert.ok(hit.psaPopulation.grade10 + hit.psaPopulation.grade9 <= hit.psaPopulation.total);

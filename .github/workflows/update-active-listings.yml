@@ -226,5 +226,29 @@ jobs:
               echo "::error::Generated files conflict with newer main. Manual review required."
               exit 1
             fi
+            # Rebase can change source data or generators without a text conflict.
+            # Rebuild every local derived output before publishing the merged tree.
+            node tools/compact-series.js
+            node tools/build-market-index.js
+            node tools/generate-card-pages.js
+            node tools/generate-set-pages.js
+            node tools/generate-upcoming-set-pages.js
+            node tools/generate-ko-pages.js
+            node tools/generate-ko-topic-pages.js
+            node tools/generate-auction-page.js
+            node tools/generate-free-data.js
+            node tools/generate-ai-data.js
+            node tools/test-ai-data.js
+            node tools/audit-ai-discovery.js
+            node tools/inject-home-summary.js
+            node tools/guard-invariants.js
+            node tools/audit-seo.js
+            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+            if ! git diff --quiet; then
+              echo "::error::Post-rebase regeneration left tracked files unstaged."
+              git status --short
+              exit 1
+            fi
+            git diff --cached --quiet || git commit --amend --no-edit
             sleep $((attempt * 5))
           done
