@@ -203,6 +203,17 @@
       staleBadge = lang === "ko" ? days + "일째 거래 없음" : days + "d since last sale";
     }
 
+    // 계열 이름표. 색만 있고 이름이 없으면 회색 점선이 무엇인지 알 수 없다.
+    // 실제로 그린 계열만 적는다 — 공급 관측이 없는 세트에 "매물"이 떠 있으면 빈 줄을 찾게 만든다.
+    const kPrice = lang === "ko" ? "가격" : "Price";
+    const kSup = lang === "ko" ? "매물 수" : "Listings";
+    const kVol = lang === "ko" ? "거래량" : "Sales";
+    const keyRow = '<div class="opbcKey">' +
+      '<span><i class="kLine" style="background:' + color + '"></i>' + kPrice + "</span>" +
+      (supplyLayer ? '<span><i class="kDash"></i>' + kSup + "</span>" : "") +
+      '<span><i class="kBar" style="background:' + color + '"></i>' + kVol + "</span>" +
+      "</div>";
+
     const dots = pts.map((p, i) =>
       '<circle class="opbcDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) +
       '" r="' + (i === pts.length - 1 ? 5 : 3.2) + '" fill="' + color + '"/>').join("");
@@ -245,7 +256,7 @@
       '<text class="opbcTipD" x="10" y="18"></text><text class="opbcTipV" x="10" y="36"></text></g>' +
       xl +
       '<rect class="opbcHit" x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (H - T - B) + '" fill="transparent"/>' +
-      "</svg></figure>";
+      "</svg>" + keyRow + "</figure>";
   }
 
   // ── 공급 패널: 지금 eBay 에 올라와 있는 밀봉 박스가 몇 개인가.
@@ -527,6 +538,11 @@
     ".opbcStaleEdge{stroke:rgba(245,200,66,.4);stroke-width:1;stroke-dasharray:3 3}",
     ".opbcStaleTx{fill:#f5c842;font-size:10px;font-weight:700}",
     ".opbcStaleBadge{margin-left:8px;padding:2px 8px;border-radius:20px;background:rgba(245,200,66,.12);color:#f5c842;font-size:10px;font-weight:800;white-space:nowrap}",
+    ".opbcKey{display:flex;gap:14px;margin:6px 0 0;padding:0 4px;font-size:11px;color:var(--muted,#8d95a7)}",
+    ".opbcKey span{display:inline-flex;align-items:center;gap:5px}",
+    ".opbcKey i{display:inline-block;width:12px;height:2px;border-radius:1px}",
+    ".opbcKey .kDash{background:rgba(128,144,176,.7);height:0;border-top:2px dashed rgba(128,144,176,.7)}",
+    ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;opacity:.34}",
     ".opbcBar{opacity:.34;rx:1}",
     ".opbcVolAx{font-size:10px;opacity:.8}",
     ".opbcHitDot{cursor:pointer}.opbcHit{cursor:crosshair}",
