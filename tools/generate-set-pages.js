@@ -54,6 +54,11 @@ const FX = data.fx || {};
 const DATA_DATE = data.updated || new Date().toISOString().slice(0, 10);
 const jpyUsd = (jpy) => (Number.isFinite(jpy) && FX.jpyKrw && FX.usdKrw ? (jpy * FX.jpyKrw) / FX.usdKrw : null);
 const krwUsd = (krw) => (Number.isFinite(krw) && FX.usdKrw ? krw / FX.usdKrw : null);
+// 서술 블록(궤적·verdict·keyFacts)의 가격 소스 = 차트와 같은 sold 시리즈(USD, 판매일 기준) — 2026-08-21.
+// 종전 boxSeries(외부 KRW 주간시세)는 20/21 세트가 07-11~13 에 멈춰 "as of 2026-07-12" 가
+// 오늘 날짜 페이지에 그대로 나갔고, 환율도 1548.63 하드코딩이었다. 한 페이지에 서로 다른
+// 박스 가격이 3개 공존하는 문제의 근원. 시리즈가 곧 차트이므로 이제 문장과 그림이 같은 숫자를 말한다.
+const soldPts = (code, ed) => (((SOLD_SERIES.sets || {})[code] || {})[ed] || []).filter((pt) => pt && pt.median != null).map((pt) => ({ d: pt.d, p: pt.median }));
 const toUsd = (val, cur) => (val == null ? null : cur === "USD" ? val : krwUsd(val));
 const usd = (n) => (n == null ? null : "$" + Math.round(n).toLocaleString("en-US"));
 const intl = (n) => (n == null ? "" : Number(n).toLocaleString("en-US"));
@@ -465,25 +470,25 @@ function setPage(code, prev, next) {
   const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
   const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}.` : "";
 
-  // 6개월 박스 시세 궤적 (세트별 고유 수치 — boxSeries 주간 시리즈 기반)
+  // 박스 시세 궤적 (세트별 고유 수치 — 차트와 같은 sold 시리즈 기반)
   let trajectory = "";
-  const bs = s.boxSeries && Array.isArray(s.boxSeries.points) ? s.boxSeries.points : [];
+  const bs = soldPts(code, "jp");
   if (bs.length >= 8) {
-    const toU = (krw) => Math.round(krw / 1548.63);
+    const toU = (v) => Math.round(v);
     const first = bs[0], last = bs[bs.length - 1];
     const peak = bs.reduce((a, b) => (b.p > a.p ? b : a), bs[0]);
     const chg = Math.round((last.p / first.p - 1) * 100);
     const dir = chg >= 3 ? `gained <strong>${chg}%</strong>` : chg <= -3 ? `fell <strong>${Math.abs(chg)}%</strong>` : `held roughly flat (<strong>${chg >= 0 ? "+" : ""}${chg}%</strong>)`;
-    const en = s.boxSeriesEn && Array.isArray(s.boxSeriesEn.points) ? s.boxSeriesEn.points : [];
+    const en = soldPts(code, "en");
     let enBit = "";
     if (en.length >= 8) {
       const enLast = en[en.length - 1], enChg = Math.round((enLast.p / en[0].p - 1) * 100);
       const ratio = (enLast.p / last.p).toFixed(1);
-      enBit = ` The English-language ${esc(s.nameEn || code)} box trades near <strong>${usd(toU(enLast.p))}</strong> over the same period (${enChg >= 0 ? "+" : ""}${enChg}% since January) — about <strong>${ratio}x</strong> the Japanese box. This ratio does not explain why.`;
+      enBit = ` The English-language ${esc(s.nameEn || code)} box trades near <strong>${usd(toU(enLast.p))}</strong> over the same period (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window) — about <strong>${ratio}x</strong> the Japanese box. This ratio does not explain why.`;
     }
     trajectory = `
-      <h2>${code} box price: the six-month trajectory</h2>
-      <p>The Japanese ${esc(s.nameEn || code)} sealed box entered ${monthYear(first.d) || "January 2026"} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
+      <h2>${code} box price: the tracked trajectory</h2>
+      <p>The Japanese ${esc(s.nameEn || code)} sealed box entered our tracking in ${monthYear(first.d) || esc(first.d)} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
   }
 
   // 주간 PSA 인구 증가 — psaWeekly 기반, 세트별 고유. 실제 개봉량으로 표현하지 않는다.
@@ -502,10 +507,10 @@ function setPage(code, prev, next) {
   // 현재 가격 구간 해설 — 실데이터 파생, 미래 가격이나 구매 결론은 만들지 않는다.
   let verdict = "";
   {
-    const pts = (s.boxSeries && s.boxSeries.points) || [];
+    const pts = soldPts(code, "jp");
     if (pts.length >= 8) {
-      const vFirst = krwUsd(pts[0].p), vLast = krwUsd(pts[pts.length - 1].p);
-      const vPeak = Math.max(...pts.map((p) => krwUsd(p.p)));
+      const vFirst = pts[0].p, vLast = pts[pts.length - 1].p;
+      const vPeak = Math.max(...pts.map((p) => p.p));
       const dd = vPeak > 0 ? Math.round(((vPeak - vLast) / vPeak) * 100) : 0;
       const chg = vFirst > 0 ? Math.round(((vLast - vFirst) / vFirst) * 100) : 0;
       const tp0 = cards.length ? cardPrices(cards[0]) : {};
@@ -534,8 +539,8 @@ function setPage(code, prev, next) {
     const sf = (SET_FACTS.sets && SET_FACTS.sets[code]) || null;
     if (sf && sf.jpMsrpYen) {
       const msrpUsd = FX.jpyKrw && FX.usdKrw ? Math.round((sf.jpMsrpYen * FX.jpyKrw) / FX.usdKrw) : null;
-      const pts2 = (s.boxSeries && s.boxSeries.points) || [];
-      const nowU = pts2.length ? krwUsd(pts2[pts2.length - 1].p) : null;
+      const pts2 = soldPts(code, "jp");
+      const nowU = pts2.length ? pts2[pts2.length - 1].p : null;
       const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
       const recs = sf.reprintRecords || [];
       // 기록의 성격을 나눈다. 매장 재입고 공지를 "반다이가 재판을 발표했다" 처럼 읽히게 두면 안 된다.
@@ -587,16 +592,16 @@ function setPage(code, prev, next) {
   // 수동 문장과 검증된 가격 데이터를 분리해 야간 재생성 때도 최신값과 고유 해설을 함께 유지한다.
   let searchIntentBlock = "";
   if (prioritySeo) {
-    const seriesPoints = (s.boxSeries && s.boxSeries.points) || [];
+    const seriesPoints = soldPts(code, "jp");
     const latestPoint = seriesPoints.length ? seriesPoints[seriesPoints.length - 1] : null;
-    const latestValue = latestPoint ? krwUsd(latestPoint.p) : null;
+    const latestValue = latestPoint ? latestPoint.p : null;
     const active = s.boxMarket?.jp?.ebayActive;
     const activeMiddle = active?.middle != null ? toUsd(active.middle, active.currency) : null;
     const priceParts = [];
     if (activeMiddle != null && (active.sampleSize || 0) >= 3) {
       priceParts.push(`As of ${esc(active.updated || DATA_DATE)}, current eBay asks center near <strong>${usd(activeMiddle)}</strong> across ${active.sampleSize} verified listings.`);
     }
-    if (latestValue != null) priceParts.push(`The separate tracked market series last recorded about <strong>${usd(latestValue)}</strong> on ${esc(latestPoint.d)}.`);
+    if (latestValue != null) priceParts.push(`Completed eBay sales last put the box near <strong>${usd(latestValue)}</strong> on ${esc(latestPoint.d)}.`);
     searchIntentBlock = `
       <section class="searchIntent" aria-label="${esc(`${code} price, reprint and factory-seal summary`)}">
         <h2>${esc(prioritySeo.heading)}</h2>
@@ -671,16 +676,16 @@ function setPage(code, prev, next) {
   let keyFacts = "";
   {
     const facts = [];
-    // 주 팩트는 주간 시장가(boxSeries) 기준 — 페이지 내 다른 수치(궤적·verdict)와 일치해야 함.
-    const serPts = (s.boxSeries && s.boxSeries.points) || [];
+    // 주 팩트는 차트와 같은 sold 시리즈 기준 — 페이지 내 다른 수치(궤적·verdict)와 일치해야 함.
+    const serPts = soldPts(code, "jp");
     const serLast = serPts.length ? serPts[serPts.length - 1] : null;
-    const jpVal = serLast ? krwUsd(serLast.p) : null;
+    const jpVal = serLast ? serLast.p : null;
     if (jpVal != null) facts.push(`As of ${esc(serLast.d)}, a sealed ${code} Japanese booster box has a market value of about <strong>${usd(jpVal)}</strong>.`);
     const bmA = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
     const midA = bmA && bmA.middle != null ? toUsd(bmA.middle, bmA.currency) : null;
     if (midA != null && (bmA.sampleSize || 0) >= 5) facts.push(`Current eBay asking prices run around <strong>${usd(midA)}</strong> (${bmA.sampleSize} active listings).`);
-    const enPts = (s.boxSeriesEn && s.boxSeriesEn.points) || [];
-    const enLastP = enPts.length ? krwUsd(enPts[enPts.length - 1].p) : null;
+    const enPts = soldPts(code, "en");
+    const enLastP = enPts.length ? enPts[enPts.length - 1].p : null;
     if (enLastP != null && jpVal != null) facts.push(`The English ${code} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box.`);
     if (cards.length) {
       const tf = cardPrices(cards[0]);
