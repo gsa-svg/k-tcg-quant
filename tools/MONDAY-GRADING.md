@@ -28,8 +28,10 @@ node tools/cgc-card-pop-api-ingest.js "$TMP/cgc-dump.json"
 # 4) 세트 누적을 화면에 반영 + 검증
 node tools/inject-grader-editions.js          # → packs.json 의 graders (세트 누적)
 node tools/inject-card-grades.js              # → packs.json 의 graderPop (카드별 등급, 확대창이 읽는 값)
+node tools/build-grading-series.js            # 세트 × 등급사 × 주차 시계열
+                                              # ⚠ 반드시 페이지 생성보다 먼저. 세트 페이지의
+                                              #   "PSA inflow · 4 wks" 카드가 이 파일을 읽는다.
 node tools/generate-set-pages.js && node tools/generate-card-pages.js && node tools/generate-ko-pages.js
-node tools/build-grading-series.js            # 세트 × 등급사 × 주차 시계열(그래프용)
 node tools/audit-grading-numbers.js           # 숫자 검증 — 실패하면 배포 금지
 node tools/guard-invariants.js
 ```
