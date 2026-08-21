@@ -34,7 +34,6 @@ const tr = rows.map((b) => {
   return `<tr><td><a href="sets/${b.code.toLowerCase()}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}</td><td class="num">${usd(b.nowUsd)}</td><td class="num ${chg >= 0 ? "up" : "down"}">${chg != null ? (chg >= 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
 }).join("\n");
 
-const idx = mi.index;
 
 // ── 홈은 현재 사실상 유일하게 색인된 페이지 → 검색어 표면적을 최대한 넓힌다.
 // 답변은 전부 검증된 데이터에서 파생(추정 금지). 값이 없으면 그 항목을 만들지 않는다.
@@ -54,7 +53,7 @@ const topDn = byChg[byChg.length - 1];
 const faqs = [
   {
     q: "How much is a One Piece booster box?",
-    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${cheapest.code} ${nameOf(cheapest.code)}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}), as of ${DATA_DATE}. Prices come from real completed sales and verified active listings, updated daily. The table above lists all ${rows.length} sets.`,
+    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${cheapest.code} ${nameOf(cheapest.code)}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}), as of ${DATA_DATE}. Each price is the median of completed eBay sales we collect ourselves, updated daily. The table above lists all ${rows.length} sets.`,
   },
   {
     q: "Which One Piece booster box is the most valuable?",
@@ -96,7 +95,7 @@ const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
           <details class="homeCollapse">
           <summary><h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2></summary>
-          <p>Prices below are sealed Japanese booster boxes in USD, from real completed sales and verified active listings. "Change" is measured from each set's tracking start date, not its release date. Of the ${withChg.length} sets with a tracked start price, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
+          <p>Prices below are sealed Japanese booster boxes in USD, each the median of completed eBay sales we collect ourselves. "Change" is measured from each set's tracking start date, not its release date. Of the ${withChg.length} sets with a tracked start price, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
             <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
@@ -134,4 +133,4 @@ for (const f of ["index.html", "packs.html"]) {
   fs.writeFileSync(fp, h, "utf8");
   touched++;
 }
-console.log(JSON.stringify({ touched, sets: rows.length, index: idx.value }));
+console.log(JSON.stringify({ touched, sets: rows.length }));

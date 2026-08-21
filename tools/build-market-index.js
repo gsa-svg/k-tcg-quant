@@ -1,10 +1,11 @@
-// OPBOX 마켓 인덱스 + 개봉 미터 + 성적표 계산기 → data/market-index.json
-// 방법론(고정, 페이지에 그대로 공개):
-//  - 지수: 2026-01-07 = 100 기준, 그날 가격이 있는 세트만 구성종목(=18). 등가중,
-//    각 세트 price(t)/price(base) 평균 ×100. 결측일은 직전값 carry-forward.
-//    후발 세트(OP-02/15/16 등 1월 미포함)는 지수 계산에서 제외 — 개별 성적표엔 표시.
-//  - 이유: 발매 시점부터 추적한 세트가 4개뿐이라 "발매 대비"는 대부분 거짓. 그래서
-//    지수·성적표는 전부 "1월 7일 이후"로만 말한다. 진짜 발매추적 세트만 launchTracked:true.
+// OPBOX 성적표(board) + 개봉 미터 → onepiece-packs.json 의 marketIndex
+//  - board 가격: 우리 eBay 실판매 원장(box-sold-series.json, jp 주간 중앙값 USD).
+//    2026-08-21 전환 — 종전 외부 boxSeries 는 20/21 세트가 07-11~13 에 멈춘 것을
+//    아무도 몰랐다. 우리 원장은 멈추면 수집 감사가 바로 잡는다. 차트와 같은 소스라
+//    홈 표 $348 vs 차트 $305 처럼 한 화면에 두 가격이 뜨는 문제도 사라진다.
+//  - Change = 각 세트 추적 시작일 대비(발매 대비 아님 — 발매추적은 launchTracked 만).
+//  - 지수(2026-01-07=100)는 소비처가 없어서 전환 때 삭제했다. 화면 표시는 2026-07-29 에
+//    이미 빠졌고 남은 건 방문자 페이로드 속 죽은 시계열뿐이었다.
 //  - 개봉 미터: 전세트 psaWeekly 합산(최근 주) + 전주대비. 누적은 psaFull.total 합.
 // Run: node tools/build-market-index.js
 const fs = require("fs");
@@ -17,35 +18,16 @@ const yenUsd = (yen) => (FX.jpyKrw && FX.usdKrw ? (yen * FX.jpyKrw) / FX.usdKrw 
 // 검증된 세트 팩트(정가·재판) — 나이틀리에 안 지워지는 소스 파일
 let FACTS = { sets: {}, bandaiAnnouncesReprints: false };
 try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
-const BASE = "2026-01-07";
-// 발매 시점부터 실제 추적한 세트만(감사 결과). 나머지는 1월 시작이라 "발매 대비" 주장 금지.
-const LAUNCH_TRACKED = new Set(["OP-16"]); // OP-17부터 자동 추가 예정
+// 발매 시점부터 실제 추적한 세트만(감사 결과). 나머지는 중간 시작이라 "발매 대비" 주장 금지.
+const LAUNCH_TRACKED = new Set(["OP-16", "OP-17"]);
 const codes = [...d.jp.list, ...d.extra.list];
 
-function ptsOf(c) { return (d.sets[c] && d.sets[c].boxSeries && d.sets[c].boxSeries.points) || []; }
-function priceAt(pts, iso) { let v = null; for (const p of pts) { if (p.d <= iso) v = p.p; else break; } return v; }
-
-// ── 구성종목 = BASE에 가격 있는 세트
-const series = {};
-const allDates = new Set();
-for (const c of codes) { const p = ptsOf(c); if (p.length) { series[c] = p; p.forEach((x) => allDates.add(x.d)); } }
-const constituents = Object.keys(series).filter((c) => priceAt(series[c], BASE) != null);
-const dates = [...allDates].sort().filter((x) => x >= BASE);
-
-// ── 일별 지수
-const indexSeries = [];
-for (const t of dates) {
-  let sum = 0, n = 0;
-  for (const c of constituents) { const b = priceAt(series[c], BASE), v = priceAt(series[c], t); if (b && v) { sum += v / b; n++; } }
-  if (n) indexSeries.push({ d: t, v: Math.round((100 * sum) / n * 10) / 10, n });
+const SOLD = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8"));
+// 세트별 일본판 주간 판매 중앙값(USD). 값 없는 주는 건너뛴다 — 추정 금지.
+function ptsOf(c) {
+  const arr = (SOLD.sets[c] && SOLD.sets[c].jp) || [];
+  return arr.filter((p) => p && p.median != null).map((p) => ({ d: p.d, p: p.median, n: p.n }));
 }
-const latest = indexSeries[indexSeries.length - 1];
-// 진짜 7일 전 값(carry-forward 아티팩트 방지)
-function idxAtOrBefore(iso) { let r = null; for (const e of indexSeries) { if (e.d <= iso) r = e; else break; } return r; }
-const wkAgoDate = new Date(new Date(latest.d + "T00:00:00Z").getTime() - 7 * 864e5).toISOString().slice(0, 10);
-const wkAgo = idxAtOrBefore(wkAgoDate) || indexSeries[0];
-const weekChangePct = Math.round((latest.v / wkAgo.v - 1) * 1000) / 10;
-const sinceBasePct = Math.round((latest.v - 100) * 10) / 10;
 
 // ── 개봉 미터(psaWeekly 전세트 합산)
 const weekTotals = {};
@@ -67,8 +49,9 @@ const meterUpdated = codes
   .filter(Boolean)
   .sort()
   .at(-1) || meterLatest?.d || null;
+const todayIso = new Date().toISOString().slice(0, 10);
 const meterAgeDays = meterLatest
-  ? Math.max(0, Math.floor((Date.parse(`${latest.d}T00:00:00Z`) - Date.parse(`${meterLatest.d}T00:00:00Z`)) / 864e5))
+  ? Math.max(0, Math.floor((Date.parse(`${todayIso}T00:00:00Z`) - Date.parse(`${meterLatest.d}T00:00:00Z`)) / 864e5))
   : null;
 // PSA weekly figures are manually verified snapshots. Once they trail the live
 // market index by more than ten days, the UI must present them as historical.
@@ -76,23 +59,23 @@ const meterIsStale = meterAgeDays == null || meterAgeDays > 10;
 let allTimeGraded = 0;
 for (const c of codes) { const s = d.sets[c]; if (s && s.psaFull && s.psaFull.total) allTimeGraded += s.psaFull.total; }
 
-// ── 성적표(전세트, "1월 7일 이후" 기준 — 발매 대비 아님)
+// ── 성적표(전세트, 각 세트 추적 시작일 대비)
 const board = [];
 for (const c of codes) {
   const p = ptsOf(c); if (!p.length) continue;
-  const base = priceAt(p, BASE); // 1월에 없으면 첫 포인트
-  const firstV = base != null ? base : p[0].p;
-  const firstD = base != null ? BASE : p[0].d;
+  const firstV = p[0].p;
+  const firstD = p[0].d;
   const lastV = p[p.length - 1].p;
   const f = (FACTS.sets && FACTS.sets[c]) || {};
   const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
-  const nowUsd = usd(lastV);
+  const nowUsd = lastV;   // 이미 USD
   board.push({
     code: c,
     nameEn: d.sets[c].nameEn || c,
-    baseUsd: Math.round(usd(firstV)),
+    baseUsd: Math.round(firstV),
     baseDate: firstD,
     nowUsd: Math.round(nowUsd),
+    nowDate: p[p.length - 1].d,   // 마지막 판매 관측일 — 표가 "오늘 값"으로 읽히지 않게
     changePct: Math.round((lastV / firstV - 1) * 1000) / 10,
     launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
     msrpYen: f.jpMsrpYen || null,
@@ -103,13 +86,9 @@ for (const c of codes) {
 }
 board.sort((a, b) => b.changePct - a.changePct);
 
-const excluded = Object.keys(series).filter((c) => !constituents.includes(c));
 const out = {
-  updated: d.updated || latest.d,
-  base: { date: BASE, value: 100 },
-  method: `Equal-weight index of ${constituents.length} Japanese booster boxes with a tracked price on ${BASE} (=100). Sets first tracked after that date (${excluded.join(", ")}) are shown individually but excluded from the index. Prices carry forward on days without a new reading.`,
-  constituents,
-  index: { value: latest.v, asOf: latest.d, weekChangePct, sinceBasePct, series: indexSeries },
+  updated: d.updated || SOLD.updated || todayIso,
+  method: "Per-set change from each set's own tracking start date, using weekly medians of completed eBay sales of sealed Japanese booster boxes (our own ledger).",
   meter: {
     latestWeek: meterLatest,
     weeks: meterWeeks,
@@ -129,9 +108,7 @@ const main = JSON.parse(fs.readFileSync(mainPath, "utf8"));
 main.marketIndex = out;
 fs.writeFileSync(mainPath, JSON.stringify(main));
 console.log(JSON.stringify({
-  index: `${out.index.value} (${sinceBasePct >= 0 ? "+" : ""}${sinceBasePct}% since ${BASE}, wk ${weekChangePct >= 0 ? "+" : ""}${weekChangePct}%)`,
-  constituents: constituents.length,
-  excluded: Object.keys(series).filter((c) => !constituents.includes(c)),
+  boardSets: board.length,
   meter: meterLatest ? `${meterLatest.v.toLocaleString()} graded wk of ${meterLatest.d} (WoW ${meterWoW >= 0 ? "+" : ""}${meterWoW}%), all-time ${allTimeGraded.toLocaleString()}` : "none",
   boardTop: board[0].code + " " + board[0].changePct + "% ... " + board[board.length - 1].code + " " + board[board.length - 1].changePct + "%",
   launchTracked: board.filter((b) => b.launchTracked).map((b) => b.code),

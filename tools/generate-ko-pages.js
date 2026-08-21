@@ -26,11 +26,9 @@ function orderKey(code) {
 }
 const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
 
-// 박스 시세(원): sets.boxSeries 최신 KRW 우선, 없으면 board.nowUsd×환율
+// 박스 시세(원): board.nowUsd(우리 실판매 중앙값)×환율.
+// 종전엔 sets.boxSeries KRW 를 우선했는데 그 외부 시세가 07-12 에 멈춘 것을 아무도 몰랐다 — 2026-08-21 제거.
 function boxKrw(code, nowUsd) {
-  const s = d.sets[code];
-  const pts = s && s.boxSeries && s.boxSeries.points;
-  if (pts && pts.length) return pts[pts.length - 1].p;
   return nowUsd != null && fx.usdKrw ? nowUsd * fx.usdKrw : null;
 }
 function nameKo(code) { const s = d.sets[code]; return (s && s.nameKo) || code; }
