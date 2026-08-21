@@ -107,7 +107,7 @@ a {
   background: #1d2431;
   color: var(--accent);
   font-weight: 800;
-  font-size: 13px;
+  font-size: 14px;
   border-radius: 8px;
 }
 
@@ -127,7 +127,7 @@ a {
   align-items: center;
   gap: 10px;
   color: var(--ink);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -205,7 +205,7 @@ h2 {
 .lead {
   max-width: 700px;
   color: var(--muted);
-  font-size: 18px;
+  font-size: 20px;
   line-height: 1.7;
   overflow-wrap: anywhere;
   word-break: keep-all;
@@ -360,7 +360,7 @@ h2 {
 .tickerBand span {
   margin-top: 5px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .section {
@@ -458,7 +458,7 @@ h2 {
 
 .quantCard h3 {
   margin: 7px 0 4px;
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.18;
   overflow-wrap: anywhere;
   word-break: keep-all;
@@ -509,7 +509,7 @@ h2 {
 .signal {
   margin-top: 20px;
   color: #a4aabc;
-  font-size: 18px;
+  font-size: 20px;
   overflow-wrap: anywhere;
   word-break: keep-all;
 }
@@ -542,7 +542,7 @@ h2 {
   border-radius: 9px;
   background: rgba(243, 199, 79, 0.1);
   color: #f3c74f;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
 }
 
@@ -654,7 +654,7 @@ h2 {
   background: rgba(16, 215, 160, 0.13);
   border: 1px solid rgba(16, 215, 160, 0.26);
   color: var(--accent);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .sourceButton.secondary {
@@ -683,7 +683,7 @@ h2 {
 
 .note {
   margin: 12px 0 0;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .pendingCards {
@@ -693,7 +693,7 @@ h2 {
   border-left: 3px solid var(--accent);
   border-radius: 10px;
   background: rgba(16, 215, 160, 0.06);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--muted);
 }
@@ -734,7 +734,7 @@ h2 {
 
 .riskItem strong {
   margin-bottom: 8px;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .articleGrid {
@@ -784,12 +784,12 @@ h2 {
   padding-top: 20px;
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .setGuidesNav h2 {
   margin: 0 0 6px;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .setGuidesNav ul {
@@ -830,7 +830,7 @@ h2 {
   padding: 0 0 0 10px;
   border-left: 2px solid var(--line);
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.55;
   max-width: 760px;
 }
@@ -845,7 +845,7 @@ h2 {
 @media (max-width: 720px) {
   .affTop {
     margin: 10px 12px 0;
-    font-size: 12.5px;
+    font-size: 12px;
   }
 }
 
@@ -926,7 +926,7 @@ h2 {
 
 .bodyPage h2 {
   margin-top: 38px;
-  font-size: 26px;
+  font-size: 28px;
 }
 
 .bodyPage p,
@@ -1007,7 +1007,7 @@ h2 {
   }
 
   .brand strong {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .brand small {
@@ -1022,7 +1022,7 @@ h2 {
 
   .seoPanel > p,
   .seoFaqGrid p {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .nav {
@@ -1039,7 +1039,7 @@ h2 {
     width: 100%;
     min-height: 42px;
     padding: 0 10px;
-    font-size: 13px;
+    font-size: 14px;
     background: #121722;
     border-color: #252c3a;
   }
@@ -1080,7 +1080,7 @@ h2 {
 
   h1 {
     max-width: calc(100vw - 32px);
-    font-size: 26px;
+    font-size: 28px;
     line-height: 1.14;
     margin-bottom: 12px;
     word-break: keep-all;
@@ -1088,7 +1088,7 @@ h2 {
 
   .lead {
     max-width: calc(100vw - 32px);
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
     word-break: keep-all;
   }
@@ -1139,18 +1139,18 @@ h2 {
 .articleFooter .affNote { margin: 0; color: var(--muted, #8d95a7); font-size: 11px; opacity: .8; line-height: 1.6; }
 
 /* 리텐션: 지난 방문 이후 변동 배너 + 워치리스트 */
-#sinceLast { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; padding: 9px 12px; border: 1px solid rgba(80,218,217,.3); background: rgba(80,218,217,.06); border-radius: 12px; font-size: 13px; }
+#sinceLast { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 10px 0 4px; padding: 9px 12px; border: 1px solid rgba(80,218,217,.3); background: rgba(80,218,217,.06); border-radius: 12px; font-size: 14px; }
 #sinceLast .slvHead { color: #50dad9; font-weight: 800; }
-#sinceLast .slvChip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,.14); background: rgba(20,23,28,.6); color: #eef2ff; border-radius: 9px; padding: 4px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 30px; }
+#sinceLast .slvChip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,.14); background: rgba(20,23,28,.6); color: #eef2ff; border-radius: 9px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; min-height: 30px; }
 #sinceLast .slvChip:hover { border-color: #50dad9; }
 #sinceLast .slvAvg { color: #9aa4b6; margin-left: auto; font-size: 12px; }
 #sinceLast b.up { color: #10d7a0; }
 #sinceLast b.down { color: #ff7d7d; }
-.watchBtn { display: inline-flex; align-items: center; min-height: 34px; margin: 2px 0 8px; padding: 0 12px; border-radius: 9px; border: 1px dashed rgba(255,255,255,.25); background: transparent; color: #9aa4b6; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.watchBtn { display: inline-flex; align-items: center; min-height: 34px; margin: 2px 0 8px; padding: 0 12px; border-radius: 9px; border: 1px dashed rgba(255,255,255,.25); background: transparent; color: #9aa4b6; font-size: 12px; font-weight: 700; cursor: pointer; }
 .watchBtn:hover { border-color: #50dad9; color: #50dad9; }
 .watchBtn.on { border-style: solid; border-color: rgba(80,218,217,.5); background: rgba(80,218,217,.08); color: #50dad9; }
 .packChip { position: relative; }
-.packChip .pinMark { position: absolute; top: 6px; right: 8px; font-size: 13px; z-index: 2; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+.packChip .pinMark { position: absolute; top: 6px; right: 8px; font-size: 14px; z-index: 2; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
 
 /* OPBX 마켓 인덱스 + 개봉 미터 (홈 hero) */
 @media (max-width: 560px) { .mktIndexWrap { grid-template-columns: 1fr; } }
@@ -1168,7 +1168,7 @@ h2 {
 .setBadge.reprint:hover { background: rgba(255,125,60,.22); }
 
 /* 재판 배지 출처 표기 */
-.setBadge.reprint .rpSrc { font-size: 9px; font-weight: 700; opacity: .7; border-left: 1px solid rgba(255,125,60,.4); padding-left: 5px; margin-left: 1px; }
+.setBadge.reprint .rpSrc { font-size: 10px; font-weight: 700; opacity: .7; border-left: 1px solid rgba(255,125,60,.4); padding-left: 5px; margin-left: 1px; }
 
 /* 재판 기록 없음 배지(회색, 조사했으나 못 찾음 — 빈칸 대신 명시) */
 .setBadge.reprintNone { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.13); color: #8b93a1; cursor: help; }
@@ -1176,9 +1176,9 @@ h2 {
 
 /* 홈 정적 시세 요약 — JS 없이도 읽히는 표(AI/검색봇 인용용). tools/inject-home-summary.js 가 내용 생성 */
 .homeSummary { margin: 26px 0 8px; }
-.homeSummary h2 { font-size: 19px; margin: 0 0 8px; }
-.homeSummary > p { color: #9aa4b6; font-size: 13.5px; line-height: 1.7; max-width: 780px; }
-.homeSummaryTable { width: 100%; max-width: 780px; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
+.homeSummary h2 { font-size: 20px; margin: 0 0 8px; }
+.homeSummary > p { color: #9aa4b6; font-size: 14px; line-height: 1.7; max-width: 780px; }
+.homeSummaryTable { width: 100%; max-width: 780px; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
 .homeSummaryTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; }
 .homeSummaryTable th:nth-child(1), .homeSummaryTable th:nth-child(2) { text-align: left; }
 .homeSummaryTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
@@ -1188,18 +1188,25 @@ h2 {
 .homeSummaryTable .down { color: #ff7d7d; }
 .homeFaqWrap { margin: 22px 0; max-width: 780px; }
 .homeFaq { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
-.homeFaq summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14.5px; }
-.homeFaq p { color: #9aa4b6; font-size: 13.5px; line-height: 1.7; margin: 2px 0 10px; }
+.homeFaq summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14px; }
+.homeFaq p { color: #9aa4b6; font-size: 14px; line-height: 1.7; margin: 2px 0 10px; }
 /* 아마존 응모 가이드 — 해외 유저 질문 대응 섹션 */
 .raffleGuide { max-width: 780px; margin: 28px 0 8px; }
-.raffleGuide h2 { font-size: 19px; margin: 22px 0 8px; }
+.raffleGuide h2 { font-size: 20px; margin: 22px 0 8px; }
 .raffleGuide p { color: #9aa4b6; font-size: 14px; line-height: 1.75; }
-.raffleGuide p.note { font-size: 13px; opacity: .9; }
+.raffleGuide p.note { font-size: 14px; opacity: .9; }
 .raffleSteps { color: #9aa4b6; font-size: 14px; line-height: 1.8; padding-left: 22px; }
 .raffleSteps li, .raffleTips li { margin: 6px 0; }
 .raffleTips { color: #9aa4b6; font-size: 14px; line-height: 1.75; padding-left: 20px; }
 .raffleGuide strong { color: #cfd6e4; }
 .raffleGuide a { color: #50dad9; }
 .raffleGuide .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
-.raffleGuide .faqItem summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14.5px; }
-.raffleGuide .faqItem p { margin: 2px 0 10px; font-size: 13.5px; }
+.raffleGuide .faqItem summary { cursor: pointer; font-weight: 700; padding: 9px 0; font-size: 14px; }
+.raffleGuide .faqItem p { margin: 2px 0 10px; font-size: 14px; }
+
+/* 타이포 계단 — 2026-08-20. 크기를 7단계로 고정한다: 10 · 11 · 12 · 14 · 16 · 20 · 28.
+   그전에는 22종류가 흩어져 있어(13 과 13.5, 12 와 12.5 가 따로) 화면마다 글자가 미묘하게 달랐다.
+   TCG 퀀트는 "숫자 28 / 라벨 10.5" 두 단계뿐이라 어느 화면을 가도 눈이 편하다.
+   브라우저 기본값(h1 34px · small 13.33px)도 계단 안으로 끌어온다 — 안 그러면 여기만 어긋난다. */
+h1 { font-size: 28px; }
+small { font-size: 12px; }

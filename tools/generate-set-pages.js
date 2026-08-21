@@ -151,17 +151,17 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
       .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,215,160,.05); }
-      .liveBox b { font-size: 22px; color: var(--accent); }
+      .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
       .chaseList li { margin: 6px 0; }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
-      .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 13px; }
+      .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
       /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
       .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
-      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 13px; font-weight: 700; color: var(--muted); list-style: none; }
+      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 14px; font-weight: 700; color: var(--muted); list-style: none; }
       .setMore > summary::-webkit-details-marker { display: none; }
       .setMore > summary::before { content: "▸ "; color: var(--accent); }
       .setMore[open] > summary::before { content: "▾ "; }
@@ -170,9 +170,9 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
-      .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.55; max-width: 760px; }
+      .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 760px; }
       .affTop b { color: inherit; font-weight: 600; }
-      .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+      .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
@@ -180,15 +180,15 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
-      .statLabel { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
+      .statLabel { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
       /* 숫자가 주인공이다 — 28px/700. 라벨은 10.5px 대문자로 물러난다(TCG 퀀트 실측 규칙).
          tabular-nums 로 자릿수를 고정해야 카드끼리 세로로 줄이 맞는다. */
       .statValue { margin-top: 5px; font-size: 28px; font-weight: 700; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
-      .statBase { margin-top: 5px; font-size: 11.5px; color: var(--muted, #9aa4b6); line-height: 1.45; }
+      .statBase { margin-top: 5px; font-size: 12px; color: var(--muted, #9aa4b6); line-height: 1.45; }
       .statUp { color: #00e5a0; font-weight: 700; }
       .statDown { color: #ff5f6e; font-weight: 700; }
       .statFlat { color: #8090b0; font-weight: 700; }
-      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 13.5px; line-height: 1.65; }
+      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 14px; line-height: 1.65; }
       .keyFacts li { margin: 3px 0; }
       .keyFacts strong { color: var(--accent); }
       .chaseTableWrap { overflow-x: auto; margin: 14px 0 6px; }
@@ -200,7 +200,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .chaseTable .psaKind { color: var(--muted); font-size: 10px; text-transform: uppercase; }
       .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
-      .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(16,215,160,.05); font-size: 13px; line-height: 1.55; color: var(--muted); }
+      .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(16,215,160,.05); font-size: 14px; line-height: 1.55; color: var(--muted); }
       .gearRec strong { color: #eef2ff; }
       .gearRec a { color: var(--accent); font-weight: 800; white-space: nowrap; }
     </style>
@@ -908,13 +908,13 @@ function rankingPage() {
     <style>
       .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .rankProse { max-width: 720px; margin: 26px 0 0; }
-      .rankProse h2 { font-size: 19px; margin: 22px 0 8px; }
+      .rankProse h2 { font-size: 20px; margin: 22px 0 8px; }
       .rankProse p { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 8px 0; }
       .rankProse .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
       .rankProse .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; color: var(--fg); }
-      .rankProse .faqItem p { font-size: 13.5px; margin: 4px 0 10px; }
+      .rankProse .faqItem p { font-size: 14px; margin: 4px 0 10px; }
       .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
-      .rankWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 680px; }
+      .rankWrap .lead { color: var(--muted); font-size: 16px; line-height: 1.6; max-width: 680px; }
       .rankTableWrap { overflow-x: auto; margin: 18px 0 8px; }
       .rankTable { width: 100%; border-collapse: collapse; font-size: 14px; }
       .rankTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
