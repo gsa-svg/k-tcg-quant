@@ -92,7 +92,7 @@
   // 월간 보기는 날짜가 매달 1일이라 "05/01" 로 찍으면 그날 하루로 오해된다. 달 이름으로 보여준다.
   const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
 
-  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today) {
+  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today, lastSaleD) {
     const pts = clean(rawPts, grain === "day" ? MIN_N_DAY : null);
     if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
 
@@ -135,9 +135,11 @@
     const lab = (p) => (grain === "month" ? monthLabel(p.d, lang) : md(p.d));
     const grainWord = grain === "month" ? (lang === "ko" ? "월별" : "monthly")
       : grain === "day" ? (lang === "ko" ? "일별" : "daily") : null;
-    const xl = [pts[0], mid, pts[pts.length - 1]].map((p, i) =>
+    // 점이 3개 미만이면 중간 라벨이 끝 라벨과 같은 점을 가리킨다 — 월간 2개월치가 "Jun Jul Jul" 로 나왔다.
+    const xPts = pts.length >= 3 ? [pts[0], mid, pts[pts.length - 1]] : [pts[0], null, pts[pts.length - 1]];
+    const xl = xPts.filter(Boolean).map((p) => p).map((p, i, arr) =>
       '<text class="opbcAx" x="' + px(p).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="' +
-      (i === 0 ? "start" : i === 2 ? "end" : "middle") + '">' + lab(p) + "</text>").join("");
+      (i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle") + '">' + lab(p) + "</text>").join("");
 
     const first = pts[0], last = pts[pts.length - 1];
     const chg = Math.round(((last.median / first.median) - 1) * 1000) / 10;
@@ -161,10 +163,8 @@
       return '<rect class="opbcBar" x="' + (XY[i].x - bw / 2).toFixed(1) + '" y="' + (H - B - h).toFixed(1) +
         '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + color + '"/>';
     }).join("");
-    const volLabel = lang === "ko" ? "거래량" : "Sales";
-    // 라벨을 막대 바닥에 두면 첫 막대와 붙어 보인다. 막대 영역 위쪽에 얹는다.
-    const volAxis = '<text class="opbcAx opbcVolAx" x="' + (L - 10) + '" y="' + (PRICE_BOTTOM + 14) + '" text-anchor="end">' + volLabel + "</text>" +
-      '<line class="opbcGrid" x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '"/>';
+    const volLabel = lang === "ko" ? "거래량" : "Sales";   // 툴팁 문구용. 축에는 쓰지 않는다 — 아래 범례가 이름을 댄다.
+    const volAxis = '<line class="opbcGrid" x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '"/>';
 
     // ── 공급선(오른쪽 축). 가격만 보면 시장을 반만 읽는다 — 매물이 마르면서 오르는 것과
     //    매물이 쌓이는데 버티는 것은 완전히 다른 신호다. 같은 판에 겹쳐야 그 관계가 보인다.
@@ -182,18 +182,17 @@
         '<path class="opbcSupFill" d="' + sLine + " L" + sxy[sxy.length - 1].x.toFixed(1) + " " + PRICE_BOTTOM +
         " L" + sxy[0].x.toFixed(1) + " " + PRICE_BOTTOM + ' Z"/>' +
         '<path class="opbcSupLine" d="' + sLine + '"/>';
-      const supWord = lang === "ko" ? "매물" : "listed";
       supplyAx = [s1, s0].map((v) =>
         '<text class="opbcAx opbcSupAx" x="' + (W - R + 4) + '" y="' + (sy(v) + 4).toFixed(1) + '">' +
-        Math.round(v) + "</text>").join("") +
-        '<text class="opbcAx opbcSupAx" x="' + (W - R + 4) + '" y="' + (T - 8) + '">' + supWord + "</text>";
+        Math.round(v) + "</text>").join("");
     }
 
     // ── 거래가 끊긴 구간. 억지로 선을 이어 그리면 없는 거래를 만드는 셈이라 칠하고 이름을 붙인다.
     let staleLayer = "", staleBadge = "";
     if (t1 > tLast + 86400000 * 2) {
       const gx0 = px({ d: pts[pts.length - 1].d }), gx1 = W - R;
-      const days = Math.round((t1 - tLast) / 86400000);
+      const tSale = lastSaleD ? Date.parse(lastSaleD) : tLast;
+      const days = Math.round((t1 - tSale) / 86400000);
       staleLayer =
         '<rect class="opbcStale" x="' + gx0.toFixed(1) + '" y="' + T + '" width="' + (gx1 - gx0).toFixed(1) +
         '" height="' + (PRICE_BOTTOM - T) + '"/>' +
@@ -224,7 +223,7 @@
       '<circle class="opbcHitDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) + '" r="14" fill="transparent">' +
       "<title>" + (grain === "month" ? p.d.slice(0, 7) : p.d) + " · " + money(p.median) +
       " (" + rangeWord + " " + money(p.low) + "–" + money(p.high) +
-      " · " + p.n + sampleWord + (p.vol == null ? "" : " · " + volLabel + " " + p.vol +
+      " · " + p.n + sampleWord + (p.vol == null || p.vol === p.n ? "" : " · " + volLabel + " " + p.vol +
         (lang === "ko" ? "건" : "")) + ")</title></circle>").join("");
 
     return '<figure class="opbcPane" data-ed="' + gid + '">' +
@@ -403,6 +402,21 @@
     const badgeFor = (ed) => (rp[ed] >= 60 ? (lang === "ko" ? "재판 White" : "reprint (White)") : null);
 
     // 공급 관측을 판본별로 갈라 각 패널에 넘긴다. 그날 기준 "지금 걸려 있는 매물 수"다.
+    // 마지막으로 팔린 날. 뷰(일/주/월)와 무관하게 하나여야 한다 — 집계 단위가 사실을 바꾸지는 않는다.
+    // 시리즈마다 커버 범위가 다르므로(OP-01 은 daily 가 06-13 한 점뿐, weekly 는 08-09 까지)
+    // 가장 촘촘한 것이 아니라 가장 최근 것을 고른다.
+    const lastSale = (() => {
+      const out = {};
+      for (const ed of ["jp", "en"]) {
+        for (const src of [((series && series.daily) || {})[ed], series && series[ed]]) {
+          const f = (src || []).filter((p) => p && p.median != null);
+          if (!f.length) continue;
+          const d = f[f.length - 1].d;
+          if (!out[ed] || d > out[ed]) out[ed] = d;
+        }
+      }
+      return out;
+    })();
     const supRaw = (series && series.supply) || [];
     const supOf = (ed) => supRaw.map((p) => ({ d: p.d, v: p && p[ed] != null ? p[ed] : null })).filter((p) => p.v != null);
     const today = new Date().toISOString().slice(0, 10);
@@ -410,8 +424,8 @@
     const grid = (g, jpPts, enPts, hidden) => {
       const jpLabel = lang === "ko" ? "일본판" : "Japanese";
       const enLabel = lang === "ko" ? "영문판" : "English";
-      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today);
-      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today);
+      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today, lastSale.jp);
+      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today, lastSale.en);
       // 한쪽 판이 소리 없이 사라지면 "고장났나" 로 읽힌다. 왜 없는지 한 줄로 알린다.
       // 기준은 단위마다 같다: 그 판의 기록이 조금이라도 있으면(=파는 세트면) 자리를 지킨다.
       // 서로 다른 기준을 쓰면 탭을 오갈 때 패널이 하나씩 생겼다 사라진다.
@@ -544,7 +558,6 @@
     ".opbcKey .kDash{background:rgba(128,144,176,.7);height:0;border-top:2px dashed rgba(128,144,176,.7)}",
     ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;opacity:.34}",
     ".opbcBar{opacity:.34;rx:1}",
-    ".opbcVolAx{font-size:10px;opacity:.8}",
     ".opbcHitDot{cursor:pointer}.opbcHit{cursor:crosshair}",
     ".opbcTipBg{fill:#151a22;stroke:rgba(255,255,255,.16)}",
     ".opbcTipD{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",

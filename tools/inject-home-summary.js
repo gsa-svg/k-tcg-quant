@@ -1,6 +1,9 @@
 // 홈 정적 시세 요약 주입 — index.html / packs.html 의 마커 구간을 매일 갱신.
 // 왜: 홈의 시세표는 packs.js가 JS로 렌더링해서, JS를 실행하지 않는 AI 크롤러·검색봇은 홈에서 가격을 하나도 못 읽었음
 //     (홈은 현재 유일하게 색인된 페이지라 손실이 큼). 같은 데이터를 정적 HTML로도 굽는다.
+// 표는 <details> 로 접어 둔다 — 이 표의 독자는 사람이 아니라 봇이고, 위쪽 JS 시세판과 같은 상품을
+// 두 번 보여주면 화면만 길어진다. display:none 으로 숨기지 않는 이유는 그게 클로킹이기 때문이고,
+// <details> 안의 내용은 구글이 정상 색인한다.
 // ⚠️ head/canonical/hreflang 은 절대 건드리지 않는다(2026-07 홈 노출 0 사고).
 // Run: node tools/inject-home-summary.js
 const fs = require("fs");
@@ -88,7 +91,8 @@ const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</
 
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
-          <h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2>
+          <details class="homeCollapse">
+          <summary><h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2></summary>
           <p>Prices below are sealed Japanese booster boxes in USD, from real completed sales and verified active listings. "Change" is measured from each set's tracking start date, not its release date. Of the ${withChg.length} sets with a tracked start price, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
@@ -99,6 +103,7 @@ ${tr}
           </table>
           </div>
           <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download the full dataset (CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auction results</a> · <a href="ko/">한국어 시세</a></p>
+          </details>
         </section>
         <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
           <details class="homeCollapse">
