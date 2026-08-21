@@ -39,6 +39,22 @@ function migrate(hist) {
 }
 
 function match(dump, data) {
+  // CGC 가 판본에 따라 같은 물리 카드를 다른 이름으로 등록한 예외 — 2026-08-21.
+  // PRB-01 만가 변형을 en 은 "Manga Alt. Art Parallel"(→super)로, jp 는 아래처럼 다르게 적는다.
+  // 전역 규칙(cgcTier)을 바꾸면 다른 세트의 진짜 알트아트가 만가로 오인되므로, 근거가 있는
+  // 세트|판|번호|변형 조합만 명시한다. 근거 없는 조합은 절대 추가하지 말 것 — absent 가 정직하다.
+  //  · OP01-120 "(Borderless) Alt Art": 구 수집기(웹 스크랩)가 같은 시리즈를 super 로 담아
+  //    2026-07-27 t70 까지 왔고, 이 행이 t73 으로 이어진다(총량 연속). en 기준 비율도 일치
+  //    (jp 73/501=15% vs en manga 14/86=16%; en 알트평행은 30%라 합산이면 설명 안 됨).
+  //  · OP02-013 "(★ above SEC)": ★ above SEC 는 en 이 만가행에 붙이는 바로 그 인쇄 마크
+  //    ("Manga Alt. Art Parallel (★ above SEC)"). jp 에 다른 후보 행이 없다.
+  // OP05-119·OP05-074 는 앵커가 없어 넣지 않았다(리포트 absent 로 계속 보인다).
+  const VARIANT_TIER_OVERRIDE = {
+    "PRB-01|jp|OP01-120|(Borderless) Alt Art": "super",
+    "PRB-01|jp|OP02-013|(★ above SEC)": "super",
+  };
+  const rowTier = (code, ed, num, r) => VARIANT_TIER_OVERRIDE[`${code}|${ed}|${num}|${r.variant}`] || cgcTier(r.variant);
+
   const accepted = [], ambiguous = [], absent = [];
   for (const [code, set] of Object.entries(data.sets)) {
     for (const card of set.cards || []) {
@@ -50,7 +66,7 @@ function match(dump, data) {
         if (!Array.isArray(rows)) continue;
         const same = rows.filter((r) => String(r.num || "").toUpperCase() === num);
         if (!same.length) continue;
-        const hits = same.filter((r) => cgcTier(r.variant) === tier);
+        const hits = same.filter((r) => rowTier(code, ed, num, r) === tier);
         if (hits.length === 0) { absent.push(`${code}|${ed} ${num} [${tier}]`); continue; }
         // 같은 번호·같은 변형인데 CGC 에 줄이 여러 개인 경우가 있다(2026-08-03 실측):
         //  · 영문판 오탈자 수정 재판이 따로 등록됨 — Post-Errata ("Up to"). 그림·번호·변형이 같은 같은 카드다.
@@ -104,7 +120,9 @@ if (require.main === module) {
   if (args.includes("--report")) {
     const li = args.indexOf("--links");
     const links = li > -1 && args[li + 1] ? JSON.parse(fs.readFileSync(args[li + 1], "utf8")) : {};
-    console.log(JSON.stringify({ summary, ambiguous: res.ambiguous.map((a) => ({ ...a, url: links[`${a.code}|${a.ed}`] || null })) }, null, 1));
+    // absent 도 같이 낸다 — 2026-08-21. PRB-01 jp OP01-120 이 25일간 조용히 죽어 있는 걸
+    // 아무도 못 봤다. 리포트에 안 나오는 실패는 없는 실패처럼 보인다.
+    console.log(JSON.stringify({ summary, ambiguous: res.ambiguous.map((a) => ({ ...a, url: links[`${a.code}|${a.ed}`] || null })), absent: res.absent }, null, 1));
   } else {
     console.log(JSON.stringify({ ...summary, ...ingest(dump, res) }));
   }

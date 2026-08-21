@@ -261,6 +261,57 @@ if (has("data/grading-series.json")) {
   }
 }
 
+// ── 10) 카드별 인구 파일의 "죽은 계열" — 2026-08-21 추가.
+// 세트 단위 이력(cgc-grading-history 등)만 보면 카드 하나가 조용히 죽은 걸 못 본다:
+// PRB-01 jp OP01-120 이 25일간 멈춰 있었는데(API 전환 후 변형 라벨 불일치) 이 감사는 OK 였다.
+// 추적 카드(packs.sets[].cards)인데 그 파일의 전체 최신 관측일보다 14일 넘게 뒤처진 계열을 잡는다.
+// 파일 전체 최신일 기준인 이유: 수집 자체가 늦는 것(전체가 같이 늦음)과 특정 카드만 빠지는 것을 구분하기 위해.
+{
+  const packs = readJSON("data/onepiece-packs.json");
+  for (const f of ["cgc-card-pop.json", "tag-card-pop.json", "psa-card-pop.json"]) {
+    if (!has("data/" + f)) continue;
+    const pop = readJSON("data/" + f);
+    let fileLatest = "";
+    const latestOf = (arr) => (Array.isArray(arr) && arr.length ? arr[arr.length - 1].d || "" : "");
+    // tag-card-pop.json 은 판 구분 없이 세트 바로 밑에 "번호|tier" 키가 온다(구 구조).
+    // cgc/psa 는 jp/en 밑에 온다. 둘 다 "판 이름 → {계열}" 맵으로 정규화해서 본다.
+    const editionsOf = (bucket) => {
+      const legacy = Object.keys(bucket || {}).some((k) => k.includes("|"));
+      if (legacy) {
+        const flat = {};
+        for (const [k, v] of Object.entries(bucket)) if (k.includes("|")) flat[k] = v;
+        return { all: flat };
+      }
+      return { jp: bucket.jp || {}, en: bucket.en || {} };
+    };
+    for (const bucket of Object.values(pop.sets || {}))
+      for (const eds of Object.values(editionsOf(bucket)))
+        for (const series of Object.values(eds)) {
+          const d = latestOf(series);
+          if (d > fileLatest) fileLatest = d;
+        }
+    if (!fileLatest) continue;
+    const lagging = [];
+    for (const [code, set] of Object.entries(packs.sets || {})) {
+      const bucket = (pop.sets || {})[code];
+      if (!bucket) continue;
+      for (const card of set.cards || []) {
+        if (!card.number) continue;
+        for (const [edKey, eds] of Object.entries(editionsOf(bucket))) {
+          // 그 판에 계열이 아예 없는 카드는 "미수집"이지 "죽은 계열"이 아니다 — absent 리포트가 다룬다.
+          const series = Object.entries(eds).filter(([k]) => k.startsWith(card.number + "|"));
+          if (!series.length) continue;
+          const d = series.map(([, v]) => latestOf(v)).sort().pop();
+          const lagDays = Math.round((Date.parse(fileLatest) - Date.parse(d)) / 864e5);
+          if (lagDays > 14) lagging.push(`${code} ${edKey} ${card.number} (${d}, ${lagDays}일 뒤짐)`);
+        }
+      }
+    }
+    if (lagging.length) fail(`${f}: 추적 카드 계열이 파일 최신(${fileLatest})보다 14일+ 뒤짐 — ${lagging.slice(0, 6).join(" · ")}${lagging.length > 6 ? ` 외 ${lagging.length - 6}건` : ""}`);
+    else ok(`${f}: 추적 카드 계열 정체 없음 (최신 ${fileLatest})`);
+  }
+}
+
 const out = { status: problems.length ? "FAIL" : "OK", today, problems, checked: notes };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
 if (problems.length) process.exit(1);
