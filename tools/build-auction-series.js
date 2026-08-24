@@ -161,7 +161,13 @@ function main() {
     const b = stats(sales);
     return {
       d: day,
-      partial: b.ended < PARTIAL_BELOW,          // 수집이 덜 돈 날 — 화면에서 뺄지 흐리게 할지는 화면이 정한다
+      // 두 가지를 다 partial 로 본다:
+      //  (1) 수집이 덜 돈 날(400건 미만)
+      //  (2) **오늘** — 아직 안 끝난 날이다. 2026-08-24 실측: 낮 시점 카드 낙찰률 49.5% 인데
+      //      완결일은 26% 대다(경매는 하루 종일 종료되고, 낙찰된 건이 먼저 원장에 들어온다).
+      //      건수 임계값만으로는 못 잡는다 — 그날 591건이라 400을 넘겨 완결로 나갔고,
+      //      그 왜곡된 하루가 공개 CSV 에 그대로 실렸다.
+      partial: b.ended < PARTIAL_BELOW || day >= new Date().toISOString().slice(0, 10),
       gradeTracked: day >= GRADE_SINCE,          // false 면 graded/raw 구분이 없는 날이다
       ...b,
     };

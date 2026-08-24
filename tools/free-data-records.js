@@ -82,7 +82,12 @@ function buildGradeRecords(data, cgc, tag) {
 
 function buildAuctionRecords(source) {
   const records = [], dates = [];
+  // 진행 중인 오늘은 내보내지 않는다 — 2026-08-24 실측: 낮 시점 카드 낙찰률 49.5% 였는데
+  // 완결일은 26% 대다. 경매가 하루 종일 종료되고 낙찰 건이 먼저 원장에 들어와서, 낮에 자르면
+  // 낙찰률이 부풀어 보인다. 이 CSV 는 AI·연구자가 인용하는 공개 파일이라 반쪽 하루를 실으면 안 된다.
+  const todayIso = new Date().toISOString().slice(0, 10);
   for (const point of source?.daily || []) {
+    if (point.d >= todayIso) continue;
     dates.push(point.d);
     const put = (kind, value) => {
       if (!value?.n) return;
