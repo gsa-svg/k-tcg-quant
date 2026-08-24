@@ -66,13 +66,29 @@ for (const c of codes) { const s = d.sets[c]; if (s && s.psaFull && s.psaFull.to
 // 최근 4주는 양끝이 다 두꺼운 구간이라 되메움에 둔감하고, 세트 페이지의 4-week change 와 기준이 같다.
 const board = [];
 for (const c of codes) {
-  const p = ptsOf(c); if (!p.length) continue;
+  const p = ptsOf(c);
+  // 실거래 점이 없어도 **행은 남긴다** — 2026-08-24.
+  // 추적하는 세트가 표에서 통째로 사라지면 "우리가 안 다루는 세트"로 읽힌다.
+  // 실제로 OP-02 는 일본판 실거래가 얇아(3개월 14건, 마지막 8/04) 최근 창이 MIN_N 을 못 채운다.
+  // 값을 지어내지 않고 가격을 비워 둔다 — 빈칸은 눈에 띄고, 틀린 숫자는 안 띈다.
+  const f = (FACTS.sets && FACTS.sets[c]) || {};
+  if (!p.length) {
+    board.push({
+      code: c, nameEn: d.sets[c].nameEn || c,
+      nowUsd: null, nowDate: null, changePct: null, changeBasis: null,
+      launchTracked: LAUNCH_TRACKED.has(c),
+      msrpYen: f.jpMsrpYen || null,
+      msrpUsd: f.jpMsrpYen ? Math.round(yenUsd(f.jpMsrpYen)) : null,
+      vsMsrp: null,
+      reprints: (f.reprintRecords || []).length,
+    });
+    continue;
+  }
   const lastV = p[p.length - 1].p;
   const lastD = p[p.length - 1].d;
   const cut = new Date(Date.parse(lastD) - 28 * 864e5).toISOString().slice(0, 10);
   let ref = null;
   for (const pt of p) { if (pt.d <= cut) ref = pt; else break; }
-  const f = (FACTS.sets && FACTS.sets[c]) || {};
   const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
   const nowUsd = lastV;   // 이미 USD
   board.push({

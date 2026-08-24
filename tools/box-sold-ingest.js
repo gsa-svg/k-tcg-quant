@@ -31,7 +31,10 @@ const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 // 대량 탈락한다(2026-07-22 레드팀 지적). lot/case/carton/display/bundle/sleeve/blister 등만.
 // 한국판(korean)도 뺀다 — 이 원장은 일본판/영문판 두 판만 다루는데, 한국판이 일본판 검색에 섞여 들어왔다
 // (2026-08-13: "Romance Dawn OP01 Booster Box Korean" $98 이 OP-01 일본판으로 적재됨).
-const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean/i;
+// miracle battle carddass = 반다이의 **다른** 카드게임인데 "OP 16" 같은 번호를 써서 우리 세트로 잡힌다
+// (2026-08-24 실측: "Miracle Battle Carddass MBC Japanese OP 16 One Piece Booster Box" $1,118 이
+//  OP-16 일본판 원장에 들어와 있었다 — 그 세트 일본판 중앙값은 $120 이다).
+const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean|miracle\s*battle|carddass/i;
 const BOOSTER = /booster box/i;
 // "Booster Pack ... x1 -From Fresh booster box" 처럼 **낱팩**을 팔면서 설명에 booster box 를
 // 적는 매물이 있다. 단수 "booster pack" 이 보이면 박스가 아니다 — 박스는 "24 booster packs"(복수)로 쓴다.
@@ -98,6 +101,10 @@ function soldDateOf(caption) {
 // 다만 신고가 틀린 건도 있다(같은 실측에서 일본어 패싯에 영문 제목 8건). 그래서 그대로 믿지 않고
 // **제목이 정반대로 말하면 버린다**(lang-conflict). 둘이 일치하거나 제목이 침묵할 때만 채택한다.
 // declaredEd 가 없으면(구 덤프·가드 코퍼스) 종전대로 제목에서만 판별한다.
+// 판별 가격대 — 언어 미표기 매물의 신고값을 검증하는 데 쓴다. ingest 시작 시 원장에서 만든다.
+// 값이 없으면(신생 세트) 검증을 걸지 않는다 — 근거 없이 버리지 않는다.
+let EDITION_BANDS = {};
+
 function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const t = String(item.t || "");
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
@@ -122,6 +129,22 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const unit = unitPrice(totalUsd, qty);
   // 상한 8000 — OP-01 영문 Blue Bottom(초판)은 실제 $4~6천대다. 5000 이면 그 세트의 진짜 거래를 버린다.
   if (unit == null || unit < 90000 / fxUsdKrw || unit > 8000) return { drop: "price-out-of-range" };
+
+  // ── 언어 신고값 교차검증 — 2026-08-24.
+  // eBay Language 패싯은 판매자 신고값이라 영문판이 Japanese 로 신고되는 일이 잦다.
+  // 실측: 일본판 원장 917건 중 83건(9%)이 영문판 가격대에 있었고, OP-13 은 23/91(25%)였다.
+  //   예) "One Piece OP-01 Romance Dawn Booster Box New and Sealed" $1,543
+  //       — jp 중앙값 $278 / en 중앙값 $1,658. 제목은 언어를 말하지 않는다.
+  // 제목이 언어를 **명시한** 매물은 건드리지 않는다(그건 판매자가 직접 쓴 말이다).
+  // 제목이 침묵할 때만, 값이 상대 판본 대역에 앉아 있으면 신고값을 믿지 않는다.
+  // 두 조건을 다 요구하므로 두 판본 가격이 비슷한 세트에서는 아무것도 걸리지 않는다(보수적).
+  if (!fromTitle) {
+    const band = EDITION_BANDS[targetCode];
+    const mine = band && band[ed], other = band && band[ed === "jp" ? "en" : "jp"];
+    if (mine && other && other > mine * 2 && unit >= other * 0.8 && unit > mine * 2) {
+      return { drop: "lang-unverified-price-band" };
+    }
+  }
   const d = soldDateOf(item.d);
   if (!d) return { drop: "bad-date" };
   // fmt: "bin"(즉시구매) | "auction"(경매). 시세 그래프는 즉시구매만 쓴다 — 경매는 입찰이 안 붙으면
@@ -150,6 +173,22 @@ function main(dumpFile) {
   ledger.sets = ledger.sets || {};
   const knownIds = new Set();
   for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) for (const r of arr) knownIds.add(r.id);
+
+  // 판별 가격대(중앙값)를 원장에서 만든다 — judgeItem 의 언어 교차검증이 쓴다.
+  // **제목이 언어를 명시한 기록만** 기준으로 삼는다. 신고값만 있는 기록까지 넣으면
+  // 오염된 값이 다시 기준이 되어 오염을 정상으로 만든다(순환).
+  EDITION_BANDS = {};
+  for (const [code, eds] of Object.entries(ledger.sets)) {
+    const band = {};
+    for (const edKey of ["jp", "en"]) {
+      const named = (eds[edKey] || []).filter((r) => editionOf(r.title || "") === edKey).map((r) => r.unit);
+      if (named.length >= 5) {
+        const x = named.sort((a, b) => a - b);
+        band[edKey] = x.length % 2 ? x[(x.length - 1) / 2] : (x[x.length / 2 - 1] + x[x.length / 2]) / 2;
+      }
+    }
+    if (band.jp && band.en) EDITION_BANDS[code] = band;
+  }
 
   const summary = {};
   const drops = {};
