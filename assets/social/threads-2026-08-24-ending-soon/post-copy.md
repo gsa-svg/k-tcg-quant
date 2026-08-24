@@ -4,7 +4,7 @@
 
 ---
 
-## 본문 · 한글
+## 본문 · 한글 (416자 — 통과)
 
 일본판 부스터 박스, 세트마다 갈렸습니다.
 
@@ -27,26 +27,24 @@
 
 ---
 
-## 본문 · 영문
+## 본문 · 영문 (465자 — Threads 500자 제한 통과)
 
-Japanese booster boxes split over the last four weeks.
-
-Weekly medians of completed eBay sales, from our own ledger. Versus four weeks earlier:
+Japanese booster boxes split these four weeks. Weekly medians of completed eBay sales, our own ledger.
 
 Down
 · OP-10 Royal Blood $107 (-24%)
-· OP-07 500 Years in the Future $81 (-17%)
+· OP-07 500 Years $81 (-17%)
 · OP-13 Carrying on His Will $134 (-15%)
 
 Up
 · PRB-01 Premium Booster $150 (+13%)
-· OP-14 the Azure Sea's Seven $101 (+12%)
+· OP-14 Azure Sea's Seven $101 (+12%)
 
-This is not "boxes crashed." Five sets fell, three rose.
+Not a crash — 5 fell, 3 rose.
 
-Asking prices are hope. Bids are real demand. Our homepage lists the eBay auctions ending within 3 hours, ranked by actual bids. Yesterday 1,279 One Piece auctions ended; 356 sold.
+Bids are real demand. Our homepage lists eBay auctions ending within 3 hours, ranked by bids. Yesterday: 1,279 ended, 356 sold.
 
-Live radar + daily results → opboxindex.com
+opboxindex.com
 
 ---
 
@@ -62,6 +60,13 @@ Live radar + daily results → opboxindex.com
 경매 일별 중앙값은 잡카드 혼합이라 8/24 raw $12.5가 기준 범위($6~30) 안에 있어 신호가 안 된다.
 
 **그래서 최종본은** 사이트가 실제로 게시하는 4주 변화(주간 중앙값 기반)를 쓴다.
+
+## 글자수 (Threads 500자 제한)
+
+- 한글 416자 · 영문 465자. 최초 영문 초안은 633자로 133자 초과했다(2026-08-24 실측).
+- 영문에서 줄인 것: 중복 설명("Versus four weeks earlier", "Asking prices are hope"),
+  세트명 축약("500 Years in the Future" → "500 Years"), 마지막 줄 라벨.
+  **숫자와 URL 은 줄이지 않는다** — 그게 이 글의 내용이다.
 
 ## 쓰면 안 되는 문장
 
