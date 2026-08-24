@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1080, initial-scale=1" />
+    <title>Auctions ending soon 1</title>
+    <link rel="stylesheet" href="threads-card.css" />
+    <style>
+      /* 이 슬라이드 전용 — 급락 칩 + 경매 행 목업 */
+      .dropGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; max-width: 860px; }
+      .dropChip { border: 1px solid var(--line); border-radius: 14px; padding: 13px 18px; background: rgba(255,255,255,.03); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .dropChip b { font-size: 22px; color: var(--ink); font-weight: 700; letter-spacing: -0.01em; }
+      .dropChip small { display: block; color: var(--muted); font-size: 15px; margin-top: 4px; font-weight: 500; }
+      .dropPct { font-size: 27px; font-weight: 800; color: var(--gold); white-space: nowrap; }
+      .aucPanel { margin-top: 24px; max-width: 860px; display: grid; gap: 10px; }
+      .aucHead { font-size: 16px; letter-spacing: .14em; color: var(--accent); font-weight: 800; }
+      .aucHead small { color: var(--muted); letter-spacing: 0; font-weight: 500; margin-left: 10px; }
+      .aucRow { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 11px 18px; background: rgba(255,255,255,.02); }
+      .aucKind { font-size: 12px; font-weight: 800; letter-spacing: .1em; color: #55d8ea; border: 1px solid rgba(85,216,234,.4); border-radius: 6px; padding: 3px 8px; }
+      .aucTitle { flex: 1; font-size: 18px; color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .aucBid { text-align: right; }
+      .aucBid b { display: block; font-size: 24px; font-weight: 800; color: var(--accent); }
+      .aucBid small { color: var(--muted); font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="brandRow">
+        <div class="brand">
+          <div class="brandMark">OP</div>
+          <div><div class="brandName">OP Box Index</div><div class="brandSub">SEALED BOOSTER BOX RESEARCH</div></div>
+        </div>
+        <div class="pageNo">01 / 01</div>
+      </div>
+
+      <div class="eyebrow">MARKET DIP · LIVE AUCTION RADAR</div>
+      <h1>Singles just got cheap.<br /><span>Watch the auctions close.</span></h1>
+      <p class="deck">Japanese shop asking prices on One Piece chase cards fell hard this week. Our homepage lists the eBay auctions ending in the next 3 hours — ranked by real bids.</p>
+
+      <div class="dropGrid" aria-label="One-day asking price drops">
+        <div class="dropChip"><span><b>Nami OP15-086 Alt</b><small>¥59,800 → ¥24,800</small></span><span class="dropPct">-59%</span></div>
+        <div class="dropChip"><span><b>Boa Hancock OP12-014 SP</b><small>¥89,800 → ¥49,800</small></span><span class="dropPct">-45%</span></div>
+        <div class="dropChip"><span><b>Luffy OP13-118 Super Alt</b><small>¥598,000 → ¥348,000</small></span><span class="dropPct">-42%</span></div>
+        <div class="dropChip"><span><b>Sakazuki OP16-065 Manga</b><small>¥498,000 → ¥298,000</small></span><span class="dropPct">-40%</span></div>
+      </div>
+
+      <div class="aucPanel" aria-label="Auctions ending soon example">
+        <div class="aucHead">AUCTIONS ENDING SOON<small>on our homepage · snapshot Aug 24, 2:08 PM</small></div>
+        <div class="aucRow"><span class="aucKind">CARD</span><span class="aucTitle">PRB02 EN Gum-Gum Giant OP09-078 Alt Art PSA 10</span><span class="aucBid"><b>$1,562</b><small>40 bids · 1h 29m</small></span></div>
+        <div class="aucRow"><span class="aucKind">CARD</span><span class="aucTitle">[NM] Roronoa Zoro Japanese OP06-118 Parallel</span><span class="aucBid"><b>$51</b><small>20 bids · 5m</small></span></div>
+        <div class="aucRow"><span class="aucKind">PACK</span><span class="aucTitle">Heavy 38.00g Pack · The Time of Battle OP-16</span><span class="aucBid"><b>$21</b><small>5 bids · 1h 19m</small></span></div>
+      </div>
+
+      <div class="insightBar">Bids are real demand. Asking prices are hope. The radar refreshes all day — current bids, not final prices.</div>
+      <p class="source">Asking prices: Japanese single-card shop listings, read Aug 23 → Aug 24, 2026. Auction rows: live eBay snapshot from our homepage widget, ranked by bids.</p>
+
+      <div class="footerRow">
+        <div class="url">opboxindex.com</div>
+        <div class="footerMeta">Auction results tallied daily<br />Aug 23: 1,279 ended · 356 sold</div>
+      </div>
+    </main>
+  </body>
+</html>

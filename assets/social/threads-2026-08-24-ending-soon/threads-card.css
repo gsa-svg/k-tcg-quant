@@ -1,0 +1,418 @@
+:root {
+  --bg: #080a0f;
+  --paper: rgba(15, 19, 26, 0.91);
+  --ink: #f3f6ff;
+  --muted: #9aa4b6;
+  --line: rgba(255, 255, 255, 0.13);
+  --accent: #10d7a0;
+  --lilac: #c5a6ef;
+  --gold: #f0b84b;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  width: 1080px;
+  height: 1350px;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  color: var(--ink);
+  background: var(--bg);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  width: 1080px;
+  height: 1350px;
+  flex-direction: column;
+  padding: 76px 76px 60px;
+  isolation: isolate;
+}
+
+.card::before {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url("op05-market-background.png") center / cover no-repeat;
+  content: "";
+}
+
+.cardWithProduct::before {
+  background:
+    radial-gradient(circle at 91% 30%, rgba(16, 215, 160, .19), transparent 24%),
+    radial-gradient(circle at 18% 82%, rgba(240, 184, 75, .06), transparent 31%),
+    linear-gradient(145deg, #0b0e14 0%, #07090d 58%, #0b1014 100%);
+}
+
+.card::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(8,10,15,.18), rgba(8,10,15,.38) 52%, rgba(8,10,15,.88)),
+    linear-gradient(90deg, rgba(8,10,15,.95), rgba(8,10,15,.64) 70%, rgba(8,10,15,.12));
+  content: "";
+}
+
+.productBox {
+  position: absolute;
+  top: 276px;
+  right: -18px;
+  z-index: 0;
+  width: 326px;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 8px;
+  box-shadow:
+    0 30px 65px rgba(0, 0, 0, .58),
+    0 0 48px rgba(16, 215, 160, .18);
+  filter: saturate(.96) contrast(1.05) brightness(1.07);
+  transform: perspective(900px) rotateY(-8deg) rotateZ(1.2deg);
+  transform-origin: right center;
+}
+
+.brandRow,
+.footerRow {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.brandMark {
+  display: grid;
+  width: 58px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid rgba(16,215,160,.48);
+  border-radius: 10px;
+  background: rgba(29,36,49,.92);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.brandName { font-size: 25px; font-weight: 850; }
+.brandSub { margin-top: 3px; color: var(--muted); font-size: 14px; font-weight: 700; letter-spacing: .06em; }
+.pageNo { color: var(--muted); font-size: 18px; font-weight: 800; letter-spacing: .12em; }
+
+.eyebrow {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  margin-top: 76px;
+  padding: 11px 17px;
+  border: 1px solid rgba(16,215,160,.42);
+  border-radius: 999px;
+  background: rgba(16,215,160,.1);
+  color: var(--accent);
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: .09em;
+}
+
+h1 {
+  position: relative;
+  z-index: 2;
+  max-width: 820px;
+  margin: 28px 0 0;
+  font-size: 70px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -.055em;
+}
+
+h1 span { color: var(--accent); }
+
+.deck {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+  margin: 24px 0 0;
+  color: #dce3ee;
+  font-size: 23px;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.metricPanel {
+  max-width: 760px;
+  margin-top: 46px;
+  padding: 32px 34px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: 0 20px 50px rgba(0,0,0,.28);
+  backdrop-filter: blur(12px);
+}
+
+.metricLabel {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .09em;
+}
+
+.metricValue {
+  margin-top: 11px;
+  color: var(--gold);
+  font-size: 66px;
+  font-weight: 900;
+  letter-spacing: -.055em;
+}
+
+.range {
+  margin-top: 8px;
+  color: #dce3ee;
+  font-size: 24px;
+  font-weight: 750;
+}
+
+.sampleGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.sample {
+  padding: 14px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+  color: #f4f7ff;
+  font-size: 18px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.verifiedLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  max-width: 760px;
+  margin-top: 25px;
+  color: #cbd3df;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.52;
+}
+
+.check {
+  flex: 0 0 auto;
+  color: var(--accent);
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.source {
+  position: relative;
+  z-index: 2;
+  max-width: 750px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.compareGrid {
+  display: grid;
+  max-width: 800px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 43px;
+}
+
+.compare {
+  min-height: 190px;
+  padding: 28px 29px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: 0 18px 44px rgba(0,0,0,.24);
+}
+
+.compare.jp { border-color: rgba(197,166,239,.42); }
+.compare.ebay { border-color: rgba(240,184,75,.42); }
+.compareLabel { color: var(--muted); font-size: 15px; font-weight: 850; letter-spacing: .08em; }
+.compareValue { margin-top: 16px; font-size: 41px; font-weight: 900; }
+.compare.jp .compareValue { color: var(--lilac); }
+.compare.ebay .compareValue { color: var(--gold); }
+.compareMeta { margin-top: 10px; color: #c6ceda; font-size: 16px; font-weight: 650; line-height: 1.4; }
+
+.whyPanel {
+  max-width: 800px;
+  margin-top: 24px;
+  padding: 28px 31px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(13,17,24,.88);
+}
+
+.whyTitle { color: var(--accent); font-size: 16px; font-weight: 850; letter-spacing: .08em; }
+.whyList { display: grid; gap: 15px; margin: 19px 0 0; padding: 0; list-style: none; }
+.whyList li { position: relative; padding-left: 28px; color: #dce3ee; font-size: 19px; font-weight: 690; line-height: 1.42; }
+.whyList li::before { position: absolute; left: 0; color: var(--accent); content: "•"; }
+
+.takeaway {
+  max-width: 800px;
+  margin-top: 24px;
+  padding: 24px 28px;
+  border-radius: 17px;
+  background: var(--accent);
+  color: #06120f;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.footerRow {
+  margin-top: auto;
+  padding-top: 23px;
+  border-top: 1px solid var(--line);
+}
+
+.url { color: #e7edf7; font-size: 20px; font-weight: 850; }
+.footerMeta { color: var(--muted); font-size: 13px; font-weight: 700; text-align: right; }
+
+.trendPanel {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  max-width: 790px;
+  gap: 13px;
+  margin-top: 38px;
+}
+
+.trendRow {
+  display: grid;
+  grid-template-columns: 105px 255px 1fr;
+  gap: 20px;
+  align-items: center;
+  min-height: 116px;
+  padding: 23px 27px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: 0 15px 36px rgba(0,0,0,.22);
+}
+
+.trendRow.latest { border-color: rgba(16,215,160,.5); background: rgba(11,28,25,.92); }
+.trendMonth { color: var(--muted); font-size: 17px; font-weight: 900; letter-spacing: .08em; }
+.trendPrice { color: #f1f5ff; font-size: 34px; font-weight: 900; letter-spacing: -.04em; }
+.trendRow.latest .trendPrice { color: var(--accent); }
+.trendMeta { color: #c5cedb; font-size: 15px; font-weight: 650; line-height: 1.42; }
+
+.insightBar {
+  position: relative;
+  z-index: 2;
+  max-width: 790px;
+  margin-top: 20px;
+  padding: 22px 26px;
+  border-left: 5px solid var(--gold);
+  border-radius: 0 15px 15px 0;
+  background: rgba(240,184,75,.09);
+  color: #edf2fb;
+  font-size: 21px;
+  font-weight: 820;
+  line-height: 1.42;
+}
+
+.signalGrid {
+  display: grid;
+  max-width: 810px;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 37px;
+}
+
+.signal {
+  min-height: 184px;
+  padding: 27px 28px;
+  border: 1px solid var(--line);
+  border-radius: 19px;
+  background: var(--paper);
+  box-shadow: 0 16px 40px rgba(0,0,0,.22);
+}
+
+.signal.risk { grid-column: 1 / -1; min-height: 156px; }
+.signalLabel { color: var(--accent); font-size: 15px; font-weight: 900; letter-spacing: .09em; }
+.signalValue { margin-top: 13px; font-size: 28px; font-weight: 880; line-height: 1.3; }
+.signalMeta { margin-top: 9px; color: var(--muted); font-size: 15px; font-weight: 650; line-height: 1.45; }
+
+.zoneGrid {
+  display: grid;
+  max-width: 810px;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 21px;
+}
+
+.zone {
+  padding: 20px 23px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(13,17,24,.9);
+}
+
+.zone strong { display: block; font-size: 24px; }
+.zone:first-child strong { color: var(--accent); }
+.zone:last-child strong { color: var(--gold); }
+.zone span { display: block; margin-top: 7px; color: #c6ceda; font-size: 15px; font-weight: 650; line-height: 1.35; }
+
+/* ── 젬률 카드 전용(2026-08-18). 값이 백분율이라 막대 길이로 차이를 먼저 보이고 숫자를 옆에 둔다.
+   막대는 0~100% 가 아니라 80~95% 구간을 늘려 그린다 — 전 구간을 그리면 6.5%p 차이가 눈에 안 보인다.
+   늘린 사실은 카드 안에 명시한다(축을 자른 그래프는 밝히지 않으면 속임수가 된다). */
+.gemPanel { display: grid; max-width: 800px; gap: 14px; margin-top: 34px; }
+.gemRow {
+  display: grid;
+  grid-template-columns: 250px 1fr 96px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+.gemRow.worst { border-color: rgba(240,184,75,.5); }
+.gemName { font-size: 19px; font-weight: 800; line-height: 1.25; }
+.gemName small { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.gemBarWrap { height: 22px; border-radius: 11px; background: rgba(255,255,255,.07); overflow: hidden; }
+.gemBar { height: 100%; border-radius: 11px; background: var(--accent); }
+.gemRow.worst .gemBar { background: var(--gold); }
+.gemPct { font-size: 30px; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
+.gemRow.worst .gemPct { color: var(--gold); }
+
+.cardList { display: grid; max-width: 800px; gap: 12px; margin-top: 30px; }
+.cardItem {
+  display: grid;
+  grid-template-columns: 54px 1fr 120px 104px;
+  align-items: center;
+  gap: 16px;
+  padding: 17px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+}
+.cardItem.top { border-color: rgba(240,184,75,.5); }
+.cardRank { color: var(--muted); font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.cardName { font-size: 20px; font-weight: 800; line-height: 1.22; }
+.cardName small { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.cardPop { color: #c6ceda; font-size: 16px; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.cardGem { font-size: 31px; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
+.cardItem.top .cardGem { color: var(--gold); }
+.cardItem.best .cardGem { color: var(--accent); }
