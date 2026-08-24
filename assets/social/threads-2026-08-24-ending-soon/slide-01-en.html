@@ -3,23 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=1080, initial-scale=1" />
-    <title>Auctions ending soon 1</title>
+    <title>Boxes over four weeks</title>
     <link rel="stylesheet" href="threads-card.css" />
     <style>
-      /* 이 슬라이드 전용 — 급락 칩 + 경매 행 목업 */
-      .dropGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; max-width: 860px; }
-      .dropChip { border: 1px solid var(--line); border-radius: 14px; padding: 13px 18px; background: rgba(255,255,255,.03); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-      .dropChip b { font-size: 22px; color: var(--ink); font-weight: 700; letter-spacing: -0.01em; }
-      .dropChip small { display: block; color: var(--muted); font-size: 15px; margin-top: 4px; font-weight: 500; }
-      .dropPct { font-size: 27px; font-weight: 800; color: var(--gold); white-space: nowrap; }
-      .aucPanel { margin-top: 24px; max-width: 860px; display: grid; gap: 10px; }
-      .aucHead { font-size: 16px; letter-spacing: .14em; color: var(--accent); font-weight: 800; }
+      .grpLab { font-size: 14px; font-weight: 800; letter-spacing: .06em; margin: 13px 0 7px; }
+      .grpLab.dn { color: var(--gold); }
+      .grpLab.up { color: var(--accent); }
+      .dropGrid { display: grid; gap: 8px; max-width: 880px; }
+      .dropChip { border: 1px solid var(--line); border-radius: 13px; padding: 9px 18px; background: rgba(255,255,255,.03); display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+      .dropChip b { font-size: 20px; color: var(--ink); font-weight: 700; }
+      .dropChip small { display: block; color: var(--muted); font-size: 15px; margin-top: 3px; font-weight: 500; }
+      .dropPct { font-size: 24px; font-weight: 800; white-space: nowrap; }
+      .dropChip.dn .dropPct { color: var(--gold); }
+      .dropChip.up .dropPct { color: var(--accent); }
+      .aucPanel { margin-top: 18px; max-width: 880px; display: grid; gap: 9px; }
+      .aucHead { font-size: 17px; letter-spacing: .02em; color: var(--accent); font-weight: 800; }
       .aucHead small { color: var(--muted); letter-spacing: 0; font-weight: 500; margin-left: 10px; }
-      .aucRow { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 11px 18px; background: rgba(255,255,255,.02); }
-      .aucKind { font-size: 12px; font-weight: 800; letter-spacing: .1em; color: #55d8ea; border: 1px solid rgba(85,216,234,.4); border-radius: 6px; padding: 3px 8px; }
+      .aucRow { display: flex; align-items: center; gap: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 9px 18px; background: rgba(255,255,255,.02); }
+      .aucKind { font-size: 12px; font-weight: 800; letter-spacing: .08em; color: #55d8ea; border: 1px solid rgba(85,216,234,.4); border-radius: 6px; padding: 3px 8px; }
       .aucTitle { flex: 1; font-size: 18px; color: var(--ink); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .aucBid { text-align: right; }
-      .aucBid b { display: block; font-size: 24px; font-weight: 800; color: var(--accent); }
+      .aucBid b { display: block; font-size: 23px; font-weight: 800; color: var(--accent); }
       .aucBid small { color: var(--muted); font-size: 13px; }
     </style>
   </head>
@@ -33,26 +37,29 @@
         <div class="pageNo">01 / 01</div>
       </div>
 
-      <div class="eyebrow">SINGLES ASKING PRICES · JUL 28 → AUG 24</div>
-      <h1>Singles just got cheap.<br /><span>Watch the auctions close.</span></h1>
-      <p class="deck">Japanese shop asking prices on One Piece chase cards fell hard. This compares our July 28 reading with yesterday&rsquo;s. OP-17 launched in between.</p>
+      <div class="eyebrow">OUR EBAY SOLD DATA · JAPANESE BOXES · 4 WEEKS</div>
+      <h1>Some sets<br /><span>got cheap.</span></h1>
+      <p class="deck">Completed eBay sales of Japanese booster boxes — weekly medians from our own ledger. Over the last four weeks the sets split.</p>
 
-      <div class="dropGrid" aria-label="One-day asking price drops">
-        <div class="dropChip"><span><b>Nami OP15-086 Alt</b><small>¥59,800 → ¥24,800</small></span><span class="dropPct">-59%</span></div>
-        <div class="dropChip"><span><b>Boa Hancock OP12-014 SP</b><small>¥89,800 → ¥49,800</small></span><span class="dropPct">-45%</span></div>
-        <div class="dropChip"><span><b>Luffy OP13-118 Super Alt</b><small>¥598,000 → ¥348,000</small></span><span class="dropPct">-42%</span></div>
-        <div class="dropChip"><span><b>Sakazuki OP16-065 Manga</b><small>¥498,000 → ¥298,000</small></span><span class="dropPct">-40%</span></div>
+      <div class="grpLab dn">DOWN</div>
+      <div class="dropGrid">
+        <div class="dropChip dn"><span><b>OP-10 Royal Blood</b><small>$107</small></span><span class="dropPct">-24%</span></div>
+        <div class="dropChip dn"><span><b>OP-07 500 Years in the Future</b><small>$81</small></span><span class="dropPct">-17%</span></div>
+        <div class="dropChip dn"><span><b>OP-13 Carrying on His Will</b><small>$134</small></span><span class="dropPct">-15%</span></div>
+      </div>
+      <div class="grpLab up">UP</div>
+      <div class="dropGrid">
+        <div class="dropChip up"><span><b>PRB-01 Premium Booster</b><small>$150</small></span><span class="dropPct">+13%</span></div>
       </div>
 
-      <div class="aucPanel" aria-label="Auctions ending soon example">
+      <div class="aucPanel">
         <div class="aucHead">AUCTIONS ENDING SOON<small>our homepage widget · ending within 3 hours · Aug 24, 2:08 PM</small></div>
         <div class="aucRow"><span class="aucKind">CARD</span><span class="aucTitle">PRB02 EN Gum-Gum Giant OP09-078 Alt Art PSA 10</span><span class="aucBid"><b>$1,562</b><small>40 bids · 1h 29m</small></span></div>
         <div class="aucRow"><span class="aucKind">CARD</span><span class="aucTitle">[NM] Roronoa Zoro Japanese OP06-118 Parallel</span><span class="aucBid"><b>$51</b><small>20 bids · 5m</small></span></div>
-        <div class="aucRow"><span class="aucKind">PACK</span><span class="aucTitle">Heavy 38.00g Pack · The Time of Battle OP-16</span><span class="aucBid"><b>$21</b><small>5 bids · 1h 19m</small></span></div>
       </div>
 
-      <div class="insightBar">Bids are real demand. Asking prices are hope. The radar refreshes all day — current bids, not final prices.</div>
-      <p class="source">Asking prices: Japanese single-card shop listings. Our Jul 28, 2026 reading vs Aug 24, 2026 &mdash; we cannot pin where in those 27 days the drop happened. Sealed boxes moved differently over the same window (OP-13 -14%, OP-15 flat). Auction rows: live snapshot from our homepage widget.</p>
+      <div class="insightBar">Asking prices are hope. Bids are real demand.</div>
+      <p class="source">Latest weekly median vs four weeks earlier. Samples run 3&ndash;21 sales per set per week. Auction rows are current bids, not final prices.</p>
 
       <div class="footerRow">
         <div class="url">opboxindex.com</div>
