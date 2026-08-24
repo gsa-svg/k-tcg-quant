@@ -59,24 +59,29 @@ const meterIsStale = meterAgeDays == null || meterAgeDays > 10;
 let allTimeGraded = 0;
 for (const c of codes) { const s = d.sets[c]; if (s && s.psaFull && s.psaFull.total) allTimeGraded += s.psaFull.total; }
 
-// ── 성적표(전세트, 각 세트 추적 시작일 대비)
+// ── 성적표(전세트). 변화율은 **최근 4주** — "추적 시작 대비"를 버렸다(2026-08-24).
+// 시리즈는 원장에서 매번 다시 만드는데, 새 수집이 과거 판매를 되메우면 초기 희소 구간의
+// 중앙값이 통째로 바뀐다. 실측: OP-13 기준가가 하루 사이 \$149(05-24) → \$277(05-29) 로 튀어
+// 같은 세트가 +2.7% 에서 -51.6% 가 됐다. 시장이 아니라 우리 표본이 움직인 것이다.
+// 최근 4주는 양끝이 다 두꺼운 구간이라 되메움에 둔감하고, 세트 페이지의 4-week change 와 기준이 같다.
 const board = [];
 for (const c of codes) {
   const p = ptsOf(c); if (!p.length) continue;
-  const firstV = p[0].p;
-  const firstD = p[0].d;
   const lastV = p[p.length - 1].p;
+  const lastD = p[p.length - 1].d;
+  const cut = new Date(Date.parse(lastD) - 28 * 864e5).toISOString().slice(0, 10);
+  let ref = null;
+  for (const pt of p) { if (pt.d <= cut) ref = pt; else break; }
   const f = (FACTS.sets && FACTS.sets[c]) || {};
   const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
   const nowUsd = lastV;   // 이미 USD
   board.push({
     code: c,
     nameEn: d.sets[c].nameEn || c,
-    baseUsd: Math.round(firstV),
-    baseDate: firstD,
     nowUsd: Math.round(nowUsd),
-    nowDate: p[p.length - 1].d,   // 마지막 판매 관측일 — 표가 "오늘 값"으로 읽히지 않게
-    changePct: Math.round((lastV / firstV - 1) * 1000) / 10,
+    nowDate: lastD,   // 마지막 판매 관측일 — 표가 "오늘 값"으로 읽히지 않게
+    changePct: ref ? Math.round((lastV / ref.p - 1) * 1000) / 10 : null,   // 최근 4주
+    changeBasis: ref ? ref.d : null,
     launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
     msrpYen: f.jpMsrpYen || null,
     msrpUsd: msrpUsd != null ? Math.round(msrpUsd) : null,
@@ -84,7 +89,7 @@ for (const c of codes) {
     reprints: (f.reprintRecords || []).length,
   });
 }
-board.sort((a, b) => b.changePct - a.changePct);
+board.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity));
 
 const out = {
   updated: d.updated || SOLD.updated || todayIso,
@@ -110,6 +115,6 @@ fs.writeFileSync(mainPath, JSON.stringify(main));
 console.log(JSON.stringify({
   boardSets: board.length,
   meter: meterLatest ? `${meterLatest.v.toLocaleString()} graded wk of ${meterLatest.d} (WoW ${meterWoW >= 0 ? "+" : ""}${meterWoW}%), all-time ${allTimeGraded.toLocaleString()}` : "none",
-  boardTop: board[0].code + " " + board[0].changePct + "% ... " + board[board.length - 1].code + " " + board[board.length - 1].changePct + "%",
+  boardTop: board[0].code + " " + board[0].changePct + "% ... " + board[board.length - 1].code + " " + board[board.length - 1].changePct + "%",   // null 이면 4주 기준점 없는 신생 세트
   launchTracked: board.filter((b) => b.launchTracked).map((b) => b.code),
 }, null, 1));

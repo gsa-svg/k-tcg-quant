@@ -65,7 +65,7 @@ const hubProse = (() => {
   return `
       <section aria-label="시장 읽기">
         <h2>지금 일본판 박스 시장 읽는 법</h2>
-        <p class="koProse">추적 중인 ${withChg.length}개 세트 가운데 <strong>${nUp}개가 추적 시작가 대비 상승</strong>, ${nDn}개가 하락 상태입니다. 가장 비싼 박스는 <strong>${esc(hi.code)} ${esc(nameKo(hi.code))}</strong>(${won(boxKrw(hi.code, hi.nowUsd))}), 가장 싼 박스는 <strong>${esc(lo.code)} ${esc(nameKo(lo.code))}</strong>(${won(boxKrw(lo.code, lo.nowUsd))})로, 같은 게임 안에서도 세트별 격차가 큽니다. 상승 1위는 ${esc(u0.code)}(${pct(u0.changePct)})${d0 && d0.changePct < 0 ? `, 하락 1위는 ${esc(d0.code)}(${pct(d0.changePct)})` : ""}입니다.</p>
+        <p class="koProse">추적 중인 ${withChg.length}개 세트 가운데 <strong>${nUp}개가 4주 전 대비 상승</strong>, ${nDn}개가 하락 상태입니다. 가장 비싼 박스는 <strong>${esc(hi.code)} ${esc(nameKo(hi.code))}</strong>(${won(boxKrw(hi.code, hi.nowUsd))}), 가장 싼 박스는 <strong>${esc(lo.code)} ${esc(nameKo(lo.code))}</strong>(${won(boxKrw(lo.code, lo.nowUsd))})로, 같은 게임 안에서도 세트별 격차가 큽니다. 상승 1위는 ${esc(u0.code)}(${pct(u0.changePct)})${d0 && d0.changePct < 0 ? `, 하락 1위는 ${esc(d0.code)}(${pct(d0.changePct)})` : ""}입니다.</p>
         <p class="koProse">박스 시세를 움직이는 힘은 크게 셋입니다. ① <strong>개봉 속도</strong> — 그레이딩 접수량이 그 대리지표이고, 세트별 PSA·CGC·TAG 인구는 각 세트 페이지에 정리돼 있습니다. ② <strong>재판(재입고)</strong> — 현재 ${rpSets.length}개 세트(${rpSets.map((b) => esc(b.code)).join(", ")})에서 유통사 재입고 기록이 확인됐고, 재판은 공급을 다시 늘려 시세를 누르는 요인입니다. ③ <strong>히트카드 시세</strong> — 박스 기대값의 골격이라, 상위 카드가 오르면 박스가 따라 오르는 패턴이 반복됩니다.</p>
         <p class="koProse">이 표의 값은 추정치가 아니라 이베이 <strong>실거래·검증된 매물</strong>을 매일 집계해 원화로 환산한 것입니다. 변동률 기준일이 세트마다 다르므로(행마다 표기) "발매일 대비 수익률"로 읽으면 안 됩니다. 세트 코드를 누르면 그 세트의 시세 흐름·재판 이력·인기 카드·그레이딩 인구까지 한국어로 정리된 상세 페이지로 이동합니다.</p>
       </section>`;

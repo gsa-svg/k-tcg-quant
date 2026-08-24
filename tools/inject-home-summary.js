@@ -95,7 +95,7 @@ const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
           <details class="homeCollapse">
           <summary><h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2></summary>
-          <p>Prices below are sealed Japanese booster boxes in USD, each the median of completed eBay sales we collect ourselves. "Change" is measured from each set's tracking start date, not its release date. Of the ${withChg.length} sets with a tracked start price, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
+          <p>Prices below are sealed Japanese booster boxes in USD, each the median of completed eBay sales we collect ourselves. "Change" compares the latest weekly sold median with four weeks earlier. Of the ${withChg.length} sets with four weeks of history, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
             <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
