@@ -26,6 +26,7 @@ function tagTier(tagSetName) {
   }
   if (/wanted/.test(s)) return "wanted";
   if (/box\s*topper/.test(s)) return "boxtopper";
+  if (/treasure\s*rare/.test(s)) return "tr";         // TR 은 base 가 아니다(실측 오배정: OP-12 en OP10-063|base)
   if (/special\s*alternate/.test(s)) return "sp";     // TAG 는 SP 를 "Special Alternate Art" 로 표기(실측)
   if (/alternate\s*art|parallel/.test(s)) return "alt";
   return "base";

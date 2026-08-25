@@ -18,6 +18,10 @@
 // 확신이 없는 tier(signature 등)는 일부러 비워 뒀다. 비면 그 카드는 그냥 PSA 값이 없는 것으로 남는다.
 const PARALLEL = {
   base: ["Base"],
+  // TR(Treasure Rare) — 종전엔 tier 가 base 로 떨어져 **평범한 Base 행**이 붙었다(2026-08-25 실측).
+  //   OP-08 top10 "Monkey D. Luffy TR" 에 OP-07 목록의 Base(1,813장)가 붙어 있었다.
+  //   진짜 값은 OP-08 목록의 "Treasure Rare"(영문판 5,114장)다.
+  tr: ["Treasure Rare"],
   alt: ["Alternate Art"],
   super: ["Manga Alternate Art"],
   red: ["Red Manga Alternate Art"],
@@ -115,55 +119,61 @@ function match(dump, data) {
       const num = String(card.number || "").toUpperCase();
       if (!num) continue;
       const stamp = (num.match(/^([A-Z]+\d{2})/) || [, ""])[1];
-      // ⚠️ 어느 세트 목록에서 찾을지는 **카드의 각인**이 정한다. 박스가 아니라.
-      //    OP-13 top10 에 있는 OP09-004 는 OP-09 목록에서 찾아야 그 카드의 인구다.
-      //    담고 있는 박스 목록에서 번호로 찾으면 남의 카드를 집는다(그게 변형 오배정의 전형적 경로다).
-      //    각인 세트를 우리가 안 받아온 경우(ST 스타터덱 등)는 조용히 버린다.
+      // 각인 세트 — 번호 접두어가 가리키는 원래 세트. 담고 있는 박스와 다를 수 있다.
       const lookIn = stamp ? `${stamp.slice(0, -2)}-${stamp.slice(-2)}` : code;
       const tier = ourTier(card.name || "");
       const wants = PARALLEL[tier];
       if (!wants) { noMapping.push(`${code} ${num} (${tier})`); continue; }
 
-      // 어느 세트 목록에서 찾을지 — 각인 세트(lookIn)를 먼저 본다.
-      // 다만 애니버서리 각인(gold/silver/signature)은 **담은 세트에서 새로 찍힌 카드**라
-      // 각인 세트 목록에는 아예 없다. 실측: OP05-119 SP Gold 는 각인이 OP-05 지만
-      // "3rd Anniversary-Gold" 행은 OP-11 목록에만 있다(일본판 2,094장). 그래서 통째로 못 찾았다.
-      // 그 경우에만 담은 세트(code) 목록을 추가로 본다.
+      // ⚠️ 어느 세트 목록에서 찾을지 — **담고 있는 박스를 먼저 본다**(2026-08-25 정정).
+      //    그 박스 top10 에 있는 카드는 그 박스에서 뽑는 인쇄본이고, 재수록본은 원본과 인구가 다르다.
+      //    PSA 는 재수록본을 재수록 세트 목록에 따로 올린다. 실측:
+      //      PRB-01 Shanks Manga(각인 OP01-120) → PRB-01 목록 81장 vs OP-01 목록 4,863장 (60배)
+      //      PRB-01 Ace Manga · Chopper Manga · Sabo Manga 도 33~55배 차이.
+      //    종전엔 각인 세트를 먼저 봐서 **원본의 인구**를 재수록 카드에 붙이고 있었다.
+      //    CGC·TAG 는 처음부터 담은 박스 기준이라 한 화면에서 세 등급사가 서로 안 맞았다.
       //
-      // ⚠️ 변형 오배정 방지 — 이 폴백은 **번호 + par 라벨 완전일치**를 그대로 요구한다.
+      //    ⚠️ 각인 세트로 **폴백하지 않는다**. 박스 목록에 그 카드가 없으면 값을 비운다.
+      //    PRB-01 은 OP-01~OP-06 망가를 새로 찍어 담은 세트라, 각인 세트에는 늘 "같은 그림의 다른 카드"가
+      //    있다. 폴백을 두면 그게 그대로 붙는다. 실측으로 두 인쇄본은 서로 다른 상품이다:
+      //      Shanks OP01-120 — PRB-01 판 ¥248,000 (SEC 위 ★, TCGplayer 587708)
+      //                        OP-01 판  ¥198,000 (★ 없음,   TCGplayer 454666)
+      //    PSA 가 아직 박스 목록에 올리지 않은 카드(PRB-01 일본판 Luffy·Zoro·Law·Kid 망가)는
+      //    비워 둔다. 없는 값이 틀린 값보다 낫다.
+      //
+      // ⚠️ 변형 오배정 방지 — **번호 + par 라벨 완전일치 + 이름 일치**를 요구한다.
       //    번호만으로 찾지 않는다(그게 만가/알트가 섞이던 경로다).
-      //    두 목록에서 각각 잡히면 어느 쪽이 맞는지 알 수 없으므로 채택하지 않고 ambiguous 로 버린다.
-      const lists = lookIn === code ? [lookIn] : [lookIn, code];
+      const lists = [code];
 
       let found = false;
       for (const ed of ["jp", "en"]) {
-        const cand = [];
+        let picked = null, clash = null;
         for (const src of lists) {
           const rows = dump.sets[`${src}|${ed}`];
           if (!Array.isArray(rows)) continue;
           const sameNum = rows.filter((r) => digits(r.num) && digits(r.num) === digits(num));
           if (!sameNum.length) continue;
           // **모든 경로에서** 이름이 맞아야 한다 — 2026-08-25.
-          // 각인 세트 목록도 안전하지 않다: digits() 가 접두어를 버리므로 OP07-051 과 OP09-051 이
-          // 둘 다 "51" 로 같아진다. 실측 오배정:
+          // digits() 가 접두어를 버리므로 OP07-051 과 OP09-051 이 둘 다 "51" 로 같아진다. 실측 오배정:
           //   OP-09 목록의 051 "Special Alternate Art" 는 **Boa Hancock**(4,496장)인데
           //   우리 "Buggy OP09 051 SP" 에 붙었다(OP-09 의 051 Buggy 는 Wanted/Manga/Alt/Base 뿐이다).
           // 이름이 안 맞으면 채택하지 않는다. 애매하면 비우는 편이 낫다.
           const hits = sameNum.filter((r) => wants.includes(r.par) && nameAgrees(card.name, r.name));
-          if (hits.length === 1) cand.push({ src, r: hits[0], sameNum });
-          else if (hits.length > 1) cand.push({ src, r: null, sameNum });   // 같은 라벨이 둘 — 판정 불가
+          if (hits.length === 1) { picked = { src, r: hits[0] }; break; }   // 앞 목록(담은 박스)이 이긴다
+          if (hits.length > 1) { clash = { src, sameNum }; break; }         // 같은 라벨이 둘 — 판정 불가
         }
-        if (!cand.length) { noRow.push(`${lookIn}|${ed} ${num} [${tier}]`); continue; }
-        if (cand.length > 1 || !cand[0].r) {
-          ambiguous.push({ key: `${lookIn}|${ed} ${num}`, card: card.name, tier, want: wants.join("/"),
-            got: cand.flatMap((c) => c.sameNum.map((r) => `${c.src}:${r.par}(${r.total})`)) });
+        if (clash) {
+          ambiguous.push({ key: `${clash.src}|${ed} ${num}`, card: card.name, tier, want: wants.join("/"),
+            got: clash.sameNum.map((r) => `${clash.src}:${r.par}(${r.total})`) });
           continue;
         }
-        const r = cand[0].r;
+        if (!picked) { noRow.push(`${code}|${ed} ${num} [${tier}]`); continue; }
+        const r = picked.r;
         if (!(Number.isInteger(r.total) && r.total > 0 && Number.isInteger(r.g10) && r.g10 <= r.total)) continue;
         found = true;
-        // 원장 키는 **카드 각인 기준**(lookIn)으로 남긴다 — 같은 카드가 여러 박스 top10 에 있어도 한 곳에만 쌓인다.
-        accepted.push({ code: lookIn, box: code, ed, num, tier, card: card.name, par: r.par, total: r.total, g10: r.g10, g9: r.g9, d: r.updated || dump.collectedAt });
+        // 원장 키는 **실제로 맞은 목록** 기준으로 남긴다. 재수록본은 재수록 세트 밑에,
+        // 원본은 원본 세트 밑에 — 같은 번호라도 인쇄본이 다르면 다른 시계열이다.
+        accepted.push({ code: picked.src, box: code, ed, num, tier, card: card.name, par: r.par, total: r.total, g10: r.g10, g9: r.g9, d: r.updated || dump.collectedAt });
       }
       if (!found && stamp && !dump.sets[`${lookIn}|jp`] && !dump.sets[`${lookIn}|en`]) skippedReprint.push(`${code} ${num} → ${lookIn} 미수집`);
     }

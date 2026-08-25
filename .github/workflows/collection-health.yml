@@ -37,6 +37,12 @@ jobs:
       - name: Check collectors are runnable
         run: node tools/audit-collectors.js
 
+      # 숫자가 아니라 **귀속**을 본다: 화면에 붙은 등급 값이 정말 그 카드·그 변형·그 판의 것인가.
+      # 2026-08-25: 재수록본에 원본 세트 인구가 붙어 있었고(PRB-01 샹크스 망가 81장 자리에 4,863장),
+      # TR 카드에는 평범한 Base 행이 붙어 있었다. 숫자 검사만으로는 둘 다 정상으로 보였다.
+      - name: Check grade attribution
+        run: node tools/audit-grade-attribution.js
+
       # 위가 실패하면 여기까지 안 온다. 요약을 실행 화면에 남겨 메일만 보고도 상황을 알게 한다.
       - name: Summary
         if: always()

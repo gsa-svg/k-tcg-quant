@@ -33,6 +33,8 @@ node tools/build-grading-series.js            # 세트 × 등급사 × 주차 �
                                               #   "PSA inflow · 4 wks" 카드가 이 파일을 읽는다.
 node tools/generate-set-pages.js && node tools/generate-card-pages.js && node tools/generate-ko-pages.js
 node tools/audit-grading-numbers.js           # 숫자 검증 — 실패하면 배포 금지
+node tools/audit-grade-attribution.js        # 귀속 검증 — 이 값이 정말 이 카드 것인가
+                                              #   (변형·판·재수록본 오배정. 실패하면 배포 금지)
 node tools/audit-collectors.js                # 브라우저 수집기가 실행 가능한 상태인지
 node tools/guard-invariants.js
 ```

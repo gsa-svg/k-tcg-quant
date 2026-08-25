@@ -32,6 +32,10 @@ function ourTier(name) {
   if (/\bsilver\b/.test(s)) return "silver";
   if (/\bsp\b/.test(s)) return "sp";
   if (/wanted/.test(s)) return "wanted";
+  // TR(Treasure Rare) — 종전엔 base 로 떨어져 **평범한 Base 행**이 붙었다(2026-08-25 실측 오배정:
+  // OP-08 top10 "Monkey D. Luffy TR" 에 OP-07 목록의 Base 1,813장, TAG 도 OP-12 en 을 base 로 잡았다).
+  // "Trafalgar" 같은 이름에 걸리지 않도록 단어 경계로 본다.
+  if (/\btr\b|treasure\s*rare/.test(s)) return "tr";
   if (/parallel|alternate|\balt\b/.test(s)) return "alt";
   return "base";
 }
@@ -47,6 +51,7 @@ function cgcTier(label) {
   if (/manga\s*alt\.?\s*(art|parallel)|manga.*parallel/.test(s)) return "super";
   if (/box\s*topper/.test(s)) return "boxtopper";
   if (/wanted/.test(s)) return "wanted";
+  if (/treasure\s*rare/.test(s)) return "tr";         // CGC 라벨: "Treasure Rare (TR next to number)"(실측)
   if (/alt\.?\s*art|parallel/.test(s)) return "alt";  // "Alt. Art"(마침표 포함, 실측) 도 매칭
   return "base";
 }

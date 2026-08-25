@@ -35,15 +35,14 @@ const cgc = load("cgc-card-pop.json");
 const tag = load("tag-card-pop.json");
 const psa = load("psa-card-pop.json");
 
-// PSA 원장은 카드 각인 세트 기준으로 쌓인다(OP-13 top10 의 OP09-004 는 OP-09 밑에 있다).
-// 그래서 담고 있는 박스가 아니라 카드 번호의 각인으로 찾아야 한다.
-const psaPoint = (card, key, donCode) => {
-  const stamp = (String(card.number || "").toUpperCase().match(/^([A-Z]+\d{2})/) || [, ""])[1];
-  if (!stamp && !donCode) return {};   // DON!! 카드는 번호가 없다
-  const code = donCode || `${stamp.slice(0, -2)}-${stamp.slice(-2)}`;
+// PSA 원장 적재와 **같은 규칙**으로 찾는다: 담고 있는 박스 목록에서만 본다.
+// 각인 세트로 폴백하지 않는다 — 재수록본과 원본은 다른 상품이고 인구도 다르다
+// (PRB-01 Shanks Manga 81장 vs OP-01 원본 4,863장 — 60배). 박스에 없으면 비워 둔다.
+const psaPoint = (card, key, boxCode) => {
+  if (!boxCode) return {};
   const out = {};
   for (const ed of ["jp", "en"]) {
-    const arr = psa?.sets?.[code]?.[ed]?.[key];
+    const arr = psa?.sets?.[boxCode]?.[ed]?.[key];
     const last = Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null;
     if (last && Number.isInteger(last.total) && last.total > 0 && Number.isInteger(last.g10) && last.g10 <= last.total) {
       out[ed] = { total: last.total, g10: last.g10, g9: Number.isInteger(last.g9) ? last.g9 : null, d: last.d };
@@ -94,7 +93,7 @@ for (const [code, set] of Object.entries(data.sets)) {
     }
     if (Object.keys(tagEd).length) { out.tag = tagEd; withTag += 1; }
 
-    const p = psaPoint(card, key, don ? code : null);
+    const p = psaPoint(card, key, code);   // code = 담고 있는 박스
     if (Object.keys(p).length) { out.psa = p; withPsa += 1; }
 
     if (Object.keys(out).length) card.graderPop = out;
