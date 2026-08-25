@@ -40,13 +40,13 @@ window.__pwPAGES=P;window.__pwDump={collectedAt:new Date().toISOString().slice(0
 window.__pwGrab=async u=>{let h;try{h=await fetch(u,{credentials:'include'}).then(r=>r.text());}catch(e){return{robot:false,items:[]};}
  if(/Pardon our interruption|Checking your browser|captcha/i.test(h.slice(0,4000)))return{robot:true,items:[]};
  const doc=new DOMParser().parseFromString(h,'text/html');const cards=doc.querySelectorAll('.s-card,li.s-item');const rawN=cards.length;const out=[];
- for(const c of cards){const a=c.querySelector('a[href*="/itm/"]');const m=a&&(a.getAttribute('href')||'').match(/\/itm\/(\d+)/);if(!m||m[1]==='123456')continue;
+ for(const c of cards){const a=c.querySelector('a[href*="/itm/"]');const m=a&&(a.getAttribute('href')||'').match(/\\/itm\\/(\\d+)/);if(!m||m[1]==='123456')continue;
   const t=((c.querySelector('.su-styled-text.primary')||c.querySelector('.s-item__title'))?.textContent||'').replace(/New Listing/ig,'').trim();
   if(!/booster box/i.test(t))continue;
   const d=((c.querySelector('.s-card__caption,.s-item__caption'))?.textContent||'').trim();
   const pT=((c.querySelector('.s-card__price,.s-item__price'))?.textContent||'').trim();
-  const p=pT.replace(/,/g,'').match(/([\d.]+)/);if(!t||!d||!p)continue;
-  out.push({id:m[1],t:t.slice(0,140),d:d.slice(0,32),k:parseFloat(p[1]),cur:/KRW|\u20a9/.test(pT)?'KRW':/\$/.test(pT)?'USD':'OTHER'});}
+  const p=pT.replace(/,/g,'').match(/([\\d.]+)/);if(!t||!d||!p)continue;
+  out.push({id:m[1],t:t.slice(0,140),d:d.slice(0,32),k:parseFloat(p[1]),cur:/KRW|\\u20a9/.test(pT)?'KRW':/\\$/.test(pT)?'USD':'OTHER'});}
  return{robot:false,items:out,rawN};};
 window.__pwRunBatch=async(s,n)=>{const e=Math.min(s+n,window.__pwPAGES.length);let rob=0;
  for(let i=s;i<e;i++){const pg=window.__pwPAGES[i];const r=await window.__pwGrab(pg.url);if(r.robot)rob++;
