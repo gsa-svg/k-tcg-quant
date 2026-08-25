@@ -24,6 +24,17 @@ const PARALLEL = {
   wanted: ["Wanted Alternate Art"],
   boxtopper: ["Box Topper"],
   sp: ["Special Alternate Art"],
+  // ── 2026-08-25 추가. 종전에 gold/silver/signature 가 아예 비어 있어서 11장이 통째로 누락됐다.
+  //    화면에는 "PSA 없음"으로 보였지만 데이터는 있었다 — OP-11 OP05-119 Gold 는 일본판만 2,094장이다.
+  //    GemRate 는 애니버서리 각인을 par 에 그대로 쓴다(실측 2026-08-24 덤프):
+  //      "3rd Anniversary-Gold" / "3rd Anniversary-Silver" / "1st Anniversary-Signature"
+  //    우리 tier 는 카드명에서 나온다: ... SP Gold → gold, ... Silver Parallel → silver,
+  //    ... Gold Stamped Signature → signature.
+  //    ⚠️ 애니버서리 회차는 세트마다 다르므로(1st/2nd/3rd) 전부 적는다. 회차가 늘면 여기에 추가할 것.
+  //    "Alternate Art-Gold" 나 "<캐릭터명>-Gold" 는 넣지 않는다 — 그건 다른 종류의 골드다.
+  gold: ["3rd Anniversary-Gold", "2nd Anniversary-Gold", "1st Anniversary-Gold"],
+  silver: ["3rd Anniversary-Silver", "2nd Anniversary-Silver", "1st Anniversary-Silver"],
+  signature: ["1st Anniversary-Signature", "2nd Anniversary-Signature", "3rd Anniversary-Signature"],
 };
 // Run: node tools/psa-card-pop-ingest.js <dump.json> [--report]   (--report = 적재하지 않고 매칭 결과만 출력)
 const fs = require("node:fs");
@@ -35,6 +46,32 @@ const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
 const histPath = path.join(ROOT, "data", "psa-card-pop.json");
 
 const digits = (s) => (String(s || "").match(/(\d{1,4})\s*$/) || [, ""])[1].replace(/^0+(?=\d)/, "");
+
+// 폴백(담은 세트 목록) 전용 이름 검증 — 2026-08-25.
+// 각인 세트 목록에서는 "번호+접두어"가 카드를 특정하지만, 담은 세트 목록에서는 접두어가 달라
+// **숫자만** 같은 남의 카드가 걸린다. 실측으로 실제 오배정이 나왔다:
+//   우리 "Monkey D. Luffy 119 SP"(각인 OP05-119) → OP-11 목록의 119 = Sanji(1,346장) 가 붙었다.
+//   우리 "Buggy OP09 051 SP"           → OP-09 목록의 051 = Boa Hancock(4,496장) 이 붙었다.
+// 그래서 폴백에서는 GemRate 행의 카드명이 우리 카드명 안에 들어 있을 때만 채택한다.
+const nameKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
+// 같은 인물을 다르게 적는 표기차 — 여기 없으면 "다른 카드"로 보고 버린다.
+// 실측(2026-08-24 덤프): 우리 "Mr2BonKurei Bentham" ↔ GemRate "Mr. 2 Bon Clay",
+//                        우리 "Kouzuki Oden" ↔ GemRate "Kozuki Oden".
+// 표기차만 넣는다 — 다른 인물을 여기에 넣으면 그게 곧 변형 오배정이다.
+const ALIAS = [
+  ["bonkurei", "bonclay"], ["bentham", "bonclay"],
+  ["kouzuki", "kozuki"],
+];
+function nameAgrees(ourName, rowName) {
+  let a = nameKey(ourName), b = nameKey(rowName);
+  if (!a || !b) return false;          // 이름이 없으면 확인할 수 없다 — 채택하지 않는다
+  if (a.includes(b) || b.includes(a)) return true;
+  for (const [x, y] of ALIAS) {
+    const a2 = a.replace(x, y), b2 = b.replace(x, y);
+    if (a2.includes(b2) || b2.includes(a2)) return true;
+  }
+  return false;
+}
 const codeNoDash = (c) => String(c || "").replace(/-/g, "").toUpperCase();
 
 function match(dump, data) {
@@ -53,18 +90,42 @@ function match(dump, data) {
       const wants = PARALLEL[tier];
       if (!wants) { noMapping.push(`${code} ${num} (${tier})`); continue; }
 
+      // 어느 세트 목록에서 찾을지 — 각인 세트(lookIn)를 먼저 본다.
+      // 다만 애니버서리 각인(gold/silver/signature)은 **담은 세트에서 새로 찍힌 카드**라
+      // 각인 세트 목록에는 아예 없다. 실측: OP05-119 SP Gold 는 각인이 OP-05 지만
+      // "3rd Anniversary-Gold" 행은 OP-11 목록에만 있다(일본판 2,094장). 그래서 통째로 못 찾았다.
+      // 그 경우에만 담은 세트(code) 목록을 추가로 본다.
+      //
+      // ⚠️ 변형 오배정 방지 — 이 폴백은 **번호 + par 라벨 완전일치**를 그대로 요구한다.
+      //    번호만으로 찾지 않는다(그게 만가/알트가 섞이던 경로다).
+      //    두 목록에서 각각 잡히면 어느 쪽이 맞는지 알 수 없으므로 채택하지 않고 ambiguous 로 버린다.
+      const lists = lookIn === code ? [lookIn] : [lookIn, code];
+
       let found = false;
       for (const ed of ["jp", "en"]) {
-        const rows = dump.sets[`${lookIn}|${ed}`];
-        if (!Array.isArray(rows)) continue;
-        const sameNum = rows.filter((r) => digits(r.num) && digits(r.num) === digits(num));
-        if (!sameNum.length) { noRow.push(`${lookIn}|${ed} ${num}`); continue; }
-        const hits = sameNum.filter((r) => wants.includes(r.par));
-        if (hits.length !== 1) {
-          ambiguous.push({ key: `${lookIn}|${ed} ${num}`, card: card.name, tier, want: wants.join("/"), got: sameNum.map((r) => `${r.par}(${r.total})`) });
+        const cand = [];
+        for (const src of lists) {
+          const rows = dump.sets[`${src}|${ed}`];
+          if (!Array.isArray(rows)) continue;
+          const sameNum = rows.filter((r) => digits(r.num) && digits(r.num) === digits(num));
+          if (!sameNum.length) continue;
+          // **모든 경로에서** 이름이 맞아야 한다 — 2026-08-25.
+          // 각인 세트 목록도 안전하지 않다: digits() 가 접두어를 버리므로 OP07-051 과 OP09-051 이
+          // 둘 다 "51" 로 같아진다. 실측 오배정:
+          //   OP-09 목록의 051 "Special Alternate Art" 는 **Boa Hancock**(4,496장)인데
+          //   우리 "Buggy OP09 051 SP" 에 붙었다(OP-09 의 051 Buggy 는 Wanted/Manga/Alt/Base 뿐이다).
+          // 이름이 안 맞으면 채택하지 않는다. 애매하면 비우는 편이 낫다.
+          const hits = sameNum.filter((r) => wants.includes(r.par) && nameAgrees(card.name, r.name));
+          if (hits.length === 1) cand.push({ src, r: hits[0], sameNum });
+          else if (hits.length > 1) cand.push({ src, r: null, sameNum });   // 같은 라벨이 둘 — 판정 불가
+        }
+        if (!cand.length) { noRow.push(`${lookIn}|${ed} ${num} [${tier}]`); continue; }
+        if (cand.length > 1 || !cand[0].r) {
+          ambiguous.push({ key: `${lookIn}|${ed} ${num}`, card: card.name, tier, want: wants.join("/"),
+            got: cand.flatMap((c) => c.sameNum.map((r) => `${c.src}:${r.par}(${r.total})`)) });
           continue;
         }
-        const r = hits[0];
+        const r = cand[0].r;
         if (!(Number.isInteger(r.total) && r.total > 0 && Number.isInteger(r.g10) && r.g10 <= r.total)) continue;
         found = true;
         // 원장 키는 **카드 각인 기준**(lookIn)으로 남긴다 — 같은 카드가 여러 박스 top10 에 있어도 한 곳에만 쌓인다.
@@ -106,6 +167,11 @@ if (require.main === module) {
   const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
   const res = match(dump, data);
   const summary = { accepted: res.accepted.length, ambiguous: res.ambiguous.length, noRow: res.noRow.length, skippedReprint: res.skippedReprint.length, noMapping: res.noMapping.length };
+  if (process.argv.includes("--full")) {
+    // 변형 오배정 검사용 — 채택 전부를 낸다(샘플이 아니라). 사람이 tier↔par 정합성을 눈으로 검증할 때 쓴다.
+    console.log(JSON.stringify({ summary, accepted: res.accepted, ambiguous: res.ambiguous }, null, 1));
+    return;
+  }
   if (process.argv.includes("--report")) {
     console.log(JSON.stringify({ summary, ambiguousSample: res.ambiguous.slice(0, 12), noMappingSample: res.noMapping.slice(0, 8), acceptedSample: res.accepted.slice(0, 6) }, null, 1));
   } else {
