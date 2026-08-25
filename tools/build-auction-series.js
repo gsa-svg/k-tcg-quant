@@ -149,6 +149,22 @@ function stats(sales) {
   return b;
 }
 
+// 하루 24시간 중 종료건이 0인 시간의 수. 경매는 하루 종일 끝나므로 연속 공백은 수집 누락 신호다.
+// 시간 정보가 없는 아카이브(구 포맷)는 0 을 돌려 기존 판정을 바꾸지 않는다.
+function hourGap(sales) {
+  const h = new Array(24).fill(0);
+  let known = 0;
+  for (const s of sales || []) {
+    const t = s.endedAt || s.ended || s.endTime;
+    if (!t) continue;
+    const d = new Date(t);
+    if (Number.isNaN(d.getTime())) continue;
+    h[d.getUTCHours()] += 1; known += 1;
+  }
+  if (known < 50) return 0;   // 표본이 얇으면 시간 분포로 판정하지 않는다
+  return h.filter((x) => x === 0).length;
+}
+
 function main() {
   if (!fs.existsSync(ARCHIVE)) throw new Error("auction-archive 폴더가 없다");
   const files = fs.readdirSync(ARCHIVE).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
@@ -172,7 +188,14 @@ function main() {
       //      완결일은 26% 대다(경매는 하루 종일 종료되고, 낙찰된 건이 먼저 원장에 들어온다).
       //      건수 임계값만으로는 못 잡는다 — 그날 591건이라 400을 넘겨 완결로 나갔고,
       //      그 왜곡된 하루가 공개 CSV 에 그대로 실렸다.
-      partial: b.ended < PARTIAL_BELOW || day >= new Date().toISOString().slice(0, 10),
+      // 세 가지를 다 partial 로 본다:
+      //  (1) 수집이 덜 돈 날(400건 미만)
+      //  (2) 오늘 — 아직 안 끝난 날
+      //  (3) **시간 공백** — 경매는 24시간 내내 종료되므로 종료건이 0인 시간대가 길면 그 구간을 못 받은 것이다.
+      //      건수 임계값만으로는 못 잡는다: 2026-08-22 는 UTC 03~08시 5시간이 0건인데 총 813건이라
+      //      400 을 넘겨 완결일로 발행됐다(이웃날 같은 시간대는 142~255건). 그 낙찰률이 공개 CSV 에 실렸다.
+      partial: b.ended < PARTIAL_BELOW || day >= new Date().toISOString().slice(0, 10) || hourGap(sales) >= 2,
+      hourGapHours: hourGap(sales),
       gradeTracked: day >= GRADE_SINCE,          // false 면 graded/raw 구분이 없는 날이다
       ...b,
     };

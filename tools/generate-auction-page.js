@@ -12,6 +12,10 @@ const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const auc = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-sold.json"), "utf8"));
+// partial 판정은 auction-series.json 만 들고 있다. 표에 표시해 반쪽 하루를 정상일처럼 읽지 않게 한다.
+let aucSeries = { daily: [] };
+try { aucSeries = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-series.json"), "utf8")); } catch (e) {}
+const PARTIAL_DAYS = new Set((aucSeries.daily || []).filter((r) => r.partial).map((r) => r.d));
 const cardStats = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-card-stats.json"), "utf8"));
 const DATA_DATE = d.updated || "";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -48,7 +52,7 @@ const topCards = Object.entries(cardStats.cards || {})
   .map(([id, c]) => ({ id, ...c, name: nameOf(c.set, id) }))
   .sort((a, b) => b.medPrice - a.medPrice).slice(0, 12);
 
-const dTr = daily.map((x) => `<tr><td class="l">${esc(x.d)}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? usd(x.medPrice) : "—"}</td><td>${x.medBids != null ? num(x.medBids) : "—"}</td></tr>`).join("\n");
+const dTr = daily.map((x) => `<tr${PARTIAL_DAYS.has(x.d) ? ' class="partialRow"' : ""}><td class="l">${esc(x.d)}${PARTIAL_DAYS.has(x.d) ? ' <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span>' : ""}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? usd(x.medPrice) : "—"}</td><td>${x.medBids != null ? num(x.medBids) : "—"}</td></tr>`).join("\n");
 const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
 const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td></tr>`).join("\n");
 
@@ -165,6 +169,10 @@ const html = `<!doctype html>
     <script type="application/ld+json">${crumbLd}</script>
     <link rel="stylesheet" href="styles.css?v=${CACHE}" />
     <style>
+      /* 수집이 중단된 날은 눈에 띄게 둔다 — 정상일과 같아 보이면 반쪽 하루를 그대로 읽는다. */
+      .partialRow { opacity: .62; }
+      .pFlag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+        color: #f0b84b; border: 1px solid rgba(240,184,75,.45); border-radius: 5px; padding: 1px 5px; margin-left: 6px; }
       .aucWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .aucWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
       .aucWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.65; max-width: 700px; }

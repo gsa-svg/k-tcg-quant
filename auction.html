@@ -27,6 +27,10 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Auction Data","item":"https://opboxindex.com/auction.html"}]}</script>
     <link rel="stylesheet" href="styles.css?v=20260821f" />
     <style>
+      /* 수집이 중단된 날은 눈에 띄게 둔다 — 정상일과 같아 보이면 반쪽 하루를 그대로 읽는다. */
+      .partialRow { opacity: .62; }
+      .pFlag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+        color: #f0b84b; border: 1px solid rgba(240,184,75,.45); border-radius: 5px; padding: 1px 5px; margin-left: 6px; }
       .aucWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .aucWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
       .aucWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.65; max-width: 700px; }
@@ -133,7 +137,7 @@
 <tr><td class="l">2026-08-19</td><td>855</td><td>228</td><td>26.7%</td><td>$21</td><td>8</td></tr>
 <tr><td class="l">2026-08-20</td><td>960</td><td>303</td><td>31.6%</td><td>$17</td><td>7</td></tr>
 <tr><td class="l">2026-08-21</td><td>1,136</td><td>199</td><td>17.5%</td><td>$30</td><td>6</td></tr>
-<tr><td class="l">2026-08-22</td><td>813</td><td>232</td><td>28.5%</td><td>$24</td><td>9</td></tr>
+<tr class="partialRow"><td class="l">2026-08-22 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>813</td><td>232</td><td>28.5%</td><td>$24</td><td>9</td></tr>
 <tr><td class="l">2026-08-23</td><td>1,279</td><td>356</td><td>27.8%</td><td>$11</td><td>6</td></tr>
 <tr><td class="l">2026-08-24</td><td>1,045</td><td>414</td><td>39.6%</td><td>$23</td><td>8</td></tr>
         </tbody>

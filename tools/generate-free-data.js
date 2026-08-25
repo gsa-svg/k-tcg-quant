@@ -47,7 +47,7 @@ const writeCsv = (name, head, records) => {
 const readJson = (p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", p), "utf8")); } catch { return null; } };
 const { records: priceRecords, dates: priceDates } = buildBoxRecords(d);
 const { records: gradeRecords, dates: gradeDates } = buildGradeRecords(d, readJson("cgc-grading-history.json"), readJson("tag-grading-history.json"));
-const { records: auctionRecords, dates: auctionDates } = buildAuctionRecords(readJson("auction-sold.json"));
+const { records: auctionRecords, dates: auctionDates } = buildAuctionRecords(readJson("auction-sold.json"), readJson("auction-series.json"));
 const aiData = buildAiData(d);
 const aiDates = [];
 for (const set of aiData.sets) {
