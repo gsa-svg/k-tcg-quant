@@ -103,6 +103,9 @@ function main(dumpFile) {
   }
   for (const s of Object.values(ledger.sets)) for (const k of ["jp", "en"]) s[k].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
   ledger.updated = today;
+  // updated 는 실행 시각이라 수확 0 이어도 찍힌다 — 실제 적재일을 따로 남긴다(원피스와 동일).
+  // 그것만 보면 수집 전멸이 감사에 안 잡힌다(2026-08-25 감사 지적).
+  if (added > 0) ledger.lastAppended = { d: today, n: added };
 
   fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 1) + "\n", "utf8");
   const counts = {};

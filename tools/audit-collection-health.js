@@ -176,6 +176,18 @@ if (has("data/auction-market.json")) {
     else if (age > SOLD_STALE) fail(`박스 sold 수집이 ${age}일째 없다 (마지막 ${L.updated}) — 월·수·금 수동 수집을 걸렀다`);
     else ok(`박스 sold 원장 최신 ${L.updated}`);
 
+    // updated 는 "돌린 날"이라 한 건도 못 받아도 찍힌다 — 2026-08-25 추가.
+    // 브라우저가 로봇 페이지만 받아 items 0 으로 와도 updated 는 갱신되고, 이 검사가 없으면
+    // 수집 전멸이 18일간(커버리지 검사가 과거 기록으로 버티는 기간) OK 로 보인다.
+    // lastAppended 는 **실제로 새 판매가 들어온 날**이다.
+    if (!L.lastAppended) {
+      ok("박스 sold 원장: lastAppended 아직 없음(다음 수집부터 기록된다)");
+    } else {
+      const gap = daysAgo(L.lastAppended.d);
+      if (gap > SOLD_STALE * 2) fail(`박스 sold 가 ${gap}일째 한 건도 안 늘었다 (마지막 적재 ${L.lastAppended.d}, ${L.lastAppended.n}건) — 수집은 돌지만 아무것도 못 받고 있다`);
+      else ok(`박스 sold 마지막 적재 ${L.lastAppended.d} (${L.lastAppended.n}건)`);
+    }
+
     // 커버리지: 최근 3주 안에 팔린 기록이 있는 세트가 몇 개인가.
     // 세트 하나가 몇 주씩 조용한 건 있을 수 있지만, 절반 이상이 조용하면 수집이 반쪽으로 돌고 있는 것이다.
     const sets = Object.keys(L.sets || {});

@@ -257,6 +257,13 @@ function main(dumpFile) {
   for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) arr.sort((a, b) => a.d.localeCompare(b.d) || a.id.localeCompare(b.id));
   ledger.note = "Append-only ledger of individual completed eBay sales of sealed One Piece booster boxes, one record per sold listing (deduplicated by eBay item id). Collected via a real browser because eBay blocks server access to completed-sale data. Prices are per box: multi-box lots are divided by the quantity stated in the title, and listings whose quantity or language cannot be determined are excluded rather than guessed. Weekly medians, sold counts, and sales volume are derived from this file. Past records are never modified or deleted.";
   ledger.updated = today;
+  // updated 는 "언제 돌렸나"다 — 한 건도 못 받아도 찍힌다. 그것만 보면 수집이 전멸해도
+  // 감사가 통과한다(2026-08-25 감사: 그 상태로 18일간 OK 로 보인다고 계산됐다).
+  // "언제 실제로 들어왔나"를 따로 남긴다. audit-collection-health 가 이 값을 본다.
+  {
+    const appendedTotal = Object.values(summary).reduce((a, v) => a + (v.appended || 0), 0);
+    if (appendedTotal > 0) ledger.lastAppended = { d: today, n: appendedTotal };
+  }
   fs.writeFileSync(ledgerPath, JSON.stringify(ledger) + "\n", "utf8");
   fs.writeFileSync(dataPath, JSON.stringify(data) + "\n", "utf8");
 
