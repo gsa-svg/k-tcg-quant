@@ -18,7 +18,14 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").
 const usd = (n) => (n == null || !isFinite(n) ? "—" : "$" + Math.round(n).toLocaleString("en-US"));
 const num = (n) => (n == null ? "—" : Number(n).toLocaleString("en-US"));
 
-const daily = (auc.daily || []).slice(-10);
+// 진행 중인 오늘은 **여기서** 잘라낸다 — 2026-08-25.
+// 종전엔 아래에서 fullDays 를 따로 만들어 "최신 완결일" 문장에만 썼고, 표·헤드라인·FAQ·
+// schema.org 는 필터 없는 daily 를 그대로 썼다. 그래서 같은 페이지에
+// "On the latest full day (2026-08-23)" 문장과 08-24 부분치 행(591건·52.1%)이 함께 실렸다.
+// 실제 08-24 는 1,045건·39.6% 였다 — 건수 -43%, 낙찰률 +12.5%p 로 어긋난다.
+// 공개 CSV 는 이미 당일을 빼고 있어서 페이지 숫자를 CSV 로 재현할 수 없는 상태이기도 했다.
+const TODAY_ISO = new Date().toISOString().slice(0, 10);
+const daily = (auc.daily || []).filter((x) => x.d < TODAY_ISO).slice(-10);
 if (daily.length < 3) { console.error("일별 집계가 3일 미만 — 페이지 미생성"); process.exit(1); }
 const totN = daily.reduce((t, x) => t + x.n, 0);
 const totSold = daily.reduce((t, x) => t + x.sold, 0);
@@ -29,12 +36,8 @@ const kinds = ["card", "box", "pack"].map((k) => {
   return { k, n, sold, st: n ? Math.round((sold / n) * 100) : null };
 });
 const cardK = kinds[0], boxK = kinds[1];
-// "latest full day" 문구가 진행 중인 오늘을 가리키면 그날 저녁까지 숫자가 계속 변한다
-// (실측 08-21 낮: 324건 vs 전날 완결 960건). auction-sold 의 daily 엔 partial 플래그가
-// 없으므로 생성일(UTC 오늘) 당일 행을 완결일에서 제외한다.
-const todayIso = new Date().toISOString().slice(0, 10);
-const fullDays = daily.filter((x) => x.d < todayIso);
-const last = fullDays[fullDays.length - 1];
+// daily 가 이미 완결일만 담는다(위 TODAY_ISO 필터).
+const last = daily[daily.length - 1];
 
 const nameOf = (set, id) => {
   const cs = (d.sets[set] || {}).cards || [];

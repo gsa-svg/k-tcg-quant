@@ -101,10 +101,15 @@ function stats(sales) {
     b.sold += 1;
     b.byCat[cat].sold += 1;
     b.byEd[ed].sold += 1;
-    // 낙찰액은 개당가가 아니라 실제 결제 규모(가격×수량)로 본다. 통화가 USD 가 아니면 금액에서 뺀다
-    // (환산해서 섞으면 어느 시점 환율인지 알 수 없는 값이 된다 — 빈 값이 틀린 값보다 낫다).
+    // 낙찰액은 실제 결제 규모다. **price 가 이미 묶음 총액**이라 qty 를 다시 곱하면 안 된다 — 2026-08-25 수정.
+    // 아카이브 note 가 그렇게 적어 뒀고("'price' is the final winning bid (lot total)"),
+    // 실측으로도 qty>=2 낙찰행 483건 전부 unitPrice == price/qty 였다(unitPrice == price 인 행은 0건).
+    // 곱했을 때: 전 기간 GMV 가 $1,330,037 → $1,554,258 (+16.9%), 2026-07 은 +25.8% 로 부풀었다.
+    // 최악 단일건 — 'A Fist Of Divine Speed Booster Box Case (12 Boxes)' price $6,211 × qty 12 = $74,532 가
+    // 하루 금액에 실려, 그날 정상 총합($65,767)보다 큰 한 건이 됐다.
+    // 통화가 USD 가 아니면 금액에서 뺀다(환산해서 섞으면 어느 시점 환율인지 알 수 없다 — 빈 값이 틀린 값보다 낫다).
     if (s.currency === "USD" && s.price > 0) {
-      const v = s.price * (s.qty || 1);
+      const v = s.price;
       b.amount += v;
       b.byCat[cat].amount += v;
       b.byEd[ed].amount += v;

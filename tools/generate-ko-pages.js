@@ -31,6 +31,19 @@ const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
 function boxKrw(code, nowUsd) {
   return nowUsd != null && fx.usdKrw ? nowUsd * fx.usdKrw : null;
 }
+// 산문용 시세 시리즈 — 히어로(boxKrw)와 **같은 소스**를 쓴다. 2026-08-25.
+// 종전엔 이 아래 산문만 sets.boxSeries(외부 KRW 시세)를 계속 썼는데 그게 2026-07-12 에 멈춰 있었다.
+// 그래서 21개 ko 페이지 전부가 한 페이지 안에서 서로 다른 "현재 시세"를 말했다
+// (예: op-01 히어로 422,190원 vs 본문 484,721원). OP-02 는 값을 비워 둔 세트인데 본문만 값을 제시했다.
+let SOLD_SERIES = { sets: {} };
+try { SOLD_SERIES = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch (e) {}
+// USD 주간 중앙값 → 원화. 환율은 히어로와 같은 fx 를 쓴다.
+function soldKrwPts(code) {
+  const arr = ((SOLD_SERIES.sets || {})[code] || {}).jp || [];
+  if (!fx.usdKrw) return [];
+  return arr.filter((p) => p && p.median != null).map((p) => ({ d: p.d, p: Math.round(p.median * fx.usdKrw) }));
+}
+
 function nameKo(code) { const s = d.sets[code]; return (s && s.nameKo) || code; }
 function reprintRecords(code) { return ((mi.reprints.bySet[code] || {}).reprintRecords) || []; }
 
@@ -297,8 +310,9 @@ ${cardRows}
   //    21페이지가 같은 틀이었던 게 반려 사유의 핵심이라, 데이터 조건에 따라 문장이 달라지게 짠다.
   const prose = [];
 
-  // 1) 시세 흐름 — boxSeries(원화) 최저·최고·현재
-  const pts = (s.boxSeries && s.boxSeries.points) || [];
+  // 1) 시세 흐름 — 우리 eBay 실판매 주간 중앙값(원화 환산). 히어로 값과 같은 소스다.
+  //    점이 3개 미만이면 문단 자체를 만들지 않는다 — 값을 지어내지 않는다는 원칙은 여기서도 같다.
+  const pts = soldKrwPts(code);
   if (pts.length >= 3) {
     const lo = pts.reduce((m, p) => (p.p < m.p ? p : m));
     const hi = pts.reduce((m, p) => (p.p > m.p ? p : m));

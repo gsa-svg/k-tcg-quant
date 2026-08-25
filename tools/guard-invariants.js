@@ -501,6 +501,34 @@ if (exists("data/auction-card-stats.json")) {
     const s = JSON.parse(read(f));
     const EDS = ["jp", "en", "other"];
     const CATS = ["box", "graded", "raw", "pack", "lot"];
+    // ── 일별 금액을 **원본 아카이브와 직접 대조**한다 — 2026-08-25 신설.
+    // 파생값끼리만 검사하면 생성 규칙이 통째로 틀렸을 때 전부 사이좋게 틀린다.
+    // 실제로 amount 를 price × qty 로 쌓아 GMV 가 +16.9% 부풀었는데 기존 A2 는 전량 통과했다.
+    // 아카이브의 낙찰·USD 행 price 합이 정답이다(price 는 묶음 총액이라 qty 를 곱하지 않는다).
+    {
+      const dir = path.join(ROOT, "data", "auction-archive");
+      if (fs.existsSync(dir)) {
+        const byDay = new Map();
+        for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json"))) {
+          let sales = [];
+          try { sales = JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")).sales || []; } catch { continue; }
+          let sum = 0;
+          for (const r of sales) if (r.sold && r.currency === "USD" && r.price > 0) sum += r.price;
+          byDay.set(f.slice(0, 10), sum);
+        }
+        let checked = 0;
+        for (const r of s.daily || []) {
+          const want = byDay.get(r.d);
+          if (want == null) continue;
+          checked += 1;
+          // 반올림 여유 1달러. 그 이상 어긋나면 집계 규칙이 원본과 다르다는 뜻이다.
+          if (Math.abs((r.amount || 0) - want) > 1) {
+            errors.push(`A2: ${r.d} amount ${Math.round(r.amount)} ≠ 아카이브 낙찰 price 합 ${Math.round(want)}`);
+          }
+        }
+        if (!checked) errors.push("A2: 아카이브와 대조된 날이 0일 — 금액 검증이 무력화됐다");
+      }
+    }
     const minN = s.minPriceSample;
     if (!(minN > 0)) errors.push("A2: minPriceSample 이 없다 — 시세 표본 하한이 사라짐");
     for (const scope of ["daily", "weekly", "monthly"]) {
@@ -514,6 +542,11 @@ if (exists("data/auction-card-stats.json")) {
           if (sum !== r.ended) errors.push(`A2: ${scope} ${r.d} ${name} 합계 ${sum} ≠ ended ${r.ended}`);
         }
         if (r.sold + r.unsold !== r.ended) errors.push(`A2: ${scope} ${r.d} 낙찰+유찰 ≠ 종료`);
+        // 금액은 낙찰건 수를 넘는 규모가 될 수 없다 — 2026-08-25 추가.
+        // 종전에 price × qty 로 쌓아 묶음(케이스 12박스)이 통째로 이중계상됐고, 전 기간 GMV 가
+        // \$1,330,037 → \$1,554,258(+16.9%)로 부풀었다. price 가 이미 묶음 총액인데 qty 를 또 곱한 탓이다.
+        // 아래는 그 부류를 잡는 최소 불변식: 낙찰이 0인데 금액이 있으면 어딘가에서 만들어낸 값이다.
+        if (r.sold === 0 && (r.amount || 0) > 0) errors.push(`A2: ${scope} ${r.d} 낙찰 0건인데 금액 ${r.amount}`);
         // 판본 커버리지가 낮은 구간을 "집계 가능"으로 표시하면, 못 읽은 걸 다른 판으로 읽게 된다.
         if (r.edTracked && r.edCoverage < s.edMinCoverage) errors.push(`A2: ${scope} ${r.d} edCoverage ${r.edCoverage}% 인데 edTracked=true`);
         // 표본이 하한 미만인데 중앙값이 있으면, 없는 시세를 만들어낸 것이다.
