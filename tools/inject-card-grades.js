@@ -20,6 +20,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { ourTier } = require("./cgc-card-pop-ingest.js");
+const { donRef } = require("./psa-card-pop-ingest.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
@@ -36,10 +37,10 @@ const psa = load("psa-card-pop.json");
 
 // PSA 원장은 카드 각인 세트 기준으로 쌓인다(OP-13 top10 의 OP09-004 는 OP-09 밑에 있다).
 // 그래서 담고 있는 박스가 아니라 카드 번호의 각인으로 찾아야 한다.
-const psaPoint = (card, key) => {
+const psaPoint = (card, key, donCode) => {
   const stamp = (String(card.number || "").toUpperCase().match(/^([A-Z]+\d{2})/) || [, ""])[1];
-  if (!stamp) return {};
-  const code = `${stamp.slice(0, -2)}-${stamp.slice(-2)}`;
+  if (!stamp && !donCode) return {};   // DON!! 카드는 번호가 없다
+  const code = donCode || `${stamp.slice(0, -2)}-${stamp.slice(-2)}`;
   const out = {};
   for (const ed of ["jp", "en"]) {
     const arr = psa?.sets?.[code]?.[ed]?.[key];
@@ -64,8 +65,9 @@ for (const [code, set] of Object.entries(data.sets)) {
   for (const card of set.cards || []) {
     cards += 1;
     const num = (card.number || "").toUpperCase();
-    if (!num) { if (card.graderPop) { delete card.graderPop; cleared += 1; } continue; }
-    const key = `${num}|${ourTier(card.name || "")}`;
+    const don = donRef(card.name);
+    if (!num && !don) { if (card.graderPop) { delete card.graderPop; cleared += 1; } continue; }
+    const key = don ? don.key : `${num}|${ourTier(card.name || "")}`;
 
     const out = {};
     // CGC 원장은 2026-08-03 부터 판별로 나뉜다(sets[코드][판][키]). 그 전 기록은 .jp 로 이관돼 있다.
@@ -92,7 +94,7 @@ for (const [code, set] of Object.entries(data.sets)) {
     }
     if (Object.keys(tagEd).length) { out.tag = tagEd; withTag += 1; }
 
-    const p = psaPoint(card, key);
+    const p = psaPoint(card, key, don ? code : null);
     if (Object.keys(p).length) { out.psa = p; withPsa += 1; }
 
     if (Object.keys(out).length) card.graderPop = out;

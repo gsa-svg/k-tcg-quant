@@ -23,7 +23,10 @@ const PARALLEL = {
   red: ["Red Manga Alternate Art"],
   wanted: ["Wanted Alternate Art"],
   boxtopper: ["Box Topper"],
-  sp: ["Special Alternate Art"],
+  // "Special" 은 EB-02 계열에서 GemRate 가 쓰는 짧은 표기다(실측 2026-08-25:
+  // EB-02|jp 의 Boa Hancock 038 = "Special"(548장), 같은 카드가 OP-07 목록에는 Alternate Art 로 있다).
+  // 이 표기가 없어 EB-02 SP 7장이 통째로 안 붙었다. 이름 검증이 별도로 걸리므로 남의 카드는 못 붙는다.
+  sp: ["Special Alternate Art", "Special"],
   // ── 2026-08-25 추가. 종전에 gold/silver/signature 가 아예 비어 있어서 11장이 통째로 누락됐다.
   //    화면에는 "PSA 없음"으로 보였지만 데이터는 있었다 — OP-11 OP05-119 Gold 는 일본판만 2,094장이다.
   //    GemRate 는 애니버서리 각인을 par 에 그대로 쓴다(실측 2026-08-24 덤프):
@@ -74,10 +77,41 @@ function nameAgrees(ourName, rowName) {
 }
 const codeNoDash = (c) => String(c || "").replace(/-/g, "").toUpperCase();
 
+// DON!! 카드만 GemRate 의 필드가 뒤집혀 있다 — 2026-08-25 실측.
+//   name = "Don!! Card"(75~78행이 전부 같은 이름) · par = "<캐릭터>-Gold" · num = 빈칸.
+// 번호가 없으니 번호 경로로는 영원히 못 잡는다. 캐릭터명으로만 특정한다.
+// 안전장치: 그 캐릭터의 -Gold 행이 **정확히 하나**일 때만 채택한다.
+//   ("Luffy" 처럼 Gear 4 / Gear 5 두 행에 걸리는 이름은 판정 불가로 버린다.)
+const donRef = (cardName) => {
+  const m = String(cardName || "").match(/^DON\s*Card\s+(.+?)\s+Gold$/i);
+  return m ? { char: m[1], key: `DON-${nameKey(m[1])}|gold` } : null;
+};
+
 function match(dump, data) {
   const accepted = [], ambiguous = [], noRow = [], skippedReprint = [], noMapping = [];
   for (const [code, set] of Object.entries(data.sets)) {
     for (const card of set.cards || []) {
+      const don = donRef(card.name);
+      if (don) {
+        for (const ed of ["jp", "en"]) {
+          const rows = dump.sets[`${code}|${ed}`];
+          if (!Array.isArray(rows)) { noRow.push(`${code}|${ed} DON ${don.char}`); continue; }
+          const hits = rows.filter((r) => /^don!!\s*card$/i.test(String(r.name || "").trim())
+            && /-Gold$/i.test(String(r.par || ""))
+            && nameAgrees(don.char, String(r.par).replace(/-Gold$/i, "")));
+          if (hits.length !== 1) {
+            if (hits.length) ambiguous.push({ key: `${code}|${ed} DON`, card: card.name, tier: "gold",
+              want: `${don.char}-Gold`, got: hits.map((r) => `${r.par}(${r.total})`) });
+            else noRow.push(`${code}|${ed} DON ${don.char}`);
+            continue;
+          }
+          const r = hits[0];
+          if (!(Number.isInteger(r.total) && r.total > 0 && Number.isInteger(r.g10) && r.g10 <= r.total)) continue;
+          accepted.push({ code, box: code, ed, num: `DON-${nameKey(don.char)}`, tier: "gold", card: card.name,
+            par: r.par, total: r.total, g10: r.g10, g9: r.g9, d: r.updated || dump.collectedAt });
+        }
+        continue;
+      }
       const num = String(card.number || "").toUpperCase();
       if (!num) continue;
       const stamp = (num.match(/^([A-Z]+\d{2})/) || [, ""])[1];
@@ -159,7 +193,7 @@ function ingest(dump, res) {
   return { appended, skipped };
 }
 
-module.exports = { match, ingest, PARALLEL };
+module.exports = { match, ingest, PARALLEL, donRef };
 if (require.main === module) {
   const file = process.argv.slice(2).find((a) => !a.startsWith("--"));
   if (!file) { console.error("usage: node tools/psa-card-pop-ingest.js <dump.json> [--report]"); process.exit(1); }
