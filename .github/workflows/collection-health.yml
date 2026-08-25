@@ -31,6 +31,12 @@ jobs:
       - name: Check data freshness
         run: node tools/audit-collection-health.js
 
+      # 산출물이 오래됐다는 신호와 별개로, **수집기 자체가 실행 불가**인 경우를 잡는다.
+      # 2026-08-24: 팰월드 수집기가 정규식 이스케이프 오류로 브라우저에서 죽어 있었는데
+      # 산출물은 예전 값 그대로라 위 검사만으로는 "오래됨"으로만 보였다.
+      - name: Check collectors are runnable
+        run: node tools/audit-collectors.js
+
       # 위가 실패하면 여기까지 안 온다. 요약을 실행 화면에 남겨 메일만 보고도 상황을 알게 한다.
       - name: Summary
         if: always()
