@@ -171,8 +171,17 @@ function main(dumpFile) {
   let ledger;
   try { ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8")); } catch { ledger = { sets: {} }; }
   ledger.sets = ledger.sets || {};
-  const knownIds = new Set();
-  for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) for (const r of arr) knownIds.add(r.id);
+  // 중복 키는 **매물 id + 판매일**이다 — 2026-08-25 수정.
+  // 종전엔 id 만 봤다. 그런데 eBay 의 sold 검색은 매물 하나를 한 줄로 보여주고 날짜는 **최근 판매일**만 싣는다.
+  // 재고가 여러 개인 매물(다량 판매자)은 같은 id 로 여러 번 팔리는데, id 만으로 걸러서
+  // 두 번째 이후 판매를 전부 "이미 아는 건"으로 버렸다.
+  // 실측 2026-08-25: OP-16 일본판이 8/6 이후 한 건도 안 팔린 것처럼 보였는데, 실제로는
+  // 8/12·8/16·8/16·8/24·8/25 에 팔렸다. 그 5건의 id 가 전부 원장에 7월 날짜로 이미 있었다
+  // (예: 137382805205 — eBay 는 Aug 24 "Last one", 우리 원장은 2026-07-24).
+  // 그래서 일본판 시세가 20일째 정지한 것처럼 그려졌다.
+  const knownKeys = new Set();
+  const keyOf = (id, d) => `${id}|${d}`;
+  for (const eds of Object.values(ledger.sets)) for (const arr of Object.values(eds)) if (Array.isArray(arr)) for (const r of arr) knownKeys.add(keyOf(r.id, r.d));
 
   // 판별 가격대(중앙값)를 원장에서 만든다 — judgeItem 의 언어 교차검증이 쓴다.
   // **제목이 언어를 명시한 기록만** 기준으로 삼는다. 신고값만 있는 기록까지 넣으면
@@ -224,17 +233,18 @@ function main(dumpFile) {
       const j = judgeItem(item, code, fx, nameMap, declaredEd, fmt);
       if (j.drop) { drops[j.drop] = (drops[j.drop] || 0) + 1; continue; }
       seen[j.ed].push(j.rec);
-      if (knownIds.has(j.rec.id)) {
+      if (knownKeys.has(keyOf(j.rec.id, j.rec.d))) {
+        // 같은 매물이 같은 날 여러 밴드에 잡힌 것 — 한 건이다.
         // 가격·날짜는 절대 덮어쓰지 않는다. 다만 fmt 는 예전에 아예 수집하지 않던 값이라
         // 비어 있을 때만 채운다 — 과거 레코드가 즉구였는지 경매였는지 알아낼 유일한 기회다.
         if (j.rec.fmt) {
           const arr = (ledger.sets[code] || {})[j.ed] || [];
-          const old = arr.find((r) => r.id === j.rec.id);
+          const old = arr.find((r) => r.id === j.rec.id && r.d === j.rec.d);
           if (old && !old.fmt) { old.fmt = j.rec.fmt; backfilled++; }
         }
         continue;
       }
-      knownIds.add(j.rec.id);
+      knownKeys.add(keyOf(j.rec.id, j.rec.d));
       ledger.sets[code] = ledger.sets[code] || { jp: [], en: [] };
       ledger.sets[code][j.ed].push(j.rec);
       appended++;

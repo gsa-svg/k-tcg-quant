@@ -751,12 +751,18 @@ if (exists("data/cgc-card-pop.json")) {
 if (exists("data/box-sold-ledger.json")) {
   const lg = JSON.parse(read("data/box-sold-ledger.json"));
   if (!/append-only|never modified/i.test(lg.note || "")) errors.push("D6: ledger note 에 append-only 고지 누락");
+  // 유일성 키는 **id + 판매일**이다 — 2026-08-25.
+  // eBay 의 sold 검색은 매물 하나를 한 줄로 보여주고 날짜는 최근 판매일만 싣는다.
+  // 재고가 여럿인 매물은 같은 id 로 여러 번 팔리므로 id 만으로 유일성을 요구하면
+  // 진짜 판매를 중복으로 오인해 버리게 된다(실측: 그렇게 193건을 놓치고 있었다).
+  // 같은 id + 같은 날은 여전히 중복이다 — 그건 한 건이다.
   const ids = new Set();
   for (const [code, eds] of Object.entries(lg.sets || {})) {
     for (const ed of ["jp", "en"]) {
       for (const r of (eds || {})[ed] || []) {
-        if (!r.id || ids.has(r.id)) { errors.push(`D6: ${code}.${ed} id 누락/중복 (${r.id})`); break; }
-        ids.add(r.id);
+        const uniqKey = `${r.id}|${r.d}`;
+        if (!r.id || ids.has(uniqKey)) { errors.push(`D6: ${code}.${ed} id+판매일 누락/중복 (${r.id} ${r.d})`); break; }
+        ids.add(uniqKey);
         if (!/^\d{4}-\d{2}-\d{2}$/.test(r.d || "")) { errors.push(`D6: ${code}.${ed} ${r.id} 날짜 형식 이상 (${r.d})`); break; }
         // 상한 8000: OP-01 영문 Blue Bottom(초판)은 실제로 $4~6천대에서 팔린다. 5000 이던 상한은
         // 2026-08-17 환율 보정(tools/restore-box-fx.js) 후 실거래 1건($5,205)을 튕겨냈다 — 데이터가
