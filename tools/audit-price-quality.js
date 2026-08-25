@@ -34,6 +34,27 @@ function addIssue(issues, issue) {
   });
 }
 
+// 값이 언제 것인지 — 2026-08-25 추가.
+// 종전 검사는 "값이 그럴듯한가"만 봤다. 오래된 값은 그럴듯하다. 실측으로 175장 중 80장이
+// 옛 가격이었고 최대 -53% 차이가 났는데(유유테이 수집이 밀려 있었다) 어떤 검사도 걸지 못했다.
+// 유유테이 매칭에 실패한 카드는 nmUpdated 가 아예 안 찍히므로 여기서 드러난다.
+const NM_STALE_DAYS = 21;
+
+function auditNmFreshness(issues, code, card) {
+  if (card.nmJpy == null) return;
+  const current = { nmJpy: card.nmJpy, nmUpdated: card.nmUpdated || null, nmVenue: card.nmVenue || null };
+  if (!card.nmUpdated) {
+    addIssue(issues, { severity: "review", code, card, field: "nmUpdated", reason: "nm_price_has_no_observation_date", current });
+    return;
+  }
+  const days = Math.floor((Date.now() - Date.parse(card.nmUpdated)) / 864e5);
+  if (!Number.isFinite(days)) {
+    addIssue(issues, { severity: "review", code, card, field: "nmUpdated", reason: "nm_observation_date_unparseable", current });
+  } else if (days > NM_STALE_DAYS) {
+    addIssue(issues, { severity: "review", code, card, field: "nmUpdated", reason: "nm_price_stale", current: { ...current, days } });
+  }
+}
+
 function auditNmPrice(issues, code, card, fx) {
   if (card.nmJpy == null) return;
 
@@ -206,6 +227,7 @@ function main() {
     if (!targetCodes.has(code)) continue;
     for (const card of set.cards || []) {
       auditNmPrice(issues, code, card, fx);
+      auditNmFreshness(issues, code, card);
       auditPsa10Price(issues, code, card);
       auditJapaneseNmEbay(issues, code, card);
     }

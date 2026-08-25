@@ -109,6 +109,7 @@ async function fetchProducts(code) {
 }
 
 async function main() {
+  const today = new Date().toISOString().slice(0, 10);
   const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
   const requestedCodes = process.argv.slice(2);
   const defaultCodes = [...data.jp.list, ...data.extra.list].filter((code) => data.sets[code]?.cards?.length);
@@ -142,6 +143,11 @@ async function main() {
         card.nmVenue = "遊々亭";
         card.nmSourceUrl = url;
         card.nmStock = selected.stockText;
+        // **이 카드를 실제로 다시 본 날**. 전체 파일의 updated 로는 알 수 없다 — 2026-08-25 추가.
+        // 매칭에 실패한 카드는 여기를 갱신하지 않으므로, 옛 가격이 남아 있으면 날짜로 드러난다.
+        // 실측(2026-08-25): 175장 중 80장이 오래된 값이었고 최대 -53% 차이가 났는데
+        // 화면에는 아무 표시도 없었다. 41장은 매칭 실패라 계속 옛값이 남는다.
+        card.nmUpdated = today;
         updated += 1;
       }
     }
@@ -153,7 +159,7 @@ async function main() {
     console.log(`${code}: updated=${updated} missed=${missed} products=${products.length}`);
   }
 
-  data.updated = new Date().toISOString().slice(0, 10);
+  data.updated = today;
   fs.writeFileSync(dataPath, `${JSON.stringify(data)}\n`, "utf8");
 
   const missedTotal = summary.reduce((sum, row) => sum + row.missed, 0);

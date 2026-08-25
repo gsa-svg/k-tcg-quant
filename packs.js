@@ -193,7 +193,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260825a";
+const DATA_VERSION = "20260825b";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -995,7 +995,12 @@ function priceLines(c) {
   }
   if (c.nmJpy != null) {
     const p = triMain(c.nmJpy, "JPY");
-    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small><em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
+    // 관측일을 값 옆에 붙인다 — PSA10 줄과 같은 형식. 날짜 없이 보여주면 언제 값인지 알 수 없다.
+    // 2026-08-25 실측: 175장 중 80장이 오래된 값이었고 최대 -53% 차이였는데 화면엔 아무 표시가 없었다.
+    // 갱신일이 없는 카드(유유테이 매칭 실패로 옛값이 남은 경우)는 날짜 자리에 "확인일 미상"을 쓴다.
+    const nmD = c.nmUpdated ? c.nmUpdated.slice(2).replace(/-/g, ".") : "";
+    const nmStale = !c.nmUpdated || (Date.now() - Date.parse(c.nmUpdated)) > 21 * 864e5;
+    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small${nmStale ? ' class="plStale"' : ""}>${nmD ? nmD + " " : `${t("확인일 미상", "date unknown")} `}<em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const p = triMain(c.psa10Usd, "USD");

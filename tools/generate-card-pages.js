@@ -40,7 +40,21 @@ for (const [code, s] of Object.entries(d.sets || {})) {
     if (!prev || (isHome && !prev.isHome)) seen.set(key, { code, set: s, card: c, isHome });
   }
 }
-const cands = [...seen.values()].sort((a, b) => b.card.nmJpy - a.card.nmJpy).slice(0, TOP_N);
+// 상위 TOP_N + **이전에 이미 공개한 카드**. 순위는 시세에 따라 흔들린다 — 2026-08-25 실측으로
+// 유유테이 갱신 한 번에 80장 값이 바뀌면서 OP-02 에이스 망가가 24위 밖으로 밀려 페이지가 지워졌다.
+// 살아 있던 URL 이 시세 등락 때문에 404 가 되면 안 된다(노출 페이지는 추가만, 임의 제거 금지).
+// 밀려난 카드도 계속 만들되 **데이터는 매번 최신으로** 다시 쓴다 — 남겨두는 것과 방치는 다르다.
+const keyOfCard = (c) => c.number + "|" + norm(c.name);
+const CARDS_DIR = path.join(ROOT, "cards");
+let publishedBefore = {};
+try { publishedBefore = JSON.parse(fs.readFileSync(path.join(CARDS_DIR, "card-map.json"), "utf8")); } catch { publishedBefore = {}; }
+if (!Object.keys(publishedBefore).length) throw new Error("card-map.json 을 못 읽었다 — 이전 공개 목록 없이 생성하면 살아 있던 페이지가 빠진다");
+const top = [...seen.values()].sort((a, b) => b.card.nmJpy - a.card.nmJpy).slice(0, TOP_N);
+const inTop = new Set(top.map((x) => keyOfCard(x.card)));
+const keptFromBefore = [...seen.values()]
+  .filter((x) => !inTop.has(keyOfCard(x.card)) && publishedBefore[keyOfCard(x.card)])
+  .sort((a, b) => b.card.nmJpy - a.card.nmJpy);
+const cands = [...top, ...keptFromBefore];
 
 // PSA pop 매칭(세트 psa 표)
 function popOf(setObj, card) {
@@ -70,7 +84,6 @@ function psa10Of(card) {
 const IMG_MAP = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "img", "cards", "map.json"), "utf8")); } catch { return {}; } })();
 const localImg = (slug, fallback) => (IMG_MAP[slug] ? `${SITE}/${IMG_MAP[slug]}` : (fallback || null));
 
-const CARDS_DIR = path.join(ROOT, "cards");
 fs.mkdirSync(CARDS_DIR, { recursive: true });
 
 const hubItems = [];
@@ -275,14 +288,18 @@ for (const { code, set: s, card: c } of cands) {
   hubItems.push({ slug: fname, name: c.name, number: c.number, code, usd: Math.round(nmUsd), img: imgRel || c.img });
 }
 
-// cards/*.html are generator-owned. Remove details that fell out of TOP_N so
-// old, unlinked template pages do not remain publicly reachable after refreshes.
+// 이번 실행에서 안 만든 카드 페이지 — **지우지 않고 보고만 한다**(2026-08-25).
+// 종전엔 바로 unlink 했다. 그 결과 시세가 조금 움직이면 살아 있던 URL 이 404 가 됐다.
+// 실제로 남는 경우는 카드 이름이 바뀌어 슬러그가 갈린 때다. 사람이 보고 정리한다: --prune
 const currentCardFiles = new Set(written);
-const removedStale = [];
+const orphans = [];
 for (const file of fs.readdirSync(CARDS_DIR)) {
   if (file === "index.html" || !file.endsWith(".html") || currentCardFiles.has(file)) continue;
-  fs.unlinkSync(path.join(CARDS_DIR, file));
-  removedStale.push(file);
+  orphans.push(file);
+}
+const pruned = [];
+if (process.argv.includes("--prune")) {
+  for (const file of orphans) { fs.unlinkSync(path.join(CARDS_DIR, file)); pruned.push(file); }
 }
 
 // 세트 페이지가 체이스 표에 링크 걸 수 있게 슬러그 맵 출력 (generate-set-pages.js가 읽음)
@@ -384,4 +401,4 @@ if (!sm.includes(`<loc>${SITE}/cards/</loc>`)) {
   sm = sm.replace("</urlset>", `  <url>\n    <loc>${SITE}/cards/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>`);
 }
 fs.writeFileSync(smPath, sm);
-console.log(JSON.stringify({ cards: written.length, removedStale, sitemapRemoved: removed }));
+console.log(JSON.stringify({ cards: written.length, keptFromBefore: keptFromBefore.length, orphans, pruned, sitemapRemoved: removed }));

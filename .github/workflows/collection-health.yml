@@ -43,6 +43,15 @@ jobs:
       - name: Check grade attribution
         run: node tools/audit-grade-attribution.js
 
+      # 그래프에 그려지는 점을 원장에서 다시 계산해 대조한다(값·사분위·표본·거래량·격자·마지막 판매일).
+      # 화면 요약값(boxMarket.ebaySold)이 선의 마지막 점과 어긋나는 경우도 여기서 걸린다.
+      - name: Check box chart series
+        run: node tools/audit-box-series.js
+
+      # 가격: 변형 오매칭 + **신선도**. 2026-08-25 실측으로 175장 중 80장이 옛 가격(최대 -53%)이었다.
+      - name: Check price quality
+        run: node tools/audit-price-quality.js
+
       # 위가 실패하면 여기까지 안 온다. 요약을 실행 화면에 남겨 메일만 보고도 상황을 알게 한다.
       - name: Summary
         if: always()
