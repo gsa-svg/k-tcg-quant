@@ -12,7 +12,7 @@
 //   card.graderPop = {
 //     cgc: { total, pristine10, gemMint10, d },   // d = 그 관측일
 //     tag: { total, g10, g10p, d },
-//     psa: { jp:{total,g10,g9,d}, en:{...} },     // PSA 만 판별로 나뉜다(합산 금지)
+//     psa: { jp:{total,g10,g9,d}, en:{...} },     // PSA·CGC·TAG 전부 판별로 나뉜다(합산 금지)
 //   }
 // PSA 는 GemRate 공개 세트 페이지에 카드·변형별로 있고 일본판/영문판이 따로다(2026-08-03 확인).
 // 합산하지 않고 판별로 각각 싣는다. CGC·TAG 는 우리 수집이 일본판 기준이라 판 구분 없이 한 줄이다.
@@ -79,12 +79,18 @@ for (const [code, set] of Object.entries(data.sets)) {
       if (pristine + gemMint <= c.total) cgcEd[ed] = { total: c.total, pristine10: pristine, gemMint10: gemMint, d: c.d };
     }
     if (Object.keys(cgcEd).length) { out.cgc = cgcEd; withCgc += 1; }
-    const g = lastPoint(tag, code, key);
-    if (g && int(g.total)) {
+    // TAG 원장도 2026-08-25 부터 판별로 나뉜다(sets[코드][판][키]). 그 전 기록은 .jp 로 이관돼 있다.
+    // 판을 합치지 않는다 — 일본판과 영문판은 인쇄가 다르고 합친 비율은 어느 쪽도 설명하지 못한다.
+    const tagEd = {};
+    for (const ed of ["jp", "en"]) {
+      const g = lastPoint(tag?.sets?.[code]?.[ed] ? { sets: { [code]: tag.sets[code][ed] } } : null, code, key);
+      if (!g || !int(g.total)) continue;
       const g10 = int(g.g?.["10"]) ?? 0;
       const g10p = int(g.g?.["10P"]) ?? 0;
-      if (g10 + g10p <= g.total) { out.tag = { total: g.total, g10, g10p, d: g.d }; withTag += 1; }
+      // 만점이 총량을 넘으면 매칭이 어긋난 것이다 — 그런 값은 싣지 않는다.
+      if (g10 + g10p <= g.total) tagEd[ed] = { total: g.total, g10, g10p, d: g.d };
     }
+    if (Object.keys(tagEd).length) { out.tag = tagEd; withTag += 1; }
 
     const p = psaPoint(card, key);
     if (Object.keys(p).length) { out.psa = p; withPsa += 1; }

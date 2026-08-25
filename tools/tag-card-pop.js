@@ -49,11 +49,12 @@ window.__tagNavParse=async(href)=>{
  return {rows:out};
 };
 window.__tagCardYear=async(year,MAXV=8)=>{
- // 연도 페이지로 이동 후 우리 박스 관련 일본판 세트 링크 수집
+ // 연도 페이지로 이동 후 우리 박스 관련 세트 링크 수집(판본 무관).
+ // TAG 카드별 커버리지가 75% 였던 주된 이유가 영문판 미수집이었다(2026-08-25 실측).
  history.pushState({},"","/pop-report/One Piece/"+year);window.dispatchEvent(new PopStateEvent("popstate"));
  for(let i=0;i<24;i++){await new Promise(z=>setTimeout(z,400));if([...document.querySelectorAll("table a")].length>3)break;}
  const links=[...document.querySelectorAll("table a")].map(a=>({t:(a.textContent||"").replace(/\\s+/g," ").trim(),h:a.getAttribute("href")||""}))
-  .filter(x=>/Japanese/.test(x.t)&&window.__tagMatchBox(x.t));
+  .filter(x=>window.__tagMatchBox(x.t));   // 일본판·영문판 둘 다 — 2026-08-25. 종전엔 /Japanese/ 로 걸러 영문판을 통째로 안 봤다.
  let visited=0,keptTotal=0;
  for(const l of links){
   const key=year+"|"+l.t;

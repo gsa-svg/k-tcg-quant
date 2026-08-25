@@ -25,7 +25,7 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Where do these auction prices come from?","acceptedAnswer":{"@type":"Answer","text":"Every auction is read again after it closed, so the price recorded is the final winning bid — not a mid-auction bid and not an asking price. Auctions that ended without a sale stay in the data as the denominator of sell-through. Where eBay does not report a sold state we store null rather than guessing."}},{"@type":"Question","name":"What share of One Piece card auctions actually sell?","acceptedAnswer":{"@type":"Answer","text":"Across the last 10 days we tracked 10,425 One Piece auctions to close and 3,168 of them sold — about 30%. Sealed boxes clear at a far higher rate than single cards (74% vs 28% in this window)."}},{"@type":"Question","name":"Why can auction prices differ from Buy It Now prices?","acceptedAnswer":{"@type":"Answer","text":"An auction records the highest bid reached at a specific closing time, while a fixed-price listing records a seller's ask. Use the auction median as one completed-sale reference, then add shipping and import fees and match the exact card variant before comparing."}},{"@type":"Question","name":"Can I download this data?","acceptedAnswer":{"@type":"Answer","text":"Yes — the daily aggregates (auctions tracked, sold count, sell-through, median winning bid) are published as a free CSV under CC BY 4.0 on the free data page. Attribution with a link is the only requirement."}}]}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Card Game completed eBay auction results","description":"Daily completed-auction outcomes for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. 10,425 auctions tracked in the latest 10-day window.","url":"https://opboxindex.com/auction.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-08-24","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-auction-daily.csv"}]}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Auction Data","item":"https://opboxindex.com/auction.html"}]}</script>
-    <link rel="stylesheet" href="styles.css?v=20260821f" />
+    <link rel="stylesheet" href="styles.css?v=20260825a" />
     <style>
       /* 수집이 중단된 날은 눈에 띄게 둔다 — 정상일과 같아 보이면 반쪽 하루를 그대로 읽는다. */
       .partialRow { opacity: .62; }
@@ -97,9 +97,9 @@
 
       <div class="statRow">
         <div class="stat hi"><b>36%</b><span>sold across all games</span></div>
-        <div class="stat"><b>29,297</b><span>auctions read after close</span></div>
+        <div class="stat"><b>30,197</b><span>auctions read after close</span></div>
         <div class="stat"><b>17</b><span>card games tracked</span></div>
-        <div class="stat"><b>$2,769,940</b><span>hammer value · 19d</span></div>
+        <div class="stat"><b>$2,821,562</b><span>hammer value · 19d</span></div>
       </div>
 
       <div class="chartCard">
@@ -121,7 +121,7 @@
         <details class="noteFold">
           <summary>How this is measured</summary>
           <p>Same collector, same window, every game: each auction is re-read after it closes, and auctions that ended unsold stay in the denominator. Sell-through carries a Wilson 95% interval — two games differ only where their intervals do not overlap, so neighbours within a few points are not ranked against each other. Games with fewer than 100 tracked auctions are omitted rather than shown on a thin sample. Hammer value is the sum of winning bids in our tracked sample, not total eBay volume. Colour marks the six most-searched games so they are easy to find; every bar is labelled, so colour is never the only identifier.</p>
-          <p>One note on the One Piece bar: this cross-game sampler reads about 91 auctions per game per day so every game is measured the same way. The dedicated One Piece tracker further down this page reads the whole One Piece board — many times more listings, weighted far more heavily toward cheap singles — so its sell-through is lower. Neither is wrong; they are different samples, and only the bars above are comparable to each other.</p>
+          <p>One note on the One Piece bar: this cross-game sampler reads about 93 auctions per game per day so every game is measured the same way. The dedicated One Piece tracker further down this page reads the whole One Piece board — many times more listings, weighted far more heavily toward cheap singles — so its sell-through is lower. Neither is wrong; they are different samples, and only the bars above are comparable to each other.</p>
         </details>
       </div>
 
@@ -165,21 +165,21 @@
         <table class="aTable">
           <thead><tr><th class="l">Trading card game</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th></tr></thead>
           <tbody>
-<tr><td class="l">Riftbound (LoL)</td><td>1,801</td><td>1,123</td><td>62.4% <small style="color:var(--muted)">±2.2</small></td><td>$140</td></tr>
+<tr><td class="l">Riftbound (LoL)</td><td>1,807</td><td>1,126</td><td>62.3% <small style="color:var(--muted)">±2.2</small></td><td>$140</td></tr>
 <tr><td class="l">Palworld TCG</td><td>732</td><td>448</td><td>61.2% <small style="color:var(--muted)">±3.5</small></td><td>$35</td></tr>
-<tr><td class="l">Dragon Ball Fusion World</td><td>1,814</td><td>1,007</td><td>55.5% <small style="color:var(--muted)">±2.3</small></td><td>$61</td></tr>
-<tr><td class="l">Disney Lorcana</td><td>2,287</td><td>1,118</td><td>48.9% <small style="color:var(--muted)">±2</small></td><td>$123</td></tr>
-<tr style="background:rgba(16,215,160,.06)"><td class="l">One Piece <small>this site's subject</small></td><td>2,521</td><td>1,217</td><td>48.3% <small style="color:var(--muted)">±1.9</small></td><td>$38</td></tr>
-<tr><td class="l">Pokemon (Japanese)</td><td>2,521</td><td>934</td><td>37% <small style="color:var(--muted)">±1.9</small></td><td>$16</td></tr>
-<tr><td class="l">Union Arena</td><td>1,638</td><td>602</td><td>36.8% <small style="color:var(--muted)">±2.3</small></td><td>$31</td></tr>
-<tr><td class="l">Gundam Card Game</td><td>979</td><td>359</td><td>36.7% <small style="color:var(--muted)">±3</small></td><td>$32</td></tr>
-<tr><td class="l">Pokemon</td><td>2,824</td><td>881</td><td>31.2% <small style="color:var(--muted)">±1.7</small></td><td>$11</td></tr>
-<tr><td class="l">Yu-Gi-Oh!</td><td>2,504</td><td>707</td><td>28.2% <small style="color:var(--muted)">±1.8</small></td><td>$24</td></tr>
-<tr><td class="l">Magic: The Gathering</td><td>2,520</td><td>705</td><td>28% <small style="color:var(--muted)">±1.8</small></td><td>$23</td></tr>
-<tr><td class="l">Weiss Schwarz</td><td>2,170</td><td>552</td><td>25.4% <small style="color:var(--muted)">±1.8</small></td><td>$20</td></tr>
+<tr><td class="l">Dragon Ball Fusion World</td><td>1,825</td><td>1,012</td><td>55.5% <small style="color:var(--muted)">±2.3</small></td><td>$61</td></tr>
+<tr style="background:rgba(16,215,160,.06)"><td class="l">One Piece <small>this site's subject</small></td><td>2,640</td><td>1,307</td><td>49.5% <small style="color:var(--muted)">±1.9</small></td><td>$36</td></tr>
+<tr><td class="l">Disney Lorcana</td><td>2,321</td><td>1,131</td><td>48.7% <small style="color:var(--muted)">±2</small></td><td>$121</td></tr>
+<tr><td class="l">Union Arena</td><td>1,641</td><td>602</td><td>36.7% <small style="color:var(--muted)">±2.3</small></td><td>$31</td></tr>
+<tr><td class="l">Gundam Card Game</td><td>983</td><td>359</td><td>36.5% <small style="color:var(--muted)">±3</small></td><td>$32</td></tr>
+<tr><td class="l">Pokemon (Japanese)</td><td>2,712</td><td>986</td><td>36.4% <small style="color:var(--muted)">±1.8</small></td><td>$17</td></tr>
+<tr><td class="l">Pokemon</td><td>3,013</td><td>952</td><td>31.6% <small style="color:var(--muted)">±1.7</small></td><td>$12</td></tr>
+<tr><td class="l">Magic: The Gathering</td><td>2,717</td><td>807</td><td>29.7% <small style="color:var(--muted)">±1.7</small></td><td>$22</td></tr>
+<tr><td class="l">Yu-Gi-Oh!</td><td>2,586</td><td>726</td><td>28.1% <small style="color:var(--muted)">±1.7</small></td><td>$24</td></tr>
+<tr><td class="l">Weiss Schwarz</td><td>2,185</td><td>559</td><td>25.6% <small style="color:var(--muted)">±1.8</small></td><td>$20</td></tr>
 <tr><td class="l">MetaZoo</td><td>142</td><td>29</td><td>20.4% <small style="color:var(--muted)">±6.6</small></td><td>$29</td></tr>
-<tr><td class="l">Star Wars Unlimited</td><td>1,456</td><td>293</td><td>20.1% <small style="color:var(--muted)">±2.1</small></td><td>$9</td></tr>
-<tr><td class="l">Flesh and Blood</td><td>743</td><td>144</td><td>19.4% <small style="color:var(--muted)">±2.8</small></td><td>$32</td></tr>
+<tr><td class="l">Star Wars Unlimited</td><td>1,503</td><td>295</td><td>19.6% <small style="color:var(--muted)">±2</small></td><td>$9</td></tr>
+<tr><td class="l">Flesh and Blood</td><td>745</td><td>145</td><td>19.5% <small style="color:var(--muted)">±2.8</small></td><td>$32</td></tr>
 <tr><td class="l">Cardfight Vanguard</td><td>617</td><td>99</td><td>16% <small style="color:var(--muted)">±2.9</small></td><td>—</td></tr>
 <tr><td class="l">Digimon</td><td>2,028</td><td>208</td><td>10.3% <small style="color:var(--muted)">±1.3</small></td><td>$5</td></tr>
           </tbody>
@@ -227,7 +227,7 @@
       // 게임별 낙찰률/거래액/물량 막대. dataviz 검증 통과 6색(+중립) — 색은 익숙한 게임을
       // 눈으로 찾게 하는 보조수단이고, 모든 막대에 이름표가 붙어 색만으로 구분하지 않는다.
       (function () {
-        var rows = [{"key":"riftbound","name":"Riftbound (LoL)","isOp":false,"n":1801,"sold":1123,"rate":62.4,"ci":2.2,"med":140,"gmv":1028025,"ending":173},{"key":"palworld","name":"Palworld TCG","isOp":false,"n":732,"sold":448,"rate":61.2,"ci":3.5,"med":34.88,"gmv":68584,"ending":48},{"key":"dragonball","name":"Dragon Ball Fusion World","isOp":false,"n":1814,"sold":1007,"rate":55.5,"ci":2.3,"med":61,"gmv":238232,"ending":188},{"key":"lorcana","name":"Disney Lorcana","isOp":false,"n":2287,"sold":1118,"rate":48.9,"ci":2,"med":122.5,"gmv":510761,"ending":644},{"key":"onepiece","name":"One Piece","isOp":true,"n":2521,"sold":1217,"rate":48.3,"ci":1.9,"med":38,"gmv":198736,"ending":2344},{"key":"pokemonjp","name":"Pokemon (Japanese)","isOp":false,"n":2521,"sold":934,"rate":37,"ci":1.9,"med":15.51,"gmv":171630,"ending":5910},{"key":"unionarena","name":"Union Arena","isOp":false,"n":1638,"sold":602,"rate":36.8,"ci":2.3,"med":31,"gmv":91413,"ending":117},{"key":"gundam","name":"Gundam Card Game","isOp":false,"n":979,"sold":359,"rate":36.7,"ci":3,"med":32,"gmv":94335,"ending":72},{"key":"pokemon","name":"Pokemon","isOp":false,"n":2824,"sold":881,"rate":31.2,"ci":1.7,"med":10.99,"gmv":86655,"ending":40634},{"key":"yugioh","name":"Yu-Gi-Oh!","isOp":false,"n":2504,"sold":707,"rate":28.2,"ci":1.8,"med":23.5,"gmv":146228,"ending":2376},{"key":"magic","name":"Magic: The Gathering","isOp":false,"n":2520,"sold":705,"rate":28,"ci":1.8,"med":23,"gmv":59729,"ending":4245},{"key":"weiss","name":"Weiss Schwarz","isOp":false,"n":2170,"sold":552,"rate":25.4,"ci":1.8,"med":20,"gmv":34257,"ending":314},{"key":"metazoo","name":"MetaZoo","isOp":false,"n":142,"sold":29,"rate":20.4,"ci":6.6,"med":29.04,"gmv":1711,"ending":17},{"key":"swu","name":"Star Wars Unlimited","isOp":false,"n":1456,"sold":293,"rate":20.1,"ci":2.1,"med":8.5,"gmv":9679,"ending":178},{"key":"fab","name":"Flesh and Blood","isOp":false,"n":743,"sold":144,"rate":19.4,"ci":2.8,"med":32,"gmv":14685,"ending":23},{"key":"vanguard","name":"Cardfight Vanguard","isOp":false,"n":617,"sold":99,"rate":16,"ci":2.9,"med":null,"gmv":2003,"ending":22},{"key":"digimon","name":"Digimon","isOp":false,"n":2028,"sold":208,"rate":10.3,"ci":1.3,"med":5,"gmv":13277,"ending":236}];
+        var rows = [{"key":"riftbound","name":"Riftbound (LoL)","isOp":false,"n":1807,"sold":1126,"rate":62.3,"ci":2.2,"med":140,"gmv":1031121,"ending":173},{"key":"palworld","name":"Palworld TCG","isOp":false,"n":732,"sold":448,"rate":61.2,"ci":3.5,"med":34.88,"gmv":68584,"ending":48},{"key":"dragonball","name":"Dragon Ball Fusion World","isOp":false,"n":1825,"sold":1012,"rate":55.5,"ci":2.3,"med":61,"gmv":238360,"ending":188},{"key":"onepiece","name":"One Piece","isOp":true,"n":2640,"sold":1307,"rate":49.5,"ci":1.9,"med":36.01,"gmv":204291,"ending":2344},{"key":"lorcana","name":"Disney Lorcana","isOp":false,"n":2321,"sold":1131,"rate":48.7,"ci":2,"med":120.5,"gmv":527075,"ending":644},{"key":"unionarena","name":"Union Arena","isOp":false,"n":1641,"sold":602,"rate":36.7,"ci":2.3,"med":31,"gmv":91413,"ending":117},{"key":"gundam","name":"Gundam Card Game","isOp":false,"n":983,"sold":359,"rate":36.5,"ci":3,"med":32,"gmv":94335,"ending":72},{"key":"pokemonjp","name":"Pokemon (Japanese)","isOp":false,"n":2712,"sold":986,"rate":36.4,"ci":1.8,"med":16.62,"gmv":187596,"ending":5910},{"key":"pokemon","name":"Pokemon","isOp":false,"n":3013,"sold":952,"rate":31.6,"ci":1.7,"med":11.5,"gmv":90929,"ending":40634},{"key":"magic","name":"Magic: The Gathering","isOp":false,"n":2717,"sold":807,"rate":29.7,"ci":1.7,"med":21.5,"gmv":64337,"ending":4245},{"key":"yugioh","name":"Yu-Gi-Oh!","isOp":false,"n":2586,"sold":726,"rate":28.1,"ci":1.7,"med":23.5,"gmv":147747,"ending":2376},{"key":"weiss","name":"Weiss Schwarz","isOp":false,"n":2185,"sold":559,"rate":25.6,"ci":1.8,"med":20,"gmv":34366,"ending":314},{"key":"metazoo","name":"MetaZoo","isOp":false,"n":142,"sold":29,"rate":20.4,"ci":6.6,"med":29.04,"gmv":1711,"ending":17},{"key":"swu","name":"Star Wars Unlimited","isOp":false,"n":1503,"sold":295,"rate":19.6,"ci":2,"med":8.5,"gmv":9701,"ending":178},{"key":"fab","name":"Flesh and Blood","isOp":false,"n":745,"sold":145,"rate":19.5,"ci":2.8,"med":32,"gmv":14716,"ending":23},{"key":"vanguard","name":"Cardfight Vanguard","isOp":false,"n":617,"sold":99,"rate":16,"ci":2.9,"med":null,"gmv":2003,"ending":22},{"key":"digimon","name":"Digimon","isOp":false,"n":2028,"sold":208,"rate":10.3,"ci":1.3,"med":5,"gmv":13277,"ending":236}];
         var el = document.getElementById("tcgBars");
         var lg = document.getElementById("tcgLegend");
         if (!el || !rows.length) return;

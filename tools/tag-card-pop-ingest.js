@@ -39,10 +39,29 @@ function ingest(dump) {
   try { hist = JSON.parse(fs.readFileSync(histPath, "utf8")); } catch { hist = { grader: "tag", sets: {} }; }
   hist.sets = hist.sets || {};
 
-  // 덤프를 (box,num,tier) 로 그룹
+  // ── 판(jp/en) 구분 — 2026-08-25.
+  // 종전엔 일본판만 수집해서 판 구분이 없었다(/Japanese/ 로 링크를 걸렀다).
+  // 영문판까지 받자 같은 (box,num,tier) 에 두 판이 겹쳐 라벨이 갈렸고, ingest 가 그걸
+  // "진짜 모호"로 보고 296건을 통째로 스킵했다. 판을 나누면 둘 다 정직하게 담긴다.
+  // TAG 세트명은 일본판에만 "Japanese" 가 붙는다(실측: "... Japanese Alternate Art" vs "... Alternate Art").
+  const edOf = (tagSet) => (/japanese/i.test(String(tagSet || "")) ? "jp" : "en");
+
+  // 기존 기록은 전부 일본판이다(그때 일본판만 긁었다) — jp 밑으로 옮긴다. 값은 손대지 않는다.
+  let migrated = 0;
+  for (const [code, bucket] of Object.entries(hist.sets)) {
+    if (!bucket || bucket.jp || bucket.en) continue;          // 이미 옮겼음
+    const legacy = {};
+    for (const [k, v] of Object.entries(bucket)) {
+      if (k === "jp" || k === "en") continue;
+      legacy[k] = v; delete bucket[k]; migrated += 1;
+    }
+    if (Object.keys(legacy).length) bucket.jp = legacy;
+  }
+
+  // 덤프를 (box,num,tier,ed) 로 그룹
   const byKey = new Map();
   for (const r of dump.cards || []) {
-    const key = `${r.box}|${r.num}|${tagTier(r.tagSet)}`;
+    const key = `${r.box}|${r.num}|${tagTier(r.tagSet)}|${edOf(r.tagSet)}`;
     (byKey.get(key) || byKey.set(key, []).get(key)).push(r);
   }
 
@@ -52,7 +71,8 @@ function ingest(dump) {
       const num = (card.number || "").replace(/^#/, "").toUpperCase();
       if (!num) continue;
       const tier = ourTier(card.name);
-      let rows = byKey.get(`${code}|${num}|${tier}`) || [];
+      for (const ed of ["jp", "en"]) {
+      let rows = byKey.get(`${code}|${num}|${tier}|${ed}`) || [];
       if (!rows.length) continue;
       if (rows.length > 1) {
         // (tagSet, grades) 완전 동일 행은 이중 방문 중복 → 1개로 dedupe(합산하면 2배 계상, 리뷰 확정버그).
@@ -74,12 +94,14 @@ function ingest(dump) {
       if (!(total > 0)) continue;
       const key = `${num}|${tier}`;
       hist.sets[code] = hist.sets[code] || {};
-      const arr = hist.sets[code][key] = hist.sets[code][key] || [];
+      hist.sets[code][ed] = hist.sets[code][ed] || {};
+      const arr = hist.sets[code][ed][key] = hist.sets[code][ed][key] || [];
       if (arr.some((p) => p.d === d)) { skippedDate++; continue; }
       const grades = {}; for (const [k, v] of Object.entries(g)) if (k !== "Total") grades[k] = v;
       arr.push({ d, total, label: rows[0].tagSet.slice(0, 80), g: grades });
       arr.sort((a, b) => a.d.localeCompare(b.d));
       appended++;
+      }
     }
   }
   // 빈/부분 덤프 보호(리뷰 확정버그): 아무것도 못 담았고 같은날짜 스킵도 없으면 = 수집 실패(페이지 구조 변화 등)
@@ -89,11 +111,11 @@ function ingest(dump) {
     process.exitCode = 1;
     return { appended: 0, skippedDate: 0, ambiguous, error: "empty" };
   }
-  hist.note = "Weekly TAG grade distribution for our tracked top-10 One Piece chase cards (Japanese printings), matched by card number + variant tier taken from the TAG set name. Each point stores cumulative counts per grade (1..10, 10P). Append-only; ambiguous matches are skipped rather than guessed.";
+  hist.note = "Weekly TAG grade distribution for our tracked top-10 One Piece chase cards, kept separate for the Japanese and English printings. Matched by card number + variant tier taken from the TAG set name; the printing comes from whether that name carries 'Japanese'. Each point stores cumulative counts per grade (1..10, 10P). Append-only; ambiguous matches are skipped rather than guessed. Records collected before 2026-08-25 were Japanese-only and live under .jp.";
   hist.grader = "tag";
   hist.updated = appended > 0 ? d : hist.updated;
   fs.writeFileSync(histPath, JSON.stringify(hist) + "\n", "utf8");
-  return { appended, skippedDate, ambiguous: ambiguous.slice(0, 10), cards: Object.values(hist.sets).reduce((a, s) => a + Object.keys(s).length, 0) };
+  return { appended, skippedDate, ambiguous: ambiguous.slice(0, 10), cards: Object.values(hist.sets).reduce((a, b) => a + Object.keys(b.jp || {}).length + Object.keys(b.en || {}).length, 0), migrated };
 }
 
 module.exports = { ingest, tagTier };

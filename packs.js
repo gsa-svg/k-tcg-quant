@@ -193,7 +193,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260821f";
+const DATA_VERSION = "20260825a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1738,18 +1738,20 @@ function cardGradePanel(card) {
     if (!c || c.total == null) continue;
     rows.push(`<tr><td class="edName">${label}</td><td class="grNum">${num(c.total)}</td><td class="grNum">${num(c.gemMint10)}</td><td class="grNum">${num(c.pristine10)}</td><td class="grNum">${pct(c.pristine10 + c.gemMint10, c.total)}</td></tr>`);
   }
-  if (g.tag) {
-    // TAG 는 아직 일본판만 모은다. 라벨을 그냥 "TAG" 로 두면, 위 두 등급사가 판별로 나뉜 표에서
-    // 이 줄만 두 판을 합친 값처럼 읽힌다 — 판별을 라벨에 박아 오해를 없앤다(영문판 수집 전까지).
-    rows.push(`<tr><td class="edName">${t("TAG 일본판", "TAG Japanese")}</td><td class="grNum">${num(g.tag.total)}</td><td class="grNum">${num(g.tag.g10)}</td><td class="grNum">${num(g.tag.g10p)}</td><td class="grNum">${pct(g.tag.g10 + g.tag.g10p, g.tag.total)}</td></tr>`);
+  // TAG 도 판별로 나뉜다(2026-08-25 부터 영문판도 수집). 그 전 기록은 판 구분이 없어 통짜로 올 수 있으니 둘 다 받는다.
+  const tagRows = g.tag && (g.tag.jp || g.tag.en) ? [["jp", t("TAG 일본판", "TAG Japanese")], ["en", t("TAG 영문판", "TAG English")]] : [[null, t("TAG 일본판", "TAG Japanese")]];
+  for (const [ed, label] of tagRows) {
+    const x = ed ? g.tag?.[ed] : g.tag;
+    if (!x || x.total == null) continue;
+    rows.push(`<tr><td class="edName">${label}</td><td class="grNum">${num(x.total)}</td><td class="grNum">${num(x.g10)}</td><td class="grNum">${num(x.g10p)}</td><td class="grNum">${pct(x.g10 + x.g10p, x.total)}</td></tr>`);
   }
   if (!rows.length) return "";
-  const asOf = [g.cgc?.d, g.cgc?.jp?.d, g.cgc?.en?.d, g.tag?.d, g.psa?.jp?.d, g.psa?.en?.d].filter(Boolean).sort().at(-1);
+  const asOf = [g.cgc?.d, g.cgc?.jp?.d, g.cgc?.en?.d, g.tag?.d, g.tag?.jp?.d, g.tag?.en?.d, g.psa?.jp?.d, g.psa?.en?.d].filter(Boolean).sort().at(-1);
   return `<div class="cardGradePanel"><h3>${t("이 카드의 등급 인구", "Grades for this card")}</h3>
     <table class="grTable"><thead><tr><th>${t("등급사", "Grader")}</th><th>${t("누적", "Total")}</th><th>${t("만점", "Top")}</th><th>${t("최상위", "Highest")}</th><th>${t("만점 비율", "Top rate")}</th></tr></thead><tbody>${rows.join("")}</tbody></table>
     <p class="edFoot">${t(
-      "PSA 는 만점이 10 하나뿐이라 최상위 칸이 비어 있습니다. CGC 는 젬 민트 10 위에 프리스틴 10, TAG 는 10 위에 10P 를 둡니다 — 가운데가 만점, 오른쪽이 그보다 엄격한 최상위입니다. 등급사끼리, 그리고 일본판·영문판을 합산하지 않습니다. TAG 만 아직 일본판 기준으로 모읍니다.",
-      "PSA has a single top grade, so its highest-tier cell is empty. CGC puts Pristine 10 above Gem Mint 10; TAG puts 10P above 10 — the middle column is the top grade, the right one is the stricter tier above it. We never sum across graders, or across Japanese and English. Only TAG is still collected on the Japanese printing alone.")}${asOf ? ` · ${t("기준", "as of")} ${asOf}` : ""}</p></div>`;
+      "PSA 는 만점이 10 하나뿐이라 최상위 칸이 비어 있습니다. CGC 는 젬 민트 10 위에 프리스틴 10, TAG 는 10 위에 10P 를 둡니다 — 가운데가 만점, 오른쪽이 그보다 엄격한 최상위입니다. 등급사끼리, 그리고 일본판·영문판을 합산하지 않습니다.",
+      "PSA has a single top grade, so its highest-tier cell is empty. CGC puts Pristine 10 above Gem Mint 10; TAG puts 10P above 10 — the middle column is the top grade, the right one is the stricter tier above it. We never sum across graders, or across Japanese and English.")}${asOf ? ` · ${t("기준", "as of")} ${asOf}` : ""}</p></div>`;
 }
 
 function cardMarketPanel(card) {
