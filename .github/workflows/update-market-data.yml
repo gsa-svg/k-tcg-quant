@@ -91,16 +91,16 @@ jobs:
           mkdir -p logs
           node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-ebay-pack-prices.js 2>&1 | tee logs/update-ebay-pack-prices.log
 
-       # 일본 싱글 호가(遊々亭). 서버에서 바로 받아지는데 자동화가 안 돼 있어서
-       # 2026-07-28 → 08-24, 27일간 갱신이 멈춰 있었다. 그 사이 하락장이 통째로 안 잡혔다
-       # (재수집하자 169장 중 74장이 변동, 나미 OP15-086 은 -59%).
-       # 실패해도 나머지 스텝은 진행한다 — 이 값이 없다고 다른 갱신을 막을 이유는 없다.
-       - name: Update Yuyu-tei Japanese NM prices
-         continue-on-error: true
-         run: |
-           set -o pipefail
-           mkdir -p logs
-           node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-yuyutei-nm-prices.js 2>&1 | tee logs/update-yuyutei-nm-prices.log
+      # 일본 싱글 호가(遊々亭). 서버에서 바로 받아지는데 자동화가 안 돼 있어서
+      # 2026-07-28 → 08-24, 27일간 갱신이 멈춰 있었다. 그 사이 하락장이 통째로 안 잡혔다
+      # (재수집하자 169장 중 74장이 변동, 나미 OP15-086 은 -59%).
+      # 실패해도 나머지 스텝은 진행한다 — 이 값이 없다고 다른 갱신을 막을 이유는 없다.
+      - name: Update Yuyu-tei Japanese NM prices
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/run-with-retry.js --attempts 3 --delay-ms 10000 -- node tools/update-yuyutei-nm-prices.js 2>&1 | tee logs/update-yuyutei-nm-prices.log
 
       - name: Update eBay English NM prices
         run: |

@@ -38,6 +38,7 @@ node tools/audit-box-series.js               # 박스 그래프 점을 원장에
 node tools/audit-price-quality.js            # 가격 변형오매칭 + 신선도(관측일 없음/3주 초과)
                                               #   (변형·판·재수록본 오배정. 실패하면 배포 금지)
 node tools/audit-collectors.js                # 브라우저 수집기가 실행 가능한 상태인지
+node tools/audit-workflows.js                 # 워크플로 YAML 이 GitHub 에서 파싱되는지
 node tools/guard-invariants.js
 ```
 

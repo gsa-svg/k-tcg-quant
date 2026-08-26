@@ -37,6 +37,12 @@ jobs:
       - name: Check collectors are runnable
         run: node tools/audit-collectors.js
 
+      # 자동화 자체가 살아 있는지 — 워크플로 YAML 이 GitHub 에서 파싱되는 형태인가.
+      # 2026-08-26: 스텝 하나를 7칸 들여쓰기로 넣어(형제는 6칸) update-market-data.yml 이
+      # 통째로 거부됐다. 실행기록엔 job 0개짜리 failure 만 남아 사람이 보기 전엔 알 수 없었다.
+      - name: Check workflow YAML
+        run: node tools/audit-workflows.js
+
       # 숫자가 아니라 **귀속**을 본다: 화면에 붙은 등급 값이 정말 그 카드·그 변형·그 판의 것인가.
       # 2026-08-25: 재수록본에 원본 세트 인구가 붙어 있었고(PRB-01 샹크스 망가 81장 자리에 4,863장),
       # TR 카드에는 평범한 Base 행이 붙어 있었다. 숫자 검사만으로는 둘 다 정상으로 보였다.
