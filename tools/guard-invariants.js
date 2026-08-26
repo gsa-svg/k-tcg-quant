@@ -52,8 +52,21 @@ for (const f of [...PUBLIC_HTML, "packs.js"]) {
 
 // ── C2. canonical 자기 일치: 각 페이지 canonical == 자기 URL (홈 별칭 2개만 / 허용)
 for (const f of PUBLIC_HTML) {
-  const m = read(f).match(/rel="canonical" href="([^"]+)"/);
+  const html = read(f);
+  const m = html.match(/rel="canonical" href="([^"]+)"/);
   if (!m) continue;
+  // 리다이렉트 스텁 예외 — GitHub Pages 라 서버 301 이 없어서, 틀린 URL 로 만들어졌던 페이지는
+  // noindex + meta refresh + canonical→대상 조합으로 넘긴다(표준 관행). 조건을 전부 갖췄고
+  // refresh 목적지와 canonical 이 **같은 페이지**일 때만 인정한다 — 아무 canonical 이나 봐주는 게 아니다.
+  // 실사례: cards/eb02-061-monkey-d-luffy.html (잘못된 카드번호로 생성 → OP05-060 페이지로 정정, 2026-08-26).
+  const refresh = html.match(/http-equiv="refresh" content="\d+;\s*url=([^"]+)"/i);
+  const noindex = /name="robots" content="[^"]*noindex/i.test(html);
+  if (refresh && noindex) {
+    const target = new URL(refresh[1], "https://opboxindex.com/").href;
+    if (m[1] === target) continue;
+    errors.push(`C2: ${f} 리다이렉트 스텁의 canonical(${m[1]})과 refresh 목적지(${target})가 다르다`);
+    continue;
+  }
   const expected = f === "index.html" || f === "packs.html" ? "https://opboxindex.com/" : `https://opboxindex.com/${f}`;
   const alt = f.endsWith("/index.html") ? `https://opboxindex.com/${f.replace(/index\.html$/, "")}` : null;
   if (m[1] !== expected && m[1] !== alt) errors.push(`C2: ${f} canonical=${m[1]} (기대: ${expected}${alt ? ` 또는 ${alt}` : ""})`);

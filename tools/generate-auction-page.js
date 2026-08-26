@@ -202,7 +202,8 @@ const html = `<!doctype html>
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
-      .metricTabs { display: flex; gap: 6px; }
+      /* wrap 필수 — 버튼 5개가 한 줄이면 375px 에서 42px 가로로 넘친다(2026-08-26 모바일 실측) */
+      .metricTabs { display: flex; gap: 6px; flex-wrap: wrap; }
       .metricTabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 6px 11px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 34px; }
       .metricTabs button[aria-pressed="true"] { border-color: #14A882; color: #14A882; background: rgba(20,168,130,.1); }
       .metricTabs button:focus-visible { outline: 2px solid #14A882; outline-offset: 2px; }
