@@ -29,6 +29,22 @@ const LAST_FULL = iso(Date.parse(TODAY) - DAY);
 const read = (p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8")); } catch { return null; } };
 const problems = [], notes = [];
 
+// 조사가 끝난 영구 공백은 problems 가 아니라 notes 로 낸다 — data/known-gaps.json.
+// 매번 FAIL 이 나면 사람이 이 감사를 무시하게 되고, 그러면 진짜 새 공백도 같이 묻힌다.
+// 대신 목록은 사유와 확인일을 반드시 적게 해서, 새 공백을 조용히 덮는 데 못 쓰게 한다.
+const KNOWN = (() => {
+  const j = read("data/known-gaps.json");
+  const byDay = new Set(), byWeek = new Set();
+  for (const g of (j && j.gaps) || []) {
+    if (!g.reason || !g.confirmed) continue;              // 사유·확인일 없으면 인정하지 않는다
+    for (const d of g.dates || []) byDay.add(`${g.series}|${d}`);
+    for (const w of g.weeks || []) byWeek.add(`${g.series}|${w}`);
+  }
+  return { byDay, byWeek, count: ((j && j.gaps) || []).length };
+})();
+const knownDay = (label, d) => KNOWN.byDay.has(`${label}|${d}`);
+const knownWeek = (label, w) => KNOWN.byWeek.has(`${label}|${w}`);
+
 function missingDays(dates, from, to) {
   const have = new Set(dates.filter(Boolean).map((d) => String(d).slice(0, 10)));
   const out = [];
@@ -44,10 +60,12 @@ function checkDaily(label, dates, opts = {}) {
   const u = [...new Set(dates.filter(Boolean).map((d) => String(d).slice(0, 10)))].sort();
   if (!u.length) { problems.push(`${label} — 데이터가 아예 없다`); return; }
   const start = iso(Math.max(Date.parse(u[0]), Date.parse(LAST_FULL) - (WINDOW - 1) * DAY));
-  const gaps = missingDays(u, start, LAST_FULL);
+  const all = missingDays(u, start, LAST_FULL);
+  const known = all.filter((d) => knownDay(label, d));
+  const gaps = all.filter((d) => !knownDay(label, d));
   const line = `${label} — ${u[0]} ~ ${u[u.length - 1]} (${u.length}일)`;
-  if (!gaps.length) { notes.push(`${line} · 최근 ${WINDOW}일 공백 없음`); return; }
-  // 시작한 지 얼마 안 된 계열은 창을 줄여 잡음을 줄인다.
+  if (known.length) notes.push(`${label} — 확인된 영구 공백 ${known.length}일(${known.join(" ")}) · known-gaps.json 참조`);
+  if (!gaps.length) { notes.push(`${line} · 최근 ${WINDOW}일 새 공백 없음`); return; }
   const msg = `${label} — 최근 ${WINDOW}일 중 ${gaps.length}일 비었다: ${gaps.join(" ")}`;
   if (opts.soft) notes.push(`(참고) ${msg}`); else problems.push(msg);
 }
@@ -115,8 +133,12 @@ for (const [label, file] of [["PSA 카드별", "data/psa-card-pop.json"], ["CGC 
     const w = isoWeek(iso(t));
     if (!weeks.has(w) && iso(t) >= u[0]) missed.push(w);
   }
-  if (missed.length) problems.push(`${label} — 관측이 없는 주 ${[...new Set(missed)].join(" ")}`);
-  else notes.push(`${label} — 최근 ${WINDOW}일 주간 관측 있음(마지막 ${u[u.length - 1]})`);
+  const uniq = [...new Set(missed)];
+  const knownW = uniq.filter((w) => knownWeek(label, w));
+  const freshW = uniq.filter((w) => !knownWeek(label, w));
+  if (knownW.length) notes.push(`${label} — 확인된 영구 공백 주 ${knownW.join(" ")} · known-gaps.json 참조`);
+  if (freshW.length) problems.push(`${label} — 관측이 없는 주 ${freshW.join(" ")}`);
+  else notes.push(`${label} — 최근 ${WINDOW}일 새 공백 없음(마지막 관측 ${u[u.length - 1]})`);
 }
 
 function isoWeek(d) {
