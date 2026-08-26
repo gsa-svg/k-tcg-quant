@@ -31,11 +31,17 @@ const num = (n) => (n == null ? "—" : Number(n).toLocaleString("en-US"));
 const TODAY_ISO = new Date().toISOString().slice(0, 10);
 const daily = (auc.daily || []).filter((x) => x.d < TODAY_ISO).slice(-10);
 if (daily.length < 3) { console.error("일별 집계가 3일 미만 — 페이지 미생성"); process.exit(1); }
-const totN = daily.reduce((t, x) => t + x.n, 0);
-const totSold = daily.reduce((t, x) => t + x.sold, 0);
+// 헤드라인·FAQ·Dataset 의 합산은 **완전 수집일만** 쓴다 — 2026-08-26 감사.
+// 부분수집일(partial)은 실측이지만 덜 센 날이라, 섞으면 건수는 줄고 비율은 치우친다.
+// 표에는 partial 배지와 함께 전부 남긴다 — 숨기는 게 아니라 합산에서만 뺀다.
+const fullDaily = daily.filter((x) => !PARTIAL_DAYS.has(x.d));
+const aggDays = fullDaily.length >= 3 ? fullDaily : daily;   // 완전일이 너무 적으면 전체로 폴백(라벨은 그대로 정직하게)
+const aggNote = fullDaily.length >= 3 && fullDaily.length < daily.length ? ` (${daily.length - fullDaily.length} partial day${daily.length - fullDaily.length > 1 ? "s" : ""} excluded)` : "";
+const totN = aggDays.reduce((t, x) => t + x.n, 0);
+const totSold = aggDays.reduce((t, x) => t + x.sold, 0);
 const st = totN ? Math.round((totSold / totN) * 100) : 0;
 const kinds = ["card", "box", "pack"].map((k) => {
-  const rows = daily.map((x) => x.byKind && x.byKind[k]).filter(Boolean);
+  const rows = aggDays.map((x) => x.byKind && x.byKind[k]).filter(Boolean);
   const n = rows.reduce((t, b) => t + b.n, 0), sold = rows.reduce((t, b) => t + b.sold, 0);
   return { k, n, sold, st: n ? Math.round((sold / n) * 100) : null };
 });
@@ -118,7 +124,7 @@ const tcgTr = tcgRows.map((r) => `<tr${r.isOp ? ' style="background:rgba(16,215,
 
 const faqs = [
   { q: "Where do these auction prices come from?", a: "Every auction is read again after it closed, so the price recorded is the final winning bid — not a mid-auction bid and not an asking price. Auctions that ended without a sale stay in the data as the denominator of sell-through. Where eBay does not report a sold state we store null rather than guessing." },
-  { q: "What share of One Piece card auctions actually sell?", a: `Across the last ${daily.length} days we tracked ${num(totN)} One Piece auctions to close and ${num(totSold)} of them sold — about ${st}%. Sealed boxes clear at a far higher rate than single cards${boxK.st != null && cardK.st != null ? ` (${boxK.st}% vs ${cardK.st}% in this window)` : ""}.` },
+  { q: "What share of One Piece card auctions actually sell?", a: `Across the last ${aggDays.length} full days${aggNote} we tracked ${num(totN)} One Piece auctions to close and ${num(totSold)} of them sold — about ${st}%. Sealed boxes clear at a far higher rate than single cards${boxK.st != null && cardK.st != null ? ` (${boxK.st}% vs ${cardK.st}% in this window)` : ""}.` },
   { q: "Why can auction prices differ from Buy It Now prices?", a: "An auction records the highest bid reached at a specific closing time, while a fixed-price listing records a seller's ask. Use the auction median as one completed-sale reference, then add shipping and import fees and match the exact card variant before comparing." },
   { q: "Can I download this data?", a: "Yes — the daily aggregates (auctions tracked, sold count, sell-through, median winning bid) are published as a free CSV under CC BY 4.0 on the free data page. Attribution with a link is the only requirement." },
 ];
@@ -126,7 +132,7 @@ const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPa
 const dsLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
   name: "One Piece Card Game completed eBay auction results",
-  description: `Daily completed-auction outcomes for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. ${num(totN)} auctions tracked in the latest ${daily.length}-day window.`,
+  description: `Daily completed-auction outcomes for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. ${num(totN)} auctions tracked in the latest ${aggDays.length} full-day window${aggNote}.`,
   url: `${SITE}/auction.html`, license: "https://creativecommons.org/licenses/by/4.0/",
   isAccessibleForFree: true, dateModified: DATA_DATE,
   creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },
@@ -138,7 +144,7 @@ const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Bre
 ] });
 
 const title = "One Piece Card Auction Data — Real eBay Winning Bids & Sell-Through | OP Box Index";
-const desc = `Completed eBay auction results for One Piece cards and sealed boxes: ${num(totN)} auctions tracked over ${daily.length} days, ${st}% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (${DATA_DATE}).`;
+const desc = `Completed eBay auction results for One Piece cards and sealed boxes: ${num(totN)} auctions tracked over ${aggDays.length} full days, ${st}% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (${DATA_DATE}).`;
 
 const html = `<!doctype html>
 <html lang="en">
@@ -150,6 +156,9 @@ const html = `<!doctype html>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/auction.html" />
+    <link rel="alternate" hreflang="en" href="${SITE}/auction.html" />
+    <link rel="alternate" hreflang="ko" href="${SITE}/ko/auction.html" />
+    <link rel="alternate" hreflang="x-default" href="${SITE}/auction.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -171,8 +180,10 @@ const html = `<!doctype html>
     <style>
       /* 수집이 중단된 날은 눈에 띄게 둔다 — 정상일과 같아 보이면 반쪽 하루를 그대로 읽는다. */
       .partialRow { opacity: .62; }
+      /* 신선도·불완전 경고는 사이트 전체가 #f5c842 하나를 쓴다(박스차트 stale 배지, 가격 관측일).
+         여기만 #f0b84b 였다 — 같은 뜻엔 같은 색(2026-08-26 감사). */
       .pFlag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-        color: #f0b84b; border: 1px solid rgba(240,184,75,.45); border-radius: 5px; padding: 1px 5px; margin-left: 6px; }
+        color: #f5c842; border: 1px solid rgba(245,200,66,.45); border-radius: 5px; padding: 1px 5px; margin-left: 6px; }
       .aucWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .aucWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
       .aucWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.65; max-width: 700px; }
@@ -204,7 +215,8 @@ const html = `<!doctype html>
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
       /* wrap 필수 — 버튼 5개가 한 줄이면 375px 에서 42px 가로로 넘친다(2026-08-26 모바일 실측) */
       .metricTabs { display: flex; gap: 6px; flex-wrap: wrap; }
-      .metricTabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 6px 11px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 34px; }
+      /* min-height 44px — 34px 는 모바일 권장 터치 타겟에 못 미쳐 두 줄로 감긴 버튼 사이 오터치가 났다(2026-08-26 감사) */
+      .metricTabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 44px; }
       .metricTabs button[aria-pressed="true"] { border-color: #14A882; color: #14A882; background: rgba(20,168,130,.1); }
       .metricTabs button:focus-visible { outline: 2px solid #14A882; outline-offset: 2px; }
 
@@ -231,7 +243,7 @@ const html = `<!doctype html>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="cards/index.html" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="aucWrap">
       <p class="eyebrow">Auction Data</p>
@@ -288,7 +300,7 @@ ${kTr}
         </tbody>
       </table>
       </div>
-      <p>${boxK.st != null && cardK.st != null ? `Sealed boxes clear at <strong>${boxK.st}%</strong>, single cards at <strong>${cardK.st}%</strong>.` : `Sell-through differs sharply by item type.`} Tracked sample only, ${daily.length}-day window.</p>
+      <p>${boxK.st != null && cardK.st != null ? `Sealed boxes clear at <strong>${boxK.st}%</strong>, single cards at <strong>${cardK.st}%</strong>.` : `Sell-through differs sharply by item type.`} Tracked sample only, ${aggDays.length} full-day window${aggNote}.</p>
 
 ${tcgRows.length >= 5 ? `
       <details class="noteFold" style="max-width:none">
@@ -380,7 +392,7 @@ ${tcgRows.length >= 5 ? `    <script>
     </script>
 ` : ""}    <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
   </body>
 </html>

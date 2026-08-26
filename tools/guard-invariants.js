@@ -85,14 +85,20 @@ for (const m of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
 //    (반복 사고: Compare 등 눌렀을 때 Market Index가 사라지는 페이지 존재 → 링크 누락 차단)
 //    상대경로가 폴더마다 달라서 data-ko 라벨로 판정한다.
 //    2026-07-29: "마켓 지수" 제거(지수 위젯·market.html 철회) → 6개에서 5개로.
-const NAV_REQUIRED = ["부스터 박스", "비교", "PSA10 랭킹", "PSA 인구", "세트 가이드", "아마존 응모"];
+// 2026-08-26: "카드"·"경매" 추가 — cards/index.html 과 auction.html 이 어떤 헤더 네비에도 없어
+// 카드 인덱스는 홈에서 클릭으로 도달할 방법이 아예 없었다(UI/UX 감사 확정). 전 네비에 넣고 여기서 잠근다.
+const NAV_REQUIRED = ["부스터 박스", "카드", "경매", "비교", "PSA10 랭킹", "PSA 인구", "세트 가이드", "아마존 응모"];
 for (const f of PUBLIC_HTML) {
   const html = read(f);
   const navM = html.match(/<nav class="nav"[^>]*>([\s\S]*?)<\/nav>/);
   if (!navM) continue; // 네비 없는 페이지는 검사 대상 아님
   const nav = navM[1];
+  // 영어 페이지는 data-ko 속성으로(클라이언트가 hl=ko 때 치환), 한국어 정적 페이지는
+  // 한국어를 본문 텍스트로 직접 렌더한다(2026-08-26 — data-ko 는 치환 스크립트가 없는
+  // ko/ 정적 페이지에서 죽은 속성이라 메뉴가 영어로 보였다). 어느 쪽이든 라벨이 있으면 된다.
+  const navText = nav.replace(/<[^>]+>/g, " ");
   for (const label of NAV_REQUIRED) {
-    if (!nav.includes(`data-ko="${label}"`)) errors.push(`N1: ${f} 메인 네비에 "${label}" 링크 누락 (전부 필요)`);
+    if (!nav.includes(`data-ko="${label}"`) && !navText.includes(label)) errors.push(`N1: ${f} 메인 네비에 "${label}" 링크 누락 (전부 필요)`);
   }
 }
 

@@ -193,7 +193,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260825b";
+const DATA_VERSION = "20260826a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -321,8 +321,8 @@ function ebayLinks(pack) {
   }
   return `
     <div class="marketLinks" aria-label="eBay market links">
-      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}"><em class="langTag">JP</em>${t("일본판 최저가 박스", "Lowest JP box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(5)} 기준`, `as of ${market.updated.slice(5)}`)}</em>` : ""}</a>` : ""}
-      ${enBestUrl ? `<a class="featured featuredEn" href="${enBestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${enMarket?.updated || ""} 수집 · 영문판 미개봉 박스`, `Captured ${enMarket?.updated || ""} · English sealed box`)}"><em class="langTag langTagEn">EN</em>${t("영문판 최저가 박스", "Lowest EN box")} · <b>${enBestPrice}</b><span class="ctaArrow">↗</span>${enDealChip}${enMarket?.updated ? `<em class="asOf">${t(`${enMarket.updated.slice(5)} 기준`, `as of ${enMarket.updated.slice(5)}`)}</em>` : ""}</a>` : ""}
+      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}"><em class="langTag">JP</em>${t("일본판 최저가 박스", "Lowest JP box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${market.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
+      ${enBestUrl ? `<a class="featured featuredEn" href="${enBestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${enMarket?.updated || ""} 수집 · 영문판 미개봉 박스`, `Captured ${enMarket?.updated || ""} · English sealed box`)}"><em class="langTag langTagEn">EN</em>${t("영문판 최저가 박스", "Lowest EN box")} · <b>${enBestPrice}</b><span class="ctaArrow">↗</span>${enDealChip}${enMarket?.updated ? `<em class="asOf">${t(`${enMarket.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${enMarket.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
       <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">JP Sold</a>
       <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">JP Active</a>
       <span class="paidLinkTag">Paid Link</span>
@@ -359,7 +359,7 @@ function cardBuyLinks(card) {
     } else if (best.price != null) {
       breakdown = t("검수 완료 · 무료배송", "verified · free shipping");
     }
-    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 최저가 구매", "Buy lowest PSA 10")} · <b>${price}</b><span class="ctaArrow">↗</span>${dealChip}</a><small>Paid Link · ${breakdown}${country}${card.psa10Active?.updated ? ` · ${t(`${card.psa10Active.updated.slice(5)} 기준`, `as of ${card.psa10Active.updated.slice(5)}`)}` : ""}</small></div>`;
+    return `<div class="buyLinks"><a class="buyLink verified" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 최저가 구매", "Buy lowest PSA 10")} · <b>${price}</b><span class="ctaArrow">↗</span>${dealChip}</a><small>Paid Link · ${breakdown}${country}${card.psa10Active?.updated ? ` · ${t(`${card.psa10Active.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${card.psa10Active.updated.slice(2).replace(/-/g, ".")}`)}` : ""}</small></div>`;
   }
   return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 찾기", "Find PSA 10 listings")}<span class="ctaArrow">↗</span></a><small>Paid Link · ${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
 }
@@ -991,7 +991,9 @@ function priceLines(c) {
   // 일본 NM 리서치 전 세트(예: OP-16 신작)는 TCGplayer USD 시세를 폴백 표시. 소스 라벨은 정직하게 TCGplayer 명시.
   if (c.nmJpy == null && c.priceUsd != null) {
     const p = triMain(c.priceUsd, "USD");
-    return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small><em>TCGplayer</em></small></span></div>`;
+    // priceUsd 는 일회성 캡처라 관측일 필드가 없다(2026-08-26 확인 — 마지막 갱신 7월 말).
+    // 날짜 없이 두면 매일 갱신되는 다른 줄들 틈에서 오늘 값처럼 읽힌다 — 스냅샷임을 밝힌다.
+    return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small class="plStale">${t("스냅샷 · 일일 갱신 아님", "snapshot · not refreshed daily")} <em>TCGplayer</em></small></span></div>`;
   }
   if (c.nmJpy != null) {
     const p = triMain(c.nmJpy, "JPY");
@@ -1885,7 +1887,9 @@ function renderDetail() {
   }
   const hasPsa = (set.psa || []).length > 0;
   if (state.view === "psa" && !hasPsa) state.view = "hits";
-  const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 메인 표기이며 KRW·JPY 환산값을 함께 표시합니다.", "Prices use USD as the main display with KRW and JPY conversions.")} ${t("환율", "FX")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>`
+  // 2026-08-17 에 원화·엔화 병기를 없애고 달러 단일 표기가 됐는데 이 안내문만 옛말을 하고 있었다 —
+  // "환산값을 함께 표시합니다"라는 없는 기능을 안내하면 사용자가 존재하지 않는 표기를 찾는다(2026-08-26 감사).
+  const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 기준입니다.", "Prices are shown in USD.")} ${t("참고 환율", "FX reference")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>`
       // 확대창에 등급 인구가 들어갔는데 눌러볼 수 있다는 걸 알 방법이 없었다 — 그리드 바로 위에서 알린다.
       + `<p class="srcNote zoomHint">${t(
         "카드 이미지를 누르면 크게 보기와 함께 PSA·CGC·TAG 등급 비율을 확인할 수 있습니다.",
@@ -1911,8 +1915,11 @@ function renderStats() {
   const extraReady = readyCount(d.extra.list);
   const jp = document.querySelector("#statJp");
   const extra = document.querySelector("#statExtra");
-  if (jp) jp.textContent = `OP ${jpReady}/${d.jp.list.length}`;
-  if (extra) extra.textContent = `${extraReady}/${d.extra.list.length}`;
+  // "OP 15/21" 같은 분수가 라벨 없이 떠서 무슨 수인지 알 수 없었다(2026-08-26 감사).
+  // 화면은 탭이라 좁다 — 뜻은 title 툴팁으로 밝힌다.
+  const readyTip = t("가격 데이터가 준비된 세트 수 / 전체 세트 수", "sets with price data / all sets");
+  if (jp) { jp.textContent = `OP ${jpReady}/${d.jp.list.length}`; jp.title = readyTip; }
+  if (extra) { extra.textContent = `${extraReady}/${d.extra.list.length}`; extra.title = readyTip; }
 }
 
 function updateSeo(pack) {

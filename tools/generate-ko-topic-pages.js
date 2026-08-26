@@ -24,7 +24,7 @@ const codes = [...(d.jp?.list || []), ...(d.extra?.list || [])];
 const nameKo = (c) => (d.sets[c] && d.sets[c].nameKo) || c;
 
 // 공용 페이지 틀 — ko 세트 페이지와 같은 look(스타일 재사용)
-function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName }) {
+function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHref }) {
   const canonical = `${SITE}/ko/${file}`;
   const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
   const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
@@ -43,7 +43,9 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName }) {
     <!-- Korean topic pages remain ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />
-    <link rel="alternate" hreflang="ko" href="${canonical}" />
+    <link rel="alternate" hreflang="ko" href="${canonical}" />${enHref ? `
+    <link rel="alternate" hreflang="en" href="${SITE}/${enHref}" />
+    <link rel="alternate" hreflang="x-default" href="${SITE}/${enHref}" />` : ""}
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(desc)}" />
@@ -84,7 +86,7 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName }) {
     <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
-      <nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">경매</a><a href="../compare.html">세트 비교</a><a href="../psa10-ranking.html">PSA10 랭킹</a><a href="grading.html">PSA 인구</a><a href="../sets/index.html">세트 가이드</a><a href="../amazon-lottery.html">아마존 응모</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · ${esc(eyebrow)}</p>
@@ -146,6 +148,7 @@ ${tr}
 
   return page({
     file: "cards.html",
+    enHref: "cards/index.html",
     title: "원피스 카드 시세 — NM·PSA10 실거래 상위 30 (일본판) | OP Box Index",
     desc: `원피스 카드 시세를 원화로 정리. 일본판 인기 카드 상위 ${top.length}장의 NM 시세와 PSA 10 실제 낙찰가, 그레이딩 프리미엄 배수까지. 실거래 기반, 매일 갱신 (${DATA_DATE}).`,
     h1: "원피스 카드 시세 — NM·PSA 10 실거래 (일본판)",
@@ -207,6 +210,7 @@ ${tr}
 
   return page({
     file: "grading.html",
+    enHref: "psa-grading.html",
     title: "원피스 카드 그레이딩 인구 — PSA·CGC·TAG 세트별 현황 | OP Box Index",
     desc: `원피스 그레이딩 현황을 세트별·판별로 정리. PSA 일본판 ${num(tj)}장·영문판 ${num(te)}장, 세트별 젬률과 CGC·TAG 누적까지. 공개 인구 리포트 기반 매주 갱신 (${DATA_DATE}).`,
     h1: "원피스 카드 그레이딩 인구 (PSA · CGC · TAG)",
@@ -276,6 +280,7 @@ ${cTr}
 
   return page({
     file: "auction.html",
+    enHref: "auction.html",
     title: "원피스 카드 이베이 경매 데이터 — 실제 낙찰가·낙찰률 | OP Box Index",
     desc: `원피스 이베이 경매를 종료 후 재조회해 실제 낙찰가를 기록. 최근 ${daily.length}일 ${num(totN)}건 추적, 낙찰률 ${totN ? Math.round((totSold / totN) * 100) : 0}%, 카드별 낙찰 중앙값까지. 호가가 아닌 낙찰가 기준 (${DATA_DATE}).`,
     h1: "원피스 카드 이베이 경매 — 실제 낙찰 데이터",

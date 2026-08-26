@@ -170,6 +170,9 @@ const html = `<!doctype html>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="https://opboxindex.com/psa-grading.html" />
+    <link rel="alternate" hreflang="en" href="https://opboxindex.com/psa-grading.html" />
+    <link rel="alternate" hreflang="ko" href="https://opboxindex.com/ko/grading.html" />
+    <link rel="alternate" hreflang="x-default" href="https://opboxindex.com/psa-grading.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -229,7 +232,7 @@ const html = `<!doctype html>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" aria-current="page" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="cards/index.html" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" aria-current="page" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="pgWrap">
       <p class="eyebrow">PSA Population</p>
@@ -294,7 +297,7 @@ ${analysis}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
   </body>
 </html>

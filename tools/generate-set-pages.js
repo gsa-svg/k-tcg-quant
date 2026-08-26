@@ -224,7 +224,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../cards/index.html" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="bodyPage">`;
 }
@@ -240,7 +240,7 @@ const FOOT = `
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../free-data.html">Data terms</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../free-data.html">Free data (CSV)</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
     </footer>
   </body>
 </html>
@@ -262,6 +262,10 @@ function liveWidget(code) {
               var s = d.sets && d.sets["${code}"];
               var m = s && s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
               if (!m || m.middle == null) return;
+              // 표본 3건 미만의 "중간값"은 그 매물 하나의 호가일 뿐이다 — 시장값처럼 20px 로
+              // 보여주면 안 된다(2026-08-26 감사: op-07 이 매물 1건을 mid 로 띄웠다).
+              // 사이트 다른 곳과 같은 기준(3건)을 적용해 미달이면 위젯을 숨긴다.
+              if (!m.sampleSize || m.sampleSize < 3) return;
               var usd = m.currency === "USD" ? m.middle : m.middle / ((d.fx && d.fx.usdKrw) || 1388.2);
               var lo = m.low != null ? (m.currency === "USD" ? m.low : m.low / ((d.fx && d.fx.usdKrw) || 1388.2)) : null;
               var hi = m.high != null ? (m.currency === "USD" ? m.high : m.high / ((d.fx && d.fx.usdKrw) || 1388.2)) : null;
@@ -287,31 +291,49 @@ function faqItems(code, nameEn) {
   // FAQ도 세트별 해설에서만 만든다. 가격·체이스·매수 판단의 공통 3문답을 21페이지에
   // 복제하던 구조가 최종 HTML 반복률을 크게 높였기 때문에 공통 문답은 방법론 페이지로 통합했다.
   const story = COMMENTARY.sets?.[code];
-  return story ? [{
+  const items = [];
+  if (story) {
+    items.push({
       q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`,
       a: story.desc,
-    }] : [{
-      q: `Where is the current ${code} ${nameEn} market data?`,
-      a: `The price table and tracker links on this page show the currently available ${code} market observations.`,
-    }];
+    });
+  }
+  // 해설이 없는 세트(신규 세트)는 **실데이터로 답하는 질문**을 만든다 — 2026-08-26.
+  // 종전 폴백("시세 어디 있나요?" → "이 페이지에 있습니다")은 정보가 0 인 자기참조 문답이었다.
+  // 사람들이 실제로 검색하는 질문(지금 얼마인가)에 우리 실거래 중앙값으로 답한다.
+  // 값·날짜·표본이 전부 데이터에서 오고, 페이지 재생성 때마다 같이 갱신된다.
+  if (!story) {
+    const s = data.sets[code] || {};
+    const jp = s.boxMarket?.jp?.ebaySold, en = s.boxMarket?.en?.ebaySold;
+    if (jp && jp.median != null) {
+      items.push({
+        q: `How much is a sealed ${code} ${nameEn} Japanese booster box?`,
+        a: `As of ${jp.updated}, completed eBay sales put the median at about $${Math.round(jp.median)} (${jp.sampleSize} sales in the trailing ${jp.windowDays || 28} days).${en && en.median != null ? ` The English box runs about $${Math.round(en.median)}.` : ""}`,
+      });
+    }
+  }
+  return items;
 }
 
 // 화면에 보이는 FAQ 섹션 — faqLd 와 동일 Q&A. 구조화데이터와 본문 일치를 보장.
 function faqHtml(code, nameEn) {
+  const items = faqItems(code, nameEn);
+  if (!items.length) return "";   // 문답이 없으면 섹션도 없다(헤더만 남기지 않는다)
   return `
       <section class="setFaq" aria-label="${esc(`${code} ${nameEn} frequently asked questions`)}">
         <h2>${code} ${esc(nameEn)} — frequently asked questions</h2>
-        ${faqItems(code, nameEn).map((x) => `<details><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join("\n        ")}
+        ${items.map((x) => `<details><summary>${esc(x.q)}</summary><p>${esc(x.a)}</p></details>`).join("\n        ")}
       </section>`;
 }
 
 function faqLd(code, nameEn) {
   const q = faqItems(code, nameEn);
-  return `<script type="application/ld+json">${JSON.stringify({
+  // FAQ 가 없으면 FAQPage 구조화데이터도 내지 않는다 — 빈 mainEntity 는 스팸 신호다.
+  return `${q.length ? `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: q.map((x) => ({ "@type": "Question", name: x.q, acceptedAnswer: { "@type": "Answer", text: x.a } })),
-  })}</script>
+  })}</script>` : ""}
     <script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -407,6 +429,7 @@ const SET_METRICS = (() => {
     const stock = sup ? sup.jp : null;
     out[code] = {
       price: last.median != null ? Math.round(last.median) : null,
+      priceD: last.d || null,   // 이 값의 관측일 — 큰 숫자에 날짜 없이 두면 25일 묵은 세트도 오늘 값처럼 보인다(2026-08-26 감사)
       chg: prior && prior.median ? Number(((last.median / prior.median - 1) * 100).toFixed(1)) : null,
       stock,
       days: stock != null && weekN ? Number((stock / (weekN / 7)).toFixed(1)) : null,
@@ -420,10 +443,16 @@ const SET_METRICS = (() => {
 const SET_BASELINE = (() => {
   const med = (key) => {
     const a = Object.values(SET_METRICS).map((m) => m[key]).filter((x) => x != null).sort((x, y) => x - y);
-    return a.length ? a[Math.floor(a.length / 2)] : null;
+    return { v: a.length ? a[Math.floor(a.length / 2)] : null, n: a.length };
   };
-  return { price: med("price"), chg: med("chg"), days: med("days"), psa: med("psa"), gem: med("gem") };
+  const b = { price: med("price"), chg: med("chg"), days: med("days"), psa: med("psa"), gem: med("gem") };
+  return { price: b.price.v, chg: b.chg.v, days: b.days.v, psa: b.psa.v, gem: b.gem.v,
+    n: { price: b.price.n, chg: b.chg.n, days: b.days.n, psa: b.psa.n, gem: b.gem.n } };
 })();
+// 기준선 라벨은 실제 모수로 만든다 — 2026-08-26 감사.
+// "21-set median" 하드코딩은 세트가 늘거나(OP-17) 지표별 모수가 다르면 곧장 틀린 숫자가 된다.
+// 표본 수를 명시한 라벨이 틀리면 신뢰 신호가 역효과다.
+const baseLabel = (key) => (SET_BASELINE.n && SET_BASELINE.n[key] ? `${SET_BASELINE.n[key]}-set median` : "median");
 
 function setPage(code, prev, next) {
   const s = data.sets[code];
@@ -493,7 +522,11 @@ function setPage(code, prev, next) {
     if (en.length >= 8) {
       const enLast = en[en.length - 1], enChg = Math.round((enLast.p / en[0].p - 1) * 100);
       const ratio = (enLast.p / last.p).toFixed(1);
-      enBit = ` The English-language ${esc(s.nameEn || code)} box trades near <strong>${usd(toU(enLast.p))}</strong> over the same period (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window) — about <strong>${ratio}x</strong> the Japanese box. This ratio does not explain why.`;
+      // 배율은 두 판의 **마지막 관측일이 다를 수 있다**(예: EB-01 은 16일 차이). 그 사실을 숨기면
+      // 같은 날 값을 나눈 것처럼 읽힌다 — 관측일이 어긋나면 두 날짜를 함께 밝힌다(2026-08-26 감사).
+      const enD = enLast.d, jpD = last.d;
+      const ratioNote = enD === jpD ? "" : ` (JP as of ${esc(jpD)}, EN as of ${esc(enD)})`;
+      enBit = ` The English-language ${esc(s.nameEn || code)} box trades near <strong>${usd(toU(enLast.p))}</strong> as of ${esc(enD)} (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window) — about <strong>${ratio}x</strong> the Japanese box${ratioNote}. This ratio does not explain why.`;
     }
     trajectory = `
       <h2>${code} box price: the tracked trajectory</h2>
@@ -652,15 +685,15 @@ function setPage(code, prev, next) {
       `<div class="statCard"><div class="statLabel">${label}</div><div class="statValue">${value}</div><div class="statBase">${baseText}</div></div>`);
 
     const m = SET_METRICS[code] || {};
-    if (m.price != null) cell("Box price (JP)", usd(m.price), `21-set median ${usd(base.price)} ${cmp(m.price, base.price)}`);
+    if (m.price != null) cell("Box price (JP)", usd(m.price), `${m.priceD ? `as of ${m.priceD} · ` : ""}${baseLabel("price")} ${usd(base.price)} ${cmp(m.price, base.price)}`);
     if (m.chg != null) {
       const cls = m.chg > 0 ? "statUp" : m.chg < 0 ? "statDown" : "statFlat";
-      cell("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `21-set median ${base.chg > 0 ? "+" : ""}${base.chg}%`);
+      cell("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `${baseLabel("chg")} ${base.chg > 0 ? "+" : ""}${base.chg}%`);
     }
     // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 낮을수록 물건이 빨리 빠진다는 뜻이라 higherIsBetter=false.
-    if (m.days != null) cells.push(`<div class="statCard"><div class="statLabel">Days of inventory</div><div class="statValue">${m.days}d</div><div class="statBase">${m.stock} listed · 21-set median ${base.days}d ${cmp(m.days, base.days, false)}</div><div class="statHint">How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</div></div>`);
-    if (m.psa != null) cell("PSA graded", intl(m.psa), `21-set median ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
-    if (m.gem != null) cells.push(`<div class="statCard"><div class="statLabel">PSA 10 rate</div><div class="statValue">${m.gem}%</div><div class="statBase">21-set median ${base.gem}% ${cmp(m.gem, base.gem)}</div><div class="statHint">Share of PSA submissions from this set that came back a 10.</div></div>`);
+    if (m.days != null) cells.push(`<div class="statCard"><div class="statLabel">Days of inventory</div><div class="statValue">${m.days}d</div><div class="statBase">${m.stock} listed · ${baseLabel("days")} ${base.days}d ${cmp(m.days, base.days, false)}</div><div class="statHint">How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</div></div>`);
+    if (m.psa != null) cell("PSA graded", intl(m.psa), `${baseLabel("psa")} ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
+    if (m.gem != null) cells.push(`<div class="statCard"><div class="statLabel">PSA 10 rate</div><div class="statValue">${m.gem}%</div><div class="statBase">${baseLabel("gem")} ${base.gem}% ${cmp(m.gem, base.gem)}</div><div class="statHint">Share of PSA submissions from this set that came back a 10.</div></div>`);
     // ── 싱글카드 구성 — 2026-08-20. TCG 퀀트의 SINGLES INTEL 을 우리 데이터로 낸다.
     // 박스를 뜯는 사람이 실제로 묻는 것: "대박 하나에 몰려 있나, 아니면 두루 값이 나가나".
     // 그쪽과 대조해 보니 OP-01 chase concentration 이 53% 로 정확히 일치했다.
@@ -743,24 +776,29 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) uses TCGplayer market data.` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
+      <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCGplayer market snapshot (not refreshed daily).` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
       : `<p class="priceNote">Single-card data for ${code} is not published yet. This page tracks the sealed box only; card-level prices and grading counts are added once the set's chase list is verified. <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`}
       <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
            지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
            접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
-      <details class="setMore">
-        <summary>Set notes — price context, reprints, factory-seal check${story ? ", background" : ""}</summary>
-        ${searchIntentBlock}
-        ${story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
+      ${(() => {
+        // 내용이 하나도 없으면 접기 자체를 그리지 않는다 — 2026-08-26.
+        // OP-17(신규 세트)에서 열면 아무것도 없는 빈 <details> 가 나갔다. 눌렀는데 비어 있는 UI 는
+        // "데이터가 있는데 안 보이는 건가"라는 의심만 남긴다. 내용이 생기면 자동으로 다시 나타난다.
+        const inner = [searchIntentBlock,
+          story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
           <h2>${esc(story.heading)}</h2>
           ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n          ")}
-        </section>` : ""}
-        ${trajectory}
-        ${verdict}
-        ${reprintBlock}
-        ${momentum}
-        ${compareLink ? `<p class="priceNote">${compareLink.replace(/^<li>|<\/li>$/g, "")}</p>` : ""}
-      </details>
+        </section>` : "",
+          trajectory, verdict, reprintBlock, momentum,
+          compareLink ? `<p class="priceNote">${compareLink.replace(/^<li>|<\/li>$/g, "")}</p>` : "",
+        ].filter((x) => x && x.trim()).join("\n        ");
+        if (!inner) return "";
+        return `<details class="setMore">
+        <summary>Set notes — price context, reprints, factory-seal check${story ? ", background" : ""}</summary>
+        ${inner}
+      </details>`;
+      })()}
       ${faqHtml(code, nameEn)}
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
@@ -951,7 +989,7 @@ function rankingPage() {
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="cards/index.html" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>
@@ -972,7 +1010,7 @@ ${analysis}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Data terms</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
     <script>
       document.querySelectorAll('.rankTable tr[data-code]').forEach(function (tr) {

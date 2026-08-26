@@ -225,7 +225,7 @@ for (const { code, set: s, card: c } of cands) {
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../cards/index.html" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="index.html" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
@@ -325,6 +325,9 @@ const hub = `<!doctype html>
     <!-- Navigation hubs stay ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/cards/" />
+    <link rel="alternate" hreflang="en" href="${SITE}/cards/" />
+    <link rel="alternate" hreflang="ko" href="${SITE}/ko/cards.html" />
+    <link rel="alternate" hreflang="x-default" href="${SITE}/cards/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>One Piece Card Prices — Top ${hubItems.length} Tracked Cards (NM &amp; PSA 10) | OP Box Index</title>
     <meta name="description" content="Individual price pages for the most valuable Japanese One Piece cards: raw NM prices, PSA 10 prices and PSA population, variant-verified and updated with our tracking runs." />
@@ -351,7 +354,7 @@ const hub = `<!doctype html>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../cards/index.html" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Card Prices</p>

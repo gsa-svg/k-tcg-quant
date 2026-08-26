@@ -89,8 +89,10 @@ const koSlug = (code) => code.toLowerCase();
 const tableRows = rows.map((b) => {
   const krw = boxKrw(b.code, b.nowUsd);
   const rr = reprintRecords(b.code);
+  // 툴팁에 note 원문(영어 내부 검증 메모)을 넣지 않는다 — 2026-08-26. 시기 + 유형(한국어)만.
+  const RP_KIND_KO = { "retailer": "리테일러 재입고", "distributor": "유통사 재입고", "official-lottery": "반다이 공식 추첨판매", "pre-release-lottery": "발매 전 추첨판매" };
   const rpCell = rr.length
-    ? `<span class="rpDot" title="${esc(rr.map((r) => r.date + (r.note ? " " + r.note : "")).join(" / "))}">재판 ${rr.length}회</span>`
+    ? `<span class="rpDot" title="${esc(rr.map((r) => r.date + " · " + (RP_KIND_KO[r.kind] || "재입고")).join(" / "))}">재판 ${rr.length}회</span>`
     : `<span class="rpNone">재판 기록 없음</span>`;
   const chgCls = b.changePct >= 0 ? "up" : "down";
   return `<tr>
@@ -212,7 +214,7 @@ const html = `<!doctype html>
     <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
-      <nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">경매</a><a href="../compare.html">세트 비교</a><a href="../psa10-ranking.html">PSA10 랭킹</a><a href="grading.html">PSA 인구</a><a href="../sets/index.html">세트 가이드</a><a href="../amazon-lottery.html">아마존 응모</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">한국어 · 일본판 시세</p>
@@ -274,7 +276,7 @@ fs.writeFileSync(path.join(ROOT, "ko", "index.html"), html, "utf8");
 // ─────────────────────────────────────────────────────────────
 // 세트별 한국어 페이지 /ko/{code}.html — 한국어 롱테일("op-16 시세", "결전의 시간 박스 가격") 공략.
 // 값은 전부 검증된 데이터에서만 파생하고, 없으면 표시하지 않음(빈칸 > 틀린값).
-const NAV_KO = `<nav class="nav" aria-label="주요 메뉴"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>`;
+const NAV_KO = `<nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">경매</a><a href="../compare.html">세트 비교</a><a href="../psa10-ranking.html">PSA10 랭킹</a><a href="grading.html">PSA 인구</a><a href="../sets/index.html">세트 가이드</a><a href="../amazon-lottery.html">아마존 응모</a></nav>`;
 
 function setPageKo(b) {
   const code = b.code;
@@ -330,8 +332,17 @@ ${cardRows}
 
   // 2) 재판 이력 — 있는 세트와 없는 세트의 문장이 완전히 다르다
   if (rr.length) {
+    // note 원문을 그대로 넣지 않는다 — 2026-08-26. note 는 영어로 쓴 **내부 검증 메모**라
+    // ("Verified 2026-08-13. Reclassified …") 한국어 문단 한가운데에 영어 문장이 통째로 박혔다.
+    // 화면에는 시기 + 유형(한국어)만 싣는다. 원문 메모는 데이터에 그대로 남는다.
+    const KIND_KO = {
+      "retailer": "리테일러 재입고",
+      "distributor": "유통사 재입고",
+      "official-lottery": "반다이 공식 추첨판매",
+      "pre-release-lottery": "발매 전 추첨판매",
+    };
     const reprintLabels = rr
-      .map((r) => [r.date, r.note].filter(Boolean).map(esc).join(" · "))
+      .map((r) => [r.date, KIND_KO[r.kind] || "재입고"].filter(Boolean).map(esc).join(" · "))
       .filter(Boolean);
     prose.push({ h: "재판(재발매) 이력", p: [
       `${esc(code)} ${esc(topic(nKo))} 유통사·리테일러 재입고 기준으로 <strong>재판이 ${rr.length}회</strong> 확인됐습니다${reprintLabels.length ? `(${reprintLabels.join(" / ")})` : ""}.`,

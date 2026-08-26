@@ -387,14 +387,33 @@
     // 표본이 얇아 못 그리는 판은 자리를 비우지 않고 왜 없는지 한 줄로 알린다.
     // 월간을 눌렀는데 한쪽 패널이 소리 없이 사라지면 "고장났나" 로 읽힌다 — 실제로는 그 세트가
     // 그 판으로 한 달에 몇 개 안 팔린다는 뜻이고, 그건 알 만한 정보다.
-    const missing = (label, g) => '<figure class="opbcPane opbcPaneEmpty"><figcaption class="opbcHead">' +
-      '<span class="opbcLabel">' + esc(label) + "</span></figcaption>" +
-      '<p class="opbcEmpty">' + (g === "month"
-        ? (lang === "ko" ? "월간은 아직 표본이 얇습니다 — 주간으로 보세요." : "Not enough sales per month yet — use the weekly view.")
+    //
+    // ⚠️ 안내는 **실제로 데이터가 있는 탭**을 가리켜야 한다 — 2026-08-26.
+    //    종전엔 무조건 "주간으로 보세요"였는데, OP-17 일본판은 주간이 1점뿐이라 그것도 비고
+    //    정작 일간에는 선이 있었다. 안내를 따라갔는데 막다른 곳이면 안내가 없느니만 못하다.
+    const drawableGrain = (ed, g) => {
+      const arr = g === "month" ? (mo[ed] || [])
+        : g === "day" ? (((series && series.daily) || {})[ed] || [])
+        : ((series && series[ed]) || []);
+      return clean(arr, g === "day" ? MIN_N_DAY : null).length >= (g === "month" ? MIN_POINTS_MONTH : MIN_POINTS);
+    };
+    const grainName = (g) => (g === "day" ? (lang === "ko" ? "일간" : "the daily view")
+      : g === "month" ? (lang === "ko" ? "월간" : "the monthly view")
+      : (lang === "ko" ? "주간" : "the weekly view"));
+    const missing = (label, g, ed) => {
+      const alt = ["week", "day", "month"].find((x) => x !== g && drawableGrain(ed, x));
+      const why = g === "month"
+        ? (lang === "ko" ? "월간은 아직 표본이 얇습니다" : "Not enough sales per month yet")
         : g === "day"
-        ? (lang === "ko" ? "하루에 3건 넘게 팔리는 날이 거의 없습니다 — 주간으로 보세요." : "Rarely more than 3 sales on any single day — use the weekly view.")
-        : (lang === "ko" ? "즉시구매 실거래가 아직 얇습니다." : "Not enough fixed-price sales yet."))
-      + "</p></figure>";
+        ? (lang === "ko" ? "하루에 3건 넘게 팔리는 날이 거의 없습니다" : "Rarely more than 3 sales on any single day")
+        : (lang === "ko" ? "주간으로 그릴 만큼 쌓이지 않았습니다" : "Not enough weeks of sales to plot yet");
+      const hint = alt
+        ? (lang === "ko" ? " — " + grainName(alt) + "으로 보세요." : " — use " + grainName(alt) + ".")
+        : (lang === "ko" ? " — 즉시구매 실거래가 아직 얇습니다." : " — fixed-price sales are still thin.");
+      return '<figure class="opbcPane opbcPaneEmpty"><figcaption class="opbcHead">' +
+        '<span class="opbcLabel">' + esc(label) + "</span></figcaption>" +
+        '<p class="opbcEmpty">' + why + hint + "</p></figure>";
+    };
 
     // 초판(Blue)은 시세가 2~3배라 선에서 빠져 있다. 남은 선이 재판 위주면 그렇다고 적는다 —
     // 안 적으면 어느 판본 시세를 보고 있는지 알 수 없다.
@@ -434,8 +453,8 @@
       // 없애면 "이 세트만 일간이 없네" 가 되고, 세트를 옮길 때마다 탭 개수가 바뀐다.
       // 칸은 만들고 왜 못 그리는지 적는 편이 낫다.
       const hasAny = (arr) => ((arr || []).length > 0);
-      if (!jp && hasAny(series && series.jp)) jp = missing(jpLabel, g);
-      if (!en && hasAny(series && series.en)) en = missing(enLabel, g);
+      if (!jp && hasAny(series && series.jp)) jp = missing(jpLabel, g, "jp");
+      if (!en && hasAny(series && series.en)) en = missing(enLabel, g, "en");
       if (!jp && !en) return "";
       // 초판(Blue)은 별개 상품이라 칸을 따로 준다. 선을 그릴 만큼 쌓이면 선이, 아니면 숫자 카드가 뜬다.
       const bluePts = g === "month" ? ((series && series.monthly) || {}).enBlue
@@ -568,6 +587,21 @@
     ".opbcEmpty{margin:6px 0 0;font-size:12px;color:var(--muted,#8d95a7)}",
     ".opbcNote{font-size:12px;color:var(--muted,#8d95a7);line-height:1.7;margin:10px 0 0}",
     ".opbcNote b{color:var(--ink,#eef2ff);font-weight:700}",
+    // ── 모바일 — 2026-08-26 UI/UX 감사 확정 2건.
+    // 1) SVG 가 viewBox 680 고정이라 375px 폰에서 ~0.47배로 축소돼 축 라벨 11px 이 ~5px 로
+    //    렌더됐다(읽기 불가). SVG 안 글자는 CSS font-size 도 viewBox 단위로 먹으므로 값 자체를
+    //    키운다. 툴팁 배경은 고정 rect(168×46)라 글자만 키우면 넘친다 — 상자도 같이 키운다
+    //    (SVG2 기하 속성이라 CSS width/height 가 rect 에 적용된다).
+    // 2) 일/주/월 탭이 높이 ~25px 라 오터치가 잦았다 — 패딩을 키워 ~40px 로.
+    "@media (max-width:600px){",
+    ".opbcAx{font-size:15px}",
+    ".opbcStaleTx{font-size:13px}",
+    ".opbcTipD{font-size:15px}",
+    ".opbcTipV{font-size:19px}",
+    ".opbcTipBg{width:200px;height:54px}",
+    ".opbcTab{padding:11px 14px;font-size:13px}",
+    ".opbcTabs{gap:4px}",
+    "}",
   ].join("");
 
   // 마우스/터치로 훑을 때 값을 띄우는 향상 기능. 정적 세트 페이지도 이 파일을 <script> 로 불러
