@@ -106,6 +106,9 @@ function main(dumpFile) {
   // updated 는 실행 시각이라 수확 0 이어도 찍힌다 — 실제 적재일을 따로 남긴다(원피스와 동일).
   // 그것만 보면 수집 전멸이 감사에 안 잡힌다(2026-08-25 감사 지적).
   if (added > 0) ledger.lastAppended = { d: today, n: added };
+  // 수집을 시도한 날을 전부 남긴다(원피스 원장과 같은 이유) — 2026-08-26.
+  // 새 건이 0건이어도 남긴다. "돌았는데 없었다"와 "안 돌았다"는 완전히 다른 이야기다.
+  ledger.collectedDays = [...new Set([...(ledger.collectedDays || []), today])].sort();
 
   fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 1) + "\n", "utf8");
   const counts = {};

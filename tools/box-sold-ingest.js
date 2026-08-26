@@ -273,6 +273,12 @@ function main(dumpFile) {
   {
     const appendedTotal = Object.values(summary).reduce((a, v) => a + (v.appended || 0), 0);
     if (appendedTotal > 0) ledger.lastAppended = { d: today, n: appendedTotal };
+    // **수집을 시도한 날**을 전부 남긴다 — 2026-08-26.
+    // lastAppended 는 마지막 한 번만 알려줘서 "언제부터 안 돌았나"를 못 본다.
+    // 이 수집은 수동(월·수·금 브라우저)이라 조용히 빠지기 쉽다. 실제로 7/10~7/24 여섯 번을
+    // 통째로 놓쳤는데 아무도 몰랐고, 실거래는 소급 수집이 안 돼 그 칸은 영구 공백이다.
+    // 새 건이 0건이어도 남긴다 — 돌긴 돌았다는 사실 자체가 정보다.
+    ledger.collectedDays = [...new Set([...(ledger.collectedDays || []), today])].sort();
   }
   fs.writeFileSync(ledgerPath, JSON.stringify(ledger) + "\n", "utf8");
   fs.writeFileSync(dataPath, JSON.stringify(data) + "\n", "utf8");

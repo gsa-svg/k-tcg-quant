@@ -39,6 +39,7 @@ node tools/audit-price-quality.js            # 가격 변형오매칭 + 신선�
                                               #   (변형·판·재수록본 오배정. 실패하면 배포 금지)
 node tools/audit-collectors.js                # 브라우저 수집기가 실행 가능한 상태인지
 node tools/audit-workflows.js                 # 워크플로 YAML 이 GitHub 에서 파싱되는지
+node tools/audit-series-gaps.js               # 원피스·팰월드·TCG 시계열에 빠진 날이 있는지
 node tools/guard-invariants.js
 ```
 
