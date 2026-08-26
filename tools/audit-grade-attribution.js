@@ -190,6 +190,13 @@ for (const [code, set] of Object.entries(data.sets)) {
         if (p.total !== shown.total) problems.push(`TAG ${where} [${ed}] — 화면 총량 ${shown.total} vs 원장 ${p.total}`);
         const lbl = String(p.label || "");
         if (!lbl) { notes.push(`TAG ${where} [${ed}] — 라벨 없는 옛 기록(검증 불가)`); continue; }
+        // SP 재수록본은 TAG 가 변형을 안 적고 무표기 세트에 그대로 넣는다(2026-08-26 실측).
+        //   EB-02 는 다른 세트의 SP 를 모은 세트인데 라벨이 "… Anime 25th Collection Japanese" 뿐이다.
+        //   근거: PSA EB-02 목록에서 그 번호·이름은 전부 "Special" 이다(다른 변형이 없다).
+        //   적재기는 각인 세트 ≠ 담은 박스이고 이름이 맞고 무표기 행이 하나일 때만 이 경로를 쓴다.
+        const stampCode = (() => { const m = num.match(/^([A-Z]+\d{2})/); return m ? `${m[1].slice(0, -2)}-${m[1].slice(-2)}` : null; })();
+        const spReprint = tier === "sp" && stampCode && stampCode !== code && tagTierOf(lbl) === "base";
+        if (spReprint) { notes.push(`TAG ${where} [${ed}] — 무표기 세트의 SP 재수록본(라벨에 변형 없음)`); continue; }
         if (tagTierOf(lbl) !== tier) {
           problems.push(`TAG ${where} [${ed}] — 라벨 "${lbl}" 은 tier "${tagTierOf(lbl)}" 인데 카드는 "${tier}"`);
         }

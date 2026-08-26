@@ -44,15 +44,20 @@ function tagTier(tagSetName) {
 // 조용히 어긋난다. 이름이 있으면 반드시 확인한다 — 옛 기록엔 이름이 없어 그때만 통과시킨다.
 const nameKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
 const TAG_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"]];
+
+// TAG 의 이름 칸은 **카드명 + 일본어명 + 등급/타입** 이 붙어 나온다(2026-08-26 실측):
+//   "Portgas.D.AceSuper Rare" · "ボア･ハンコック Boa HancockLeader" · "ペローナ PeronaLeader"
+// 그래서 양방향 포함 검사를 쓰면 정상 매칭까지 막힌다(우리 "Portgas D. Ace SP" ↔ 위 첫 줄이 서로 안 들어간다).
+// 방향을 정한다: **우리 카드명에서 변형 표기를 걷어낸 '인물 이름'이 TAG 이름 안에 있으면** 같은 카드로 본다.
+// TAG 쪽에 군더더기가 붙는 구조이므로 이 방향이 맞다. 반대 방향은 성립하지 않는다.
+const VARIANT_WORDS = /\b(sp|tr|gold|silver|manga|comic|alternate|alt|art|parallel|super|red|wanted|poster|box\s*topper|signature|signed|stamped|special|treasure\s*rare|leader|character|event|don)\b/gi;
+const ourCore = (s) => nameKey(String(s || "").replace(/\b[A-Z]{2,4}\d{2}[- ]?\d{2,3}\b/g, " ").replace(/\b\d{2,3}\b/g, " ").replace(VARIANT_WORDS, " "));
 function nameAgrees(ourName, rowName) {
   if (!rowName) return true;                 // TAG 가 이름을 안 준 옛 기록 — 확인 불가, 번호로만 간다
-  const a = nameKey(ourName), b = nameKey(rowName);
-  if (!a || !b) return true;
-  if (a.includes(b) || b.includes(a)) return true;
-  return TAG_ALIAS.some(([x, y]) => {
-    const p = a.replace(x, y), q = b.replace(x, y);
-    return p.includes(q) || q.includes(p);
-  });
+  const core = ourCore(ourName), b = nameKey(rowName);
+  if (core.length < 4 || !b) return true;    // 남는 글자가 너무 짧으면 판정하지 않는다(우연일치 방지)
+  if (b.includes(core)) return true;
+  return TAG_ALIAS.some(([x, y]) => b.replace(x, y).includes(core.replace(x, y)));
 }
 
 // DON!! 카드는 TAG 에서도 번호가 전부 "DON!!" 이라 번호로는 못 가른다. 캐릭터는 이름 칸에 있다.
@@ -106,6 +111,21 @@ function ingest(dump) {
       const ledgerKey = donChar ? `DON-${nameKey(donChar)}|gold` : null;
       for (const ed of ["jp", "en"]) {
       let rows = byKey.get(`${code}|${num}|${tier}|${ed}`) || [];
+      // SP 재수록본 — TAG 가 변형을 아예 안 적는 경우가 있다(2026-08-26 실측).
+      // EB-02 는 다른 세트의 SP 를 모아 담은 세트인데, TAG 는 그 카드들을 변형 표기 없는
+      // "One Piece Extra Booster Anime 25th Collection Japanese" 아래 그대로 넣는다.
+      //   실측: OP06-021 "ペローナ PeronaLeader" · OP07-038 "ボア･ハンコック Boa HancockLeader"
+      // 근거: 그 박스에서 그 번호는 SP 로만 존재한다(PSA EB-02 목록의 해당 번호·이름은 전부 "Special").
+      //       담고 있는 박스와 각인 세트가 다른(=재수록) 카드일 때만, 그리고 이름이 맞고
+      //       그 번호의 무표기 행이 **정확히 하나**일 때만 쓴다. 애매하면 비운다.
+      if (!rows.length && tier === "sp") {
+        const stamp = (num.match(/^([A-Z]+\d{2})/) || [, ""])[1];
+        const stampCode = stamp ? `${stamp.slice(0, -2)}-${stamp.slice(-2)}` : null;
+        if (stampCode && stampCode !== code) {
+          const plain = (byKey.get(`${code}|${num}|base|${ed}`) || []).filter((r) => nameAgrees(card.name, r.name));
+          if (plain.length === 1) rows = plain;
+        }
+      }
       // 이름이 안 맞는 행은 버린다. DON 은 캐릭터가 이름 칸에 있으므로 같은 방식으로 걸러진다.
       // (DON 은 번호가 전부 "DON!!" 이라 이 대조가 유일한 구분 수단이다.)
       rows = rows.filter((r) => nameAgrees(donChar || card.name, r.name));
@@ -123,7 +143,11 @@ function ingest(dump) {
         if (labels.size === 1) {
           const merged = {};
           for (const r of rows) for (const [k, v] of Object.entries(r.grades || {})) merged[k] = (merged[k] || 0) + (Number(v) || 0);
-          rows = [{ tagSet: rows[0].tagSet, grades: merged }];
+          // ⚠️ 라벨이 같다고 늘 같은 카드는 아니다. TAG 는 금/은 애니버서리를 둘 다
+          //    "… Special Alternate Art" 한 이름으로 올린다(OP-11 OP05-119 실측 2026-08-26).
+          //    그 경우 합치면 서로 다른 변형을 더하게 된다. 지금은 우리 카드가 gold/silver tier 라
+          //    이 자리에 오지 않지만, 합친 줄 수를 기록해 감사에서 사람이 볼 수 있게 한다.
+          rows = [{ tagSet: rows[0].tagSet, grades: merged, mergedRows: rows.length }];
         } else { ambiguous.push(`${code} ${num} [${tier}] ${rows.length}행`); continue; }
       }
       const g = rows[0].grades || {};
@@ -137,7 +161,7 @@ function ingest(dump) {
       const arr = hist.sets[code][ed][key] = hist.sets[code][ed][key] || [];
       if (arr.some((p) => p.d === d)) { skippedDate++; continue; }
       const grades = {}; for (const [k, v] of Object.entries(g)) if (k !== "Total") grades[k] = v;
-      arr.push({ d, total, label: rows[0].tagSet.slice(0, 80), g: grades });
+      arr.push({ d, total, label: rows[0].tagSet.slice(0, 80), g: grades, ...(rows[0].mergedRows > 1 ? { rows: rows[0].mergedRows } : {}) });
       arr.sort((a, b) => a.d.localeCompare(b.d));
       appended++;
       }
