@@ -27,7 +27,16 @@ function boxChartBlock(code) {
   return BoxChart.chartHTML(series, { lang: "en", title: `${code} sealed booster box — median completed eBay sale` });
 }
 
-const ORDER = [...data.jp.list, ...data.extra.list].filter((c) => (data.sets[c]?.cards || []).length > 0);
+// 카드 목록이 없어도 **박스 실거래 시세가 있으면** 페이지를 만든다 — 2026-08-26.
+// 갓 나온 세트는 top10 카드를 확정하기 전이지만 박스는 이미 팔리고 있다.
+// OP-17 은 발매 4일 만에 일본판 25건·영문판 213건이 원장에 쌓였는데, 종전 조건(cards>0)이면
+// 카드 목록을 만들 때까지 시세를 아예 못 보여줬다.
+const hasBoxSold = (c) => {
+  const bm = data.sets[c]?.boxMarket || {};
+  return ["jp", "en"].some((ed) => bm[ed]?.ebaySold?.median != null);
+};
+const ORDER = [...data.jp.list, ...data.extra.list]
+  .filter((c) => (data.sets[c]?.cards || []).length > 0 || hasBoxSold(c));
 const slug = (code) => code.toLowerCase();
 
 // 개별 카드 페이지 슬러그 맵(있을 때만 링크) — tools/generate-card-pages.js 산출물
@@ -721,7 +730,10 @@ function setPage(code, prev, next) {
         <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>
         <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">Browse ${code} boxes on eBay</a>
       </div>
-      <h2>Top 10 chase cards in ${code}</h2>
+      ${/* 갓 나온 세트는 박스 시세만 있고 체이스 카드 목록이 아직 없다. 헤더만 있는 빈 표를
+            내보내면 "데이터가 있는데 비어 있다"로 읽힌다 — 섹션을 아예 그리지 않고,
+            왜 없는지 한 줄로 밝힌다. 카드 목록이 생기면 자동으로 다시 나타난다. */""}
+      ${cards.length ? `<h2>Top 10 chase cards in ${code}</h2>
       <p>${analysis}</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
@@ -731,7 +743,8 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) uses TCGplayer market data.` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>
+      <p class="priceNote">${allTcg ? `NM (raw) uses TCGplayer market data.` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
+      : `<p class="priceNote">Single-card data for ${code} is not published yet. This page tracks the sealed box only; card-level prices and grading counts are added once the set's chase list is verified. <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`}
       <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
            지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
            접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->

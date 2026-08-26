@@ -149,6 +149,20 @@ else {
     const liveSet = data.sets?.[code];
     const full = liveSet?.psaFull;
     const points = liveSet?.psaWeekly?.points;
+    // 갓 나온 세트는 PSA 주간 이력이 **구조적으로** 없다. OP-17 은 2026-08-22 발매고
+    // 8/26 시점 GemRate 누적이 1장이다(gem rate 100%) — 4주 이력을 요구하면 신규 세트를
+    // 영영 못 올리고, 억지로 채우면 표본 1장짜리 비율을 내보내게 된다.
+    // 그래서 psaPending 세트만 건너뛰되, 조건을 좁게 건다:
+    //   · psaFull/psaWeekly 가 **아예 없어야** 한다 (부분·불일치 데이터를 숨기는 데 못 쓴다)
+    //   · 발매 90일 이내여야 한다 (플래그를 켜둔 채 방치하지 못한다)
+    // 이력이 쌓이면 플래그를 지우고 정상 경로로 돌아온다.
+    if (liveSet?.psaPending) {
+      const rel = Date.parse(liveSet.release || "");
+      const ageDays = Number.isFinite(rel) ? Math.floor((Date.now() - rel) / 86400000) : Infinity;
+      if (full || points) errors.push(`D3: ${code} psaPending 인데 psaFull/psaWeekly 가 남아 있다 — 둘 중 하나만 맞다`);
+      else if (!(ageDays <= 90)) errors.push(`D3: ${code} psaPending 이 발매 ${ageDays}일째까지 켜져 있다 — 이력이 쌓였으면 플래그를 지울 것`);
+      continue;
+    }
     if (!sourceSet || !full) { errors.push(`D3: ${code} full-set PSA source or live data missing`); continue; }
     if (full.total !== sourceSet.latest?.totalGrades || full.gems !== sourceSet.latest?.totalGems) {
       errors.push(`D3: ${code} full-set PSA totals differ from verified source`);
