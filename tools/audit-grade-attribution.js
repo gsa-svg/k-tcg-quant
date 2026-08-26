@@ -33,7 +33,8 @@ const tag = read("data/tag-card-pop.json");
 const cgcTierOf = (s0) => {
   const s = String(s0 || "").toLowerCase();
   if (/red\s*(manga|alt)/.test(s)) return "red";
-  if (/stamped|signature/.test(s)) return "signature";
+  // CGC 는 서명본을 "… 1st Anniversary Art Signed" 로도 적는다(실측 2026-08-25).
+  if (/stamped|signature|\bsigned\b/.test(s)) return "signature";
   if (/sp\s*ver|foil\s*parallel/.test(s)) return /gold/.test(s) ? "gold" : /silver/.test(s) ? "silver" : "sp";
   if (/manga\s*alt\.?\s*(art|parallel)|manga.*parallel/.test(s)) return "super";
   if (/box\s*topper/.test(s)) return "boxtopper";
@@ -51,7 +52,13 @@ const tagTierOf = (s0) => {
   if (/wanted/.test(s)) return "wanted";
   if (/box\s*topper/.test(s)) return "boxtopper";
   if (/treasure\s*rare/.test(s)) return "tr";
-  if (/special\s*alternate/.test(s)) return "sp";
+  // TAG 는 애니버서리 금/은을 "Special Alternate Art - Gold" 처럼 뒤에 붙인다(실측 2026-08-25).
+  // 종전엔 전부 sp 로 떨어져 금/은 카드가 통째로 안 붙었다.
+  if (/special\s*alternate/.test(s)) {
+    if (/\bgold\b/.test(s)) return "gold";
+    if (/\bsilver\b/.test(s)) return "silver";
+    return "sp";
+  }
   if (/alternate\s*art|parallel/.test(s)) return "alt";
   return "base";
 };
@@ -157,6 +164,14 @@ for (const [code, set] of Object.entries(data.sets)) {
         for (const v of String(p.variant || "").split(" + ").filter(Boolean)) {
           if (v === "(빈칸)") continue;   // CGC 가 라벨을 안 준 줄 — base 로 본다
           if (CGC_LABEL_EXCEPTION.has(`${code}|${num}|${tier}|${v}`)) continue;
+          // 수배서(Wanted Poster) ↔ CGC "SP Ver. (SP next to number)" — 2026-08-25 확인.
+          // 근거는 변형 개수의 1:1 대응이다. OP-13 OP13-119 는 PSA·CGC 둘 다 5개이고
+          // Red Manga 까지 이름이 겹치는데, 남는 한 자리가 PSA "Wanted Alternate Art" ↔ CGC "SP Ver." 다.
+          // OP-03 ST01-012 는 양쪽 다 그 한 줄뿐이다. 적재기는 같은 번호에 우리 sp 카드가 따로 있으면
+          // 이 매핑을 쓰지 않는다(둘이 같은 줄을 집어가므로).
+          if (tier === "wanted" && /sp\s*ver/i.test(v)) continue;
+          // DON!! 카드는 CGC 가 변형을 "Gold" 한 단어로만 적는다(캐릭터는 이름 칸에 있다).
+          if (don && /^gold$/i.test(v)) continue;
           if (cgcTierOf(v) !== tier) {
             problems.push(`CGC ${where} [${ed}] — variant "${v}" 는 tier "${cgcTierOf(v)}" 인데 카드는 "${tier}"`);
           }

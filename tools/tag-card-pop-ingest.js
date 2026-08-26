@@ -27,10 +27,40 @@ function tagTier(tagSetName) {
   if (/wanted/.test(s)) return "wanted";
   if (/box\s*topper/.test(s)) return "boxtopper";
   if (/treasure\s*rare/.test(s)) return "tr";         // TR 은 base 가 아니다(실측 오배정: OP-12 en OP10-063|base)
-  if (/special\s*alternate/.test(s)) return "sp";     // TAG 는 SP 를 "Special Alternate Art" 로 표기(실측)
+  // TAG 는 SP 를 "Special Alternate Art" 로 쓰고, 애니버서리 금/은은 그 뒤에 붙인다 —
+  // 실측 세트명(2026-08-25): "… Special Alternate Art - Gold" · "… Japanese Special Alternate Art Gold".
+  // 종전엔 여기서 전부 sp 로 떨어져 금/은 카드가 통째로 안 붙었다(OP-11·OP-12·OP-13·OP-14 6장).
+  if (/special\s*alternate/.test(s)) {
+    if (/\bgold\b/.test(s)) return "gold";
+    if (/\bsilver\b/.test(s)) return "silver";
+    return "sp";
+  }
   if (/alternate\s*art|parallel/.test(s)) return "alt";
   return "base";
 }
+
+// 이름 대조 — PSA 적재기와 같은 규칙(표기차만 별칭 처리, 다른 인물은 절대 안 됨).
+// TAG 는 전체번호(OP06-021)로 매칭해 구조적으로는 안전하지만, 등급사가 표기를 바꾸면
+// 조용히 어긋난다. 이름이 있으면 반드시 확인한다 — 옛 기록엔 이름이 없어 그때만 통과시킨다.
+const nameKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
+const TAG_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"]];
+function nameAgrees(ourName, rowName) {
+  if (!rowName) return true;                 // TAG 가 이름을 안 준 옛 기록 — 확인 불가, 번호로만 간다
+  const a = nameKey(ourName), b = nameKey(rowName);
+  if (!a || !b) return true;
+  if (a.includes(b) || b.includes(a)) return true;
+  return TAG_ALIAS.some(([x, y]) => {
+    const p = a.replace(x, y), q = b.replace(x, y);
+    return p.includes(q) || q.includes(p);
+  });
+}
+
+// DON!! 카드는 TAG 에서도 번호가 전부 "DON!!" 이라 번호로는 못 가른다. 캐릭터는 이름 칸에 있다.
+// 우리 이름 "DON Card <캐릭터> Gold" 에서 캐릭터를 뽑아 대조한다.
+const donCharOf = (cardName) => {
+  const m = String(cardName || "").match(/^DON\s*Card\s+(.+?)\s+Gold$/i);
+  return m ? m[1] : null;
+};
 
 function ingest(dump) {
   const d = dump.collectedAt;
@@ -69,11 +99,17 @@ function ingest(dump) {
   let appended = 0, skippedDate = 0, ambiguous = [];
   for (const [code, sset] of Object.entries(data.sets)) {
     for (const card of sset.cards || []) {
-      const num = (card.number || "").replace(/^#/, "").toUpperCase();
+      const donChar = donCharOf(card.name);
+      const num = donChar ? "DON!!" : (card.number || "").replace(/^#/, "").toUpperCase();
       if (!num) continue;
-      const tier = ourTier(card.name);
+      const tier = donChar ? "gold" : ourTier(card.name);
+      const ledgerKey = donChar ? `DON-${nameKey(donChar)}|gold` : null;
       for (const ed of ["jp", "en"]) {
       let rows = byKey.get(`${code}|${num}|${tier}|${ed}`) || [];
+      // 이름이 안 맞는 행은 버린다. DON 은 캐릭터가 이름 칸에 있으므로 같은 방식으로 걸러진다.
+      // (DON 은 번호가 전부 "DON!!" 이라 이 대조가 유일한 구분 수단이다.)
+      rows = rows.filter((r) => nameAgrees(donChar || card.name, r.name));
+      if (donChar) rows = rows.filter((r) => r.name);   // 이름 없는 옛 DON 기록은 캐릭터를 알 수 없다
       if (!rows.length) continue;
       if (rows.length > 1) {
         // (tagSet, grades) 완전 동일 행은 이중 방문 중복 → 1개로 dedupe(합산하면 2배 계상, 리뷰 확정버그).
@@ -93,7 +129,9 @@ function ingest(dump) {
       const g = rows[0].grades || {};
       const total = Number(g["Total"]) || 0;
       if (!(total > 0)) continue;
-      const key = `${num}|${tier}`;
+      // DON 은 번호가 전부 "DON!!" 이라 번호로 키를 만들면 캐릭터끼리 한 칸에서 부딪힌다.
+      // 화면(inject-card-grades)이 쓰는 DON 키와 같은 형식으로 맞춘다: DON-<캐릭터>|gold
+      const key = ledgerKey || `${num}|${tier}`;
       hist.sets[code] = hist.sets[code] || {};
       hist.sets[code][ed] = hist.sets[code][ed] || {};
       const arr = hist.sets[code][ed][key] = hist.sets[code][ed][key] || [];

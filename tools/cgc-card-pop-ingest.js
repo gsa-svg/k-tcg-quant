@@ -42,7 +42,9 @@ function ourTier(name) {
 function cgcTier(label) {
   const s = String(label || "").toLowerCase();
   if (/red\s*(manga|alt)/.test(s)) return "red";
-  if (/stamped|signature/.test(s)) return "signature";
+  // CGC 는 서명본을 "… 1st Anniversary Art Signed" 로 적기도 한다(실측 2026-08-25).
+  // "signature" 만 보던 탓에 OP-05 ST01-012 Gold Stamped Signature 가 통째로 안 붙었다.
+  if (/stamped|signature|\bsigned\b/.test(s)) return "signature";
   if (/sp\s*ver|foil\s*parallel/.test(s)) {           // EB-02 재록 SP 는 CGC 라벨이 "Foil Parallel"(실측)
     if (/gold/.test(s)) return "gold";
     if (/silver/.test(s)) return "silver";

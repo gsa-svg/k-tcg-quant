@@ -1,11 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    {
-      "name": "opbox",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["--yes", "http-server", ".", "-p", "8123", "-c-1"],
-      "port": 8123
-    }
+    { "name": "opbox", "runtimeExecutable": "npx", "runtimeArgs": ["-y", "http-server", "-p", "8099", "-c-1"], "port": 8099 }
   ]
 }

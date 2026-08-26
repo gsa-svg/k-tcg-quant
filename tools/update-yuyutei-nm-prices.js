@@ -57,6 +57,9 @@ function cardTier(card) {
   if (/\bgold\b/.test(s)) return "gold";
   if (/\bsilver\b/.test(s)) return "silver";
   if (/wanted/.test(s)) return "wanted";
+  // SP(箔押し) — 종전엔 이 갈래가 없어 "Uta SP" 같은 카드가 전부 base 로 떨어졌다(2026-08-25).
+  // 유유테이는 SP 를 "(パラレル/箔押し)" 로 적으므로 parallel 과 같은 자리에서 본다.
+  if (/\bsp\b/.test(s)) return "parallel";
   if (/parallel/.test(s)) return "parallel";
   if (/alternate|\balt\b/.test(s)) return "alt";   // base/parallel 애매 — 아래 폴백에서만 처리
   return "base";
@@ -86,6 +89,24 @@ function assignByNumber(ourCards, cands) {
   // 2) 기존값 없는 카드: 이름→등급 정확일치가 유일할 때만.
   for (const c of ourCards) {
     if (res.has(c) || c.nmJpy > 0) continue;
+    const t = cardTier(c);
+    const ms = cands.filter((p) => !used.has(p) && yuyuTier(p) === t);
+    if (ms.length === 1) { res.set(c, ms[0]); used.add(ms[0]); }
+  }
+  // 3) 1)에서 3배 벽에 막혀 아무것도 못 받은 카드 — 등급이 유일하게 맞으면 그걸 쓴다. 2026-08-25 추가.
+  //
+  // 왜: PROX 는 **여러 후보 중 고르는 기준**이지 "값이 많이 움직였으면 버려라"가 아니었다.
+  //     그런데 실제로는 후보가 하나뿐일 때도 3배를 넘으면 통째로 버려서 **틀린 옛값이 영원히 남았다**.
+  //     실측(2026-08-25) — 화면에 나가던 값 vs 유유테이 실제:
+  //       EB-02 Uta SP        ¥5,980  → ¥59,800   (10배)
+  //       OP-11 Luffy 119 SP  ¥79,800 → ¥798,000  (10배)
+  //       OP-01 Luffy 024 Parallel ¥2,480 → ¥9,980 (4배)
+  //     전부 "관측일 없음"으로만 보였을 뿐, 값 자체는 그대로 노출되고 있었다.
+  //
+  // 안전장치: 등급이 맞는 미사용 후보가 **정확히 하나**일 때만. 둘 이상이면 손대지 않는다
+  //          (그게 변형 오배정 경로다). 큰 이동은 호출부에서 로그로 남겨 사람이 본다.
+  for (const c of ourCards) {
+    if (res.has(c)) continue;
     const t = cardTier(c);
     const ms = cands.filter((p) => !used.has(p) && yuyuTier(p) === t);
     if (ms.length === 1) { res.set(c, ms[0]); used.add(ms[0]); }
@@ -131,12 +152,13 @@ async function main() {
       if (!num) continue;
       (byNumber.get(num) || byNumber.set(num, []).get(num)).push(card);
     }
-    const ambiguous = [];
+    const ambiguous = [], bigMoves = [];
     for (const [num, ourCards] of byNumber) {
       const cands = products.filter((p) => p.number.toUpperCase() === num);
       if (!cands.length) { missed += ourCards.length; continue; }
       const picks = assignByNumber(ourCards, cands);
       for (const card of ourCards) {
+        const before = Number(card.nmJpy) || 0;
         const selected = picks.get(card);
         if (!selected) { missed += 1; if (cands.length > 1) ambiguous.push(`${num} "${(card.name || "").slice(0, 24)}" (기존 ¥${card.nmJpy ?? "-"})`); continue; }
         card.nmJpy = selected.priceJpy;
@@ -149,9 +171,14 @@ async function main() {
         // 화면에는 아무 표시도 없었다. 41장은 매칭 실패라 계속 옛값이 남는다.
         card.nmUpdated = today;
         updated += 1;
+        // 3배 넘게 움직인 건 사람이 한 번 본다 — 진짜 급변일 수도, 변형이 바뀐 것일 수도 있다.
+        if (before > 0 && (selected.priceJpy / before > 3 || before / selected.priceJpy > 3)) {
+          bigMoves.push(`${num} "${(card.name || "").slice(0, 28)}" ¥${before.toLocaleString()} → ¥${selected.priceJpy.toLocaleString()} · ${selected.name.slice(0, 34)}`);
+        }
       }
     }
     if (ambiguous.length) console.log(`  [수동검토 필요] ${code}: ${ambiguous.join(" · ")}`);
+    if (bigMoves.length) console.log(`  [큰 변동 — 확인] ${code}: ${bigMoves.join(" · ")}`);
 
     set.priced = true;
     set.nmSource = "遊々亭 single-card listing";

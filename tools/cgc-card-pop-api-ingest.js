@@ -58,18 +58,71 @@ function match(dump, data) {
   };
   const rowTier = (code, ed, num, r) => VARIANT_TIER_OVERRIDE[`${code}|${ed}|${num}|${r.variant}`] || cgcTier(r.variant);
 
+  // CGC 는 "수배서(Wanted Poster)" 변형을 **"SP Ver. (SP next to number)"** 로 적는다 — 2026-08-25 실측.
+  // 근거: 같은 번호의 변형 개수가 PSA 와 1:1 로 맞아떨어진다.
+  //   OP-09 OP09-004 — PSA: Wanted / Manga / Alternate / Base  ·  CGC: SP Ver. / Manga Alt. / (Borderless) Alt / (빈칸)
+  //   OP-13 OP13-119 — 양쪽 다 5개, Red Manga 까지 포함해 일치. OP-03 ST01-012 는 양쪽 다 1개뿐이다.
+  // 그래서 wanted 카드는 "SP Ver." 줄도 후보로 본다. 다만 같은 박스·같은 번호에 우리 sp 카드가
+  // 따로 있으면 둘이 같은 줄을 집어가므로 그때는 둘 다 포기한다(아래 spClash).
+  const wantsSpVer = (t) => t === "wanted" || t === "sp";
+  const spClash = new Set();
+  for (const [code, set] of Object.entries(data.sets)) {
+    const byNum = new Map();
+    for (const c of set.cards || []) {
+      const n = String(c.number || "").toUpperCase();
+      if (!n) continue;
+      const t = ourTier(c.name || "");
+      if (!wantsSpVer(t)) continue;
+      byNum.set(n, (byNum.get(n) || 0) + 1);
+    }
+    for (const [n, cnt] of byNum) if (cnt > 1) spClash.add(`${code}|${n}`);
+  }
+
+  // 이름 대조 — PSA 적재기와 같은 규칙. CGC 덤프에는 카드명이 들어 있는데 쓰지 않고 있었다.
+  const nameKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
+  const CGC_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"]];
+  const nameAgrees = (ourName, rowName) => {
+    if (!rowName) return true;                  // CGC 가 이름을 안 준 줄 — 번호로만 간다
+    const a = nameKey(ourName), b = nameKey(rowName);
+    if (!a || !b) return true;
+    if (a.includes(b) || b.includes(a)) return true;
+    return CGC_ALIAS.some(([x, y]) => {
+      const p = a.replace(x, y), q = b.replace(x, y);
+      return p.includes(q) || q.includes(p);
+    });
+  };
+
+  // DON!! 카드는 CGC 에서 번호가 빈칸이고 이름이 "Don!! - <캐릭터>", 변형이 "Gold" 다(실측).
+  const donCharOf = (n) => { const m = String(n || "").match(/^DON\s*Card\s+(.+?)\s+Gold$/i); return m ? m[1] : null; };
+
   const accepted = [], ambiguous = [], absent = [];
   for (const [code, set] of Object.entries(data.sets)) {
     for (const card of set.cards || []) {
-      const num = String(card.number || "").toUpperCase();
+      const donChar = donCharOf(card.name);
+      const num = donChar ? "DON" : String(card.number || "").toUpperCase();
       if (!num) continue;
-      const tier = ourTier(card.name || "");
+      const tier = donChar ? "gold" : ourTier(card.name || "");
       for (const ed of ["jp", "en"]) {
         const rows = dump.sets[`${code}|${ed}`];
         if (!Array.isArray(rows)) continue;
-        const same = rows.filter((r) => String(r.num || "").toUpperCase() === num);
+        if (donChar) {
+          // 캐릭터가 이름 칸에 있다. "Gold" 변형이면서 캐릭터가 맞는 줄이 **정확히 하나**일 때만 쓴다.
+          const dh = rows.filter((r) => /^don!!\s*-/i.test(String(r.name || ""))
+            && /gold/i.test(String(r.variant || ""))
+            && nameAgrees(donChar, String(r.name).replace(/^don!!\s*-\s*/i, "")));
+          if (dh.length !== 1) { if (dh.length) ambiguous.push({ code, ed, num: "DON", tier, card: card.name, options: dh.map((h) => `${h.name} · ${h.variant}`) }); else absent.push(`${code}|${ed} DON ${donChar}`); continue; }
+          const r = dh[0];
+          const tot = Number(r.total) || 0, pr = Number(r.pristine) || 0, gm = Number(r.gem) || 0;
+          if (!(tot > 0) || pr + gm > tot) { ambiguous.push({ code, ed, num: "DON", tier, card: card.name, options: [`${r.name} · ${r.total}장`] }); continue; }
+          accepted.push({ code, ed, num: `DON-${nameKey(donChar)}`, tier, card: card.name, variant: r.variant || "(빈칸)", rows: 1, total: tot, pristine: pr, gem: gm });
+          continue;
+        }
+        const same = rows.filter((r) => String(r.num || "").toUpperCase() === num && nameAgrees(card.name, r.name));
         if (!same.length) continue;
-        const hits = same.filter((r) => rowTier(code, ed, num, r) === tier);
+        let hits = same.filter((r) => rowTier(code, ed, num, r) === tier);
+        if (!hits.length && tier === "wanted" && !spClash.has(`${code}|${num}`)) {
+          hits = same.filter((r) => /sp\s*ver/i.test(String(r.variant || "")));
+        }
         if (hits.length === 0) { absent.push(`${code}|${ed} ${num} [${tier}]`); continue; }
         // 같은 번호·같은 변형인데 CGC 에 줄이 여러 개인 경우가 있다(2026-08-03 실측):
         //  · 영문판 오탈자 수정 재판이 따로 등록됨 — Post-Errata ("Up to"). 그림·번호·변형이 같은 같은 카드다.

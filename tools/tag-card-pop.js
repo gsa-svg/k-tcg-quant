@@ -42,9 +42,13 @@ window.__tagNavParse=async(href)=>{
   if(c[0]==="Card #"){header=c;continue;}
   if(!header||!c[0])continue;
   const num=(c[0].split(" ")[0]||"").toUpperCase();
+  // 카드명(2번째 칸)도 같이 담는다 — 2026-08-25.
+  //  · 적재기에서 이름을 대조해 변형 오배정을 막는다(PSA 에는 이미 있는 방어막인데 TAG 에만 없었다).
+  //  · DON!! 카드는 번호가 전부 "DON!!" 이라 이름이 없으면 캐릭터를 구분할 방법이 아예 없다.
+  const nm=(c[1]||"").trim();
   if(!window.__tagNums.has(num))continue;
   const g={};for(let k=2;k<header.length&&k<c.length;k++){const v=parseInt((c[k]||"0").replace(/,/g,""),10);if(Number.isFinite(v)&&v>0)g[header[k]]=v;}
-  out.push({num,grades:g});
+  out.push({num,name:nm,grades:g});
  }
  return {rows:out};
 };
@@ -63,7 +67,7 @@ window.__tagCardYear=async(year,MAXV=8)=>{
   const box=window.__tagMatchBox(l.t);
   const r=await window.__tagNavParse(l.h);
   window.__tagVisited[key]=true;visited++;
-  if(r.rows)for(const row of r.rows){window.__tagCards.push({box,tagSet:l.t.slice(0,80),num:row.num,grades:row.grades});keptTotal+=1;}
+  if(r.rows)for(const row of r.rows){window.__tagCards.push({box,tagSet:l.t.slice(0,80),num:row.num,name:row.name,grades:row.grades});keptTotal+=1;}
   // 연도 페이지로 복귀
   history.pushState({},"","/pop-report/One Piece/"+year);window.dispatchEvent(new PopStateEvent("popstate"));
   for(let i=0;i<16;i++){await new Promise(z=>setTimeout(z,350));if([...document.querySelectorAll("table a")].length>3)break;}
