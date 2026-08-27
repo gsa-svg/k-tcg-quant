@@ -140,6 +140,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
+    <script defer src="/track.js"></script>
     <!-- AdSense is intentionally limited to substantial editorial/core pages during site approval.
          Set guides keep eBay EPN links but do not request Google ads. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
@@ -965,6 +966,7 @@ function rankingPage() {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
+    <script defer src="/track.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1520891018658006" crossorigin="anonymous"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />

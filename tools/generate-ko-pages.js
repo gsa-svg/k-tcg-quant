@@ -145,6 +145,7 @@ const html = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
+    <script defer src="/track.js"></script>
     <!-- Korean data pages remain ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/ko/" />
@@ -436,6 +437,7 @@ ${cardRows}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
+    <script defer src="/track.js"></script>
     <!-- No AdSense on noindex Korean set detail pages. -->
     <!-- Korean set details remain noindex and ad-free through the AdSense review window.
          Reconsider indexing separately after the review; the Korean hub remains indexed. -->

@@ -180,6 +180,7 @@ for (const { code, set: s, card: c } of cands) {
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
+    <script defer src="/track.js"></script>
     <!-- No AdSense on noindex card detail pages; eBay EPN links remain active. -->
     <!-- Card details remain noindex and ad-free through the AdSense review window.
          Reconsider indexing separately after enough exact-variant sale history accumulates. -->
@@ -322,6 +323,7 @@ const hub = `<!doctype html>
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
+    <script defer src="/track.js"></script>
     <!-- Navigation hubs stay ad-free during AdSense site approval. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${SITE}/cards/" />

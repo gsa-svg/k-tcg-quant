@@ -57,6 +57,7 @@ const html = `<!doctype html>
       gtag('js', new Date());
       gtag('config', 'G-P73SE1WVD0');
     </script>
+    <script defer src="/track.js"></script>
     <!-- Short automated weekly reports remain noindex and ad-free until expanded editorially. -->
     <meta name="robots" content="noindex,follow" />
     <link rel="canonical" href="${canonical}" />
