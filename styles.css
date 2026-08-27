@@ -1149,6 +1149,10 @@ h2 {
 #sinceLast .slvChip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,.14); background: rgba(20,23,28,.6); color: #eef2ff; border-radius: 9px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; min-height: 30px; }
 #sinceLast .slvChip:hover { border-color: #50dad9; }
 #sinceLast .slvAvg { color: #9aa4b6; margin-left: auto; font-size: 12px; }
+/* 관심 등록 토글 — watchToggle 은 있는데 버튼이 없어 죽어 있던 기능(2026-08-27) */
+.pinToggle { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; border: 1px solid rgba(255,255,255,.18); background: rgba(20,23,28,.6); color: #cfd6e4; border-radius: 9px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; vertical-align: middle; }
+.pinToggle:hover { border-color: #50dad9; color: #eef2ff; }
+.pinToggle.on { border-color: rgba(80,218,217,.55); background: rgba(80,218,217,.1); color: #50dad9; }
 #sinceLast b.up { color: #10d7a0; }
 #sinceLast b.down { color: #ff7d7d; }
 .watchBtn { display: inline-flex; align-items: center; min-height: 34px; margin: 2px 0 8px; padding: 0 12px; border-radius: 9px; border: 1px dashed rgba(255,255,255,.25); background: transparent; color: #9aa4b6; font-size: 12px; font-weight: 700; cursor: pointer; }
