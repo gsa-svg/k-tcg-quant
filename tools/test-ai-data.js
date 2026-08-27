@@ -46,8 +46,12 @@ assert.equal(new Set(actual.sets.map((set) => set.setCode)).size, actual.sets.le
 
 for (const set of actual.sets) {
   assert.match(set.canonicalUrl, /^https:\/\/opboxindex\.com\/sets\/[a-z0-9-]+\.html$/);
-  assert.equal(set.topHits.length, 7, `${set.setCode} must publish exactly seven ranked hits`);
-  assert.deepEqual(set.topHits.map((card) => card.rank), [1, 2, 3, 4, 5, 6, 7]);
+  // 카드 목록이 아직 없는 신규 세트(OP-17: 박스 시세만 공개, 카드는 검증 후)는 topHits 가 비는 게 맞다.
+  // "빈 값이 틀린 값보다 낫다" — 다만 원본에 카드가 7장 이상 있는데 hits 가 모자라면 여전히 실패한다.
+  const sourceCardCount = (source.sets[set.setCode].cards || []).length;
+  const expectedHits = Math.min(7, sourceCardCount);
+  assert.equal(set.topHits.length, expectedHits, `${set.setCode} must publish exactly ${expectedHits} ranked hits (source has ${sourceCardCount} cards)`);
+  assert.deepEqual(set.topHits.map((card) => card.rank), Array.from({ length: expectedHits }, (_, i) => i + 1));
   for (const hit of set.topHits) if (hit.psa10Sold) {
     const raw = source.sets[set.setCode].cards.find((card) => card.rank === hit.rank).psa10Ebay;
     const expectedPercentiles = /manual, variant-matched/i.test(raw.source || "") ? [25, 75] : [15, 85];

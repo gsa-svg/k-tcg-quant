@@ -79,7 +79,9 @@ if (!fs.existsSync(aiPath)) {
     if (!Array.isArray(aiData.sets) || aiData.sets.length < 20) errors.push("opbox-ai-data.json: tracked set coverage is incomplete");
     for (const set of aiData.sets || []) {
       if (!/^https:\/\/opboxindex\.com\/sets\/[a-z0-9-]+\.html$/.test(set.canonicalUrl || "")) errors.push(`opbox-ai-data.json: invalid citation URL for ${set.setCode}`);
-      if (!Array.isArray(set.topHits) || set.topHits.length !== 7) errors.push(`opbox-ai-data.json: ${set.setCode} must contain Top 7 hits`);
+      // 카드 목록이 아직 없는 신규 세트(예: OP-17 — 박스 시세만 공개)는 topHits 가 비는 게 맞다.
+      // 0(정직한 빈 값) 또는 7(완전한 목록)만 허용 — 1~6 은 목록이 반쯤 깨진 것이니 여전히 잡는다.
+      if (!Array.isArray(set.topHits) || (set.topHits.length !== 7 && set.topHits.length !== 0)) errors.push(`opbox-ai-data.json: ${set.setCode} must contain Top 7 hits (or none for a new set without a verified card list)`);
     }
     const serialized = JSON.stringify(aiData);
     for (const forbidden of ["bestListing", "itemPrices", "seller", "query", "marketplaceId", "ebay.com/itm/"]) {
