@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Google Analytics 4 (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P73SE1WVD0');
+    </script>
+    <script defer src="/track.js"></script>
+    <!-- Transparency page stays ad-free. -->
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://opboxindex.com/changelog.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <title>Data Corrections &amp; Change History | OP Box Index</title>
+    <meta name="description" content="Every correction to OP Box Index price data, grading data or methodology, dated and described. Wrong numbers are fixed, not hidden." />
+    <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Data Corrections &amp; Change History | OP Box Index" />
+    <meta property="og:description" content="Every correction to OP Box Index price data, grading data or methodology, dated and described." />
+    <meta property="og:url" content="https://opboxindex.com/changelog.html" />
+    <link rel="stylesheet" href="styles.css?v=20260827d" />
+    <meta name="theme-color" content="#0a0c10" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      .clog { list-style: none; padding: 0; margin: 24px 0 0; }
+      .clog li { display: grid; grid-template-columns: 92px 1fr; gap: 14px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+      .clog time { color: var(--muted, #9aa4b6); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .clog p { margin: 0; line-height: 1.6; font-size: 14.5px; }
+      .clog .tag { display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 6px; font-size: 11px; font-weight: 700; vertical-align: 1px; }
+      .clog .tFix { background: rgba(255,95,110,.14); color: #ff8b96; }
+      .clog .tOut { background: rgba(255,193,7,.12); color: #ffd54f; }
+      .clog .tPolicy { background: rgba(80,218,217,.12); color: #50dad9; }
+      @media (max-width: 560px) { .clog li { grid-template-columns: 1fr; gap: 3px; } }
+    </style>
+  </head>
+  <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
+    <header class="topbar">
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+    </header>
+    <main id="main-content" class="bodyPage">
+      <p class="eyebrow">Transparency</p>
+      <h1>Data corrections &amp; change history</h1>
+      <p>When a number on this site turns out to be wrong, it gets fixed and recorded here — date, what was wrong, and what changed. Automated collection also breaks sometimes; outages that affected published data are listed too. Entries below are drawn from the project's actual commit history. Found something wrong that isn't listed? Email <a href="mailto:gsa@whatsong.kr">gsa@whatsong.kr</a>.</p>
+
+      <ul class="clog">
+        <li><time datetime="2026-08-27">2026-08-27</time><p><span class="tag tOut">Outage</span>The daily eBay listings pipeline had been silently stopped for 3 days (a set with zero qualifying listings was mistakenly treated as a fatal error). Fixed, and the missed collection was re-run the same day. Listing-based figures dated 2026-08-24 to 2026-08-26 were delayed, not wrong.</p></li>
+        <li><time datetime="2026-08-26">2026-08-26</time><p><span class="tag tFix">Correction</span>Four card-data errors corrected across the grading collectors, and TAG name validation was loosened where it had been wrongly rejecting valid matches (tracked TAG cards went from 185 to 196).</p></li>
+        <li><time datetime="2026-08-26">2026-08-26</time><p><span class="tag tOut">Outage</span>The market-data workflow file had a formatting error that stopped automated runs. Repaired, and a workflow audit was added so the same failure cannot pass unnoticed again.</p></li>
+        <li><time datetime="2026-08-25">2026-08-25</time><p><span class="tag tFix">Correction</span>Three grading-population misattributions were found and corrected (cards credited to the wrong set or variant). An independent attribution audit now re-verifies every card against the grader's own label on each run.</p></li>
+        <li><time datetime="2026-08-24">2026-08-24</time><p><span class="tag tFix">Correction</span>The auction page was publishing the current day's still-open auctions as if they were final results. Now only completed days are published.</p></li>
+        <li><time datetime="2026-08-21">2026-08-21</time><p><span class="tag tFix">Correction</span>Three CGC cards were missing from collection due to a blind spot in the collector. Backfilled.</p></li>
+        <li><time datetime="2026-08-17">2026-08-17</time><p><span class="tag tFix">Correction</span>The exchange rate used for currency conversion had been frozen for 47 days. Corrected, and the Monday grading collection that had stalled was restored.</p></li>
+        <li><time datetime="2026-08-12">2026-08-12</time><p><span class="tag tPolicy">Copy</span>Removed a causal overclaim from set panels: grading counts measure grading submissions, not box openings. The site no longer implies one proves the other.</p></li>
+        <li><time datetime="2026-08-12">2026-08-12</time><p><span class="tag tPolicy">Policy</span>Affiliate disclosure moved above the fold on every page with eBay links, following an eBay Partner Network compliance notice.</p></li>
+        <li><time datetime="2026-07-30">2026-07-30</time><p><span class="tag tFix">Correction</span>PRB-01 Nami was showing OP-01's manga art instead of THE BEST's, and OP-09 Gol D. Roger carried a wrong card number (caught via a CGC population screenshot). Both fixed.</p></li>
+        <li><time datetime="2026-07-29">2026-07-29</time><p><span class="tag tFix">Correction</span>A wrong date label appeared on every set's weekly grader-change figure. Fixed, and the underlying numbers were re-audited.</p></li>
+        <li><time datetime="2026-07-28">2026-07-28</time><p><span class="tag tFix">Correction</span>Five card prices were wrong due to variant mix-ups in matching (a different printing's price was being picked up). Corrected, with new guards to block recurrence. Separately, CGC collection had been missing 9 of 43 list pages due to a pagination bug — backfilled.</p></li>
+        <li><time datetime="2026-07-28">2026-07-28</time><p><span class="tag tFix">Correction</span>Empty English-edition cells had been labeled "unreleased" even where the English printing exists. Blank now means "no data", never a claim about the product.</p></li>
+      </ul>
+
+      <p style="margin-top:26px"><small>Routine daily data refreshes are not listed — only corrections, outages and policy changes. See <a href="methodology.html">methodology</a> for how the data is collected.</small></p>
+    </main>
+  </body>
+</html>

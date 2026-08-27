@@ -182,15 +182,33 @@ Disallow: /CLAUDE.md
 Disallow: /AGENTS.md
 Disallow: /SECURITY.md
 
-# Training-only scrapers — BLOCKED (bulk-harvest for model training, no exposure benefit).
+# GPTBot: 2026-08-27 차단 해제. 학습 전용인 줄 알았으나 ChatGPT 검색의 검색 코퍼스도
+# 이 봇이 채운다(OAI-SearchBot 은 링크 표시용) — 막으면 ChatGPT 노출을 스스로 잃는다.
 User-agent: GPTBot
-Disallow: /
+Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
-# Anthropic model-training crawler. Claude search and user-requested retrieval
-# remain allowed above through Claude-SearchBot and Claude-User.
+# ClaudeBot: 2026-08-27 차단 해제(GPTBot 과 같은 이유 — Claude 검색 표면에도 쓰인다).
+# 학습 전용 anthropic-ai 는 아래에서 계속 차단.
 User-agent: ClaudeBot
-Disallow: /
+Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
 
+# Training-only scrapers — BLOCKED (bulk-harvest for model training, no exposure benefit).
 User-agent: anthropic-ai
 Disallow: /
 

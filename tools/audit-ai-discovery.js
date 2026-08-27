@@ -17,6 +17,9 @@ const retrievalBots = [
   "Claude-User", "Claude-SearchBot", "Google-Extended", "Googlebot",
   "Bingbot", "Yeti", "NaverBot", "GrokBot", "xAI-Crawler",
   "FacebookBot", "Meta-ExternalAgent",
+  // 2026-08-27 정책 변경: GPTBot·ClaudeBot 은 학습 전용이 아니라 각사 검색 코퍼스도
+  // 채우는 봇이라 허용으로 전환(외부 SEO 감사 지적, 소유자 승인). 학습 전용 차단은 아래 유지.
+  "GPTBot", "ClaudeBot",
 ];
 const internalPaths = ["/docs/", "/tools/", "/social/", "/HANDOFF.md", "/CLAUDE.md", "/AGENTS.md", "/SECURITY.md"];
 const { isAllowed } = robotsPolicy(robots);
@@ -35,7 +38,7 @@ for (const agent of retrievalBots) {
 requireAccess("FutureAnswerBot", "/opbox-ai-data.json", true);
 requireAccess("FutureAnswerBot", "/data/onepiece-packs.json", false);
 
-for (const agent of ["GPTBot", "ClaudeBot", "anthropic-ai"]) {
+for (const agent of ["anthropic-ai", "CCBot", "Bytespider", "Applebot-Extended", "Amazonbot"]) {
   requireAccess(agent, "/", false);
 }
 
@@ -114,7 +117,7 @@ if (errors.length) {
 console.log(JSON.stringify({
   audit: "AI_DISCOVERY_OK",
   searchRetrievalBots: retrievalBots.length,
-  trainingBotsBlocked: 3,
+  trainingBotsBlocked: 5,
   canonicalRootPreserved: true,
   compactAiData: true,
 }, null, 2));

@@ -23,7 +23,7 @@
     <meta property="og:description" content="Every rule we follow before a number reaches a page: post-close auction settlement, sample-size floors, append-only ledgers, and automated guards that stop a bad publish." />
     <meta property="og:url" content="https://opboxindex.com/methodology.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
-    <link rel="stylesheet" href="styles.css?v=20260827c" />
+    <link rel="stylesheet" href="styles.css?v=20260827d" />
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -32,7 +32,7 @@
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="cards/index.html" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Methodology</p>
@@ -64,11 +64,11 @@
         <li>No estimates in place of data. A blank cell means "we could not verify this", and we prefer it to a plausible guess.</li>
         <li>No currency blending. Sold amounts are aggregated in USD only; a sale in another currency is counted as a sale but kept out of dollar totals rather than converted at some arbitrary moment's rate.</li>
         <li>No survivor-only ratios. Every rate we print keeps its failures — unsold auctions, ungraded submissions — in the denominator.</li>
-        <li>No repackaging of other sites' analysis. Our inputs are primary: marketplace records read through official interfaces, the graders' own population reports, and a weekly ungraded market benchmark.</li>
+        <li>No repackaging of other sites' analysis. Our inputs are primary: marketplace records read through <a href="https://developer.ebay.com/api-docs/buy/browse/overview.html" rel="noopener noreferrer" target="_blank">eBay's official API</a>, the graders' own population reports (<a href="https://www.psacard.com/pop" rel="noopener noreferrer" target="_blank">PSA</a>, <a href="https://www.cgccards.com/population-report/" rel="noopener noreferrer" target="_blank">CGC</a>), Japanese NM retail from <a href="https://yuyu-tei.jp/" rel="noopener noreferrer" target="_blank">Yuyu-tei</a>, and release facts from <a href="https://en.onepiece-cardgame.com/products/" rel="noopener noreferrer" target="_blank">Bandai's official product pages</a>.</li>
       </ul>
 
       <h2>Corrections</h2>
-      <p>When we find an error we fix the pipeline that produced it, rebuild history from the ledgers, and note material changes on the affected page. The version of every dataset is stamped into the files themselves, so a reader comparing yesterday's download to today's can see exactly what moved. Three of our datasets are also <a href="free-data.html">downloadable as CSV</a> under CC BY 4.0 — re-run our numbers yourself; that is the point of publishing them.</p>
+      <p>When we find an error we fix the pipeline that produced it, rebuild history from the ledgers, and record it in the <a href="changelog.html">corrections &amp; change history</a>. The version of every dataset is stamped into the files themselves, so a reader comparing yesterday's download to today's can see exactly what moved. Three of our datasets are also <a href="free-data.html">downloadable as CSV</a> under CC BY 4.0 — re-run our numbers yourself; that is the point of publishing them.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

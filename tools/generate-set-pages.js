@@ -191,6 +191,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 760px; }
       .affTop b { color: inherit; font-weight: 600; }
       .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+      .pageUpdated { margin: 6px 0 0; color: var(--muted); font-size: 12.5px; }
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
@@ -234,7 +235,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="../cards/index.html" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="index.html" aria-current="page" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="bodyPage">`;
 }
@@ -352,6 +353,12 @@ function faqLd(code, nameEn) {
       { "@type": "ListItem", position: 2, name: "Set Guides", item: `${SITE}/sets/index.html` },
       { "@type": "ListItem", position: 3, name: `${code} Guide`, item: `${SITE}/sets/${slug(code)}.html` },
     ],
+  })}</script>
+    <script type="application/ld+json">${JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    url: `${SITE}/sets/${slug(code)}.html`,
+    dateModified: DATA_DATE,
   })}</script>`;
 }
 
@@ -777,6 +784,9 @@ function setPage(code, prev, next) {
           <h1>${code} ${esc(nameEn)} — Japanese booster box price${prioritySeo ? ", reprints" : ""} &amp; chase cards</h1>
           ${release}
           ${summaryLine}
+          ${/* 갱신일을 정적 HTML 로 — 기존 "Updated" 는 JS 로만 찍혀서 크롤러에겐 날짜 없는
+              페이지였다(2026-08-28 외부감사). 페이지는 매일 재생성되므로 이 날짜는 항상 사실. */ ""}
+          <p class="pageUpdated">Data updated <time datetime="${DATA_DATE}">${DATA_DATE}</time> · refreshed daily</p>
         </div>
       </div>
       ${AFF_TOP}
@@ -1015,7 +1025,7 @@ function rankingPage() {
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="cards/index.html" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="rankWrap">
       <p class="eyebrow">PSA 10 Value Ranking</p>
