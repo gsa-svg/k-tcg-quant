@@ -545,6 +545,19 @@
     // 폭 상한을 두는 이유: SVG 가 viewBox 비율을 지키느라 폭이 넓어질수록 세로도 같이 커진다.
     // 홈(본문 1100px 남짓)에서는 차트 하나가 화면을 통째로 덮었다. 상한을 걸면 세트 페이지와 크기도 같아진다.
     ".opbcGridWrap{display:grid;gap:14px;max-width:760px}",
+    // 넓은 화면에서는 일본판·영문판을 나란히 둔다 — 2026-08-27.
+    // 세로로만 쌓으면 세트 페이지에서 차트 구역만 1,425px(2화면)가 되고, 두 판을 비교하려면
+    // 스크롤해야 한다. 2026-08-13 에 좌우 배치를 접었던 이유는 본문이 800px 남짓이라
+    // 반으로 쪼개면 한 칸이 380px 로 눌려서였다 — 그건 지금도 맞다.
+    // 그래서 폭이 실제로 남을 때만(뷰포트 1240px+) 차트 구역을 본문 밖으로 넓혀
+    // 한 칸을 590px 로 만든다. 그 아래에서는 예전 그대로 세로로 쌓인다.
+    // 본문(main.bodyPage)은 좌측 정렬 900px 이고 오른쪽에 여백이 남는다(1440 뷰포트에서 540px).
+    // 그래서 **오른쪽으로만** 넓힌다 — 왼쪽 기준선은 본문과 그대로 맞춘다.
+    // margin-left 로 당기면 화면 밖으로 잘린다(실측: left -150px).
+    "@media (min-width:1240px){",
+    ".opbcWrap{width:min(1200px,calc(100vw - 104px))}",
+    ".opbcGridWrap{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}",
+    "}",
     // display:grid 가 브라우저 기본 [hidden]{display:none} 을 이겨서, 숨겼는데 그대로 보였다(2026-08-13).
     ".opbcGridWrap[hidden]{display:none}",
     ".opbcPane{margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",

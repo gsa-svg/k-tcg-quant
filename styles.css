@@ -906,8 +906,11 @@ h2 {
   line-height: 1.55;
 }
 
-.introPanel,
-.seoPanel,
+/* content-visibility 는 **큰 서브트리**에만 값이 있다. 2026-08-27 실측:
+   .introPanel · .seoPanel 은 내용이 접기(<details>)로 바뀌어 실제 높이가 60~75px 인데
+   여기 걸린 520px 예약치를 그대로 쓰고 있었다 — 세 패널이 홈에서만 빈 공간 ~1,470px
+   (전체 스크롤의 30%)을 만들었다. 접힌 패널은 렌더 비용이 없으니 이 최적화에서 뺀다.
+   아래 셋은 실제로 크다(팩 그리드·상세창·푸터) — 유지. */
 .packGrid,
 #detail,
 .footer {
@@ -920,8 +923,10 @@ h2 {
   padding: 58px clamp(18px, 4vw, 52px);
 }
 
+/* 세트/기사 제목은 80자를 넘는 게 흔해서 56px 에서는 데스크톱에서도 4줄(228px)이 됐다.
+   42px 상한이면 같은 문장이 3줄에 들어가고 위계는 그대로다(2026-08-27 실측). */
 .bodyPage h1 {
-  font-size: clamp(34px, 5vw, 56px);
+  font-size: clamp(30px, 3.6vw, 42px);
 }
 
 .bodyPage h2 {

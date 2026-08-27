@@ -162,8 +162,11 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
     ${extraLd}
     <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <style>
+      /* 제목 블록이 폭을 100% 잡고 있어 박스 이미지가 늘 아래 줄로 밀렸다(2026-08-27).
+         min-width:0 + flex:1 로 같은 줄에 세우면 hero 가 한 화면의 1/4을 덜 먹는다. */
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
-      .setHero img { width: 132px; border-radius: 10px; border: 1px solid var(--line); }
+      .setHero > div { flex: 1 1 320px; min-width: 0; }
+      .setHero img { width: 132px; flex: 0 0 auto; border-radius: 10px; border: 1px solid var(--line); }
       .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,215,160,.05); }
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
@@ -190,7 +193,13 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .dataSummary b { color: var(--accent); font-weight: 800; }
       /* 세트 지표 격자 — 2026-08-20. 숫자 하나만 주면 그게 높은지 낮은지 알 수 없다.
          모든 값 아래에 21세트 중앙값을 기준선으로 붙이고, 그 대비 방향을 화살표로 준다. */
-      .statHint { margin-top: 6px; font-size: 11px; color: var(--muted, #8090b0); line-height: 1.45; }
+      .statGloss { margin: 8px 0 0; max-width: 760px; font-size: 12.5px; color: var(--muted, #9aa4b6); }
+      .statGloss > summary { cursor: pointer; color: var(--muted, #9aa4b6); }
+      .statGloss dl { margin: 8px 0 0; display: grid; gap: 6px 14px; grid-template-columns: max-content 1fr; }
+      .statGloss dt { font-weight: 700; color: var(--fg, #e8edf6); }
+      .statGloss dd { margin: 0; line-height: 1.5; }
+      .keyFactsBox > summary { cursor: pointer; color: var(--muted, #9aa4b6); font-size: 13px; }
+      @media (max-width: 640px) { .statGloss dl { grid-template-columns: 1fr; } .statGloss dd { margin-bottom: 4px; } }
       .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
@@ -683,6 +692,13 @@ function setPage(code, prev, next) {
     };
     const cell = (label, value, baseText) => cells.push(
       `<div class="statCard"><div class="statLabel">${label}</div><div class="statValue">${value}</div><div class="statBase">${baseText}</div></div>`);
+    // 지표 정의문은 카드마다 3~4줄을 잡아먹어 격자를 두 배로 늘렸다(2026-08-27 실측 366px).
+    // 정의는 한 번만 읽으면 되는 글이라 격자 아래 접힌 용어집으로 모은다 — DOM 에는 그대로 남는다.
+    const hints = [];
+    const hintCell = (label, value, baseText, hint) => {
+      hints.push([label, hint]);
+      cells.push(`<div class="statCard" title="${hint.replace(/"/g, "&quot;")}"><div class="statLabel">${label}</div><div class="statValue">${value}</div>${baseText ? `<div class="statBase">${baseText}</div>` : ""}</div>`);
+    };
 
     const m = SET_METRICS[code] || {};
     if (m.price != null) cell("Box price (JP)", usd(m.price), `${m.priceD ? `as of ${m.priceD} · ` : ""}${baseLabel("price")} ${usd(base.price)} ${cmp(m.price, base.price)}`);
@@ -691,9 +707,9 @@ function setPage(code, prev, next) {
       cell("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `${baseLabel("chg")} ${base.chg > 0 ? "+" : ""}${base.chg}%`);
     }
     // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 낮을수록 물건이 빨리 빠진다는 뜻이라 higherIsBetter=false.
-    if (m.days != null) cells.push(`<div class="statCard"><div class="statLabel">Days of inventory</div><div class="statValue">${m.days}d</div><div class="statBase">${m.stock} listed · ${baseLabel("days")} ${base.days}d ${cmp(m.days, base.days, false)}</div><div class="statHint">How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</div></div>`);
+    if (m.days != null) hintCell("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${base.days}d ${cmp(m.days, base.days, false)}`, "How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.");
     if (m.psa != null) cell("PSA graded", intl(m.psa), `${baseLabel("psa")} ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
-    if (m.gem != null) cells.push(`<div class="statCard"><div class="statLabel">PSA 10 rate</div><div class="statValue">${m.gem}%</div><div class="statBase">${baseLabel("gem")} ${base.gem}% ${cmp(m.gem, base.gem)}</div><div class="statHint">Share of PSA submissions from this set that came back a 10.</div></div>`);
+    if (m.gem != null) hintCell("PSA 10 rate", `${m.gem}%`, `${baseLabel("gem")} ${base.gem}% ${cmp(m.gem, base.gem)}`, "Share of PSA submissions from this set that came back a 10.");
     // ── 싱글카드 구성 — 2026-08-20. TCG 퀀트의 SINGLES INTEL 을 우리 데이터로 낸다.
     // 박스를 뜯는 사람이 실제로 묻는 것: "대박 하나에 몰려 있나, 아니면 두루 값이 나가나".
     // 그쪽과 대조해 보니 OP-01 chase concentration 이 53% 로 정확히 일치했다.
@@ -706,13 +722,18 @@ function setPage(code, prev, next) {
         const total = top.reduce((a, v) => a + v, 0);
         const dense = top.filter((v) => v >= 25).length;
         const conc = Math.round((top[0] / total) * 100);
-        cells.push(`<div class="statCard"><div class="statLabel">Value density</div><div class="statValue">${dense} / ${top.length}</div><div class="statHint">Cards worth $25+ in the top ${top.length}. More means demand spreads beyond one chase.</div></div>`);
-        cells.push(`<div class="statCard"><div class="statLabel">Chase concentration</div><div class="statValue">${conc}%</div><div class="statHint">Share of top-${top.length} value held by the #1 card. The higher this runs, the more the set rides on one pull.</div></div>`);
-        cells.push(`<div class="statCard"><div class="statLabel">Floor of the top ${top.length}</div><div class="statValue">${usd(Math.round(top[top.length - 1]))}</div><div class="statHint">What the cheapest tracked chase card is worth — value without hitting the big one.</div></div>`);
+        hintCell("Value density", `${dense} / ${top.length}`, "", `Cards worth $25+ in the top ${top.length}. More means demand spreads beyond one chase.`);
+        hintCell("Chase concentration", `${conc}%`, "", `Share of top-${top.length} value held by the #1 card. The higher this runs, the more the set rides on one pull.`);
+        hintCell(`Floor of the top ${top.length}`, usd(Math.round(top[top.length - 1])), "", "What the cheapest tracked chase card is worth — value without hitting the big one.");
       }
     }
 
-    if (cells.length >= 3) statGrid = `<section aria-label="Set metrics"><div class="statGrid">${cells.join("")}</div></section>`;
+    if (cells.length >= 3) {
+      const glossary = hints.length
+        ? `<details class="statGloss"><summary>What these numbers mean</summary><dl>${hints.map(([l, t]) => `<dt>${l}</dt><dd>${t}</dd>`).join("")}</dl></details>`
+        : "";
+      statGrid = `<section aria-label="Set metrics"><div class="statGrid">${cells.join("")}</div>${glossary}</section>`;
+    }
   }
 
   let keyFacts = "";
@@ -735,9 +756,12 @@ function setPage(code, prev, next) {
     }
     if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
     if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);
+    // 이 문단은 바로 위 지표 격자의 숫자를 문장으로 되풀이한다(AI 인용용 요약이라 문장 형태가 필요).
+    // 화면에서는 접어 두고, 본문은 DOM 에 그대로 둔다.
     if (facts.length >= 2) keyFacts = `
       <section id="key-facts" aria-label="Key facts">
-        <ul class="keyFacts">${facts.map((f) => `<li>${f}</li>`).join("")}</ul>
+        <details class="keyFactsBox"><summary>Key facts in one paragraph</summary>
+        <ul class="keyFacts">${facts.map((f) => `<li>${f}</li>`).join("")}</ul></details>
       </section>`;
   }
 
