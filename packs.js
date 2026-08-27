@@ -193,7 +193,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260827b";
+const DATA_VERSION = "20260827c";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1319,6 +1319,7 @@ async function load() {
   bindDisplayLanguage();
   renderStats();
   renderMarketStatus();
+  renderTickerBoard();
   renderTodayDeals();
   renderLiveAuctions();
   renderSinceLastVisit();
@@ -1416,6 +1417,29 @@ function renderSinceLastVisit() {
   el.innerHTML = `<span class="slvHead">${t(`지난 방문 이후 (${prev.d})`, `Since your last visit (${prev.d})`)}</span>${top.map((m) => `<button class="slvChip" data-key="${m.code}">${m.watched ? "📌 " : ""}${m.code} <b class="${m.pct >= 0 ? "up" : "down"}">${f(m.pct)}</b></button>`).join("")}<span class="slvAvg">${t("시장 평균", "market avg")} <b class="${avg >= 0 ? "up" : "down"}">${f(avg)}</b></span>`;
   el.querySelectorAll(".slvChip").forEach((btn) => btn.addEventListener("click", () => selectPack(btn.dataset.key)));
   trackEvent("since_last_visit", { prev_date: prev.d, movers: top.length });
+}
+
+// 등락 시세판 — 주식 시세판처럼 "지금 뭐가 오르고 내리나"를 첫 화면에서. (2026-08-27)
+// marketIndex.board 는 build-market-index.js 가 매일 만들면서 여태 화면에 안 쓰이던 데이터다.
+// changePct = 각 세트 4주 전 주간 중앙값 대비 — 시장 전체 수치는 그 중앙값 하나만 싣는다.
+function renderTickerBoard() {
+  const el = document.querySelector("#tickerBoard");
+  const board = state.data?.marketIndex?.board;
+  if (!el || !Array.isArray(board)) return;
+  const rows = board.filter((b) => b.changePct != null && b.nowUsd != null)
+    .sort((x, y) => y.changePct - x.changePct);
+  if (rows.length < 5) return;
+  // 합성 지수(중앙값·평균)는 싣지 않는다 — 지수 화면을 신뢰 문제로 없앤 소유자 결정(2026-08-27).
+  // 여기 있는 건 전부 세트별 실판매 원장 수치라 각자 세트 페이지에서 검증된다.
+  const f = (p) => `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
+  const cls = (p) => (p > 0 ? "up" : p < 0 ? "down" : "flat");
+  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")}</span><div class="tbScroll">${rows.map((b) =>
+    `<button class="tbChip" data-key="${b.code}"><span class="tbCode">${b.code}</span><span class="tbPrice">$${b.nowUsd}</span><b class="${cls(b.changePct)}">${f(b.changePct)}</b></button>`).join("")}</div>`;
+  el.hidden = false;
+  el.querySelectorAll(".tbChip").forEach((btn) => btn.addEventListener("click", () => {
+    trackEvent("ticker_click", { pack_code: btn.dataset.key });
+    selectPack(btn.dataset.key);
+  }));
 }
 
 function renderMarketStatus() {

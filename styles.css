@@ -1153,6 +1153,16 @@ h2 {
 .pinToggle { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; border: 1px solid rgba(255,255,255,.18); background: rgba(20,23,28,.6); color: #cfd6e4; border-radius: 9px; padding: 3px 10px; font-size: 12px; font-weight: 700; cursor: pointer; vertical-align: middle; }
 .pinToggle:hover { border-color: #50dad9; color: #eef2ff; }
 .pinToggle.on { border-color: rgba(80,218,217,.55); background: rgba(80,218,217,.1); color: #50dad9; }
+/* 등락 시세판 — 한 줄 가로 스크롤, 주식 시세판 문법(종목·현재가·등락률) */
+.tickerBoard { display: flex; align-items: center; gap: 10px; margin: 10px clamp(16px,4vw,52px) 0; padding: 8px 12px; border: 1px solid var(--terminal-line, rgba(255,255,255,.12)); border-radius: 10px; background: rgba(20,23,28,.5); font-variant-numeric: tabular-nums; }
+.tickerBoard .tbHead { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: #9aa4b6; text-transform: uppercase; letter-spacing: .06em; }
+.tickerBoard .tbScroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
+.tickerBoard .tbChip { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 6px; border: 1px solid rgba(255,255,255,.1); background: rgba(12,14,18,.6); border-radius: 8px; padding: 4px 9px; font-size: 12px; cursor: pointer; color: #cfd6e4; }
+.tickerBoard .tbChip:hover { border-color: #50dad9; }
+.tickerBoard .tbCode { font-weight: 800; color: #eef2ff; }
+.tickerBoard .tbPrice { color: #9aa4b6; font-size: 11px; }
+.tickerBoard b.up { color: #00e5a0; } .tickerBoard b.down { color: #ff5f6e; } .tickerBoard b.flat { color: #9aa4b6; }
+@media (max-width: 640px) { .tickerBoard { margin: 10px 12px 0; } }
 #sinceLast b.up { color: #10d7a0; }
 #sinceLast b.down { color: #ff7d7d; }
 .watchBtn { display: inline-flex; align-items: center; min-height: 34px; margin: 2px 0 8px; padding: 0 12px; border-radius: 9px; border: 1px dashed rgba(255,255,255,.25); background: transparent; color: #9aa4b6; font-size: 12px; font-weight: 700; cursor: pointer; }
