@@ -8,8 +8,9 @@ name: Collect auction market
 on:
   workflow_dispatch:
   schedule:
-    # 6시간 간격 (KST 05:00 / 11:00 / 17:00 / 23:00)
-    - cron: "0 20,2,8,14 * * *"
+    # 3시간 간격 — 2026-08-28 전수 수집 전환(스캔 12,000건/2.5분)으로 주기를 좁혔다.
+    # 감시 지평선이 7시간이라 3시간 간격이면 마감 경매를 놓치지 않는다.
+    - cron: "0 20,23,2,5,8,11,14,17 * * *"
 
 permissions:
   contents: write

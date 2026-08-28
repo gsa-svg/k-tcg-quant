@@ -27,8 +27,11 @@ const KEEP_DAYS = 180;
 const TOP_CARDS = 25;
 const TOP_CARDS_DAYS = 30;   // 인기 카드는 "지금 뜨는 것"이 쓸모라 최근 것만 남긴다
 const MIN_SET_N = 2;         // 표본 1건짜리 세트는 잡음이라 기록하지 않는다
-const PAGES = 3;            // 검색어당 페이지 수 (200건 × 3)
+const PAGES = 50;           // 밴드당 최대 페이지(200×50=10,000 = eBay 페이징 상한). 실제로는 밴드가 소진되면 조기 종료된다.
 const PAGE_SIZE = 200;
+// 가격 밴드 — 각 구간이 10,000건(eBay 페이징 상한) 아래가 되도록 실측해 나눈 값.
+// 상한 없는 마지막 구간은 고가라 항상 얇다.
+const PRICE_BANDS = [["0","2"],["2","5"],["5","10"],["10","20"],["20","50"],["50","100"],["100","300"],["300","99999"]];
 
 // fetch-auction-deals.js 와 같은 배제 규칙 — 시세에서 뺀 걸 관측에 넣으면 통계가 오염된다.
 const JUNK = /proxy|custom|orica|digital|reprint\s*card|fan\s*made|not\s*official|sticker|playmat|sleeve|binder|deck\s*box|empty|damaged|water|bent/i;
@@ -118,12 +121,16 @@ async function token() {
   return (await r.json()).access_token;
 }
 
-async function search(tok, q, offset) {
+async function search(tok, q, offset, band) {
   const u = new URL("https://api.ebay.com/buy/browse/v1/item_summary/search");
   u.searchParams.set("q", q);
   u.searchParams.set("limit", String(PAGE_SIZE));
   u.searchParams.set("offset", String(offset));
-  u.searchParams.set("filter", "buyingOptions:{AUCTION}");
+  // 가격대로 쪼개서 부른다 — eBay 페이징은 한 쿼리당 10,000건에서 잘린다(실측 2026-08-28:
+  // "One Piece TCG" 하나가 15,362건이라 40페이지를 긁어도 8,830건에서 멈췄다).
+  // 8개 밴드로 나누면 모든 구간이 1만 미만이 되어 사실상 전수를 훑을 수 있다.
+  u.searchParams.set("filter", "buyingOptions:{AUCTION}" +
+    (band ? `,price:[${band[0]}..${band[1]}],priceCurrency:USD` : ""));
   u.searchParams.set("sort", "endingSoonest");
   const r = await fetch(u, { headers: { Authorization: `Bearer ${tok}`, "X-EBAY-C-MARKETPLACE-ID": marketplaceId } });
   if (!r.ok) throw new Error(`Browse ${r.status}`);
@@ -188,9 +195,11 @@ function summarize(rows) {
   let totalReported = 0;
 
   for (const q of QUERIES) {
-    for (let p = 0; p < PAGES; p++) {
-      const { items, total } = await search(tok, q, p * PAGE_SIZE);
-      if (p === 0) totalReported = Math.max(totalReported, total);
+    for (const band of PRICE_BANDS) {
+      let bandTotal = 0;
+      for (let p = 0; p < PAGES; p++) {
+      const { items, total } = await search(tok, q, p * PAGE_SIZE, band);
+      if (p === 0) { bandTotal = total; totalReported += total; }
       if (!items.length) break;
       for (const it of items) {
         const id = it.itemId;
@@ -218,6 +227,9 @@ function summarize(rows) {
         });
       }
       if (items.length < PAGE_SIZE) break;
+      }
+      // 이 밴드를 다 훑었는데도 남아 있으면(=페이징 상한에 걸림) 밴드를 더 쪼개야 한다는 신호.
+      if (bandTotal > PAGES * PAGE_SIZE) console.error(`[band-full] ${q} $${band[0]}~${band[1]} total=${bandTotal} > 수집 상한 ${PAGES * PAGE_SIZE}`);
     }
   }
 

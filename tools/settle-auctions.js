@@ -47,7 +47,7 @@ const soldPath = path.join(ROOT, "data", `${pre}auction-sold.json`);
 const HOT_DAYS = 3;            // 이 파일에 싣는 개별 판매 창(원장은 아카이브)
 const KEEP_SALES_DAYS = 45;    // 아카이브 기준 집계 재계산 범위
 const KEEP_DAILY_DAYS = 365;   // 일별 집계는 더 오래
-const MAX_PER_RUN = 250;       // 한 번에 조회할 최대 건수 (API 한도 보호)
+const MAX_PER_RUN = 900;       // 한 번에 조회할 최대 건수. 2026-08-28 전수 수집 전환으로 250→900(2시간마다 실행 = 하루 10,800건 처리 여력). eBay Browse 는 호출당 1건 조회라 이 값이 곧 API 콜 수다.
 const GIVE_UP_HOURS = 30;      // 종료 후 이만큼 지나도 정산 못 하면 포기(조회 불가 추정)
 
 function loadEnv(p) {
