@@ -768,11 +768,23 @@
     if (typeof window === "undefined") return;
     [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach((wrap) => {
       wrap.style.width = "";
+      wrap.style.marginLeft = "";
       wrap.classList.remove("opbcWide");
       if (window.innerWidth < 1240) return;
-      const left = wrap.getBoundingClientRect().left;
-      const w = Math.min(1200, window.innerWidth - left - 24);
-      if (w >= 960) { wrap.style.width = w + "px"; wrap.classList.add("opbcWide"); }
+      const vw = window.innerWidth;
+      const r0 = wrap.getBoundingClientRect();
+      const L0 = r0.left, cw = r0.width;
+      let w = Math.min(1200, vw - 48);
+      // 본문 중심 기준으로 좌우 대칭 확장 — 오른쪽으로만 늘리면 차트 블록이 본문 밖으로
+      // 620px 돌출해 "잘린 화면"으로 읽혔다(2026-08-28 소유자 재지적). 왼쪽 여백이 허락하는
+      // 만큼 반씩 나눠 내밀고, 그래도 오른쪽이 화면을 넘으면 폭을 줄인다.
+      let shift = Math.min(Math.max(0, L0 - 24), Math.max(0, (w - cw) / 2));
+      w = Math.min(w, vw - 24 - (L0 - shift));
+      if (w >= 960) {
+        wrap.style.width = w + "px";
+        if (shift > 0) wrap.style.marginLeft = (-shift) + "px";
+        wrap.classList.add("opbcWide");
+      }
     });
   }
 
