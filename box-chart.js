@@ -589,7 +589,10 @@
     // sizeWraps() JS 가 각 wrap 의 실제 left 를 재서 뷰포트 안에 들어가는 폭만 준다.
     // [data-grain] 한정 — 공급 패널 구역(opbcSupWrap)까지 2열로 가르면 안내문이 왼쪽 칸,
     // 그래프가 오른쪽 칸이 되어 왼쪽 아래가 통째로 빈다(2026-08-28 소유자 발견).
-    ".opbcWrap.opbcWide .opbcGridWrap[data-grain]{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}",
+    // 2026-08-28 최종형: 본문 컨테이너를 넓혔으므로(홈 1520·bodyPage 1320 @1240+)
+    // 2열 여부는 순수 미디어쿼리로 정한다. JS 측정(opbcWide 토글)은 렌더 타이밍에 따라
+    // 실배포에서 네 번 무력화됐다 — 측정 기반 방식 재도입 금지.
+    "@media (min-width:1240px){.opbcGridWrap[data-grain]{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}}",
     // display:grid 가 브라우저 기본 [hidden]{display:none} 을 이겨서, 숨겼는데 그대로 보였다(2026-08-13).
     ".opbcGridWrap[hidden]{display:none}",
     ".opbcPane{margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",
@@ -761,20 +764,14 @@
     }));
   }
 
-  // 넓은 화면에서 JP/EN 을 나란히 둘 때의 폭 계산. CSS 100vw 식은 컨테이너가 가운데 정렬인
-  // 페이지(ko·홈)에서 오른쪽으로 넘쳐 영문판이 잘렸다(2026-08-27 실사고). 각 wrap 의 실제
-  // 화면 위치를 재서, 뷰포트 오른쪽 여백 안에 들어갈 때만 넓힌다.
-  // 2026-08-28 소유자 확정: 본문 컨테이너 자체를 넓혔다(홈 1520·bodyPage 1320) —
-  // wrap 을 본문 밖으로 밀어내던 폭·마진 조작은 전부 폐기. 이제 wrap 은 컨테이너를
-  // 100% 채우고, 실측 폭이 2열을 감당할 때(≥960px)만 나란히 배치 클래스를 단다.
-  // (이전 방식은 컨테이너 정렬·렌더 타이밍에 따라 실배포에서 이동량이 0이 되는
-  //  버그를 세 번 냈다 — 측정 기반 마진 조작은 다시 도입하지 말 것.)
+  // 2열 배치는 순수 CSS 미디어쿼리가 담당한다(위 CSS 참조). JS 측정·마진 조작 방식은
+  // 렌더 타이밍에 따라 실배포에서 네 번 무력화됐다 — 재도입 금지. 여기서는 과거 버전이
+  // 남긴 인라인 스타일만 청소한다(캐시된 옛 JS 가 심은 width/marginLeft 잔재 방어).
   function sizeWraps(scope) {
-    if (typeof window === "undefined") return;
     [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach((wrap) => {
       wrap.style.width = "";
       wrap.style.marginLeft = "";
-      wrap.classList.toggle("opbcWide", wrap.getBoundingClientRect().width >= 960);
+      wrap.classList.remove("opbcWide");
     });
   }
 
@@ -786,15 +783,6 @@
     });
     [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach(bindTabs);
     sizeWraps(scope);
-  }
-
-  if (typeof window !== "undefined" && !window.__opbcResize) {
-    window.__opbcResize = 1;
-    let t = null;
-    window.addEventListener("resize", () => {
-      clearTimeout(t);
-      t = setTimeout(() => { if (typeof document !== "undefined") sizeWraps(document); }, 150);
-    });
   }
 
   // 브라우저에서 이 파일을 읽으면 스타일도 스스로 넣는다.
