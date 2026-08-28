@@ -1123,6 +1123,28 @@ for (const f of ["index.html", "packs.html"]) {
   }
 }
 
+// ── T3. 저장소 증가 속도 상한 — 2026-08-28 전수 수집 전환과 함께 신설.
+//
+// 왜 필요한가: 수집량을 하루 1,000건 → 12,000건으로 올렸다. 원장(아카이브)은 하루 한 번
+// 쓰고 다시 안 건드리니 선형으로만 늘지만, **2시간마다 통째로 재작성되는 파일**은
+// 하루 12개의 새 blob 을 만든다 — 그 파일이 1MB면 하루 12MB, 1년이면 4GB다.
+// 사람이 눈치채기 전에 저장소가 못 쓰게 되므로, 크기를 못 박아 배포를 막는다.
+//
+// 늘려야 할 때 하는 일(신입 개발자용):
+//   1) 이 파일 크기를 키우기 전에 settle-auctions.js 의 HOT_DAYS 를 줄일 수 있는지 먼저 본다.
+//      hot 창은 가드 A1 대조에만 쓰이고, 집계·페이지 생성기는 전부 아카이브를 직접 읽는다.
+//   2) 그래도 커야 한다면 여기 상한을 올리고, 왜 올렸는지 커밋 메시지에 남긴다.
+{
+  const HOT_LIMIT = 900_000;   // bytes. 2시간마다 커밋되는 파일이라 이 값 × 12 가 하루 증가분이다.
+  for (const f of ["data/auction-sold.json", "data/palworld-auction-sold.json"]) {
+    if (!exists(f)) continue;
+    const size = fs.statSync(path.join(ROOT, f)).size;
+    if (size > HOT_LIMIT) {
+      errors.push(`T3: ${f} 가 ${(size / 1024).toFixed(0)}KB — 상한 ${HOT_LIMIT / 1024}KB 초과. 2시간마다 커밋되는 파일이라 저장소가 하루 ${((size * 12) / 1048576).toFixed(0)}MB씩 는다. settle-auctions.js 의 HOT_DAYS 를 줄일 것`);
+    }
+  }
+}
+
 // ── T2. 방문자 페이로드 상한 — 2026-07-20. 시계열은 소급 못 지우니 방치하면 무한히 큰다.
 // data/onepiece-packs.json 은 방문자가 페이지마다 통째로 받는다. compact-series.js 가 오래된
 // 구간을 성기게 만들어 유한하게 묶지만, 그 장치가 고장나거나 새 시계열이 상한 밖에서 늘면
@@ -1364,4 +1386,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3"] }));
