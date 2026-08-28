@@ -182,18 +182,21 @@ function priceBandRows(market) {
     .join("");
 }
 
+// ⚠️ encodeURIComponent 는 작은따옴표를 안 바꾼다. 이 값은 onerror="...this.src='...'" 처럼
+// 작은따옴표 문자열 안에 끼워지므로, 남은 ' 가 문자열을 끊어 폴백 핸들러 전체가
+// SyntaxError 로 죽었다(이미지가 깨질 때만 발동해 여태 숨어 있었다 — 2026-08-28 ui-smoke 적발).
 const FALLBACK =
-  "data:image/svg+xml;utf8," +
+  ("data:image/svg+xml;utf8," +
   encodeURIComponent(
     "<svg xmlns='http://www.w3.org/2000/svg' width='80' height='110'><rect width='100%' height='100%' rx='8' fill='%231a1e28'/><text x='50%' y='52%' fill='%23566' font-size='11' text-anchor='middle' font-family='sans-serif'>이미지</text></svg>",
-  );
+  )).replace(/'/g, "%27");
 
 const DATA_URLS = [
   "data/onepiece-packs.json",
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260828b";
+const DATA_VERSION = "20260828c";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
