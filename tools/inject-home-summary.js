@@ -12,6 +12,7 @@ const ROOT = path.join(__dirname, "..");
 const START = "<!-- HOME_SUMMARY:START -->";
 const END = "<!-- HOME_SUMMARY:END -->";
 
+const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 // marketIndex 는 세트별 시세판(board) 공급원으로만 쓴다 — 지수 숫자·개봉미터 표시는
 // 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
@@ -91,11 +92,16 @@ const dsLd = JSON.stringify({
 });
 const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n          ");
 
+// ── 2026-08-28 구조 변경(소유자 지시): 보고서식 설명·FAQ 전부 삭제, TCG 퀀트처럼 표만.
+//    사람용 전체 표는 전용 페이지 box-prices.html(홈에서 1클릭, 색인 O, 매일 재생성)로.
+//    홈 마커 구간: 한 줄 + 링크 + **접힌 정적 표** — 표를 아예 빼면 R1(봇용 정적 시세)이
+//    무너져 노출 불가침 위반이다. 접힌 표는 화면 ~40px 이고 봇은 정상 색인한다(7월 원설계).
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
+          <h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2>
+          <p>${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
           <details class="homeCollapse">
-          <summary><h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2></summary>
-          <p>Prices below are sealed Japanese booster boxes in USD, each the median of completed eBay sales we collect ourselves. "Change" compares the latest weekly sold median with four weeks earlier. Of the ${withChg.length} sets with four weeks of history, <strong>${nUp}</strong> are up and <strong>${nDn}</strong> are down. Grading population for each set — PSA, CGC and TAG, Japanese and English kept separate — is on the <a href="psa-grading.html">grading population page</a>.</p>
+          <summary>Quick table (same data as the full page)</summary>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
             <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
@@ -104,18 +110,99 @@ ${tr}
             </tbody>
           </table>
           </div>
-          <p class="note">Updated ${esc(DATA_DATE)} · FX ₩${fx.usdKrw}/$ · <a href="free-data.html">Download citable data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auction results</a> · <a href="ko/">한국어 시세</a></p>
           </details>
+          <p class="note"><a href="free-data.html">Citable data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auctions</a> · <a href="ko/">한국어 시세</a></p>
         </section>
-        <section class="homeFaqWrap" aria-label="Frequently asked questions about One Piece booster box prices">
-          <details class="homeCollapse">
-          <summary><h2>One Piece booster box prices — common questions</h2></summary>
-          ${faqHtml}
-          </details>
-        </section>
-        <script type="application/ld+json">${faqLd}</script>
         <script type="application/ld+json">${dsLd}</script>
         ${END}`;
+
+const NAV = `<header class="topbar">
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+    </header>`;
+
+const pricesPage = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-P73SE1WVD0');
+    </script>
+    <script defer src="/track.js"></script>
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://opboxindex.com/box-prices.html" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <title>One Piece Booster Box Prices — All ${rows.length} Sets, Updated Daily | OP Box Index</title>
+    <meta name="description" content="Current sealed Japanese One Piece booster box prices for all ${rows.length} sets, from ${usd(cheapest.nowUsd)} to ${usd(priciest.nowUsd)}, each the median of completed eBay sales, updated daily. With 4-week change and FAQ." />
+    <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="One Piece Booster Box Prices — All ${rows.length} Sets, Updated Daily" />
+    <meta property="og:description" content="Sealed Japanese box prices ${usd(cheapest.nowUsd)}–${usd(priciest.nowUsd)}, median of completed eBay sales, with 4-week change per set." />
+    <meta property="og:url" content="https://opboxindex.com/box-prices.html" />
+    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
+    <link rel="stylesheet" href="styles.css?v=${CACHE}" />
+    <meta name="theme-color" content="#0a0c10" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script type="application/ld+json">${dsLd}</script>
+    <style>
+      .homeSummaryTable { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+      .homeSummaryTable th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-weight: 600; }
+      .homeSummaryTable td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+      .homeSummaryTable td.num { text-align: right; }
+      .homeSummaryTable td.up { color: #10d7a0; } .homeSummaryTable td.down { color: #e5484d; }
+    </style>
+  </head>
+  <body>
+    <a class="skipLink" href="#main-content">Skip to main content</a>
+    ${NAV}
+    <main id="main-content" class="bodyPage">
+      <p class="eyebrow">Prices · Updated ${esc(DATA_DATE)} · refreshed daily</p>
+      <h1>Japanese One Piece booster box prices — all ${rows.length} sets</h1>
+      <p class="note">Median of completed eBay sales · "Change" = vs 4 weeks earlier · ${nUp} up, ${nDn} down</p>
+      <div style="overflow-x:auto">
+      <table class="homeSummaryTable">
+        <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
+        <tbody>
+${tr}
+        </tbody>
+      </table>
+      </div>
+      <p class="note">Updated ${esc(DATA_DATE)} · <a href="free-data.html">Data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auctions</a> · <a href="ko/">한국어</a></p>
+    </main>
+    <footer class="footer">
+      <p>OP Box Index is a data-driven research site, not investment advice.</p>
+      <nav aria-label="Footer navigation">
+        <a href="./">Home</a>
+        <a href="sets/index.html">Set Guides</a>
+        <a href="about.html">About</a>
+        <a href="methodology.html">Methodology</a>
+        <a href="changelog.html">Corrections</a>
+        <a href="free-data.html">Free data (CSV)</a>
+      </nav>
+    </footer>
+  </body>
+</html>
+`;
+fs.writeFileSync(path.join(ROOT, "box-prices.html"), pricesPage);
+console.error("wrote box-prices.html");
+
+// 사이트맵에 box-prices.html 이 없으면 추가(추가만 — 기존 항목은 절대 안 건드림).
+{
+  const smPath = path.join(ROOT, "sitemap.xml");
+  let sm = fs.readFileSync(smPath, "utf8");
+  if (!sm.includes("https://opboxindex.com/box-prices.html")) {
+    const entry = `  <url>\n    <loc>https://opboxindex.com/box-prices.html</loc>\n    <lastmod>${DATA_DATE}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+    sm = sm.replace("</urlset>", entry + "</urlset>");
+    fs.writeFileSync(smPath, sm);
+    console.error("sitemap: box-prices.html added");
+  }
+}
 
 let touched = 0;
 for (const f of ["index.html", "packs.html"]) {

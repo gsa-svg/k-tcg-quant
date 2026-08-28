@@ -31,9 +31,7 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
     { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/` },
     { "@type": "ListItem", position: 2, name: "한국어 시세", item: `${SITE}/ko/` },
     { "@type": "ListItem", position: 3, name: breadcrumbName, item: canonical },
-  ] });
-  const faqHtml = faqs.map((f) => `<details class="faqItem"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n        ");
-  return `<!doctype html>
+  ] });  return `<!doctype html>
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
@@ -58,7 +56,6 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
     <meta property="og:url" content="${canonical}" />
     <meta property="og:image" content="${SITE}/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json">${faqLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
     <link rel="stylesheet" href="../styles.css?v=${CACHE}" />
     <meta name="theme-color" content="#0a0c10" />
@@ -93,10 +90,7 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
       <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · ${esc(eyebrow)}</p>
       <h1>${esc(h1)}</h1>
 ${body}
-      <section aria-label="자주 묻는 질문">
-        <h2>자주 묻는 질문</h2>
-        ${faqHtml}
-      </section>
+      ${/* FAQ 섹션은 2026-08-28 소유자 지시로 삭제 — 표만 남긴다 */ ""}
       <p class="koNote">데이터: 이베이 실거래·검증된 매물 집계, 공개 그레이딩 인구 리포트. 환율 ₩${fx.usdKrw}/$ (${esc(fx.date)}). 마지막 갱신 ${esc(DATA_DATE)}. 시세는 참고용이며 투자·구매 판단의 책임은 본인에게 있습니다.</p>
     </main>
     <footer class="footer">
@@ -128,7 +122,6 @@ function cardsPage() {
   const tr = top.map((r, i) => `<tr><td>${i + 1}</td><td class="l">${esc(r.name)}<small>${esc(r.number)} · ${esc(r.code)} ${esc(nameKo(r.code))}</small></td><td>${won(r.nmKrw)}</td><td>${r.p10Krw != null ? won(r.p10Krw) : '<span style="color:#6a7182;font-size:12px">집계중</span>'}</td><td>${r.p10Krw != null ? "×" + (r.p10Krw / r.nmKrw).toFixed(1) : "—"}</td></tr>`).join("\n");
 
   const body = `
-      <p class="koProse">일본판 원피스 카드게임에서 시세가 높은 카드 <strong>상위 ${top.length}장</strong>의 원화 시세표입니다. NM(민트급) 원본 시세는 일본 리테일 재고가를, PSA 10 시세는 이베이 <strong>실제 낙찰(sold)</strong> 중앙값을 원화로 환산한 값입니다 — 호가가 아니라 실제로 팔린 가격입니다. 현재 1위는 <strong>${esc(t0.name)}</strong>(${esc(t0.number)}, ${esc(t0.code)})로 NM 기준 약 <strong>${won(t0.nmKrw)}</strong>입니다.</p>
       <div style="overflow-x:auto">
       <table class="koBoard">
         <thead><tr><th>#</th><th class="l">카드 (번호 · 세트)</th><th>NM 시세</th><th>PSA 10 실거래</th><th>배수</th></tr></thead>
@@ -139,8 +132,6 @@ ${tr}
       </div>
       <p class="koNote">PSA 10 "집계중"은 검증된 낙찰 표본(3건 이상)이 아직 없다는 뜻입니다. 추정치로 채우지 않습니다.</p>
       <h2>카드 시세 읽는 법</h2>
-      <p class="koProse">같은 카드 번호라도 <strong>변형(패러렐·망가 아트·SP·수배서)</strong>이 다르면 가격이 몇 배에서 몇십 배까지 달라집니다. 이 표의 각 행은 특정 변형 하나에 고정돼 있고, 공식 카드리스트와 대조해 이미지·변형을 검증한 값만 싣습니다. 매물을 비교할 때는 반드시 일러스트와 번호를 함께 확인하세요.</p>
-      <p class="koProse">PSA 10 배수(PSA10 ÷ NM)는 그레이딩 프리미엄입니다.${maxMul ? ` 현재 상위권에서 배수가 가장 큰 카드는 <strong>${esc(maxMul.name)}</strong>(${esc(maxMul.code)})로 약 <strong>×${(maxMul.p10Krw / maxMul.nmKrw).toFixed(1)}</strong>입니다.` : ""} 배수가 크다는 건 젬(만점) 개체가 귀하다는 뜻이고, 배수가 1~2배 수준이면 굳이 그레이딩 비용을 들일 실익이 적다는 신호입니다. 세트별 젬률은 <a href="grading.html">그레이딩 인구 페이지</a>에서 확인할 수 있습니다.</p>
       <div class="koCta">
         <a class="primary" href="./">전 세트 박스 시세표 →</a>
         <a class="ghost" href="grading.html">그레이딩 인구 →</a>
@@ -189,7 +180,6 @@ function gradingPage() {
   const tr = rows.map((r) => `<tr><td class="l">${esc(r.code)}<small>${esc(r.nk)}</small></td><td>${r.jp ? num(r.jp.t) : "—"}</td><td>${r.jp ? r.jp.gem + "%" : "—"}</td><td>${r.en ? num(r.en.t) : "—"}</td><td>${r.en ? r.en.gem + "%" : "—"}</td><td>${r.cgc ? num(r.cgc.total) : "—"}</td><td>${r.tag ? num(r.tag.total) : "—"}</td></tr>`).join("\n");
 
   const body = `
-      <p class="koProse">원피스 카드가 등급사(PSA·CGC·TAG)에 얼마나 접수됐는지를 <strong>세트별·판별(일본판/영문판)</strong>로 정리한 표입니다. 그레이딩 접수량은 "박스가 얼마나 개봉되고 있나"를 보여주는 가장 확실한 대리지표입니다 — 등급 카드는 전부 개봉된 팩에서 나오기 때문입니다. 현재 PSA 누적은 일본판 <strong>${num(tj)}장</strong>, 영문판 <strong>${num(te)}장</strong>입니다(두 판은 인쇄가 달라 절대 합산하지 않습니다).</p>
       <div style="overflow-x:auto">
       <table class="koBoard">
         <thead><tr><th class="l">세트</th><th>PSA 일본판</th><th>젬률</th><th>PSA 영문판</th><th>젬률</th><th>CGC</th><th>TAG</th></tr></thead>
@@ -200,9 +190,6 @@ ${tr}
       </div>
       <p class="koNote">CGC·TAG 열은 각 등급사에 접수된 누적 장수(대표 판 기준)입니다. "—"는 미집계이며 0이 아닙니다.</p>
       <h2>그레이딩 데이터 읽는 법</h2>
-      <p class="koProse">가장 많이 감정된 세트는 <strong>${esc(big.code)} ${esc(big.nk)}</strong>${big.jp ? `(일본판 ${num(big.jp.t)}장)` : ""}입니다. 젬률(PSA 10 비율)은 세트마다 달라서, 일본판 기준 <strong>${esc(hi.code)} ${hi.jp.gem}%</strong>부터 <strong>${esc(lo.code)} ${lo.jp.gem}%</strong>까지 벌어져 있습니다. 젬률이 낮은 세트일수록 만점 개체가 귀해 PSA 10 프리미엄이 크게 형성됩니다.</p>
-      <p class="koProse">등급사마다 만점 체계가 다릅니다. <strong>PSA</strong>는 10이 최고 등급이고, <strong>CGC</strong>는 만점을 프리스틴 10과 젬 민트 10으로 나누며(프리스틴이 더 엄격), <strong>TAG</strong>는 10 위에 10P를 둡니다. 기준이 서로 호환되지 않으므로 등급사 간 수량을 합쳐 읽으면 안 됩니다. 세트별 CGC 프리스틴/젬민트, TAG 10/10P 세부 분포는 각 <a href="./">세트 페이지</a>에 있습니다.</p>
-      <p class="koProse">특이한 점 하나 — 추적 세트 합계로 보면 <strong>영문판 PSA 인구(${num(te)}장)가 일본판(${num(tj)}장)보다 많고</strong>, 그 격차가 우리가 기록한 매주 더 벌어지고 있습니다. "일본판이 본판"이라는 통념과 달리, 그레이딩 시장 규모는 이미 영문판이 더 큽니다.</p>
       <div class="koCta">
         <a class="primary" href="cards.html">카드 시세 →</a>
         <a class="ghost" href="../psa-grading.html">영문 상세(주간 증감) →</a>
@@ -250,7 +237,6 @@ function auctionPage() {
   const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${won(c.medPrice * fx.usdKrw)}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
 
   const body = `
-      <p class="koProse">이베이에서 끝난 원피스 카드 경매를 <strong>종료 후 다시 조회해 실제 낙찰가</strong>를 기록한 데이터입니다. 진행 중 호가나 "현재 입찰가"가 아니라, 경매가 끝난 뒤의 최종 낙찰가·유찰 여부만 셉니다 — 스나이핑 때문에 종료 직전 가격과 최종가는 자주 크게 다릅니다. 최근 ${daily.length}일간 우리가 추적한 경매는 <strong>${num(totN)}건</strong>, 그중 실제로 낙찰된 건 <strong>${num(totSold)}건(${totN ? Math.round((totSold / totN) * 100) : 0}%)</strong>입니다.</p>
       <h2>일별 낙찰 현황</h2>
       <div style="overflow-x:auto">
       <table class="koBoard">
@@ -271,8 +257,6 @@ ${cTr}
       </table>
       </div>
       <h2>경매 데이터 읽는 법</h2>
-      <p class="koProse">핵심은 <strong>낙찰률</strong>입니다. 싱글 카드는 경매에 쏟아지지만 상당수가 유찰됩니다${totN ? ` — 최근 ${daily.length}일 낙찰률이 ${Math.round((totSold / totN) * 100)}% 수준` : ""}. 반면 밀봉 부스터박스는 표본은 적어도 거의 팔립니다${boxN ? ` (같은 기간 박스 경매 ${num(boxN)}건 중 ${num(boxSold)}건 낙찰)` : ""}. "매물이 많다"와 "팔린다"는 전혀 다른 신호라서, 우리는 유찰까지 분모에 넣어 셉니다.</p>
-      <p class="koProse">경매 낙찰가는 즉시구매(BIN) 시세보다 낮게 형성되는 경우가 많아 <strong>시장의 바닥 가격</strong>을 읽는 데 유용합니다. 다만 배송비·관세가 별도이고, 등급 카드는 라벨 변형까지 확인해야 하므로 표의 값은 참고 기준으로 쓰세요.${last ? ` 최근 집계일(${esc(last.d)}) 기준 종료 ${num(last.n)}건, 낙찰 ${num(last.sold)}건이었습니다.` : ""}</p>
       <div class="koCta">
         <a class="primary" href="cards.html">카드 시세 →</a>
         <a class="ghost" href="grading.html">그레이딩 인구 →</a>

@@ -174,7 +174,6 @@ const html = `<!doctype html>
     <meta property="og:image" content="${SITE}/og-image.png" />
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json">${faqLd}</script>
     <script type="application/ld+json">${dsLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
     <link rel="stylesheet" href="styles.css?v=${CACHE}" />
@@ -274,11 +273,6 @@ ${tcgRows.length >= 5 ? `
         </div>
         <div class="barList" id="tcgBars"></div>
         <div class="legend" id="tcgLegend"></div>
-        <details class="noteFold">
-          <summary>How this is measured</summary>
-          <p>Same collector, same window, every game: each auction is re-read after it closes, and auctions that ended unsold stay in the denominator. Sell-through carries a Wilson 95% interval — two games differ only where their intervals do not overlap, so neighbours within a few points are not ranked against each other. Games with fewer than ${TCG_MIN_N} tracked auctions are omitted rather than shown on a thin sample. Hammer value is the sum of winning bids in our tracked sample, not total eBay volume. Colour marks the six most-searched games so they are easy to find; every bar is labelled, so colour is never the only identifier.</p>
-          <p>One note on the One Piece bar: this cross-game sampler reads about ${Math.round(tcgEndedAll / tcgRows.length / tcgDays)} auctions per game per day so every game is measured the same way. The dedicated One Piece tracker further down this page reads the whole One Piece board — many times more listings, weighted far more heavily toward cheap singles — so its sell-through is lower. Neither is wrong; they are different samples, and only the bars above are comparable to each other.</p>
-        </details>
       </div>
 ` : ""}
       <h2>Daily results — last ${daily.length} days</h2>
@@ -301,7 +295,6 @@ ${kTr}
         </tbody>
       </table>
       </div>
-      <p>${boxK.st != null && cardK.st != null ? `Sealed boxes clear at <strong>${boxK.st}%</strong>, single cards at <strong>${cardK.st}%</strong>.` : `Sell-through differs sharply by item type.`} Tracked sample only, ${aggDays.length} full-day window${aggNote}.</p>
 
 ${tcgRows.length >= 5 ? `
       <details class="noteFold" style="max-width:none">
@@ -335,8 +328,6 @@ ${cTr}
         <p>Card NM and PSA 10 prices: <a href="cards/">card price pages</a> · <a href="psa10-ranking.html">PSA 10 value ranking</a>. Sealed-box context: <a href="sets/index.html">set guides</a>. Grading supply: <a href="psa-grading.html">population page</a>. Daily aggregates: <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
       </details>
 
-      <h2>Auction data — common questions</h2>
-      ${faqs.map((f) => `<details class="faqItem"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n      ")}
       <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
     </main>
 ${tcgRows.length >= 5 ? `    <script>
@@ -351,7 +342,7 @@ ${tcgRows.length >= 5 ? `    <script>
         var GREY = "#5A6273";
         var M = {
           ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + " ending today"; } },
-          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " won"; } },
+          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " sold"; } },
           ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " checked"; } },
           rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
           gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
