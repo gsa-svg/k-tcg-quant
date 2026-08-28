@@ -95,6 +95,10 @@
   function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today, lastSaleD) {
     const pts = clean(rawPts, grain === "day" ? MIN_N_DAY : null);
     if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
+    // 2026-08-27 시각 개편(소유자 확정안): 가격축을 오른쪽으로 옮기고 현재가 플래그를 축에 꽂는다
+    // (증권 차트 문법). 왼쪽 여백은 라벨이 사라지므로 좁힌다. 전역 L/R 은 공급 패널이 계속 쓰므로
+    // 여기서만 지역 상수를 쓴다.
+    const PL = 16, PR = 64;
 
     // y축은 중앙값 선 기준으로 잡는다 — low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다.
     // 다만 **최소 축 폭**을 둔다. 즉시구매만 남기고 나니 OP-01 일본판이 3개월 내내 1% 안에서
@@ -116,7 +120,7 @@
     const tNow = today ? Date.parse(today) : 0;
     const t1 = Math.max(tLast, tSup, tNow);
     const span = t1 - t0 || 1;
-    const px = (p) => L + ((Date.parse(p.d) - t0) / span) * (W - L - R);
+    const px = (p) => PL + ((Date.parse(p.d) - t0) / span) * (W - PL - PR);
     const py = (v) => T + (1 - (v - yMin) / (yMax - yMin)) * (PRICE_BOTTOM - T);
 
     const XY = pts.map((p) => ({ x: px(p), y: py(p.median) }));
@@ -126,9 +130,12 @@
 
     let ticks = niceTicks(yMin, yMax, 4);
     if (ticks.length < 3) ticks = niceTicks(yMin, yMax, 7);
+    // 마지막 값과 겹치는 눈금 라벨은 지운다 — 현재가 플래그가 그 자리에 앉는다.
+    const lastY = py(pts[pts.length - 1].median);
     const grid = ticks.map((v) =>
-      '<line class="opbcGrid" x1="' + L + '" y1="' + py(v).toFixed(1) + '" x2="' + (W - R) + '" y2="' + py(v).toFixed(1) + '"/>' +
-      '<text class="opbcAx" x="' + (L - 10) + '" y="' + (py(v) + 4).toFixed(1) + '" text-anchor="end">' + money(v) + "</text>").join("");
+      '<line class="opbcGrid" x1="' + PL + '" y1="' + py(v).toFixed(1) + '" x2="' + (W - PR) + '" y2="' + py(v).toFixed(1) + '"/>' +
+      (Math.abs(py(v) - lastY) < 16 ? "" :
+        '<text class="opbcAx" x="' + (W - PR + 8) + '" y="' + (py(v) + 4).toFixed(1) + '">' + money(v) + "</text>")).join("");
 
     // x 라벨은 처음·중간·끝 3개만 — 더 넣으면 축이 데이터보다 시끄러워진다.
     const mid = pts[Math.floor(pts.length / 2)];
@@ -156,41 +163,28 @@
     // 막대 폭은 점 간격의 60%. 점이 하나뿐일 때를 대비해 하한을 둔다.
     const gap = pts.length > 1 ? (XY[XY.length - 1].x - XY[0].x) / (pts.length - 1) : 40;
     const bw = Math.max(3, Math.min(26, gap * 0.6));
+    // 거래량 막대는 전 구간 대비 중앙값 방향으로 칠한다(상승=초록·하락=적·보합=회색).
+    // 주식 차트의 거래량 문법 — 색이 "그 주에 가격이 어느 쪽으로 갔나"를 겹쳐 준다.
     const bars = pts.map((p, i) => {
       const v = p.vol == null ? 0 : p.vol;
       if (!v) return "";
       const h = Math.max(2, (v / volMax) * (VOL_H - 8));
+      const dir = i === 0 ? 0 : p.median - pts[i - 1].median;
+      const bc = dir > 0 ? "#10d7a0" : dir < 0 ? "#e5484d" : "#3a4152";
       return '<rect class="opbcBar" x="' + (XY[i].x - bw / 2).toFixed(1) + '" y="' + (H - B - h).toFixed(1) +
-        '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + color + '"/>';
+        '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5" fill="' + bc +
+        '" opacity="' + (dir === 0 ? ".3" : ".55") + '"/>';
     }).join("");
     const volLabel = lang === "ko" ? "거래량" : "Sales";   // 툴팁 문구용. 축에는 쓰지 않는다 — 아래 범례가 이름을 댄다.
-    const volAxis = '<line class="opbcGrid" x1="' + L + '" y1="' + (H - B) + '" x2="' + (W - R) + '" y2="' + (H - B) + '"/>';
+    const volAxis = '<line class="opbcGrid" x1="' + PL + '" y1="' + (H - B) + '" x2="' + (W - PR) + '" y2="' + (H - B) + '"/>';
 
-    // ── 공급선(오른쪽 축). 가격만 보면 시장을 반만 읽는다 — 매물이 마르면서 오르는 것과
-    //    매물이 쌓이는데 버티는 것은 완전히 다른 신호다. 같은 판에 겹쳐야 그 관계가 보인다.
-    //    개수는 가격과 자릿수가 달라 별도 축을 쓰고, 옅은 점선으로 깔아 가격선을 가리지 않는다.
-    let supplyLayer = "", supplyAx = "";
-    if (supArr.length >= 3) {
-      const sv = supArr.map((p) => p.v);
-      const sLo = Math.min.apply(null, sv), sHi = Math.max.apply(null, sv);
-      const sPad = Math.max(1, (sHi - sLo) * 0.35);
-      const s0 = Math.max(0, sLo - sPad), s1 = sHi + sPad;
-      const sy = (v) => T + (1 - (v - s0) / ((s1 - s0) || 1)) * (PRICE_BOTTOM - T);
-      const sxy = supArr.map((p) => ({ x: px(p), y: sy(p.v) }));
-      const sLine = sxy.map((q, i) => (i ? "L" : "M") + q.x.toFixed(1) + " " + q.y.toFixed(1)).join(" ");
-      supplyLayer =
-        '<path class="opbcSupFill" d="' + sLine + " L" + sxy[sxy.length - 1].x.toFixed(1) + " " + PRICE_BOTTOM +
-        " L" + sxy[0].x.toFixed(1) + " " + PRICE_BOTTOM + ' Z"/>' +
-        '<path class="opbcSupLine" d="' + sLine + '"/>';
-      supplyAx = [s1, s0].map((v) =>
-        '<text class="opbcAx opbcSupAx" x="' + (W - R + 4) + '" y="' + (sy(v) + 4).toFixed(1) + '">' +
-        Math.round(v) + "</text>").join("");
-    }
+    // ── 매물수 겹쳐그리기는 2026-08-27 소유자 확정으로 제거 — 회색 점선이 가격선과 엉켜
+    //    "이게 무슨 그래프인지 모르겠다"는 피드백. 매물수는 아래 전용 공급 패널이 담당한다.
 
     // ── 거래가 끊긴 구간. 억지로 선을 이어 그리면 없는 거래를 만드는 셈이라 칠하고 이름을 붙인다.
     let staleLayer = "", staleBadge = "";
     if (t1 > tLast + 86400000 * 2) {
-      const gx0 = px({ d: pts[pts.length - 1].d }), gx1 = W - R;
+      const gx0 = px({ d: pts[pts.length - 1].d }), gx1 = W - PR;
       const tSale = lastSaleD ? Date.parse(lastSaleD) : tLast;
       const days = Math.round((t1 - tSale) / 86400000);
       staleLayer =
@@ -202,29 +196,54 @@
       staleBadge = lang === "ko" ? days + "일째 거래 없음" : days + "d since last sale";
     }
 
-    // 계열 이름표. 색만 있고 이름이 없으면 회색 점선이 무엇인지 알 수 없다.
-    // 실제로 그린 계열만 적는다 — 공급 관측이 없는 세트에 "매물"이 떠 있으면 빈 줄을 찾게 만든다.
+    // 계열 이름표. 거래량은 색이 방향을 뜻하므로 두 색을 같이 보여준다.
     const kPrice = lang === "ko" ? "가격" : "Price";
-    const kSup = lang === "ko" ? "매물 수" : "Listings";
-    const kVol = lang === "ko" ? "거래량" : "Sales";
+    const kVol = lang === "ko" ? "거래량 (상승·하락)" : "Sales (up · down)";
     const keyRow = '<div class="opbcKey">' +
       '<span><i class="kLine" style="background:' + color + '"></i>' + kPrice + "</span>" +
-      (supplyLayer ? '<span><i class="kDash"></i>' + kSup + "</span>" : "") +
-      '<span><i class="kBar" style="background:' + color + '"></i>' + kVol + "</span>" +
+      '<span><i class="kBar" style="background:#10d7a0"></i><i class="kBar" style="background:#e5484d"></i>' + kVol + "</span>" +
       "</div>";
 
+    // 점은 마지막 것만 보인다 — 선 위 점들이 시각 소음이라는 확정안. 좌표는 스크럽 JS 가
+    // 스냅용으로 계속 쓰므로 요소 자체는 남기고 투명 처리한다.
     const dots = pts.map((p, i) =>
       '<circle class="opbcDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) +
-      '" r="' + (i === pts.length - 1 ? 5 : 3.2) + '" fill="' + color + '"/>').join("");
+      '" r="' + (i === pts.length - 1 ? 4.5 : 3) + '" fill="' + color + '"' +
+      (i === pts.length - 1 ? "" : ' opacity="0"') + "/>").join("");
 
     // JS 가 안 돌거나 막힌 환경(일부 인앱 브라우저·미리보기)에서도 숫자가 읽혀야 한다.
     // 넉넉한 투명 원 + <title> 이면 브라우저 기본 툴팁으로 값이 나온다. 아래 스크럽 JS 는 그 위에 얹는 향상일 뿐이다.
+    // 툴팁 문구를 data-* 로 싣는다 — 종전엔 <title> 문자열을 스크럽 JS 가 다시 쪼갰는데
+    // 그 파싱이 언어·형식이 바뀔 때마다 깨질 자리였다. <title> 은 무JS 폴백으로 유지.
     const hits = pts.map((p, i) =>
-      '<circle class="opbcHitDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) + '" r="14" fill="transparent">' +
+      '<circle class="opbcHitDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) + '" r="14" fill="transparent"' +
+      ' data-d="' + (grain === "month" ? p.d.slice(0, 7) : p.d) + '" data-v="' + money(p.median) +
+      '" data-r="' + rangeWord + " " + money(p.low) + "–" + money(p.high) +
+      '" data-n="' + p.n + sampleWord + (p.vol == null || p.vol === p.n ? "" : " · " + volLabel + " " + p.vol + (lang === "ko" ? "건" : "")) +
+      '" data-x="' + md(p.d) + '">' +
       "<title>" + (grain === "month" ? p.d.slice(0, 7) : p.d) + " · " + money(p.median) +
       " (" + rangeWord + " " + money(p.low) + "–" + money(p.high) +
       " · " + p.n + sampleWord + (p.vol == null || p.vol === p.n ? "" : " · " + volLabel + " " + p.vol +
         (lang === "ko" ? "건" : "")) + ")</title></circle>").join("");
+
+    // ── 새 시각 요소(2026-08-27 확정안): 현재가 플래그·고점/저점 라벨.
+    const flagY = py(last.median);
+    const flagTx = money(last.median);
+    const flag =
+      '<line x1="' + PL + '" y1="' + flagY.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + flagY.toFixed(1) +
+      '" stroke="' + color + '" stroke-dasharray="2 4" opacity=".45"/>' +
+      '<g><rect x="' + (W - PR + 3) + '" y="' + (flagY - 11).toFixed(1) + '" width="' + (PR - 8) + '" height="22" rx="5" fill="' + color + '"/>' +
+      '<text x="' + (W - PR + 3 + (PR - 8) / 2) + '" y="' + (flagY + 4).toFixed(1) +
+      '" text-anchor="middle" font-size="12" font-weight="800" fill="#0a0f14">' + flagTx + "</text></g>";
+    const hiWord = lang === "ko" ? "고점 " : "High ";
+    const loWord = lang === "ko" ? "저점 " : "Low ";
+    const clampX = (x) => Math.max(PL + 36, Math.min(W - PR - 36, x));
+    const hiI = meds.indexOf(mHi), loI = meds.indexOf(mLo);
+    const hlLabels =
+      (hiI === pts.length - 1 ? "" : '<text class="opbcAx" x="' + clampX(XY[hiI].x).toFixed(1) + '" y="' + (py(mHi) - 9).toFixed(1) +
+        '" text-anchor="middle" fill="#b6c0d4">' + hiWord + money(mHi) + "</text>") +
+      (loI === pts.length - 1 || loI === hiI ? "" : '<text class="opbcAx" x="' + clampX(XY[loI].x).toFixed(1) + '" y="' + (py(mLo) + 17).toFixed(1) +
+        '" text-anchor="middle" fill="#b6c0d4">' + loWord + money(mLo) + "</text>");
 
     return '<figure class="opbcPane" data-ed="' + gid + '">' +
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
@@ -241,20 +260,23 @@
       '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
       '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>' +
-      staleLayer + grid + volAxis + supplyLayer + supplyAx + bars +
+      staleLayer + grid + volAxis + bars +
       '<path d="' + area + '" fill="url(#' + gid + ')"/>' +
       '<path class="opbcLine" d="' + line + '" stroke="' + color + '"/>' +
-      dots +
+      hlLabels + flag + dots +
       '<circle cx="' + XY[XY.length - 1].x.toFixed(1) + '" cy="' + XY[XY.length - 1].y.toFixed(1) +
       '" r="11" fill="' + color + '" opacity=".18"/>' +
       hits +
       '<line class="opbcCross" y1="' + T + '" y2="' + (H - B) + '" stroke="' + color + '" stroke-dasharray="3 3" opacity="0"/>' +
+      '<g class="opbcDateTag" opacity="0" pointer-events="none"><rect width="46" height="18" rx="4" fill="#242936"/>' +
+      '<text class="opbcAx" x="23" y="13" text-anchor="middle" fill="#cfd6e4"></text></g>' +
       '<circle class="opbcHl" r="6" fill="' + color + '" stroke="#11141c" stroke-width="3" opacity="0"/>' +
       '<g class="opbcTip" opacity="0" pointer-events="none">' +
-      '<rect class="opbcTipBg" rx="7" width="168" height="46"/>' +
-      '<text class="opbcTipD" x="10" y="18"></text><text class="opbcTipV" x="10" y="36"></text></g>' +
+      '<rect class="opbcTipBg" rx="7" width="186" height="62"/>' +
+      '<text class="opbcTipD" x="10" y="17"></text><text class="opbcTipV" x="10" y="36"></text>' +
+      '<text class="opbcTipR" x="10" y="53"></text></g>' +
       xl +
-      '<rect class="opbcHit" x="' + L + '" y="' + T + '" width="' + (W - L - R) + '" height="' + (H - T - B) + '" fill="transparent"/>' +
+      '<rect class="opbcHit" x="' + PL + '" y="' + T + '" width="' + (W - PL - PR) + '" height="' + (H - T - B) + '" fill="transparent"/>' +
       "</svg>" + keyRow + "</figure>";
   }
 
@@ -445,6 +467,9 @@
       const enLabel = lang === "ko" ? "영문판" : "English";
       let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today, lastSale.jp);
       let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today, lastSale.en);
+      // 실제 선이 하나도 없는 단위는 탭 자체를 내지 않는다 — 2026-08-27 소유자 지적.
+      // 종전엔 "왜 없는지" 안내 카드만 있는 빈 화면이 떴는데, 그건 고장으로 읽힌다.
+      const realLine = !!(jp || en);
       // 한쪽 판이 소리 없이 사라지면 "고장났나" 로 읽힌다. 왜 없는지 한 줄로 알린다.
       // 기준은 단위마다 같다: 그 판의 기록이 조금이라도 있으면(=파는 세트면) 자리를 지킨다.
       // 서로 다른 기준을 쓰면 탭을 오갈 때 패널이 하나씩 생겼다 사라진다.
@@ -463,6 +488,7 @@
       const blueLabel = lang === "ko" ? "영문판 초판 Blue" : "English 1st print (Blue)";
       let blue = panel(bluePts, blueLabel, BLUE_COLOR, "opbcBlue" + g, lang,
         g === "week" ? wd.enBlue : null, g, null);
+      if (!realLine && !blue) return "";
       if (!blue) {
         blue = spotPane(bluePts, blueLabel, BLUE_COLOR, lang, lang === "ko"
           ? "거래가 드물어 선을 그리지 못합니다 — 최근 실거래 값입니다."
@@ -551,13 +577,10 @@
     // 반으로 쪼개면 한 칸이 380px 로 눌려서였다 — 그건 지금도 맞다.
     // 그래서 폭이 실제로 남을 때만(뷰포트 1240px+) 차트 구역을 본문 밖으로 넓혀
     // 한 칸을 590px 로 만든다. 그 아래에서는 예전 그대로 세로로 쌓인다.
-    // 본문(main.bodyPage)은 좌측 정렬 900px 이고 오른쪽에 여백이 남는다(1440 뷰포트에서 540px).
-    // 그래서 **오른쪽으로만** 넓힌다 — 왼쪽 기준선은 본문과 그대로 맞춘다.
-    // margin-left 로 당기면 화면 밖으로 잘린다(실측: left -150px).
-    "@media (min-width:1240px){",
-    ".opbcWrap{width:min(1200px,calc(100vw - 104px))}",
-    ".opbcGridWrap{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}",
-    "}",
+    // 폭은 CSS 로 정하지 않는다 — 컨테이너가 좌측정렬(세트 페이지)인지 가운데정렬(ko·홈)인지에
+    // 따라 100vw 계산식이 오른쪽으로 넘쳐 영문판 패널이 잘렸다(2026-08-27 실사고, ko 페이지).
+    // sizeWraps() JS 가 각 wrap 의 실제 left 를 재서 뷰포트 안에 들어가는 폭만 준다.
+    ".opbcWrap.opbcWide .opbcGridWrap{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}",
     // display:grid 가 브라우저 기본 [hidden]{display:none} 을 이겨서, 숨겼는데 그대로 보였다(2026-08-13).
     ".opbcGridWrap[hidden]{display:none}",
     ".opbcPane{margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",
@@ -588,12 +611,12 @@
     ".opbcKey span{display:inline-flex;align-items:center;gap:5px}",
     ".opbcKey i{display:inline-block;width:12px;height:2px;border-radius:1px}",
     ".opbcKey .kDash{background:rgba(128,144,176,.7);height:0;border-top:2px dashed rgba(128,144,176,.7)}",
-    ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;opacity:.34}",
-    ".opbcBar{opacity:.34;rx:1}",
+    ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;opacity:.55}",
     ".opbcHitDot{cursor:pointer}.opbcHit{cursor:crosshair}",
     ".opbcTipBg{fill:#151a22;stroke:rgba(255,255,255,.16)}",
     ".opbcTipD{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcTipV{fill:var(--ink,#eef2ff);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}",
+    ".opbcTipR{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcPaneEmpty{display:flex;flex-direction:column;justify-content:center;min-height:96px;padding:14px 16px}",
     ".opbcPaneSpot{padding:14px 16px}",
     ".opbcPaneSpot .opbcEmpty{margin-top:8px}",
@@ -611,7 +634,8 @@
     ".opbcStaleTx{font-size:13px}",
     ".opbcTipD{font-size:15px}",
     ".opbcTipV{font-size:19px}",
-    ".opbcTipBg{width:200px;height:54px}",
+    ".opbcTipR{font-size:14px}",
+    ".opbcTipBg{width:216px;height:74px}",
     ".opbcTab{padding:11px 14px;font-size:13px}",
     ".opbcTabs{gap:4px}",
     "}",
@@ -627,8 +651,10 @@
     if (!svg) return;
     const hit = svg.querySelector(".opbcHit"), cross = svg.querySelector(".opbcCross"), hl = svg.querySelector(".opbcHl");
     const tip = svg.querySelector(".opbcTip"), tipD = svg.querySelector(".opbcTipD"), tipV = svg.querySelector(".opbcTipV");
+    const tipR = svg.querySelector(".opbcTipR");
+    const dtag = svg.querySelector(".opbcDateTag");
     const dots = [].slice.call(svg.querySelectorAll(".opbcDot"));
-    const titles = [].slice.call(svg.querySelectorAll(".opbcHitDot title")).map((t) => t.textContent);
+    const hitDots = [].slice.call(svg.querySelectorAll(".opbcHitDot"));
     if (!hit || !dots.length) return;
 
     function at(clientX) {
@@ -640,18 +666,23 @@
       cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.setAttribute("opacity", ".5");
       hl.setAttribute("cx", cx); hl.setAttribute("cy", cy); hl.setAttribute("opacity", "1");
       // 헤드라인(현재가)은 건드리지 않는다 — 훑을 때마다 바뀌면 "지금 얼마"를 잃는다.
-      // 문구는 <title> 에서 그대로 뽑는다: "2026-08-02 · $261 (범위 $209–$295 · 27건)"
-      const raw = titles[best] || "", parts = raw.split(" · ");
-      const tw = 168, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
-      const ty = cy - 58 < T ? cy + 14 : cy - 58;
+      const hd = hitDots[best] ? hitDots[best].dataset : {};
+      const tw = 186, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
+      const ty = cy - 74 < T ? cy + 14 : cy - 74;
       tip.setAttribute("opacity", "1");
       tip.setAttribute("transform", "translate(" + tx + "," + ty + ")");
-      const nWord = (raw.match(/\d+(?:건| sales)/) || [""])[0];
-      tipD.textContent = parts[0] || "";
-      tipV.textContent = (parts[1] || "").replace(/\s*\(.*$/, "") + (nWord ? "  ·  " + nWord : "");
+      tipD.textContent = (hd.d || "") + (hd.n ? " · " + hd.n : "");
+      tipV.textContent = hd.v || "";
+      if (tipR) tipR.textContent = hd.r || "";
+      if (dtag) {
+        dtag.setAttribute("transform", "translate(" + Math.min(Math.max(cx - 23, 2), W - 48) + "," + (H - B + 3) + ")");
+        dtag.setAttribute("opacity", "1");
+        dtag.querySelector("text").textContent = hd.x || (hd.d || "").slice(5);
+      }
     }
     const off = () => {
       cross.setAttribute("opacity", "0"); hl.setAttribute("opacity", "0"); tip.setAttribute("opacity", "0");
+      if (dtag) dtag.setAttribute("opacity", "0");
     };
     hit.addEventListener("pointerdown", (e) => { try { hit.setPointerCapture(e.pointerId); } catch (_) { /* 캡처 못 해도 값은 뜬다 */ } at(e.clientX); });
     hit.addEventListener("pointermove", (e) => { if (e.pointerType === "mouse" || e.buttons) at(e.clientX); });
@@ -721,6 +752,21 @@
     }));
   }
 
+  // 넓은 화면에서 JP/EN 을 나란히 둘 때의 폭 계산. CSS 100vw 식은 컨테이너가 가운데 정렬인
+  // 페이지(ko·홈)에서 오른쪽으로 넘쳐 영문판이 잘렸다(2026-08-27 실사고). 각 wrap 의 실제
+  // 화면 위치를 재서, 뷰포트 오른쪽 여백 안에 들어갈 때만 넓힌다.
+  function sizeWraps(scope) {
+    if (typeof window === "undefined") return;
+    [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach((wrap) => {
+      wrap.style.width = "";
+      wrap.classList.remove("opbcWide");
+      if (window.innerWidth < 1240) return;
+      const left = wrap.getBoundingClientRect().left;
+      const w = Math.min(1200, window.innerWidth - left - 24);
+      if (w >= 960) { wrap.style.width = w + "px"; wrap.classList.add("opbcWide"); }
+    });
+  }
+
   function scrub(root) {
     const scope = root && root.querySelectorAll ? root : (typeof document !== "undefined" ? document : null);
     if (!scope) return;
@@ -728,6 +774,16 @@
       if (p.classList.contains("opbcSupply")) bindSupply(p); else bindPane(p);
     });
     [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach(bindTabs);
+    sizeWraps(scope);
+  }
+
+  if (typeof window !== "undefined" && !window.__opbcResize) {
+    window.__opbcResize = 1;
+    let t = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(() => { if (typeof document !== "undefined") sizeWraps(document); }, 150);
+    });
   }
 
   // 브라우저에서 이 파일을 읽으면 스타일도 스스로 넣는다.
