@@ -929,6 +929,12 @@ h2 {
   font-size: clamp(30px, 3.6vw, 42px);
 }
 
+/* 데스크톱은 본문을 넓게 쓴다 — 소유자 지시(2026-08-28): "양옆 공간이 충분하니 늘려라,
+   모바일은 따로 맞추면 된다". 차트 2열도 이 폭 안에 자연스럽게 들어간다. */
+@media (min-width: 1240px) {
+  .bodyPage { max-width: 1320px; }
+}
+
 .bodyPage h2 {
   margin-top: 38px;
   font-size: 28px;
