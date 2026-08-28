@@ -202,7 +202,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -243,7 +243,7 @@ jobs:
             node tools/inject-home-summary.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
-            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short

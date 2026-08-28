@@ -216,7 +216,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html free-data.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+          git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html box-prices.html free-data.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -252,7 +252,7 @@ jobs:
             node tools/guard-invariants.js
             node tools/audit-seo.js
             node tools/audit-ai-discovery.js
-            git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html free-data.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+            git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/japanese-nm-sold-audit.json data/active-listing-audit.json sets/ cards/ ko/ psa-grading.html psa10-ranking.html auction.html box-prices.html free-data.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short
