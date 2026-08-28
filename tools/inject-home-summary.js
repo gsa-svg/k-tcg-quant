@@ -113,6 +113,16 @@ ${tr}
           </details>
           <p class="note"><a href="free-data.html">Citable data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auctions</a> · <a href="ko/">한국어 시세</a></p>
         </section>
+        ${/* 홈은 사이트에서 가장 많이 색인되는 페이지다. 화면은 짧게(접힘) 두되 본문은 실어야
+             검색이 읽을 게 있다 — 2026-08-28 "표만" 정리로 본문이 7,861→4,425자로 줄어
+             GSC 가 홈 노출 급감을 경고했다. 접힌 콘텐츠도 구글은 정상 색인한다. */ ""}
+        <section class="homeFaqWrap" aria-label="Frequently asked questions">
+          <details class="homeCollapse">
+          <summary><h2>One Piece booster box prices — common questions</h2></summary>
+          ${faqHtml}
+          </details>
+        </section>
+        <script type="application/ld+json">${faqLd}</script>
         <script type="application/ld+json">${dsLd}</script>
         ${END}`;
 
