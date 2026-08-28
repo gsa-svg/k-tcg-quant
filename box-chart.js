@@ -432,8 +432,15 @@
       const hint = alt
         ? (lang === "ko" ? " — " + grainName(alt) + "으로 보세요." : " — use " + grainName(alt) + ".")
         : (lang === "ko" ? " — 즉시구매 실거래가 아직 얇습니다." : " — fixed-price sales are still thin.");
-      return '<figure class="opbcPane opbcPaneEmpty"><figcaption class="opbcHead">' +
-        '<span class="opbcLabel">' + esc(label) + "</span></figcaption>" +
+      // 거대한 빈 상자로 두지 않는다 — "데이터가 아예 없나?"로 읽힌다(2026-08-28 소유자 지적).
+      // 주간 최신값이 있으면 헤드라인으로 채워서, 이 판이 죽은 게 아니라 집계 단위만 다름을 보인다.
+      const wk = clean((series && series[ed]) || []);
+      const wkLast = wk.length ? wk[wk.length - 1] : null;
+      const head = '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
+        (wkLast ? '<span class="opbcNow">' + money(wkLast.median) + "</span>" +
+          '<span class="opbcSpan">' + (lang === "ko" ? "주간 기준 " : "weekly · ") + md(wkLast.d) + " · n=" + wkLast.n + "</span>" : "") +
+        "</figcaption>";
+      return '<figure class="opbcPane opbcPaneEmpty">' + head +
         '<p class="opbcEmpty">' + why + hint + "</p></figure>";
     };
 
@@ -580,7 +587,9 @@
     // 폭은 CSS 로 정하지 않는다 — 컨테이너가 좌측정렬(세트 페이지)인지 가운데정렬(ko·홈)인지에
     // 따라 100vw 계산식이 오른쪽으로 넘쳐 영문판 패널이 잘렸다(2026-08-27 실사고, ko 페이지).
     // sizeWraps() JS 가 각 wrap 의 실제 left 를 재서 뷰포트 안에 들어가는 폭만 준다.
-    ".opbcWrap.opbcWide .opbcGridWrap{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}",
+    // [data-grain] 한정 — 공급 패널 구역(opbcSupWrap)까지 2열로 가르면 안내문이 왼쪽 칸,
+    // 그래프가 오른쪽 칸이 되어 왼쪽 아래가 통째로 빈다(2026-08-28 소유자 발견).
+    ".opbcWrap.opbcWide .opbcGridWrap[data-grain]{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}",
     // display:grid 가 브라우저 기본 [hidden]{display:none} 을 이겨서, 숨겼는데 그대로 보였다(2026-08-13).
     ".opbcGridWrap[hidden]{display:none}",
     ".opbcPane{margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",
