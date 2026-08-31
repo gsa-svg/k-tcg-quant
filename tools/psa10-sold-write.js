@@ -52,6 +52,8 @@ function findCard(code, num, nr) {
 const applied = [], review = [], skipped = [], notFound = [];
 
 for (const r of rows) {
+  // 추출기가 '아는 변형이 아니다'라고 표시한 결과는 값이 아니라 잡음이다 — 반영하지 않는다.
+  if (r.unknownVariant) { skipped.push({ ...r, why: "모르는 변형(추출기 필터 없음)" }); continue; }
   if (r.now == null || !(r.n >= MIN_N)) { skipped.push({ ...r, why: `표본 ${r.n || 0}건` }); continue; }
   const card = findCard(r.code, r.num, r.nr);
   if (!card) { notFound.push({ code: r.code, num: r.num, nr: r.nr }); continue; }
