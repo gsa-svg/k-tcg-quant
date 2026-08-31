@@ -1176,6 +1176,12 @@ for (const f of ["index.html", "packs.html"]) {
 // data/onepiece-packs.json 은 방문자가 페이지마다 통째로 받는다. compact-series.js 가 오래된
 // 구간을 성기게 만들어 유한하게 묶지만, 그 장치가 고장나거나 새 시계열이 상한 밖에서 늘면
 // 조용히 커진다. 원본 1.2MB(전송 압축 후 ~200KB)를 넘으면 배포를 막아 사람이 보게 한다.
+//
+// ⚠️ 크기의 절반은 시계열이 아니라 **저장 포맷**이다(2026-08-31 실측). compact-series.js 는
+//    들여쓰기 없이 저장하고(752KB), 이 파일을 쓰는 다른 20여 개 도구는 `JSON.stringify(x, null, 1)`
+//    로 저장한다(1177KB). 그래서 "무엇이 마지막에 썼는가"에 따라 크기가 425KB 씩 오갔고,
+//    compact-series 스텝이 없는 워크플로(update-fx)가 상한을 넘겨 3일간 죽어 있었다.
+//    아래 두 번째 검사가 그 포맷을 못 박는다 — 파이프라인 끝에 compact-series.js 를 돌리면 된다.
 {
   const PAYLOAD_LIMIT = 1_200_000;   // bytes, 원본 기준. 압축 전 크기가 커도 결국 파싱은 원본으로 한다.
   const f = "data/onepiece-packs.json";
@@ -1183,6 +1189,11 @@ for (const f of ["index.html", "packs.html"]) {
     const size = fs.statSync(path.join(ROOT, f)).size;
     if (size > PAYLOAD_LIMIT) {
       errors.push(`T2: ${f} 가 ${(size / 1024).toFixed(0)}KB — 상한 ${PAYLOAD_LIMIT / 1024}KB 초과. compact-series.js 동작 확인 필요(방문자가 매번 받는 파일)`);
+    }
+    // 들여쓰기된 채로 배포되면 방문자가 받는 바이트가 그냥 1.5배가 된다. 값은 같은데 요금만 낸다.
+    const head = read(f).slice(0, 4000);
+    if (head.includes(String.fromCharCode(10) + " ")) {
+      errors.push(`T2: ${f} 가 들여쓰기된 채로 저장돼 있다 — 방문자 전송량이 1.5배가 된다. 이 파일을 쓴 워크플로 끝에 \`node tools/compact-series.js\` 를 넣을 것`);
     }
   }
 }

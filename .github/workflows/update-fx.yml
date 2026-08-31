@@ -68,6 +68,9 @@ jobs:
           node --check tools/robots-policy.js
           node --check tools/audit-ai-discovery.js
           node --check tools/guard-invariants.js
+          # update-fx.js 는 onepiece-packs.json 을 들여쓰기로 다시 써서 752KB→1177KB 로 부풀린다.
+          # 가드 T2 의 포맷 검사가 그걸 잡으므로, 이 파일을 건드린 워크플로는 끝에서 다시 압축한다.
+          node tools/compact-series.js
           node tools/generate-ai-data.js
           node tools/test-ai-data.js
           node tools/audit-ai-discovery.js
@@ -102,6 +105,7 @@ jobs:
               echo "::error::FX data conflicts with newer main. Manual review required."
               exit 1
             fi
+            node tools/compact-series.js
             node tools/generate-ai-data.js
             node tools/test-ai-data.js
             node tools/audit-ai-discovery.js
