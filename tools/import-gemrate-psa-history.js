@@ -82,11 +82,23 @@ function applyGemRateHistory(data, source) {
   if (extra.length) {
     throw new Error(`GemRate set coverage mismatch; extra=${extra.join(",")}`);
   }
-  // 수집 자체가 안 된 세트(source 에 없음)와, 수집은 됐지만 아직 얇은 세트를 나눠 본다.
+  // 목록에는 있는데 packs.json 에 세트 정의조차 없으면 그건 신생 세트가 아니라 설정이 어긋난 것이다.
+  // 조용히 넘기면 그 세트는 영영 안 들어온다 — 여기서 멈춘다.
+  const undefinedSets = all.filter((code) => !data.sets?.[code]);
+  if (undefinedSets.length) {
+    throw new Error(`GemRate set coverage mismatch; 목록에만 있고 정의가 없는 세트=${undefinedSets.join(",")}`);
+  }
+  // 정의는 있는데 수집이 안 됐거나(신생 세트라 GemRate 페이지가 아직 없음) 표본이 얇은 세트는
+  // 이번 회차만 건너뛴다. 다만 **이미 한 번이라도 적재된 적 있는 세트**가 빠지는 건 다른 얘기다 —
+  // 그건 수집이 깨진 것이므로 멈춘다. 그러지 않으면 한 세트가 조용히 옛 값에 멈춰 있게 된다.
   const codes = [];
   for (const code of all) {
     const set = source.sets?.[code];
-    if (!set) { skipped.push(`${code}(미수집)`); continue; }
+    if (!set) {
+      if (data.sets[code].psaFull) throw new Error(`${code}: 이미 적재된 세트가 이번 수집에서 빠졌다 — 수집 실패`);
+      skipped.push(`${code}(미수집 — 아직 GemRate 에 없음)`);
+      continue;
+    }
     if (isTooNew(code, set, source)) { skipped.push(`${code}(주간 ${(set.weekly || []).length}점 — 아직 이름)`); continue; }
     codes.push(code);
   }
