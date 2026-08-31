@@ -957,12 +957,19 @@ for (const f of PUBLIC_HTML) {
 
 // ── R1. 홈 정적 렌더 보장 — 2026-07-19: 홈 시세표가 JS 전용이라 JS 미실행 크롤러/AI가
 //    가격을 못 읽었음. 홈은 색인된 핵심 자산이므로 JS 없이도 최소 본문·가격이 있어야 함.
+//
+//    하한을 4,000 → 5,800 자로 올림(2026-08-28). 그날 "표만" 정리로 홈 본문이
+//    7,861 → 4,425 자(-44%)로 줄었는데 4,000 하한을 아슬아슬하게 통과해 그대로 배포됐고,
+//    구글이 홈 노출 급감을 경고했다. 하한이 실제 수준보다 낮으면 가드가 아니라 통과 도장이다.
+//    ⚠️ 이 값을 낮추려는 변경은 곧 "검색이 읽을 글을 지우는 변경"이다. 낮추지 말 것.
+//    화면을 짧게 하고 싶으면 글을 지우지 말고 <details> 로 접어라 — 구글은 접힌 것도 읽는다.
+const HOME_MIN_TEXT = 5800;
 for (const f of ["index.html", "packs.html"]) {
   if (!exists(f)) continue;
   const body = read(f).replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ");
   const text = body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const prices = (text.match(/\$[0-9][0-9,]{2,}/g) || []).length;
-  if (text.length < 4000) errors.push(`R1: ${f} JS 없는 본문이 ${text.length}자 — 정적 콘텐츠 부족(4000자 이상 필요)`);
+  if (text.length < HOME_MIN_TEXT) errors.push(`R1: ${f} JS 없는 본문이 ${text.length}자 — 정적 콘텐츠 부족(${HOME_MIN_TEXT}자 이상 필요). 화면을 줄이려면 글을 지우지 말고 <details> 로 접을 것`);
   if (prices < 8) errors.push(`R1: ${f} JS 없는 본문의 가격 표기가 ${prices}개 — 정적 시세표 누락 의심(8개 이상 필요)`);
 }
 
