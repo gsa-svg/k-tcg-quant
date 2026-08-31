@@ -56,6 +56,13 @@ node tools/guard-invariants.js
 **CGC 세트** — `cgc-pop.js --collector <페이지>` 를 페이지마다 실행. 마지막 페이지가
 `hasNext=true` 면 ingest 가 적재를 거부한다(2페이지가 늘어난 걸 놓치지 않으려는 장치).
 
+**PSA10 등급 가격(실거래)** — eBay 가 sold 를 API 로 막아 브라우저로만 받는다.
+  `node tools/psa10-sold-refresh.js --json` 으로 카드별 URL·추출기를 뽑고, 실브라우저에서
+  같은 오리진 fetch 로 긁은 뒤 `node tools/psa10-sold-write.js <결과.json> --apply` 로 반영한다.
+  채택 기준(표본 3건 이상, 기존값 대비 0.5~2배)은 그 스크립트에 박혀 있다 — 대역을 벗어나면
+  값이 아니라 매칭이 바뀐 것을 먼저 의심한다(2026-08-31: x2.26 이 영문판 혼입이었다).
+  언제 다시 받을지는 `audit-price-quality.js` 의 psa10_price_stale(35일)이 알려준다.
+
 **TAG 세트·카드** — `tag-pop.js --setup` / `tag-card-pop.js --setup` 후 연도별로 훑는다.
 SPA 라 느리고 렌더러가 얼기도 한다. 결과 회수는 다운로드가 막히므로
 `document.body` 를 비우고 `<pre>` 에 렌더한 뒤 `get_page_text` 로 읽는다(40KB 까지 안전).

@@ -55,6 +55,30 @@ function auditNmFreshness(issues, code, card) {
   }
 }
 
+// 등급 가격(PSA10)이 언제 것인지 — 2026-08-31 추가.
+// NM 은 신선도를 보는데 등급 가격은 안 봤다. 그 사이 psa10Ebay 가 7/10 이후 두 달을 멈춰
+// 있었고, 화면은 두 달 전 값을 현재 시세처럼 계속 내보냈다. 수집기(update-ebay-psa10-prices)가
+// 어떤 워크플로에도 안 걸려 있어 아무도 몰랐다 — 낡은 값은 그럴듯해서 눈으로는 안 잡힌다.
+// PSA10 실거래는 eBay 가 API 를 막아 브라우저로만 받는다(psa10-sold-refresh → psa10-sold-write).
+// 그래서 자동화가 아니라 이 검사가 '다시 받을 때'를 알려주는 장치다.
+const PSA10_STALE_DAYS = 35;
+
+function auditPsa10Freshness(issues, code, card) {
+  const g = card.psa10Ebay;
+  if (!g || g.middle == null) return;
+  const current = { middle: g.middle, updated: g.updated || null, sampleSize: g.sampleSize ?? null };
+  if (!g.updated) {
+    addIssue(issues, { severity: "review", code, card, field: "psa10Ebay.updated", reason: "psa10_price_has_no_observation_date", current });
+    return;
+  }
+  const days = Math.floor((Date.now() - Date.parse(g.updated)) / 864e5);
+  if (!Number.isFinite(days)) {
+    addIssue(issues, { severity: "review", code, card, field: "psa10Ebay.updated", reason: "psa10_observation_date_unparseable", current });
+  } else if (days > PSA10_STALE_DAYS) {
+    addIssue(issues, { severity: "review", code, card, field: "psa10Ebay.updated", reason: "psa10_price_stale", current: { ...current, days } });
+  }
+}
+
 function auditNmPrice(issues, code, card, fx) {
   if (card.nmJpy == null) return;
 
@@ -227,7 +251,9 @@ function main() {
     if (!targetCodes.has(code)) continue;
     for (const card of set.cards || []) {
       auditNmPrice(issues, code, card, fx);
-      auditNmFreshness(issues, code, card);
+      auditNmFreshness(issues, code, card);
+
+      auditPsa10Freshness(issues, code, card);
       auditPsa10Price(issues, code, card);
       auditJapaneseNmEbay(issues, code, card);
     }
