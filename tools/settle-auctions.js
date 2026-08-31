@@ -33,23 +33,18 @@ const soldPath = path.join(ROOT, "data", `${pre}auction-sold.json`);
 // 개별 낙찰 기록은 data/auction-archive/<날짜>.json 이 원장이다(하루가 지나면 다시 안 쓰임).
 // auction-sold.json 은 파생 집계 + 최근 창만 담는 얇은 파일로 남긴다 — 2시간마다 재작성되므로
 // 여기에 45일치를 넣으면 저장소가 하루 수십 MB씩 불어난다(2026-07-29 실측: 8일치로 blob 20.8MB).
-// 이 파일에 개별 판매를 며칠치 실어 둘 것인가. 2026-08-19: 14 → 3.
+// ── data/<game>auction-sold.json 은 **집계 전용 파일**이다(개별 판매는 안 담는다).
 //
-// 왜 줄이나: 이 파일은 2시간마다 통째로 다시 쓰인다(=커밋마다 새 blob). 14일치면 8MB 라
-// 저장소 이력에서 이 파일 하나가 1.19GB, 전체 .git 204MB 중 압도적 1위였다.
+// 이력: 14일치 → 3일치(2026-08-19) → 1일치(2026-08-28) → 아예 안 담음(2026-08-31).
+// 14일치이던 시절 이 파일 하나가 저장소 이력에서 1.19GB(전체 .git 204MB 중 1위)를 차지했다.
 //
-// 줄여도 되는 이유: 개별 판매의 원장은 data/<game>auction-archive/<날짜>.json 이고 그건 하루치를
-// 한 번만 쓰고 다시 안 건드린다. 여기 sales 는 파생 창이라 언제든 아카이브에서 되만든다.
-// 화면·페이지 생성기(generate-free-data·generate-ko-topic-pages)는 daily 만 읽고,
-// 집계(daily)는 별도로 KEEP_SALES_DAYS(45일) 창에서 계산하므로 이 값과 무관하다.
-// 실제 소비처는 guard A1 의 "파생이 원장에 없는 기록을 만들지 않았는지" 대조 하나뿐인데,
-// 그 검사는 3일치로도 똑같이 동작한다.
-// 이 파일에 싣는 개별 판매 창(원장은 아카이브). 2시간마다 통째로 재작성·커밋되므로
-// 이 값이 곧 저장소 증가 속도다 — 하루 12번 × (창 일수 × 하루 거래량 × ~490B).
-// 소비처는 가드 A1 의 "파생이 원장에 없는 기록을 만들지 않았는지" 대조 하나뿐이고,
-// 그 검사는 1일치로도 똑같이 동작한다(생성기·집계는 전부 아카이브를 직접 읽는다).
-// 2026-08-28 전수 수집 전환(하루 1,000→12,000건 스캔)에 맞춰 3일→1일로 줄였다.
-const HOT_DAYS = 1;
+// 개별 판매(sales)는 이 파일에 **싣지 않는다** — 2026-08-31.
+// 이 파일은 2시간마다 통째로 재작성·커밋되므로, 여기 실은 바이트 × 12 가 하루 저장소 증가분이다.
+// 전수 수집 전환(하루 1,000→12,000건) 뒤 1일치만 담아도 1.2MB 가 되어 하루 14MB 씩 불어났다.
+// 그런데 개별 판매를 읽는 소비자는 하나도 없다 — 생성기·집계·통계는 전부
+// data/<game>auction-archive/<날짜>.json(하루 한 번 쓰고 다시 안 건드리는 원장)을 직접 읽는다.
+// 유일한 소비처였던 가드 A1 의 "파생이 원장보다 많지 않은가" 대조는
+// daily 마지막 날의 건수와 그 날 아카이브 파일의 건수를 맞춰보는 것으로 같은 일을 한다.
 const KEEP_SALES_DAYS = 45;    // 아카이브 기준 집계 재계산 범위
 const KEEP_DAILY_DAYS = 365;   // 일별 집계는 더 오래
 const MAX_PER_RUN = 900;       // 한 번에 조회할 최대 건수. 2026-08-28 전수 수집 전환으로 250→900(2시간마다 실행 = 하루 10,800건 처리 여력). eBay Browse 는 호출당 1건 조회라 이 값이 곧 API 콜 수다.
@@ -170,9 +165,9 @@ const med = (a) => {
 
   // 파생 집계·최근 창은 아카이브에서 다시 만든다. 원장과 집계가 어긋날 여지를 없앤다.
   let out;
-  try { out = JSON.parse(fs.readFileSync(soldPath, "utf8")); } catch { out = { sales: [], daily: [] }; }
+  try { out = JSON.parse(fs.readFileSync(soldPath, "utf8")); } catch { out = { daily: [] }; }
+  delete out.sales;                    // 옛 구조 잔재 제거(개별 판매는 아카이브에만 산다)
   const window = readRecent(KEEP_SALES_DAYS).sort((a, b) => a.d.localeCompare(b.d));
-  out.sales = readRecent(HOT_DAYS).sort((a, b) => a.d.localeCompare(b.d));
 
   // ── 일별 집계 재계산
   const days = [...new Set(window.map((s) => s.d))];
@@ -226,7 +221,7 @@ const med = (a) => {
   const priorDaily = (out.daily || []).filter((p) => p.d >= cutDaily && !days.includes(p.d));
   out.daily = [...priorDaily, ...daily].sort((a, b) => a.d.localeCompare(b.d));
 
-  out.note = `Completed eBay auction results for ${GAME === "onepiece" ? "One Piece Card Game" : "Palworld Card Game"} items. The full ledger lives in data/${pre}auction-archive/<date>.json (one file per day, written once and not rewritten); 'sales' here is only the most recent " + HOT_DAYS + " days and 'daily' is the aggregate series. Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.`;
+  out.note = `Completed eBay auction results for ${GAME === "onepiece" ? "One Piece Card Game" : "Palworld Card Game"} items. The full ledger lives in data/${pre}auction-archive/<date>.json (one file per day, written once and not rewritten); this file carries only the aggregate series ('daily'). Each record is read from the listing AFTER the auction closed, so 'price' is the final winning bid, not an asking price or a mid-auction bid. 'sold' is taken from eBay's sold-quantity field; where eBay does not report it we store null rather than guessing, and null rows are excluded from the sell-through denominator. Multi-item lots are handled by 'qty' parsed from the title: 'price' is always the lot total, 'unitPrice' is per item, and where the count cannot be determined (case/lot/bulk) qty is null and the record is excluded from price aggregates rather than counted as a single item. Aggregated medPrice/maxPrice are per-unit figures. Sellers and locations excluded from our price data are excluded here too.`;
   out.updated = new Date(now).toISOString();
   fs.writeFileSync(soldPath, JSON.stringify(out) + "\n", "utf8");
 
@@ -239,7 +234,6 @@ const med = (a) => {
     medPrice: med(soldNow.map((s) => s.unitPrice)),
     pendingLeft: watch.pending.length,
     archived,
-    hotSales: out.sales.length,
     ledgerSales: window.length,
     graded: settled.filter((s) => s.grade).length,
     edResolved: settled.filter((s) => s.ed).length,

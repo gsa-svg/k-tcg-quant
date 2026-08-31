@@ -516,11 +516,21 @@ if (exists("data/auction-card-stats.json")) {
       }
     }
     // 파생 집계가 원장보다 많으면 어딘가에서 없는 거래를 만들어낸 것이다.
+    // 2026-08-31 이전에는 auction-sold.json 이 최근 하루치 개별 판매를 통째로 들고 있어서
+    // id 를 하나씩 대조했다. 그 창이 1.2MB 라 2시간마다 커밋될 때마다 저장소가 하루 14MB 씩
+    // 불어났고, 정작 그 개별 판매를 읽는 소비자는 이 대조뿐이었다. 그래서 개별 판매는 빼고
+    // "집계된 건수가 원장 건수를 넘지 않는가"만 본다 — 없는 거래를 지어내면 여기서 걸린다.
     if (exists("data/auction-sold.json")) {
       const hot = JSON.parse(read("data/auction-sold.json"));
-      const hotIds = new Set((hot.sales || []).map((s) => s.id));
-      const orphan = [...hotIds].filter((id) => !seen.has(id));
-      if (orphan.length) errors.push(`A1: 최근 창에 원장에 없는 기록 ${orphan.length}건`);
+      if (hot.sales) errors.push("A1: auction-sold.json 에 sales 가 다시 들어왔다 — 이 파일은 집계 전용이다(settle-auctions.js 주석 참고)");
+      const counts = new Map();
+      for (const f of files) {
+        try { counts.set(f.slice(0, 10), (JSON.parse(read(`${dir}/${f}`)).sales || []).length); } catch { /* 위에서 이미 보고됨 */ }
+      }
+      for (const r of hot.daily || []) {
+        if (!counts.has(r.d)) continue;          // 아카이브 보존 범위 밖의 옛 집계는 대조 대상이 아니다
+        if (r.n > counts.get(r.d)) errors.push(`A1: ${r.d} 집계 ${r.n}건이 원장 ${counts.get(r.d)}건보다 많다`);
+      }
     }
   }
 }
@@ -1134,20 +1144,30 @@ for (const f of ["index.html", "packs.html"]) {
 //
 // 왜 필요한가: 수집량을 하루 1,000건 → 12,000건으로 올렸다. 원장(아카이브)은 하루 한 번
 // 쓰고 다시 안 건드리니 선형으로만 늘지만, **2시간마다 통째로 재작성되는 파일**은
-// 하루 12개의 새 blob 을 만든다 — 그 파일이 1MB면 하루 12MB, 1년이면 4GB다.
-// 사람이 눈치채기 전에 저장소가 못 쓰게 되므로, 크기를 못 박아 배포를 막는다.
+// 하루 12개의 새 blob 을 만든다. 사람이 눈치채기 전에 저장소가 못 쓰게 되므로 배포를 막는다.
 //
-// 늘려야 할 때 하는 일(신입 개발자용):
-//   1) 이 파일 크기를 키우기 전에 settle-auctions.js 의 HOT_DAYS 를 줄일 수 있는지 먼저 본다.
-//      hot 창은 가드 A1 대조에만 쓰이고, 집계·페이지 생성기는 전부 아카이브를 직접 읽는다.
-//   2) 그래도 커야 한다면 여기 상한을 올리고, 왜 올렸는지 커밋 메시지에 남긴다.
+// 얼마나 늘어나는가(2026-08-31 실측, 신입 개발자용):
+//   파일 크기 × 12 가 아니다. git 은 blob 을 압축하고 앞뒤가 같은 JSON 은 델타로 저장한다.
+//   14일치 131 blob 의 디스크 합이 5.2MB — 파일이 800KB 이던 시절 blob 평균이 40KB(원본의 5%)였다.
+//   즉 실제 증가는 "크기 × 12 × 0.05" 쯤이다. 그래도 상한을 크기로 거는 이유는,
+//   크기가 곧 그 계수의 분모라서 가장 일찍·가장 싸게 잡히는 신호이기 때문이다.
+//
+// 상한에 걸렸을 때 순서대로 볼 것:
+//   1) auction-sold.json 에 개별 판매(sales)가 다시 들어왔는가 — 가드 A1 이 따로 잡는다.
+//      이 파일은 집계 전용이고, 개별 판매는 data/<game>auction-archive/ 가 원장이다.
+//   2) daily 에 아무도 안 읽는 축이 늘었는가. 축은 아카이브에서 언제든 다시 구울 수 있으니
+//      "지금 화면이 쓰는 축"만 실어 둔다.
+//   3) 그래도 커야 한다면 상한을 올리고, 왜 올렸는지 커밋 메시지에 남긴다.
 {
-  const HOT_LIMIT = 900_000;   // bytes. 2시간마다 커밋되는 파일이라 이 값 × 12 가 하루 증가분이다.
+  // bytes. 2026-08-31 개별 판매를 뺀 뒤 190KB(daily 40일치). daily 는 하루 ~4.7KB 씩 늘고
+  // KEEP_DAILY_DAYS(365일)까지 자라므로, 상한 400KB 는 대략 6개월 뒤 다시 걸리도록 잡은 값이다.
+  // 그때 위 2)번(안 읽는 축 정리)을 하라는 뜻이지, 그냥 올리라는 뜻이 아니다.
+  const HOT_LIMIT = 400_000;
   for (const f of ["data/auction-sold.json", "data/palworld-auction-sold.json"]) {
     if (!exists(f)) continue;
     const size = fs.statSync(path.join(ROOT, f)).size;
     if (size > HOT_LIMIT) {
-      errors.push(`T3: ${f} 가 ${(size / 1024).toFixed(0)}KB — 상한 ${HOT_LIMIT / 1024}KB 초과. 2시간마다 커밋되는 파일이라 저장소가 하루 ${((size * 12) / 1048576).toFixed(0)}MB씩 는다. settle-auctions.js 의 HOT_DAYS 를 줄일 것`);
+      errors.push(`T3: ${f} 가 ${(size / 1024).toFixed(0)}KB — 상한 ${HOT_LIMIT / 1024}KB 초과. 2시간마다 커밋되는 파일이다(저장소 증가 ≈ 하루 ${((size * 12 * 0.05) / 1048576).toFixed(1)}MB). 이 검사 위의 주석에 볼 순서가 적혀 있다`);
     }
   }
 }
