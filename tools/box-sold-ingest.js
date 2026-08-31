@@ -162,6 +162,19 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
 
 function main(dumpFile) {
   const dump = JSON.parse(fs.readFileSync(dumpFile, "utf8"));
+
+  // 표준 절차(box-sold-urls.js --setup)로 받은 덤프만 받는다 — 2026-08-31 신설.
+  // 그날 구식 출력(--json 의 rows)으로 수집했다가 300건을 통째로 버렸다. 그 URL 에는
+  // LH_BIN=1 이 없어 경매 낙찰가가 섞일 수 있고, fmt 표시가 없어 그래프가 전량 버렸다.
+  // 원장에는 들어갔는데 화면에는 하나도 안 나오는 상태가 되고, 원장은 소급 수정이 안 된다.
+  // 플래그가 없다고 fmt 를 임의로 'bin' 이라 적으면 경매 섞인 데이터에 즉시구매 도장을 찍는 셈이라
+  // 더 나쁘다. 그래서 받지 않는다.
+  if (!dump.fmtSplit || !dump.langFacet) {
+    throw new Error(
+      "덤프에 fmtSplit/langFacet 표시가 없다 — box-sold-urls.js --setup 으로 다시 수집할 것. " +
+      "(--setup 만 LH_BIN=1(즉시구매만)·Language 패싯·가격대 분할을 건다)"
+  );
+  }
   const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
   const fx = data.fx.usdKrw;
   const nameMap = buildNameMap(data);

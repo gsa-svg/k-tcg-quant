@@ -108,7 +108,10 @@ if (require.main === module) {
   } else if (process.argv.includes("--collector")) {
     console.log(collectorScript());
   } else if (process.argv.includes("--json")) {
-    console.log(JSON.stringify({ rows, extractor: EXTRACTOR }, null, 1));
+    // 2026-08-31 제거: 여기서 나오던 rows 의 URL 에는 LH_BIN=1 이 없어 경매가 섞이고,
+    // fmt 표시가 없어 그래프가 전량 버린다. 실제로 그 실수로 300건을 되돌렸다.
+    console.error("--json 은 폐기됐다. 표준 경로는 --setup 이다(LH_BIN=1·Language 패싯·가격대 분할).");
+    process.exit(1);
   } else {
     console.log(`# 박스 sold 수집 계획 (${rows.length} 세트) — 데이터 기준일: ${data.updated}`);
     console.log(`# 표준 경로: --setup 배치(10페이지씩, CDP 45초 타임아웃 회피). --collector 단일샷은 세트가 늘어 타임아웃 위험 — 소규모 테스트 전용.`);
