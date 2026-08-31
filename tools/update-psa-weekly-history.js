@@ -23,15 +23,26 @@ function readCumulativeSnapshot(data) {
   const sets = {};
   const dates = new Set();
 
+  // 갓 나온 세트는 PSA 누적이 아직 없다 — 감정이 시작 전이거나 GemRate 표본이 몇 장뿐이라
+  // import-gemrate-psa-history 가 건너뛴다(그쪽도 같은 규칙). 그런 세트 하나 때문에 전체를
+  // 막으면 21개 세트의 주간 이력이 통째로 멈춘다 — 2026-08-31 OP-17 로 실제로 그렇게 멈췄다.
+  // 빠진 세트는 건너뛰되 사유를 남긴다. 총계는 '누적이 있는 세트의 합'이지 전 세트가 아니다.
+  const missing = [];
   for (const code of codes) {
     const source = data.sets?.[code]?.psaFull;
     const total = Number(source?.total);
     if (!Number.isInteger(total) || total < 0 || !/^\d{4}-\d{2}-\d{2}$/.test(source?.updated || "")) {
-      throw new Error(`${code}: verified psaFull.total/updated is missing`);
+      missing.push(code);
+      continue;
     }
     sets[code] = total;
     dates.add(source.updated);
   }
+  // 절반 넘게 빠졌으면 신생 세트 문제가 아니라 수집이 통째로 실패한 것이다.
+  if (Object.keys(sets).length < codes.length / 2) {
+    throw new Error(`PSA 누적이 있는 세트가 ${Object.keys(sets).length}/${codes.length} 뿐 — 수집 실패 의심`);
+  }
+  if (missing.length) console.error(`[psa-weekly] PSA 누적 없어 제외: ${missing.join(", ")}`);
 
   if (dates.size !== 1) {
     throw new Error(`PSA cumulative source dates disagree: ${[...dates].sort().join(", ")}`);
