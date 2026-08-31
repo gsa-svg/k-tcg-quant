@@ -120,8 +120,22 @@ const median = (a) => {
 
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("eBay 자격증명 없음");
-  const tok = await token();
   const day = new Date().toISOString().slice(0, 10);
+
+  // 오늘 점이 이미 있으면 아무것도 하지 않는다 — 2026-08-31 신설.
+  // 이건 하루 한 점을 찍는 수집이라 두 번 돌 이유가 없는데, workflow_dispatch 로 재실행하면
+  // 조건 없이 다시 긁었다. 그날 실제로 eBay 가 429(호출 한도)를 돌려줘 워크플로가 죽었다.
+  // 재수집이 더 나은 데이터를 주지도 않는다(같은 날 같은 시장) — 한도만 태운다.
+  // 다시 찍고 싶으면 --force 를 준다.
+  if (!process.argv.includes("--force")) {
+    const prev = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : null;
+    if ((prev?.points || []).some((p) => p.d === day)) {
+      console.log(JSON.stringify({ status: "skip", reason: day + " 점이 이미 있다(--force 로 덮어쓰기)" }));
+      return;
+    }
+  }
+
+  const tok = await token();
   const games = [];
   const watchAdd = [];
   const claimed = new Set();   // 검색어가 겹칠 때 한 매물이 두 게임에 들어가는 걸 막는다
