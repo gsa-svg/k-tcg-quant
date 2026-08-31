@@ -64,13 +64,34 @@ function validateSet(code, source, history) {
   }
 }
 
+// 갓 나온 세트는 주간 점이 아직 4개가 안 된다. 그 하나 때문에 전체 적재를 막으면
+// **성숙한 21개 세트의 PSA 데이터까지 같이 멈춘다** — 2026-08-31 실사고: OP-17(8/22 발매)이
+// 목록에 들어오면서 import 가 죽었고 PSA 판본별 주간이 12일간 공백이 됐다.
+// 그래서 "아직 이른 세트"는 이번 회차에서 건너뛰고(로그로 남김), 데이터가 쌓이면 자동 편입된다.
+// ⚠️ 조용히 건너뛰지 않는다 — 건너뛴 세트는 stderr 에 찍고 결과 JSON 에도 담는다.
+const skipped = [];
+function isTooNew(code, set, history) {
+  const weekly = Array.isArray(set?.weekly) ? set.weekly : [];
+  const grades = set?.latest?.totalGrades;
+  return weekly.length < minimumWeeklyPoints || !Number.isInteger(grades) || grades <= 0;
+}
+
 function applyGemRateHistory(data, source) {
-  const codes = [...(data.jp?.list || []), ...(data.extra?.list || [])];
-  const missing = codes.filter((code) => !source.sets?.[code]);
-  const extra = Object.keys(source.sets || {}).filter((code) => !codes.includes(code));
-  if (missing.length || extra.length) {
-    throw new Error(`GemRate set coverage mismatch; missing=${missing.join(",") || "none"}, extra=${extra.join(",") || "none"}`);
+  const all = [...(data.jp?.list || []), ...(data.extra?.list || [])];
+  const extra = Object.keys(source.sets || {}).filter((code) => !all.includes(code));
+  if (extra.length) {
+    throw new Error(`GemRate set coverage mismatch; extra=${extra.join(",")}`);
   }
+  // 수집 자체가 안 된 세트(source 에 없음)와, 수집은 됐지만 아직 얇은 세트를 나눠 본다.
+  const codes = [];
+  for (const code of all) {
+    const set = source.sets?.[code];
+    if (!set) { skipped.push(`${code}(미수집)`); continue; }
+    if (isTooNew(code, set, source)) { skipped.push(`${code}(주간 ${(set.weekly || []).length}점 — 아직 이름)`); continue; }
+    codes.push(code);
+  }
+  if (!codes.length) throw new Error("GemRate: 적재할 세트가 하나도 없다 — 수집이 통째로 실패한 것");
+  if (skipped.length) console.error(`[gemrate] 건너뜀: ${skipped.join(", ")}`);
 
   for (const code of codes) validateSet(code, source.sets[code], source);
 
