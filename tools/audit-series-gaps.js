@@ -98,14 +98,24 @@ function checkManual(label, ledgerPath) {
     return;
   }
   const have = new Set(days);
+  // eBay sold 는 지난 판매를 나중에도 그대로 보여준다. 그래서 수집일을 하루 걸러도
+  // 다음 수집이 그 날의 판매를 소급해 담는다 — 실제 데이터가 채워졌으면 구멍이 아니다.
+  // (2026-08-28 을 걸렀지만 8/31 수집이 그 날 판매 66건을 다 담았다.)
+  // 여기서 FAIL 로 올릴 것은 "판매일 데이터가 원장에 아예 없는 날" 하나뿐이다.
+  const soldDays = new Set();
+  for (const set of Object.values(led.sets || {})) {
+    for (const ed of ["jp", "en"]) for (const r of set?.[ed] || []) if (r.d) soldDays.add(r.d);
+  }
   const from = iso(Math.max(Date.parse(days[0]), Date.parse(LAST_FULL) - (WINDOW - 1) * DAY));
-  const missed = [];
+  const missed = [], covered = [];
   for (let t = Date.parse(from); t <= Date.parse(LAST_FULL); t += DAY) {
     const d = iso(t);
-    if (MWF.has(new Date(t).getUTCDay()) && !have.has(d)) missed.push(d);
+    if (!MWF.has(new Date(t).getUTCDay()) || have.has(d)) continue;
+    (soldDays.has(d) ? covered : missed).push(d);
   }
-  if (missed.length) problems.push(`${label} — 수집일(월·수·금)인데 안 돈 날 ${missed.length}일: ${missed.join(" ")}`);
-  else notes.push(`${label} — 최근 ${WINDOW}일 수집일 전부 실행됨(마지막 ${days[days.length - 1]})`);
+  if (missed.length) problems.push(`${label} — 수집일을 걸렀고 그 날 판매도 원장에 없다 ${missed.length}일: ${missed.join(" ")}`);
+  if (covered.length) notes.push(`${label} — 수집일 ${covered.length}일을 걸렀지만 이후 수집이 소급해 담았다: ${covered.join(" ")}`);
+  if (!missed.length && !covered.length) notes.push(`${label} — 최근 ${WINDOW}일 수집일 전부 실행됨(마지막 ${days[days.length - 1]})`);
 }
 checkManual("원피스 박스 sold", "data/box-sold-ledger.json");
 checkManual("팰월드 sold", "data/palworld-sold-ledger.json");
