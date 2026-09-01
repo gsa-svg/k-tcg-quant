@@ -54,6 +54,15 @@
       if (el.dataset.en == null) el.dataset.en = el.textContent;   // 원문 보관(한 번만)
       el.textContent = lang === "ko" ? el.dataset.ko : el.dataset.en;
     }
+    // 안에 링크가 든 문단은 textContent 로 바꾸면 링크가 통째로 사라진다. 그런 곳은
+    // data-ko-html 에 링크까지 포함한 한국어를 담아 두고 innerHTML 로 갈아끼운다.
+    // 값은 우리가 빌드 때 써 넣은 것이고 방문자 입력이 아니다.
+    var rich = document.querySelectorAll("[data-ko-html]");
+    for (var j = 0; j < rich.length; j++) {
+      var re = rich[j];
+      if (re.dataset.enHtml == null) re.dataset.enHtml = re.innerHTML;
+      re.innerHTML = lang === "ko" ? re.dataset.koHtml : re.dataset.enHtml;
+    }
     document.documentElement.lang = lang;
     // 스스로 글자를 만드는 부분(차트 라벨 등)은 data-ko 로 못 바꾼다. 이벤트로 알려서 다시 그리게 한다.
     // 클릭만 듣게 하면 첫 로드(저장된 ko 로 시작할 때)를 놓친다 — 그래서 apply 때마다 쏜다.
