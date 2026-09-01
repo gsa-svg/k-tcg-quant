@@ -122,6 +122,7 @@ function renderPage(page) {
     <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
     <script type="application/ld+json">${JSON.stringify(faqSchema)}</script>
     <link rel="stylesheet" href="../styles.css?v=${CSS_VERSION}" />
+    <script defer src="../lang-toggle.js?v=${CSS_VERSION}"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .factTable{width:100%;max-width:720px;border-collapse:collapse;margin:16px 0}.factTable th,.factTable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.factTable th{width:36%;color:#9aa4b6;font-weight:600}.sourceNoteA{max-width:760px;color:#9aa4b6;font-size:13px;line-height:1.65}.setFaq{max-width:760px}.setFaq details{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 0}.setFaq summary{cursor:pointer;font-weight:700}

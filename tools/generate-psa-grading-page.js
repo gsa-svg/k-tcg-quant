@@ -193,6 +193,7 @@ const html = `<!doctype html>
     <script type="application/ld+json">${FAQ_LD}</script>
     <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "OP Box Index", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "PSA Population", item: "https://opboxindex.com/psa-grading.html" }] })}</script>
     <link rel="stylesheet" href="styles.css?v=${ver}" />
+    <script defer src="lang-toggle.js?v=${ver}"></script>
     <style>
       .pgWrap { max-width: 980px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .pgWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }

@@ -166,6 +166,7 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
     <meta name="twitter:card" content="summary_large_image" />
     ${extraLd}
     <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
+    <script defer src="../lang-toggle.js?v=${CSS_VER}"></script>
     <style>
       /* 제목 블록이 폭을 100% 잡고 있어 박스 이미지가 늘 아래 줄로 밀렸다(2026-08-27).
          min-width:0 + flex:1 로 같은 줄에 세우면 hero 가 한 화면의 1/4을 덜 먹는다. */

@@ -115,6 +115,7 @@ const html = `<!doctype html>
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${datasetLd}</script>
     <link rel="stylesheet" href="styles.css?v=${CACHE}" />
+    <script defer src="lang-toggle.js?v=${CACHE}"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .dlRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
@@ -139,9 +140,9 @@ const html = `<!doctype html>
       ${navHtml("")}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow">Free data</p>
-      <h1>Free One Piece TCG data — box markets, Top 7 cards and grading</h1>
-      <p>One compact JSON feed and three CSVs, free under CC BY 4.0. They cover <strong>Japanese and English box markets</strong>, <strong>each set's Top 7 chase cards</strong>, <strong>grading population split by grader and printing</strong>, and <strong>completed auction outcomes</strong>. Completed sales and active asking prices are always separate.</p>
+      <p class="eyebrow" data-ko="무료 데이터">Free data</p>
+      <h1 data-ko="원피스 TCG 무료 데이터 — 박스 시장·상위 7개 카드·그레이딩">Free One Piece TCG data — box markets, Top 7 cards and grading</h1>
+      <p data-ko-html="간결한 JSON 피드 하나와 CSV 세 개를 CC BY 4.0으로 무료 공개합니다. <strong>일본판·영문판 박스 시장</strong>, <strong>세트별 상위 7개 체이스 카드</strong>, <strong>감정사·인쇄본별 그레이딩 인구</strong>, <strong>종료된 경매 결과</strong>를 담습니다. 실거래가와 진행 중 호가는 언제나 따로 둡니다.">One compact JSON feed and three CSVs, free under CC BY 4.0. They cover <strong>Japanese and English box markets</strong>, <strong>each set's Top 7 chase cards</strong>, <strong>grading population split by grader and printing</strong>, and <strong>completed auction outcomes</strong>. Completed sales and active asking prices are always separate.</p>
 
       <div class="dlRow">
         <a class="primary" href="opbox-ai-data.json" download>AI-ready market data (JSON)</a>
@@ -152,7 +153,7 @@ const html = `<!doctype html>
       <p class="note">Page regenerated ${esc(DATA_DATE)} · every value keeps its own observation date · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
 
       <h2 id="ai-json">1. AI-ready box and Top 7 data — <code>opbox-ai-data.json</code></h2>
-      <p>A compact public contract for answer engines and researchers. It covers ${nPrices} tracked products and the Top 7 exact card variants in each set. Every set record links back to its human-readable guide. Box <code>sold</code> values are completed-sale samples; <code>activeAsk</code> values are listings still for sale. The feed excludes seller names, listing IDs, affiliate URLs and raw marketplace dumps.</p>
+      <p data-ko-html="답변 엔진과 연구자를 위한 간결한 공개 규격입니다. 추적 중인 상품 ${nPrices}종과 세트별 상위 7개 카드 변형을 담습니다. 모든 세트 레코드는 사람이 읽는 가이드로 되돌아가는 링크를 갖습니다. 박스의 <code>sold</code>는 실거래 표본이고 <code>activeAsk</code>는 아직 판매 중인 매물입니다. 판매자 이름, 매물 ID, 제휴 URL, 마켓플레이스 원본 덤프는 넣지 않습니다.">A compact public contract for answer engines and researchers. It covers ${nPrices} tracked products and the Top 7 exact card variants in each set. Every set record links back to its human-readable guide. Box <code>sold</code> values are completed-sale samples; <code>activeAsk</code> values are listings still for sale. The feed excludes seller names, listing IDs, affiliate URLs and raw marketplace dumps.</p>
       <div class="fields">
         <code>schemaVersion</code> · <code>datasetUpdatedOn</code> · <code>license</code> — stable contract and reuse terms<br />
         <code>boxMarket.japanese</code> · <code>boxMarket.english</code> — completed sales and active asks, never combined<br />
@@ -162,7 +163,7 @@ const html = `<!doctype html>
       </div>
 
       <h2 id="grading-csv">2. Grading population — <code>opbox-grading-population.csv</code></h2>
-      <p>One row per set <em>per printing</em>. Japanese and English are different print runs with different pull rates, so we record them separately and <strong>never add them together</strong> — a combined gem rate describes neither. The same applies across graders: a PSA 10, a CGC Pristine 10 and a TAG 10 are different standards, so the columns sit side by side and are never summed.</p>
+      <p data-ko-html="세트별 <em>인쇄본별</em>로 한 행씩입니다. 일본판과 영문판은 인쇄가 다르고 봉입률이 다르므로 따로 기록하며 <strong>절대 합치지 않습니다</strong> — 합친 젬 비율은 어느 쪽도 설명하지 못합니다. 감정사끼리도 같습니다. PSA 10, CGC 프리스틴 10, TAG 10은 서로 다른 기준이라 열을 나란히 두고 절대 더하지 않습니다.">One row per set <em>per printing</em>. Japanese and English are different print runs with different pull rates, so we record them separately and <strong>never add them together</strong> — a combined gem rate describes neither. The same applies across graders: a PSA 10, a CGC Pristine 10 and a TAG 10 are different standards, so the columns sit side by side and are never summed.</p>
       <div class="fields">
         <code>set_code</code> · <code>edition</code> — <code>japanese</code> or <code>english</code><br />
         <code>psa_total</code> · <code>psa10_rate_pct</code> · <code>psa_weekly_add</code> — cumulative PSA count, PSA 10 share, and how many were added in the latest week we recorded<br />
@@ -171,7 +172,7 @@ const html = `<!doctype html>
         <code>*_as_of</code> — each total, weekly change and grade split keeps its own source date. Blank means unverified, not zero.
       </div>
 
-      <h2>Preview — grading population</h2>
+      <h2 data-ko="미리보기 — 그레이딩 인구">Preview — grading population</h2>
       <div style="overflow-x:auto">
       <table class="dTable">
         <thead><tr><th>Set</th><th>Printing</th><th>PSA</th><th>PSA 10 rate</th><th>CGC</th><th>Pristine 10</th><th>TAG</th></tr></thead>
@@ -182,7 +183,7 @@ ${gradePreview}
       </div>
 
       <h2 id="auction-csv">3. Auction results by day — <code>opbox-auction-daily.csv</code></h2>
-      <p>Every row is one day and one product type. The same data is explained and charted on the <a href="auction.html">auction results page</a>. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
+      <p data-ko-html="한 행이 하루와 상품 종류 하나입니다. 같은 데이터를 <a href="auction.html">경매 결과 페이지</a>에서 설명과 그래프로 봅니다. 각 경매는 끝난 <em>뒤에</em> 읽으므로 <code>median_price_usd</code>는 진행 중 값이 아니라 최종 낙찰가입니다. 이 차이는 실제로 큽니다 — 막판 스나이핑이 가격을 자주 움직입니다. 유찰로 끝난 경매도 <code>sell_through_pct</code>의 분모로 데이터에 남습니다. 빼버리면 모든 가격이 실제보다 좋아 보입니다.">Every row is one day and one product type. The same data is explained and charted on the <a href="auction.html">auction results page</a>. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
       <div class="fields">
         <code>date</code> · <code>kind</code> — <code>all</code>, <code>box</code>, <code>card</code> or <code>pack</code><br />
         <code>auctions</code> · <code>sold</code> · <code>sell_through_pct</code> — how many ran, how many actually sold<br />
@@ -191,18 +192,18 @@ ${gradePreview}
       </div>
 
       <h2 id="box-csv">4. Japanese and English booster box markets — <code>opbox-set-prices.csv</code></h2>
-      <p>One row per tracked product. Japanese and English printings are separate. Completed-sale medians include the 25th/75th percentile, sample size and sample-collection date. Active asking-price medians include the 15th/85th percentile, verified listing count and observation date. There is no generic “current price” column that silently mixes the two.</p>
+      <p data-ko-html="추적 상품마다 한 행입니다. 일본판과 영문판 인쇄본은 분리합니다. 실거래 중앙값에는 25/75 백분위, 표본 수, 표본 수집일이 함께 들어갑니다. 진행 중 호가 중앙값에는 15/85 백분위, 확인된 매물 수, 관측일이 들어갑니다. 둘을 조용히 섞는 현재가 같은 열은 두지 않습니다.">One row per tracked product. Japanese and English printings are separate. Completed-sale medians include the 25th/75th percentile, sample size and sample-collection date. Active asking-price medians include the 15th/85th percentile, verified listing count and observation date. There is no generic “current price” column that silently mixes the two.</p>
 
-      <h2>How it's built</h2>
-      <p>Box prices are aggregates of completed sales or verified active listings, normalised to one booster box and labelled by printing. Grading counts come from each grader's public population reporting, collected on its own cadence and appended to ledgers we never rewrite. Auction figures are read after listings close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
+      <h2 data-ko="어떻게 만드는가">How it's built</h2>
+      <p data-ko-html="박스 시세는 실거래 또는 확인된 진행 매물의 집계이며, 부스터 박스 한 개 기준으로 환산하고 인쇄본을 표시합니다. 그레이딩 수는 각 감정사의 공개 인구 보고서에서 각자의 주기로 수집해, 다시 쓰지 않는 원장에 덧붙입니다. 경매 수치는 매물이 끝난 뒤에 읽습니다. 파생 집계만 공개하고 매물 원본 덤프는 내보내지 않습니다. 값을 확인할 수 없으면 추정하지 않고 비웁니다.">Box prices are aggregates of completed sales or verified active listings, normalised to one booster box and labelled by printing. Grading counts come from each grader's public population reporting, collected on its own cadence and appended to ledgers we never rewrite. Auction figures are read after listings close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
 
       <div class="attrBox" id="terms">
         <strong>Attribution (CC BY 4.0)</strong> — free to use, including commercially, if you credit the source:
         <code>Data: OP Box Index — https://opboxindex.com/free-data.html</code>
       </div>
 
-      <h2>Update frequency</h2>
-      <p>The files are regenerated by the site's daily data pipeline and keep stable URLs. Source cadences differ: active listings and settled auctions can update daily, while completed-sale samples and grading populations update less often. Use each field's own observation date rather than the file-generation date. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
+      <h2 data-ko="갱신 주기">Update frequency</h2>
+      <p data-ko-html="파일은 사이트의 일일 데이터 파이프라인이 다시 만들며 주소는 그대로 유지됩니다. 출처마다 주기가 다릅니다 — 진행 매물과 정산된 경매는 매일 갱신될 수 있고, 실거래 표본과 그레이딩 인구는 그보다 드뭅니다. 파일 생성일이 아니라 각 항목의 관측일을 쓰십시오. 특정 시점의 과거 스냅샷이 필요하면 <a href="about.html">연락 주십시오</a>.">The files are regenerated by the site's daily data pipeline and keep stable URLs. Source cadences differ: active listings and settled auctions can update daily, while completed-sale samples and grading populations update less often. Use each field's own observation date rather than the file-generation date. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
