@@ -196,7 +196,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260828f";
+const DATA_VERSION = "20260901a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -959,6 +959,9 @@ function applyStaticI18n() {
 }
 
 function bindDisplayLanguage() {
+  // 이 페이지의 언어 전환은 packs.js 가 맡는다는 표시 — lang-toggle.js 가 보고 버튼을 만들지 않는다.
+  // 두 개가 붙으면 어느 것을 눌러야 할지 알 수 없다(2026-09-01 에 실제로 그렇게 됐다).
+  window.__opboxPacksLang = true;
   const nav = document.querySelector(".topbar .nav");
   if (!nav) return;
   let btn = document.querySelector("#displayLangToggle");

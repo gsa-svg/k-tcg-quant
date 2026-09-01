@@ -8,8 +8,8 @@
 //
 // ── 쓰는 법
 //   const { navHtml } = require("./site-nav");
-//   navHtml("")        // 루트 페이지 (index.html, auction.html ...)
-//   navHtml("../")     // 한 단계 아래 (sets/, cards/, articles/)
+//   navHtml("", "auction.html")        // 루트 페이지
+//   navHtml("../", "sets/op-01.html")  // 한 단계 아래 — current 는 항상 루트 기준 전체 경로
 // 한국어 메뉴는 navHtmlKo() — ko/ 는 경로 구조가 달라 따로 둔다.
 //
 // ⚠️ 항목을 늘릴 때는 좁은 화면을 확인할 것. 8개일 때 이미 881~1220px 구간에서
@@ -35,8 +35,17 @@ const ITEMS = [
   ["Amazon Raffle", "아마존 응모", "amazon-lottery.html", true],
 ];
 
+// ── 한국어 (2026-09-01 정정)
+// 메뉴에는 한국어 '링크'를 넣지 않는다. 전환은 lang-toggle.js 가 버튼을 만들어 담당한다
+// (packs.js 를 싣는 페이지는 packs.js 가 자체 버튼을 만든다 — 그쪽이 차트 문구까지 번역한다).
+//
+// 종전에 메뉴마다 ko/ 링크를 붙였다가 두 가지가 겹쳤다: 원래 있던 토글과 나란히 버튼이 둘이 됐고,
+// 한국어판이 없는 페이지에서는 관계없는 ko/ 홈으로 보냈다. ko/ 아래 정적 한국어 페이지는
+// 7~8월에 만든 검색 유입용(네이버 크롤러가 JS 를 실행하지 않아 버튼 전환으로는 색인되지 않는다)이라
+// 그대로 두되, 메뉴가 아니라 본문·푸터에서 링크한다.
+
 // prefix: "" (루트) 또는 "../" (한 단계 아래)
-// current: 현재 페이지 경로(루트 기준). 일치하면 aria-current 를 붙인다.
+// current: 현재 페이지 경로(루트 기준 전체 경로). 메뉴 항목과 일치하면 aria-current 를 붙인다.
 function navHtml(prefix = "", current = null, opts = {}) {
   // aria-label 은 항상 붙인다 — 페이지마다 다르면 inject-nav 의 일치 검사가 계속 어긋난다.
   const label = ` aria-label="${opts.ariaLabel || "Primary navigation"}"`;
@@ -45,11 +54,7 @@ function navHtml(prefix = "", current = null, opts = {}) {
     const cur = current && current === href ? ' aria-current="page"' : "";
     return `<a href="${to}"${cur} data-ko="${ko}">${en}</a>`;
   }).join("");
-  // 한국어 페이지 링크는 항상 마지막에 붙인다 — 2026-09-01.
-  // 종전에는 홈 본문 각주에만 있어서, 카드·세트·경매 페이지에서는 한국어로 갈 방법이 없었다.
-  const koHref = prefix ? prefix + "ko/" : "ko/";
-  const koLink = `<a href="${koHref}" class="navKo" data-ko="한국어">한국어</a>`;
-  return `<nav class="nav"${label}>${links}${koLink}</nav>`;
+  return `<nav class="nav"${label}>${links}</nav>`;
 }
 
 // ko/ 페이지용. ko/ 안에 있는 파일은 ko/ 안을 가리키고, 나머지는 ../ 로 나간다.

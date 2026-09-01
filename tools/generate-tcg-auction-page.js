@@ -156,6 +156,7 @@ const html = `<!doctype html>
     <meta property="og:image" content="${SITE}/og-image.png" />
     <script type="application/ld+json">${ld}</script>
     <link rel="stylesheet" href="styles.css?v=${CACHE}" />
+    <script defer src="lang-toggle.js?v=${CACHE}"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .tgTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
@@ -205,41 +206,41 @@ const html = `<!doctype html>
       ${navHtml("", "tcg-auction.html", { ariaLabel: "Primary navigation" })}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow">TCG Auction Data</p>
-      <h1>Card game auctions: what sells and what passes</h1>
-      <p>Every auction here was read again <strong>after it closed</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator. ${esc(from)} to ${esc(to)}.</p>
+      <p class="eyebrow" data-ko="TCG 경매 데이터">TCG Auction Data</p>
+      <h1 data-ko="카드게임 경매 — 무엇이 팔리고 무엇이 유찰되는가">Card game auctions: what sells and what passes</h1>
+      <p data-ko="여기 모든 경매는 <strong>끝난 뒤에</strong> 다시 읽은 것이라 호가가 아니라 정산된 결과입니다. 유찰 건도 분모에 그대로 둡니다. ${esc(from)}~${esc(to)}.">Every auction here was read again <strong>after it closed</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator. ${esc(from)} to ${esc(to)}.</p>
 
       <div class="tgStats">
-        <div class="tgStat"><b>${num(totLive)}</b><small>auctions live now</small></div>
-        <div class="tgStat"><b>${num(totEndingToday)}</b><small>ending today</small></div>
-        <div class="tgStat"><b>${num(totEnded)}</b><small>settled by us</small></div>
-        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small>sold</small></div>
-        <div class="tgStat"><b>${usd(totAmount)}</b><small>hammer value</small></div>
+        <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">auctions live now</small></div>
+        <div class="tgStat"><b>${num(totEndingToday)}</b><small data-ko="오늘 종료">ending today</small></div>
+        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="우리가 정산 확인">settled by us</small></div>
+        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="낙찰률">sold</small></div>
+        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="총 거래액">hammer value</small></div>
       </div>
 
       <div class="chartCard">
         <div class="chartHead">
           <div>
-            <h2>How many card auctions end each day</h2>
+            <h2 data-ko="하루에 끝나는 카드 경매 수">How many card auctions end each day</h2>
             <p class="sub">${esc(from)}–${esc(to)}</p>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
-            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
-            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
-            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
-            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
+            <button type="button" data-metric="ending" aria-pressed="true" data-ko="오늘 종료 예정">Auctions ending today</button>
+            <button type="button" data-metric="ended" aria-pressed="false" data-ko="종료 후 확인">Checked after close</button>
+            <button type="button" data-metric="sold" aria-pressed="false" data-ko="그중 낙찰">Of those, sold</button>
+            <button type="button" data-metric="rate" aria-pressed="false" data-ko="낙찰률">Sell-through</button>
+            <button type="button" data-metric="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
           </div>
         </div>
         <div class="barList" id="tcgBars"></div>
         <div class="legend" id="tcgLegend"></div>
       </div>
 
-      <h2>Every game side by side</h2>
+      <h2 data-ko="게임별 한눈에 보기">Every game side by side</h2>
       <div style="overflow-x:auto">
         <table class="tgTable">
           <thead>
-            <tr><th>Game</th><th>Live</th><th>Ending today</th><th>Ended</th><th>Sold</th><th>Passed</th><th>Hammer</th><th>Median bid</th></tr>
+            <tr><th data-ko="게임">Game</th><th>Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="종료">Ended</th><th data-ko="낙찰">Sold</th><th>Passed</th><th>Hammer</th><th>Median bid</th></tr>
           </thead>
           <tbody>
 ${tableRows}
@@ -265,14 +266,21 @@ ${tableRows}
         if (!el || !rows.length) return;
         var HUE = { onepiece: "#14A882", pokemon: "#3987e5", pokemonjp: "#d95926", magic: "#9085e9", yugioh: "#c98500", lorcana: "#d55181" };
         var GREY = "#5A6273";
+        // 막대 라벨 단어는 현재 언어를 따른다. lang-toggle.js 가 <html lang> 을 바꾸므로 그것을 본다.
+        var KO = function () { return document.documentElement.lang === "ko"; };
+        var W = function (ko, en) { return KO() ? ko : en; };
         var M = {
-          ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + " ending today"; } },
-          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " sold"; } },
-          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " checked"; } },
+          ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + W("건 오늘 종료", " ending today"); } },
+          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + W("건 낙찰", " sold"); } },
+          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + W("건 확인", " checked"); } },
           rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
           gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
         };
+        // 언어를 바꾸면 막대 라벨도 다시 그린다.
+        var lastKey = "ending";
+        document.addEventListener("opboxlang", function () { draw(lastKey); });
         function draw(key) {
+          lastKey = key;
           var m = M[key];
           var list = rows.slice().sort(function (a, b) { return m.get(b) - m.get(a); });
           var max = m.get(list[0]) || 1;

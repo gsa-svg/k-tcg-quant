@@ -46,6 +46,7 @@ const allDays = (auc.daily || []).filter((x) => x.d < TODAY_ISO);
 const fullAll = allDays.filter((x) => !PARTIAL_DAYS.has(x.d));
 const aggDays = fullAll.length >= 3 ? fullAll : allDays;   // 완전일이 너무 적으면 전체로 폴백(라벨은 그대로 정직하게)
 const aggNote = fullAll.length >= 3 && fullAll.length < allDays.length ? ` (${allDays.length - fullAll.length} partial day${allDays.length - fullAll.length > 1 ? "s" : ""} excluded)` : "";
+const aggNoteKo = fullAll.length >= 3 && fullAll.length < allDays.length ? ` (부분수집 ${allDays.length - fullAll.length}일 제외)` : "";
 const aggFrom = aggDays.length ? aggDays[0].d : null;
 const aggTo = aggDays.length ? aggDays[aggDays.length - 1].d : null;
 const totN = aggDays.reduce((t, x) => t + x.n, 0);
@@ -80,10 +81,12 @@ const kindSummary = summarizeKinds(readRecent(400), aggDays.map((x) => x.d));
 const KIND_MIN = 25;        // 낙찰률을 말하려면 이만큼은 확인했어야 한다
 const KIND_PRICE_MIN = 12;  // 중앙 낙찰가를 말하려면 낙찰 건수가 이만큼
 const KIND_LABEL = { box: "Sealed box", carton: "Sealed case", pack: "Booster pack", card: "Single card" };
+const KIND_LABEL_KO = { box: "밀봉 박스", carton: "밀봉 케이스", pack: "부스터 팩", card: "싱글 카드" };
 const kindRows = Object.entries(kindSummary)
   .map(([k, v]) => ({
     key: k,
     name: KIND_LABEL[k] || k,
+    nameKo: KIND_LABEL_KO[k] || k,
     n: v.n,
     sold: v.sold,
     rate: v.n >= KIND_MIN ? v.sellThrough : null,
@@ -116,9 +119,9 @@ const topCards = Object.entries(cardStats.cards || {})
   .map(([id, c]) => ({ id, ...c, name: nameOf(c.set, id) }))
   .sort((a, b) => b.medPrice - a.medPrice).slice(0, 12);
 
-const dTr = daily.map((x) => `<tr${PARTIAL_DAYS.has(x.d) ? ' class="partialRow"' : ""}><td class="l">${esc(x.d)}${PARTIAL_DAYS.has(x.d) ? ' <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span>' : ""}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? usd(x.medPrice) : "—"}</td><td>${x.medBids != null ? num(x.medBids) : "—"}</td></tr>`).join("\n");
+const dTr = daily.map((x) => `<tr${PARTIAL_DAYS.has(x.d) ? ' class="partialRow"' : ""}><td class="l">${esc(x.d)}${PARTIAL_DAYS.has(x.d) ? ' <span class="pFlag" data-ko="부분수집" title="Collection was interrupted that day — treat this row as incomplete">partial</span>' : ""}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? usd(x.medPrice) : "—"}</td><td>${x.medBids != null ? num(x.medBids) : "—"}</td></tr>`).join("\n");
 const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
-const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td></tr>`).join("\n");
+const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l" data-ko="${k.k === "card" ? "싱글 카드" : k.k === "box" ? "밀봉 부스터 박스" : "밀봉 부스터 팩"}">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td></tr>`).join("\n");
 
 // ── 다른 TCG 교차 비교 ─────────────────────────────────────────────────────
 // 원피스 낙찰률만 보면 그게 높은지 낮은지 알 수 없다. 같은 방식·같은 기간으로 모은
@@ -195,6 +198,7 @@ const html = `<!doctype html>
     <script type="application/ld+json">${dsLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
     <link rel="stylesheet" href="styles.css?v=${CACHE}" />
+    <script defer src="lang-toggle.js?v=${CACHE}"></script>
     <style>
       /* 수집이 중단된 날은 눈에 띄게 둔다 — 정상일과 같아 보이면 반쪽 하루를 그대로 읽는다. */
       .partialRow { opacity: .62; }
@@ -237,16 +241,24 @@ const html = `<!doctype html>
       .metricTabs button[aria-pressed="true"] { background: rgba(80,218,217,.14); border-color: rgba(80,218,217,.5); color: #bff3f2; }
       .metricTabs button:focus-visible { outline: 2px solid #50dad9; outline-offset: 2px; }
       /* 일별 막대 — 한 번에 한 지표만 그린다. 축이 둘인 그래프는 만들지 않는다. */
-      .opChart { position: relative; margin-top: 14px; }
+      /* 그래프 위 한 줄 — 눈금 없이 막대만 보면 높이가 얼마인지 알 수 없다. */
+      .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0 8px; font-size: 12.5px; color: var(--muted); }
+      .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
+      .opReadout .hi b { color: #50dad9; }
+      .opChart { position: relative; margin-top: 6px; }
+      /* 최고값 기준선 — 막대가 어디까지 차면 최고인지 눈으로 잡아준다. */
+      .opBars { position: relative; }
+      .opGuide { position: absolute; left: 0; right: 0; top: 0; border-top: 1px dashed rgba(255,255,255,.18); pointer-events: none; }
+      .opGuide span { position: absolute; right: 0; top: -16px; font-size: 10.5px; color: #7d8698; background: #0a0c10; padding: 0 3px; }
       .opBars { display: flex; align-items: flex-end; gap: 2px; height: 190px; padding: 0 0 2px; }
       .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
       .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
       .opCol.pt i { background: rgba(80,218,217,.34); }
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
-      .opCol:hover i, .opCol:focus-visible i { background: #8af3f2; }
+      .opCol:hover i, .opCol:focus-visible i, .opCol.on i { background: #8af3f2; }
       .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 11px; }
       .opTip { position: absolute; z-index: 5; pointer-events: none; background: #10141b; border: 1px solid rgba(255,255,255,.16);
-        border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; }
+        border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; max-width: min(240px, 88vw); }
       .opTip b { color: #eef2ff; }
       .opTip em { color: #ffca6e; font-style: normal; }
       /* 유형별 가로 막대 — 이름표를 항상 붙여 색만으로 구분하지 않는다. */
@@ -262,6 +274,8 @@ const html = `<!doctype html>
       .kindRow .kEd { display: block; font-size: 12px; line-height: 1.45; }
       .kindRow .kEdTag { color: #7d8698; font-size: 10px; letter-spacing: .06em; margin-right: 5px; }
       @media (max-width: 560px) { .kindRow { grid-template-columns: 88px 1fr 92px; font-size: 12px; } .opBars { height: 150px; } }
+      /* narrow screens: 툴팁이 차트를 덮으므로 숨기고, 위 읽는 줄이 그 역할을 한다. */
+      @media (max-width: 560px) { .opTip { display: none; } .opReadout { font-size: 12px; gap: 4px 12px; min-height: 34px; } }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
@@ -298,59 +312,60 @@ const html = `<!doctype html>
       ${navHtml("", "auction.html")}
     </header>
     <main id="main-content" class="aucWrap">
-      <p class="eyebrow">Auction Data</p>
-      <h1>One Piece card auction results — real winning bids</h1>
-      <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
-      <p class="priceNote">Totals and product-type rates below cover <strong>${esc(aggFrom)} to ${esc(aggTo)}</strong> — ${aggDays.length} days when collection ran start to finish${aggNote ? ", with partial days left out of the totals" : ""}.</p>
+      <p class="eyebrow" data-ko="경매 데이터">Auction Data</p>
+      <h1 data-ko="원피스 카드 경매 결과 — 실제 낙찰가">One Piece card auction results — real winning bids</h1>
+      <p class="lead" data-ko="모든 경매는 <strong>끝난 뒤에</strong> 다시 읽습니다. 그래서 호가가 아니라 실제로 정산된 결과입니다. 유찰된 건도 분모에 그대로 둡니다.">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
+      <p class="priceNote" data-ko="아래 합계와 상품 종류별 비율은 ${esc(aggFrom)}~${esc(aggTo)} 구간입니다 — 수집이 처음부터 끝까지 돌아간 ${aggDays.length}일치입니다.${aggNoteKo ? ' 부분수집일은 합계에서 뺐습니다.' : ''}">Totals and product-type rates below cover <strong>${esc(aggFrom)} to ${esc(aggTo)}</strong> — ${aggDays.length} days when collection ran start to finish${aggNote ? ", with partial days left out of the totals" : ""}.</p>
       <div class="statRow">
-        <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span>sold${aggNote}</span></div>
-        <div class="stat"><b>${num(totN)}</b><span>One Piece auctions settled</span></div>
-        <div class="stat"><b>${num(totSold)}</b><span>found a buyer</span></div>
-        <div class="stat"><b>${num(totN - totSold)}</b><span>passed unsold</span></div>
+        <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span data-ko="낙찰${aggNoteKo}">sold${aggNote}</span></div>
+        <div class="stat"><b>${num(totN)}</b><span data-ko="원피스 경매 정산 건수">One Piece auctions settled</span></div>
+        <div class="stat"><b>${num(totSold)}</b><span data-ko="낙찰됨">found a buyer</span></div>
+        <div class="stat"><b>${num(totN - totSold)}</b><span data-ko="유찰됨">passed unsold</span></div>
       </div>
 
       <div class="chartCard">
         <div class="chartHead">
           <div>
-            <h2>One Piece auctions, day by day</h2>
+            <h2 data-ko="원피스 경매, 날짜별">One Piece auctions, day by day</h2>
             <p class="sub">${chartDays.length ? esc(chartDays[0].d) + "–" + esc(chartDays[chartDays.length - 1].d) : ""} · faded bars are days when collection was interrupted</p>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-m="rate" aria-pressed="true">Sell-through</button>
-            <button type="button" data-m="ended" aria-pressed="false">Auctions ended</button>
-            <button type="button" data-m="sold" aria-pressed="false">Sold</button>
-            <button type="button" data-m="gmv" aria-pressed="false">Hammer value</button>
-            <button type="button" data-m="med" aria-pressed="false">Median winning bid</button>
+            <button type="button" data-m="rate" aria-pressed="true" data-ko="낙찰률">Sell-through</button>
+            <button type="button" data-m="ended" aria-pressed="false" data-ko="종료 건수">Auctions ended</button>
+            <button type="button" data-m="sold" aria-pressed="false" data-ko="낙찰 건수">Sold</button>
+            <button type="button" data-m="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
+            <button type="button" data-m="med" aria-pressed="false" data-ko="중앙 낙찰가">Median winning bid</button>
           </div>
         </div>
+        <div class="opReadout" id="opReadout" aria-live="polite"></div>
         <div class="opChart" id="opDailyChart"></div>
       </div>
 
 ${kindRows.length >= 2 ? `      <div class="chartCard">
         <div class="chartHead">
           <div>
-            <h2>What sells, by what it is</h2>
+            <h2 data-ko="무엇이 팔리는가 — 상품 종류별">What sells, by what it is</h2>
             <p class="sub">Same window as the totals above: ${esc(aggFrom)}–${esc(aggTo)}. Bars show the share that sold. Median winning bids are split by edition — Japanese and English boxes trade four times apart, so a combined figure would be neither. Types under ${KIND_MIN} auctions get a count instead of a rate; prices need ${KIND_PRICE_MIN} sales.</p>
           </div>
         </div>
         <div class="kindList" id="opKindChart"></div>
       </div>` : ""}
 
-      <h2>Daily results — last ${daily.length} days</h2>
+      <h2 data-ko="일별 결과 — 최근 ${daily.length}일">Daily results — last ${daily.length} days</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l">Ended</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th><th>Median bids</th></tr></thead>
+        <thead><tr><th class="l" data-ko="종료일">Ended</th><th data-ko="추적한 경매">Auctions tracked</th><th data-ko="낙찰">Sold</th><th data-ko="낙찰률">Sell-through</th><th data-ko="중앙 낙찰가">Median winning bid</th><th data-ko="중앙 입찰수">Median bids</th></tr></thead>
         <tbody>
 ${dTr}
         </tbody>
       </table>
       </div>
-      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Our tracked sample, not an exhaustive census of eBay. Sell-through counts only auctions whose sold/unsold state is confirmed. Prices are final winning bids in USD, per item for multi-item lots.</p>
+      <p class="srcNoteA" style="font-size:12px;color:var(--muted)" data-ko="이베이 전체를 센 것이 아니라 우리가 추적한 표본입니다. 낙찰률은 낙찰·유찰이 확인된 건만 셉니다. 가격은 최종 낙찰가(USD)이며, 여러 개 묶음은 개당가로 환산합니다.">Our tracked sample, not an exhaustive census of eBay. Sell-through counts only auctions whose sold/unsold state is confirmed. Prices are final winning bids in USD, per item for multi-item lots.</p>
 
-      <h2>Sealed boxes sell. Singles mostly don't.</h2>
+      <h2 data-ko="밀봉 박스는 팔린다. 싱글은 대개 안 팔린다.">Sealed boxes sell. Singles mostly don't.</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l">Product type</th><th>Auctions</th><th>Sold</th><th>Sell-through</th></tr></thead>
+        <thead><tr><th class="l" data-ko="상품 종류">Product type</th><th data-ko="경매 건수">Auctions</th><th data-ko="낙찰">Sold</th><th data-ko="낙찰률">Sell-through</th></tr></thead>
         <tbody>
 ${kTr}
         </tbody>
@@ -358,26 +373,26 @@ ${kTr}
       </div>
 
 ${tcgGameCount >= 5 ? `
-      <p class="priceNote">This page is One Piece only. The same settlement run covers ${tcgGameCount} card games — see <a href="tcg-auction.html">TCG auction data</a> for the cross-game table.</p>
+      <p class="priceNote"><span data-ko="이 페이지는 원피스 전용입니다. 같은 수집으로 ${tcgGameCount}개 카드게임을 함께 봅니다 — 게임별 비교표는">This page is One Piece only. The same settlement run covers ${tcgGameCount} card games — see</span> <a href="tcg-auction.html" data-ko="TCG 경매 데이터">TCG auction data</a> <span data-ko="에서 볼 수 있습니다.">for the cross-game table.</span></p>
 ` : ""}
-      <h2>Highest auction medians by card</h2>
+      <h2 data-ko="카드별 낙찰가 중앙값 상위">Highest auction medians by card</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th>#</th><th class="l">Card</th><th>Median winning bid</th><th>Range</th><th>Sell-through</th><th>Sales</th></tr></thead>
+        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="중앙 낙찰가">Median winning bid</th><th data-ko="구간">Range</th><th data-ko="낙찰률">Sell-through</th><th data-ko="판매 건수">Sales</th></tr></thead>
         <tbody>
 ${cTr}
         </tbody>
       </table>
       </div>
-      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Rolling window, minimum 3 confirmed sales per card. Cards below that bar are omitted rather than shown on thin samples. Ranges are 25th–75th percentile of confirmed sales.</p>
+      <p class="srcNoteA" style="font-size:12px;color:var(--muted)" data-ko="이동 구간 기준이며 카드당 확인된 판매 3건 이상만 싣습니다. 그에 못 미치는 카드는 얇은 표본으로 보여주는 대신 빼둡니다. 구간은 확인된 판매의 25~75 백분위입니다.">Rolling window, minimum 3 confirmed sales per card. Cards below that bar are omitted rather than shown on thin samples. Ranges are 25th–75th percentile of confirmed sales.</p>
 
       <details class="noteFold">
         <summary>How to use this data · where the rest of the site is</summary>
-        <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion.${last ? ` On the latest full day (${esc(last.d)}) we tracked ${num(last.n)} auctions ending, of which ${num(last.sold)} sold.` : ""}</p>
+        <p data-ko="경매 중앙값을 최근 즉시구매가·현재 호가와 함께 보십시오. 어느 하나도 그 자체로 시장 전부는 아닙니다. 차이가 크면 결론을 내리기 전에 표본 수, 정확한 변형, 상태, 배송비, 종료 시각을 먼저 확인할 이유가 됩니다.">Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion.${last ? ` On the latest full day (${esc(last.d)}) we tracked ${num(last.n)} auctions ending, of which ${num(last.sold)} sold.` : ""}</p>
         <p>Card NM and PSA 10 prices: <a href="cards/">card price pages</a> · <a href="psa10-ranking.html">PSA 10 value ranking</a>. Sealed-box context: <a href="sets/index.html">set guides</a>. Grading supply: <a href="psa-grading.html">population page</a>. Daily aggregates: <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
       </details>
 
-      <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
+      <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px" data-ko="이베이 파트너로서, 이 사이트의 이베이 링크를 통한 적격 구매에서 수수료를 받을 수 있습니다. 구매 비용은 늘지 않습니다. 데이터는 리서치 참고자료이며 투자 조언이 아닙니다.">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
     </main>
     <script>
       // 일별 막대 — 지표 탭으로 한 번에 하나만 그린다.
@@ -387,16 +402,22 @@ ${cTr}
         var host = document.getElementById("opDailyChart");
         if (!host || !days.length) return;
         var M = {
-          rate: { label: "Sell-through", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true },
-          ended: { label: "Auctions ended", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          sold: { label: "Sold", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          gmv: { label: "Hammer value", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
-          med: { label: "Median winning bid", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+          rate: { label: "Sell-through", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true },
+          ended: { label: "Auctions ended", ko: "종료 건수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          sold: { label: "Sold", ko: "낙찰 건수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          gmv: { label: "Hammer value", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
+          med: { label: "Median winning bid", ko: "중앙 낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
         var axis = document.createElement("div"); axis.className = "opAxis";
         var tip = document.createElement("div"); tip.className = "opTip";
+        var guide = document.createElement("div"); guide.className = "opGuide";
         host.appendChild(bars); host.appendChild(axis); host.appendChild(tip);
+        bars.appendChild(guide);
+        var readout = document.getElementById("opReadout");
+        // 언어는 <html lang> 을 본다 — lang-toggle.js 가 전환할 때 함께 바꾼다.
+        var KO = document.documentElement.lang === "ko";
+        document.addEventListener("opboxlang", function (ev) { KO = (ev.detail || {}).lang === "ko"; draw(); });
         var cols = days.map(function (r) {
           var c = document.createElement("div");
           c.className = "opCol" + (r.p ? " pt" : "");
@@ -427,6 +448,35 @@ ${cTr}
               c.setAttribute("aria-label", r.d + " — " + m.label + " " + m.fmt(v) + (r.p ? " (partial day)" : ""));
             }
           });
+          // 최고값 기준선 — 눈금이 없으면 막대 높이가 얼마인지 알 길이 없다.
+          if (guide) {
+            guide.style.top = "0px";
+            guide.innerHTML = "";
+            var tag = document.createElement("span");
+            tag.textContent = vals.length ? m.fmt(top) : "";
+            guide.appendChild(tag);
+          }
+          // 읽는 줄 — 지금 보는 지표의 최신·최고·최저를 글로 적는다.
+          if (readout) {
+            var withV = days.filter(function (r) { return r[metric] != null && isFinite(r[metric]); });
+            var lastR = withV[withV.length - 1];
+            var hi = withV.slice().sort(function (a, b) { return b[metric] - a[metric]; })[0];
+            var lo = withV.slice().sort(function (a, b) { return a[metric] - b[metric]; })[0];
+            readout.innerHTML = "";
+            var put = function (label, val, day, cls) {
+              var el = document.createElement("span");
+              if (cls) el.className = cls;
+              el.appendChild(document.createTextNode(label + " "));
+              var b = document.createElement("b"); b.textContent = val; el.appendChild(b);
+              if (day) el.appendChild(document.createTextNode(" · " + day.slice(5)));
+              readout.appendChild(el);
+            };
+            if (lastR) {
+              put(KO ? m.ko + " — 최근" : m.label + " — latest", m.fmt(lastR[metric]), lastR.d, "hi");
+              put(KO ? "최고" : "highest", m.fmt(hi[metric]), hi.d);
+              put(KO ? "최저" : "lowest", m.fmt(lo[metric]), lo.d);
+            }
+          }
         }
         function showTip(i) {
           var r = days[i];
@@ -443,13 +493,55 @@ ${cTr}
           var x = cb.left - hb.left + cb.width / 2 - tip.offsetWidth / 2;
           tip.style.left = Math.max(0, Math.min(x, hb.width - tip.offsetWidth)) + "px";
           tip.style.top = Math.max(0, cb.top - hb.top - tip.offsetHeight - 8) + "px";
+          // 휴대폰에서는 손가락이 툴팁을 가린다. 위쪽 읽는 줄에도 같은 값을 적어 둔다.
+          if (readout) {
+            var mm = M[metric];
+            readout.innerHTML = "";
+            var add = function (label, val, cls) {
+              var el = document.createElement("span");
+              if (cls) el.className = cls;
+              el.appendChild(document.createTextNode(label + " "));
+              var b = document.createElement("b"); b.textContent = val; el.appendChild(b);
+              readout.appendChild(el);
+            };
+            add(r.d + (r.p ? (KO ? " (부분수집)" : " (partial)") : ""), r[metric] == null ? (KO ? "측정 안 됨" : "not measured") : mm.fmt(r[metric]), "hi");
+            // 좁은 화면에서는 툴팁이 없으므로 그날 수치를 여기에 다 적는다.
+            add(KO ? "종료" : "ended", r.ended.toLocaleString("en-US"));
+            add(KO ? "낙찰" : "sold", r.sold.toLocaleString("en-US"));
+            if (r.gmv != null) add(KO ? "거래액" : "hammer", "$" + r.gmv.toLocaleString("en-US"));
+            if (r.med != null) add(KO ? "중앙 낙찰가" : "median bid", "$" + (r.med < 100 ? r.med.toFixed(2) : Math.round(r.med).toLocaleString("en-US")));
+          }
         }
+        // 막대 하나하나에 이벤트를 걸면 휴대폰에서 못 쓴다 — 41일치면 막대 폭이 5.5px 라
+        // 손가락으로 짚을 수 없고, 터치 기기에는 hover 가 아예 없다.
+        // 그래서 그래프 전체에서 x 좌표로 가장 가까운 날을 골라 띄운다. 마우스도 같은 방식이
+        // 낫다 — 막대 사이 빈틈에서도 반응한다.
+        var picked = -1;
+        function pickAt(clientX) {
+          var r = bars.getBoundingClientRect();
+          var i = Math.round(((clientX - r.left) / r.width) * (days.length - 1));
+          return Math.max(0, Math.min(days.length - 1, i));
+        }
+        function select(i) {
+          if (i === picked) return;
+          if (cols[picked]) cols[picked].classList.remove("on");
+          picked = i;
+          if (cols[i]) cols[i].classList.add("on");
+          showTip(i);
+        }
+        function clear() {
+          if (cols[picked]) cols[picked].classList.remove("on");
+          picked = -1;
+          tip.style.opacity = "0";
+          draw();   // 읽는 줄을 기간 요약으로 되돌린다
+        }
+        bars.addEventListener("pointermove", function (ev) { select(pickAt(ev.clientX)); });
+        bars.addEventListener("pointerdown", function (ev) { select(pickAt(ev.clientX)); });
+        bars.addEventListener("pointerleave", clear);
         cols.forEach(function (c, i) {
-          c.addEventListener("mouseenter", function () { showTip(i); });
-          c.addEventListener("focus", function () { showTip(i); });
-          c.addEventListener("blur", function () { tip.style.opacity = "0"; });
+          c.addEventListener("focus", function () { select(i); });
+          c.addEventListener("blur", clear);
         });
-        bars.addEventListener("mouseleave", function () { tip.style.opacity = "0"; });
         var tabs = document.querySelectorAll(".metricTabs button[data-m]");
         Array.prototype.forEach.call(tabs, function (b) {
           b.addEventListener("click", function () {
@@ -482,7 +574,9 @@ ${cTr}
           var val = r.rate == null ? "too few (" + r.n.toLocaleString("en-US") + ")" : r.rate.toFixed(1) + "%";
 
           var row = document.createElement("div"); row.className = "kindRow";
-          row.appendChild(cell("kName", r.name));
+          var nm = cell("kName", r.name);
+          nm.dataset.ko = r.nameKo;   // lang-toggle 이 전환한다
+          row.appendChild(nm);
 
           var track = cell("kTrack", null);
           track.setAttribute("role", "img");

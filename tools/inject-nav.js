@@ -47,7 +47,10 @@ for (const rel of listHtml()) {
 
   const inKo = rel.startsWith("ko/");
   const depth = rel.includes("/") ? 1 : 0;
-  const want = inKo ? navHtmlKo() : navHtml(depth ? "../" : "", depth ? null : rel);
+  // current 는 항상 루트 기준 전체 경로를 넘긴다("sets/op-01.html"). 종전에는 하위 폴더면 null 을
+  // 넘겼는데, site-nav 가 그 값으로 한국어 링크를 붙일지 판단하게 되면서 구분이 필요해졌다.
+  // (세트 페이지에는 packs.js 토글이 이미 있어 링크를 붙이면 버튼이 둘이 된다)
+  const want = inKo ? navHtmlKo() : navHtml(depth ? "../" : "", rel);
 
   const cur = html.match(NAV_RE)[0];
   if (cur === want) continue;

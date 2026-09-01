@@ -149,6 +149,33 @@ a {
   color: var(--accent);
 }
 
+/* 언어 전환 버튼(lang-toggle.js 가 만든다). 메뉴 링크와 같은 크기로 두되,
+   테두리를 줘서 '이동'이 아니라 '전환'이라는 것을 눈으로 구분한다. */
+.nav .navKo {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border: 1px solid #2b3040;
+  border-radius: 8px;
+  background: transparent;
+  color: #dfe6f7;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.nav .navKo:hover {
+  background: #151923;
+  color: var(--ink);
+}
+
+.nav .navKo:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .nav a:hover,
 .footer a:hover {
   color: var(--ink);
