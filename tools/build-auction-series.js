@@ -28,6 +28,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
+const { reclassify } = require("./auction-aggregate");
 const ARCHIVE = path.join(ROOT, "data", "auction-archive");
 const OUT = path.join(ROOT, "data", "auction-series.json");
 
@@ -175,7 +176,8 @@ function main() {
   const byDay = new Map();
   for (const f of files) {
     const day = f.slice(0, 10);
-    byDay.set(day, JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || []);
+  // 원장의 kind 는 수집 당시 규칙으로 매겨진 값이라, 최신 분류 규칙으로 다시 매긴 뒤 쓴다.
+    byDay.set(day, reclassify(JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || []));
   }
 
 // 공백이 이만큼 넘으면 그 날의 **비율·가격 지표를 비운다**(건수는 남긴다) — 2026-08-31 신설.

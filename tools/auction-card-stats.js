@@ -16,6 +16,7 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const { readRecent } = require("./auction-archive");
+const { reclassify } = require("./auction-aggregate");
 const outPath = path.join(ROOT, "data", "auction-card-stats.json");
 
 // 원장은 data/auction-archive/<날짜>.json 이다(2026-07-29 분리). 45일 창을 직접 읽는다 —
@@ -32,7 +33,8 @@ const q = (a, p) => { const s = a.filter(Number.isFinite).sort((m, n) => m - n);
 const unit = (r) => ("qty" in r ? (r.qty == null ? null : r.unitPrice) : r.price);
 
 function main() {
-  const sales = readRecent(WINDOW_DAYS).filter((r) => r.kind === "card" && r.cardId);
+  // 원장의 kind 는 수집 당시 규칙으로 매겨진 값이라, 최신 분류 규칙으로 다시 매긴 뒤 쓴다.
+  const sales = reclassify(readRecent(WINDOW_DAYS)).filter((r) => r.kind === "card" && r.cardId);
 
   const byCard = {};
   for (const r of sales) (byCard[r.cardId] = byCard[r.cardId] || []).push(r);

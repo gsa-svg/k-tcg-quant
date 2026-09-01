@@ -19,6 +19,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
+const { reclassify } = require("./auction-aggregate");
 const ARCHIVE = path.join(ROOT, "data", "auction-archive");
 const OUT = path.join(ROOT, "data", "set-auction-stats.json");
 
@@ -43,7 +44,8 @@ const bySet = {};
 for (const f of used) {
   let day;
   try { day = JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")); } catch { continue; }
-  for (const s of day.sales || []) {
+  // 원장의 kind 는 수집 당시 규칙으로 매겨진 값이라, 최신 분류 규칙으로 다시 매긴 뒤 쓴다.
+  for (const s of reclassify(day.sales || [])) {
     const code = s.set;
     if (!code || !/^(OP|EB|PRB|ST)-\d{2}$/.test(code)) continue;
     const b = (bySet[code] = bySet[code] || { ended: 0, sold: 0, unsold: 0, amount: 0, prices: [], bids: [], byCat: {} });

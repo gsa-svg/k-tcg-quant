@@ -33,6 +33,26 @@ const snapshot = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "tcg-snapsho
 const MIN_ENDED = 100;      // 낙찰률을 말하려면 이만큼은 확인했어야 한다
 const MIN_PRICE_N = 20;     // 중앙 낙찰가를 말하려면 낙찰 건수가 이만큼
 
+// 게임별 중앙 낙찰가는 원장에서 직접 낸다 — 2026-09-01 정정.
+// 종전에는 일별 중앙값들을 다시 중앙값 냈는데, 그건 그 기간의 중앙값이 아니다.
+// 실측 차이: Union Arena $20.50(실제 $28.00, +37%) · Weiss Schwarz $28.00(실제 $21.50, -23%).
+// 하루 표본이 게임당 200건 안팎이라 일별 중앙값이 크게 흔들리고, 그것들을 다시 중앙값 내면
+// 원래 분포와 상관없는 수가 남는다. 낙찰 건을 한 줄로 세워 자르는 것만이 중앙값이다.
+const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
+const ledgerPrices = {};
+for (const f of fs.readdirSync(ARCHIVE).filter((x) => /^\d{4}-\d{2}-\d{2}\.json$/.test(x))) {
+  const day = JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8"));
+  for (const r of day.sales || []) {
+    if (!r || r.sold !== true || !Number.isFinite(r.price)) continue;
+    (ledgerPrices[r.g] = ledgerPrices[r.g] || []).push(r.price);
+  }
+}
+const ledgerMed = (key) => {
+  const a = (ledgerPrices[key] || []).slice().sort((x, y) => x - y);
+  return a.length ? a[Math.floor((a.length - 1) / 2)] : null;
+};
+const ledgerN = (key) => (ledgerPrices[key] || []).length;
+
 const days = (series.daily || []).filter((d) => d && d.games);
 if (days.length < 3) throw new Error("TCG 시계열이 너무 짧다 — 페이지를 만들지 않는다");
 const from = days[0].d, to = days[days.length - 1].d;
@@ -42,11 +62,11 @@ const names = snapshot.terms || {};
 const agg = {};
 for (const day of days) {
   for (const [key, g] of Object.entries(day.games)) {
-    const a = (agg[key] = agg[key] || { ended: 0, sold: 0, amount: 0, prices: [], live: null, endingToday: null, liveFixed: null });
+    const a = (agg[key] = agg[key] || { ended: 0, sold: 0, amount: 0, live: null, endingToday: null, liveFixed: null });
     a.ended += g.ended || 0;
     a.sold += g.sold || 0;
     a.amount += g.amount || 0;
-    if (Number.isFinite(g.medPrice) && (g.priceN || 0) >= 5) a.prices.push({ v: g.medPrice, n: g.priceN });
+    // (일별 중앙값은 모으지 않는다 — 중앙값의 중앙값은 중앙값이 아니다. 위 ledgerMed 참고)
     // 진행 중 수는 그날 값이라 마지막 날 것을 쓴다(합산하면 같은 매물을 여러 번 센다).
     if (Number.isFinite(g.live)) a.live = g.live;
     if (Number.isFinite(g.endingToday)) a.endingToday = g.endingToday;
@@ -57,8 +77,7 @@ for (const day of days) {
 const rows = Object.entries(agg)
   .map(([key, a]) => {
     const meta = names[key] || {};
-    const priceN = a.prices.reduce((t, p) => t + p.n, 0);
-    const med = a.prices.length ? a.prices.map((p) => p.v).sort((x, y) => x - y)[Math.floor(a.prices.length / 2)] : null;
+
     return {
       key,
       name: meta.name || key,
@@ -69,7 +88,7 @@ const rows = Object.entries(agg)
       sellThrough: a.ended >= MIN_ENDED ? Math.round((a.sold / a.ended) * 1000) / 10 : null,
       passThrough: a.ended >= MIN_ENDED ? Math.round(((a.ended - a.sold) / a.ended) * 1000) / 10 : null,
       amount: a.amount,
-      medPrice: priceN >= MIN_PRICE_N ? med : null,
+      medPrice: ledgerN(key) >= MIN_PRICE_N ? ledgerMed(key) : null,
       live: a.live,
       endingToday: a.endingToday,
       liveFixed: a.liveFixed,
