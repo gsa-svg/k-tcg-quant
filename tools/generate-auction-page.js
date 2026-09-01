@@ -251,6 +251,53 @@ const html = `<!doctype html>
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
 ${tcgRows.length >= 5 ? `
+      <div class="statRow">
+        <div class="stat hi"><b>${tcgSoldAll ? Math.round((tcgSoldAll / tcgEndedAll) * 100) : "—"}%</b><span>sold across all games</span></div>
+        <div class="stat"><b>${num(tcgEndedAll)}</b><span>auctions read after close</span></div>
+        <div class="stat"><b>${tcgRows.length}</b><span>card games tracked</span></div>
+        <div class="stat"><b>${usd(tcgGmvAll)}</b><span>hammer value · ${tcgDays}d</span></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>How many card auctions end each day</h2>
+            <p class="sub">${tcgFrom}–${tcgTo}</p>
+          </div>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
+            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
+            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
+            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
+            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
+          </div>
+        </div>
+        <div class="barList" id="tcgBars"></div>
+        <div class="legend" id="tcgLegend"></div>
+      </div>
+` : ""}
+      <h2>Daily results — last ${daily.length} days</h2>
+      <div style="overflow-x:auto">
+      <table class="aTable">
+        <thead><tr><th class="l">Ended</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th><th>Median bids</th></tr></thead>
+        <tbody>
+${dTr}
+        </tbody>
+      </table>
+      </div>
+      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Our tracked sample, not an exhaustive census of eBay. Sell-through counts only auctions whose sold/unsold state is confirmed. Prices are final winning bids in USD, per item for multi-item lots.</p>
+
+      <h2>Sealed boxes sell. Singles mostly don't.</h2>
+      <div style="overflow-x:auto">
+      <table class="aTable">
+        <thead><tr><th class="l">Product type</th><th>Auctions</th><th>Sold</th><th>Sell-through</th></tr></thead>
+        <tbody>
+${kTr}
+        </tbody>
+      </table>
+      </div>
+
+${tcgRows.length >= 5 ? `
       <p class="priceNote">This page is One Piece only. The same settlement run covers ${tcgRows.length} card games — see <a href="tcg-auction.html">TCG auction data</a> for the cross-game table.</p>
 ` : ""}
       <h2>Highest auction medians by card</h2>

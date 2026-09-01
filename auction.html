@@ -102,6 +102,64 @@
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
 
+      <div class="statRow">
+        <div class="stat hi"><b>35%</b><span>sold across all games</span></div>
+        <div class="stat"><b>41,652</b><span>auctions read after close</span></div>
+        <div class="stat"><b>17</b><span>card games tracked</span></div>
+        <div class="stat"><b>$3,641,725</b><span>hammer value · 25d</span></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>How many card auctions end each day</h2>
+            <p class="sub">2026-08-07–2026-08-31</p>
+          </div>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
+            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
+            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
+            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
+            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
+          </div>
+        </div>
+        <div class="barList" id="tcgBars"></div>
+        <div class="legend" id="tcgLegend"></div>
+      </div>
+
+      <h2>Daily results — last 10 days</h2>
+      <div style="overflow-x:auto">
+      <table class="aTable">
+        <thead><tr><th class="l">Ended</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th><th>Median bids</th></tr></thead>
+        <tbody>
+<tr class="partialRow"><td class="l">2026-08-22 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>813</td><td>232</td><td>28.5%</td><td>$24</td><td>9</td></tr>
+<tr><td class="l">2026-08-23</td><td>1,279</td><td>356</td><td>27.8%</td><td>$11</td><td>6</td></tr>
+<tr><td class="l">2026-08-24</td><td>1,045</td><td>414</td><td>39.6%</td><td>$23</td><td>8</td></tr>
+<tr><td class="l">2026-08-25</td><td>1,024</td><td>411</td><td>40.1%</td><td>$18</td><td>8</td></tr>
+<tr><td class="l">2026-08-26</td><td>868</td><td>249</td><td>28.7%</td><td>$11</td><td>5</td></tr>
+<tr class="partialRow"><td class="l">2026-08-27 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>357</td><td>201</td><td>56.3%</td><td>$17</td><td>7</td></tr>
+<tr class="partialRow"><td class="l">2026-08-28 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>723</td><td>198</td><td>27.4%</td><td>$15</td><td>8</td></tr>
+<tr class="partialRow"><td class="l">2026-08-29 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>557</td><td>161</td><td>28.9%</td><td>$15</td><td>5</td></tr>
+<tr><td class="l">2026-08-30</td><td>1,437</td><td>505</td><td>35.1%</td><td>$25</td><td>8</td></tr>
+<tr class="partialRow"><td class="l">2026-08-31 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>1,468</td><td>788</td><td>53.7%</td><td>$21</td><td>9</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Our tracked sample, not an exhaustive census of eBay. Sell-through counts only auctions whose sold/unsold state is confirmed. Prices are final winning bids in USD, per item for multi-item lots.</p>
+
+      <h2>Sealed boxes sell. Singles mostly don't.</h2>
+      <div style="overflow-x:auto">
+      <table class="aTable">
+        <thead><tr><th class="l">Product type</th><th>Auctions</th><th>Sold</th><th>Sell-through</th></tr></thead>
+        <tbody>
+<tr><td class="l">Single cards</td><td>5,319</td><td>1,723</td><td>32%</td></tr>
+<tr><td class="l">Sealed booster boxes</td><td>45</td><td>32</td><td>71%</td></tr>
+<tr><td class="l">Sealed packs</td><td>287</td><td>180</td><td>63%</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+
       <p class="priceNote">This page is One Piece only. The same settlement run covers 17 card games — see <a href="tcg-auction.html">TCG auction data</a> for the cross-game table.</p>
 
       <h2>Highest auction medians by card</h2>
@@ -128,7 +186,7 @@
 
       <details class="noteFold">
         <summary>How to use this data · where the rest of the site is</summary>
-        <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion. On the latest full day (2026-08-31) we tracked 1,467 auctions ending, of which 788 sold.</p>
+        <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion. On the latest full day (2026-08-31) we tracked 1,468 auctions ending, of which 788 sold.</p>
         <p>Card NM and PSA 10 prices: <a href="cards/">card price pages</a> · <a href="psa10-ranking.html">PSA 10 value ranking</a>. Sealed-box context: <a href="sets/index.html">set guides</a>. Grading supply: <a href="psa-grading.html">population page</a>. Daily aggregates: <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
       </details>
 
