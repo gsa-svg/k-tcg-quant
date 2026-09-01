@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.1",
   "datasetId": "opbox-ai-market-data",
   "name": "OP Box Index — One Piece TCG box markets and Top 7 hits",
-  "datasetUpdatedOn": "2026-08-31",
+  "datasetUpdatedOn": "2026-09-01",
   "publisher": {
     "name": "OP Box Index",
     "url": "https://opboxindex.com/"
@@ -53,18 +53,18 @@
             "p75Usd": 365,
             "sampleSize": 15,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 325,
-            "p15Usd": 286.52,
+            "medianUsd": 325.19,
+            "p15Usd": 286.64,
             "p85Usd": 420,
             "listingCount": 15,
-            "excludedListingCount": 28,
-            "observedOn": "2026-08-31",
+            "excludedListingCount": 30,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.93,
@@ -80,22 +80,24 @@
             "p75Usd": 1682,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "ageDaysAtDatasetUpdate": 3
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 2005.92,
-            "p15Usd": 1300,
-            "p85Usd": 5200,
-            "listingCount": 25,
+            "medianUsd": 1900,
+            "p15Usd": 450,
+            "p85Usd": 5450,
+            "listingCount": 23,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.74,
-          "qualityFlags": []
+          "soldToActiveMedianRatio": 0.78,
+          "qualityFlags": [
+            "active_ask_spread_over_5x"
+          ]
         }
       },
       "topHits": [
@@ -116,8 +118,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -126,7 +128,7 @@
             "grade10": 4234,
             "grade9": 554,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -148,7 +150,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -165,7 +167,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -173,7 +175,7 @@
             "grade10": 3229,
             "grade9": 442,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -195,8 +197,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -212,7 +214,7 @@
             ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -220,7 +222,7 @@
             "grade10": 3059,
             "grade9": 301,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -242,7 +244,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -259,7 +261,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -267,7 +269,7 @@
             "grade10": 2459,
             "grade9": 231,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -289,8 +291,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -306,7 +308,7 @@
             ],
             "sampleSize": 26,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -314,7 +316,7 @@
             "grade10": 8577,
             "grade9": 579,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -336,8 +338,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -346,7 +348,7 @@
             "grade10": 1010,
             "grade9": 129,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -368,7 +370,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -385,7 +387,7 @@
             ],
             "sampleSize": 17,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -393,7 +395,7 @@
             "grade10": 2019,
             "grade9": 175,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -413,12 +415,12 @@
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 179.06,
-            "p15Usd": 143.83,
-            "p85Usd": 217.99,
-            "listingCount": 12,
-            "excludedListingCount": 16,
-            "observedOn": "2026-08-31",
+            "medianUsd": 179.99,
+            "p15Usd": 144.36,
+            "p85Usd": 219.99,
+            "listingCount": 14,
+            "excludedListingCount": 15,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": null,
@@ -434,21 +436,21 @@
             "p75Usd": 650,
             "sampleSize": 16,
             "sampleCollectedOn": "2026-08-19",
-            "ageDaysAtDatasetUpdate": 12
+            "ageDaysAtDatasetUpdate": 13
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 702.99,
-            "p15Usd": 580,
+            "medianUsd": 684.99,
+            "p15Usd": 530,
             "p85Usd": 1000,
-            "listingCount": 14,
+            "listingCount": 13,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.8,
+          "soldToActiveMedianRatio": 0.82,
           "qualityFlags": []
         }
       },
@@ -470,8 +472,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -480,7 +482,7 @@
             "grade10": 3784,
             "grade9": 505,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -502,8 +504,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -512,7 +514,7 @@
             "grade10": 933,
             "grade9": 119,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -534,7 +536,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -551,7 +553,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -559,7 +561,7 @@
             "grade10": 510,
             "grade9": 61,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -581,8 +583,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -598,7 +600,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -606,7 +608,7 @@
             "grade10": 586,
             "grade9": 123,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -628,7 +630,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -645,7 +647,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -653,7 +655,7 @@
             "grade10": 461,
             "grade9": 62,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -675,7 +677,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -692,7 +694,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -700,7 +702,7 @@
             "grade10": 807,
             "grade9": 66,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -722,7 +724,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -739,7 +741,7 @@
             ],
             "sampleSize": 27,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -747,7 +749,7 @@
             "grade10": 2054,
             "grade9": 131,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -771,21 +773,21 @@
             "p75Usd": 129,
             "sampleSize": 6,
             "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 149.99,
+            "medianUsd": 171.99,
             "p15Usd": 129.99,
             "p85Usd": 232.26,
-            "listingCount": 9,
-            "excludedListingCount": 8,
-            "observedOn": "2026-08-31",
+            "listingCount": 8,
+            "excludedListingCount": 17,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.82,
+          "soldToActiveMedianRatio": 0.72,
           "qualityFlags": []
         },
         "english": {
@@ -798,18 +800,18 @@
             "p75Usd": 594,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 639.95,
-            "p15Usd": 585,
+            "medianUsd": 644.95,
+            "p15Usd": 599,
             "p85Usd": 899.99,
             "listingCount": 14,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.89,
@@ -834,8 +836,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -851,7 +853,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -859,7 +861,7 @@
             "grade10": 2908,
             "grade9": 389,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -888,7 +890,7 @@
             ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -896,7 +898,7 @@
             "grade10": 3249,
             "grade9": 315,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -918,8 +920,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -935,7 +937,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -943,7 +945,7 @@
             "grade10": 2296,
             "grade9": 313,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -972,7 +974,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -980,7 +982,7 @@
             "grade10": 857,
             "grade9": 67,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1009,7 +1011,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1017,7 +1019,7 @@
             "grade10": 757,
             "grade9": 61,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1039,7 +1041,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1056,7 +1058,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1064,7 +1066,7 @@
             "grade10": 811,
             "grade9": 139,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1086,8 +1088,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1096,7 +1098,7 @@
             "grade10": 1127,
             "grade9": 135,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1120,7 +1122,7 @@
             "p75Usd": 195,
             "sampleSize": 9,
             "sampleCollectedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1131,7 +1133,7 @@
             "p85Usd": 538,
             "listingCount": 7,
             "excludedListingCount": 27,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.7,
@@ -1147,18 +1149,18 @@
             "p75Usd": 500,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 599,
-            "p15Usd": 520,
+            "p15Usd": 519.96,
             "p85Usd": 699.99,
             "listingCount": 15,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.8,
@@ -1183,7 +1185,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1200,7 +1202,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1208,7 +1210,7 @@
             "grade10": 4839,
             "grade9": 374,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1230,7 +1232,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1247,7 +1249,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1255,7 +1257,7 @@
             "grade10": 3235,
             "grade9": 489,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1277,7 +1279,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1294,7 +1296,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1302,7 +1304,7 @@
             "grade10": 1475,
             "grade9": 113,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1324,8 +1326,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1334,7 +1336,7 @@
             "grade10": 499,
             "grade9": 27,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1356,8 +1358,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1366,7 +1368,7 @@
             "grade10": 2961,
             "grade9": 133,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1388,8 +1390,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1398,7 +1400,7 @@
             "grade10": 752,
             "grade9": 26,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1420,8 +1422,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1430,7 +1432,7 @@
             "grade10": 451,
             "grade9": 21,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1454,24 +1456,22 @@
             "p75Usd": 238,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 498.87,
+            "medianUsd": 175.99,
             "p15Usd": 149.99,
-            "p85Usd": 567.81,
-            "listingCount": 13,
-            "excludedListingCount": 49,
-            "observedOn": "2026-08-31",
+            "p85Usd": 589.99,
+            "listingCount": 10,
+            "excludedListingCount": 50,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.34,
-          "qualityFlags": [
-            "sold_active_median_divergence_over_2x"
-          ]
+          "soldToActiveMedianRatio": 0.95,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
@@ -1483,21 +1483,21 @@
             "p75Usd": 1143,
             "sampleSize": 32,
             "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 1200,
+            "medianUsd": 1250,
             "p15Usd": 1100,
-            "p85Usd": 1999.99,
-            "listingCount": 13,
+            "p85Usd": 2365.11,
+            "listingCount": 14,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.9,
+          "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
         }
       },
@@ -1519,8 +1519,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1529,7 +1529,7 @@
             "grade10": 3019,
             "grade9": 218,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [
             "missing_rarity"
@@ -1553,8 +1553,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1563,7 +1563,7 @@
             "grade10": 3656,
             "grade9": 297,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1585,7 +1585,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1602,7 +1602,7 @@
             ],
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1610,7 +1610,7 @@
             "grade10": 2090,
             "grade9": 748,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1632,8 +1632,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1642,7 +1642,7 @@
             "grade10": 1908,
             "grade9": 622,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1664,7 +1664,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1681,7 +1681,7 @@
             ],
             "sampleSize": 16,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1689,7 +1689,7 @@
             "grade10": 5089,
             "grade9": 374,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1711,8 +1711,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1721,7 +1721,7 @@
             "grade10": 7769,
             "grade9": 743,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1743,7 +1743,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1760,7 +1760,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1768,7 +1768,7 @@
             "grade10": 3935,
             "grade9": 200,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1792,7 +1792,7 @@
             "p75Usd": 195,
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-06",
-            "ageDaysAtDatasetUpdate": 25
+            "ageDaysAtDatasetUpdate": 26
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1803,7 +1803,7 @@
             "p85Usd": 260,
             "listingCount": 7,
             "excludedListingCount": 16,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.67,
@@ -1819,18 +1819,18 @@
             "p75Usd": 366,
             "sampleSize": 25,
             "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 499.95,
-            "p15Usd": 399.77,
+            "p15Usd": 389.91,
             "p85Usd": 500,
-            "listingCount": 13,
+            "listingCount": 14,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.58,
@@ -1855,7 +1855,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1872,7 +1872,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1880,7 +1880,7 @@
             "grade10": 4281,
             "grade9": 237,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -1902,8 +1902,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1912,7 +1912,7 @@
             "grade10": 995,
             "grade9": 34,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -1941,7 +1941,7 @@
             ],
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": null,
           "qualityFlags": [
@@ -1966,8 +1966,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1976,7 +1976,7 @@
             "grade10": 2459,
             "grade9": 124,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -1998,8 +1998,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2008,7 +2008,7 @@
             "grade10": 783,
             "grade9": 30,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2030,7 +2030,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2047,7 +2047,7 @@
             ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2055,7 +2055,7 @@
             "grade10": 2568,
             "grade9": 77,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2077,8 +2077,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2087,7 +2087,7 @@
             "grade10": 655,
             "grade9": 27,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2111,7 +2111,7 @@
             "p75Usd": 100,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-12",
-            "ageDaysAtDatasetUpdate": 19
+            "ageDaysAtDatasetUpdate": 20
           },
           "activeAsk": null,
           "soldToActiveMedianRatio": null,
@@ -2129,21 +2129,21 @@
             "p75Usd": 294,
             "sampleSize": 31,
             "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 399,
-            "p15Usd": 257.22,
+            "medianUsd": 365,
+            "p15Usd": 257.43,
             "p85Usd": 576,
             "listingCount": 10,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.65,
+          "soldToActiveMedianRatio": 0.71,
           "qualityFlags": []
         }
       },
@@ -2165,8 +2165,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -2182,7 +2182,7 @@
             ],
             "sampleSize": 19,
             "sampleCollectedOn": "2026-07-10",
-            "ageDaysAtDatasetUpdate": 52
+            "ageDaysAtDatasetUpdate": 53
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2190,7 +2190,7 @@
             "grade10": 4597,
             "grade9": 607,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2212,7 +2212,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2229,7 +2229,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2237,7 +2237,7 @@
             "grade10": 4496,
             "grade9": 189,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2274,7 +2274,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2291,7 +2291,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2299,7 +2299,7 @@
             "grade10": 4677,
             "grade9": 213,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2321,8 +2321,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2331,7 +2331,7 @@
             "grade10": 504,
             "grade9": 23,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2353,8 +2353,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -2370,7 +2370,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2378,7 +2378,7 @@
             "grade10": 456,
             "grade9": 24,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2400,8 +2400,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2410,7 +2410,7 @@
             "grade10": 1411,
             "grade9": 116,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2434,7 +2434,7 @@
             "p75Usd": 92,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2445,7 +2445,7 @@
             "p85Usd": 114.99,
             "listingCount": 11,
             "excludedListingCount": 17,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.74,
@@ -2461,21 +2461,21 @@
             "p75Usd": 272,
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 299,
+            "medianUsd": 290,
             "p15Usd": 249.99,
             "p85Usd": 355.5,
-            "listingCount": 20,
+            "listingCount": 21,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.84,
+          "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
         }
       },
@@ -2497,7 +2497,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2514,7 +2514,7 @@
             ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2522,7 +2522,7 @@
             "grade10": 3173,
             "grade9": 295,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2551,7 +2551,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": null,
           "qualityFlags": [
@@ -2576,8 +2576,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2586,7 +2586,7 @@
             "grade10": 2663,
             "grade9": 100,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2608,7 +2608,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2625,7 +2625,7 @@
             ],
             "sampleSize": 16,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2633,7 +2633,7 @@
             "grade10": 1909,
             "grade9": 99,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2655,7 +2655,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2672,7 +2672,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2680,7 +2680,7 @@
             "grade10": 2024,
             "grade9": 103,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2702,7 +2702,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2719,7 +2719,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2727,7 +2727,7 @@
             "grade10": 674,
             "grade9": 41,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2749,7 +2749,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2766,7 +2766,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2774,7 +2774,7 @@
             "grade10": 1126,
             "grade9": 67,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2798,7 +2798,7 @@
             "p75Usd": 137,
             "sampleSize": 6,
             "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2808,8 +2808,8 @@
             "p15Usd": 129.95,
             "p85Usd": 240.99,
             "listingCount": 11,
-            "excludedListingCount": 36,
-            "observedOn": "2026-08-31",
+            "excludedListingCount": 34,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.65,
@@ -2825,7 +2825,7 @@
             "p75Usd": 666,
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2836,7 +2836,7 @@
             "p85Usd": 899.99,
             "listingCount": 24,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.91,
@@ -2861,8 +2861,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2871,7 +2871,7 @@
             "grade10": 808,
             "grade9": 56,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -2893,8 +2893,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -2910,7 +2910,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-07-10",
-            "ageDaysAtDatasetUpdate": 52
+            "ageDaysAtDatasetUpdate": 53
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2918,7 +2918,7 @@
             "grade10": 2472,
             "grade9": 344,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -2940,8 +2940,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -2957,7 +2957,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2965,7 +2965,7 @@
             "grade10": 2004,
             "grade9": 542,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -2987,8 +2987,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2997,7 +2997,7 @@
             "grade10": 2113,
             "grade9": 312,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3019,8 +3019,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3036,7 +3036,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3044,7 +3044,7 @@
             "grade10": 2019,
             "grade9": 276,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3066,8 +3066,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3083,7 +3083,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3091,7 +3091,7 @@
             "grade10": 4739,
             "grade9": 261,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3113,8 +3113,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3123,7 +3123,7 @@
             "grade10": 4251,
             "grade9": 286,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3147,7 +3147,7 @@
             "p75Usd": 109,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-20",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3156,9 +3156,9 @@
             "medianUsd": 100,
             "p15Usd": 73,
             "p85Usd": 125.65,
-            "listingCount": 16,
-            "excludedListingCount": 16,
-            "observedOn": "2026-08-31",
+            "listingCount": 15,
+            "excludedListingCount": 17,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.89,
@@ -3174,7 +3174,7 @@
             "p75Usd": 260,
             "sampleSize": 25,
             "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3185,7 +3185,7 @@
             "p85Usd": 300,
             "listingCount": 20,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.93,
@@ -3210,8 +3210,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3227,7 +3227,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3235,7 +3235,7 @@
             "grade10": 3013,
             "grade9": 455,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3257,7 +3257,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3274,7 +3274,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3282,7 +3282,7 @@
             "grade10": 1175,
             "grade9": 131,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3321,8 +3321,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3338,7 +3338,7 @@
             ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3346,7 +3346,7 @@
             "grade10": 615,
             "grade9": 53,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3368,8 +3368,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3378,7 +3378,7 @@
             "grade10": 426,
             "grade9": 31,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3400,8 +3400,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3410,7 +3410,7 @@
             "grade10": 890,
             "grade9": 156,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3432,7 +3432,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3449,7 +3449,7 @@
             ],
             "sampleSize": 28,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3457,7 +3457,7 @@
             "grade10": 2388,
             "grade9": 160,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3481,18 +3481,18 @@
             "p75Usd": 168,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 145,
+            "medianUsd": 145.48,
             "p15Usd": 139.99,
-            "p85Usd": 145.42,
-            "listingCount": 5,
-            "excludedListingCount": 25,
-            "observedOn": "2026-08-31",
+            "p85Usd": 190,
+            "listingCount": 6,
+            "excludedListingCount": 26,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 1,
@@ -3508,7 +3508,7 @@
             "p75Usd": 627,
             "sampleSize": 20,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3519,7 +3519,7 @@
             "p85Usd": 799.99,
             "listingCount": 17,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.86,
@@ -3544,8 +3544,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3554,7 +3554,7 @@
             "grade10": 1271,
             "grade9": 674,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3576,8 +3576,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3586,7 +3586,7 @@
             "grade10": 1152,
             "grade9": 643,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3608,7 +3608,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3625,7 +3625,7 @@
             ],
             "sampleSize": 17,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3633,7 +3633,7 @@
             "grade10": 3734,
             "grade9": 498,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3655,7 +3655,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3672,7 +3672,7 @@
             ],
             "sampleSize": 26,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3680,7 +3680,7 @@
             "grade10": 2787,
             "grade9": 154,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3702,7 +3702,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3719,7 +3719,7 @@
             ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3727,7 +3727,7 @@
             "grade10": 1783,
             "grade9": 572,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3749,7 +3749,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3766,7 +3766,7 @@
             ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3774,7 +3774,7 @@
             "grade10": 1330,
             "grade9": 195,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3796,7 +3796,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3813,7 +3813,7 @@
             ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3821,7 +3821,7 @@
             "grade10": 1182,
             "grade9": 167,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3845,7 +3845,7 @@
             "p75Usd": 113,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3856,7 +3856,7 @@
             "p85Usd": 172,
             "listingCount": 3,
             "excludedListingCount": 25,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.81,
@@ -3872,18 +3872,18 @@
             "p75Usd": 288,
             "sampleSize": 23,
             "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 299.99,
-            "p15Usd": 263.99,
-            "p85Usd": 389.6,
+            "p15Usd": 264.21,
+            "p85Usd": 389.91,
             "listingCount": 21,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.9,
@@ -3908,8 +3908,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3918,7 +3918,7 @@
             "grade10": 996,
             "grade9": 100,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -3940,8 +3940,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3950,7 +3950,7 @@
             "grade10": 837,
             "grade9": 76,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -3972,7 +3972,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3989,7 +3989,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3997,7 +3997,7 @@
             "grade10": 1889,
             "grade9": 591,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4019,7 +4019,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4036,7 +4036,7 @@
             ],
             "sampleSize": 38,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4044,7 +4044,7 @@
             "grade10": 908,
             "grade9": 92,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4066,8 +4066,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4076,7 +4076,7 @@
             "grade10": 1659,
             "grade9": 89,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4098,8 +4098,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4108,7 +4108,7 @@
             "grade10": 710,
             "grade9": 57,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4130,7 +4130,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4147,7 +4147,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4155,7 +4155,7 @@
             "grade10": 307,
             "grade9": 24,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4179,18 +4179,18 @@
             "p75Usd": 160,
             "sampleSize": 21,
             "sampleCollectedOn": "2026-08-23",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 143.24,
+            "medianUsd": 143.3,
             "p15Usd": 129.99,
             "p85Usd": 228.98,
             "listingCount": 9,
             "excludedListingCount": 8,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.9,
@@ -4206,18 +4206,18 @@
             "p75Usd": 502,
             "sampleSize": 144,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 519,
-            "p15Usd": 489.99,
-            "p85Usd": 636.29,
+            "p15Usd": 485,
+            "p85Usd": 636.8,
             "listingCount": 34,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.93,
@@ -4242,8 +4242,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -4259,7 +4259,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-07-10",
-            "ageDaysAtDatasetUpdate": 52
+            "ageDaysAtDatasetUpdate": 53
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4267,7 +4267,7 @@
             "grade10": 601,
             "grade9": 89,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4289,8 +4289,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4299,7 +4299,7 @@
             "grade10": 552,
             "grade9": 62,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4321,8 +4321,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4331,7 +4331,7 @@
             "grade10": 558,
             "grade9": 57,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4353,8 +4353,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4363,7 +4363,7 @@
             "grade10": 1967,
             "grade9": 394,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4385,8 +4385,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4395,7 +4395,7 @@
             "grade10": 1022,
             "grade9": 544,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4417,8 +4417,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4427,7 +4427,7 @@
             "grade10": 1598,
             "grade9": 263,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4449,8 +4449,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4459,7 +4459,7 @@
             "grade10": 952,
             "grade9": 321,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4483,21 +4483,21 @@
             "p75Usd": 116,
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-19",
-            "ageDaysAtDatasetUpdate": 12
+            "ageDaysAtDatasetUpdate": 13
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 128.99,
-            "p15Usd": 92,
+            "medianUsd": 119,
+            "p15Usd": 97.75,
             "p85Usd": 152.52,
-            "listingCount": 10,
-            "excludedListingCount": 25,
-            "observedOn": "2026-08-31",
+            "listingCount": 11,
+            "excludedListingCount": 27,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.78,
+          "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
         },
         "english": {
@@ -4510,21 +4510,21 @@
             "p75Usd": 277,
             "sampleSize": 24,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 284.99,
+            "medianUsd": 299.95,
             "p15Usd": 269.99,
-            "p85Usd": 379.99,
-            "listingCount": 17,
+            "p85Usd": 375,
+            "listingCount": 18,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.95,
+          "soldToActiveMedianRatio": 0.9,
           "qualityFlags": []
         }
       },
@@ -4546,8 +4546,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4556,7 +4556,7 @@
             "grade10": 334,
             "grade9": 169,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4578,8 +4578,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4588,7 +4588,7 @@
             "grade10": 430,
             "grade9": 76,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4617,7 +4617,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": null,
           "qualityFlags": [
@@ -4642,8 +4642,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4652,7 +4652,7 @@
             "grade10": 1517,
             "grade9": 311,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4674,7 +4674,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4691,7 +4691,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4699,7 +4699,7 @@
             "grade10": 1910,
             "grade9": 81,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4721,8 +4721,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -4738,7 +4738,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4746,7 +4746,7 @@
             "grade10": 1807,
             "grade9": 177,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4768,7 +4768,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4785,7 +4785,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4793,7 +4793,7 @@
             "grade10": 913,
             "grade9": 41,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4817,21 +4817,21 @@
             "p75Usd": 117,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 117.25,
-            "p15Usd": 107.46,
+            "medianUsd": 115,
+            "p15Usd": 100,
             "p85Usd": 151.66,
-            "listingCount": 12,
-            "excludedListingCount": 8,
-            "observedOn": "2026-08-31",
+            "listingCount": 13,
+            "excludedListingCount": 9,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.9,
+          "soldToActiveMedianRatio": 0.91,
           "qualityFlags": []
         },
         "english": {
@@ -4844,21 +4844,21 @@
             "p75Usd": 265,
             "sampleSize": 19,
             "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 290,
+            "medianUsd": 299.99,
             "p15Usd": 240,
             "p85Usd": 374.99,
-            "listingCount": 9,
+            "listingCount": 10,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.86,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         }
       },
@@ -4880,8 +4880,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4890,7 +4890,7 @@
             "grade10": 1332,
             "grade9": 104,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -4919,7 +4919,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": null,
           "qualityFlags": [],
@@ -4942,8 +4942,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4952,7 +4952,7 @@
             "grade10": 1529,
             "grade9": 75,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -4974,7 +4974,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4991,7 +4991,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4999,7 +4999,7 @@
             "grade10": 1310,
             "grade9": 71,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -5021,7 +5021,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5038,7 +5038,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": null,
           "qualityFlags": [],
@@ -5078,8 +5078,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5088,7 +5088,7 @@
             "grade10": 1494,
             "grade9": 159,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -5112,21 +5112,21 @@
             "p75Usd": 116,
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "ageDaysAtDatasetUpdate": 3
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 128.8,
-            "p15Usd": 115.94,
+            "medianUsd": 129.99,
+            "p15Usd": 119.99,
             "p85Usd": 159.99,
-            "listingCount": 19,
+            "listingCount": 18,
             "excludedListingCount": 17,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.89,
+          "soldToActiveMedianRatio": 0.88,
           "qualityFlags": []
         },
         "english": {
@@ -5139,21 +5139,21 @@
             "p75Usd": 231,
             "sampleSize": 85,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 239.98,
-            "p15Usd": 200,
-            "p85Usd": 280,
-            "listingCount": 17,
+            "medianUsd": 250,
+            "p15Usd": 229.99,
+            "p85Usd": 315.86,
+            "listingCount": 7,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.88,
+          "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
         }
       },
@@ -5175,8 +5175,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5185,7 +5185,7 @@
             "grade10": 413,
             "grade9": 17,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5207,8 +5207,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5217,7 +5217,7 @@
             "grade10": 349,
             "grade9": 28,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5239,8 +5239,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5249,7 +5249,7 @@
             "grade10": 320,
             "grade9": 55,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5271,8 +5271,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5281,7 +5281,7 @@
             "grade10": 338,
             "grade9": 22,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5303,8 +5303,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5313,7 +5313,7 @@
             "grade10": 201,
             "grade9": 8,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5335,8 +5335,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5345,7 +5345,7 @@
             "grade10": 33,
             "grade9": 0,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5367,8 +5367,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5377,7 +5377,7 @@
             "grade10": 19,
             "grade9": 1,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5401,21 +5401,21 @@
             "p75Usd": 176,
             "sampleSize": 37,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 150,
-            "p15Usd": 134.99,
-            "p85Usd": 169,
-            "listingCount": 26,
-            "excludedListingCount": 12,
-            "observedOn": "2026-08-31",
+            "medianUsd": 144.95,
+            "p15Usd": 129.99,
+            "p85Usd": 189,
+            "listingCount": 24,
+            "excludedListingCount": 10,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1.07,
+          "soldToActiveMedianRatio": 1.1,
           "qualityFlags": []
         },
         "english": {
@@ -5428,21 +5428,21 @@
             "p75Usd": 400,
             "sampleSize": 370,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 359.88,
-            "p15Usd": 345,
-            "p85Usd": 399.99,
-            "listingCount": 16,
+            "medianUsd": 355,
+            "p15Usd": 329.99,
+            "p85Usd": 399.95,
+            "listingCount": 17,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1.03,
+          "soldToActiveMedianRatio": 1.05,
           "qualityFlags": []
         }
       },
@@ -5465,21 +5465,21 @@
             "p75Usd": 140,
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-01",
-            "ageDaysAtDatasetUpdate": 30
+            "ageDaysAtDatasetUpdate": 31
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 179.99,
+            "medianUsd": 199.99,
             "p15Usd": 150,
             "p85Usd": 199.99,
-            "listingCount": 3,
-            "excludedListingCount": 36,
-            "observedOn": "2026-08-31",
+            "listingCount": 4,
+            "excludedListingCount": 39,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.71,
+          "soldToActiveMedianRatio": 0.64,
           "qualityFlags": []
         },
         "english": {
@@ -5492,18 +5492,18 @@
             "p75Usd": 979,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 960,
-            "p15Usd": 900,
+            "p15Usd": 849.99,
             "p85Usd": 1250,
             "listingCount": 7,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.95,
@@ -5528,8 +5528,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -5545,7 +5545,7 @@
             ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5553,7 +5553,7 @@
             "grade10": 2458,
             "grade9": 247,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5575,8 +5575,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5585,7 +5585,7 @@
             "grade10": 920,
             "grade9": 50,
             "observedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5607,7 +5607,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5624,7 +5624,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5632,7 +5632,7 @@
             "grade10": 821,
             "grade9": 40,
             "observedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5654,7 +5654,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5671,7 +5671,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5679,7 +5679,7 @@
             "grade10": 385,
             "grade9": 20,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5701,8 +5701,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5711,7 +5711,7 @@
             "grade10": 469,
             "grade9": 7,
             "observedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5733,8 +5733,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5743,7 +5743,7 @@
             "grade10": 559,
             "grade9": 54,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5765,7 +5765,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5782,7 +5782,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5790,7 +5790,7 @@
             "grade10": 324,
             "grade9": 14,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5814,22 +5814,24 @@
             "p75Usd": 168,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 134.5,
-            "p15Usd": 99.94,
-            "p85Usd": 229.95,
-            "listingCount": 5,
-            "excludedListingCount": 23,
-            "observedOn": "2026-08-31",
+            "medianUsd": 299.99,
+            "p15Usd": 99.85,
+            "p85Usd": 309.99,
+            "listingCount": 3,
+            "excludedListingCount": 22,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 1,
-          "qualityFlags": []
+          "soldToActiveMedianRatio": 0.45,
+          "qualityFlags": [
+            "sold_active_median_divergence_over_2x"
+          ]
         },
         "english": {
           "sold": {
@@ -5841,18 +5843,18 @@
             "p75Usd": 1002,
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 829.99,
-            "p15Usd": 829.99,
+            "p15Usd": 749.99,
             "p85Usd": 845,
-            "listingCount": 5,
+            "listingCount": 6,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 1.1,
@@ -5877,7 +5879,7 @@
             "grade10": 512,
             "grade9": 54,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [
             "variant_match_uncertain"
@@ -5901,8 +5903,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -5918,7 +5920,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-07-09",
-            "ageDaysAtDatasetUpdate": 53
+            "ageDaysAtDatasetUpdate": 54
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5926,7 +5928,7 @@
             "grade10": 2430,
             "grade9": 258,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-02.html"
@@ -5948,8 +5950,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5958,7 +5960,7 @@
             "grade10": 451,
             "grade9": 58,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [
             "missing_rarity"
@@ -5982,7 +5984,7 @@
             "grade10": 173,
             "grade9": 22,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [
             "variant_match_uncertain"
@@ -6006,7 +6008,7 @@
             "grade10": 97,
             "grade9": 13,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [
             "variant_match_uncertain"
@@ -6030,8 +6032,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6040,7 +6042,7 @@
             "grade10": 1124,
             "grade9": 87,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-02.html"
@@ -6062,8 +6064,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6072,7 +6074,7 @@
             "grade10": 162,
             "grade9": 16,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-02.html"
@@ -6096,21 +6098,21 @@
             "p75Usd": 143,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 129.95,
-            "p15Usd": 110,
+            "medianUsd": 148,
+            "p15Usd": 115.89,
             "p85Usd": 161.36,
-            "listingCount": 14,
-            "excludedListingCount": 40,
-            "observedOn": "2026-08-31",
+            "listingCount": 12,
+            "excludedListingCount": 42,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.98,
+          "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
         },
         "english": {
@@ -6123,21 +6125,21 @@
             "p75Usd": 373,
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 398,
-            "p15Usd": 349.99,
-            "p85Usd": 499.99,
-            "listingCount": 10,
+            "medianUsd": 365,
+            "p15Usd": 339.95,
+            "p85Usd": 419,
+            "listingCount": 13,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
-          "soldToActiveMedianRatio": 0.92,
+          "soldToActiveMedianRatio": 1,
           "qualityFlags": []
         }
       },
@@ -6159,7 +6161,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6176,7 +6178,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6184,7 +6186,7 @@
             "grade10": 1845,
             "grade9": 253,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6206,7 +6208,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6223,7 +6225,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6231,7 +6233,7 @@
             "grade10": 1291,
             "grade9": 120,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6253,7 +6255,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6270,7 +6272,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6278,7 +6280,7 @@
             "grade10": 1319,
             "grade9": 177,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6300,8 +6302,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6310,7 +6312,7 @@
             "grade10": 1672,
             "grade9": 314,
             "observedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6332,8 +6334,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6342,7 +6344,7 @@
             "grade10": 1191,
             "grade9": 142,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6364,8 +6366,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6374,7 +6376,7 @@
             "grade10": 815,
             "grade9": 103,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6396,7 +6398,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6413,7 +6415,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6421,7 +6423,7 @@
             "grade10": 951,
             "grade9": 283,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6445,7 +6447,7 @@
             "p75Usd": 160,
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6454,9 +6456,9 @@
             "medianUsd": 214.99,
             "p15Usd": 150,
             "p85Usd": 325,
-            "listingCount": 14,
-            "excludedListingCount": 24,
-            "observedOn": "2026-08-31",
+            "listingCount": 13,
+            "excludedListingCount": 25,
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.74,
@@ -6472,18 +6474,18 @@
             "p75Usd": 1001,
             "sampleSize": 9,
             "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 1100,
-            "p15Usd": 1000,
+            "p15Usd": 900,
             "p85Usd": 1299,
             "listingCount": 10,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.9,
@@ -6523,7 +6525,7 @@
             "grade10": 58,
             "grade9": 5,
             "observedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -6545,8 +6547,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6555,7 +6557,7 @@
             "grade10": 8884,
             "grade9": 1390,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -6592,8 +6594,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6602,7 +6604,7 @@
             "grade10": 70,
             "grade9": 10,
             "observedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -6624,8 +6626,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6634,7 +6636,7 @@
             "grade10": 68,
             "grade9": 10,
             "observedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -6673,18 +6675,18 @@
             "p75Usd": 90,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 107.46,
+            "medianUsd": 107.51,
             "p15Usd": 69,
             "p85Usd": 121.99,
             "listingCount": 8,
             "excludedListingCount": 22,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.73,
@@ -6700,7 +6702,7 @@
             "p75Usd": 397,
             "sampleSize": 16,
             "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6708,10 +6710,10 @@
             "currency": "USD",
             "medianUsd": 420,
             "p15Usd": 399.99,
-            "p85Usd": 453.51,
-            "listingCount": 17,
+            "p85Usd": 449.99,
+            "listingCount": 18,
             "excludedListingCount": 0,
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "soldToActiveMedianRatio": 0.93,
@@ -6736,7 +6738,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6753,7 +6755,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6761,7 +6763,7 @@
             "grade10": 2298,
             "grade9": 464,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -6783,7 +6785,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6800,7 +6802,7 @@
             ],
             "sampleSize": 9,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6808,7 +6810,7 @@
             "grade10": 1931,
             "grade9": 193,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -6830,7 +6832,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6847,7 +6849,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6855,7 +6857,7 @@
             "grade10": 1160,
             "grade9": 108,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -6877,8 +6879,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6887,7 +6889,7 @@
             "grade10": 1061,
             "grade9": 103,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -6909,7 +6911,7 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-31",
+            "observedOn": "2026-09-01",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6926,7 +6928,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 1
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6934,7 +6936,7 @@
             "grade10": 1421,
             "grade9": 113,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -6956,8 +6958,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6966,7 +6968,7 @@
             "grade10": 1208,
             "grade9": 148,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -6988,8 +6990,8 @@
             "fxObservedOn": "2026-08-31",
             "sourceName": "遊々亭",
             "stockStatus": "in_stock",
-            "observedOn": "2026-08-29",
-            "ageDaysAtDatasetUpdate": 2
+            "observedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6998,7 +7000,7 @@
             "grade10": 413,
             "grade9": 66,
             "observedOn": "2026-08-28",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
