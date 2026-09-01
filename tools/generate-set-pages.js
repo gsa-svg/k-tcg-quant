@@ -9,6 +9,9 @@ const path = require("path");
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
 const ROOT = path.join(__dirname, "..");
+// 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 없으면 섹션을 그리지 않는다.
+let SET_AUCTION = { sets: {}, window: {}, updated: "" };
+try { SET_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-auction-stats.json"), "utf8")); } catch { /* 아직 안 구웠으면 생략 */ }
 const SITE = "https://opboxindex.com";
 const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
 // One Piece cards use standard-size sleeves. This listing has verified high sales,
@@ -566,6 +569,39 @@ function setPage(code, prev, next) {
       <p>For ${esc(s.nameEn || code)}, between ${esc(wk[0].d)} and ${esc(lastW.d)}, the recorded PSA population increased by <strong>${intl(sum)}</strong> grades — peaking at <strong>${intl(pk.v)}</strong> in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `The all-time set total is <strong>${intl(s.psaFull.total)}</strong>.` : ""} Grades are not a box-opening count.</p>`;
   }
 
+  // ── 경매 실적 — 우리가 직접 종료 후 재조회해 쌓은 원장에서만 나오는 축이다.
+  //    박스 가격·체이스 카드·PSA 인구는 다른 데도 있지만 이건 없다.
+  //    2026-09-01 신설: 애드센스가 '가치가 별로 없는 콘텐츠'로 거절한 뒤,
+  //    각 페이지에 우리만 가진 데이터를 실어 고유성을 올리려고 넣었다.
+  //    표본이 얇으면(비율 null) 건수만 적고 비율은 쓰지 않는다.
+  let auctionSection = "";
+  {
+    const a = SET_AUCTION.sets && SET_AUCTION.sets[code];
+    if (a && a.ended >= 30) {
+      const w = SET_AUCTION.window || {};
+      const catName = { card: "single cards", box: "sealed boxes", pack: "loose packs", graded: "graded slabs", lot: "multi-card lots" };
+      const cats = Object.entries(a.byCat || {}).sort((x, y) => y[1].ended - x[1].ended).slice(0, 4);
+      const catRows = cats.map(function (e) {
+        return "<tr><td>" + esc(catName[e[0]] || e[0]) + "</td><td>" + intl(e[1].ended) + "</td><td>" + intl(e[1].sold) + "</td><td>" + e[1].sellThrough + "%</td></tr>";
+      }).join("");
+      const rateTxt = a.sellThrough == null
+        ? "Too few had an outcome reported by eBay to publish a rate."
+        : "<strong>" + a.sellThrough + "%</strong> found a buyer and <strong>" + a.passThrough + "%</strong> passed unsold";
+      const amtTxt = a.amount ? ", for <strong>$" + intl(a.amount) + "</strong> in hammer value" : "";
+      const medTxt = a.medPrice ? " The median winning bid was <strong>$" + a.medPrice + "</strong>" : "";
+      const bidTxt = a.medBidders ? " with " + a.medBidders + " bidders on a typical sold lot" : "";
+      const table = catRows
+        ? "<div style=\"overflow-x:auto\"><table class=\"chaseTable\"><thead><tr><th>Listing type</th><th>Ended</th><th>Sold</th><th>Sell-through</th></tr></thead><tbody>" + catRows + "</tbody></table></div>"
+        : "";
+      auctionSection = "<h2>How " + esc(code) + " cards actually sell at auction</h2>"
+        + "<p>Over the " + (w.days || 30) + " days to " + esc(SET_AUCTION.updated || "") + " we settled <strong>" + intl(a.ended)
+        + "</strong> ended eBay auctions carrying " + esc(code) + " cards — every one read again after it closed, so these are results, not asking prices. "
+        + rateTxt + amtTxt + "." + medTxt + bidTxt + ".</p>"
+        + table
+        + "<p class=\"priceNote\">Auctions only — buy-it-now listings are counted separately and are not in this table. Sell-through uses auctions whose outcome eBay reported; unsold auctions stay in the denominator.</p>";
+    }
+  }
+
   // 현재 가격 구간 해설 — 실데이터 파생, 미래 가격이나 구매 결론은 만들지 않는다.
   let verdict = "";
   {
@@ -816,6 +852,7 @@ function setPage(code, prev, next) {
       </div>
       <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCGplayer market snapshot (not refreshed daily).` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
       : `<p class="priceNote">Single-card data for ${code} is not published yet. This page tracks the sealed box only; card-level prices and grading counts are added once the set's chase list is verified. <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`}
+      ${auctionSection}
       <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
            지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
            접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
