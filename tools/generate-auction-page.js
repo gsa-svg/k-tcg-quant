@@ -35,9 +35,17 @@ if (daily.length < 3) { console.error("일별 집계가 3일 미만 — 페이�
 // 헤드라인·FAQ·Dataset 의 합산은 **완전 수집일만** 쓴다 — 2026-08-26 감사.
 // 부분수집일(partial)은 실측이지만 덜 센 날이라, 섞으면 건수는 줄고 비율은 치우친다.
 // 표에는 partial 배지와 함께 전부 남긴다 — 숨기는 게 아니라 합산에서만 뺀다.
-const fullDaily = daily.filter((x) => !PARTIAL_DAYS.has(x.d));
-const aggDays = fullDaily.length >= 3 ? fullDaily : daily;   // 완전일이 너무 적으면 전체로 폴백(라벨은 그대로 정직하게)
-const aggNote = fullDaily.length >= 3 && fullDaily.length < daily.length ? ` (${daily.length - fullDaily.length} partial day${daily.length - fullDaily.length > 1 ? "s" : ""} excluded)` : "";
+// 합산(헤드라인 통계·유형별·FAQ·Dataset)은 **전 기간의 완전 수집일**을 쓴다 — 2026-09-01.
+// 종전에는 최근 10일 중 완전일만 썼는데, 밀봉 박스가 하루 1~2건이라 표본이 45건까지 얇아졌고
+// 그 값(71.1%)이 전 기간 245건의 81.2% 와 10%p 어긋났다. 며칠 치우치면 대표값이 통째로 흔들린다.
+// 부분수집일은 여전히 뺀다 — 실측이지만 덜 센 날이라 섞으면 건수는 줄고 비율은 치우친다.
+// 일별 표(최근 10일)와 시계열 그래프(전 기간)는 추이를 보는 것이라 창이 다르다. 각 섹션에 기간을 적는다.
+const allDays = (auc.daily || []).filter((x) => x.d < TODAY_ISO);
+const fullAll = allDays.filter((x) => !PARTIAL_DAYS.has(x.d));
+const aggDays = fullAll.length >= 3 ? fullAll : allDays;   // 완전일이 너무 적으면 전체로 폴백(라벨은 그대로 정직하게)
+const aggNote = fullAll.length >= 3 && fullAll.length < allDays.length ? ` (${allDays.length - fullAll.length} partial day${allDays.length - fullAll.length > 1 ? "s" : ""} excluded)` : "";
+const aggFrom = aggDays.length ? aggDays[0].d : null;
+const aggTo = aggDays.length ? aggDays[aggDays.length - 1].d : null;
 const totN = aggDays.reduce((t, x) => t + x.n, 0);
 const totSold = aggDays.reduce((t, x) => t + x.sold, 0);
 const st = totN ? Math.round((totSold / totN) * 100) : 0;
@@ -325,6 +333,7 @@ const html = `<!doctype html>
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
+      <p class="priceNote">Totals and product-type rates below cover <strong>${esc(aggFrom)} to ${esc(aggTo)}</strong> — ${aggDays.length} days when collection ran start to finish${aggNote ? ", with partial days left out of the totals" : ""}.</p>
       <div class="statRow">
         <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span>sold${aggNote}</span></div>
         <div class="stat"><b>${num(totN)}</b><span>One Piece auctions settled</span></div>
@@ -353,7 +362,7 @@ ${kindRows.length >= 2 ? `      <div class="chartCard">
         <div class="chartHead">
           <div>
             <h2>What sells, by what it is</h2>
-            <p class="sub">Same window as the numbers at the top: ${esc(aggDays[0].d)}–${esc(aggDays[aggDays.length - 1].d)}, ${aggDays.length} fully collected days${aggNote ? " (partial days excluded)" : ""}. Bars show the share that sold; the figure on the right is the median winning bid.</p>
+            <p class="sub">Same window as the totals above: ${esc(aggFrom)}–${esc(aggTo)}. Bars show the share that sold; the figure on the right is the median winning bid. Types with fewer than ${KIND_MIN} auctions get a count instead of a rate.</p>
           </div>
         </div>
         <div class="kindList" id="opKindChart"></div>

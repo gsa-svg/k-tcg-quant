@@ -17,16 +17,16 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <title>One Piece Card Auction Data — Real eBay Winning Bids &amp; Sell-Through | OP Box Index</title>
-    <meta name="description" content="Completed eBay auction results for One Piece cards and sealed boxes: 5,653 auctions tracked over 5 full days, 34% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (2026-08-31)." />
+    <meta name="description" content="Completed eBay auction results for One Piece cards and sealed boxes: 30,452 auctions tracked over 31 full days, 32% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (2026-08-31)." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="One Piece Card Auction Data — Real eBay Winning Bids &amp; Sell-Through | OP Box Index" />
-    <meta property="og:description" content="Completed eBay auction results for One Piece cards and sealed boxes: 5,653 auctions tracked over 5 full days, 34% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (2026-08-31)." />
+    <meta property="og:description" content="Completed eBay auction results for One Piece cards and sealed boxes: 30,452 auctions tracked over 31 full days, 32% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (2026-08-31)." />
     <meta property="og:url" content="https://opboxindex.com/auction.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Card Game completed eBay auction results","description":"Daily completed-auction outcomes for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. 5,653 auctions tracked in the latest 5 full-day window (5 partial days excluded).","url":"https://opboxindex.com/auction.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-08-31","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-auction-daily.csv"}]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Card Game completed eBay auction results","description":"Daily completed-auction outcomes for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. 30,452 auctions tracked in the latest 31 full-day window (10 partial days excluded).","url":"https://opboxindex.com/auction.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-08-31","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-auction-daily.csv"}]}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Auction Data","item":"https://opboxindex.com/auction.html"}]}</script>
     <link rel="stylesheet" href="styles.css?v=20260828f" />
     <style>
@@ -133,11 +133,12 @@
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
+      <p class="priceNote">Totals and product-type rates below cover <strong>2026-07-20 to 2026-08-30</strong> — 31 days when collection ran start to finish, with partial days left out of the totals.</p>
       <div class="statRow">
-        <div class="stat hi"><b>34%</b><span>sold (5 partial days excluded)</span></div>
-        <div class="stat"><b>5,653</b><span>One Piece auctions settled</span></div>
-        <div class="stat"><b>1,935</b><span>found a buyer</span></div>
-        <div class="stat"><b>3,718</b><span>passed unsold</span></div>
+        <div class="stat hi"><b>32%</b><span>sold (10 partial days excluded)</span></div>
+        <div class="stat"><b>30,452</b><span>One Piece auctions settled</span></div>
+        <div class="stat"><b>9,790</b><span>found a buyer</span></div>
+        <div class="stat"><b>20,662</b><span>passed unsold</span></div>
       </div>
 
       <div class="chartCard">
@@ -161,7 +162,7 @@
         <div class="chartHead">
           <div>
             <h2>What sells, by what it is</h2>
-            <p class="sub">Same window as the numbers at the top: 2026-08-23–2026-08-30, 5 fully collected days (partial days excluded). Bars show the share that sold; the figure on the right is the median winning bid.</p>
+            <p class="sub">Same window as the totals above: 2026-07-20–2026-08-30. Bars show the share that sold; the figure on the right is the median winning bid. Types with fewer than 25 auctions get a count instead of a rate.</p>
           </div>
         </div>
         <div class="kindList" id="opKindChart"></div>
@@ -192,9 +193,9 @@
       <table class="aTable">
         <thead><tr><th class="l">Product type</th><th>Auctions</th><th>Sold</th><th>Sell-through</th></tr></thead>
         <tbody>
-<tr><td class="l">Single cards</td><td>5,319</td><td>1,723</td><td>32%</td></tr>
-<tr><td class="l">Sealed booster boxes</td><td>45</td><td>32</td><td>71%</td></tr>
-<tr><td class="l">Sealed packs</td><td>287</td><td>180</td><td>63%</td></tr>
+<tr><td class="l">Single cards</td><td>28,856</td><td>8,736</td><td>30%</td></tr>
+<tr><td class="l">Sealed booster boxes</td><td>245</td><td>199</td><td>81%</td></tr>
+<tr><td class="l">Sealed packs</td><td>1,343</td><td>851</td><td>63%</td></tr>
         </tbody>
       </table>
       </div>
@@ -317,7 +318,7 @@
       // 유형별 가로 막대. 표본이 얇아 비율이 없는 유형은 막대 대신 건수만 적는다.
       // 문자열로 innerHTML 을 조립하지 않는다 — 따옴표가 템플릿 리터럴을 거치며 풀려 깨진다.
       (function () {
-        var rows = [{"key":"card","name":"Single card","n":5319,"sold":1723,"rate":32.4,"med":18.75},{"key":"pack","name":"Booster pack","n":287,"sold":180,"rate":62.7,"med":5.33},{"key":"box","name":"Sealed box","n":45,"sold":32,"rate":71.1,"med":467.51},{"key":"carton","name":"Sealed carton","n":2,"sold":0,"rate":null,"med":null}];
+        var rows = [{"key":"card","name":"Single card","n":28856,"sold":8736,"rate":30.3,"med":20.5},{"key":"pack","name":"Booster pack","n":1343,"sold":851,"rate":63.4,"med":5.58},{"key":"box","name":"Sealed box","n":245,"sold":199,"rate":81.2,"med":398.8},{"key":"carton","name":"Sealed carton","n":8,"sold":4,"rate":null,"med":null}];
         var host = document.getElementById("opKindChart");
         if (!host || !rows.length) return;
         var money = function (v) { return v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
