@@ -35,6 +35,12 @@ jobs:
         with:
           node-version: "22"
 
+      # eBay Browse 한도는 하루 5,000콜이다. 바닥일 때 시작하면 전부 429 로 실패하고
+      # 원장에는 구멍만 남는다(2026-09-01 실측: settle 이 due 391건 중 390건을 놓쳤다).
+      # 남은 콜이 이 회차에 필요한 양보다 적으면 여기서 멈춘다 — 감시목록은 그대로라 다음 회차에 재시도된다.
+      - name: eBay quota gate
+        run: node tools/check-ebay-quota.js --min 400
+
       - name: Collect
         run: node tools/collect-auction-market.js
 

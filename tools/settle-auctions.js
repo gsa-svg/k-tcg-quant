@@ -47,7 +47,18 @@ const soldPath = path.join(ROOT, "data", `${pre}auction-sold.json`);
 // daily 마지막 날의 건수와 그 날 아카이브 파일의 건수를 맞춰보는 것으로 같은 일을 한다.
 const KEEP_SALES_DAYS = 45;    // 아카이브 기준 집계 재계산 범위
 const KEEP_DAILY_DAYS = 365;   // 일별 집계는 더 오래
-const MAX_PER_RUN = 900;       // 한 번에 조회할 최대 건수. 2026-08-28 전수 수집 전환으로 250→900(2시간마다 실행 = 하루 10,800건 처리 여력). eBay Browse 는 호출당 1건 조회라 이 값이 곧 API 콜 수다.
+// 한 번에 조회할 최대 건수 = 그대로 API 콜 수다(Browse getItem 은 호출당 1건).
+//
+// ── 하루 예산 (2026-09-01 실측)
+// eBay Browse 한도는 앱당 **하루 5,000콜**이다(개발자 analytics API 로 확인).
+// 종전 900 × 12회(2시간마다) = 10,800콜로 한도의 2배를 예약하고 있었고, 실제로 그날
+// 남은 콜이 0 이 되어 settle 이 due 391건 중 390건을 429 로 놓쳤다. 경매는 소급이 안 된다.
+//
+// 예산 배분: collect-auction-market ~800 · collect-tcg ~300 · active-listings ~400 · 여유 500
+//   → settle 에 약 3,000콜. 12회로 나누면 회당 250건.
+// 250 이면 충분한가: 최근 완결일 평균 종료가 1,107건이라 하루 3,000건 처리 여력은 재시도까지 덮는다.
+// 900 은 처음부터 필요 없는 크기였다 — 넉넉하게 잡은 값이 한도를 태웠다.
+const MAX_PER_RUN = 250;
 const GIVE_UP_HOURS = 30;      // 종료 후 이만큼 지나도 정산 못 하면 포기(조회 불가 추정)
 
 function loadEnv(p) {
@@ -84,6 +95,7 @@ const med = (a) => {
   return Number((x.length % 2 ? x[i] : (x[i - 1] + x[i]) / 2).toFixed(2));
 };
 
+let rateLimited = false;   // 429 로 조기 종료했는가 — 로그에 남겨 원인을 숨기지 않는다
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("Missing eBay credentials");
 
@@ -107,6 +119,9 @@ const med = (a) => {
 
   for (const w of due) {
     const res = await getItem(tok, w.id);
+    // 429 = 그날 한도 소진. 더 두드려도 전부 실패하고, 남은 콜까지 태워 다음 회차도 굶는다.
+    // 감시목록은 건드리지 않고 빠져나간다 — 이 건들은 다음 회차에 그대로 재시도된다.
+    if (!res.ok && res.status === 429) { rateLimited = true; break; }
     if (!res.ok) { failedIds.add(w.id); continue; }
     const j = res.item;
     const bids = Number.isFinite(j.bidCount) ? j.bidCount : 0;
@@ -227,6 +242,7 @@ const med = (a) => {
 
   const soldNow = settled.filter((s) => s.sold === true);
   console.log(JSON.stringify({
+    rateLimited,
     due: due.length,
     settled: settled.length,
     failed: failedIds.size,
