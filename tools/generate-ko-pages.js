@@ -7,6 +7,11 @@ const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
+// 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 영문 세트 페이지와 같은 원본을 쓴다.
+let KO_AUCTION = { sets: {}, window: {}, updated: "" };
+try { KO_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-auction-stats.json"), "utf8")); } catch { /* 없으면 생략 */ }
+const { navHtmlKo } = require("./site-nav");
+const NAV_KO = navHtmlKo();
 const SITE = "https://opboxindex.com";
 const CACHE = CSS_VER;  // packs.js DATA_VERSION 를 읽는다 — 하드코딩하면 범프 때 가드 V1 이 막는다(2026-07-27)
 
@@ -217,7 +222,7 @@ const html = `<!doctype html>
     <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
-      <nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">경매</a><a href="../compare.html">세트 비교</a><a href="../psa10-ranking.html">PSA10 랭킹</a><a href="grading.html">PSA 인구</a><a href="../sets/index.html">세트 가이드</a><a href="../amazon-lottery.html">아마존 응모</a></nav>
+      ${NAV_KO}
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">한국어 · 일본판 시세</p>
@@ -279,8 +284,6 @@ fs.writeFileSync(path.join(ROOT, "ko", "index.html"), html, "utf8");
 // ─────────────────────────────────────────────────────────────
 // 세트별 한국어 페이지 /ko/{code}.html — 한국어 롱테일("op-16 시세", "결전의 시간 박스 가격") 공략.
 // 값은 전부 검증된 데이터에서만 파생하고, 없으면 표시하지 않음(빈칸 > 틀린값).
-const { navHtmlKo } = require("./site-nav");
-const NAV_KO = navHtmlKo();
 
 function setPageKo(b) {
   const code = b.code;
@@ -297,6 +300,29 @@ function setPageKo(b) {
   // 인기 카드(NM 보유분만, 원화). 값 없으면 섹션 자체를 숨김.
   const topCards = (s.cards || []).filter((c) => c.nmJpy != null && c.number).slice(0, 8);
   const cardRows = topCards.map((c) => `<tr><td class="nm">${esc(c.name)}</td><td class="code">${esc(c.number)}</td><td>${esc(c.rarity || "—")}</td><td class="num">${won(c.nmJpy * fx.jpyKrw)}</td></tr>`).join("\n");
+  // 경매 실적 — 우리가 종료 후 재조회해 쌓은 원장에서만 나오는 축이다.
+  // 애드센스가 '가치 없는 콘텐츠'로 거절한 뒤(2026-09-01) 한국어 페이지도 같이 채운다.
+  const koAuctionSection = (() => {
+    const a = KO_AUCTION.sets && KO_AUCTION.sets[code];
+    if (!a || a.ended < 30) return "";
+    const w = KO_AUCTION.window || {};
+    const catKo = { card: "싱글카드", box: "미개봉 박스", pack: "낱개 팩", graded: "등급카드", lot: "묶음" };
+    const cats = Object.entries(a.byCat || {}).sort((x, y) => y[1].ended - x[1].ended).slice(0, 4);
+    const rows = cats.map((e) => `<tr><td class="l">${esc(catKo[e[0]] || e[0])}</td><td>${e[1].ended.toLocaleString("ko-KR")}</td><td>${e[1].sold.toLocaleString("ko-KR")}</td><td>${e[1].sellThrough}%</td></tr>`).join("");
+    const rate = a.sellThrough == null
+      ? "낙찰 여부가 확인된 건이 적어 비율은 싣지 않습니다."
+      : `<strong>${a.sellThrough}%</strong>가 낙찰됐고 <strong>${a.passThrough}%</strong>는 유찰됐습니다`;
+    const amt = a.amount ? `, 거래액은 <strong>${a.amount.toLocaleString("en-US")}</strong>입니다` : "";
+    const med = a.medPrice ? ` 중앙 낙찰가는 <strong>${a.medPrice}</strong>입니다.` : "";
+    return `
+      <section aria-label="경매 실적">
+        <h2>${esc(code)} 경매는 실제로 어떻게 팔리나</h2>
+        <p class="koNote">최근 ${w.days || 30}일(${esc(KO_AUCTION.updated || "")} 기준) ${esc(code)} 카드가 걸린 이베이 경매 <strong>${a.ended.toLocaleString("ko-KR")}건</strong>이 종료됐고, 우리가 종료 후 다시 조회해 결과를 확인했습니다. ${rate}${amt}.${med} 호가가 아니라 실제 낙찰 결과입니다.</p>
+        ${rows ? `<div style="overflow-x:auto"><table class="koBoard"><thead><tr><th class="l">유형</th><th>종료</th><th>낙찰</th><th>낙찰률</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
+        <p class="koNote">경매만 집계합니다 — 즉시구매는 따로 셉니다. 유찰된 경매도 분모에 그대로 둡니다.</p>
+      </section>`;
+  })();
+
   const cardsSection = topCards.length ? `
       <section aria-label="인기 카드 시세">
         <h2>${esc(code)} 인기 카드 NM 시세 (원화)</h2>
@@ -503,6 +529,7 @@ ${cardRows}
       <ul class="koFacts">${facts.map((f) => `<li>${f}</li>`).join("")}</ul>
 ${proseHtml}
 ${cardsSection}
+      ${koAuctionSection}
       <div class="koCta">
         <a class="primary" href="./">전 세트 시세표 →</a>
         ${enHref ? `<a class="ghost" href="${enHref}">영문 상세(차트·PSA) →</a>` : ""}

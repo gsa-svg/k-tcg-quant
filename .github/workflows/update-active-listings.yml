@@ -68,6 +68,7 @@ jobs:
           node --check tools/build-set-auction-stats.js
           node --check tools/generate-tcg-auction-page.js
           node --check tools/inject-nav.js
+          node --check tools/audit-thin-pages.js
           node --check tools/guard-invariants.js
           node --check tools/audit-adsense-readiness.js
           node --check tools/audit-grading-numbers.js
@@ -176,6 +177,8 @@ jobs:
           node tools/generate-tcg-auction-page.js 2>&1 | tee logs/generate-tcg-auction-page.log
           # 메뉴는 site-nav.js 한 곳에서 정의한다. 손으로 쓴 HTML 14개는 이걸로만 갱신된다.
           node tools/inject-nav.js 2>&1 | tee logs/inject-nav.log
+          # 색인 대상 중 얇은 페이지 목록 — 애드센스 "가치 없는 콘텐츠" 재발 감시용(실패시키지 않음)
+          node tools/audit-thin-pages.js 2>&1 | tee logs/audit-thin-pages.log || true
           node tools/inject-set-comparison.js 2>&1 | tee logs/inject-set-comparison.log
 
       # 가드 실패 이유를 실행 화면(annotation + summary)에 직접 띄운다 — 2026-07-27.

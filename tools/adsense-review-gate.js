@@ -29,7 +29,7 @@
 //   해제하면 meta 가 index,follow 로 바뀌고 사이트맵에 50개 URL 이 다시 들어간다.
 //
 // ⚠️ 이 값은 소유자 지시 없이 바꾸지 않는다. 노출상태 변경은 되돌리기 어렵다.
-const REVIEW_ACTIVE = true;
+const REVIEW_ACTIVE = false;
 
 // 심사 중에는 이 페이지들에 광고를 붙이지 않는다. noindex 와는 별개 판단이라 따로 둔다 —
 // 광고 코드가 없는 페이지는 애드센스 심사 대상이 아니고, noindex 를 풀어도 그 사실은 안 변한다.

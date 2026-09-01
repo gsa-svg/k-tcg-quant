@@ -8,6 +8,11 @@ const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
+// 카드별 경매 실적 — auction-card-stats.js 가 굽는다(45일 롤링). 없으면 섹션을 생략한다.
+// ⚠️ ROOT 정의 **뒤에** 둘 것. 앞에 두면 try/catch 가 ReferenceError 를 삼켜
+//    섹션이 조용히 0개가 된다(2026-09-01 세트 페이지에서 그렇게 당했다).
+let CARD_AUCTION = { cards: {}, window: "", updated: "" };
+try { CARD_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-card-stats.json"), "utf8")); } catch { /* 없으면 생략 */ }
 const SITE = "https://opboxindex.com";
 const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
 const TOP_N = 24;
@@ -259,6 +264,20 @@ for (const { code, set: s, card: c } of cands) {
 
       ${gradeSection}
 
+      ${(() => {
+        // 이 카드가 경매에서 실제로 어떻게 팔렸나 — 우리가 종료 후 재조회해 쌓은 원장에서만 나온다.
+        // 애드센스가 '가치 없는 콘텐츠'로 거절한 뒤(2026-09-01), 카드 상세를 고유 데이터로 채우려고 넣었다.
+        const a = CARD_AUCTION.cards && CARD_AUCTION.cards[c.number];
+        if (!a || a.n < 5) return "";
+        const recent = (a.last || []).filter((x) => Number.isFinite(x.price)).slice(0, 6);
+        const rows = recent.map((x) => `<tr><td>${esc(x.d)}</td><td>${Math.round(x.price).toLocaleString("en-US")}</td><td>${x.bids ?? "—"}</td></tr>`).join("");
+        const band = a.low != null && a.high != null ? ` Most winning bids landed between <strong>${Math.round(a.low)}</strong> and <strong>${Math.round(a.high)}</strong>.` : "";
+        const bidders = a.medBidders ? ` A typical sold lot drew ${a.medBidders} bidders.` : "";
+        return `      <h2>${esc(c.name)} at auction</h2>
+      <p>Across the last 45 days we settled <strong>${a.n}</strong> ended auctions for this exact card — read again after each one closed. <strong>${a.sold}</strong> sold (${a.sellThrough}%), the rest passed unsold.${a.medPrice != null ? ` The median winning bid was <strong>${Math.round(a.medPrice).toLocaleString("en-US")}</strong>.` : ""}${band}${bidders}</p>
+      ${rows ? `<table class="cardTable"><thead><tr><th>Closed</th><th>Winning bid</th><th>Bids</th></tr></thead><tbody>${rows}</tbody></table>` : ""}
+      <p class="priceNote">Auctions only, this variant only — a manga rare and its plain parallel are counted separately. Unsold auctions stay in the denominator.</p>`;
+      })()}
       <h2>${esc(c.name)} variant record</h2>
       <ul class="factList">
         <li>Tracked card number: ${esc(c.number)}</li>
@@ -399,7 +418,7 @@ const hub = `<!doctype html>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      ${navHtml("../")}
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Card Prices</p>
