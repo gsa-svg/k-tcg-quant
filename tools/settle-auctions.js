@@ -22,6 +22,7 @@ const { parseLotQuantity, unitPrice } = require("./lot-quantity");
 const { extraFields } = require("./auction-fields");
 const { appendSales, readRecent } = require("./auction-archive");
 const { buildDaily } = require("./auction-aggregate");
+const { categorize } = require("./auction-classify");
 
 const ROOT = path.join(__dirname, "..");
 // 게임별 정산 — 2026-08-19. collect-auction-market.js --game=palworld 가 쌓은 감시목록을
@@ -138,7 +139,11 @@ let rateLimited = false;   // 429 로 조기 종료했는가 — 로그에 남�
     // 다수량(lot) 처리: "3 boxes"/"x2" 는 개수로 나눠 개당가를 만들고, case/lot 처럼 개수를
     // 셀 수 없으면 qty=null → 개당가 없음(가격 통계에서 제외). 3박스 낙찰 총액이 1박스
     // 가격으로 섞이는 오염을 막는다. 제목도 남겨 나중에 재검증할 수 있게 한다.
-    const qty = parseLotQuantity(j.title || "", w.kind);
+    // 분류는 정산 시점 제목으로 다시 매긴다 — 감시목록의 kind 는 매물을 처음 봤을 때 값이라,
+    // 판매자가 제목을 고쳤거나 분류 규칙이 그 사이 바뀌었으면 어긋난다. 수량 파싱이 이 값을 쓰므로
+    // 어긋나면 개당가까지 틀어진다. 제목이 비면 되짚을 근거가 없으니 옛 값을 유지한다.
+    const kind = j.title ? categorize(j.title) : w.kind;
+    const qty = parseLotQuantity(j.title || "", kind);
     const total = Number.isFinite(price) && sold !== false ? Number(price.toFixed(2)) : null;
 
     // 부가 필드(등급·판·변형·배송비·판매국가·판매자 신뢰구간·종료시각·상태).
@@ -149,7 +154,7 @@ let rateLimited = false;   // 429 로 조기 종료했는가 — 로그에 남�
     settled.push({
       d: new Date(Date.parse(w.endsAt)).toISOString().slice(0, 10),
       id: w.id,
-      kind: w.kind,
+      kind,
       set: w.set,
       cardId: w.cardId,
       title: j.title || "",

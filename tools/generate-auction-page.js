@@ -131,54 +131,14 @@ const wilson = (s, n) => {
   const z = 1.96, p = s / n;
   return +((z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n)) / (1 + (z * z) / n)) * 100).toFixed(1);
 };
-let tcgRows = [], tcgDays = 0, tcgTotal = 0, tcgFrom = "", tcgTo = "";
+// 이 페이지는 원피스 전용이다. TCG 집계는 tcg-auction.html 이 한다.
+// 여기서 필요한 건 "같은 수집으로 몇 개 게임을 보는가" 하나뿐이라, 그 숫자만 읽는다.
+let tcgGameCount = 0;
 try {
   const tSeries = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "tcg-series.json"), "utf8"));
-  const names = Object.fromEntries(Object.entries(tSeries.games || {}).map(([k, v]) => [k, v.name]));
-  const arcDir = path.join(ROOT, "data", "tcg-archive");
-  const files = fs.readdirSync(arcDir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
-  tcgDays = files.length; tcgFrom = (files[0] || "").slice(0, 10); tcgTo = (files[files.length - 1] || "").slice(0, 10);
-  const agg = {};
-  for (const f of files) {
-    for (const s of JSON.parse(fs.readFileSync(path.join(arcDir, f), "utf8")).sales || []) {
-      const g = s.g; if (!g) continue;
-      agg[g] = agg[g] || { n: 0, sold: 0, gmv: 0, prices: [] };
-      agg[g].n++; tcgTotal++;
-      if (s.sold) { agg[g].sold++; const p = Number(s.price); if (p > 0) { agg[g].prices.push(p); agg[g].gmv += p; } }
-    }
-  }
-  // 진행 중 매물 수는 표본이 아니라 실측 카운트라 신뢰구간이 필요 없다.
-  const lastDay = (tSeries.daily || [])[(tSeries.daily || []).length - 1] || { games: {} };
-  tcgRows = Object.entries(agg)
-    .filter(([, v]) => v.n >= TCG_MIN_N)
-    .map(([k, v]) => {
-      const sorted = v.prices.slice().sort((a, b) => a - b);
-      const med = sorted.length ? sorted[Math.floor(sorted.length / 2)] : null;
-      const g = lastDay.games[k] || {};
-      return {
-        key: k,
-        name: names[k] || k,
-        isOp: k === "onepiece",
-        n: v.n, sold: v.sold,
-        rate: +((v.sold / v.n) * 100).toFixed(1),
-        ci: wilson(v.sold, v.n),
-        // 1센트 시작 벌크 매물이 섞이면 중앙값이 $0.01 로 무너진다. 그런 값은 쓰지 않는다.
-        med: sorted.length >= TCG_MIN_PRICE_N && med >= 1 ? med : null,
-        gmv: Math.round(v.gmv || 0),
-        // 그날 eBay 에서 실제로 끝난 경매 수. 우리가 확인한 n/sold 와는 다른 값이다(그쪽이 훨씬 작다).
-        ending: Math.round(g.endingToday || 0),
-      };
-    })
-    .sort((a, b) => b.rate - a.rate);
-} catch { tcgRows = []; }
-// 상단 스탯은 반드시 차트와 같은 표본에서 뽑는다. 전용 원피스 수집기(auction-sold.json)와
-// 섞으면 같은 페이지에 원피스 낙찰률이 두 개 나와 오류처럼 보인다 — 2026-08-12 실제로 그랬다.
-const tcgEndedAll = tcgRows.reduce((a, r) => a + r.n, 0);
-const tcgSoldAll = tcgRows.reduce((a, r) => a + r.sold, 0);
-const tcgGmvAll = tcgRows.reduce((a, r) => a + r.gmv, 0);
-const tcgJson = JSON.stringify(tcgRows);
+  tcgGameCount = Object.keys(tSeries.games || {}).length;
+} catch { tcgGameCount = 0; }
 
-const tcgTr = tcgRows.map((r) => `<tr${r.isOp ? ' style="background:rgba(16,215,160,.06)"' : ""}><td class="l">${esc(r.name)}${r.isOp ? " <small>this site's subject</small>" : ""}</td><td>${num(r.n)}</td><td>${num(r.sold)}</td><td>${r.rate}% <small style="color:var(--muted)">±${r.ci}</small></td><td>${r.med != null ? usd(r.med) : "—"}</td></tr>`).join("\n");
 
 const faqs = [
   { q: "Where do these auction prices come from?", a: "Every auction is read again after it closed, so the price recorded is the final winning bid — not a mid-auction bid and not an asking price. Auctions that ended without a sale stay in the data as the denominator of sell-through. Where eBay does not report a sold state we store null rather than guessing." },
@@ -397,8 +357,8 @@ ${kTr}
       </table>
       </div>
 
-${tcgRows.length >= 5 ? `
-      <p class="priceNote">This page is One Piece only. The same settlement run covers ${tcgRows.length} card games — see <a href="tcg-auction.html">TCG auction data</a> for the cross-game table.</p>
+${tcgGameCount >= 5 ? `
+      <p class="priceNote">This page is One Piece only. The same settlement run covers ${tcgGameCount} card games — see <a href="tcg-auction.html">TCG auction data</a> for the cross-game table.</p>
 ` : ""}
       <h2>Highest auction medians by card</h2>
       <div style="overflow-x:auto">
