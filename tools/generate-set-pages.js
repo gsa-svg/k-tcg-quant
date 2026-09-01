@@ -484,7 +484,10 @@ function setPage(code, prev, next) {
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
   const canonical = `${SITE}/sets/${slug(code)}.html`;
   const prioritySeo = PRIORITY_SET_SEO.sets?.[code];
-  const title = `${prioritySeo?.title || `${code} ${nameEn} Booster Box Price (Japanese)`} | OP Box Index`;
+  // 기본 제목은 박스 가격만 말했는데, GSC 실측(2026-09-01) 미국 검색어에는
+  // "op10 most expensive cards" 처럼 **카드**를 찾는 것이 섞여 있다. 이 페이지엔 이미
+  // "Top 10 chase cards" 섹션이 있으니 제목에서 그 사실을 말해 두 검색을 다 받는다.
+  const title = `${prioritySeo?.title || `${code} ${nameEn} Box Price & Most Expensive Cards (Japanese)`} | OP Box Index`;
   // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
   // 그것부터 템플릿 신호다. 해설이 없는 세트만 기존 골격으로 떨어진다.
   const story = COMMENTARY.sets?.[code];
