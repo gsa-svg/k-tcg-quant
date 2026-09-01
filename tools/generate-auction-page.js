@@ -41,6 +41,49 @@ const aggNote = fullDaily.length >= 3 && fullDaily.length < daily.length ? ` (${
 const totN = aggDays.reduce((t, x) => t + x.n, 0);
 const totSold = aggDays.reduce((t, x) => t + x.sold, 0);
 const st = totN ? Math.round((totSold / totN) * 100) : 0;
+
+// ── 그래프용 데이터 ─────────────────────────────────────────────
+// 표는 최근 10일이지만 그래프는 전 기간을 그린다. 추이는 길게 봐야 보인다.
+// partial 일자는 값을 지우지 않고 흐리게 그린다 — 덜 센 날이지 틀린 날이 아니다.
+// 거래액만 auction-series.json 에 있어 날짜로 붙인다(같은 원장에서 나온 두 파생파일).
+const amtByDay = {};
+for (const r of aucSeries.daily || []) if (r && r.d) amtByDay[r.d] = Math.round(r.amount || 0);
+const chartDays = (auc.daily || []).filter((x) => x.d < TODAY_ISO).map((x) => ({
+  d: x.d,
+  p: PARTIAL_DAYS.has(x.d) ? 1 : 0,
+  ended: x.n || 0,
+  sold: x.sold || 0,
+  rate: x.sellThrough == null ? null : x.sellThrough,
+  gmv: amtByDay[x.d] == null ? null : amtByDay[x.d],
+  med: x.medPrice == null ? null : x.medPrice,
+}));
+const chartJson = JSON.stringify(chartDays);
+
+// 유형별 — 원피스 페이지에만 있는 축이다(TCG 페이지는 게임별로 넓게 본다).
+// 표본이 얇은 유형은 비율을 만들지 않는다. carton 은 하루 0~2건이라 대개 빠진다.
+const KIND_MIN = 25;
+const KIND_LABEL = { box: "Sealed box", carton: "Sealed carton", pack: "Booster pack", card: "Single card" };
+const kindAgg = {};
+for (const day of aggDays) {
+  for (const [k, v] of Object.entries(day.byKind || {})) {
+    const a = (kindAgg[k] = kindAgg[k] || { n: 0, sold: 0, meds: [] });
+    a.n += v.n || 0;
+    a.sold += v.sold || 0;
+    if (v.medPrice != null && (v.n || 0) >= 5) a.meds.push(v.medPrice);
+  }
+}
+const kindRows = Object.entries(kindAgg)
+  .map(([k, a]) => ({
+    key: k,
+    name: KIND_LABEL[k] || k,
+    n: a.n,
+    sold: a.sold,
+    rate: a.n >= KIND_MIN ? Math.round((a.sold / a.n) * 1000) / 10 : null,
+    med: a.meds.length >= 3 ? a.meds.slice().sort((x, y) => x - y)[Math.floor(a.meds.length / 2)] : null,
+  }))
+  .filter((r) => r.n > 0)
+  .sort((a, b) => b.n - a.n);
+const kindJson = JSON.stringify(kindRows);
 const kinds = ["card", "box", "pack"].map((k) => {
   const rows = aggDays.map((x) => x.byKind && x.byKind[k]).filter(Boolean);
   const n = rows.reduce((t, b) => t + b.n, 0), sold = rows.reduce((t, b) => t + b.sold, 0);
@@ -211,6 +254,38 @@ const html = `<!doctype html>
       .stat.hi b { color: #14A882; }
 
       .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0 8px; background: rgba(255,255,255,.015); }
+      .chartHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+      .chartHead h2 { margin: 0 0 2px; }
+      .chartHead .sub { margin: 0; color: var(--muted); font-size: 12.5px; }
+      .metricTabs { display: flex; flex-wrap: wrap; gap: 4px; }
+      .metricTabs button { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+        border: 1px solid var(--line); background: transparent; color: var(--muted); }
+      .metricTabs button[aria-pressed="true"] { background: rgba(80,218,217,.14); border-color: rgba(80,218,217,.5); color: #bff3f2; }
+      .metricTabs button:focus-visible { outline: 2px solid #50dad9; outline-offset: 2px; }
+      /* 일별 막대 — 한 번에 한 지표만 그린다. 축이 둘인 그래프는 만들지 않는다. */
+      .opChart { position: relative; margin-top: 14px; }
+      .opBars { display: flex; align-items: flex-end; gap: 2px; height: 190px; padding: 0 0 2px; }
+      .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+      .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
+      .opCol.pt i { background: rgba(80,218,217,.34); }
+      .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
+      .opCol:hover i, .opCol:focus-visible i { background: #8af3f2; }
+      .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 11px; }
+      .opTip { position: absolute; z-index: 5; pointer-events: none; background: #10141b; border: 1px solid rgba(255,255,255,.16);
+        border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; }
+      .opTip b { color: #eef2ff; }
+      .opTip em { color: #ffca6e; font-style: normal; }
+      /* 유형별 가로 막대 — 이름표를 항상 붙여 색만으로 구분하지 않는다. */
+      .kindList { margin-top: 12px; display: grid; gap: 9px; }
+      .kindRow { display: grid; grid-template-columns: 116px 1fr 92px; gap: 10px; align-items: center; font-size: 13px; }
+      .kindRow .kName { color: #eef2ff; font-weight: 600; }
+      .kindRow .kTrack { position: relative; height: 20px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
+      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #50dad9; }
+      .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 20px; font-size: 11.5px; color: #04222a; font-weight: 700; }
+      .kindRow .kVal.out { color: var(--muted); }
+      .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .kindRow .kMed b { color: #eef2ff; }
+      @media (max-width: 560px) { .kindRow { grid-template-columns: 92px 1fr 76px; font-size: 12px; } .opBars { height: 150px; } }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
@@ -244,7 +319,7 @@ const html = `<!doctype html>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      ${navHtml("")}
+      ${navHtml("", "auction.html")}
     </header>
     <main id="main-content" class="aucWrap">
       <p class="eyebrow">Auction Data</p>
@@ -256,6 +331,33 @@ const html = `<!doctype html>
         <div class="stat"><b>${num(totSold)}</b><span>found a buyer</span></div>
         <div class="stat"><b>${num(totN - totSold)}</b><span>passed unsold</span></div>
       </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>One Piece auctions, day by day</h2>
+            <p class="sub">${chartDays.length ? esc(chartDays[0].d) + "–" + esc(chartDays[chartDays.length - 1].d) : ""} · faded bars are days when collection was interrupted</p>
+          </div>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-m="rate" aria-pressed="true">Sell-through</button>
+            <button type="button" data-m="ended" aria-pressed="false">Auctions ended</button>
+            <button type="button" data-m="sold" aria-pressed="false">Sold</button>
+            <button type="button" data-m="gmv" aria-pressed="false">Hammer value</button>
+            <button type="button" data-m="med" aria-pressed="false">Median winning bid</button>
+          </div>
+        </div>
+        <div class="opChart" id="opDailyChart"></div>
+      </div>
+
+${kindRows.length >= 2 ? `      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>What sells, by what it is</h2>
+            <p class="sub">Same window as the numbers at the top: ${esc(aggDays[0].d)}–${esc(aggDays[aggDays.length - 1].d)}, ${aggDays.length} fully collected days${aggNote ? " (partial days excluded)" : ""}. Bars show the share that sold; the figure on the right is the median winning bid.</p>
+          </div>
+        </div>
+        <div class="kindList" id="opKindChart"></div>
+      </div>` : ""}
 
       <h2>Daily results — last ${daily.length} days</h2>
       <div style="overflow-x:auto">
@@ -300,6 +402,131 @@ ${cTr}
 
       <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
     </main>
+    <script>
+      // 일별 막대 — 지표 탭으로 한 번에 하나만 그린다.
+      // 축이 둘인 그래프(낙찰률과 건수를 한 판에)는 만들지 않는다. 눈금이 서로를 속인다.
+      (function () {
+        var days = ${chartJson};
+        var host = document.getElementById("opDailyChart");
+        if (!host || !days.length) return;
+        var M = {
+          rate: { label: "Sell-through", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true },
+          ended: { label: "Auctions ended", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          sold: { label: "Sold", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          gmv: { label: "Hammer value", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
+          med: { label: "Median winning bid", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+        };
+        var bars = document.createElement("div"); bars.className = "opBars";
+        var axis = document.createElement("div"); axis.className = "opAxis";
+        var tip = document.createElement("div"); tip.className = "opTip";
+        host.appendChild(bars); host.appendChild(axis); host.appendChild(tip);
+        var cols = days.map(function (r) {
+          var c = document.createElement("div");
+          c.className = "opCol" + (r.p ? " pt" : "");
+          c.tabIndex = 0;
+          c.appendChild(document.createElement("i"));
+          bars.appendChild(c);
+          return c;
+        });
+        var short = function (d) { return d.slice(5).replace("-", "/"); };
+        axis.innerHTML = "<span>" + short(days[0].d) + "</span><span>" + short(days[days.length - 1].d) + "</span>";
+        var metric = "rate";
+        function draw() {
+          var m = M[metric];
+          var vals = days.map(function (r) { return r[metric]; }).filter(function (v) { return v != null && isFinite(v); });
+          var top = vals.length ? Math.max.apply(null, vals) : 0;
+          if (m.floor10) top = Math.max(top, 10);
+          days.forEach(function (r, i) {
+            var v = r[metric];
+            var c = cols[i];
+            var bar = c.firstChild;
+            if (v == null || !isFinite(v)) {
+              c.classList.add("nul");
+              bar.style.height = "100%";
+              c.setAttribute("aria-label", r.d + " — not measured");
+            } else {
+              c.classList.remove("nul");
+              bar.style.height = Math.max(2, Math.round((v / (top || 1)) * 100)) + "%";
+              c.setAttribute("aria-label", r.d + " — " + m.label + " " + m.fmt(v) + (r.p ? " (partial day)" : ""));
+            }
+          });
+        }
+        function showTip(i) {
+          var r = days[i];
+          var lines = ["<b>" + r.d + "</b>"];
+          if (r.p) lines.push("<em>collection interrupted</em>");
+          lines.push(r.rate == null ? "Sell-through — not measured" : "Sell-through <b>" + r.rate.toFixed(1) + "%</b>");
+          lines.push("Ended <b>" + r.ended.toLocaleString("en-US") + "</b> · sold <b>" + r.sold.toLocaleString("en-US") + "</b>");
+          if (r.gmv != null) lines.push("Hammer <b>$" + r.gmv.toLocaleString("en-US") + "</b>");
+          if (r.med != null) lines.push("Median bid <b>$" + (r.med < 100 ? r.med.toFixed(2) : Math.round(r.med).toLocaleString("en-US")) + "</b>");
+          tip.innerHTML = lines.join("<br>");
+          tip.style.opacity = "1";
+          var hb = host.getBoundingClientRect();
+          var cb = cols[i].getBoundingClientRect();
+          var x = cb.left - hb.left + cb.width / 2 - tip.offsetWidth / 2;
+          tip.style.left = Math.max(0, Math.min(x, hb.width - tip.offsetWidth)) + "px";
+          tip.style.top = Math.max(0, cb.top - hb.top - tip.offsetHeight - 8) + "px";
+        }
+        cols.forEach(function (c, i) {
+          c.addEventListener("mouseenter", function () { showTip(i); });
+          c.addEventListener("focus", function () { showTip(i); });
+          c.addEventListener("blur", function () { tip.style.opacity = "0"; });
+        });
+        bars.addEventListener("mouseleave", function () { tip.style.opacity = "0"; });
+        var tabs = document.querySelectorAll(".metricTabs button[data-m]");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            metric = b.getAttribute("data-m");
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            draw();
+          });
+        });
+        draw();
+      })();
+
+      // 유형별 가로 막대. 표본이 얇아 비율이 없는 유형은 막대 대신 건수만 적는다.
+      // 문자열로 innerHTML 을 조립하지 않는다 — 따옴표가 템플릿 리터럴을 거치며 풀려 깨진다.
+      (function () {
+        var rows = ${kindJson};
+        var host = document.getElementById("opKindChart");
+        if (!host || !rows.length) return;
+        var money = function (v) { return v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
+        rows.forEach(function (r) {
+          var pct = r.rate == null ? 0 : r.rate;
+          var wide = pct >= 22;
+          var val = r.rate == null ? "too few (" + r.n.toLocaleString("en-US") + ")" : r.rate.toFixed(1) + "%";
+
+          var row = document.createElement("div"); row.className = "kindRow";
+          var name = document.createElement("span"); name.className = "kName"; name.textContent = r.name;
+
+          var track = document.createElement("span"); track.className = "kTrack";
+          track.setAttribute("role", "img");
+          track.setAttribute("aria-label", r.name + ": " + val + " of " + r.n.toLocaleString("en-US") + " auctions sold");
+          if (r.rate != null) {
+            var fill = document.createElement("span"); fill.className = "kFill";
+            fill.style.width = pct + "%";
+            track.appendChild(fill);
+          }
+          var label = document.createElement("span");
+          label.className = "kVal" + (wide ? "" : " out");
+          if (!wide) label.style.left = (pct + 2) + "%";
+          label.textContent = val;
+          track.appendChild(label);
+
+          var med = document.createElement("span"); med.className = "kMed";
+          if (r.med == null) {
+            med.textContent = "\u2014";
+          } else {
+            var b = document.createElement("b"); b.textContent = "$" + money(r.med);
+            med.appendChild(b);
+          }
+
+          row.appendChild(name); row.appendChild(track); row.appendChild(med);
+          host.appendChild(row);
+        });
+      })();
+    </script>
+
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>

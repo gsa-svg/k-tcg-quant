@@ -62,6 +62,38 @@
       .stat.hi b { color: #14A882; }
 
       .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0 8px; background: rgba(255,255,255,.015); }
+      .chartHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+      .chartHead h2 { margin: 0 0 2px; }
+      .chartHead .sub { margin: 0; color: var(--muted); font-size: 12.5px; }
+      .metricTabs { display: flex; flex-wrap: wrap; gap: 4px; }
+      .metricTabs button { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
+        border: 1px solid var(--line); background: transparent; color: var(--muted); }
+      .metricTabs button[aria-pressed="true"] { background: rgba(80,218,217,.14); border-color: rgba(80,218,217,.5); color: #bff3f2; }
+      .metricTabs button:focus-visible { outline: 2px solid #50dad9; outline-offset: 2px; }
+      /* 일별 막대 — 한 번에 한 지표만 그린다. 축이 둘인 그래프는 만들지 않는다. */
+      .opChart { position: relative; margin-top: 14px; }
+      .opBars { display: flex; align-items: flex-end; gap: 2px; height: 190px; padding: 0 0 2px; }
+      .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+      .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
+      .opCol.pt i { background: rgba(80,218,217,.34); }
+      .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
+      .opCol:hover i, .opCol:focus-visible i { background: #8af3f2; }
+      .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 11px; }
+      .opTip { position: absolute; z-index: 5; pointer-events: none; background: #10141b; border: 1px solid rgba(255,255,255,.16);
+        border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; white-space: nowrap; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; }
+      .opTip b { color: #eef2ff; }
+      .opTip em { color: #ffca6e; font-style: normal; }
+      /* 유형별 가로 막대 — 이름표를 항상 붙여 색만으로 구분하지 않는다. */
+      .kindList { margin-top: 12px; display: grid; gap: 9px; }
+      .kindRow { display: grid; grid-template-columns: 116px 1fr 92px; gap: 10px; align-items: center; font-size: 13px; }
+      .kindRow .kName { color: #eef2ff; font-weight: 600; }
+      .kindRow .kTrack { position: relative; height: 20px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
+      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #50dad9; }
+      .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 20px; font-size: 11.5px; color: #04222a; font-weight: 700; }
+      .kindRow .kVal.out { color: var(--muted); }
+      .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .kindRow .kMed b { color: #eef2ff; }
+      @media (max-width: 560px) { .kindRow { grid-template-columns: 92px 1fr 76px; font-size: 12px; } .opBars { height: 150px; } }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
@@ -106,6 +138,33 @@
         <div class="stat"><b>5,653</b><span>One Piece auctions settled</span></div>
         <div class="stat"><b>1,935</b><span>found a buyer</span></div>
         <div class="stat"><b>3,718</b><span>passed unsold</span></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>One Piece auctions, day by day</h2>
+            <p class="sub">2026-07-20–2026-08-31 · faded bars are days when collection was interrupted</p>
+          </div>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-m="rate" aria-pressed="true">Sell-through</button>
+            <button type="button" data-m="ended" aria-pressed="false">Auctions ended</button>
+            <button type="button" data-m="sold" aria-pressed="false">Sold</button>
+            <button type="button" data-m="gmv" aria-pressed="false">Hammer value</button>
+            <button type="button" data-m="med" aria-pressed="false">Median winning bid</button>
+          </div>
+        </div>
+        <div class="opChart" id="opDailyChart"></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>What sells, by what it is</h2>
+            <p class="sub">Same window as the numbers at the top: 2026-08-23–2026-08-30, 5 fully collected days (partial days excluded). Bars show the share that sold; the figure on the right is the median winning bid.</p>
+          </div>
+        </div>
+        <div class="kindList" id="opKindChart"></div>
       </div>
 
       <h2>Daily results — last 10 days</h2>
@@ -173,6 +232,131 @@
 
       <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
     </main>
+    <script>
+      // 일별 막대 — 지표 탭으로 한 번에 하나만 그린다.
+      // 축이 둘인 그래프(낙찰률과 건수를 한 판에)는 만들지 않는다. 눈금이 서로를 속인다.
+      (function () {
+        var days = [{"d":"2026-07-20","p":0,"ended":550,"sold":118,"rate":21.5,"gmv":11686,"med":20.5},{"d":"2026-07-21","p":0,"ended":843,"sold":298,"rate":35.3,"gmv":44187,"med":15.25},{"d":"2026-07-22","p":0,"ended":794,"sold":326,"rate":41.1,"gmv":22529,"med":15.5},{"d":"2026-07-23","p":0,"ended":772,"sold":276,"rate":35.8,"gmv":27103,"med":12},{"d":"2026-07-24","p":1,"ended":344,"sold":151,"rate":43.9,"gmv":21144,"med":17},{"d":"2026-07-27","p":1,"ended":91,"sold":21,"rate":23.1,"gmv":2634,"med":27.5},{"d":"2026-07-28","p":0,"ended":547,"sold":168,"rate":30.7,"gmv":21126,"med":13.29},{"d":"2026-07-29","p":1,"ended":755,"sold":230,"rate":30.5,"gmv":52946,"med":28},{"d":"2026-07-30","p":0,"ended":711,"sold":218,"rate":30.7,"gmv":35608,"med":41},{"d":"2026-07-31","p":0,"ended":892,"sold":220,"rate":24.7,"gmv":40911,"med":22.26},{"d":"2026-08-01","p":0,"ended":882,"sold":265,"rate":30,"gmv":34040,"med":20.5},{"d":"2026-08-02","p":0,"ended":1222,"sold":425,"rate":34.8,"gmv":65767,"med":22.5},{"d":"2026-08-03","p":1,"ended":777,"sold":234,"rate":30.1,"gmv":21890,"med":17.77},{"d":"2026-08-04","p":0,"ended":866,"sold":306,"rate":35.3,"gmv":57850,"med":18.5},{"d":"2026-08-05","p":0,"ended":889,"sold":317,"rate":35.7,"gmv":52900,"med":20},{"d":"2026-08-06","p":1,"ended":568,"sold":188,"rate":33.1,"gmv":23740,"med":17.49},{"d":"2026-08-07","p":0,"ended":1025,"sold":267,"rate":26,"gmv":48689,"med":20.5},{"d":"2026-08-08","p":0,"ended":1129,"sold":387,"rate":34.3,"gmv":31292,"med":16.5},{"d":"2026-08-09","p":0,"ended":1238,"sold":442,"rate":35.7,"gmv":49608,"med":20},{"d":"2026-08-10","p":0,"ended":1104,"sold":357,"rate":32.3,"gmv":36382,"med":24.5},{"d":"2026-08-11","p":0,"ended":1101,"sold":371,"rate":33.7,"gmv":58466,"med":15},{"d":"2026-08-12","p":0,"ended":1064,"sold":382,"rate":35.9,"gmv":43957,"med":11.61},{"d":"2026-08-13","p":0,"ended":805,"sold":277,"rate":34.4,"gmv":26586,"med":20.5},{"d":"2026-08-14","p":0,"ended":1077,"sold":269,"rate":25,"gmv":44347,"med":18.5},{"d":"2026-08-15","p":0,"ended":1091,"sold":323,"rate":29.6,"gmv":31870,"med":20.5},{"d":"2026-08-16","p":0,"ended":1298,"sold":385,"rate":29.7,"gmv":29834,"med":20.5},{"d":"2026-08-17","p":0,"ended":946,"sold":306,"rate":32.3,"gmv":26031,"med":17},{"d":"2026-08-18","p":0,"ended":1002,"sold":422,"rate":42.1,"gmv":121964,"med":26.01},{"d":"2026-08-19","p":0,"ended":855,"sold":228,"rate":26.7,"gmv":63661,"med":20.5},{"d":"2026-08-20","p":0,"ended":960,"sold":303,"rate":31.6,"gmv":36079,"med":17},{"d":"2026-08-21","p":0,"ended":1136,"sold":199,"rate":17.5,"gmv":25259,"med":30},{"d":"2026-08-22","p":1,"ended":813,"sold":232,"rate":28.5,"gmv":29521,"med":23.5},{"d":"2026-08-23","p":0,"ended":1279,"sold":356,"rate":27.8,"gmv":27101,"med":10.5},{"d":"2026-08-24","p":0,"ended":1045,"sold":414,"rate":39.6,"gmv":51751,"med":22.5},{"d":"2026-08-25","p":0,"ended":1024,"sold":411,"rate":40.1,"gmv":60278,"med":17.88},{"d":"2026-08-26","p":0,"ended":868,"sold":249,"rate":28.7,"gmv":43408,"med":10.5},{"d":"2026-08-27","p":1,"ended":357,"sold":201,"rate":56.3,"gmv":19142,"med":16.5},{"d":"2026-08-28","p":1,"ended":723,"sold":198,"rate":27.4,"gmv":40590,"med":14.5},{"d":"2026-08-29","p":1,"ended":557,"sold":161,"rate":28.9,"gmv":17534,"med":14.62},{"d":"2026-08-30","p":0,"ended":1437,"sold":505,"rate":35.1,"gmv":64970,"med":25.14},{"d":"2026-08-31","p":1,"ended":1468,"sold":788,"rate":53.7,"gmv":90985,"med":21}];
+        var host = document.getElementById("opDailyChart");
+        if (!host || !days.length) return;
+        var M = {
+          rate: { label: "Sell-through", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true },
+          ended: { label: "Auctions ended", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          sold: { label: "Sold", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          gmv: { label: "Hammer value", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
+          med: { label: "Median winning bid", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+        };
+        var bars = document.createElement("div"); bars.className = "opBars";
+        var axis = document.createElement("div"); axis.className = "opAxis";
+        var tip = document.createElement("div"); tip.className = "opTip";
+        host.appendChild(bars); host.appendChild(axis); host.appendChild(tip);
+        var cols = days.map(function (r) {
+          var c = document.createElement("div");
+          c.className = "opCol" + (r.p ? " pt" : "");
+          c.tabIndex = 0;
+          c.appendChild(document.createElement("i"));
+          bars.appendChild(c);
+          return c;
+        });
+        var short = function (d) { return d.slice(5).replace("-", "/"); };
+        axis.innerHTML = "<span>" + short(days[0].d) + "</span><span>" + short(days[days.length - 1].d) + "</span>";
+        var metric = "rate";
+        function draw() {
+          var m = M[metric];
+          var vals = days.map(function (r) { return r[metric]; }).filter(function (v) { return v != null && isFinite(v); });
+          var top = vals.length ? Math.max.apply(null, vals) : 0;
+          if (m.floor10) top = Math.max(top, 10);
+          days.forEach(function (r, i) {
+            var v = r[metric];
+            var c = cols[i];
+            var bar = c.firstChild;
+            if (v == null || !isFinite(v)) {
+              c.classList.add("nul");
+              bar.style.height = "100%";
+              c.setAttribute("aria-label", r.d + " — not measured");
+            } else {
+              c.classList.remove("nul");
+              bar.style.height = Math.max(2, Math.round((v / (top || 1)) * 100)) + "%";
+              c.setAttribute("aria-label", r.d + " — " + m.label + " " + m.fmt(v) + (r.p ? " (partial day)" : ""));
+            }
+          });
+        }
+        function showTip(i) {
+          var r = days[i];
+          var lines = ["<b>" + r.d + "</b>"];
+          if (r.p) lines.push("<em>collection interrupted</em>");
+          lines.push(r.rate == null ? "Sell-through — not measured" : "Sell-through <b>" + r.rate.toFixed(1) + "%</b>");
+          lines.push("Ended <b>" + r.ended.toLocaleString("en-US") + "</b> · sold <b>" + r.sold.toLocaleString("en-US") + "</b>");
+          if (r.gmv != null) lines.push("Hammer <b>$" + r.gmv.toLocaleString("en-US") + "</b>");
+          if (r.med != null) lines.push("Median bid <b>$" + (r.med < 100 ? r.med.toFixed(2) : Math.round(r.med).toLocaleString("en-US")) + "</b>");
+          tip.innerHTML = lines.join("<br>");
+          tip.style.opacity = "1";
+          var hb = host.getBoundingClientRect();
+          var cb = cols[i].getBoundingClientRect();
+          var x = cb.left - hb.left + cb.width / 2 - tip.offsetWidth / 2;
+          tip.style.left = Math.max(0, Math.min(x, hb.width - tip.offsetWidth)) + "px";
+          tip.style.top = Math.max(0, cb.top - hb.top - tip.offsetHeight - 8) + "px";
+        }
+        cols.forEach(function (c, i) {
+          c.addEventListener("mouseenter", function () { showTip(i); });
+          c.addEventListener("focus", function () { showTip(i); });
+          c.addEventListener("blur", function () { tip.style.opacity = "0"; });
+        });
+        bars.addEventListener("mouseleave", function () { tip.style.opacity = "0"; });
+        var tabs = document.querySelectorAll(".metricTabs button[data-m]");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            metric = b.getAttribute("data-m");
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            draw();
+          });
+        });
+        draw();
+      })();
+
+      // 유형별 가로 막대. 표본이 얇아 비율이 없는 유형은 막대 대신 건수만 적는다.
+      // 문자열로 innerHTML 을 조립하지 않는다 — 따옴표가 템플릿 리터럴을 거치며 풀려 깨진다.
+      (function () {
+        var rows = [{"key":"card","name":"Single card","n":5319,"sold":1723,"rate":32.4,"med":18.75},{"key":"pack","name":"Booster pack","n":287,"sold":180,"rate":62.7,"med":5.33},{"key":"box","name":"Sealed box","n":45,"sold":32,"rate":71.1,"med":467.51},{"key":"carton","name":"Sealed carton","n":2,"sold":0,"rate":null,"med":null}];
+        var host = document.getElementById("opKindChart");
+        if (!host || !rows.length) return;
+        var money = function (v) { return v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
+        rows.forEach(function (r) {
+          var pct = r.rate == null ? 0 : r.rate;
+          var wide = pct >= 22;
+          var val = r.rate == null ? "too few (" + r.n.toLocaleString("en-US") + ")" : r.rate.toFixed(1) + "%";
+
+          var row = document.createElement("div"); row.className = "kindRow";
+          var name = document.createElement("span"); name.className = "kName"; name.textContent = r.name;
+
+          var track = document.createElement("span"); track.className = "kTrack";
+          track.setAttribute("role", "img");
+          track.setAttribute("aria-label", r.name + ": " + val + " of " + r.n.toLocaleString("en-US") + " auctions sold");
+          if (r.rate != null) {
+            var fill = document.createElement("span"); fill.className = "kFill";
+            fill.style.width = pct + "%";
+            track.appendChild(fill);
+          }
+          var label = document.createElement("span");
+          label.className = "kVal" + (wide ? "" : " out");
+          if (!wide) label.style.left = (pct + 2) + "%";
+          label.textContent = val;
+          track.appendChild(label);
+
+          var med = document.createElement("span"); med.className = "kMed";
+          if (r.med == null) {
+            med.textContent = "—";
+          } else {
+            var b = document.createElement("b"); b.textContent = "$" + money(r.med);
+            med.appendChild(b);
+          }
+
+          row.appendChild(name); row.appendChild(track); row.appendChild(med);
+          host.appendChild(row);
+        });
+      })();
+    </script>
+
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>

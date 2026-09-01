@@ -84,6 +84,21 @@ const totAmount = rows.reduce((t, r) => t + r.amount, 0);
 const totLive = rows.reduce((t, r) => t + (r.live || 0), 0);
 const totEndingToday = rows.reduce((t, r) => t + (r.endingToday || 0), 0);
 
+// 막대차트가 읽는 형태로 변환한다(원피스 페이지에서 쓰던 것과 같은 필드).
+const chartRows = rows.map((r) => ({
+  key: r.key,
+  name: r.name,
+  n: r.ended,
+  sold: r.sold,
+  rate: r.sellThrough == null ? null : r.sellThrough,
+  gmv: Math.round(r.amount),
+  ending: r.endingToday || 0,
+  live: r.live || 0,
+  isOp: r.key === "onepiece",
+}));
+const chartJson = JSON.stringify(chartRows);
+
+
 const tableRows = rows.map((r) => `          <tr>
             <td class="tgName">${esc(r.name)}</td>
             <td>${num(r.live)}</td>
@@ -133,6 +148,35 @@ const html = `<!doctype html>
       .tgStat { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
       .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
       .tgStat small { color: #8d95a7; font-size: 12px; }
+      .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0 8px; background: rgba(255,255,255,.015); }
+      .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+      .chartHead h2 { margin: 0; font-size: 17px; }
+      .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
+      /* wrap 필수 — 버튼 5개가 한 줄이면 375px 에서 42px 가로로 넘친다(2026-08-26 모바일 실측) */
+      .metricTabs { display: flex; gap: 6px; flex-wrap: wrap; }
+      /* min-height 44px — 34px 는 모바일 권장 터치 타겟에 못 미쳐 두 줄로 감긴 버튼 사이 오터치가 났다(2026-08-26 감사) */
+      .metricTabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; min-height: 44px; }
+      .metricTabs button[aria-pressed="true"] { border-color: #14A882; color: #14A882; background: rgba(20,168,130,.1); }
+      .metricTabs button:focus-visible { outline: 2px solid #14A882; outline-offset: 2px; }
+
+      .barList { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 4px; }
+      .barRow { display: grid; grid-template-columns: minmax(88px,132px) 1fr minmax(62px,78px); align-items: center; gap: 10px; }
+      .barName { font-size: 12.5px; color: var(--muted); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .barRow.me .barName { color: var(--ink); font-weight: 800; }
+      .barTrack { height: 16px; background: rgba(255,255,255,.045); border-radius: 4px; overflow: hidden; }
+      .barFill { height: 100%; border-radius: 0 4px 4px 0; transition: width .45s cubic-bezier(.22,.61,.36,1); }
+      .barVal { font-size: 12.5px; font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 700; }
+      .barRow .ci { color: var(--muted); font-weight: 400; font-size: 11px; }
+      .barRow:hover .barName, .barRow:focus-within .barName { color: var(--ink); }
+
+      .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 10px 0 2px; font-size: 11.5px; color: var(--muted); }
+      .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+
+      .noteFold { max-width: 760px; margin: 10px 0 0; }
+      .noteFold summary { cursor: pointer; font-size: 12.5px; color: var(--muted); padding: 6px 0; }
+      .noteFold p { font-size: 12.5px; margin: 4px 0 8px; }
+      @media (prefers-reduced-motion: reduce) { .barFill { transition: none; } }
+    
     </style>
   </head>
   <body>
@@ -152,6 +196,24 @@ const html = `<!doctype html>
         <div class="tgStat"><b>${num(totEnded)}</b><small>settled by us</small></div>
         <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small>sold</small></div>
         <div class="tgStat"><b>${usd(totAmount)}</b><small>hammer value</small></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2>How many card auctions end each day</h2>
+            <p class="sub">${esc(from)}–${esc(to)}</p>
+          </div>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
+            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
+            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
+            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
+            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
+          </div>
+        </div>
+        <div class="barList" id="tcgBars"></div>
+        <div class="legend" id="tcgLegend"></div>
       </div>
 
       <h2>Every game side by side</h2>
@@ -174,6 +236,58 @@ ${tableRows}
 
       <p style="margin-top:16px;"><a href="free-data.html">Download the raw daily CSVs</a> · <a href="methodology.html">How we count</a></p>
     </main>
+<script>
+      // 게임별 낙찰률/거래액/물량 막대. dataviz 검증 통과 6색(+중립) — 색은 익숙한 게임을
+      // 눈으로 찾게 하는 보조수단이고, 모든 막대에 이름표가 붙어 색만으로 구분하지 않는다.
+      (function () {
+        var rows = ${chartJson};
+        var el = document.getElementById("tcgBars");
+        var lg = document.getElementById("tcgLegend");
+        if (!el || !rows.length) return;
+        var HUE = { onepiece: "#14A882", pokemon: "#3987e5", pokemonjp: "#d95926", magic: "#9085e9", yugioh: "#c98500", lorcana: "#d55181" };
+        var GREY = "#5A6273";
+        var M = {
+          ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + " ending today"; } },
+          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " sold"; } },
+          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " checked"; } },
+          rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
+          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
+        };
+        function draw(key) {
+          var m = M[key];
+          var list = rows.slice().sort(function (a, b) { return m.get(b) - m.get(a); });
+          var max = m.get(list[0]) || 1;
+          el.innerHTML = list.map(function (r) {
+            var c = HUE[r.key] || GREY;
+            var w = Math.max(1.5, (m.get(r) / max) * 100);
+            var ci = m.ci && r.ci != null ? ' <span class="ci">±' + r.ci + "</span>" : "";
+            return '<div class="barRow' + (r.isOp ? " me" : "") + '">' +
+              '<div class="barName" title="' + r.name + '">' + r.name + "</div>" +
+              '<div class="barTrack"><div class="barFill" style="width:0;background:' + c + '" data-w="' + w.toFixed(1) + '"></div></div>' +
+              '<div class="barVal">' + m.fmt(r) + ci + "</div></div>";
+          }).join("");
+          // 강제 리플로우로 0 → 최종값 전이를 만든다. requestAnimationFrame 을 쓰면
+          // 화면에 안 뜬 탭(백그라운드/비합성)에서 콜백이 영영 안 돌아 막대가 0 인 채로 남는다.
+          // 동기 처리라 애니메이션이 없어도 너비는 항상 맞다.
+          void el.offsetWidth;
+          Array.prototype.forEach.call(el.querySelectorAll(".barFill"), function (b) { b.style.width = b.getAttribute("data-w") + "%"; });
+        }
+        if (lg) {
+          lg.innerHTML = Object.keys(HUE).map(function (k) {
+            var r = rows.filter(function (x) { return x.key === k; })[0];
+            return r ? '<span><i style="background:' + HUE[k] + '"></i>' + r.name + "</span>" : "";
+          }).join("") + '<span><i style="background:' + GREY + '"></i>All other games</span>';
+        }
+        var tabs = document.querySelectorAll(".metricTabs button");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            draw(b.getAttribute("data-metric"));
+          });
+        });
+        draw("ending");
+      })();
+    </script>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
