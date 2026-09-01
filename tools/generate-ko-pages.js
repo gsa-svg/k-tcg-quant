@@ -3,6 +3,8 @@
 // Run: node tools/generate-ko-pages.js
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩 금지 — 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
+const { detailRobotsMeta } = require("./adsense-review-gate");
+const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -441,7 +443,7 @@ ${cardRows}
     <!-- No AdSense on noindex Korean set detail pages. -->
     <!-- Korean set details remain noindex and ad-free through the AdSense review window.
          Reconsider indexing separately after the review; the Korean hub remains indexed. -->
-    <meta name="robots" content="noindex,follow" />
+    ${detailRobotsMeta()}
     <link rel="canonical" href="${canonical}" />
     <link rel="alternate" hreflang="ko" href="${canonical}" />
     ${enHref ? `<link rel="alternate" hreflang="en" href="${SITE}/sets/${slug}.html" />` : ""}
@@ -531,13 +533,9 @@ for (const b of rows) {
 //      noindex 페이지를 사이트맵에 두면 GSC 가 "제출됨+색인안됨" 모순으로 계속 표시한다.
 {
   const smPath = path.join(ROOT, "sitemap.xml");
+  // 심사 게이트 상태에 따라 상세 URL 을 빼거나 되돌린다(tools/sitemap-detail-urls.js).
+  const { removed, added } = syncDetailUrls(smPath, written.map((rel) => SITE + "/" + rel));
   let sm = fs.readFileSync(smPath, "utf8");
-  let removed = 0;
-  const dropLocs = new Set(written.map((rel) => `<loc>${SITE}/${rel}</loc>`));
-  sm = sm.replace(/[ \t]*<url>[\s\S]*?<\/url>\r?\n?/g, (block) => {
-    for (const loc of dropLocs) if (block.includes(loc)) { removed++; return ""; }
-    return block;
-  });
   fs.writeFileSync(smPath, sm, "utf8");
-  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed }));
+  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed, sitemapAdded: added }));
 }

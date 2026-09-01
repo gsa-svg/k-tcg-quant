@@ -178,6 +178,30 @@ function main() {
     byDay.set(day, JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || []);
   }
 
+// 공백이 이만큼 넘으면 그 날의 **비율·가격 지표를 비운다**(건수는 남긴다) — 2026-08-31 신설.
+//
+// 왜 표시만으로 부족한가: partial 플래그는 이미 달고 있었지만, 공개 CSV 를 받아가는 쪽은
+// 대개 플래그를 안 본다. 그러면 수집 구멍이 '그날의 시장'으로 인용된다.
+//
+// 임계값 12시간의 근거(2026-08-31 실측, 40일):
+//   공백 없는 30일 낙찰률 32.0% · 공백 1~11시간 9일 27~34%(정상 범위)
+//   공백 17시간 하루만 56.3% — 여기서 깨진다.
+// 왜 낙찰률만 올라가나: 종료된 경매를 나중에 조회해 정산하는데, eBay 는 팔린 항목을
+// 유찰된 항목보다 오래 보여준다. 조회가 늦어질수록 유찰이 먼저 사라져 분모가 깎인다.
+// 그래서 건수는 줄고 낙찰률만 튄다 — 8/27 이 357건에 56.3% 였던 이유다.
+const GAP_VOID_HOURS = 12;
+
+function voidRates(b, gapHours, day) {
+  if (!(gapHours > GAP_VOID_HOURS)) return b;
+  // 건수(ended/sold/unsold/amount)는 '우리가 확인한 수'로서 여전히 사실이다. 남긴다.
+  // 비율과 가격은 그 표본이 하루를 대표한다는 전제 위에서만 뜻이 있다 — 그 전제가 깨졌으니 비운다.
+  // 축(카테고리 키)은 남기고 값만 비운다. 축 자체를 없애면 "그날 그 카테고리가 없었다"로 읽히고,
+  // 가드 A2 도 축 누락으로 잡는다 — 2026-08-31 실측.
+  const blankPrice = b.price ? Object.fromEntries(Object.keys(b.price).map((k) => [k, { n: b.price[k].n, p25: null, med: null, p75: null }])) : b.price;
+  const blankBidders = b.bidders ? Object.fromEntries(Object.keys(b.bidders).map((k) => [k, null])) : b.bidders;
+  return { ...b, sellThrough: null, price: blankPrice, bidders: blankBidders, bids: null, ratesVoided: true };
+}
+
   const daily = [...byDay.entries()].map(([day, sales]) => {
     const b = stats(sales);
     return {
@@ -197,7 +221,7 @@ function main() {
       partial: b.ended < PARTIAL_BELOW || day >= new Date().toISOString().slice(0, 10) || hourGap(sales) >= 2,
       hourGapHours: hourGap(sales),
       gradeTracked: day >= GRADE_SINCE,          // false 면 graded/raw 구분이 없는 날이다
-      ...b,
+      ...voidRates(b, hourGap(sales), day),
     };
   });
 

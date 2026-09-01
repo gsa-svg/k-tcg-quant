@@ -3,6 +3,8 @@
 // Run: node tools/generate-card-pages.js
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩하면 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
+const { detailRobotsMeta } = require("./adsense-review-gate");
+const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -184,7 +186,7 @@ for (const { code, set: s, card: c } of cands) {
     <!-- No AdSense on noindex card detail pages; eBay EPN links remain active. -->
     <!-- Card details remain noindex and ad-free through the AdSense review window.
          Reconsider indexing separately after enough exact-variant sale history accumulates. -->
-    <meta name="robots" content="noindex,follow" />
+    ${detailRobotsMeta()}
     <link rel="canonical" href="${canonical}" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>${esc(title)}</title>
@@ -389,16 +391,12 @@ fs.writeFileSync(path.join(CARDS_DIR, "index.html"), hub);
 // ---- 사이트맵: 카드 상세는 noindex(2026-07-24 임시) → 사이트맵에서 제거하고 허브(/cards/)만 유지.
 //      noindex 페이지를 사이트맵에 두면 GSC 가 "제출됨+색인안됨" 모순으로 계속 표시한다.
 const smPath = path.join(ROOT, "sitemap.xml");
+// 심사 게이트 상태에 따라 상세 URL 을 빼거나 되돌린다(tools/sitemap-detail-urls.js).
+const { removed, added } = syncDetailUrls(smPath, written.map((file) => SITE + "/cards/" + file));
 let sm = fs.readFileSync(smPath, "utf8");
-let removed = 0;
-const dropLocs = new Set(written.map((f) => `<loc>${SITE}/cards/${f}</loc>`));
-sm = sm.replace(/[ \t]*<url>[\s\S]*?<\/url>\r?\n?/g, (block) => {
-  for (const loc of dropLocs) if (block.includes(loc)) { removed++; return ""; }
-  return block;
-});
 const today = new Date().toISOString().slice(0, 10);
 if (!sm.includes(`<loc>${SITE}/cards/</loc>`)) {
   sm = sm.replace("</urlset>", `  <url>\n    <loc>${SITE}/cards/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>`);
 }
 fs.writeFileSync(smPath, sm);
-console.log(JSON.stringify({ cards: written.length, keptFromBefore: keptFromBefore.length, orphans, pruned, sitemapRemoved: removed }));
+console.log(JSON.stringify({ cards: written.length, keptFromBefore: keptFromBefore.length, orphans, pruned, sitemapRemoved: removed, sitemapAdded: added }));

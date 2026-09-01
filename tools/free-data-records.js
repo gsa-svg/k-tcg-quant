@@ -88,7 +88,14 @@ function buildAuctionRecords(source, series) {
   const records = [], dates = [];
   // partial 판정과 결측일은 auction-series.json 만 들고 있다(auction-sold.json 엔 없다).
   const partialBy = new Map();
-  for (const r of (series && series.daily) || []) partialBy.set(r.d, !!r.partial);
+  // 수집 공백이 커서 비율을 못 믿는 날 — build-auction-series 가 ratesVoided 로 표시한다.
+  // 그 판단은 series 에만 있고 auction-sold.json 에는 없으므로 여기서 다시 걸러야 한다.
+  // 표시만 하고 값을 실으면 받아가는 쪽은 플래그를 안 보고 인용한다(8/27 낙찰률 56.3%가 그 예).
+  const ratesVoided = new Set();
+  for (const r of (series && series.daily) || []) {
+    partialBy.set(r.d, !!r.partial);
+    if (r.ratesVoided) ratesVoided.add(r.d);
+  }
   const gaps = new Set(((series && series.gaps) || []).flatMap((g) => (typeof g === "string" ? [g] : g && g.d ? [g.d] : [])));
   // 진행 중인 오늘은 내보내지 않는다 — 2026-08-24 실측: 낮 시점 카드 낙찰률 49.5% 였는데
   // 완결일은 26% 대다. 경매가 하루 종일 종료되고 낙찰 건이 먼저 원장에 들어와서, 낮에 자르면
@@ -99,7 +106,9 @@ function buildAuctionRecords(source, series) {
     dates.push(point.d);
     const put = (kind, value) => {
       if (!value?.n) return;
-      records.push({ date: point.d, kind, auctions: value.n, sold: value.sold, sell_through_pct: value.sellThrough ?? "", median_price_usd: value.medPrice ?? "", median_bids: value.medBids ?? "", is_partial: partialBy.get(point.d) ? "true" : "false" });
+      // 건수는 '우리가 확인한 수'로서 사실이니 남기고, 비율·가격만 비운다.
+      const voided = ratesVoided.has(point.d);
+      records.push({ date: point.d, kind, auctions: value.n, sold: value.sold, sell_through_pct: voided ? "" : (value.sellThrough ?? ""), median_price_usd: voided ? "" : (value.medPrice ?? ""), median_bids: voided ? "" : (value.medBids ?? ""), is_partial: partialBy.get(point.d) ? "true" : "false" });
     };
     put("all", point);
     for (const kind of ["box", "card", "pack"]) put(kind, point.byKind?.[kind]);
