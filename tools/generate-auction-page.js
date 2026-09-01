@@ -250,32 +250,13 @@ const html = `<!doctype html>
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
-${tcgRows.length >= 5 ? `
       <div class="statRow">
-        <div class="stat hi"><b>${tcgSoldAll ? Math.round((tcgSoldAll / tcgEndedAll) * 100) : "—"}%</b><span>sold across all games</span></div>
-        <div class="stat"><b>${num(tcgEndedAll)}</b><span>auctions read after close</span></div>
-        <div class="stat"><b>${tcgRows.length}</b><span>card games tracked</span></div>
-        <div class="stat"><b>${usd(tcgGmvAll)}</b><span>hammer value · ${tcgDays}d</span></div>
+        <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span>sold${aggNote}</span></div>
+        <div class="stat"><b>${num(totN)}</b><span>One Piece auctions settled</span></div>
+        <div class="stat"><b>${num(totSold)}</b><span>found a buyer</span></div>
+        <div class="stat"><b>${num(totN - totSold)}</b><span>passed unsold</span></div>
       </div>
 
-      <div class="chartCard">
-        <div class="chartHead">
-          <div>
-            <h2>How many card auctions end each day</h2>
-            <p class="sub">${tcgFrom}–${tcgTo}</p>
-          </div>
-          <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
-            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
-            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
-            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
-            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
-          </div>
-        </div>
-        <div class="barList" id="tcgBars"></div>
-        <div class="legend" id="tcgLegend"></div>
-      </div>
-` : ""}
       <h2>Daily results — last ${daily.length} days</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
@@ -319,59 +300,7 @@ ${cTr}
 
       <p class="srcNoteA" style="font-size:11px;color:var(--muted);margin-top:16px">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site, at no extra cost to you. Data is research reference, not investment advice.</p>
     </main>
-${tcgRows.length >= 5 ? `    <script>
-      // 게임별 낙찰률/거래액/물량 막대. dataviz 검증 통과 6색(+중립) — 색은 익숙한 게임을
-      // 눈으로 찾게 하는 보조수단이고, 모든 막대에 이름표가 붙어 색만으로 구분하지 않는다.
-      (function () {
-        var rows = ${tcgJson};
-        var el = document.getElementById("tcgBars");
-        var lg = document.getElementById("tcgLegend");
-        if (!el || !rows.length) return;
-        var HUE = { onepiece: "#14A882", pokemon: "#3987e5", pokemonjp: "#d95926", magic: "#9085e9", yugioh: "#c98500", lorcana: "#d55181" };
-        var GREY = "#5A6273";
-        var M = {
-          ending: { get: function (r) { return r.ending; }, fmt: function (r) { return r.ending.toLocaleString("en-US") + " ending today"; } },
-          sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + " sold"; } },
-          ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + " checked"; } },
-          rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
-          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
-        };
-        function draw(key) {
-          var m = M[key];
-          var list = rows.slice().sort(function (a, b) { return m.get(b) - m.get(a); });
-          var max = m.get(list[0]) || 1;
-          el.innerHTML = list.map(function (r) {
-            var c = HUE[r.key] || GREY;
-            var w = Math.max(1.5, (m.get(r) / max) * 100);
-            var ci = m.ci && r.ci != null ? ' <span class="ci">±' + r.ci + "</span>" : "";
-            return '<div class="barRow' + (r.isOp ? " me" : "") + '">' +
-              '<div class="barName" title="' + r.name + '">' + r.name + "</div>" +
-              '<div class="barTrack"><div class="barFill" style="width:0;background:' + c + '" data-w="' + w.toFixed(1) + '"></div></div>' +
-              '<div class="barVal">' + m.fmt(r) + ci + "</div></div>";
-          }).join("");
-          // 강제 리플로우로 0 → 최종값 전이를 만든다. requestAnimationFrame 을 쓰면
-          // 화면에 안 뜬 탭(백그라운드/비합성)에서 콜백이 영영 안 돌아 막대가 0 인 채로 남는다.
-          // 동기 처리라 애니메이션이 없어도 너비는 항상 맞다.
-          void el.offsetWidth;
-          Array.prototype.forEach.call(el.querySelectorAll(".barFill"), function (b) { b.style.width = b.getAttribute("data-w") + "%"; });
-        }
-        if (lg) {
-          lg.innerHTML = Object.keys(HUE).map(function (k) {
-            var r = rows.filter(function (x) { return x.key === k; })[0];
-            return r ? '<span><i style="background:' + HUE[k] + '"></i>' + r.name + "</span>" : "";
-          }).join("") + '<span><i style="background:' + GREY + '"></i>All other games</span>';
-        }
-        var tabs = document.querySelectorAll(".metricTabs button");
-        Array.prototype.forEach.call(tabs, function (b) {
-          b.addEventListener("click", function () {
-            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
-            draw(b.getAttribute("data-metric"));
-          });
-        });
-        draw("ending");
-      })();
-    </script>
-` : ""}    <footer class="footer">
+    <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
