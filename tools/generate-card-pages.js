@@ -3,6 +3,7 @@
 // Run: node tools/generate-card-pages.js
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩하면 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
+const { navHtml } = require("./site-nav");
 const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
@@ -228,7 +229,7 @@ for (const { code, set: s, card: c } of cands) {
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="../" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="../auction.html" data-ko="경매">Auctions</a><a href="../compare.html" data-ko="비교">Compare</a><a href="../psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="../psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="../sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="../amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      ${navHtml("../")}
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="index.html" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>

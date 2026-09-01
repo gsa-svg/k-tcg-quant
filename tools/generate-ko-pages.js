@@ -279,7 +279,8 @@ fs.writeFileSync(path.join(ROOT, "ko", "index.html"), html, "utf8");
 // ─────────────────────────────────────────────────────────────
 // 세트별 한국어 페이지 /ko/{code}.html — 한국어 롱테일("op-16 시세", "결전의 시간 박스 가격") 공략.
 // 값은 전부 검증된 데이터에서만 파생하고, 없으면 표시하지 않음(빈칸 > 틀린값).
-const NAV_KO = `<nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">경매</a><a href="../compare.html">세트 비교</a><a href="../psa10-ranking.html">PSA10 랭킹</a><a href="grading.html">PSA 인구</a><a href="../sets/index.html">세트 가이드</a><a href="../amazon-lottery.html">아마존 응모</a></nav>`;
+const { navHtmlKo } = require("./site-nav");
+const NAV_KO = navHtmlKo();
 
 function setPageKo(b) {
   const code = b.code;

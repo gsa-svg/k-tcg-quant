@@ -5,6 +5,7 @@
 // 기존 페이지의 노출 상태(canonical/robots/사이트맵 항목)는 건드리지 않는다 — 추가만 한다.
 // Run: node tools/generate-auction-page.js
 const fs = require("fs");
+const { navHtml } = require("./site-nav");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -243,75 +244,16 @@ const html = `<!doctype html>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      ${navHtml("")}
     </header>
     <main id="main-content" class="aucWrap">
       <p class="eyebrow">Auction Data</p>
       <h1>One Piece card auction results — real winning bids</h1>
       <p class="lead">Every auction is read again <strong>after it closes</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator.</p>
 ${tcgRows.length >= 5 ? `
-      <div class="statRow">
-        <div class="stat hi"><b>${tcgSoldAll ? Math.round((tcgSoldAll / tcgEndedAll) * 100) : "—"}%</b><span>sold across all games</span></div>
-        <div class="stat"><b>${num(tcgEndedAll)}</b><span>auctions read after close</span></div>
-        <div class="stat"><b>${tcgRows.length}</b><span>card games tracked</span></div>
-        <div class="stat"><b>${usd(tcgGmvAll)}</b><span>hammer value · ${tcgDays}d</span></div>
-      </div>
-
-      <div class="chartCard">
-        <div class="chartHead">
-          <div>
-            <h2>How many card auctions end each day</h2>
-            <p class="sub">${tcgFrom}–${tcgTo}</p>
-          </div>
-          <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-metric="ending" aria-pressed="true">Auctions ending today</button>
-            <button type="button" data-metric="ended" aria-pressed="false">Checked after close</button>
-            <button type="button" data-metric="sold" aria-pressed="false">Of those, sold</button>
-            <button type="button" data-metric="rate" aria-pressed="false">Sell-through</button>
-            <button type="button" data-metric="gmv" aria-pressed="false">Hammer value</button>
-          </div>
-        </div>
-        <div class="barList" id="tcgBars"></div>
-        <div class="legend" id="tcgLegend"></div>
-      </div>
+      <p class="priceNote">This page is One Piece only. The same settlement run covers ${tcgRows.length} card games — see <a href="tcg-auction.html">TCG auction data</a> for the cross-game table.</p>
 ` : ""}
-      <h2>Daily results — last ${daily.length} days</h2>
-      <div style="overflow-x:auto">
-      <table class="aTable">
-        <thead><tr><th class="l">Ended</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th><th>Median bids</th></tr></thead>
-        <tbody>
-${dTr}
-        </tbody>
-      </table>
-      </div>
-      <p class="srcNoteA" style="font-size:12px;color:var(--muted)">Our tracked sample, not an exhaustive census of eBay. Sell-through counts only auctions whose sold/unsold state is confirmed. Prices are final winning bids in USD, per item for multi-item lots.</p>
-
-      <h2>Sealed boxes sell. Singles mostly don't.</h2>
-      <div style="overflow-x:auto">
-      <table class="aTable">
-        <thead><tr><th class="l">Product type</th><th>Auctions</th><th>Sold</th><th>Sell-through</th></tr></thead>
-        <tbody>
-${kTr}
-        </tbody>
-      </table>
-      </div>
-
-${tcgRows.length >= 5 ? `
-      <details class="noteFold" style="max-width:none">
-        <summary>All ${tcgRows.length} games as a table (median winning bid, sold counts)</summary>
-        <div style="overflow-x:auto">
-        <table class="aTable">
-          <thead><tr><th class="l">Trading card game</th><th>Auctions tracked</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th></tr></thead>
-          <tbody>
-${tcgTr}
-          </tbody>
-        </table>
-        </div>
-        <p class="srcNoteA" style="font-size:12px;color:var(--muted)">A median winning bid is shown only where at least ${TCG_MIN_PRICE_N} sales cleared $1 — penny-start bulk lots otherwise drag a median to a meaningless figure.</p>
-      </details>
-
-      <h2>Highest auction medians by card</h2>`
-: `      <h2>Highest auction medians by card</h2>`}
+      <h2>Highest auction medians by card</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
         <thead><tr><th>#</th><th class="l">Card</th><th>Median winning bid</th><th>Range</th><th>Sell-through</th><th>Sales</th></tr></thead>

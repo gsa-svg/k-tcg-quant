@@ -87,7 +87,8 @@ for (const m of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
 //    2026-07-29: "마켓 지수" 제거(지수 위젯·market.html 철회) → 6개에서 5개로.
 // 2026-08-26: "카드"·"경매" 추가 — cards/index.html 과 auction.html 이 어떤 헤더 네비에도 없어
 // 카드 인덱스는 홈에서 클릭으로 도달할 방법이 아예 없었다(UI/UX 감사 확정). 전 네비에 넣고 여기서 잠근다.
-const NAV_REQUIRED = ["부스터 박스", "카드", "경매", "비교", "PSA10 랭킹", "PSA 인구", "세트 가이드", "아마존 응모"];
+// 메뉴 라벨은 tools/site-nav.js 한 곳에서 정의한다 — 여기에 손으로 베껴 두면 어긋난다.
+const NAV_REQUIRED = require("./site-nav").KO_LABELS;
 for (const f of PUBLIC_HTML) {
   const html = read(f);
   const navM = html.match(/<nav class="nav"[^>]*>([\s\S]*?)<\/nav>/);
