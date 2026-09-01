@@ -85,7 +85,7 @@
       .opTip em { color: #ffca6e; font-style: normal; }
       /* 유형별 가로 막대 — 이름표를 항상 붙여 색만으로 구분하지 않는다. */
       .kindList { margin-top: 12px; display: grid; gap: 9px; }
-      .kindRow { display: grid; grid-template-columns: 116px 1fr 92px; gap: 10px; align-items: center; font-size: 13px; }
+      .kindRow { display: grid; grid-template-columns: 116px 1fr 104px; gap: 10px; align-items: center; font-size: 13px; }
       .kindRow .kName { color: #eef2ff; font-weight: 600; }
       .kindRow .kTrack { position: relative; height: 20px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
       .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #50dad9; }
@@ -93,7 +93,9 @@
       .kindRow .kVal.out { color: var(--muted); }
       .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
       .kindRow .kMed b { color: #eef2ff; }
-      @media (max-width: 560px) { .kindRow { grid-template-columns: 92px 1fr 76px; font-size: 12px; } .opBars { height: 150px; } }
+      .kindRow .kEd { display: block; font-size: 12px; line-height: 1.45; }
+      .kindRow .kEdTag { color: #7d8698; font-size: 10px; letter-spacing: .06em; margin-right: 5px; }
+      @media (max-width: 560px) { .kindRow { grid-template-columns: 88px 1fr 92px; font-size: 12px; } .opBars { height: 150px; } }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
@@ -162,7 +164,7 @@
         <div class="chartHead">
           <div>
             <h2>What sells, by what it is</h2>
-            <p class="sub">Same window as the totals above: 2026-07-20–2026-08-30. Bars show the share that sold; the figure on the right is the median winning bid. Types with fewer than 25 auctions get a count instead of a rate.</p>
+            <p class="sub">Same window as the totals above: 2026-07-20–2026-08-30. Bars show the share that sold. Median winning bids are split by edition — Japanese and English boxes trade four times apart, so a combined figure would be neither. Types under 25 auctions get a count instead of a rate; prices need 12 sales.</p>
           </div>
         </div>
         <div class="kindList" id="opKindChart"></div>
@@ -182,7 +184,7 @@
 <tr class="partialRow"><td class="l">2026-08-28 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>723</td><td>198</td><td>27.4%</td><td>$15</td><td>8</td></tr>
 <tr class="partialRow"><td class="l">2026-08-29 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>557</td><td>161</td><td>28.9%</td><td>$15</td><td>5</td></tr>
 <tr><td class="l">2026-08-30</td><td>1,437</td><td>505</td><td>35.1%</td><td>$25</td><td>8</td></tr>
-<tr class="partialRow"><td class="l">2026-08-31 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>1,468</td><td>788</td><td>53.7%</td><td>$21</td><td>9</td></tr>
+<tr class="partialRow"><td class="l">2026-08-31 <span class="pFlag" title="Collection was interrupted that day — treat this row as incomplete">partial</span></td><td>1,718</td><td>873</td><td>50.8%</td><td>$20</td><td>8</td></tr>
         </tbody>
       </table>
       </div>
@@ -193,9 +195,9 @@
       <table class="aTable">
         <thead><tr><th class="l">Product type</th><th>Auctions</th><th>Sold</th><th>Sell-through</th></tr></thead>
         <tbody>
-<tr><td class="l">Single cards</td><td>28,856</td><td>8,736</td><td>30%</td></tr>
-<tr><td class="l">Sealed booster boxes</td><td>245</td><td>199</td><td>81%</td></tr>
-<tr><td class="l">Sealed packs</td><td>1,343</td><td>851</td><td>63%</td></tr>
+<tr><td class="l">Single cards</td><td>28,867</td><td>8,741</td><td>30%</td></tr>
+<tr><td class="l">Sealed booster boxes</td><td>217</td><td>179</td><td>83%</td></tr>
+<tr><td class="l">Sealed packs</td><td>1,338</td><td>849</td><td>64%</td></tr>
         </tbody>
       </table>
       </div>
@@ -227,7 +229,7 @@
 
       <details class="noteFold">
         <summary>How to use this data · where the rest of the site is</summary>
-        <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion. On the latest full day (2026-08-31) we tracked 1,468 auctions ending, of which 788 sold.</p>
+        <p>Compare an auction median with recent fixed-price sales and current asking prices; none is a complete market on its own. A large gap is a reason to check sample size, exact variant, condition, shipping and closing time before drawing a conclusion. On the latest full day (2026-08-31) we tracked 1,718 auctions ending, of which 873 sold.</p>
         <p>Card NM and PSA 10 prices: <a href="cards/">card price pages</a> · <a href="psa10-ranking.html">PSA 10 value ranking</a>. Sealed-box context: <a href="sets/index.html">set guides</a>. Grading supply: <a href="psa-grading.html">population page</a>. Daily aggregates: <a href="free-data.html">free CSV (CC BY 4.0)</a>.</p>
       </details>
 
@@ -237,7 +239,7 @@
       // 일별 막대 — 지표 탭으로 한 번에 하나만 그린다.
       // 축이 둘인 그래프(낙찰률과 건수를 한 판에)는 만들지 않는다. 눈금이 서로를 속인다.
       (function () {
-        var days = [{"d":"2026-07-20","p":0,"ended":550,"sold":118,"rate":21.5,"gmv":11686,"med":20.5},{"d":"2026-07-21","p":0,"ended":843,"sold":298,"rate":35.3,"gmv":44187,"med":15.25},{"d":"2026-07-22","p":0,"ended":794,"sold":326,"rate":41.1,"gmv":22529,"med":15.5},{"d":"2026-07-23","p":0,"ended":772,"sold":276,"rate":35.8,"gmv":27103,"med":12},{"d":"2026-07-24","p":1,"ended":344,"sold":151,"rate":43.9,"gmv":21144,"med":17},{"d":"2026-07-27","p":1,"ended":91,"sold":21,"rate":23.1,"gmv":2634,"med":27.5},{"d":"2026-07-28","p":0,"ended":547,"sold":168,"rate":30.7,"gmv":21126,"med":13.29},{"d":"2026-07-29","p":1,"ended":755,"sold":230,"rate":30.5,"gmv":52946,"med":28},{"d":"2026-07-30","p":0,"ended":711,"sold":218,"rate":30.7,"gmv":35608,"med":41},{"d":"2026-07-31","p":0,"ended":892,"sold":220,"rate":24.7,"gmv":40911,"med":22.26},{"d":"2026-08-01","p":0,"ended":882,"sold":265,"rate":30,"gmv":34040,"med":20.5},{"d":"2026-08-02","p":0,"ended":1222,"sold":425,"rate":34.8,"gmv":65767,"med":22.5},{"d":"2026-08-03","p":1,"ended":777,"sold":234,"rate":30.1,"gmv":21890,"med":17.77},{"d":"2026-08-04","p":0,"ended":866,"sold":306,"rate":35.3,"gmv":57850,"med":18.5},{"d":"2026-08-05","p":0,"ended":889,"sold":317,"rate":35.7,"gmv":52900,"med":20},{"d":"2026-08-06","p":1,"ended":568,"sold":188,"rate":33.1,"gmv":23740,"med":17.49},{"d":"2026-08-07","p":0,"ended":1025,"sold":267,"rate":26,"gmv":48689,"med":20.5},{"d":"2026-08-08","p":0,"ended":1129,"sold":387,"rate":34.3,"gmv":31292,"med":16.5},{"d":"2026-08-09","p":0,"ended":1238,"sold":442,"rate":35.7,"gmv":49608,"med":20},{"d":"2026-08-10","p":0,"ended":1104,"sold":357,"rate":32.3,"gmv":36382,"med":24.5},{"d":"2026-08-11","p":0,"ended":1101,"sold":371,"rate":33.7,"gmv":58466,"med":15},{"d":"2026-08-12","p":0,"ended":1064,"sold":382,"rate":35.9,"gmv":43957,"med":11.61},{"d":"2026-08-13","p":0,"ended":805,"sold":277,"rate":34.4,"gmv":26586,"med":20.5},{"d":"2026-08-14","p":0,"ended":1077,"sold":269,"rate":25,"gmv":44347,"med":18.5},{"d":"2026-08-15","p":0,"ended":1091,"sold":323,"rate":29.6,"gmv":31870,"med":20.5},{"d":"2026-08-16","p":0,"ended":1298,"sold":385,"rate":29.7,"gmv":29834,"med":20.5},{"d":"2026-08-17","p":0,"ended":946,"sold":306,"rate":32.3,"gmv":26031,"med":17},{"d":"2026-08-18","p":0,"ended":1002,"sold":422,"rate":42.1,"gmv":121964,"med":26.01},{"d":"2026-08-19","p":0,"ended":855,"sold":228,"rate":26.7,"gmv":63661,"med":20.5},{"d":"2026-08-20","p":0,"ended":960,"sold":303,"rate":31.6,"gmv":36079,"med":17},{"d":"2026-08-21","p":0,"ended":1136,"sold":199,"rate":17.5,"gmv":25259,"med":30},{"d":"2026-08-22","p":1,"ended":813,"sold":232,"rate":28.5,"gmv":29521,"med":23.5},{"d":"2026-08-23","p":0,"ended":1279,"sold":356,"rate":27.8,"gmv":27101,"med":10.5},{"d":"2026-08-24","p":0,"ended":1045,"sold":414,"rate":39.6,"gmv":51751,"med":22.5},{"d":"2026-08-25","p":0,"ended":1024,"sold":411,"rate":40.1,"gmv":60278,"med":17.88},{"d":"2026-08-26","p":0,"ended":868,"sold":249,"rate":28.7,"gmv":43408,"med":10.5},{"d":"2026-08-27","p":1,"ended":357,"sold":201,"rate":56.3,"gmv":19142,"med":16.5},{"d":"2026-08-28","p":1,"ended":723,"sold":198,"rate":27.4,"gmv":40590,"med":14.5},{"d":"2026-08-29","p":1,"ended":557,"sold":161,"rate":28.9,"gmv":17534,"med":14.62},{"d":"2026-08-30","p":0,"ended":1437,"sold":505,"rate":35.1,"gmv":64970,"med":25.14},{"d":"2026-08-31","p":1,"ended":1468,"sold":788,"rate":53.7,"gmv":90985,"med":21}];
+        var days = [{"d":"2026-07-20","p":0,"ended":550,"sold":118,"rate":21.5,"gmv":11686,"med":20.5},{"d":"2026-07-21","p":0,"ended":843,"sold":298,"rate":35.3,"gmv":44187,"med":15.25},{"d":"2026-07-22","p":0,"ended":794,"sold":326,"rate":41.1,"gmv":22529,"med":15.5},{"d":"2026-07-23","p":0,"ended":772,"sold":276,"rate":35.8,"gmv":27103,"med":12},{"d":"2026-07-24","p":1,"ended":344,"sold":151,"rate":43.9,"gmv":21144,"med":17},{"d":"2026-07-27","p":1,"ended":91,"sold":21,"rate":23.1,"gmv":2634,"med":27.5},{"d":"2026-07-28","p":0,"ended":547,"sold":168,"rate":30.7,"gmv":21126,"med":13.29},{"d":"2026-07-29","p":1,"ended":755,"sold":230,"rate":30.5,"gmv":52946,"med":28},{"d":"2026-07-30","p":0,"ended":711,"sold":218,"rate":30.7,"gmv":35608,"med":41},{"d":"2026-07-31","p":0,"ended":892,"sold":220,"rate":24.7,"gmv":40911,"med":22.26},{"d":"2026-08-01","p":0,"ended":882,"sold":265,"rate":30,"gmv":34040,"med":20.5},{"d":"2026-08-02","p":0,"ended":1222,"sold":425,"rate":34.8,"gmv":65767,"med":22.5},{"d":"2026-08-03","p":1,"ended":777,"sold":234,"rate":30.1,"gmv":21890,"med":17.77},{"d":"2026-08-04","p":0,"ended":866,"sold":306,"rate":35.3,"gmv":57850,"med":18.5},{"d":"2026-08-05","p":0,"ended":889,"sold":317,"rate":35.7,"gmv":52900,"med":20},{"d":"2026-08-06","p":1,"ended":568,"sold":188,"rate":33.1,"gmv":23740,"med":17.49},{"d":"2026-08-07","p":0,"ended":1025,"sold":267,"rate":26,"gmv":48689,"med":20.5},{"d":"2026-08-08","p":0,"ended":1129,"sold":387,"rate":34.3,"gmv":31292,"med":16.5},{"d":"2026-08-09","p":0,"ended":1238,"sold":442,"rate":35.7,"gmv":49608,"med":20},{"d":"2026-08-10","p":0,"ended":1104,"sold":357,"rate":32.3,"gmv":36382,"med":24.5},{"d":"2026-08-11","p":0,"ended":1101,"sold":371,"rate":33.7,"gmv":58466,"med":15},{"d":"2026-08-12","p":0,"ended":1064,"sold":382,"rate":35.9,"gmv":43957,"med":11.61},{"d":"2026-08-13","p":0,"ended":805,"sold":277,"rate":34.4,"gmv":26586,"med":20.5},{"d":"2026-08-14","p":0,"ended":1077,"sold":269,"rate":25,"gmv":44347,"med":18.5},{"d":"2026-08-15","p":0,"ended":1091,"sold":323,"rate":29.6,"gmv":31870,"med":20.5},{"d":"2026-08-16","p":0,"ended":1298,"sold":385,"rate":29.7,"gmv":29834,"med":20.5},{"d":"2026-08-17","p":0,"ended":946,"sold":306,"rate":32.3,"gmv":26031,"med":17},{"d":"2026-08-18","p":0,"ended":1002,"sold":422,"rate":42.1,"gmv":121964,"med":26.01},{"d":"2026-08-19","p":0,"ended":855,"sold":228,"rate":26.7,"gmv":63661,"med":20.5},{"d":"2026-08-20","p":0,"ended":960,"sold":303,"rate":31.6,"gmv":36079,"med":17},{"d":"2026-08-21","p":0,"ended":1136,"sold":199,"rate":17.5,"gmv":25259,"med":30},{"d":"2026-08-22","p":1,"ended":813,"sold":232,"rate":28.5,"gmv":29521,"med":23.5},{"d":"2026-08-23","p":0,"ended":1279,"sold":356,"rate":27.8,"gmv":27101,"med":10.5},{"d":"2026-08-24","p":0,"ended":1045,"sold":414,"rate":39.6,"gmv":51751,"med":22.5},{"d":"2026-08-25","p":0,"ended":1024,"sold":411,"rate":40.1,"gmv":60278,"med":17.88},{"d":"2026-08-26","p":0,"ended":868,"sold":249,"rate":28.7,"gmv":43408,"med":10.5},{"d":"2026-08-27","p":1,"ended":357,"sold":201,"rate":56.3,"gmv":19142,"med":16.5},{"d":"2026-08-28","p":1,"ended":723,"sold":198,"rate":27.4,"gmv":40590,"med":14.5},{"d":"2026-08-29","p":1,"ended":557,"sold":161,"rate":28.9,"gmv":17534,"med":14.62},{"d":"2026-08-30","p":0,"ended":1437,"sold":505,"rate":35.1,"gmv":64970,"med":25.14},{"d":"2026-08-31","p":1,"ended":1718,"sold":873,"rate":50.8,"gmv":90985,"med":19.99}];
         var host = document.getElementById("opDailyChart");
         if (!host || !days.length) return;
         var M = {
@@ -316,43 +318,63 @@
       })();
 
       // 유형별 가로 막대. 표본이 얇아 비율이 없는 유형은 막대 대신 건수만 적는다.
+      // 중앙 낙찰가는 판(JP/EN)을 나눠 적는다 — 박스는 일본판 $104 / 영문판 $430 로 4배 넘게
+      // 차이나서, 하나로 합친 값은 어느 쪽 시세도 아니다.
       // 문자열로 innerHTML 을 조립하지 않는다 — 따옴표가 템플릿 리터럴을 거치며 풀려 깨진다.
       (function () {
-        var rows = [{"key":"card","name":"Single card","n":28856,"sold":8736,"rate":30.3,"med":20.5},{"key":"pack","name":"Booster pack","n":1343,"sold":851,"rate":63.4,"med":5.58},{"key":"box","name":"Sealed box","n":245,"sold":199,"rate":81.2,"med":398.8},{"key":"carton","name":"Sealed carton","n":8,"sold":4,"rate":null,"med":null}];
+        var rows = [{"key":"card","name":"Single card","n":28867,"sold":8741,"rate":30.3,"med":20.5,"medN":8476,"jp":21.5,"en":19.04,"jpN":1542,"enN":3984},{"key":"pack","name":"Booster pack","n":1338,"sold":849,"rate":63.5,"med":5.5,"medN":781,"jp":2.68,"en":10.29,"jpN":286,"enN":395},{"key":"box","name":"Sealed box","n":217,"sold":179,"rate":82.5,"med":332,"medN":162,"jp":103.5,"en":430,"jpN":25,"enN":115},{"key":"carton","name":"Sealed case","n":30,"sold":21,"rate":70,"med":null,"medN":2,"jp":null,"en":null,"jpN":0,"enN":2}];
         var host = document.getElementById("opKindChart");
         if (!host || !rows.length) return;
-        var money = function (v) { return v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
+        var money = function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); };
+        var cell = function (cls, text) {
+          var el = document.createElement("span");
+          el.className = cls;
+          if (text != null) el.textContent = text;
+          return el;
+        };
         rows.forEach(function (r) {
           var pct = r.rate == null ? 0 : r.rate;
           var wide = pct >= 22;
           var val = r.rate == null ? "too few (" + r.n.toLocaleString("en-US") + ")" : r.rate.toFixed(1) + "%";
 
           var row = document.createElement("div"); row.className = "kindRow";
-          var name = document.createElement("span"); name.className = "kName"; name.textContent = r.name;
+          row.appendChild(cell("kName", r.name));
 
-          var track = document.createElement("span"); track.className = "kTrack";
+          var track = cell("kTrack", null);
           track.setAttribute("role", "img");
           track.setAttribute("aria-label", r.name + ": " + val + " of " + r.n.toLocaleString("en-US") + " auctions sold");
           if (r.rate != null) {
-            var fill = document.createElement("span"); fill.className = "kFill";
+            var fill = cell("kFill", null);
             fill.style.width = pct + "%";
             track.appendChild(fill);
           }
-          var label = document.createElement("span");
-          label.className = "kVal" + (wide ? "" : " out");
+          var label = cell("kVal" + (wide ? "" : " out"), val);
           if (!wide) label.style.left = (pct + 2) + "%";
-          label.textContent = val;
           track.appendChild(label);
+          row.appendChild(track);
 
-          var med = document.createElement("span"); med.className = "kMed";
-          if (r.med == null) {
-            med.textContent = "—";
+          // 중앙 낙찰가 — 판이 갈리면 둘 다, 한쪽만 표본이 되면 그쪽만, 둘 다 얇으면 전체값.
+          var med = cell("kMed", null);
+          if (r.jp != null || r.en != null) {
+            if (r.jp != null) {
+              var a = cell("kEd", null);
+              a.appendChild(cell("kEdTag", "JP"));
+              var ab = document.createElement("b"); ab.textContent = money(r.jp); a.appendChild(ab);
+              med.appendChild(a);
+            }
+            if (r.en != null) {
+              var b = cell("kEd", null);
+              b.appendChild(cell("kEdTag", "EN"));
+              var bb = document.createElement("b"); bb.textContent = money(r.en); b.appendChild(bb);
+              med.appendChild(b);
+            }
+          } else if (r.med != null) {
+            var c = document.createElement("b"); c.textContent = money(r.med);
+            med.appendChild(c);
           } else {
-            var b = document.createElement("b"); b.textContent = "$" + money(r.med);
-            med.appendChild(b);
+            med.textContent = "—";
           }
-
-          row.appendChild(name); row.appendChild(track); row.appendChild(med);
+          row.appendChild(med);
           host.appendChild(row);
         });
       })();

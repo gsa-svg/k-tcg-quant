@@ -402,6 +402,17 @@ if (exists("data/box-sold-series.json")) {
     ["One Piece OP-06 Full Case Booster Box English", "carton"],
     ["Monkey D Luffy OP01-120 Manga PSA 10", "card"],
     ["One Piece OP-13 Display Box Japanese", "box"],
+    // 2026-09-01 실측 원장에서 샌 것들 — "Booster Box Case" 가 카톤 규칙에 없어 box 로 들어갔다.
+    ["One Piece TCG OP-05 Awakening Booster Box Case SEALED ENGLISH", "carton"],
+    ["One Piece A Fist Of Divine Speed Booster Box Case (12 Boxes) OP11", "carton"],
+    ["2022 One Piece OP02 Paramount War JPN Booster Box Case - Factory Sealed", "carton"],
+    // 반대로 케이스라는 말이 붙었어도 박스 1개인 것 — 이건 carton 으로 새면 안 된다.
+    ["One Piece Premium Booster Box The Best PRB-01 Sealed English with acrylic case", "box"],
+    ["One Piece TCG OP01 Romance Dawn Booster Box Sealed w/ Acrylic Case", "box"],
+    ["One Piece OP-14 ENG Booster Box New Sealed (CASE FRESH)", "box"],
+    // 개봉 카드뭉치는 밀봉 상품이 아니다 — box 로 잡히면 박스 낙찰가가 통째로 내려간다.
+    ["Opened! One Piece Card Game OP-17 Booster Box Bulk LR And SR", "card"],
+    ["One Piece, Op16 and OP13 Booster Box Bulk, Common, Uncommon, Rare", "card"],
   ];
   for (const [title, want] of cat) {
     const got = categorize(title);

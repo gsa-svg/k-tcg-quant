@@ -6,6 +6,8 @@
 // Run: node tools/generate-auction-page.js
 const fs = require("fs");
 const { navHtml } = require("./site-nav");
+const { readRecent } = require("./auction-archive");
+const { summarizeKinds } = require("./auction-aggregate");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -68,34 +70,38 @@ const chartDays = (auc.daily || []).filter((x) => x.d < TODAY_ISO).map((x) => ({
 const chartJson = JSON.stringify(chartDays);
 
 // 유형별 — 원피스 페이지에만 있는 축이다(TCG 페이지는 게임별로 넓게 본다).
-// 표본이 얇은 유형은 비율을 만들지 않는다. carton 은 하루 0~2건이라 대개 빠진다.
-const KIND_MIN = 25;
-const KIND_LABEL = { box: "Sealed box", carton: "Sealed carton", pack: "Booster pack", card: "Single card" };
-const kindAgg = {};
-for (const day of aggDays) {
-  for (const [k, v] of Object.entries(day.byKind || {})) {
-    const a = (kindAgg[k] = kindAgg[k] || { n: 0, sold: 0, meds: [] });
-    a.n += v.n || 0;
-    a.sold += v.sold || 0;
-    if (v.medPrice != null && (v.n || 0) >= 5) a.meds.push(v.medPrice);
-  }
-}
-const kindRows = Object.entries(kindAgg)
-  .map(([k, a]) => ({
+//
+// 값은 원장(data/auction-archive/)에서 직접 낸다. 일별 집계의 중앙값을 다시 중앙값 내면
+// 안 되기 때문이다 — 박스는 하루 1~2건이라 '그날의 중앙값'이 사실상 한 건이고, 그것들을
+// 다시 중앙값 내면 분포와 상관없는 수가 나온다. 2026-09-01 실측으로 팩 $5.58(실제 $6.00),
+// 박스 $399(실제 $445)가 그렇게 만들어져 있었다. 41일치 원장 읽기는 150ms 라 부담이 없다.
+const kindSummary = summarizeKinds(readRecent(400), aggDays.map((x) => x.d));
+
+const KIND_MIN = 25;        // 낙찰률을 말하려면 이만큼은 확인했어야 한다
+const KIND_PRICE_MIN = 12;  // 중앙 낙찰가를 말하려면 낙찰 건수가 이만큼
+const KIND_LABEL = { box: "Sealed box", carton: "Sealed case", pack: "Booster pack", card: "Single card" };
+const kindRows = Object.entries(kindSummary)
+  .map(([k, v]) => ({
     key: k,
     name: KIND_LABEL[k] || k,
-    n: a.n,
-    sold: a.sold,
-    rate: a.n >= KIND_MIN ? Math.round((a.sold / a.n) * 1000) / 10 : null,
-    med: a.meds.length >= 3 ? a.meds.slice().sort((x, y) => x - y)[Math.floor(a.meds.length / 2)] : null,
+    n: v.n,
+    sold: v.sold,
+    rate: v.n >= KIND_MIN ? v.sellThrough : null,
+    med: v.priceN >= KIND_PRICE_MIN ? v.med : null,
+    medN: v.priceN,
+    // 판별 중앙가 — 박스는 일본판과 영문판이 4배 가까이 차이나서, 하나로 합치면 어느 쪽도 아닌 수가 된다.
+    jp: v.byEd.jp.priceN >= KIND_PRICE_MIN ? v.byEd.jp.med : null,
+    en: v.byEd.en.priceN >= KIND_PRICE_MIN ? v.byEd.en.med : null,
+    jpN: v.byEd.jp.priceN,
+    enN: v.byEd.en.priceN,
   }))
   .filter((r) => r.n > 0)
   .sort((a, b) => b.n - a.n);
 const kindJson = JSON.stringify(kindRows);
+// 표와 그래프는 같은 원본(kindSummary)을 쓴다 — 갈라지면 같은 페이지에서 숫자가 어긋난다.
 const kinds = ["card", "box", "pack"].map((k) => {
-  const rows = aggDays.map((x) => x.byKind && x.byKind[k]).filter(Boolean);
-  const n = rows.reduce((t, b) => t + b.n, 0), sold = rows.reduce((t, b) => t + b.sold, 0);
-  return { k, n, sold, st: n ? Math.round((sold / n) * 100) : null };
+  const v = kindSummary[k] || { n: 0, sold: 0, sellThrough: null };
+  return { k, n: v.n, sold: v.sold, st: v.n >= KIND_MIN ? Math.round(v.sellThrough) : null };
 });
 const cardK = kinds[0], boxK = kinds[1];
 // daily 가 이미 완결일만 담는다(위 TODAY_ISO 필터).
@@ -285,7 +291,7 @@ const html = `<!doctype html>
       .opTip em { color: #ffca6e; font-style: normal; }
       /* 유형별 가로 막대 — 이름표를 항상 붙여 색만으로 구분하지 않는다. */
       .kindList { margin-top: 12px; display: grid; gap: 9px; }
-      .kindRow { display: grid; grid-template-columns: 116px 1fr 92px; gap: 10px; align-items: center; font-size: 13px; }
+      .kindRow { display: grid; grid-template-columns: 116px 1fr 104px; gap: 10px; align-items: center; font-size: 13px; }
       .kindRow .kName { color: #eef2ff; font-weight: 600; }
       .kindRow .kTrack { position: relative; height: 20px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
       .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #50dad9; }
@@ -293,7 +299,9 @@ const html = `<!doctype html>
       .kindRow .kVal.out { color: var(--muted); }
       .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
       .kindRow .kMed b { color: #eef2ff; }
-      @media (max-width: 560px) { .kindRow { grid-template-columns: 92px 1fr 76px; font-size: 12px; } .opBars { height: 150px; } }
+      .kindRow .kEd { display: block; font-size: 12px; line-height: 1.45; }
+      .kindRow .kEdTag { color: #7d8698; font-size: 10px; letter-spacing: .06em; margin-right: 5px; }
+      @media (max-width: 560px) { .kindRow { grid-template-columns: 88px 1fr 92px; font-size: 12px; } .opBars { height: 150px; } }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
       .chartHead .sub { font-size: 12px; color: var(--muted); margin: 0; }
@@ -362,7 +370,7 @@ ${kindRows.length >= 2 ? `      <div class="chartCard">
         <div class="chartHead">
           <div>
             <h2>What sells, by what it is</h2>
-            <p class="sub">Same window as the totals above: ${esc(aggFrom)}–${esc(aggTo)}. Bars show the share that sold; the figure on the right is the median winning bid. Types with fewer than ${KIND_MIN} auctions get a count instead of a rate.</p>
+            <p class="sub">Same window as the totals above: ${esc(aggFrom)}–${esc(aggTo)}. Bars show the share that sold. Median winning bids are split by edition — Japanese and English boxes trade four times apart, so a combined figure would be neither. Types under ${KIND_MIN} auctions get a count instead of a rate; prices need ${KIND_PRICE_MIN} sales.</p>
           </div>
         </div>
         <div class="kindList" id="opKindChart"></div>
@@ -494,43 +502,63 @@ ${cTr}
       })();
 
       // 유형별 가로 막대. 표본이 얇아 비율이 없는 유형은 막대 대신 건수만 적는다.
+      // 중앙 낙찰가는 판(JP/EN)을 나눠 적는다 — 박스는 일본판 $104 / 영문판 $430 로 4배 넘게
+      // 차이나서, 하나로 합친 값은 어느 쪽 시세도 아니다.
       // 문자열로 innerHTML 을 조립하지 않는다 — 따옴표가 템플릿 리터럴을 거치며 풀려 깨진다.
       (function () {
         var rows = ${kindJson};
         var host = document.getElementById("opKindChart");
         if (!host || !rows.length) return;
-        var money = function (v) { return v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US"); };
+        var money = function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); };
+        var cell = function (cls, text) {
+          var el = document.createElement("span");
+          el.className = cls;
+          if (text != null) el.textContent = text;
+          return el;
+        };
         rows.forEach(function (r) {
           var pct = r.rate == null ? 0 : r.rate;
           var wide = pct >= 22;
           var val = r.rate == null ? "too few (" + r.n.toLocaleString("en-US") + ")" : r.rate.toFixed(1) + "%";
 
           var row = document.createElement("div"); row.className = "kindRow";
-          var name = document.createElement("span"); name.className = "kName"; name.textContent = r.name;
+          row.appendChild(cell("kName", r.name));
 
-          var track = document.createElement("span"); track.className = "kTrack";
+          var track = cell("kTrack", null);
           track.setAttribute("role", "img");
           track.setAttribute("aria-label", r.name + ": " + val + " of " + r.n.toLocaleString("en-US") + " auctions sold");
           if (r.rate != null) {
-            var fill = document.createElement("span"); fill.className = "kFill";
+            var fill = cell("kFill", null);
             fill.style.width = pct + "%";
             track.appendChild(fill);
           }
-          var label = document.createElement("span");
-          label.className = "kVal" + (wide ? "" : " out");
+          var label = cell("kVal" + (wide ? "" : " out"), val);
           if (!wide) label.style.left = (pct + 2) + "%";
-          label.textContent = val;
           track.appendChild(label);
+          row.appendChild(track);
 
-          var med = document.createElement("span"); med.className = "kMed";
-          if (r.med == null) {
-            med.textContent = "\u2014";
+          // 중앙 낙찰가 — 판이 갈리면 둘 다, 한쪽만 표본이 되면 그쪽만, 둘 다 얇으면 전체값.
+          var med = cell("kMed", null);
+          if (r.jp != null || r.en != null) {
+            if (r.jp != null) {
+              var a = cell("kEd", null);
+              a.appendChild(cell("kEdTag", "JP"));
+              var ab = document.createElement("b"); ab.textContent = money(r.jp); a.appendChild(ab);
+              med.appendChild(a);
+            }
+            if (r.en != null) {
+              var b = cell("kEd", null);
+              b.appendChild(cell("kEdTag", "EN"));
+              var bb = document.createElement("b"); bb.textContent = money(r.en); b.appendChild(bb);
+              med.appendChild(b);
+            }
+          } else if (r.med != null) {
+            var c = document.createElement("b"); c.textContent = money(r.med);
+            med.appendChild(c);
           } else {
-            var b = document.createElement("b"); b.textContent = "$" + money(r.med);
-            med.appendChild(b);
+            med.textContent = "\u2014";
           }
-
-          row.appendChild(name); row.appendChild(track); row.appendChild(med);
+          row.appendChild(med);
           host.appendChild(row);
         });
       })();

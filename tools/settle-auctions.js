@@ -21,6 +21,7 @@ const path = require("path");
 const { parseLotQuantity, unitPrice } = require("./lot-quantity");
 const { extraFields } = require("./auction-fields");
 const { appendSales, readRecent } = require("./auction-archive");
+const { buildDaily } = require("./auction-aggregate");
 
 const ROOT = path.join(__dirname, "..");
 // 게임별 정산 — 2026-08-19. collect-auction-market.js --game=palworld 가 쌓은 감시목록을
@@ -182,56 +183,11 @@ let rateLimited = false;   // 429 로 조기 종료했는가 — 로그에 남�
   let out;
   try { out = JSON.parse(fs.readFileSync(soldPath, "utf8")); } catch { out = { daily: [] }; }
   delete out.sales;                    // 옛 구조 잔재 제거(개별 판매는 아카이브에만 산다)
-  const window = readRecent(KEEP_SALES_DAYS).sort((a, b) => a.d.localeCompare(b.d));
-
-  // ── 일별 집계 재계산
+  // 집계식은 tools/auction-aggregate.js 한 곳에만 둔다 — 재집계 경로(reaggregate-auctions.js)와
+  // 같은 코드를 쓴다. 그 안에서 제목으로 분류를 다시 매기므로, 분류 규칙을 고치면 과거분도 같이 정정된다.
+  const window = readRecent(KEEP_SALES_DAYS);
   const days = [...new Set(window.map((s) => s.d))];
-  // 가격 집계는 "개당가" 기준. qty 필드가 있는 새 기록은 unitPrice(수량 모름이면 null→제외),
-  // qty 필드가 없는 과거 기록은 종전대로 price 를 쓴다(45일 롤링이라 자연 소멸).
-  const perUnit = (r) => ("qty" in r ? r.unitPrice : r.price);
-  const agg = (rows) => {
-    const soldRows = rows.filter((r) => r.sold === true && Number.isFinite(perUnit(r)));
-    const decided = rows.filter((r) => r.sold !== null);      // 팔림/유찰이 확정된 것만 낙찰률 분모
-    return {
-      n: rows.length,
-      sold: rows.filter((r) => r.sold === true).length,
-      sellThrough: decided.length ? Number((decided.filter((r) => r.sold).length / decided.length * 100).toFixed(1)) : null,
-      medPrice: med(soldRows.map(perUnit)),
-      maxPrice: soldRows.length ? Math.max(...soldRows.map(perUnit)) : null,
-      medBids: med(soldRows.map((r) => r.bids)),
-    };
-  };
-  const daily = days.map((d) => {
-    const rows = window.filter((s) => s.d === d);
-    const bySet = {};
-    for (const s of new Set(rows.filter((r) => r.set).map((r) => r.set))) {
-      const rs = rows.filter((r) => r.set === s);
-      if (rs.length < 2) continue;                              // 표본 1건은 잡음
-      bySet[s] = agg(rs);
-    }
-    return {
-      d,
-      ...agg(rows),
-      byKind: Object.fromEntries(["box", "carton", "pack", "card"].map((k) => [k, agg(rows.filter((r) => r.kind === k))])),
-      // 박스는 판(JP/EN)별 + 갯수(single/multi)별로도 집계. carton 은 위 byKind.carton 으로 분리됨 — box 에 안 섞임.
-      boxByEd: Object.fromEntries(["jp", "en"].map((e) => [e, agg(rows.filter((r) => r.kind === "box" && r.ed === e))])),
-      boxByQty: { single: agg(rows.filter((r) => r.kind === "box" && r.qty === 1)), multi: agg(rows.filter((r) => r.kind === "box" && Number.isFinite(r.qty) && r.qty > 1)) },
-      // 등급 카드 축 — 2026-08-20 추가. 레코드에는 grade 가 붙어 있었는데(PSA 10 · CGC Pristine 10 …)
-      // 일별 집계에 축이 없어서 "등급 카드가 무등급보다 얼마나 비싼가"를 낼 수 없었다.
-      // 회사별로 10 의 이름이 다르다(PSA 10 / PSA Gem Mint 10 / CGC 10 / CGC Gem Mint 10 / CGC Pristine 10 …).
-      // 여기서는 그걸 회사 단위로만 묶는다 — 등급 라벨끼리 합치면 서로 다른 기준을 한 칸에 뭉개게 된다.
-      byGrade: (() => {
-        const graded = rows.filter((r) => r.grade);
-        const out = { raw: agg(rows.filter((r) => !r.grade)), graded: agg(graded) };
-        for (const co of ["PSA", "CGC", "BGS", "TAG"]) {
-          const rs = graded.filter((r) => String(r.grade).toUpperCase().startsWith(co));
-          if (rs.length) out[co.toLowerCase()] = agg(rs);
-        }
-        return out;
-      })(),
-      bySet,
-    };
-  });
+  const daily = buildDaily(window);
   const cutDaily = new Date(now - KEEP_DAILY_DAYS * 86400000).toISOString().slice(0, 10);
   const priorDaily = (out.daily || []).filter((p) => p.d >= cutDaily && !days.includes(p.d));
   out.daily = [...priorDaily, ...daily].sort((a, b) => a.d.localeCompare(b.d));
