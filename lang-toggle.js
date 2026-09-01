@@ -22,7 +22,10 @@
   var KEY = "opbox_lang";
 
   function packsOwnsToggle() {
-    // packs.js 는 로드되면 이 플래그를 세운다. 스크립트 순서에 상관없이 버튼 유무로도 확인한다.
+    // 스크립트 "태그"로 판정한다. 플래그나 버튼 유무만 보면 로드 순서에 걸린다 —
+    // packs.js 가 아직 실행되기 전이면 둘 다 없어서, 홈에 버튼이 두 개 붙었다(2026-09-01 실측).
+    // 태그는 HTML 파싱 시점에 이미 DOM 에 있으므로 순서와 무관하다.
+    if (document.querySelector('script[src*="packs.js"]')) return true;
     return !!window.__opboxPacksLang || !!document.querySelector("#displayLangToggle");
   }
 
