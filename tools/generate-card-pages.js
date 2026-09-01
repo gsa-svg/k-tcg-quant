@@ -311,6 +311,46 @@ for (const it of hubItems) cardMap[it.number + "|" + norm(it.name)] = it.slug;
 fs.writeFileSync(path.join(CARDS_DIR, "card-map.json"), JSON.stringify(cardMap, null, 1));
 
 // ---- 허브(cards/index.html)
+// ---- raw(NM) vs PSA 10 비교표 — 2026-09-01 신설.
+// 왜: GSC 미국 검색어 1위가 "psa 10 vs raw price" / "psa 10 vs raw" 인데(28일 노출 279,
+// 클릭 2), 그 답이 되는 표가 색인된 페이지에 없었다. 카드 상세에는 있지만 그 28장은
+// 애드센스 심사 기간 동안 noindex 라 검색에 안 나온다. 그래서 색인되는 허브에 싣는다.
+// 값은 카드 상세와 같은 원본을 쓴다 — 여기서 따로 계산하지 않는다.
+const gradedRows = (() => {
+  const fx = d.fx || {};
+  const jpyKrw = fx.jpyKrw || 8.7;
+  const usdKrw = fx.usdKrw || 1374;
+  const rows = [];
+  for (const [code, set] of Object.entries(d.sets || {})) {
+    for (const c of set.cards || []) {
+      const g = c.psa10Ebay;
+      if (c.nmJpy == null || !g || g.middle == null || (g.sampleSize || 0) < 3) continue;
+      const rawKrw = c.nmJpy * jpyKrw;
+      const psaKrw = g.currency === "USD" ? g.middle * usdKrw : g.middle;
+      if (!(rawKrw > 0) || !(psaKrw > 0)) continue;
+      const mult = psaKrw / rawKrw;
+      // 배수가 비현실적으로 크면 raw 쪽이 잘못 잡힌 것이다(2026-09-01 실측: OP02-059 박스토퍼가
+      // raw 가 거의 0 으로 잡혀 557배가 나왔다). 값을 고쳐 쓰지 말고 표에서 뺀다.
+      if (mult > 40) continue;
+      rows.push({ code, number: c.number, name: c.name, rawUsd: rawKrw / usdKrw, psaUsd: psaKrw / usdKrw, mult, n: g.sampleSize });
+    }
+  }
+  rows.sort((a, b) => b.psaUsd - a.psaUsd);
+  return rows;
+})();
+const money = (v) => "$" + Math.round(v).toLocaleString("en-US");
+const gradedTable = gradedRows.length ? `
+      <h2 id="psa10-vs-raw">PSA 10 vs raw NM price</h2>
+      <div class="tableWrap" style="overflow-x:auto">
+      <table class="dataTable">
+        <thead><tr><th>Card</th><th>Set</th><th>Raw NM</th><th>PSA 10</th><th>Premium</th><th>Sales</th></tr></thead>
+        <tbody>
+          ${gradedRows.map((r) => `<tr><td>${esc(r.name)} <small style="color:#7d8698">${esc(r.number)}</small></td><td>${esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult.toFixed(1)}x</td><td>${r.n}</td></tr>`).join("\n          ")}
+        </tbody>
+      </table>
+      </div>
+      <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single price. PSA 10 = median of verified eBay completed sales, minimum three matched sales per card. Premium is PSA 10 divided by raw. ${gradedRows.length} cards have both figures as of ${DATA_DATE}.</p>` : "";
+
 const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
 const ebayCardHub = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("One Piece Card Game Japanese")}&_sop=15&${EPN}`;
 const hub = `<!doctype html>
@@ -333,8 +373,8 @@ const hub = `<!doctype html>
     <link rel="alternate" hreflang="ko" href="${SITE}/ko/cards.html" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/cards/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>One Piece Card Prices — Top ${hubItems.length} Tracked Cards (NM &amp; PSA 10) | OP Box Index</title>
-    <meta name="description" content="Individual price pages for the most valuable Japanese One Piece cards: raw NM prices, PSA 10 prices and PSA population, variant-verified and updated with our tracking runs." />
+    <title>PSA 10 vs Raw Price — One Piece Card Value List (${gradedRows.length} Cards) | OP Box Index</title>
+    <meta name="description" content="How much more a PSA 10 sells for than the raw card: ${gradedRows.length} Japanese One Piece cards with raw NM price, PSA 10 median from completed eBay sales, and the grading premium side by side." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="One Piece Card Prices — Top Tracked Cards" />
@@ -362,12 +402,13 @@ const hub = `<!doctype html>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Card Prices</p>
-      <h1>One Piece card prices: the top ${hubItems.length} tracked cards</h1>
-      <p>Individual price pages for the most valuable Japanese One Piece Card Game cards we track — raw NM prices from Japanese retail, PSA 10 prices from verified eBay data, and PSA population stats. Every page is variant-specific: a manga rare and its plain parallel are different cards with very different prices. Prices refresh with our tracking runs (as of ${DATA_DATE}).</p>
+      <h1>PSA 10 vs raw price: One Piece card value list</h1>
+      <p>${gradedRows.length} Japanese One Piece cards where we have both prices: the raw near-mint single at Japanese retail, and the PSA 10 median from completed eBay sales. Variant-specific — a manga rare and its plain parallel are separate rows. As of ${DATA_DATE}.</p>
       ${AFF_TOP}
       <div class="cardGrid">
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" width="716" height="1000" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
+      ${gradedTable}
       <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>
       ${/* 설명 3문단은 2026-08-28 소유자 지시로 삭제 — TCG 퀀트처럼 표·그리드만 */ ""}
