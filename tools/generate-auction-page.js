@@ -289,6 +289,12 @@ const html = `<!doctype html>
       .metricTabs button:focus-visible { outline: 2px solid #50dad9; outline-offset: 2px; }
       /* 일별 막대 — 한 번에 한 지표만 그린다. 축이 둘인 그래프는 만들지 않는다. */
       /* 그래프 위 한 줄 — 눈금 없이 막대만 보면 높이가 얼마인지 알 수 없다. */
+      /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다.
+         본문보다 크게 잡는다(17px). 2026-09-02 소유자 지시로 가독성이 이 페이지의 1순위다. */
+      .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
+      .opPlain strong { color: #8af3f2; font-weight: 650; }
+      .opPlain .opHelp { display: block; margin-top: 4px; font-size: 13.5px; color: var(--muted); }
+      @media (max-width: 560px) { .opPlain { font-size: 15.5px; } .opPlain .opHelp { font-size: 12.5px; } }
       .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0 8px; font-size: 12.5px; color: var(--muted); }
       .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
       .opReadout .hi b { color: #50dad9; }
@@ -382,13 +388,14 @@ const html = `<!doctype html>
             <button type="button" data-p="monthly" aria-pressed="false" data-ko="월별">Monthly</button>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-m="rate" aria-pressed="true" data-ko="낙찰률">Sell-through</button>
-            <button type="button" data-m="ended" aria-pressed="false" data-ko="종료 건수">Auctions ended</button>
-            <button type="button" data-m="sold" aria-pressed="false" data-ko="낙찰 건수">Sold</button>
-            <button type="button" data-m="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
-            <button type="button" data-m="med" aria-pressed="false" data-ko="중앙 낙찰가">Median winning bid</button>
+            <button type="button" data-m="rate" aria-pressed="true" data-ko="팔릴 확률">How often they sell</button>
+            <button type="button" data-m="ended" aria-pressed="false" data-ko="끝난 경매 수">Auctions that ended</button>
+            <button type="button" data-m="sold" aria-pressed="false" data-ko="팔린 경매 수">Ones that sold</button>
+            <button type="button" data-m="gmv" aria-pressed="false" data-ko="총 거래 금액">Total money spent</button>
+            <button type="button" data-m="med" aria-pressed="false" data-ko="보통 낙찰가">Typical winning price</button>
           </div>
         </div>
+        <div class="opPlain" id="opPlain" aria-live="polite"></div>
         <div class="opReadout" id="opReadout" aria-live="polite"></div>
         <div class="opChart" id="opDailyChart"></div>
       </div>
@@ -459,12 +466,23 @@ ${cTr}
         var days = SERIES[period];
         var host = document.getElementById("opDailyChart");
         if (!host || !days.length) return;
+        // 이름은 업계용어가 아니라 **일상어**로 쓴다 — 2026-09-02 소유자 지시:
+        // "누가 봐도 쉽게 이해할 수 있게. 뇌성마비 환자가 봐도 이해할 수 있는 데이터가 핵심이다."
+        // say() 는 그 지표가 무슨 뜻인지 한 문장으로 말한다. 숫자만 보여주면 높은 건지 낮은 건지 모른다.
         var M = {
-          rate: { label: "Sell-through", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true },
-          ended: { label: "Auctions ended", ko: "종료 건수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          sold: { label: "Sold", ko: "낙찰 건수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          gmv: { label: "Hammer value", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
-          med: { label: "Median winning bid", ko: "중앙 낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+          rate: { label: "How often they sell", ko: "팔릴 확률", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true,
+            say: function (v) { return v >= 50 ? ["Most auctions find a buyer.", "경매 대부분이 팔립니다."]
+              : v >= 30 ? ["About a third find a buyer.", "3건 중 1건쯤 팔립니다."]
+              : ["Most auctions end unsold.", "대부분 안 팔리고 끝납니다."]; },
+            help: ["Out of every 100 auctions that ended, how many actually sold.", "끝난 경매 100건 중 실제로 팔린 건수입니다."] },
+          ended: { label: "Auctions that ended", ko: "끝난 경매 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["How many auctions closed that day - sold or not.", "그날 끝난 경매 수입니다. 팔렸든 안 팔렸든 전부."] },
+          sold: { label: "Ones that sold", ko: "팔린 경매 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["How many of them actually found a buyer.", "그중 실제로 팔린 건수입니다."] },
+          gmv: { label: "Total money spent", ko: "총 거래 금액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); },
+            help: ["Every winning bid added up.", "낙찰가를 전부 더한 금액입니다."] },
+          med: { label: "Typical winning price", ko: "보통 낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); },
+            help: ["The middle price - half sold for more, half for less.", "딱 가운데 가격입니다. 절반은 이보다 비싸게, 절반은 싸게 팔렸습니다."] }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
         var axis = document.createElement("div"); axis.className = "opAxis";
@@ -473,6 +491,7 @@ ${cTr}
         host.appendChild(bars); host.appendChild(axis); host.appendChild(tip);
         bars.appendChild(guide);
         var readout = document.getElementById("opReadout");
+        var plain = document.getElementById("opPlain");
         // 언어는 <html lang> 을 본다 — lang-toggle.js 가 전환할 때 함께 바꾼다.
         var KO = document.documentElement.lang === "ko";
         document.addEventListener("opboxlang", function (ev) { KO = (ev.detail || {}).lang === "ko"; draw(); });
@@ -539,6 +558,39 @@ ${cTr}
               put(KO ? m.ko + " — 최근" : m.label + " — latest", m.fmt(lastR[metric]), lastR.ax || lastR.d.slice(5), "hi");
               put(KO ? "최고" : "highest", m.fmt(hi[metric]), hi.ax || hi.d.slice(5));
               put(KO ? "최저" : "lowest", m.fmt(lo[metric]), lo.ax || lo.d.slice(5));
+            }
+          }
+          // 한 문장 요약 — 마우스를 못 올려도, 숫자를 몰라도 뜻이 통해야 한다.
+          // 2026-09-02 소유자 지시("뇌성마비 환자가 봐도 이해할 수 있는 데이터가 핵심").
+          // ① 이 지표가 뭔지 ② 지금 값이 무슨 뜻인지 ③ 지난주보다 오르는지 내리는지.
+          if (plain) {
+            var vals = days.filter(function (r) { return r[metric] != null && isFinite(r[metric]); });
+            plain.innerHTML = "";
+            if (vals.length) {
+              var cur = vals[vals.length - 1][metric];
+              var say = document.createElement("strong");
+              var txt = m.say ? m.say(cur)[KO ? 1 : 0] : (KO ? m.ko + " " + m.fmt(cur) : m.label + ": " + m.fmt(cur));
+              say.textContent = txt;
+              plain.appendChild(say);
+              // 방향: 최근값 vs 그 앞 같은 개수 구간의 중앙값. 하루치 요동에 휘둘리지 않게 구간으로 본다.
+              var half = Math.max(1, Math.min(7, Math.floor(vals.length / 2)));
+              var recent = vals.slice(-half).map(function (r) { return r[metric]; });
+              var older = vals.slice(-half * 2, -half).map(function (r) { return r[metric]; });
+              var mid = function (a) { var s = a.slice().sort(function (x, y) { return x - y; }); return s[Math.floor((s.length - 1) / 2)]; };
+              if (older.length) {
+                var d = mid(recent) - mid(older);
+                var pct = mid(older) ? Math.abs(d / mid(older)) * 100 : 0;
+                var dir = pct < 5 ? (KO ? " 최근 흐름은 비슷합니다." : " Holding steady lately.")
+                  : d > 0 ? (KO ? " 최근 올라가는 중입니다." : " Trending up lately.")
+                  : (KO ? " 최근 내려가는 중입니다." : " Trending down lately.");
+                plain.appendChild(document.createTextNode(dir));
+              }
+              if (m.help) {
+                var hp = document.createElement("span");
+                hp.className = "opHelp";
+                hp.textContent = m.help[KO ? 1 : 0];
+                plain.appendChild(hp);
+              }
             }
           }
         }

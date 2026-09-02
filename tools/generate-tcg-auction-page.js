@@ -223,6 +223,11 @@ const html = `<!doctype html>
       .trendHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
       .trendHead select { font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px;
         background: #14171c; color: #eef2ff; border: 1px solid rgba(255,255,255,.16); }
+      /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다(2026-09-02 소유자 지시). */
+      .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
+      .opPlain strong { color: #8af3f2; font-weight: 650; }
+      .opPlain .opHelp { display: block; margin-top: 4px; font-size: 13.5px; color: #8d95a7; }
+      @media (max-width: 560px) { .opPlain { font-size: 15.5px; } .opPlain .opHelp { font-size: 12.5px; } }
       .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 8px; font-size: 12.5px; color: #8d95a7; }
       .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
       .opReadout .hi b { color: #50dad9; }
@@ -318,14 +323,15 @@ const html = `<!doctype html>
         <div class="trendHead">
           <select id="trendGame" aria-label="Game"></select>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-tm="live" aria-pressed="false" data-ko="진행 중">Live now</button>
-            <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 종료">Ending today</button>
-            <button type="button" data-tm="ended" aria-pressed="false" data-ko="정산 확인">Checked</button>
-            <button type="button" data-tm="rate" aria-pressed="false" data-ko="낙찰률">Sell-through</button>
-            <button type="button" data-tm="gmv" aria-pressed="false" data-ko="거래액">Hammer</button>
-            <button type="button" data-tm="med" aria-pressed="false" data-ko="중앙 낙찰가">Median bid</button>
+            <button type="button" data-tm="live" aria-pressed="false" data-ko="지금 올라온 경매">Auctions up now</button>
+            <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 끝나는 경매">Ending today</button>
+            <button type="button" data-tm="ended" aria-pressed="false" data-ko="우리가 확인한 수">Ones we checked</button>
+            <button type="button" data-tm="rate" aria-pressed="false" data-ko="팔릴 확률">How often they sell</button>
+            <button type="button" data-tm="gmv" aria-pressed="false" data-ko="총 거래 금액">Total money spent</button>
+            <button type="button" data-tm="med" aria-pressed="false" data-ko="보통 낙찰가">Typical winning price</button>
           </div>
         </div>
+        <div class="opPlain" id="trendPlain" aria-live="polite"></div>
         <div class="opReadout" id="trendReadout" aria-live="polite"></div>
         <div class="opChart" id="trendChart"></div>
       </div>
@@ -440,12 +446,12 @@ ${tableRows}
         sel.value = game;
         var metric = "ending";
         var M = {
-          live: { en: "Live auctions", ko: "진행 중", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          ending: { en: "Ending today", ko: "오늘 종료", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          ended: { en: "Checked after close", ko: "정산 확인", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          rate: { en: "Sell-through", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; } },
-          gmv: { en: "Hammer value", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
-          med: { en: "Median winning bid", ko: "중앙 낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+          live: { en: "Auctions up now", ko: "지금 올라온 경매", help: ["How many auctions are open right now.", "지금 올라와 있는 경매 수입니다."], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          ending: { en: "Ending today", ko: "오늘 끝나는 경매", help: ["How many close today.", "오늘 끝나는 경매 수입니다."], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          ended: { en: "Ones we checked", ko: "우리가 확인한 수", help: ["How many we re-read after they closed.", "끝난 뒤 우리가 다시 읽어본 건수입니다."], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          rate: { en: "How often they sell", ko: "팔릴 확률", help: ["Out of every 100 that ended, how many sold.", "끝난 100건 중 실제로 팔린 건수입니다."], fmt: function (v) { return v.toFixed(1) + "%"; } },
+          gmv: { en: "Total money spent", ko: "총 거래 금액", help: ["Every winning bid added up.", "낙찰가를 전부 더한 금액입니다."], fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
+          med: { en: "Typical winning price", ko: "보통 낙찰가", help: ["The middle price - half sold for more, half for less.", "딱 가운데 가격입니다. 절반은 더 비싸게, 절반은 싸게 팔렸습니다."], fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
         var guide = document.createElement("div"); guide.className = "opGuide";
@@ -480,6 +486,32 @@ ${tableRows}
             sp.appendChild(document.createTextNode(" \u00b7 " + t[1].ax));
             readout.appendChild(sp);
           });
+          // \ud55c \ubb38\uc7a5 \uc694\uc57d \u2014 \uac8c\uc784 \uc774\ub984 + \uc9c0\uae08 \uac12 + \ubc29\ud5a5 + \uc774 \uc9c0\ud45c\uac00 \ubb54\uc9c0.
+          // \ub9c8\uc6b0\uc2a4\ub97c \ubabb \uc62c\ub824\ub3c4, \uc6a9\uc5b4\ub97c \ubab0\ub77c\ub3c4 \ub73b\uc774 \ud1b5\ud574\uc57c \ud55c\ub2e4(2026-09-02 \uc18c\uc720\uc790 \uc9c0\uc2dc).
+          var plain = document.getElementById("trendPlain");
+          if (!plain) return;
+          plain.innerHTML = "";
+          var gname = DATA.games[game].name;
+          var st = document.createElement("strong");
+          st.textContent = gname + " \u00b7 " + (KO() ? m.ko : m.en) + " " + m.fmt(last[metric]);
+          plain.appendChild(st);
+          var half = Math.max(1, Math.min(7, Math.floor(withV.length / 2)));
+          var recent = withV.slice(-half).map(function (r) { return r[metric]; });
+          var older = withV.slice(-half * 2, -half).map(function (r) { return r[metric]; });
+          var mid = function (a) { var s = a.slice().sort(function (x, y) { return x - y; }); return s[Math.floor((s.length - 1) / 2)]; };
+          if (older.length) {
+            var diff = mid(recent) - mid(older);
+            var pct = mid(older) ? Math.abs(diff / mid(older)) * 100 : 0;
+            plain.appendChild(document.createTextNode(pct < 5 ? (KO() ? " \ucd5c\uadfc \ud750\ub984\uc740 \ube44\uc2b7\ud569\ub2c8\ub2e4." : " Holding steady lately.")
+              : diff > 0 ? (KO() ? " \ucd5c\uadfc \uc62c\ub77c\uac00\ub294 \uc911\uc785\ub2c8\ub2e4." : " Trending up lately.")
+              : (KO() ? " \ucd5c\uadfc \ub0b4\ub824\uac00\ub294 \uc911\uc785\ub2c8\ub2e4." : " Trending down lately.")));
+          }
+          if (m.help) {
+            var hp = document.createElement("span");
+            hp.className = "opHelp";
+            hp.textContent = m.help[KO() ? 1 : 0];
+            plain.appendChild(hp);
+          }
         }
         function draw() {
           var m = M[metric];
