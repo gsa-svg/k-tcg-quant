@@ -64,3 +64,17 @@
 보고 움직이므로, 코드를 더 고칠 곳은 없습니다.
 
 승인 결과가 나오면 알려 주세요 — 배분을 새 한도에 맞춰 다시 잡겠습니다.
+
+## 2026-09-02 제출 시도 기록 — eBay 쪽 결함으로 중단
+
+신청 전 필수인 "지원 활성화(Activate Support)"가 서버 400 으로 막힌다.
+- 개발자 계정(kimjungmo) 로그인 성공. 이름·이메일·전화는 저장돼 있음.
+- 활성화에는 법적 주소가 필수인데, `POST /activate_support_account` 가 어떤 형식을 넣어도
+  `{"status":"BAD_REQUEST","errorMessage":"line1: invalid addressLine1"}` 를 반환한다.
+  시도한 형식: "13, Banpo-daero 27-gil, Seocho-gu" / "13 Banpo-daero 27-gil" / "Banpodaero 27gil 13"
+  (City=Seoul, State=Seoul, Postal=06656, Country=Korea South). 전부 같은 400.
+- 실패할 때마다 폼이 통째로 비워져 UI 재시도 비용이 큼.
+- 판단: 한국 주소에 대한 eBay 쪽 검증 결함으로 보임. 다음 수: 포털 우하단 AI Assistant 또는
+  개발자 포럼에 이 오류를 그대로 보고("KR address rejected by activate_support_account").
+- 참고: 크롬의 일반 이베이 구매자 세션(감자)이 살아 있으면 developer.ebay.com/my/* 가 500 —
+  쿠키 없는 창이나 개발자 계정 단독 세션에서 접속할 것.
