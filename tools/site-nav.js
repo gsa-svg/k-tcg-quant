@@ -23,11 +23,17 @@
 //   이유: 긴 산문 위주라 사람이 안 본다는 판단("AI 가 쓴 글 같다").
 //   페이지·사이트맵·색인은 그대로 둔다 — 애드센스 심사는 크롤링으로 보므로 대상에 남는다.
 //   애드센스 통과 후 삭제 예정. 되살리려면 주석만 풀면 된다.
+// ── NEW 배지 (다섯 번째 칸: 이 날짜까지만 보여준다)
+// 영구히 붙어 있는 NEW 는 아무 뜻이 없다 — 오히려 사이트가 방치된 것처럼 보인다.
+// 그래서 만료일을 값으로 박아 두고, 지나면 메뉴를 다시 만들 때 저절로 사라지게 한다
+// (inject-nav 가 매일 워크플로에서 돌면서 전 페이지 메뉴를 다시 쓴다).
+// 배지 자체는 styles.css 의 ::after 로 그린다 — 자식 요소로 넣으면 언어를 바꿀 때
+// textContent 가 통째로 갈리면서 같이 지워진다.
 const ITEMS = [
   ["Booster Boxes", "부스터 박스", "./", true],
   // ["Cards", "카드", "/cards/", false],
-  ["One Piece Auctions", "원피스 경매", "auction.html", true],
-  ["TCG Auctions", "TCG 경매", "tcg-auction.html", true],
+  ["One Piece Auctions", "원피스 경매", "auction.html", true, "2026-09-16"],
+  ["TCG Auctions", "TCG 경매", "tcg-auction.html", true, "2026-09-16"],
   // ["Compare", "비교", "compare.html", true],
   // ["Top PSA 10", "PSA10 랭킹", "psa10-ranking.html", true],
   // ["PSA Population", "PSA 인구", "psa-grading.html", true],
@@ -49,10 +55,13 @@ const ITEMS = [
 function navHtml(prefix = "", current = null, opts = {}) {
   // aria-label 은 항상 붙인다 — 페이지마다 다르면 inject-nav 의 일치 검사가 계속 어긋난다.
   const label = ` aria-label="${opts.ariaLabel || "Primary navigation"}"`;
-  const links = ITEMS.map(([en, ko, href, rel]) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const links = ITEMS.map(([en, ko, href, rel, newUntil]) => {
     const to = rel ? (href === "./" ? (prefix || "./") : prefix + href) : href;
     const cur = current && current === href ? ' aria-current="page"' : "";
-    return `<a href="${to}"${cur} data-ko="${ko}">${en}</a>`;
+    // 만료일이 지나면 속성을 아예 붙이지 않는다 — 배지가 조용히 사라진다.
+    const isNew = newUntil && today <= newUntil ? ' data-new="1"' : "";
+    return `<a href="${to}"${cur}${isNew} data-ko="${ko}">${en}</a>`;
   }).join("");
   return `<nav class="nav"${label}>${links}</nav>`;
 }

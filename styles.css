@@ -149,6 +149,40 @@ a {
   color: var(--accent);
 }
 
+/* NEW 배지 — site-nav 가 만료일 안일 때만 data-new 를 붙인다.
+   ::after 로 그리는 이유: 자식 요소로 넣으면 언어를 바꿀 때 textContent 교체에 같이 지워진다.
+   메뉴가 881~1220px 구간에서 이미 빠듯하므로 배지는 최대한 작게 둔다. */
+.nav a[data-new]::after {
+  content: "NEW";
+  margin-left: 6px;
+  padding: 1px 4px 0;
+  border-radius: 4px;
+  background: rgba(16, 215, 160, 0.16);
+  border: 1px solid rgba(16, 215, 160, 0.42);
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  vertical-align: 2px;
+}
+
+/* 현재 보고 있는 페이지에서는 배지를 옅게 — 이미 와 있는 곳을 계속 부를 이유가 없다. */
+.nav a[aria-current="page"][data-new]::after {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 처음 눈에 띄게만 하고 멈춘다. 계속 깜빡이면 읽기를 방해한다. */
+  .nav a[data-new]:not([aria-current="page"])::after {
+    animation: navNewIn 0.45s ease-out 0.25s both;
+  }
+  @keyframes navNewIn {
+    from { opacity: 0; transform: translateY(-3px) scale(0.9); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
 /* 언어 전환 버튼(lang-toggle.js 가 만든다). 메뉴 링크와 같은 크기로 두되,
    테두리를 줘서 '이동'이 아니라 '전환'이라는 것을 눈으로 구분한다. */
 .nav .navKo {

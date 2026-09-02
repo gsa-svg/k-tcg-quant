@@ -69,7 +69,11 @@ for (const day of days) {
     // (일별 중앙값은 모으지 않는다 — 중앙값의 중앙값은 중앙값이 아니다. 위 ledgerMed 참고)
     // 진행 중 수는 그날 값이라 마지막 날 것을 쓴다(합산하면 같은 매물을 여러 번 센다).
     if (Number.isFinite(g.live)) a.live = g.live;
-    if (Number.isFinite(g.endingToday)) a.endingToday = g.endingToday;
+    if (Number.isFinite(g.endingToday)) {
+      a.endingToday = g.endingToday;               // 마지막 날 값(표에 그대로 싣는다)
+      a.endingSum = (a.endingSum || 0) + g.endingToday;   // 평균용 누적
+      a.endingDays = (a.endingDays || 0) + 1;
+    }
     if (Number.isFinite(g.liveFixed)) a.liveFixed = g.liveFixed;
   }
 }
@@ -91,6 +95,7 @@ const rows = Object.entries(agg)
       medPrice: ledgerN(key) >= MIN_PRICE_N ? ledgerMed(key) : null,
       live: a.live,
       endingToday: a.endingToday,
+      endingAvg: a.endingDays ? a.endingSum / a.endingDays : null,
       liveFixed: a.liveFixed,
     };
   })
@@ -103,6 +108,24 @@ const totAmount = rows.reduce((t, r) => t + r.amount, 0);
 const totLive = rows.reduce((t, r) => t + (r.live || 0), 0);
 const totEndingToday = rows.reduce((t, r) => t + (r.endingToday || 0), 0);
 
+// ── 커버리지 — 2026-09-02 추가. 이것 없이 거래액을 나란히 놓으면 순위가 거꾸로 읽힌다.
+// 게임마다 하루 200건 안팎씩 같은 잣대로 훑는데, 그 게임이 하루에 끝내는 총 건수는
+// 포켓몬 42,363건 · Riftbound 167건으로 250배 차이난다. 그래서 우리가 담는 비율이
+// 0.4% ~ 63% 로 벌어지고, 거래액 합계는 '시장 규모'가 아니라 '우리가 얼마나 봤는가'가 된다.
+// 실제로 Riftbound 가 포켓몬의 12배로 나와 시장이 그만큼 크다는 오해를 샀다.
+// 낙찰률·중앙 낙찰가는 표본이어도 견디지만 합계는 그렇지 않다 — 그 차이를 화면에 적는다.
+const dayCount = days.length || 1;
+for (const r of rows) {
+  const perDayEnding = r.endingAvg;   // 기간 평균(마지막 날 하나는 크게 흔들린다)
+  const ourPerDay = r.ended / dayCount;
+  r.coveragePct = Number.isFinite(perDayEnding) && perDayEnding > 0
+    ? Math.round((ourPerDay / perDayEnding) * 1000) / 10
+    : null;
+}
+// 커버리지가 이만큼 벌어지면 합계를 나란히 놓는 것 자체가 오해를 부른다.
+const covs = rows.map((r) => r.coveragePct).filter((x) => x != null);
+const covSpread = covs.length >= 2 ? Math.max(...covs) / Math.max(0.1, Math.min(...covs)) : 1;
+
 // 막대차트가 읽는 형태로 변환한다(원피스 페이지에서 쓰던 것과 같은 필드).
 const chartRows = rows.map((r) => ({
   key: r.key,
@@ -111,6 +134,7 @@ const chartRows = rows.map((r) => ({
   sold: r.sold,
   rate: r.sellThrough == null ? null : r.sellThrough,
   gmv: Math.round(r.amount),
+  cov: r.coveragePct,
   ending: r.endingToday || 0,
   live: r.live || 0,
   isOp: r.key === "onepiece",
@@ -125,6 +149,7 @@ const tableRows = rows.map((r) => `          <tr>
             <td>${num(r.ended)}</td>
             <td>${r.sellThrough == null ? "—" : r.sellThrough + "%"}</td>
             <td>${r.passThrough == null ? "—" : r.passThrough + "%"}</td>
+            <td class="cov">${r.coveragePct == null ? "—" : r.coveragePct + "%"}</td>
             <td>${usd(r.amount)}</td>
             <td>${r.medPrice == null ? "—" : usd(r.medPrice)}</td>
           </tr>`).join("\n");
@@ -168,6 +193,9 @@ const html = `<!doctype html>
       .tgStat { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
       .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
       .tgStat small { color: #8d95a7; font-size: 12px; }
+      .covWarn { margin: 10px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.6;
+        background: rgba(255, 202, 110, .08); border: 1px solid rgba(255, 202, 110, .3); color: #f0d9ae; }
+      .tgTable td.cov { color: #8d95a7; font-variant-numeric: tabular-nums; }
       .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0 8px; background: rgba(255,255,255,.015); }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
@@ -232,6 +260,7 @@ const html = `<!doctype html>
             <button type="button" data-metric="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
           </div>
         </div>
+        <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 하루에 끝나는 경매 수가 크게 다른데(포켓몬 ${num(rows.find((r) => r.key === 'pokemon') ? rows.find((r) => r.key === 'pokemon').endingToday : 0)}건 대 Riftbound ${num(rows.find((r) => r.key === 'riftbound') ? rows.find((r) => r.key === 'riftbound').endingToday : 0)}건) 우리는 어느 게임이든 하루 200건 안팎만 확인합니다. 그래서 표본 비율이 게임마다 다르고, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다. 비교하려면 낙찰률이나 중앙 낙찰가를 보십시오.">⚠ This is not market size. The number of auctions each game ends per day differs enormously (${num(rows.find((r) => r.key === "pokemon") ? rows.find((r) => r.key === "pokemon").endingToday : 0)} for Pokemon vs ${num(rows.find((r) => r.key === "riftbound") ? rows.find((r) => r.key === "riftbound").endingToday : 0)} for Riftbound), yet we settle roughly the same couple of hundred per game per day. Our share of each game therefore ranges from a fraction of a percent to well over half, and a hammer-value total tracks how much we saw, not how big the market is. For comparison across games, use sell-through or median winning bid.</p>
         <div class="barList" id="tcgBars"></div>
         <div class="legend" id="tcgLegend"></div>
       </div>
@@ -240,7 +269,7 @@ const html = `<!doctype html>
       <div style="overflow-x:auto">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th>Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="종료">Ended</th><th data-ko="낙찰">Sold</th><th>Passed</th><th>Hammer</th><th>Median bid</th></tr>
+            <tr><th data-ko="게임">Game</th><th>Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="종료">Ended</th><th data-ko="낙찰">Sold</th><th>Passed</th><th data-ko="표본 비율">Our share</th><th data-ko="거래액">Hammer</th><th>Median bid</th></tr>
           </thead>
           <tbody>
 ${tableRows}
@@ -274,12 +303,23 @@ ${tableRows}
           sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + W("건 낙찰", " sold"); } },
           ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + W("건 확인", " checked"); } },
           rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
-          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
+          // 거래액은 커버리지를 함께 적는다. 숫자만 놓으면 '시장 규모 순위'로 읽힌다.
+          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) {
+            var base = "$" + r.gmv.toLocaleString("en-US");
+            return r.cov == null ? base : base + W(" · 표본 " + r.cov + "%", " · " + r.cov + "% of that game");
+          } }
         };
         // 언어를 바꾸면 막대 라벨도 다시 그린다.
         var lastKey = "ending";
         document.addEventListener("opboxlang", function () { draw(lastKey); });
+        // 거래액 탭에서만 보이는 경고. 다른 지표(비율·중앙값)는 표본이어도 견딘다.
+        var warn = document.getElementById("tgCovWarn");
+        function toggleWarn(key) {
+          if (!warn) return;
+          warn.style.display = key === "gmv" ? "block" : "none";
+        }
         function draw(key) {
+          toggleWarn(key);
           lastKey = key;
           var m = M[key];
           var list = rows.slice().sort(function (a, b) { return m.get(b) - m.get(a); });

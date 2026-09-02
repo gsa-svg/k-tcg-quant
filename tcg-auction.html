@@ -12,8 +12,8 @@
     <meta property="og:url" content="https://opboxindex.com/tcg-auction.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Trading card game auction results by game","description":"Settled eBay auction outcomes across 17 trading card games: ended and sold counts, sell-through and pass-through rates, hammer value and median winning bid.","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"temporalCoverage":"2026-08-07/2026-09-02","dateModified":"2026-09-02","variableMeasured":["Live auctions","Auctions ending today","Ended auctions","Sell-through rate","Pass-through rate","Hammer value","Median winning bid"]}</script>
-    <link rel="stylesheet" href="styles.css?v=20260901b" />
-    <script defer src="lang-toggle.js?v=20260901b"></script>
+    <link rel="stylesheet" href="styles.css?v=20260902a" />
+    <script defer src="lang-toggle.js?v=20260902a"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .tgTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
@@ -25,6 +25,9 @@
       .tgStat { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
       .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
       .tgStat small { color: #8d95a7; font-size: 12px; }
+      .covWarn { margin: 10px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.6;
+        background: rgba(255, 202, 110, .08); border: 1px solid rgba(255, 202, 110, .3); color: #f0d9ae; }
+      .tgTable td.cov { color: #8d95a7; font-variant-numeric: tabular-nums; }
       .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0 8px; background: rgba(255,255,255,.015); }
       .chartHead { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
       .chartHead h2 { margin: 0; font-size: 17px; }
@@ -60,7 +63,7 @@
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="auction.html" data-ko="원피스 경매">One Piece Auctions</a><a href="tcg-auction.html" aria-current="page" data-ko="TCG 경매">TCG Auctions</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="auction.html" data-new="1" data-ko="원피스 경매">One Piece Auctions</a><a href="tcg-auction.html" aria-current="page" data-new="1" data-ko="TCG 경매">TCG Auctions</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow" data-ko="TCG 경매 데이터">TCG Auction Data</p>
@@ -89,6 +92,7 @@
             <button type="button" data-metric="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
           </div>
         </div>
+        <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 하루에 끝나는 경매 수가 크게 다른데(포켓몬 37,980건 대 Riftbound 285건) 우리는 어느 게임이든 하루 200건 안팎만 확인합니다. 그래서 표본 비율이 게임마다 다르고, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다. 비교하려면 낙찰률이나 중앙 낙찰가를 보십시오.">⚠ This is not market size. The number of auctions each game ends per day differs enormously (37,980 for Pokemon vs 285 for Riftbound), yet we settle roughly the same couple of hundred per game per day. Our share of each game therefore ranges from a fraction of a percent to well over half, and a hammer-value total tracks how much we saw, not how big the market is. For comparison across games, use sell-through or median winning bid.</p>
         <div class="barList" id="tcgBars"></div>
         <div class="legend" id="tcgLegend"></div>
       </div>
@@ -97,7 +101,7 @@
       <div style="overflow-x:auto">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th>Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="종료">Ended</th><th data-ko="낙찰">Sold</th><th>Passed</th><th>Hammer</th><th>Median bid</th></tr>
+            <tr><th data-ko="게임">Game</th><th>Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="종료">Ended</th><th data-ko="낙찰">Sold</th><th>Passed</th><th data-ko="표본 비율">Our share</th><th data-ko="거래액">Hammer</th><th>Median bid</th></tr>
           </thead>
           <tbody>
           <tr>
@@ -107,6 +111,7 @@
             <td>4,033</td>
             <td>31.1%</td>
             <td>68.9%</td>
+            <td class="cov">0.4%</td>
             <td>$113,066</td>
             <td>$12</td>
           </tr>
@@ -117,6 +122,7 @@
             <td>3,720</td>
             <td>48.9%</td>
             <td>51.1%</td>
+            <td class="cov">6.1%</td>
             <td>$247,531</td>
             <td>$31</td>
           </tr>
@@ -127,6 +133,7 @@
             <td>3,719</td>
             <td>28.5%</td>
             <td>71.5%</td>
+            <td class="cov">3.3%</td>
             <td>$77,563</td>
             <td>$19</td>
           </tr>
@@ -137,6 +144,7 @@
             <td>3,718</td>
             <td>36%</td>
             <td>64%</td>
+            <td class="cov">2.1%</td>
             <td>$221,685</td>
             <td>$17</td>
           </tr>
@@ -147,6 +155,7 @@
             <td>3,693</td>
             <td>27.3%</td>
             <td>72.7%</td>
+            <td class="cov">5.4%</td>
             <td>$230,436</td>
             <td>$26</td>
           </tr>
@@ -157,6 +166,7 @@
             <td>3,287</td>
             <td>45.1%</td>
             <td>54.9%</td>
+            <td class="cov">18.6%</td>
             <td>$669,607</td>
             <td>$111</td>
           </tr>
@@ -167,6 +177,7 @@
             <td>3,136</td>
             <td>24%</td>
             <td>76%</td>
+            <td class="cov">38.2%</td>
             <td>$52,339</td>
             <td>$22</td>
           </tr>
@@ -177,6 +188,7 @@
             <td>3,011</td>
             <td>9.6%</td>
             <td>90.4%</td>
+            <td class="cov">38%</td>
             <td>$18,704</td>
             <td>$9</td>
           </tr>
@@ -187,6 +199,7 @@
             <td>2,654</td>
             <td>55.3%</td>
             <td>44.7%</td>
+            <td class="cov">50.4%</td>
             <td>$308,726</td>
             <td>$50</td>
           </tr>
@@ -197,6 +210,7 @@
             <td>2,551</td>
             <td>62.9%</td>
             <td>37.1%</td>
+            <td class="cov">56.7%</td>
             <td>$1,396,533</td>
             <td>$129</td>
           </tr>
@@ -207,6 +221,7 @@
             <td>2,450</td>
             <td>35.8%</td>
             <td>64.2%</td>
+            <td class="cov">63%</td>
             <td>$138,612</td>
             <td>$31</td>
           </tr>
@@ -217,6 +232,7 @@
             <td>2,141</td>
             <td>18.4%</td>
             <td>81.6%</td>
+            <td class="cov">65.8%</td>
             <td>$16,067</td>
             <td>$14</td>
           </tr>
@@ -227,6 +243,7 @@
             <td>1,515</td>
             <td>34.5%</td>
             <td>65.5%</td>
+            <td class="cov">53.7%</td>
             <td>$123,368</td>
             <td>$23</td>
           </tr>
@@ -237,6 +254,7 @@
             <td>1,051</td>
             <td>19%</td>
             <td>81%</td>
+            <td class="cov">107.3%</td>
             <td>$19,535</td>
             <td>$35</td>
           </tr>
@@ -247,6 +265,7 @@
             <td>912</td>
             <td>18.6%</td>
             <td>81.4%</td>
+            <td class="cov">82%</td>
             <td>$3,214</td>
             <td>$3</td>
           </tr>
@@ -257,6 +276,7 @@
             <td>906</td>
             <td>61.9%</td>
             <td>38.1%</td>
+            <td class="cov">67.6%</td>
             <td>$85,677</td>
             <td>$33</td>
           </tr>
@@ -267,6 +287,7 @@
             <td>203</td>
             <td>20.2%</td>
             <td>79.8%</td>
+            <td class="cov">22.2%</td>
             <td>$2,238</td>
             <td>$30</td>
           </tr>
@@ -286,7 +307,7 @@
       // 게임별 낙찰률/거래액/물량 막대. dataviz 검증 통과 6색(+중립) — 색은 익숙한 게임을
       // 눈으로 찾게 하는 보조수단이고, 모든 막대에 이름표가 붙어 색만으로 구분하지 않는다.
       (function () {
-        var rows = [{"key":"pokemon","name":"Pokemon","n":4033,"sold":1254,"rate":31.1,"gmv":113066,"ending":37980,"live":288482,"isOp":false},{"key":"onepiece","name":"One Piece","n":3720,"sold":1820,"rate":48.9,"gmv":247531,"ending":1864,"live":14440,"isOp":true},{"key":"magic","name":"Magic: The Gathering","n":3719,"sold":1059,"rate":28.5,"gmv":77563,"ending":3703,"live":30320,"isOp":false},{"key":"pokemonjp","name":"Pokemon (Japanese)","n":3718,"sold":1337,"rate":36,"gmv":221685,"ending":5350,"live":41470,"isOp":false},{"key":"yugioh","name":"Yu-Gi-Oh!","n":3693,"sold":1007,"rate":27.3,"gmv":230436,"ending":2115,"live":18156,"isOp":false},{"key":"lorcana","name":"Disney Lorcana","n":3287,"sold":1482,"rate":45.1,"gmv":669607,"ending":568,"live":4390,"isOp":false},{"key":"weiss","name":"Weiss Schwarz","n":3136,"sold":754,"rate":24,"gmv":52339,"ending":212,"live":2115,"isOp":false},{"key":"digimon","name":"Digimon","n":3011,"sold":290,"rate":9.6,"gmv":18704,"ending":590,"live":2158,"isOp":false},{"key":"dragonball","name":"Dragon Ball Fusion World","n":2654,"sold":1468,"rate":55.3,"gmv":308726,"ending":144,"live":1390,"isOp":false},{"key":"riftbound","name":"Riftbound (LoL)","n":2551,"sold":1605,"rate":62.9,"gmv":1396533,"ending":285,"live":991,"isOp":false},{"key":"unionarena","name":"Union Arena","n":2450,"sold":878,"rate":35.8,"gmv":138612,"ending":154,"live":949,"isOp":false},{"key":"swu","name":"Star Wars Unlimited","n":2141,"sold":393,"rate":18.4,"gmv":16067,"ending":56,"live":777,"isOp":false},{"key":"gundam","name":"Gundam Card Game","n":1515,"sold":523,"rate":34.5,"gmv":123368,"ending":121,"live":707,"isOp":false},{"key":"fab","name":"Flesh and Blood","n":1051,"sold":200,"rate":19,"gmv":19535,"ending":33,"live":303,"isOp":false},{"key":"vanguard","name":"Cardfight Vanguard","n":912,"sold":170,"rate":18.6,"gmv":3214,"ending":50,"live":237,"isOp":false},{"key":"palworld","name":"Palworld TCG","n":906,"sold":561,"rate":61.9,"gmv":85677,"ending":24,"live":550,"isOp":false},{"key":"metazoo","name":"MetaZoo","n":203,"sold":41,"rate":20.2,"gmv":2238,"ending":37,"live":250,"isOp":false}];
+        var rows = [{"key":"pokemon","name":"Pokemon","n":4033,"sold":1254,"rate":31.1,"gmv":113066,"cov":0.4,"ending":37980,"live":288482,"isOp":false},{"key":"onepiece","name":"One Piece","n":3720,"sold":1820,"rate":48.9,"gmv":247531,"cov":6.1,"ending":1864,"live":14440,"isOp":true},{"key":"magic","name":"Magic: The Gathering","n":3719,"sold":1059,"rate":28.5,"gmv":77563,"cov":3.3,"ending":3703,"live":30320,"isOp":false},{"key":"pokemonjp","name":"Pokemon (Japanese)","n":3718,"sold":1337,"rate":36,"gmv":221685,"cov":2.1,"ending":5350,"live":41470,"isOp":false},{"key":"yugioh","name":"Yu-Gi-Oh!","n":3693,"sold":1007,"rate":27.3,"gmv":230436,"cov":5.4,"ending":2115,"live":18156,"isOp":false},{"key":"lorcana","name":"Disney Lorcana","n":3287,"sold":1482,"rate":45.1,"gmv":669607,"cov":18.6,"ending":568,"live":4390,"isOp":false},{"key":"weiss","name":"Weiss Schwarz","n":3136,"sold":754,"rate":24,"gmv":52339,"cov":38.2,"ending":212,"live":2115,"isOp":false},{"key":"digimon","name":"Digimon","n":3011,"sold":290,"rate":9.6,"gmv":18704,"cov":38,"ending":590,"live":2158,"isOp":false},{"key":"dragonball","name":"Dragon Ball Fusion World","n":2654,"sold":1468,"rate":55.3,"gmv":308726,"cov":50.4,"ending":144,"live":1390,"isOp":false},{"key":"riftbound","name":"Riftbound (LoL)","n":2551,"sold":1605,"rate":62.9,"gmv":1396533,"cov":56.7,"ending":285,"live":991,"isOp":false},{"key":"unionarena","name":"Union Arena","n":2450,"sold":878,"rate":35.8,"gmv":138612,"cov":63,"ending":154,"live":949,"isOp":false},{"key":"swu","name":"Star Wars Unlimited","n":2141,"sold":393,"rate":18.4,"gmv":16067,"cov":65.8,"ending":56,"live":777,"isOp":false},{"key":"gundam","name":"Gundam Card Game","n":1515,"sold":523,"rate":34.5,"gmv":123368,"cov":53.7,"ending":121,"live":707,"isOp":false},{"key":"fab","name":"Flesh and Blood","n":1051,"sold":200,"rate":19,"gmv":19535,"cov":107.3,"ending":33,"live":303,"isOp":false},{"key":"vanguard","name":"Cardfight Vanguard","n":912,"sold":170,"rate":18.6,"gmv":3214,"cov":82,"ending":50,"live":237,"isOp":false},{"key":"palworld","name":"Palworld TCG","n":906,"sold":561,"rate":61.9,"gmv":85677,"cov":67.6,"ending":24,"live":550,"isOp":false},{"key":"metazoo","name":"MetaZoo","n":203,"sold":41,"rate":20.2,"gmv":2238,"cov":22.2,"ending":37,"live":250,"isOp":false}];
         var el = document.getElementById("tcgBars");
         var lg = document.getElementById("tcgLegend");
         if (!el || !rows.length) return;
@@ -300,12 +321,23 @@
           sold: { get: function (r) { return r.sold; }, fmt: function (r) { return r.sold.toLocaleString("en-US") + W("건 낙찰", " sold"); } },
           ended: { get: function (r) { return r.n; }, fmt: function (r) { return r.n.toLocaleString("en-US") + W("건 확인", " checked"); } },
           rate: { get: function (r) { return r.rate; }, fmt: function (r) { return r.rate + "%"; }, ci: true },
-          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) { return "$" + r.gmv.toLocaleString("en-US"); } }
+          // 거래액은 커버리지를 함께 적는다. 숫자만 놓으면 '시장 규모 순위'로 읽힌다.
+          gmv: { get: function (r) { return r.gmv; }, fmt: function (r) {
+            var base = "$" + r.gmv.toLocaleString("en-US");
+            return r.cov == null ? base : base + W(" · 표본 " + r.cov + "%", " · " + r.cov + "% of that game");
+          } }
         };
         // 언어를 바꾸면 막대 라벨도 다시 그린다.
         var lastKey = "ending";
         document.addEventListener("opboxlang", function () { draw(lastKey); });
+        // 거래액 탭에서만 보이는 경고. 다른 지표(비율·중앙값)는 표본이어도 견딘다.
+        var warn = document.getElementById("tgCovWarn");
+        function toggleWarn(key) {
+          if (!warn) return;
+          warn.style.display = key === "gmv" ? "block" : "none";
+        }
         function draw(key) {
+          toggleWarn(key);
           lastKey = key;
           var m = M[key];
           var list = rows.slice().sort(function (a, b) { return m.get(b) - m.get(a); });
