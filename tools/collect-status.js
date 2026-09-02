@@ -3,14 +3,20 @@
 //
 // 왜 만드나: 소유자 지적 "박스 수집·월수금 알림·워크플로가 파편적이라 내가 지금 뭘 수집하는지 모르겠다,
 // 하나로 만들어봐." 실제로 수집이 세 군데에 흩어져 있었다:
-//   ① GitHub Actions 11개 워크플로(자동)  ② 브라우저로만 되는 수동 수집 5종  ③ 월수금 알림(사람에게만 옴)
+//   ① GitHub Actions 워크플로(자동)  ② 브라우저로만 되는 수동 수집  ③ 월수금 알림(사람에게만 옴)
 // audit-collection-health.js 는 "데이터가 늙었나"를 잘 보지만, **뭐가 자동이고 뭐가 내 손이 필요한지**는
-// 말해주지 않는다. 늙은 데이터를 보고도 "이건 자동이니 기다리면 되는 건가, 내가 해야 하나"를 알 수 없다.
+// 말해주지 않는다. 늙은 데이터를 보고도 "기다리면 되는 건가, 내가 해야 하나"를 알 수 없다.
 //
 // 그래서 이 파일이 답하는 질문은 딱 하나: **"지금 내가 뭘 해야 하나?"**
-// 각 수집원을 (자동|수동) × (정상|지연|늦음) 으로 나누고, 수동이면 실행 절차까지 붙여 출력한다.
 //
-// 이 파일은 원장을 읽기만 한다 — 아무것도 수집하지 않고 아무 파일도 쓰지 않는다.
+// ⚠️ **빠짐 방지가 이 도구의 존재 이유다** — 2026-09-02 소유자 절대지시:
+//    "나중에 가서 '어 빼먹었어요, 기준이 아니라서 놓쳤어요' 이러지 마라. 박스 그래프 틀리면 디진다."
+//    첫 판(11개 손목록)에서 실제로 유유테이 NM 시세가 통째로 빠져 있었다. 손으로 적은 목록은 반드시 샌다.
+//    그래서 이 도구는 **data/ 를 전수 스캔해 목록에 없는 축적 파일을 UNTRACKED 로 고발한다.**
+//    새 수집을 추가하고 여기 등록하지 않으면 다음 실행에서 바로 튀어나온다. 목록이 조용히 낡지 않는다.
+//    UNTRACKED 가 뜨면 **반드시 SOURCES 에 등록하거나 IGNORE 에 이유를 적어라.** 무시하지 말 것.
+//
+// 이 파일은 읽기만 한다 — 아무것도 수집하지 않고 아무 파일도 쓰지 않는다.
 // Run: node tools/collect-status.js [--json]
 const fs = require("node:fs");
 const path = require("node:path");
@@ -22,20 +28,29 @@ const today = new Date().toISOString().slice(0, 10);
 const daysAgo = (d) => (d ? Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${d}T00:00:00Z`)) / 86400000) : null);
 
 // 최신 날짜를 뽑는 방법은 파일마다 다르다. 각 수집원이 자기 방식을 들고 있게 한다.
-const latest = {
-  auctionArchive() {
-    const dir = R("data/auction-archive");
-    const days = fs.readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
+const pick = {
+  // 어떤 파일은 "2026-09-02", 어떤 파일은 "2026-09-02T00:11:42Z" 를 쓴다. 날짜만 잘라 통일한다 —
+  // 안 자르면 daysAgo 의 Date.parse 가 어긋나 멀쩡한 수집이 "지연"으로 뜬다.
+  field: (file, ...names) => () => {
+    const j = readJSON(file);
+    for (const n of names) if (j[n]) return String(j[n]).slice(0, 10);
+    return null;
+  },
+  archiveDir: (dir) => () => {
+    if (!fs.existsSync(R(dir))) return null;
+    const days = fs.readdirSync(R(dir)).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
     return days.length ? days[days.length - 1].slice(0, -5) : null;
   },
-  tcgArchive() {
-    const dir = R("data/tcg-archive");
-    if (!fs.existsSync(dir)) return null;
-    const days = fs.readdirSync(dir).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
-    return days.length ? days[days.length - 1].slice(0, -5) : null;
+  // 시계열 배열의 마지막 날짜. 배열 위치가 파일마다 달라 접근자를 받는다.
+  tail: (file, get) => () => {
+    const arr = get(readJSON(file));
+    if (!Array.isArray(arr) || !arr.length) return null;
+    const last = arr[arr.length - 1];
+    return String(last.d || last.date || last.week || "").slice(0, 10) || null;
   },
-  boxLedger() {
-    const L = readJSON("data/box-sold-ledger.json");
+  // 박스 원장은 판매일이 세트×판별로 흩어져 있다 — 전부 훑어 가장 최근 판매일을 찾는다.
+  boxLedger: (file) => () => {
+    const L = readJSON(file);
     let best = null;
     for (const set of Object.values(L.sets || {})) {
       for (const ed of ["jp", "en"]) {
@@ -49,104 +64,248 @@ const latest = {
     }
     return best;
   },
-  // 어떤 파일은 "2026-09-02", 어떤 파일은 "2026-09-02T00:11:42Z" 를 쓴다. 날짜만 잘라 통일한다 —
-  // 안 자르면 daysAgo 의 Date.parse 가 어긋나 멀쩡한 수집이 "지연"으로 뜬다.
-  fieldOf: (file, field) => () => {
-    const v = readJSON(file)[field];
-    return v ? String(v).slice(0, 10) : null;
-  },
-  seriesTail: (file, pick) => () => {
-    const j = readJSON(file);
-    const arr = pick(j);
-    if (!Array.isArray(arr) || !arr.length) return null;
-    const last = arr[arr.length - 1];
-    return last.d || last.date || last.week || null;
+  // 카드/세트 단위로 흩어진 갱신일(유유테이 NM 등) — packs.json 안을 훑는다.
+  packsField: (kind) => () => {
+    const j = readJSON("data/onepiece-packs.json");
+    let best = null;
+    const take = (v) => { const d = v && String(v).slice(0, 10); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && (!best || d > best)) best = d; };
+    for (const set of Object.values(j.sets || {})) {
+      // boxMarket 은 판별(jp/en) × 종류(ebayActive/ebaySold) 네 군데에 각자 updated 를 들고 있다.
+      for (const ed of ["jp", "en"]) {
+        const bm = set.boxMarket && set.boxMarket[ed];
+        if (!bm) continue;
+        if (kind === "box") take(bm.ebayActive && bm.ebayActive.updated);
+        if (kind === "boxsold") take(bm.ebaySold && bm.ebaySold.updated);
+      }
+      if (kind === "psafull") { take(set.psaFull && set.psaFull.updated); take(set.psaFullEn && set.psaFullEn.updated); }
+      if (kind === "psaweeklyset") take(set.psaWeekly && set.psaWeekly.updated);
+      if (kind === "boxseries") { for (const key of ["boxSeries", "boxSeriesEn", "boxSeriesEbay", "boxSeriesEnEbay"]) take(set[key] && set[key].updated); }
+      for (const c of Object.values(set.cards || {})) {
+        if (kind === "nm") take(c.nmUpdated);
+        if (kind === "psa10active") take(c.psa10Active && c.psa10Active.updated);
+        if (kind === "psa10sold") take(c.psa10Ebay && c.psa10Ebay.updated);
+        if (kind === "cardseries") take(c.series && c.series.updated);
+        if (kind === "graderpop") for (const g of Object.values(c.graderPop || {})) for (const ed of Object.values(g || {})) take(ed && ed.d);
+      }
+    }
+    return best;
   },
 };
 
 // ── 수집원 목록 ────────────────────────────────────────────────
-// warn/late = 며칠 지나면 노랑/빨강. 자동 수집은 주기의 2~3배를 넘으면 사고다.
-// how = 수동 수집의 실행 절차(사람이 그대로 따라할 수 있게 한 줄로).
+// file = 이 수집원이 소유한 data/ 파일들(전수 스캔에서 "추적됨"으로 처리할 대상).
+// warn/late = 며칠 지나면 지연/늦음. 자동 수집은 주기의 2~3배를 넘으면 사고다.
+// how = 수동 수집의 실행 절차(사람이 그대로 따라할 수 있게).
 const SOURCES = [
-  { key: "op-auction", name: "원피스 경매 정산", mode: "auto", every: "90분마다",
-    wf: "settle-auctions", warn: 1, late: 2, get: latest.auctionArchive },
-  { key: "op-market", name: "원피스 경매 시장 스캔", mode: "auto", every: "3시간마다",
-    wf: "collect-auction-market", warn: 1, late: 2, get: latest.fieldOf("data/auction-watch.json", "updated") },
-  { key: "tcg", name: "TCG 17종 경매", mode: "auto", every: "6시간마다(스냅샷 1일 1회)",
-    wf: "collect-tcg", warn: 1, late: 2, get: latest.tcgArchive },
-  { key: "active", name: "진행 중 매물 관측", mode: "auto", every: "매일 03:00 KST",
-    wf: "update-active-listings", warn: 2, late: 3, get: latest.fieldOf("data/active-listing-audit.json", "updated") },
-  // fx.json 은 updated 가 아니라 date 를 쓴다 — 파일마다 필드명이 다르니 각자 자기 것을 지정한다.
-  { key: "fx", name: "환율", mode: "auto", every: "매일 09:10 KST",
-    wf: "update-fx", warn: 2, late: 3, get: latest.fieldOf("data/fx.json", "date") },
-  { key: "grading", name: "그레이딩 시계열", mode: "auto", every: "매주 월요일",
-    wf: "collect-grading", warn: 8, late: 12, get: latest.fieldOf("data/grading-series.json", "updated") },
+  // ── 자동 (GitHub Actions) ──
+  { key: "op-auction", name: "원피스 경매 정산", mode: "auto", every: "90분마다", wf: "settle-auctions",
+    warn: 1, late: 2, get: pick.archiveDir("data/auction-archive"),
+    files: ["auction-archive", "auction-sold.json", "auction-card-stats.json", "auction-series.json", "auction-stats.json"] },
+  { key: "op-market", name: "원피스 경매 시장 스캔", mode: "auto", every: "3시간마다", wf: "collect-auction-market",
+    warn: 1, late: 2, get: pick.field("data/auction-market.json", "updated"),
+    files: ["auction-market.json", "auction-watch.json", "auction-deals.json", "auction-findings.json"] },
+  { key: "tcg", name: "TCG 17종 경매", mode: "auto", every: "6시간(스냅샷 1일 1회)", wf: "collect-tcg",
+    warn: 1, late: 2, get: pick.archiveDir("data/tcg-archive"),
+    files: ["tcg-archive", "tcg-snapshot.json", "tcg-series.json", "tcg-watch.json"] },
+  { key: "palworld-auction", name: "팰월드 경매", mode: "auto", every: "3시간마다", wf: "collect-auction-market",
+    warn: 2, late: 3, get: pick.field("data/palworld-auction-market.json", "updated"),
+    files: ["palworld-auction-archive", "palworld-auction-market.json", "palworld-auction-sold.json", "palworld-auction-watch.json"] },
+  { key: "active", name: "진행 중 매물 관측", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
+    warn: 2, late: 3, get: pick.field("data/active-listing-audit.json", "updated"),
+    files: ["active-listing-audit.json", "supply-series.json", "listing-ids.json", "price-quality-audit.json",
+            "set-auction-stats.json", "psa10-mismatch-audit.json", "japanese-nm-sold-audit.json"] },
+  { key: "psa10-active", name: "PSA10 진행매물 시세", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
+    warn: 2, late: 3, get: pick.packsField("psa10active"), files: ["psa10-sold-audit.json"] },
+  { key: "fx", name: "환율", mode: "auto", every: "매일 09:10 KST", wf: "update-fx",
+    warn: 2, late: 3, get: pick.field("data/fx.json", "date", "updated"), files: ["fx.json", "fx-history.json"] },
+  { key: "grading", name: "그레이딩 시계열(PSA/CGC/TAG 통합)", mode: "auto", every: "매주 월요일", wf: "collect-grading",
+    warn: 8, late: 12, get: pick.field("data/grading-series.json", "updated"),
+    files: ["grading-series.json", "psa-edition-weekly.json", "gemrate-psa-en-totals.json"] },
+  { key: "psa-weekly", name: "PSA 주간 등급량", mode: "auto", every: "매주 일요일", wf: "update-market-data",
+    warn: 8, late: 12, get: pick.field("data/gemrate-psa-history.json", "collectedAt", "weeklyThrough", "updated"),
+    files: ["gemrate-psa-history.json", "psa-population-snapshots.json"] },
+  { key: "social", name: "주간 소셜 카드 스냅샷", mode: "auto", every: "매주 일요일", wf: "generate-weekly-social-assets",
+    warn: 8, late: 12, get: pick.tail("data/social-card-price-snapshots.json", (j) => j.snapshots),
+    files: ["social-card-price-snapshots.json"] },
 
+  { key: "psa-full", name: "PSA 전체 인구(세트별)", mode: "auto", every: "매주 일요일", wf: "update-market-data",
+    warn: 8, late: 12, get: pick.packsField("psafull"), files: [] },
+  { key: "card-series", name: "카드별 시세 시계열", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
+    warn: 2, late: 3, get: pick.packsField("cardseries"), files: [] },
+  { key: "box-series", name: "박스 시세 시계열(JP/EN×호가/실거래)", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
+    warn: 2, late: 3, get: pick.packsField("boxseries"), files: [] },
+
+  // ── 수동 (실브라우저 필요) ──
   { key: "box", name: "박스 판매(BIN) 원장", mode: "manual", every: "주 3회(월·수·금)",
-    warn: 3, late: 5, get: latest.boxLedger,
-    how: "브라우저 수집 → node tools/box-sold-ingest.js <덤프> → node tools/build-box-sold-series.js",
-    note: "eBay 가 sold 검색을 API 로 막아 실브라우저로만 된다. 빈 응답 재시도가 들어 있으니 empties 가 0인지 확인할 것." },
-  { key: "psa", name: "PSA 등급 인구", mode: "manual", every: "주 1회",
-    warn: 8, late: 14, get: latest.fieldOf("data/psa-card-pop.json", "updated"),
-    how: "브라우저로 GemRate 수집 → node tools/collect-psa-card-pop.js" },
-  { key: "cgc", name: "CGC 등급 인구", mode: "manual", every: "주 1회",
-    warn: 8, late: 14, get: latest.fieldOf("data/cgc-card-pop.json", "updated"),
-    how: "브라우저로 CGC 팝리포트 수집 → node tools/cgc-card-pop-ingest.js" },
-  { key: "tag", name: "TAG 등급 인구", mode: "manual", every: "주 1회",
-    warn: 8, late: 14, get: latest.fieldOf("data/tag-card-pop.json", "updated"),
-    how: "브라우저로 TAG 팝리포트 수집 → node tools/tag-card-pop-ingest.js" },
-  { key: "palworld", name: "팰월드 박스 판매", mode: "manual", every: "주 1회",
-    warn: 8, late: 14, get: latest.boxLedgerPalworld || (() => {
-      try { return readJSON("data/palworld-sold-ledger.json").updated || null; } catch { return null; }
-    }),
+    warn: 3, late: 5, get: pick.boxLedger("data/box-sold-ledger.json"),
+    files: ["box-sold-ledger.json", "box-sold-series.json"],
+    how: "node tools/box-sold-urls.js --setup → 브라우저에서 __runBatch → 덤프 → node tools/box-sold-ingest.js <덤프> → node tools/build-box-sold-series.js",
+    note: "eBay 가 sold 검색을 API 로 막아 실브라우저로만 된다. **empties 가 0인지 반드시 확인** — 빈 응답을 '판매 없음'으로 삼킨 사고가 있었다(2026-09-02, 83페이지)." },
+  { key: "nm", name: "유유테이 NM 시세(일본판 단품)", mode: "manual", every: "2~3개월 + 신세트 출시",
+    warn: 75, late: 100, get: pick.packsField("nm"), files: [],
+    how: "브라우저로 유유테이 카드별 NM 가격 수집 → packs.json 의 card.nmJpy/nmUpdated 갱신",
+    note: "변형(패러렐·망가 등)별로 매칭해야 한다 — 번호만 보고 붙이면 값이 통째로 틀어진다." },
+  { key: "boxmarket", name: "박스 진행매물 시세(JP/EN)", mode: "manual", every: "주 1회",
+    warn: 8, late: 14, get: pick.packsField("box"), files: [],
+    how: "node tools/update-ebay-pack-prices.js <세트> (.env 필요)" },
+  { key: "psa-pop", name: "PSA 카드별 등급 인구", mode: "manual", every: "주 1회(월)",
+    warn: 8, late: 14, get: pick.field("data/psa-card-pop.json", "updated"), files: ["psa-card-pop.json"],
+    how: "브라우저로 GemRate 카드별 수집 → node tools/collect-psa-card-pop.js" },
+  { key: "cgc-pop", name: "CGC 등급 인구(박스+카드별)", mode: "manual", every: "주 1회(월)",
+    warn: 8, late: 14, get: pick.field("data/cgc-card-pop.json", "updated"),
+    files: ["cgc-card-pop.json", "cgc-grading-history.json"],
+    how: "브라우저로 CGC 팝리포트 → node tools/cgc-pop-ingest.js + node tools/cgc-card-pop-ingest.js" },
+  { key: "tag-pop", name: "TAG 등급 인구(박스+카드별)", mode: "manual", every: "주 1회(월)",
+    warn: 8, late: 14, get: pick.field("data/tag-card-pop.json", "updated"),
+    files: ["tag-card-pop.json", "tag-grading-history.json"],
+    how: "브라우저로 TAG 팝리포트 → node tools/tag-pop-ingest.js + node tools/tag-card-pop-ingest.js" },
+  { key: "psa10-sold", name: "PSA10 실거래(sold) 시세", mode: "manual", every: "월 1회",
+    warn: 35, late: 60, get: pick.packsField("psa10sold"), files: [],
+    how: "node tools/psa10-sold-refresh.js → 브라우저 수집 → node tools/psa10-sold-write.js",
+    note: "변형(레드망가↔망가 등) 분리 필수 — 번호만 매칭하면 값이 통째로 틀어진다." },
+  { key: "graderpop-card", name: "카드별 등급인구(PSA/CGC/TAG)", mode: "manual", every: "주 1회(월)",
+    warn: 8, late: 14, get: pick.packsField("graderpop"), files: [],
+    how: "psa-pop·cgc-pop·tag-pop 수집이 packs.json 의 card.graderPop 에 반영된다(위 3개와 같은 작업)" },
+  { key: "palworld-box", name: "팰월드 박스 판매", mode: "manual", every: "주 1회",
+    warn: 8, late: 14, get: pick.boxLedger("data/palworld-sold-ledger.json"), files: ["palworld-sold-ledger.json"],
     how: "node tools/palworld-sold-urls.js --setup → 브라우저 수집 → ingest" },
 ];
 
+// 시계열이 아니거나(설정·파생) 수집과 무관한 파일. **이유를 반드시 적는다** — 빈 무시는 곧 빠짐이다.
+const IGNORE = {
+  "onepiece-packs.json": "모든 수집의 종착지(세트·카드 마스터). 개별 수집원이 이 안의 자기 필드를 갱신한다",
+  "products.json": "제휴 상품 목록(수동 편집, 시계열 아님)",
+  "set-facts.json": "세트 발매일·구성 등 고정 사실(수동 편집)",
+  "set-commentary.json": "세트 해설 문구(수동 편집)",
+  "known-gaps.json": "수집 공백 기록부(audit-series-gaps.js 가 씀, 수집원 아님)",
+  "official-card-images.json": "공식 이미지 URL 목록(수동)",
+  "jp-image-verdicts.json": "이미지 판정 결과(파생)",
+  "priority-set-seo.json": "SEO 우선순위 설정(수동)",
+  "upcoming-set-pages.json": "발매 예정 세트 설정(수동)",
+  "pull-rate-research-op01-jp.json": "OP-01 봉입률 1회성 조사(고정)",
+};
+
 const rows = SOURCES.map((s) => {
   let last = null, err = null;
-  try { last = s.get(); } catch (e) { err = String(e.message || e).slice(0, 60); }
+  try { last = s.get(); } catch (e) { err = String(e.message || e).slice(0, 70); }
   const age = daysAgo(last);
   const state = err ? "오류" : age == null ? "없음" : age >= s.late ? "늦음" : age >= s.warn ? "지연" : "정상";
   return { ...s, last, age, state, err };
 });
 
-// 지금 해야 할 일 = 수동인데 지연·늦음인 것. 자동은 늦어도 사람이 할 게 없다(워크플로 로그를 볼 뿐).
-const todo = rows.filter((r) => r.mode === "manual" && (r.state === "지연" || r.state === "늦음" || r.state === "없음"));
-const autoBroken = rows.filter((r) => r.mode === "auto" && (r.state === "늦음" || r.state === "오류"));
+// ── 빠짐 검출: data/ 전수 스캔 ────────────────────────────────
+// 목록에도 없고 무시 사유도 없는 축적 파일 = 우리가 모르는 사이 쌓이고 있는 데이터.
+// ⚠️ packs.json 안에도 수집이 산다(유유테이 NM·PSA10 sold·등급인구·시세 시계열…).
+//    파일 스캔만으로는 이게 안 잡혀 실제로 두 번 빠뜨렸다(2026-09-02: nmUpdated, psa10Ebay).
+//    그래서 packs.json 을 재귀로 훑어 "날짜값을 가진 필드 경로"를 전수로 뽑고,
+//    아래 PACKS_TRACKED 에 없는 경로가 나오면 UNTRACKED 로 고발한다. 새 필드가 생기면 바로 튀어나온다.
+// ⚠️ 여기 정규식은 반드시 `\.`(점 이스케이프)로 쓴다. 그냥 `.` 로 두면 아무 문자나 매칭해
+//    새 수집 필드를 조용히 통과시킨다 — 그물이 있는 척하면서 실제론 아무것도 안 거른다.
+//    2026-09-02 실제로 이 실수로 그물이 통째로 무력화됐다(가짜 필드 시험에서 발각).
+//    tools/test-collect-status.js 가 매번 이 그물을 시험한다.
+const PACKS_TRACKED = [
+  /\.nmUpdated$/,                                          // 유유테이 NM (수동)
+  /\.psa10Active\.updated$/,                               // PSA10 진행매물 (자동)
+  /\.psa10Ebay\.updated$/,                                 // PSA10 실거래 (수동)
+  /\.graderPop\..+\.d$/,                                   // 카드별 등급인구 (수동)
+  /\.series\.(updated|cleaned)$/,                          // 카드별 시세 시계열 (자동)
+  /\.series\.points\.\d+\.d$/,
+  /\.boxMarket\.(jp|en)\.ebay(Active|Sold)\.updated$/,     // 박스 시세 (자동/수동)
+  /\.boxSeries(En|Ebay|EnEbay)?\.updated$/,                // 박스 시세 시계열 (자동)
+  /\.boxSeries(En|Ebay|EnEbay)?\.points\.\d+\.d$/,
+  /\.psaWeekly\.(updated|points\.\d+\.d|corrections\.\d+\.date)$/, // PSA 주간 (자동)
+  /\.psaFull(En)?\.updated$/,                              // PSA 전체 인구 (자동)
+  /\.psaWow\.(from|to)$/,                                  // 주간 증감 표시용(파생)
+  /\.graders\.(cgc|tag)\.(jp|en)\.(from|to)$/,             // 등급사 관측창(파생)
+  /\.englishNmEbay\.updated$/,                             // 영문판 NM 시세 (자동)
+  /^\.marketIndex\.meter\./,                               // 개봉 미터 주간 (자동)
+  /^\.marketIndex\.board\.\d+\.(nowDate|changeBasis)$/,    // 지수 보드 기준일(파생)
+  /^\.marketIndex\.updated$/,
+  /\.release(Ja)?$/,                                       // 세트 발매일(고정 사실)
+  /^\.marketIndex\.reprints\./,                            // 재판 기록(수동 편집)
+  /^\.fx\.date$/,                                          // 화면용 환율 복사본(fx.json 이 원본)
+  /^\.updated$/,                                           // packs.json 자체 갱신일
+];
+function scanPacks() {
+  let j; try { j = readJSON("data/onepiece-packs.json"); } catch { return []; }
+  const seen = new Set();
+  (function walk(o, p) {
+    if (!o || typeof o !== "object") return;
+    for (const [k, v] of Object.entries(o)) {
+      if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}/.test(v)) {
+        seen.add((p + "." + k).replace(/^\.sets\.[^.]+/, "").replace(/\.cards\.[^.]+/, ".cards.*").replace(/\.bySet\.[^.]+/, ".bySet.*"));
+      } else if (typeof v === "object") walk(v, p + "." + k);
+    }
+  })(j, "");
+  return [...seen].filter((p) => !PACKS_TRACKED.some((re) => re.test(p))).sort();
+}
+const packsUntracked = scanPacks();
+
+const tracked = new Set(SOURCES.flatMap((s) => s.files || []));
+const untracked = [];
+for (const f of fs.readdirSync(R("data"))) {
+  if (tracked.has(f) || IGNORE[f]) continue;
+  const full = R(path.join("data", f));
+  const isDir = fs.statSync(full).isDirectory();
+  if (!isDir && !f.endsWith(".json")) continue;
+  // 날짜 문자열이 5개 이상이면 시계열(축적)로 본다 — 놓치면 영구 손실이라 반드시 고발한다.
+  let dates = 0;
+  try {
+    dates = isDir ? fs.readdirSync(full).length
+      : (fs.readFileSync(full, "utf8").slice(0, 200000).match(/"\d{4}-\d{2}-\d{2}"/g) || []).length;
+  } catch { /* 읽기 실패도 고발 대상 */ }
+  if (dates >= 5) untracked.push(f);
+}
+
+const todo = rows.filter((r) => r.mode === "manual" && r.state !== "정상");
+const autoBroken = rows.filter((r) => r.mode === "auto" && (r.state === "늦음" || r.state === "오류" || r.state === "없음"));
 
 if (process.argv.includes("--json")) {
-  console.log(JSON.stringify({ today, todo: todo.map((r) => r.key), autoBroken: autoBroken.map((r) => r.key), rows }, null, 1));
+  console.log(JSON.stringify({
+    today, todo: todo.map((r) => r.key), autoBroken: autoBroken.map((r) => r.key), untracked, packsUntracked,
+    rows: rows.map(({ get, files, ...r }) => r),
+  }, null, 1));
   process.exit(0);
 }
 
-// 콘솔 출력. 윈도우 cp949 라 이모지·기호를 쓰지 않는다 — 글자만 쓴다.
-const pad = (s, n) => String(s) + " ".repeat(Math.max(0, n - [...String(s)].reduce((a, c) => a + (c.charCodeAt(0) > 127 ? 2 : 1), 0)));
-const line = [];
-line.push(`수집 현황 — ${today}`);
-line.push("");
-line.push("[자동] GitHub Actions 가 알아서 돌린다. 사람이 할 일 없음.");
+// 콘솔 출력. 윈도우 cp949 라 이모지를 쓰지 않는다.
+const w = (s) => [...String(s)].reduce((a, c) => a + (c.charCodeAt(0) > 127 ? 2 : 1), 0);
+const pad = (s, n) => String(s) + " ".repeat(Math.max(0, n - w(s)));
+const out = [`수집 현황 — ${today}   (자동 ${rows.filter((r) => r.mode === "auto").length} · 수동 ${rows.filter((r) => r.mode === "manual").length})`, ""];
+out.push("[자동] GitHub Actions 가 돌린다. 사람이 할 일 없음.");
 for (const r of rows.filter((x) => x.mode === "auto")) {
-  line.push(`  ${pad(r.name, 24)} ${pad(r.state, 6)} 최신 ${r.last || "-"}  (${r.every})`);
+  out.push(`  ${pad(r.name, 34)} ${pad(r.state, 6)} ${pad(r.last || "-", 12)} ${r.every}`);
 }
-line.push("");
-line.push("[수동] 브라우저가 필요하다 — 이건 사람이 시켜야 돈다.");
+out.push("");
+out.push("[수동] 실브라우저가 필요하다 — 사람이 시켜야 돈다.");
 for (const r of rows.filter((x) => x.mode === "manual")) {
-  line.push(`  ${pad(r.name, 24)} ${pad(r.state, 6)} 최신 ${r.last || "-"}  (${r.every})`);
+  out.push(`  ${pad(r.name, 34)} ${pad(r.state, 6)} ${pad(r.last || "-", 12)} ${r.every}`);
 }
-line.push("");
+out.push("");
+if (packsUntracked.length) {
+  out.push("!! packs.json 안에 목록에 없는 날짜 필드 — 새 수집이면 SOURCES 에, 아니면 PACKS_TRACKED 에 등록할 것:");
+  for (const p of packsUntracked.slice(0, 12)) out.push("   packs" + p);
+  if (packsUntracked.length > 12) out.push("   ...외 " + (packsUntracked.length - 12) + "개");
+  out.push("");
+}
+if (untracked.length) {
+  out.push("!! 목록에 없는 축적 데이터 — SOURCES 에 등록하거나 IGNORE 에 이유를 적을 것:");
+  for (const f of untracked) out.push(`   data/${f}`);
+  out.push("");
+}
 if (autoBroken.length) {
-  line.push("!! 자동인데 멈춤 — 워크플로 로그를 볼 것:");
-  for (const r of autoBroken) line.push(`   ${r.name}: ${r.age}일째 (${r.wf})`);
-  line.push("");
+  out.push("!! 자동인데 멈춤 — 워크플로 로그를 볼 것:");
+  for (const r of autoBroken) out.push(`   ${r.name}: ${r.age == null ? "기록 없음" : r.age + "일째"} (${r.wf})`);
+  out.push("");
 }
 if (todo.length) {
-  line.push("== 지금 할 일 ==");
+  out.push("== 지금 할 일 ==");
   for (const r of todo) {
-    line.push(`  ${r.name} — ${r.age == null ? "기록 없음" : r.age + "일째"}`);
-    line.push(`    ${r.how}`);
-    if (r.note) line.push(`    참고: ${r.note}`);
+    out.push(`  ${r.name} — ${r.age == null ? "기록 없음" : r.age + "일째"}`);
+    out.push(`    ${r.how}`);
+    if (r.note) out.push(`    주의: ${r.note}`);
   }
 } else {
-  line.push("== 지금 할 일 없음 — 수동 수집 전부 최신 ==");
+  out.push("== 지금 할 일 없음 — 수동 수집 전부 최신 ==");
 }
-console.log(line.join("\n"));
+console.log(out.join("\n"));

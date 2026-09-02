@@ -321,6 +321,30 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── R4. 수집 빠짐 그물이 살아있는가 — 2026-09-02 신설.
+//    소유자 절대지시: "여태 수집하던 것 하나도 빼먹지 마라. 그래프 틀리면 안 된다."
+//    collect-status.js 가 data/ 와 packs.json 을 전수 스캔해 목록에 없는 수집을 고발한다.
+//    그런데 **그물은 조용히 죽는다** — 실제로 그날 정규식의 \d 가 d 로 깨져(셸에서 백슬래시가 먹혔다)
+//    아무것도 검사하지 않으면서 "UNTRACKED 0" 을 출력했다. 검사 안 하고 통과했다고 말하는 상태였다.
+//    그래서 여기서 가짜 수집을 심어 잡히는지 매번 확인한다. 이게 통과해야 푸시할 수 있다.
+{
+  const f = "tools/test-collect-status.js";
+  if (!exists(f)) {
+    errors.push("R4: test-collect-status.js 가 사라졌다 — 수집 빠짐 그물을 검증할 방법이 없어진다");
+  } else {
+    try {
+      const out = require("node:child_process").execFileSync(
+        process.execPath, [path.join(ROOT, f)], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024, cwd: ROOT }
+      );
+      const r = JSON.parse(out.trim().split("\n").pop());
+      if (r.test !== "OK") errors.push("R4: 수집 빠짐 그물 검사 실패 — 새 수집이 조용히 누락될 수 있다");
+      if (r.sources < 22) errors.push(`R4: 등록된 수집원이 ${r.sources}개로 줄었다(22개 이상이어야 한다) — 수집원이 목록에서 사라졌는지 확인할 것`);
+    } catch (e) {
+      errors.push("R4: 수집 빠짐 그물 검사가 죽었다 — " + String(e.message || e).slice(0, 120));
+    }
+  }
+}
+
 // ── Q1. 다수량(lot) 개당가 규칙 — 2026-07-22. "3박스 낙찰 총액"이 1박스 가격으로 오염되지 않아야 한다.
 //    경매(tools/lot-quantity.js)와 브라우저 sold 수집(box-sold-urls.js 추출기)이 같은 규칙으로 동작하는지
 //    함정 제목(세트코드 13, 연도, 케이스, 복수형)까지 실제로 실행해 검증한다.
@@ -1436,4 +1460,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
