@@ -115,7 +115,7 @@ const SOURCES = [
     files: ["active-listing-audit.json", "supply-series.json", "listing-ids.json", "price-quality-audit.json",
             "set-auction-stats.json", "psa10-mismatch-audit.json", "japanese-nm-sold-audit.json"] },
   { key: "psa10-active", name: "PSA10 진행매물 시세", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
-    warn: 2, late: 3, get: pick.packsField("psa10active"), files: ["psa10-sold-audit.json"] },
+    warn: 2, late: 3, get: pick.packsField("psa10active"), files: [] },
   { key: "fx", name: "환율", mode: "auto", every: "매일 09:10 KST", wf: "update-fx",
     warn: 2, late: 3, get: pick.field("data/fx.json", "date", "updated"), files: ["fx.json", "fx-history.json"] },
   { key: "grading", name: "그레이딩 시계열(PSA/CGC/TAG 통합)", mode: "auto", every: "매주 월요일", wf: "collect-grading",
@@ -139,15 +139,17 @@ const SOURCES = [
   { key: "box", name: "박스 판매(BIN) 원장", mode: "manual", every: "주 3회(월·수·금)",
     warn: 3, late: 5, get: pick.boxLedger("data/box-sold-ledger.json"),
     files: ["box-sold-ledger.json", "box-sold-series.json"],
-    how: "node tools/box-sold-urls.js --setup → 브라우저에서 __runBatch → 덤프 → node tools/box-sold-ingest.js <덤프> → node tools/build-box-sold-series.js",
+    how: "node tools/box-sold-urls.js --setup → 브라우저에 붙여넣고 window.__runAll() → 가끔 __progress() → 끝나면 __opPost() → node tools/box-sold-ingest.js <덤프> → node tools/build-box-sold-series.js",
     note: "eBay 가 sold 검색을 API 로 막아 실브라우저로만 된다. **empties 가 0인지 반드시 확인** — 빈 응답을 '판매 없음'으로 삼킨 사고가 있었다(2026-09-02, 83페이지)." },
-  { key: "nm", name: "유유테이 NM 시세(일본판 단품)", mode: "manual", every: "2~3개월 + 신세트 출시",
-    warn: 75, late: 100, get: pick.packsField("nm"), files: [],
+  // 주기 2~3개월 → 10일. 2026-09-02 소유자 지시("10일에 1회로 바꿔").
+  { key: "nm", name: "유유테이 NM 시세(일본판 단품)", mode: "manual", every: "10일마다",
+    warn: 10, late: 14, get: pick.packsField("nm"), files: [],
     how: "브라우저로 유유테이 카드별 NM 가격 수집 → packs.json 의 card.nmJpy/nmUpdated 갱신",
     note: "변형(패러렐·망가 등)별로 매칭해야 한다 — 번호만 보고 붙이면 값이 통째로 틀어진다." },
-  { key: "boxmarket", name: "박스 진행매물 시세(JP/EN)", mode: "manual", every: "주 1회",
-    warn: 8, late: 14, get: pick.packsField("box"), files: [],
-    how: "node tools/update-ebay-pack-prices.js <세트> (.env 필요)" },
+  // 수동으로 잘못 분류했었다(2026-09-02 정정) — update-ebay-pack-prices.js 는 eBay API 만 쓰고
+  // update-active-listings·update-market-data 워크플로가 이미 돌린다. 사람이 할 일이 없다.
+  { key: "boxmarket", name: "박스 진행매물 시세(JP/EN)", mode: "auto", every: "매일 03:00 KST",
+    wf: "update-active-listings", warn: 2, late: 3, get: pick.packsField("box"), files: [] },
   { key: "psa-pop", name: "PSA 카드별 등급 인구", mode: "manual", every: "주 1회(월)",
     warn: 8, late: 14, get: pick.field("data/psa-card-pop.json", "updated"), files: ["psa-card-pop.json"],
     how: "브라우저로 GemRate 카드별 수집 → node tools/collect-psa-card-pop.js" },
@@ -183,6 +185,9 @@ const IGNORE = {
   "priority-set-seo.json": "SEO 우선순위 설정(수동)",
   "upcoming-set-pages.json": "발매 예정 세트 설정(수동)",
   "pull-rate-research-op01-jp.json": "OP-01 봉입률 1회성 조사(고정)",
+  // 2026-06-29 에 한 번 돌린 감사 기록. 지금은 아무 스크립트도 쓰지 않는다(세부보기가 65일 정지로 찾아냈다).
+  // 수집 고장이 아니라 잔재 — 지우지는 않는다(그때 무엇을 고쳤는지 남은 유일한 근거).
+  "psa10-sold-audit.json": "2026-06-29 1회성 감사 기록(현재 미사용, 이력 보존용)",
 };
 
 const rows = SOURCES.map((s) => {
@@ -257,13 +262,42 @@ for (const f of fs.readdirSync(R("data"))) {
   if (dates >= 5) untracked.push(f);
 }
 
+// ── 묶인 파일을 각각 본다 — 2026-09-02 소유자 지적("원피스·TCG 세분화된 수집은 왜 빼냐").
+//    한 수집원이 파일 여럿을 낳는다(경매 정산 → 원장·낙찰집계·카드별통계·시계열·종류별).
+//    대표 파일 하나만 보면, 원장은 도는데 카드별 통계가 멈춰도 화면엔 "정상"이 뜬다.
+//    그래서 파일마다 수정시각을 재고, 대표보다 눈에 띄게 뒤처지면 그 파일을 따로 고발한다.
+//    (mtime 을 쓰는 이유: 파일마다 내부 날짜 필드 이름이 제각각이라 통일해 읽을 수 없다.
+//     커밋으로 내려받아도 mtime 은 갱신되므로 "언제 마지막으로 바뀌었나"는 정확하다.)
+const fileAgeDays = (rel) => {
+  const full = R(path.join("data", rel));
+  if (!fs.existsSync(full)) return null;
+  let t = fs.statSync(full).mtimeMs;
+  if (fs.statSync(full).isDirectory()) {
+    // 디렉터리는 자기 mtime 이 아니라 가장 최근 파일을 본다.
+    for (const f of fs.readdirSync(full)) {
+      const s = fs.statSync(path.join(full, f));
+      if (s.mtimeMs > t) t = s.mtimeMs;
+    }
+  }
+  return Math.floor((Date.now() - t) / 86400000);
+};
+const staleParts = [];
+for (const s of SOURCES) {
+  for (const f of s.files || []) {
+    const age = fileAgeDays(f);
+    if (age == null) { staleParts.push({ source: s.name, file: f, age: null, why: "파일 없음" }); continue; }
+    // 그 수집원의 주기 기준(late)을 넘게 안 바뀌었으면 이 파일만 멈춘 것이다.
+    if (age >= s.late) staleParts.push({ source: s.name, file: f, age, why: `${age}일째 안 바뀜` });
+  }
+}
+
 const todo = rows.filter((r) => r.mode === "manual" && r.state !== "정상");
 const autoBroken = rows.filter((r) => r.mode === "auto" && (r.state === "늦음" || r.state === "오류" || r.state === "없음"));
 
 if (process.argv.includes("--json")) {
   console.log(JSON.stringify({
-    today, todo: todo.map((r) => r.key), autoBroken: autoBroken.map((r) => r.key), untracked, packsUntracked,
-    rows: rows.map(({ get, files, ...r }) => r),
+    today, todo: todo.map((r) => r.key), autoBroken: autoBroken.map((r) => r.key), untracked, packsUntracked, staleParts,
+    rows: rows.map(({ get, ...r }) => r),
   }, null, 1));
   process.exit(0);
 }
@@ -272,16 +306,27 @@ if (process.argv.includes("--json")) {
 const w = (s) => [...String(s)].reduce((a, c) => a + (c.charCodeAt(0) > 127 ? 2 : 1), 0);
 const pad = (s, n) => String(s) + " ".repeat(Math.max(0, n - w(s)));
 const out = [`수집 현황 — ${today}   (자동 ${rows.filter((r) => r.mode === "auto").length} · 수동 ${rows.filter((r) => r.mode === "manual").length})`, ""];
-out.push("[자동] GitHub Actions 가 돌린다. 사람이 할 일 없음.");
-for (const r of rows.filter((x) => x.mode === "auto")) {
+// --detail 을 주면 한 수집원이 낳는 파일까지 펼친다. 묶여 보이면 그 안이 멈춰도 모른다.
+const DETAIL = process.argv.includes("--detail");
+const line = (r) => {
   out.push(`  ${pad(r.name, 34)} ${pad(r.state, 6)} ${pad(r.last || "-", 12)} ${r.every}`);
-}
+  if (!DETAIL) return;
+  for (const f of r.files || []) {
+    const age = fileAgeDays(f);
+    out.push(`      · ${pad(f, 34)} ${age == null ? "파일 없음" : age === 0 ? "오늘" : age + "일 전"}`);
+  }
+};
+out.push("[자동] GitHub Actions 가 돌린다. 사람이 할 일 없음.");
+for (const r of rows.filter((x) => x.mode === "auto")) line(r);
 out.push("");
 out.push("[수동] 실브라우저가 필요하다 — 사람이 시켜야 돈다.");
-for (const r of rows.filter((x) => x.mode === "manual")) {
-  out.push(`  ${pad(r.name, 34)} ${pad(r.state, 6)} ${pad(r.last || "-", 12)} ${r.every}`);
-}
+for (const r of rows.filter((x) => x.mode === "manual")) line(r);
 out.push("");
+if (staleParts.length) {
+  out.push("!! 묶인 파일 중 멈춘 것 — 수집원은 도는데 이 산출물만 안 바뀐다:");
+  for (const p of staleParts) out.push(`   ${p.source} → data/${p.file} (${p.why})`);
+  out.push("");
+}
 if (packsUntracked.length) {
   out.push("!! packs.json 안에 목록에 없는 날짜 필드 — 새 수집이면 SOURCES 에, 아니면 PACKS_TRACKED 에 등록할 것:");
   for (const p of packsUntracked.slice(0, 12)) out.push("   packs" + p);
