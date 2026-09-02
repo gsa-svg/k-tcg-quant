@@ -369,9 +369,9 @@ const html = `<!doctype html>
       <h1 data-ko="원피스 카드 경매 결과 — 실제 낙찰가">One Piece card auction results — real winning bids</h1>
       <div class="statRow">
         <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span data-ko="낙찰${aggNoteKo}">sold${aggNote}</span></div>
-        <div class="stat"><b>${num(totN)}</b><span data-ko="우리가 확인한 경매">auctions we checked</span></div>
-        <div class="stat"><b>${num(totSold)}</b><span data-ko="팔렸습니다">of them sold</span></div>
-        <div class="stat"><b>${num(totN - totSold)}</b><span data-ko="안 팔렸습니다">did not sell</span></div>
+        <div class="stat"><b>${num(totN)}</b><span data-ko="확인한 경매">auctions checked</span></div>
+        <div class="stat"><b>${num(totSold)}</b><span data-ko="낙찰">sold</span></div>
+        <div class="stat"><b>${num(totN - totSold)}</b><span data-ko="유찰">unsold</span></div>
       </div>
 
       <div class="chartCard">
@@ -386,11 +386,11 @@ const html = `<!doctype html>
             <button type="button" data-p="monthly" aria-pressed="false" data-ko="월별">Monthly</button>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-m="rate" aria-pressed="true" data-ko="팔릴 확률">How often they sell</button>
-            <button type="button" data-m="ended" aria-pressed="false" data-ko="끝난 경매 수">Auctions that ended</button>
-            <button type="button" data-m="sold" aria-pressed="false" data-ko="팔린 경매 수">Ones that sold</button>
-            <button type="button" data-m="gmv" aria-pressed="false" data-ko="총 거래 금액">Total money spent</button>
-            <button type="button" data-m="med" aria-pressed="false" data-ko="보통 낙찰가">Typical winning price</button>
+            <button type="button" data-m="rate" aria-pressed="true" data-ko="낙찰률">Sold %</button>
+            <button type="button" data-m="ended" aria-pressed="false" data-ko="종료 수">Ended</button>
+            <button type="button" data-m="sold" aria-pressed="false" data-ko="낙찰 수">Sold</button>
+            <button type="button" data-m="gmv" aria-pressed="false" data-ko="거래액">Total spent</button>
+            <button type="button" data-m="med" aria-pressed="false" data-ko="낙찰가">Price</button>
           </div>
         </div>
         <div class="opPlain" id="opPlain" aria-live="polite"></div>
@@ -411,7 +411,7 @@ ${kindRows.length >= 2 ? `      <div class="chartCard">
       <h2 data-ko="일별 결과 — 최근 ${daily.length}일">Daily results — last ${daily.length} days</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="날짜">Date</th><th data-ko="끝난 경매 수">Auctions</th><th data-ko="팔린 수">Sold</th><th data-ko="팔릴 확률">How often sold</th><th data-ko="보통 낙찰가">Typical price</th><th data-ko="보통 입찰 수">Typical bids</th></tr></thead>
+        <thead><tr><th class="l" data-ko="날짜">Date</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰가">Price</th><th data-ko="입찰수">Bids</th></tr></thead>
         <tbody>
 ${dTr}
         </tbody>
@@ -421,7 +421,7 @@ ${dTr}
       <h2 data-ko="밀봉 박스는 팔린다. 싱글은 대개 안 팔린다.">Sealed boxes sell. Singles mostly don't.</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="상품 종류">What it is</th><th data-ko="끝난 경매 수">Auctions</th><th data-ko="팔린 수">Sold</th><th data-ko="팔릴 확률">How often sold</th></tr></thead>
+        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th></tr></thead>
         <tbody>
 ${kTr}
         </tbody>
@@ -433,12 +433,12 @@ ${tcgGameCount >= 5 ? `
 ` : ""}
       <h2 data-ko="카드별 경매 순위" id="cardRankTitle">Card auction leaders</h2>
       <div class="metricTabs" role="group" aria-label="Rank by" style="margin:2px 0 10px">
-        <button type="button" data-rank="med" aria-pressed="true" data-ko="비싼 순서">Most expensive</button>
-        <button type="button" data-rank="sales" aria-pressed="false" data-ko="많이 팔린 순서">Most sold</button>
+        <button type="button" data-rank="med" aria-pressed="true" data-ko="낙찰가순">By price</button>
+        <button type="button" data-rank="sales" aria-pressed="false" data-ko="판매수순">By sales</button>
       </div>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="보통 낙찰가">Typical price</th><th data-ko="가격 범위">Price range</th><th data-ko="팔릴 확률">How often sold</th><th data-ko="팔린 수">Sold</th></tr></thead>
+        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th></tr></thead>
         <tbody id="cardRankBody">
 ${cTr}
         </tbody>
@@ -462,19 +462,19 @@ ${cTr}
         // "누가 봐도 쉽게 이해할 수 있게. 뇌성마비 환자가 봐도 이해할 수 있는 데이터가 핵심이다."
         // say() 는 그 지표가 무슨 뜻인지 한 문장으로 말한다. 숫자만 보여주면 높은 건지 낮은 건지 모른다.
         var M = {
-          rate: { label: "How often they sell", ko: "팔릴 확률", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true,
-            say: function (v) { return v >= 50 ? ["Most auctions find a buyer.", "경매 대부분이 팔립니다."]
-              : v >= 30 ? ["About a third find a buyer.", "3건 중 1건쯤 팔립니다."]
-              : ["Most auctions end unsold.", "대부분 안 팔리고 끝납니다."]; },
-            help: ["Out of every 100 auctions that ended, how many actually sold.", "끝난 경매 100건 중 실제로 팔린 건수입니다."] },
-          ended: { label: "Auctions that ended", ko: "끝난 경매 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
-            help: ["How many auctions closed that day - sold or not.", "그날 끝난 경매 수입니다. 팔렸든 안 팔렸든 전부."] },
-          sold: { label: "Ones that sold", ko: "팔린 경매 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
-            help: ["How many of them actually found a buyer.", "그중 실제로 팔린 건수입니다."] },
-          gmv: { label: "Total money spent", ko: "총 거래 금액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); },
-            help: ["Every winning bid added up.", "낙찰가를 전부 더한 금액입니다."] },
-          med: { label: "Typical winning price", ko: "보통 낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); },
-            help: ["The middle price - half sold for more, half for less.", "딱 가운데 가격입니다. 절반은 이보다 비싸게, 절반은 싸게 팔렸습니다."] }
+          rate: { label: "Sold %", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; }, floor10: true,
+            say: function (v) { return v >= 50 ? ["Most sell.", "대부분 팔립니다."]
+              : v >= 30 ? ["About a third sell.", "3건 중 1건 팔립니다."]
+              : ["Most go unsold.", "대부분 유찰됩니다."]; },
+            help: ["Share of ended auctions that sold.", "종료 경매 중 낙찰 비율"] },
+          ended: { label: "Ended", ko: "종료 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["Auctions that closed.", "그날 종료된 경매 수"] },
+          sold: { label: "Sold", ko: "낙찰 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["Of those, how many sold.", "그중 낙찰된 수"] },
+          gmv: { label: "Total spent", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); },
+            help: ["Winning bids added up.", "낙찰가 합계"] },
+          med: { label: "Price", ko: "낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); },
+            help: ["Middle price of sold items.", "낙찰가 중앙값"] }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
         var axis = document.createElement("div"); axis.className = "opAxis";
@@ -549,9 +549,9 @@ ${cTr}
             if (lastR) {
               // 라벨은 "latest/highest/lowest" 대신 일상어로 — 2026-09-02 소유자 확인 중 지적.
               // 날짜는 괄호에 넣어 숫자와 섞이지 않게 한다(빽빽하면 못 읽는다).
-              put(KO ? "지금" : "Right now", m.fmt(lastR[metric]), lastR.ax || lastR.d.slice(5), "hi");
-              put(KO ? "가장 높았던 날" : "Best day", m.fmt(hi[metric]), hi.ax || hi.d.slice(5));
-              put(KO ? "가장 낮았던 날" : "Worst day", m.fmt(lo[metric]), lo.ax || lo.d.slice(5));
+              put(KO ? "최근" : "Latest", m.fmt(lastR[metric]), lastR.ax || lastR.d.slice(5), "hi");
+              put(KO ? "최고" : "High", m.fmt(hi[metric]), hi.ax || hi.d.slice(5));
+              put(KO ? "최저" : "Low", m.fmt(lo[metric]), lo.ax || lo.d.slice(5));
             }
           }
           // 한 문장 요약 — 마우스를 못 올려도, 숫자를 몰라도 뜻이 통해야 한다.

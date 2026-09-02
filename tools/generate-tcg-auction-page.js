@@ -298,9 +298,9 @@ const html = `<!doctype html>
       <div class="tgStats">
         <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">auctions live now</small></div>
         <div class="tgStat"><b>${num(totEndingToday)}</b><small data-ko="오늘 종료">ending today</small></div>
-        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="우리가 확인">we checked</small></div>
-        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="팔렸습니다">of them sold</small></div>
-        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="총 거래 금액">total spent</small></div>
+        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="확인 수">checked</small></div>
+        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="낙찰률">sold</small></div>
+        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="거래액">total spent</small></div>
       </div>
 
       <div class="chartCard">
@@ -310,11 +310,11 @@ const html = `<!doctype html>
             <p class="sub">${esc(from)}–${esc(to)}</p>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-metric="ending" aria-pressed="true" data-ko="오늘 종료 예정">Auctions ending today</button>
-            <button type="button" data-metric="ended" aria-pressed="false" data-ko="우리가 확인한 수">Ones we checked</button>
-            <button type="button" data-metric="sold" aria-pressed="false" data-ko="팔린 경매 수">Ones that sold</button>
-            <button type="button" data-metric="rate" aria-pressed="false" data-ko="팔릴 확률">How often they sell</button>
-            <button type="button" data-metric="gmv" aria-pressed="false" data-ko="총 거래 금액">Total money spent</button>
+            <button type="button" data-metric="ending" aria-pressed="true" data-ko="오늘 종료">Ending today</button>
+            <button type="button" data-metric="ended" aria-pressed="false" data-ko="확인 수">Checked</button>
+            <button type="button" data-metric="sold" aria-pressed="false" data-ko="낙찰 수">Sold</button>
+            <button type="button" data-metric="rate" aria-pressed="false" data-ko="낙찰률">Sold %</button>
+            <button type="button" data-metric="gmv" aria-pressed="false" data-ko="거래액">Total spent</button>
           </div>
         </div>
         <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 우리가 확인한 비율이 달라서, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다.">⚠ Not market size. We check a different share of each game, so totals follow what we saw, not the market.</p>
@@ -331,16 +331,16 @@ const html = `<!doctype html>
         </div>
         <div class="trendHead">
           <label class="trendPick" for="trendGame">
-            <span data-ko="게임을 골라 보세요">Pick a game</span>
+            <span data-ko="게임 선택">Pick a game</span>
             <select id="trendGame" aria-label="Game"></select>
           </label>
           <div class="metricTabs" role="group" aria-label="Metric">
-            <button type="button" data-tm="live" aria-pressed="false" data-ko="지금 올라온 경매">Auctions up now</button>
-            <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 끝나는 경매">Ending today</button>
-            <button type="button" data-tm="ended" aria-pressed="false" data-ko="우리가 확인한 수">Ones we checked</button>
-            <button type="button" data-tm="rate" aria-pressed="false" data-ko="팔릴 확률">How often they sell</button>
-            <button type="button" data-tm="gmv" aria-pressed="false" data-ko="총 거래 금액">Total money spent</button>
-            <button type="button" data-tm="med" aria-pressed="false" data-ko="보통 낙찰가">Typical winning price</button>
+            <button type="button" data-tm="live" aria-pressed="false" data-ko="진행중">Live</button>
+            <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 종료">Ending today</button>
+            <button type="button" data-tm="ended" aria-pressed="false" data-ko="확인 수">Checked</button>
+            <button type="button" data-tm="rate" aria-pressed="false" data-ko="낙찰률">Sold %</button>
+            <button type="button" data-tm="gmv" aria-pressed="false" data-ko="거래액">Total spent</button>
+            <button type="button" data-tm="med" aria-pressed="false" data-ko="낙찰가">Price</button>
           </div>
         </div>
         <div class="opPlain" id="trendPlain" aria-live="polite"></div>
@@ -352,7 +352,7 @@ const html = `<!doctype html>
       <div style="overflow-x:auto">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th data-ko="지금 열린 경매">Open now</th><th data-ko="오늘 끝남">Ending today</th><th data-ko="우리가 확인">We checked</th><th data-ko="팔림">Sold</th><th data-ko="안 팔림">Unsold</th><th data-ko="우리가 본 비율">How much we saw</th><th data-ko="총 거래 금액">Total spent</th><th data-ko="보통 낙찰가">Typical price</th></tr>
+            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th></tr>
           </thead>
           <tbody>
 ${tableRows}
@@ -451,12 +451,12 @@ ${tableRows}
         sel.value = game;
         var metric = "ending";
         var M = {
-          live: { en: "Auctions up now", ko: "지금 올라온 경매", help: ["How many auctions are open right now.", "지금 올라와 있는 경매 수입니다."], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          ending: { en: "Ending today", ko: "오늘 끝나는 경매", help: ["How many close today.", "오늘 끝나는 경매 수입니다."], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          ended: { en: "Ones we checked", ko: "우리가 확인한 수", help: ["How many we re-read after they closed.", "끝난 뒤 우리가 다시 읽어본 건수입니다."], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          rate: { en: "How often they sell", ko: "팔릴 확률", help: ["Out of every 100 that ended, how many sold.", "끝난 100건 중 실제로 팔린 건수입니다."], fmt: function (v) { return v.toFixed(1) + "%"; } },
-          gmv: { en: "Total money spent", ko: "총 거래 금액", help: ["Every winning bid added up.", "낙찰가를 전부 더한 금액입니다."], fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
-          med: { en: "Typical winning price", ko: "보통 낙찰가", help: ["The middle price - half sold for more, half for less.", "딱 가운데 가격입니다. 절반은 더 비싸게, 절반은 싸게 팔렸습니다."], fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+          live: { en: "Live", ko: "진행중", help: ["Auctions open now.", "진행 중인 경매 수"], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          ending: { en: "Ending today", ko: "오늘 종료", help: ["Auctions closing today.", "오늘 종료되는 경매 수"], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          ended: { en: "Checked", ko: "확인 수", help: ["Auctions we re-read after close.", "종료 후 확인한 경매 수"], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          rate: { en: "Sold %", ko: "낙찰률", help: ["Share of ended auctions that sold.", "종료 경매 중 낙찰 비율"], fmt: function (v) { return v.toFixed(1) + "%"; } },
+          gmv: { en: "Total spent", ko: "거래액", help: ["Winning bids added up.", "낙찰가 합계"], fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
+          med: { en: "Price", ko: "낙찰가", help: ["Middle price of sold items.", "낙찰가 중앙값"], fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
         var guide = document.createElement("div"); guide.className = "opGuide";
