@@ -101,6 +101,10 @@ async function getItem(tok, id) {
       price: sold && Number.isFinite(price) && price > 0 ? price : null,
       currency: sold ? cur : null,
       bids,
+      // 제목 — 2026-09-02 추가. Riftbound 최고가($24,000)가 실물인지 검증하려는데 원장에
+      // 제목이 없어 숫자만으로는 확인 불가였다(getItem 재조회는 쿼터를 또 쓴다).
+      // 하루 1,500건 × ~60자 = 90KB — 검증 가능성의 값으로 싸다. 이미 받아온 응답에서 꺼낼 뿐이다.
+      title: (it.title || "").slice(0, 120) || undefined,
     });
   }
 
