@@ -8,7 +8,11 @@ name: Settle auctions
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 */2 * * *"
+    # 90분마다 = 하루 16회. 2026-09-02 소유자 지시("최대로 수집")로 2시간→90분으로 좁혔다.
+    # 종료 경매를 더 촘촘히 정산해 시간대 공백(부분수집)을 줄인다. 쿼터는 회차마다 예산 로직이
+    # 나눠 쓰므로 회차가 늘어도 하루 총량은 넘지 않는다(잔여 0이면 그 회차는 0건으로 끝난다).
+    - cron: "5 0,3,6,9,12,15,18,21 * * *"
+    - cron: "35 1,4,7,10,13,16,19,22 * * *"
 
 permissions:
   contents: write
@@ -42,12 +46,12 @@ jobs:
           node --check tools/settle-auctions.js
           node tools/test-auction-fields.js
 
-      # eBay Browse 한도는 하루 5,000콜이다. 바닥일 때 시작하면 전부 429 로 실패하고
-      # 원장에는 구멍만 남는다(2026-09-01 실측: settle 이 due 391건 중 390건을 놓쳤다).
-      # 남은 콜이 이 회차에 필요한 양보다 적으면 여기서 멈춘다 — 감시목록은 그대로라 다음 회차에 재시도된다.
-      - name: eBay quota gate
-        run: node tools/check-ebay-quota.js --min 300
-
+      # 쿼터 판단은 settle-auctions.js 안에서 한다(tools/ebay-budget.js).
+      # 예전엔 여기 quota gate 스텝이 exit 1 로 워크플로 전체를 실패시켰는데, 그게 부분수집의 원인이었다:
+      # 그날 초반에 쿼터가 바닥나면 이후 2시간마다 도는 회차가 전부 "실패"로 죽어 그 시간대 정산이
+      # 통째로 비었다(2026-08-27 실측: 12회 예정 중 2회만 실행 → 하루 17시간대 공백).
+      # 쿼터가 없으면 실패가 아니라 "이번 회차는 건너뛰고 다음에" 가 맞다 — settle 이 잔여량을 보고
+      # 스스로 0건으로 끝낸다(exit 0). 감시목록은 그대로라 쿼터가 차는 다음 회차가 밀린 것을 정산한다.
       - name: Settle
         run: node tools/settle-auctions.js
 

@@ -118,8 +118,20 @@ const median = (a) => {
   return Math.round(s[Math.floor(s.length / 2)] * 100) / 100;
 };
 
+const { remaining } = require("./ebay-budget");
+
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("eBay 자격증명 없음");
+
+  // 쿼터가 스냅샷 몫(17게임 × 5페이지 ≈ 340콜)에 못 미치면 조용히 건너뛴다(exit 0).
+  // 워크플로에 quota gate 를 두지 않는 대신 여기서 판단한다 — 죽지 않고 다음 실행에 맡긴다.
+  // 스냅샷은 하루 한 점이라 그날 한 번만 성공하면 되고, 실패로 죽으면 부분수집만 늘어난다.
+  const left = await remaining();
+  if (left != null && left < 400) {
+    console.log(JSON.stringify({ skipped: true, reason: "쿼터 부족", remaining: left }));
+    return;
+  }
+
   const day = new Date().toISOString().slice(0, 10);
 
   // 오늘 점이 이미 있으면 아무것도 하지 않는다 — 2026-08-31 신설.
