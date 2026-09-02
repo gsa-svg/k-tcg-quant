@@ -221,8 +221,19 @@ const html = `<!doctype html>
       .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
       .tgStat small { color: #8d95a7; font-size: 12px; }
       .trendHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-      .trendHead select { font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px;
-        background: #14171c; color: #eef2ff; border: 1px solid rgba(255,255,255,.16); }
+      /* 게임 고르는 곳이라는 걸 놓치지 않게 눈에 띄게 만든다 — 2026-09-02 소유자 지적
+         ("모르고 지나갈 수도 있어"). 강조색 테두리 + 살짝 빛나는 배경 + 큰 글씨.
+         라벨도 위에 붙여 "무엇을 고르는 것인지"를 글로 말한다. */
+      .trendPick { display: flex; flex-direction: column; gap: 4px; }
+      .trendPick > span { font-size: 12.5px; color: #50dad9; font-weight: 600; letter-spacing: .02em; }
+      .trendHead select { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 34px 10px 13px;
+        border-radius: 10px; cursor: pointer; appearance: none; -webkit-appearance: none;
+        background-color: rgba(80,218,217,.10); color: #eef2ff;
+        background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2350dad9' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+        border: 2px solid #50dad9; box-shadow: 0 0 0 3px rgba(80,218,217,.14); }
+      .trendHead select:hover { background-color: rgba(80,218,217,.18); }
+      .trendHead select:focus-visible { outline: 3px solid #8af3f2; outline-offset: 2px; }
       /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다(2026-09-02 소유자 지시). */
       .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
       .opPlain strong { color: #8af3f2; font-weight: 650; }
@@ -283,8 +294,6 @@ const html = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow" data-ko="TCG 경매 데이터">TCG Auction Data</p>
       <h1 data-ko="카드게임 경매 — 무엇이 팔리고 무엇이 유찰되는가">Card game auctions: what sells and what passes</h1>
-      <p data-ko="여기 모든 경매는 <strong>끝난 뒤에</strong> 다시 읽은 것이라 호가가 아니라 정산된 결과입니다. 유찰 건도 분모에 그대로 둡니다. ${esc(from)}~${esc(to)}.">Every auction here was read again <strong>after it closed</strong>, so these are settled outcomes — not asking prices. Unsold auctions stay in the denominator. ${esc(from)} to ${esc(to)}.</p>
-      <p class="priceNote" data-ko="원피스는 이 표와 별도로 전용 수집을 돌립니다 — 하루 1,000건대로, 여기 보이는 횡단 표본보다 훨씬 두껍습니다. 원피스 수치는 <a href='auction.html'>원피스 경매 페이지</a>를 보십시오. 이 표의 원피스 행은 다른 게임과 같은 잣대로 맞춘 값이라 그쪽과 다릅니다.">One Piece also has its own dedicated collection — over a thousand settled auctions a day, far deeper than the cross-game sample shown here. For One Piece figures see the <a href="auction.html">One Piece auction page</a>; the row in this table is deliberately held to the same yardstick as every other game, so the two differ.</p>
 
       <div class="tgStats">
         <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">auctions live now</small></div>
@@ -308,7 +317,7 @@ const html = `<!doctype html>
             <button type="button" data-metric="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
           </div>
         </div>
-        <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 하루에 끝나는 경매 수가 크게 다른데(포켓몬 ${num(rows.find((r) => r.key === 'pokemon') ? rows.find((r) => r.key === 'pokemon').endingToday : 0)}건 대 Riftbound ${num(rows.find((r) => r.key === 'riftbound') ? rows.find((r) => r.key === 'riftbound').endingToday : 0)}건) 우리는 어느 게임이든 하루 200건 안팎만 확인합니다. 그래서 표본 비율이 게임마다 다르고, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다. 비교하려면 낙찰률이나 중앙 낙찰가를 보십시오.">⚠ This is not market size. The number of auctions each game ends per day differs enormously (${num(rows.find((r) => r.key === "pokemon") ? rows.find((r) => r.key === "pokemon").endingToday : 0)} for Pokemon vs ${num(rows.find((r) => r.key === "riftbound") ? rows.find((r) => r.key === "riftbound").endingToday : 0)} for Riftbound), yet we settle roughly the same couple of hundred per game per day. Our share of each game therefore ranges from a fraction of a percent to well over half, and a hammer-value total tracks how much we saw, not how big the market is. For comparison across games, use sell-through or median winning bid.</p>
+        <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 우리가 확인한 비율이 달라서, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다.">⚠ Not market size. We check a different share of each game, so totals follow our sample, not the market.</p>
         <div class="barList" id="tcgBars"></div>
         <div class="legend" id="tcgLegend"></div>
       </div>
@@ -317,11 +326,14 @@ const html = `<!doctype html>
         <div class="chartHead">
           <div>
             <h2 data-ko="게임별 흐름">One game over time</h2>
-            <p class="sub" data-ko="표는 오늘 하루의 스냅샷이고, 이 그래프가 흐름입니다. Live·오늘 종료는 eBay 가 직접 알려준 실제 수, 나머지는 우리 정산 표본입니다.">The table above is one day's snapshot - this is the flow. Live and ending-today are eBay-reported real counts; the rest come from our settled sample.</p>
+            <p class="sub" data-ko="${esc(from)} ~ ${esc(to)}">${esc(from)}–${esc(to)}</p>
           </div>
         </div>
         <div class="trendHead">
-          <select id="trendGame" aria-label="Game"></select>
+          <label class="trendPick" for="trendGame">
+            <span data-ko="게임을 골라 보세요">Pick a game</span>
+            <select id="trendGame" aria-label="Game"></select>
+          </label>
           <div class="metricTabs" role="group" aria-label="Metric">
             <button type="button" data-tm="live" aria-pressed="false" data-ko="지금 올라온 경매">Auctions up now</button>
             <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 끝나는 경매">Ending today</button>
@@ -347,13 +359,6 @@ ${tableRows}
           </tbody>
         </table>
       </div>
-      <p class="priceNote" style="color:#7d8698;font-size:12.5px;">
-        <strong>Live</strong> and <strong>ending today</strong> are counts eBay reports directly, not samples.
-        <strong>Ended</strong> is what we settled ourselves — we sample roughly 200 auctions per game per day and read each one after close, so the same yardstick applies to every game.
-        Rates are hidden below ${MIN_ENDED} settled auctions and median bids below ${MIN_PRICE_N} sales, because a rate built on a handful of lots is not a rate.
-        One Piece has its own deeper collection (about five times this sample) on the <a href="auction.html">One Piece auction page</a>, so its numbers there differ from this cross-game table.
-      </p>
-
       <p style="margin-top:16px;"><a href="free-data.html">Download the raw daily CSVs</a> · <a href="methodology.html">How we count</a></p>
     </main>
 <script>
