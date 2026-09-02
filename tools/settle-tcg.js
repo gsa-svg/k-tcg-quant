@@ -12,6 +12,7 @@
 // Run: node tools/settle-tcg.js
 const fs = require("node:fs");
 const path = require("node:path");
+const { settleBudget } = require("./ebay-budget");
 
 const ROOT = path.join(__dirname, "..");
 const WATCH = path.join(ROOT, "data", "tcg-watch.json");
@@ -22,7 +23,11 @@ const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
 // 감시 유입이 게임당 500(17게임 = 하루 약 8,900건)으로 늘었는데 600 × 12회 = 7,200 이라
 // 하루 1,700건씩 밀렸다. 밀린 건은 종료 후 30시간이 지나면 eBay 가 조회를 막아 영원한 빈칸이 된다.
 // 실측: 622건 처리에 5분 38초(건당 0.54초) — 900건이면 약 8분, 워크플로 타임아웃 20분 안에 든다.
-const MAX_PER_RUN = 900;
+// 2026-09-02: 고정값 → 잔여 쿼터에서 계산. 원피스와 반대로 TCG 는 감시 유입이 정산 능력을
+// 넘어서는 쪽이라(게임당 200건 × 17게임 × 4회), 쿼터가 남으면 더 처리하고 없으면 줄여야 한다.
+// 배분 규칙은 tools/ebay-budget.js 한 곳에 있다.
+const MIN_PER_RUN = 60;
+const MAX_PER_RUN_CAP = 900;      // 워크플로 타임아웃(20분) 안에 드는 실측 상한 — 건당 0.54초
 const GIVE_UP_HOURS = 30;         // 이보다 오래된 건 조회가 안 될 수 있다 — 추측하지 않고 버린다.
 
 function loadEnv(p) {
@@ -57,10 +62,16 @@ async function getItem(tok, id) {
   if (!fs.existsSync(WATCH)) { console.log(JSON.stringify({ status: "skip", why: "감시 목록 없음" })); return; }
   const watch = JSON.parse(fs.readFileSync(WATCH, "utf8"));
   const now = Date.now();
+  // TCG 몫만 쓴다 — 원피스 정산·검색 몫은 남긴다(그쪽이 이 사이트의 주제다).
+  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["search", "safety"], share: 0.5 });
+  if (budget.n <= 0) {
+    console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
+    return;
+  }
   const due = watch.pending
     .filter((p) => Date.parse(p.end) < now && Date.parse(p.end) > now - GIVE_UP_HOURS * 3600 * 1000)
     .sort((a, b) => Date.parse(a.end) - Date.parse(b.end))     // 오래된 것부터 — 조회 가능 시한이 먼저 끝난다
-    .slice(0, MAX_PER_RUN);
+    .slice(0, budget.n);
   if (!due.length) { console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length })); return; }
 
   const tok = await token();
