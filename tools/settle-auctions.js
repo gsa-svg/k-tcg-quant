@@ -22,6 +22,7 @@ const { parseLotQuantity, unitPrice } = require("./lot-quantity");
 const { extraFields } = require("./auction-fields");
 const { appendSales, readRecent } = require("./auction-archive");
 const { buildDaily } = require("./auction-aggregate");
+const { settleBudget } = require("./ebay-budget");
 const { categorize } = require("./auction-classify");
 
 const ROOT = path.join(__dirname, "..");
@@ -56,11 +57,14 @@ const KEEP_DAILY_DAYS = 365;   // 일별 집계는 더 오래
 // 종전 900 × 12회(2시간마다) = 10,800콜로 한도의 2배를 예약하고 있었고, 실제로 그날
 // 남은 콜이 0 이 되어 settle 이 due 391건 중 390건을 429 로 놓쳤다. 경매는 소급이 안 된다.
 //
-// 예산 배분: collect-auction-market ~800 · collect-tcg ~300 · active-listings ~400 · 여유 500
-//   → settle 에 약 3,000콜. 12회로 나누면 회당 250건.
-// 250 이면 충분한가: 최근 완결일 평균 종료가 1,107건이라 하루 3,000건 처리 여력은 재시도까지 덮는다.
-// 900 은 처음부터 필요 없는 크기였다 — 넉넉하게 잡은 값이 한도를 태웠다.
-const MAX_PER_RUN = 250;
+// 회차당 처리량은 **그 시점의 잔여 쿼터**에서 계산한다 — 2026-09-02.
+// 종전에는 250 으로 못박아 하루 3,000건이 상한이었는데, 정작 그 상한에 닿은 적이 없다.
+// 실측(2026-09-02): 정산 대기가 242건뿐이었다. 병목은 상한이 아니라 감시 목록에 들어온
+// 매물 수였다 — 원피스는 하루 1,864건이 끝나는데 감시 목록에는 526건(28%)만 있었다.
+// 그래서 상한은 넉넉히 열어 두고(잔여가 있으면 더 돈다), 잔여가 없으면 0 으로 줄어든다.
+// 배분 규칙은 tools/ebay-budget.js 한 곳에 있다.
+const MIN_PER_RUN = 50;
+const MAX_PER_RUN_CAP = 1200;
 const GIVE_UP_HOURS = 30;      // 종료 후 이만큼 지나도 정산 못 하면 포기(조회 불가 추정)
 
 function loadEnv(p) {
@@ -105,10 +109,18 @@ let rateLimited = false;   // 429 로 조기 종료했는가 — 로그에 남�
   try { watch = JSON.parse(fs.readFileSync(watchPath, "utf8")); } catch { watch = { pending: [] }; }
   const now = Date.now();
 
+  // 이번 회차에 쓸 수 있는 양을 잔여 쿼터에서 받아온다. 못 읽으면 하한만 쓴다(보수적).
+  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP });
+  const cap = budget.n;
+  if (cap <= 0) {
+    console.log(JSON.stringify({ settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
+    return;
+  }
+
   const due = watch.pending
     .filter((w) => Date.parse(w.endsAt) < now - 60000)   // 종료 1분 뒤부터 (반영 지연 여유)
     .sort((a, b) => Date.parse(a.endsAt) - Date.parse(b.endsAt))
-    .slice(0, MAX_PER_RUN);
+    .slice(0, cap);
 
   if (!due.length) {
     console.log(JSON.stringify({ settled: 0, pending: watch.pending.length, note: "nothing due" }));
@@ -204,6 +216,7 @@ let rateLimited = false;   // 429 로 조기 종료했는가 — 로그에 남�
   const soldNow = settled.filter((s) => s.sold === true);
   console.log(JSON.stringify({
     rateLimited,
+    budget: budget.note,
     due: due.length,
     settled: settled.length,
     failed: failedIds.size,

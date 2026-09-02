@@ -141,6 +141,7 @@ async function search(tok, q, offset, band) {
 // ── 분류 ─────────────────────────────────────────────────────────────
 // box/carton/pack/card 판정은 공용 모듈(가드 Q2가 검증). 여기선 그걸 그대로 쓴다.
 const { categorize } = require("./auction-classify");
+const { remaining } = require("./ebay-budget");
 
 // 세트 코드: OP-06 / OP06 / EB-01 / PRB-01 / ST-21 형태를 모두 받아 정규화한다.
 // 카드번호(OP06-093)가 있으면 거기서 세트를 딴다 — 제목에 세트명이 따로 없어도 정확하다.
@@ -194,10 +195,25 @@ function summarize(rows) {
   const rows = [];
   let totalReported = 0;
 
+  // ── 쿼터 양보 (2026-09-02)
+  // 검색이 먼저 다 써 버리면 정산이 굶는다. 정산 못 한 매물은 되살릴 수 없다(경매는 끝나면
+  // 조회 불가). 검색은 다음 회차가 다시 하면 되므로, 정산 몫을 남겨 두고 스캔한다.
+  // 실측 2026-09-02: 한 회차 스캔이 440콜(12,134건). 하루 8회면 3,520콜로 하루치의 70% 다.
+  const SETTLE_RESERVE = 2600;   // 정산·TCG·안전 몫
+  let quotaLeft = await remaining();
+  let scanBudget = quotaLeft == null ? 400 : Math.max(0, quotaLeft - SETTLE_RESERVE);
+  let calls = 0;
+  if (quotaLeft != null && scanBudget <= 0) {
+    console.log(JSON.stringify({ game: GAME_KEY, note: "쿼터가 정산 몫까지라 스캔을 건너뛴다", quotaLeft }));
+    return;
+  }
+
   for (const q of QUERIES) {
     for (const band of PRICE_BANDS) {
       let bandTotal = 0;
       for (let p = 0; p < PAGES; p++) {
+      if (calls >= scanBudget) break;   // 정산 몫을 침범하지 않는다
+      calls++;
       const { items, total } = await search(tok, q, p * PAGE_SIZE, band);
       if (p === 0) { bandTotal = total; totalReported += total; }
       if (!items.length) break;
