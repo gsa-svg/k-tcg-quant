@@ -1,0 +1,25 @@
+# GitHub Pages(Jekyll)가 **사이트로 내보내지 않을** 파일 목록 — 2026-09-02 신설.
+#
+# 왜: 내부 운영 문서·도구·로그가 사이트에서 그대로 열리고 있었다.
+#   opboxindex.com/CLAUDE.md · /HANDOFF.md · /docs/… · /tools/… 전부 200.
+# robots.txt 의 Disallow 는 검색엔진 크롤러만 막고 **사람은 못 막는다** —
+# 주소만 알면 누구든 작업 과정 전체를 읽을 수 있었다(소유자 지시: 과정 비공개).
+#
+# 여기 적힌 것은 저장소에는 남고(작업에 필요), 배포된 사이트에서만 빠진다.
+# ⚠ data/ 는 절대 넣지 말 것 — packs.js 가 런타임에 data/onepiece-packs.json 을 받고,
+#   공개 CSV(opbox-*.csv)와 무료 데이터 페이지도 그 폴더를 쓴다.
+# ⚠ google*.html · 3d439…txt(검증 키) · ads.txt · robots.txt 도 빼면 안 된다.
+exclude:
+  - CLAUDE.md
+  - AGENTS.md
+  - HANDOFF.md
+  - SECURITY.md
+  - docs
+  - tools
+  - worker
+  - social
+  - build-products.py
+  - deploy-github.sh
+  - card-tiers.txt
+  - deadlinks.txt
+  - "*.log"
