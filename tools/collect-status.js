@@ -291,12 +291,30 @@ for (const s of SOURCES) {
   }
 }
 
+// ── 날짜 빈칸 — 2026-09-02 소유자 지시("하루라도 빈칸 안 생기게 관리해").
+//    "최신인가"와 "중간이 안 비었나"는 다른 질문이다. 어제 것이 있어도 그 앞 사흘이 비었을 수 있다.
+//    실거래·경매 관측은 소급 수집이 안 되므로, 빈칸은 생긴 다음 날 보여야 의미가 있다.
+//    audit-series-gaps.js 가 그 검사를 이미 한다 — 여기서 불러 한 화면에 합친다.
+let gaps = [];
+try {
+  const out = require("node:child_process").execFileSync(
+    process.execPath, [path.join(__dirname, "audit-series-gaps.js")],
+    { encoding: "utf8", maxBuffer: 32 * 1024 * 1024, cwd: ROOT }
+  );
+  gaps = (JSON.parse(out).problems || []);
+} catch (e) {
+  // 검사가 죽었으면 그것도 알아야 한다 — 조용히 "빈칸 없음"으로 넘기면 안 된다.
+  // (문제를 찾으면 exit 1 을 내므로 stdout 이 실려 온다. 그건 정상 경로다.)
+  try { gaps = JSON.parse(String(e.stdout || "")).problems || []; }
+  catch { gaps = ["빈칸 검사 실패: " + String(e.message || e).slice(0, 100)]; }
+}
+
 const todo = rows.filter((r) => r.mode === "manual" && r.state !== "정상");
 const autoBroken = rows.filter((r) => r.mode === "auto" && (r.state === "늦음" || r.state === "오류" || r.state === "없음"));
 
 if (process.argv.includes("--json")) {
   console.log(JSON.stringify({
-    today, todo: todo.map((r) => r.key), autoBroken: autoBroken.map((r) => r.key), untracked, packsUntracked, staleParts,
+    today, todo: todo.map((r) => r.key), autoBroken: autoBroken.map((r) => r.key), gaps, untracked, packsUntracked, staleParts,
     rows: rows.map(({ get, ...r }) => r),
   }, null, 1));
   process.exit(0);
@@ -322,6 +340,11 @@ out.push("");
 out.push("[수동] 실브라우저가 필요하다 — 사람이 시켜야 돈다.");
 for (const r of rows.filter((x) => x.mode === "manual")) line(r);
 out.push("");
+if (gaps.length) {
+  out.push("!! 날짜 빈칸 — 소급 수집이 안 되는 계열은 지금 못 채우면 영영 빈다:");
+  for (const g of gaps) out.push("   " + g);
+  out.push("");
+}
 if (staleParts.length) {
   out.push("!! 묶인 파일 중 멈춘 것 — 수집원은 도는데 이 산출물만 안 바뀐다:");
   for (const p of staleParts) out.push(`   ${p.source} → data/${p.file} (${p.why})`);
@@ -350,7 +373,9 @@ if (todo.length) {
     out.push(`    ${r.how}`);
     if (r.note) out.push(`    주의: ${r.note}`);
   }
+} else if (!gaps.length && !autoBroken.length && !staleParts.length) {
+  out.push("== 지금 할 일 없음 — 수집 22종 최신 · 날짜 빈칸 없음 ==");
 } else {
-  out.push("== 지금 할 일 없음 — 수동 수집 전부 최신 ==");
+  out.push("== 수동 수집은 전부 최신이다(위의 경고는 사람이 브라우저로 고칠 수 있는 게 아니다) ==");
 }
 console.log(out.join("\n"));
