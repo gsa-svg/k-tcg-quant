@@ -158,7 +158,12 @@
         <div class="chartHead">
           <div>
             <h2 data-ko="원피스 경매, 날짜별">One Piece auctions, day by day</h2>
-            <p class="sub">2026-07-20–2026-09-01 · faded bars are days when collection was interrupted</p>
+            <p class="sub">2026-07-20–2026-09-01 · faded bars: interrupted collection, or a period still filling</p>
+          </div>
+          <div class="metricTabs periodTabs" role="group" aria-label="Period">
+            <button type="button" data-p="daily" aria-pressed="true" data-ko="일별">Daily</button>
+            <button type="button" data-p="weekly" aria-pressed="false" data-ko="주별">Weekly</button>
+            <button type="button" data-p="monthly" aria-pressed="false" data-ko="월별">Monthly</button>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
             <button type="button" data-m="rate" aria-pressed="true" data-ko="낙찰률">Sell-through</button>
@@ -217,11 +222,15 @@
 
       <p class="priceNote"><span data-ko="이 페이지는 원피스 전용입니다. 같은 수집으로 17개 카드게임을 함께 봅니다 — 게임별 비교표는">This page is One Piece only. The same settlement run covers 17 card games — see</span> <a href="tcg-auction.html" data-ko="TCG 경매 데이터">TCG auction data</a> <span data-ko="에서 볼 수 있습니다.">for the cross-game table.</span></p>
 
-      <h2 data-ko="카드별 낙찰가 중앙값 상위">Highest auction medians by card</h2>
+      <h2 data-ko="카드별 경매 순위" id="cardRankTitle">Card auction leaders</h2>
+      <div class="metricTabs" role="group" aria-label="Rank by" style="margin:2px 0 10px">
+        <button type="button" data-rank="med" aria-pressed="true" data-ko="중앙 낙찰가순">By median price</button>
+        <button type="button" data-rank="sales" aria-pressed="false" data-ko="판매 건수순">By sales count</button>
+      </div>
       <div style="overflow-x:auto">
       <table class="aTable">
         <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="중앙 낙찰가">Median winning bid</th><th data-ko="구간">Range</th><th data-ko="낙찰률">Sell-through</th><th data-ko="판매 건수">Sales</th></tr></thead>
-        <tbody>
+        <tbody id="cardRankBody">
 <tr><td>1</td><td class="l">EB02-006<small>EB02-006 · EB-02</small></td><td>$1,209</td><td>$50–$2,700</td><td>35.3%</td><td>6</td></tr>
 <tr><td>2</td><td class="l">Monkey D. Luffy 010 Alternate Art<small>EB02-010 · EB-02</small></td><td>$1,000</td><td>$720–$1,325</td><td>50%</td><td>33</td></tr>
 <tr><td>3</td><td class="l">OP09-078<small>OP09-078 · OP-09</small></td><td>$856</td><td>$225–$1,868</td><td>30%</td><td>12</td></tr>
@@ -251,7 +260,9 @@
       // 일별 막대 — 지표 탭으로 한 번에 하나만 그린다.
       // 축이 둘인 그래프(낙찰률과 건수를 한 판에)는 만들지 않는다. 눈금이 서로를 속인다.
       (function () {
-        var days = [{"d":"2026-07-20","p":0,"ended":550,"sold":118,"rate":21.5,"gmv":11686,"med":20.5},{"d":"2026-07-21","p":0,"ended":843,"sold":298,"rate":35.3,"gmv":44187,"med":15.25},{"d":"2026-07-22","p":0,"ended":794,"sold":326,"rate":41.1,"gmv":22529,"med":15.5},{"d":"2026-07-23","p":0,"ended":772,"sold":276,"rate":35.8,"gmv":27103,"med":12},{"d":"2026-07-24","p":1,"ended":344,"sold":151,"rate":43.9,"gmv":21144,"med":17},{"d":"2026-07-27","p":1,"ended":91,"sold":21,"rate":23.1,"gmv":2634,"med":27.5},{"d":"2026-07-28","p":0,"ended":547,"sold":168,"rate":30.7,"gmv":21126,"med":13.29},{"d":"2026-07-29","p":1,"ended":755,"sold":230,"rate":30.5,"gmv":52946,"med":28},{"d":"2026-07-30","p":0,"ended":711,"sold":218,"rate":30.7,"gmv":35608,"med":41},{"d":"2026-07-31","p":0,"ended":892,"sold":220,"rate":24.7,"gmv":40911,"med":22.26},{"d":"2026-08-01","p":0,"ended":882,"sold":265,"rate":30,"gmv":34040,"med":20.5},{"d":"2026-08-02","p":0,"ended":1222,"sold":425,"rate":34.8,"gmv":65767,"med":22.5},{"d":"2026-08-03","p":1,"ended":777,"sold":234,"rate":30.1,"gmv":21890,"med":17.77},{"d":"2026-08-04","p":0,"ended":866,"sold":306,"rate":35.3,"gmv":57850,"med":18.5},{"d":"2026-08-05","p":0,"ended":889,"sold":317,"rate":35.7,"gmv":52900,"med":20},{"d":"2026-08-06","p":1,"ended":568,"sold":188,"rate":33.1,"gmv":23740,"med":17.49},{"d":"2026-08-07","p":0,"ended":1025,"sold":267,"rate":26,"gmv":48689,"med":20.5},{"d":"2026-08-08","p":0,"ended":1129,"sold":387,"rate":34.3,"gmv":31292,"med":16.5},{"d":"2026-08-09","p":0,"ended":1238,"sold":442,"rate":35.7,"gmv":49608,"med":20},{"d":"2026-08-10","p":0,"ended":1104,"sold":357,"rate":32.3,"gmv":36382,"med":24.5},{"d":"2026-08-11","p":0,"ended":1101,"sold":371,"rate":33.7,"gmv":58466,"med":15},{"d":"2026-08-12","p":0,"ended":1064,"sold":382,"rate":35.9,"gmv":43957,"med":11.61},{"d":"2026-08-13","p":0,"ended":805,"sold":277,"rate":34.4,"gmv":26586,"med":20.5},{"d":"2026-08-14","p":0,"ended":1077,"sold":269,"rate":25,"gmv":44347,"med":18.5},{"d":"2026-08-15","p":0,"ended":1091,"sold":323,"rate":29.6,"gmv":31870,"med":20.5},{"d":"2026-08-16","p":0,"ended":1298,"sold":385,"rate":29.7,"gmv":29834,"med":20.5},{"d":"2026-08-17","p":0,"ended":946,"sold":306,"rate":32.3,"gmv":26031,"med":17},{"d":"2026-08-18","p":0,"ended":1002,"sold":422,"rate":42.1,"gmv":121964,"med":26.01},{"d":"2026-08-19","p":0,"ended":855,"sold":228,"rate":26.7,"gmv":63661,"med":20.5},{"d":"2026-08-20","p":0,"ended":960,"sold":303,"rate":31.6,"gmv":36079,"med":17},{"d":"2026-08-21","p":0,"ended":1136,"sold":199,"rate":17.5,"gmv":25259,"med":30},{"d":"2026-08-22","p":1,"ended":813,"sold":232,"rate":28.5,"gmv":29521,"med":23.5},{"d":"2026-08-23","p":0,"ended":1279,"sold":356,"rate":27.8,"gmv":27101,"med":10.5},{"d":"2026-08-24","p":0,"ended":1045,"sold":414,"rate":39.6,"gmv":51751,"med":22.5},{"d":"2026-08-25","p":0,"ended":1024,"sold":411,"rate":40.1,"gmv":60278,"med":17.88},{"d":"2026-08-26","p":0,"ended":868,"sold":249,"rate":28.7,"gmv":43408,"med":10.5},{"d":"2026-08-27","p":1,"ended":357,"sold":201,"rate":56.3,"gmv":19142,"med":16.5},{"d":"2026-08-28","p":1,"ended":723,"sold":198,"rate":27.4,"gmv":40590,"med":14.5},{"d":"2026-08-29","p":1,"ended":557,"sold":161,"rate":28.9,"gmv":17534,"med":14.62},{"d":"2026-08-30","p":0,"ended":1437,"sold":505,"rate":35.1,"gmv":64970,"med":25.14},{"d":"2026-08-31","p":1,"ended":1739,"sold":883,"rate":50.8,"gmv":98626,"med":19.5},{"d":"2026-09-01","p":1,"ended":750,"sold":282,"rate":37.6,"gmv":20872,"med":11.5}];
+        var SERIES = {"daily":[{"d":"2026-07-20","p":0,"ended":550,"sold":118,"rate":21.5,"gmv":11686,"med":20.5,"ax":"07/20"},{"d":"2026-07-21","p":0,"ended":843,"sold":298,"rate":35.3,"gmv":44187,"med":15.25,"ax":"07/21"},{"d":"2026-07-22","p":0,"ended":794,"sold":326,"rate":41.1,"gmv":22529,"med":15.5,"ax":"07/22"},{"d":"2026-07-23","p":0,"ended":772,"sold":276,"rate":35.8,"gmv":27103,"med":12,"ax":"07/23"},{"d":"2026-07-24","p":1,"ended":344,"sold":151,"rate":43.9,"gmv":21144,"med":17,"ax":"07/24"},{"d":"2026-07-27","p":1,"ended":91,"sold":21,"rate":23.1,"gmv":2634,"med":27.5,"ax":"07/27"},{"d":"2026-07-28","p":0,"ended":547,"sold":168,"rate":30.7,"gmv":21126,"med":13.29,"ax":"07/28"},{"d":"2026-07-29","p":1,"ended":755,"sold":230,"rate":30.5,"gmv":52946,"med":28,"ax":"07/29"},{"d":"2026-07-30","p":0,"ended":711,"sold":218,"rate":30.7,"gmv":35608,"med":41,"ax":"07/30"},{"d":"2026-07-31","p":0,"ended":892,"sold":220,"rate":24.7,"gmv":40911,"med":22.26,"ax":"07/31"},{"d":"2026-08-01","p":0,"ended":882,"sold":265,"rate":30,"gmv":34040,"med":20.5,"ax":"08/01"},{"d":"2026-08-02","p":0,"ended":1222,"sold":425,"rate":34.8,"gmv":65767,"med":22.5,"ax":"08/02"},{"d":"2026-08-03","p":1,"ended":777,"sold":234,"rate":30.1,"gmv":21890,"med":17.77,"ax":"08/03"},{"d":"2026-08-04","p":0,"ended":866,"sold":306,"rate":35.3,"gmv":57850,"med":18.5,"ax":"08/04"},{"d":"2026-08-05","p":0,"ended":889,"sold":317,"rate":35.7,"gmv":52900,"med":20,"ax":"08/05"},{"d":"2026-08-06","p":1,"ended":568,"sold":188,"rate":33.1,"gmv":23740,"med":17.49,"ax":"08/06"},{"d":"2026-08-07","p":0,"ended":1025,"sold":267,"rate":26,"gmv":48689,"med":20.5,"ax":"08/07"},{"d":"2026-08-08","p":0,"ended":1129,"sold":387,"rate":34.3,"gmv":31292,"med":16.5,"ax":"08/08"},{"d":"2026-08-09","p":0,"ended":1238,"sold":442,"rate":35.7,"gmv":49608,"med":20,"ax":"08/09"},{"d":"2026-08-10","p":0,"ended":1104,"sold":357,"rate":32.3,"gmv":36382,"med":24.5,"ax":"08/10"},{"d":"2026-08-11","p":0,"ended":1101,"sold":371,"rate":33.7,"gmv":58466,"med":15,"ax":"08/11"},{"d":"2026-08-12","p":0,"ended":1064,"sold":382,"rate":35.9,"gmv":43957,"med":11.61,"ax":"08/12"},{"d":"2026-08-13","p":0,"ended":805,"sold":277,"rate":34.4,"gmv":26586,"med":20.5,"ax":"08/13"},{"d":"2026-08-14","p":0,"ended":1077,"sold":269,"rate":25,"gmv":44347,"med":18.5,"ax":"08/14"},{"d":"2026-08-15","p":0,"ended":1091,"sold":323,"rate":29.6,"gmv":31870,"med":20.5,"ax":"08/15"},{"d":"2026-08-16","p":0,"ended":1298,"sold":385,"rate":29.7,"gmv":29834,"med":20.5,"ax":"08/16"},{"d":"2026-08-17","p":0,"ended":946,"sold":306,"rate":32.3,"gmv":26031,"med":17,"ax":"08/17"},{"d":"2026-08-18","p":0,"ended":1002,"sold":422,"rate":42.1,"gmv":121964,"med":26.01,"ax":"08/18"},{"d":"2026-08-19","p":0,"ended":855,"sold":228,"rate":26.7,"gmv":63661,"med":20.5,"ax":"08/19"},{"d":"2026-08-20","p":0,"ended":960,"sold":303,"rate":31.6,"gmv":36079,"med":17,"ax":"08/20"},{"d":"2026-08-21","p":0,"ended":1136,"sold":199,"rate":17.5,"gmv":25259,"med":30,"ax":"08/21"},{"d":"2026-08-22","p":1,"ended":813,"sold":232,"rate":28.5,"gmv":29521,"med":23.5,"ax":"08/22"},{"d":"2026-08-23","p":0,"ended":1279,"sold":356,"rate":27.8,"gmv":27101,"med":10.5,"ax":"08/23"},{"d":"2026-08-24","p":0,"ended":1045,"sold":414,"rate":39.6,"gmv":51751,"med":22.5,"ax":"08/24"},{"d":"2026-08-25","p":0,"ended":1024,"sold":411,"rate":40.1,"gmv":60278,"med":17.88,"ax":"08/25"},{"d":"2026-08-26","p":0,"ended":868,"sold":249,"rate":28.7,"gmv":43408,"med":10.5,"ax":"08/26"},{"d":"2026-08-27","p":1,"ended":357,"sold":201,"rate":56.3,"gmv":19142,"med":16.5,"ax":"08/27"},{"d":"2026-08-28","p":1,"ended":723,"sold":198,"rate":27.4,"gmv":40590,"med":14.5,"ax":"08/28"},{"d":"2026-08-29","p":1,"ended":557,"sold":161,"rate":28.9,"gmv":17534,"med":14.62,"ax":"08/29"},{"d":"2026-08-30","p":0,"ended":1437,"sold":505,"rate":35.1,"gmv":64970,"med":25.14,"ax":"08/30"},{"d":"2026-08-31","p":1,"ended":1739,"sold":883,"rate":50.8,"gmv":98626,"med":19.5,"ax":"08/31"},{"d":"2026-09-01","p":1,"ended":750,"sold":282,"rate":37.6,"gmv":20872,"med":11.5,"ax":"09/01"}],"weekly":[{"d":"Week of 07/20","ax":"07/20","p":1,"ended":3303,"sold":1169,"rate":35.4,"gmv":126649,"med":15},{"d":"Week of 07/27","ax":"07/27","p":1,"ended":5100,"sold":1547,"rate":30.3,"gmv":253031,"med":22.5},{"d":"Week of 08/03","ax":"08/03","p":1,"ended":6492,"sold":2141,"rate":33,"gmv":285970,"med":18.71},{"d":"Week of 08/10","ax":"08/10","p":0,"ended":7540,"sold":2364,"rate":31.4,"gmv":271442,"med":19.5},{"d":"Week of 08/17","ax":"08/17","p":1,"ended":6991,"sold":2046,"rate":29.3,"gmv":329617,"med":19.5},{"d":"Week of 08/24","ax":"08/24","p":1,"ended":6011,"sold":2139,"rate":35.6,"gmv":297674,"med":18.5},{"d":"Week of 08/31","ax":"08/31","p":1,"ended":2489,"sold":1165,"rate":46.8,"gmv":119498,"med":17.5}],"monthly":[{"d":"2026-07","ax":"26-07","p":1,"ended":6299,"sold":2026,"rate":32.2,"gmv":279873,"med":18},{"d":"2026-08","ax":"26-08","p":1,"ended":30877,"sold":10263,"rate":33.2,"gmv":1383135,"med":19.5},{"d":"2026-09","ax":"26-09","p":1,"ended":750,"sold":282,"rate":37.6,"gmv":20872,"med":11.5}]};
+        var period = "daily";
+        var days = SERIES[period];
         var host = document.getElementById("opDailyChart");
         if (!host || !days.length) return;
         var M = {
@@ -271,16 +282,22 @@
         // 언어는 <html lang> 을 본다 — lang-toggle.js 가 전환할 때 함께 바꾼다.
         var KO = document.documentElement.lang === "ko";
         document.addEventListener("opboxlang", function (ev) { KO = (ev.detail || {}).lang === "ko"; draw(); });
-        var cols = days.map(function (r) {
-          var c = document.createElement("div");
-          c.className = "opCol" + (r.p ? " pt" : "");
-          c.tabIndex = 0;
-          c.appendChild(document.createElement("i"));
-          bars.appendChild(c);
-          return c;
-        });
-        var short = function (d) { return d.slice(5).replace("-", "/"); };
-        axis.innerHTML = "<span>" + short(days[0].d) + "</span><span>" + short(days[days.length - 1].d) + "</span>";
+        var cols = [];
+        function buildBars() {
+          bars.querySelectorAll(".opCol").forEach(function (c) { c.remove(); });
+          cols = days.map(function (r) {
+            var c = document.createElement("div");
+            c.className = "opCol" + (r.p ? " pt" : "");
+            c.tabIndex = 0;
+            c.appendChild(document.createElement("i"));
+            bars.appendChild(c);
+            c.addEventListener("focus", function () { select(cols.indexOf(c)); });
+            c.addEventListener("blur", clear);
+            return c;
+          });
+          axis.innerHTML = "<span>" + days[0].ax + "</span><span>" + days[days.length - 1].ax + "</span>";
+        }
+
         var metric = "rate";
         function draw() {
           var m = M[metric];
@@ -321,13 +338,13 @@
               if (cls) el.className = cls;
               el.appendChild(document.createTextNode(label + " "));
               var b = document.createElement("b"); b.textContent = val; el.appendChild(b);
-              if (day) el.appendChild(document.createTextNode(" · " + day.slice(5)));
+              if (day) el.appendChild(document.createTextNode(" · " + day));
               readout.appendChild(el);
             };
             if (lastR) {
-              put(KO ? m.ko + " — 최근" : m.label + " — latest", m.fmt(lastR[metric]), lastR.d, "hi");
-              put(KO ? "최고" : "highest", m.fmt(hi[metric]), hi.d);
-              put(KO ? "최저" : "lowest", m.fmt(lo[metric]), lo.d);
+              put(KO ? m.ko + " — 최근" : m.label + " — latest", m.fmt(lastR[metric]), lastR.ax || lastR.d.slice(5), "hi");
+              put(KO ? "최고" : "highest", m.fmt(hi[metric]), hi.ax || hi.d.slice(5));
+              put(KO ? "최저" : "lowest", m.fmt(lo[metric]), lo.ax || lo.d.slice(5));
             }
           }
         }
@@ -391,10 +408,7 @@
         bars.addEventListener("pointermove", function (ev) { select(pickAt(ev.clientX)); });
         bars.addEventListener("pointerdown", function (ev) { select(pickAt(ev.clientX)); });
         bars.addEventListener("pointerleave", clear);
-        cols.forEach(function (c, i) {
-          c.addEventListener("focus", function () { select(i); });
-          c.addEventListener("blur", clear);
-        });
+
         var tabs = document.querySelectorAll(".metricTabs button[data-m]");
         Array.prototype.forEach.call(tabs, function (b) {
           b.addEventListener("click", function () {
@@ -403,6 +417,18 @@
             draw();
           });
         });
+        var ptabs = document.querySelectorAll(".periodTabs button[data-p]");
+        Array.prototype.forEach.call(ptabs, function (b) {
+          b.addEventListener("click", function () {
+            period = b.getAttribute("data-p");
+            days = SERIES[period];
+            Array.prototype.forEach.call(ptabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            picked = -1;
+            buildBars();
+            draw();
+          });
+        });
+        buildBars();
         draw();
       })();
 
@@ -467,6 +493,50 @@
           }
           row.appendChild(med);
           host.appendChild(row);
+        });
+      })();
+    </script>
+
+    <script>
+      // 카드 순위 정렬 전환. 초기 표는 서버가 중앙가순으로 렌더해 두고(JS 없이도 보임),
+      // 버튼을 누르면 같은 데이터로 tbody 만 다시 그린다.
+      (function () {
+        var DATA = {"med":[{"id":"EB02-006","set":"EB-02","name":"EB02-006","med":1208.5,"low":50.02,"high":2700,"st":35.3,"sold":6},{"id":"EB02-010","set":"EB-02","name":"Monkey D. Luffy 010 Alternate Art","med":1000,"low":720,"high":1325,"st":50,"sold":33},{"id":"OP09-078","set":"OP-09","name":"OP09-078","med":856.08,"low":225,"high":1868.44,"st":30,"sold":12},{"id":"PRB02-005","set":"PRB-02","name":"PRB02-005","med":595,"low":15.9,"high":777,"st":61.2,"sold":30},{"id":"OP06-064","set":"OP-06","name":"OP06-064","med":409.5,"low":409,"high":410,"st":28.6,"sold":4},{"id":"OP05-069","set":"OP-05","name":"Trafalgar Law 069 Alternate Art Manga","med":390,"low":30,"high":750,"st":10.4,"sold":4},{"id":"OP05-074","set":"OP-05","name":"EustassCaptainKid Alternate Art Manga","med":355.94,"low":57,"high":480,"st":19.5,"sold":8},{"id":"OP16-095","set":"OP-16","name":"OP16-095","med":355,"low":184.5,"high":410,"st":30.2,"sold":25},{"id":"ST26-005","set":"ST-26","name":"ST26-005","med":336.3,"low":1.37,"high":650,"st":48.6,"sold":17},{"id":"OP17-062","set":"OP-17","name":"OP17-062","med":335,"low":9.5,"high":544.24,"st":81,"sold":17},{"id":"OP11-080","set":"OP-11","name":"Gear Two Alternate Art","med":300,"low":232.5,"high":525,"st":52.9,"sold":17},{"id":"OP13-031","set":"OP-13","name":"OP13-031","med":255,"low":237.5,"high":299,"st":35,"sold":7}],"sales":[{"id":"OP14-020","set":"OP-14","name":"OP14-020","med":92.75,"low":87,"high":101,"st":82.9,"sold":179},{"id":"ST01-012","set":"ST-01","name":"ST01-012","med":70,"low":38,"high":172.5,"st":66.4,"sold":87},{"id":"OP07-109","set":"OP-07","name":"Monkey D. Luffy 109 Parallel","med":39,"low":4.25,"high":177.5,"st":65.4,"sold":86},{"id":"OP01-016","set":"OP-01","name":"Nami Parallel","med":137.5,"low":41,"high":372.3,"st":58,"sold":75},{"id":"EB03-053","set":"EB-03","name":"Nami 053 SP","med":13.75,"low":9.98,"high":41,"st":50,"sold":74},{"id":"ST21-014","set":"ST-21","name":"ST21-014","med":129.5,"low":84,"high":205,"st":75,"sold":69},{"id":"EB02-003","set":"EB-02","name":"EB02-003","med":17.5,"low":15,"high":41,"st":79,"sold":64},{"id":"EB04-007","set":"EB-04","name":"EB04-007","med":11.3,"low":9.5,"high":14,"st":59.1,"sold":64},{"id":"OP13-118","set":"OP-13","name":"Monkey D. Luffy 118 Red Manga Alternate Art","med":92,"low":27,"high":145,"st":64.8,"sold":59},{"id":"OP13-119","set":"OP-13","name":"Portgas D. Ace 119 Red Manga Alternate Art","med":28,"low":11.5,"high":199.41,"st":76.6,"sold":59},{"id":"OP16-119","set":"OP-16","name":"OP16-119","med":15,"low":11.29,"high":20.5,"st":39.7,"sold":58},{"id":"OP05-119","set":"OP-05","name":"Monkey D. Luffy","med":61.5,"low":15.5,"high":270,"st":43.5,"sold":56}]};
+        var body = document.getElementById("cardRankBody");
+        if (!body) return;
+        var KO = function () { return document.documentElement.lang === "ko"; };
+        var usd = function (v) { return v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"); };
+        function render(kind) {
+          var rows = DATA[kind] || [];
+          body.innerHTML = "";
+          rows.forEach(function (c, i) {
+            var tr = document.createElement("tr");
+            var add = function (txt, cls) {
+              var td = document.createElement("td");
+              if (cls) td.className = cls;
+              if (txt instanceof Node) td.appendChild(txt); else td.textContent = txt;
+              tr.appendChild(td); return td;
+            };
+            add(String(i + 1));
+            var nameWrap = document.createDocumentFragment();
+            nameWrap.appendChild(document.createTextNode(c.name));
+            var small = document.createElement("small");
+            small.textContent = c.id + " · " + c.set;
+            nameWrap.appendChild(small);
+            add(nameWrap, "l");
+            add(usd(c.med));
+            add(c.low != null && c.high != null ? usd(c.low) + "–" + usd(c.high) : "—");
+            add(c.st != null ? c.st + "%" : "—");
+            add(c.sold.toLocaleString("en-US"));
+            body.appendChild(tr);
+          });
+        }
+        var tabs = document.querySelectorAll("button[data-rank]");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            render(b.getAttribute("data-rank"));
+          });
         });
       })();
     </script>

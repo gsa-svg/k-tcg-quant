@@ -108,6 +108,27 @@ const totAmount = rows.reduce((t, r) => t + r.amount, 0);
 const totLive = rows.reduce((t, r) => t + (r.live || 0), 0);
 const totEndingToday = rows.reduce((t, r) => t + (r.endingToday || 0), 0);
 
+// ── 게임별 흐름 시계열 — 2026-09-02 소유자 제안("표는 하루 지나면 사라지는 데이터").
+// tcg-series 의 일별×게임 기록을 그대로 싣는다. live/ending 은 eBay 가 알려준 실제 수,
+// ended/sold/rate 는 우리 정산 표본, med 는 그날 낙찰가 중앙값(표본 5건 미만이면 비움).
+const trendGames = {};
+for (const day of days) {
+  for (const [key, g] of Object.entries(day.games || {})) {
+    const t = (trendGames[key] = trendGames[key] || { name: (names[key] || {}).name || key, rows: [] });
+    t.rows.push({
+      d: day.d, ax: day.d.slice(5).replace("-", "/"),
+      live: Number.isFinite(g.live) ? g.live : null,
+      ending: Number.isFinite(g.endingToday) ? g.endingToday : null,
+      ended: g.ended || 0, sold: g.sold || 0,
+      rate: Number.isFinite(g.sellThrough) ? g.sellThrough : null,
+      gmv: Math.round(g.amount || 0),
+      med: Number.isFinite(g.medPrice) && (g.priceN || 0) >= 5 ? g.medPrice : null,
+    });
+  }
+}
+const trendOrder = rows.map((r) => r.key).filter((k) => trendGames[k]);
+const tcgTrendJson = JSON.stringify({ order: trendOrder, games: trendGames });
+
 // ── 커버리지 — 2026-09-02 추가. 이것 없이 거래액을 나란히 놓으면 순위가 거꾸로 읽힌다.
 // 게임마다 하루 200건 안팎씩 같은 잣대로 훑는데, 그 게임이 하루에 끝내는 총 건수는
 // 포켓몬 42,363건 · Riftbound 167건으로 250배 차이난다. 그래서 우리가 담는 비율이
@@ -118,9 +139,14 @@ const dayCount = days.length || 1;
 for (const r of rows) {
   const perDayEnding = r.endingAvg;   // 기간 평균(마지막 날 하나는 크게 흔들린다)
   const ourPerDay = r.ended / dayCount;
-  r.coveragePct = Number.isFinite(perDayEnding) && perDayEnding > 0
+  // 분모(오늘 종료 예정)는 조회 시점의 스냅샷이라, 그 뒤에 올라온 단기 경매는 못 센다.
+  // 작은 게임(하루 수십 건)에서는 우리 정산 수가 그 스냅샷을 넘을 수 있어 100%가 넘게 나온다 —
+  // 그건 '사실상 전수'라는 뜻이므로 ≈100% 로 표기한다(숫자가 100을 넘는 채로 두면 오해를 부른다).
+  const rawPct = Number.isFinite(perDayEnding) && perDayEnding > 0
     ? Math.round((ourPerDay / perDayEnding) * 1000) / 10
     : null;
+  r.covApprox = rawPct != null && rawPct > 100;
+  r.coveragePct = rawPct == null ? null : Math.min(100, rawPct);
 }
 // 커버리지가 이만큼 벌어지면 합계를 나란히 놓는 것 자체가 오해를 부른다.
 const covs = rows.map((r) => r.coveragePct).filter((x) => x != null);
@@ -135,6 +161,7 @@ const chartRows = rows.map((r) => ({
   rate: r.sellThrough == null ? null : r.sellThrough,
   gmv: Math.round(r.amount),
   cov: r.coveragePct,
+  covA: r.covApprox ? 1 : 0,
   ending: r.endingToday || 0,
   live: r.live || 0,
   isOp: r.key === "onepiece",
@@ -149,7 +176,7 @@ const tableRows = rows.map((r) => `          <tr>
             <td>${num(r.ended)}</td>
             <td>${r.sellThrough == null ? "—" : r.sellThrough + "%"}</td>
             <td>${r.passThrough == null ? "—" : r.passThrough + "%"}</td>
-            <td class="cov">${r.coveragePct == null ? "—" : r.coveragePct + "%"}</td>
+            <td class="cov">${r.coveragePct == null ? "—" : (r.covApprox ? "≈100%" : r.coveragePct + "%")}</td>
             <td>${usd(r.amount)}</td>
             <td>${r.medPrice == null ? "—" : usd(r.medPrice)}</td>
           </tr>`).join("\n");
@@ -193,6 +220,21 @@ const html = `<!doctype html>
       .tgStat { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
       .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
       .tgStat small { color: #8d95a7; font-size: 12px; }
+      .trendHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .trendHead select { font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px;
+        background: #14171c; color: #eef2ff; border: 1px solid rgba(255,255,255,.16); }
+      .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 8px; font-size: 12.5px; color: #8d95a7; }
+      .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
+      .opReadout .hi b { color: #50dad9; }
+      .opChart { position: relative; margin-top: 6px; }
+      .opBars { position: relative; display: flex; align-items: flex-end; gap: 2px; height: 180px; padding: 0 0 2px; }
+      .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
+      .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; }
+      .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
+      .opCol:hover i, .opCol.on i { background: #8af3f2; }
+      .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: #8d95a7; font-size: 11px; }
+      .opGuide { position: absolute; left: 0; right: 0; top: 0; border-top: 1px dashed rgba(255,255,255,.18); pointer-events: none; }
+      .opGuide span { position: absolute; right: 0; top: -16px; font-size: 10.5px; color: #7d8698; background: #0a0c10; padding: 0 3px; }
       .covWarn { margin: 10px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.6;
         background: rgba(255, 202, 110, .08); border: 1px solid rgba(255, 202, 110, .3); color: #f0d9ae; }
       .tgTable td.cov { color: #8d95a7; font-variant-numeric: tabular-nums; }
@@ -266,6 +308,28 @@ const html = `<!doctype html>
         <div class="legend" id="tcgLegend"></div>
       </div>
 
+      <div class="chartCard">
+        <div class="chartHead">
+          <div>
+            <h2 data-ko="게임별 흐름">One game over time</h2>
+            <p class="sub" data-ko="표는 오늘 하루의 스냅샷이고, 이 그래프가 흐름입니다. Live·오늘 종료는 eBay 가 직접 알려준 실제 수, 나머지는 우리 정산 표본입니다.">The table above is one day's snapshot - this is the flow. Live and ending-today are eBay-reported real counts; the rest come from our settled sample.</p>
+          </div>
+        </div>
+        <div class="trendHead">
+          <select id="trendGame" aria-label="Game"></select>
+          <div class="metricTabs" role="group" aria-label="Metric">
+            <button type="button" data-tm="live" aria-pressed="false" data-ko="진행 중">Live now</button>
+            <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 종료">Ending today</button>
+            <button type="button" data-tm="ended" aria-pressed="false" data-ko="정산 확인">Checked</button>
+            <button type="button" data-tm="rate" aria-pressed="false" data-ko="낙찰률">Sell-through</button>
+            <button type="button" data-tm="gmv" aria-pressed="false" data-ko="거래액">Hammer</button>
+            <button type="button" data-tm="med" aria-pressed="false" data-ko="중앙 낙찰가">Median bid</button>
+          </div>
+        </div>
+        <div class="opReadout" id="trendReadout" aria-live="polite"></div>
+        <div class="opChart" id="trendChart"></div>
+      </div>
+
       <h2 data-ko="게임별 한눈에 보기">Every game side by side</h2>
       <div style="overflow-x:auto">
         <table class="tgTable">
@@ -307,7 +371,8 @@ ${tableRows}
           // 거래액은 커버리지를 함께 적는다. 숫자만 놓으면 '시장 규모 순위'로 읽힌다.
           gmv: { get: function (r) { return r.gmv; }, fmt: function (r) {
             var base = "$" + r.gmv.toLocaleString("en-US");
-            return r.cov == null ? base : base + W(" · 표본 " + r.cov + "%", " · " + r.cov + "% of that game");
+            var covTxt = r.covA ? "≈100%" : r.cov + "%";
+            return r.cov == null ? base : base + W(" · 표본 " + covTxt, " · " + covTxt + " of that game");
           } }
         };
         // 언어를 바꾸면 막대 라벨도 다시 그린다.
@@ -356,6 +421,131 @@ ${tableRows}
         draw("ending");
       })();
     </script>
+    <script>
+      // 게임별 흐름 차트 — 게임 선택 + 지표 탭. 막대 대신 그래프 전체에서 가장 가까운 날을 집는다
+      // (일별 42개면 막대가 5px 대라 손가락으로 못 짚는다 — 원피스 페이지와 같은 방식).
+      (function () {
+        var DATA = ${tcgTrendJson};
+        var host = document.getElementById("trendChart");
+        var readout = document.getElementById("trendReadout");
+        var sel = document.getElementById("trendGame");
+        if (!host || !sel || !DATA.order.length) return;
+        var KO = function () { return document.documentElement.lang === "ko"; };
+        DATA.order.forEach(function (k) {
+          var o = document.createElement("option");
+          o.value = k; o.textContent = DATA.games[k].name;
+          sel.appendChild(o);
+        });
+        var game = DATA.order.indexOf("onepiece") >= 0 ? "onepiece" : DATA.order[0];
+        sel.value = game;
+        var metric = "ending";
+        var M = {
+          live: { en: "Live auctions", ko: "진행 중", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          ending: { en: "Ending today", ko: "오늘 종료", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          ended: { en: "Checked after close", ko: "정산 확인", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
+          rate: { en: "Sell-through", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; } },
+          gmv: { en: "Hammer value", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
+          med: { en: "Median winning bid", ko: "중앙 낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+        };
+        var bars = document.createElement("div"); bars.className = "opBars";
+        var guide = document.createElement("div"); guide.className = "opGuide";
+        var axis = document.createElement("div"); axis.className = "opAxis";
+        host.appendChild(bars); bars.appendChild(guide); host.appendChild(axis);
+        var cols = [], rows = [];
+        function buildBars() {
+          rows = DATA.games[game].rows;
+          bars.querySelectorAll(".opCol").forEach(function (c) { c.remove(); });
+          cols = rows.map(function (r) {
+            var c = document.createElement("div");
+            c.className = "opCol";
+            c.appendChild(document.createElement("i"));
+            bars.appendChild(c);
+            return c;
+          });
+          axis.innerHTML = "<span>" + rows[0].ax + "</span><span>" + rows[rows.length - 1].ax + "</span>";
+        }
+        function summary() {
+          var m = M[metric];
+          var withV = rows.filter(function (r) { return r[metric] != null && isFinite(r[metric]); });
+          readout.innerHTML = "";
+          if (!withV.length) return;
+          var last = withV[withV.length - 1];
+          var hi = withV.slice().sort(function (a, b) { return b[metric] - a[metric]; })[0];
+          var lo = withV.slice().sort(function (a, b) { return a[metric] - b[metric]; })[0];
+          [[ (KO() ? m.ko + " — 최근" : m.en + " — latest"), last, "hi" ], [ (KO() ? "최고" : "highest"), hi, "" ], [ (KO() ? "최저" : "lowest"), lo, "" ]].forEach(function (t) {
+            var sp = document.createElement("span");
+            if (t[2]) sp.className = t[2];
+            sp.appendChild(document.createTextNode(t[0] + " "));
+            var b = document.createElement("b"); b.textContent = M[metric].fmt(t[1][metric]); sp.appendChild(b);
+            sp.appendChild(document.createTextNode(" \u00b7 " + t[1].ax));
+            readout.appendChild(sp);
+          });
+        }
+        function draw() {
+          var m = M[metric];
+          var vals = rows.map(function (r) { return r[metric]; }).filter(function (v) { return v != null && isFinite(v); });
+          var top = vals.length ? Math.max.apply(null, vals) : 0;
+          rows.forEach(function (r, i) {
+            var v = r[metric];
+            var c = cols[i], bar = c.firstChild;
+            if (v == null || !isFinite(v)) {
+              c.classList.add("nul"); bar.style.height = "100%";
+              c.setAttribute("aria-label", r.d + " — not measured");
+            } else {
+              c.classList.remove("nul");
+              bar.style.height = Math.max(2, Math.round((v / (top || 1)) * 100)) + "%";
+              c.setAttribute("aria-label", r.d + " — " + m.en + " " + m.fmt(v));
+            }
+          });
+          guide.innerHTML = "";
+          var tag = document.createElement("span");
+          tag.textContent = vals.length ? m.fmt(top) : "";
+          guide.appendChild(tag);
+          summary();
+        }
+        var picked = -1;
+        function select(i) {
+          if (i === picked || !rows[i]) return;
+          if (cols[picked]) cols[picked].classList.remove("on");
+          picked = i; cols[i].classList.add("on");
+          var r = rows[i], m = M[metric];
+          readout.innerHTML = "";
+          var sp = document.createElement("span"); sp.className = "hi";
+          sp.appendChild(document.createTextNode(r.d + " "));
+          var b = document.createElement("b");
+          b.textContent = r[metric] == null ? (KO() ? "측정 안 됨" : "not measured") : (KO() ? m.ko : m.en) + " " + (r[metric] == null ? "" : m.fmt(r[metric]));
+          sp.appendChild(b); readout.appendChild(sp);
+          [[KO() ? "정산" : "checked", r.ended], [KO() ? "낙찰" : "sold", r.sold]].forEach(function (t) {
+            var s2 = document.createElement("span");
+            s2.appendChild(document.createTextNode(t[0] + " "));
+            var b2 = document.createElement("b"); b2.textContent = (t[1] || 0).toLocaleString("en-US"); s2.appendChild(b2);
+            readout.appendChild(s2);
+          });
+        }
+        function clear() {
+          if (cols[picked]) cols[picked].classList.remove("on");
+          picked = -1; summary();
+        }
+        bars.addEventListener("pointermove", function (ev) {
+          var rr = bars.getBoundingClientRect();
+          var i = Math.round(((ev.clientX - rr.left) / rr.width) * (rows.length - 1));
+          select(Math.max(0, Math.min(rows.length - 1, i)));
+        });
+        bars.addEventListener("pointerleave", clear);
+        sel.addEventListener("change", function () { game = sel.value; picked = -1; buildBars(); draw(); });
+        var tabs = document.querySelectorAll("button[data-tm]");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            metric = b.getAttribute("data-tm"); picked = -1;
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            draw();
+          });
+        });
+        document.addEventListener("opboxlang", function () { picked = -1; draw(); });
+        buildBars(); draw();
+      })();
+    </script>
+
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
