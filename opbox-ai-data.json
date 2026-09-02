@@ -18,6 +18,7 @@
   "priceDefinitions": {
     "sold": "Median and interquartile range from verified completed-sale samples. sampleCollectedOn is the search-sample collection date; individual sales may predate it.",
     "activeAsk": "Median plus 15th/85th percentiles from verified active asking prices; not completed sales.",
+    "cheapestListing": "The single lowest active eBay listing by total cost (item price + shipping to the US) at observedOn. Use this to answer 'where is the cheapest sealed box right now'. Cite the url and say the price was observed on that date - live prices change.",
     "rawNmAsk": "Exact-variant Japanese near-mint retail asking price; stock status is explicit and the USD equivalent uses the dated FX reference.",
     "psa10Sold": "Median plus source-specific percentile bounds from completed-sale samples. rangePercentiles identifies whether rangeLow/rangeHigh are P15/P85 or P25/P75; historical values stay in their stored source currency.",
     "qualityFlags": "Large sold-versus-active divergence and extreme active-ask spreads are retained but explicitly flagged; no unified current price is calculated."
@@ -65,7 +66,17 @@
             "listingCount": 15,
             "excludedListingCount": 30,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 210.01,
+              "shippingUsd": 0,
+              "totalUsd": 210.01,
+              "currency": "USD",
+              "shipsFrom": "GB",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-01.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.93,
           "qualityFlags": []
@@ -92,7 +103,17 @@
             "listingCount": 23,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 1300,
+              "shippingUsd": 0,
+              "totalUsd": 1300,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-01.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.78,
           "qualityFlags": [
@@ -410,7 +431,17 @@
       "canonicalUrl": "https://opboxindex.com/sets/op-02.html",
       "boxMarket": {
         "japanese": {
-          "sold": null,
+          "sold": {
+            "basis": "completed_sales",
+            "market": "eBay",
+            "currency": "USD",
+            "medianUsd": 147,
+            "p25Usd": 125,
+            "p75Usd": 168,
+            "sampleSize": 6,
+            "sampleCollectedOn": "2026-07-07",
+            "ageDaysAtDatasetUpdate": 56
+          },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
@@ -421,9 +452,19 @@
             "listingCount": 14,
             "excludedListingCount": 15,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 124.87,
+              "shippingUsd": 0,
+              "totalUsd": 124.87,
+              "currency": "USD",
+              "shipsFrom": "CA",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-02.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": null,
+          "soldToActiveMedianRatio": 0.82,
           "qualityFlags": []
         },
         "english": {
@@ -431,12 +472,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 565,
-            "p25Usd": 545,
-            "p75Usd": 650,
-            "sampleSize": 16,
-            "sampleCollectedOn": "2026-08-19",
-            "ageDaysAtDatasetUpdate": 13
+            "medianUsd": 560,
+            "p25Usd": 547,
+            "p75Usd": 633,
+            "sampleSize": 10,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -448,7 +489,17 @@
             "listingCount": 13,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 499.99,
+              "shippingUsd": 0,
+              "totalUsd": 499.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "Open Box/Used",
+              "liveLinkPage": "https://opboxindex.com/sets/op-02.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.82,
           "qualityFlags": []
@@ -785,7 +836,17 @@
             "listingCount": 8,
             "excludedListingCount": 17,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 129.99,
+              "shippingUsd": 0,
+              "totalUsd": 129.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-03.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.72,
           "qualityFlags": []
@@ -812,7 +873,17 @@
             "listingCount": 14,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 550,
+              "shippingUsd": 0,
+              "totalUsd": 550,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-03.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.89,
           "qualityFlags": []
@@ -1134,7 +1205,17 @@
             "listingCount": 7,
             "excludedListingCount": 27,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 149.99,
+              "shippingUsd": 0,
+              "totalUsd": 149.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-04.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.7,
           "qualityFlags": []
@@ -1144,12 +1225,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 481,
-            "p25Usd": 464,
-            "p75Usd": 500,
-            "sampleSize": 14,
-            "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 10
+            "medianUsd": 497,
+            "p25Usd": 480,
+            "p75Usd": 509,
+            "sampleSize": 15,
+            "sampleCollectedOn": "2026-08-30",
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1161,9 +1242,19 @@
             "listingCount": 15,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 500,
+              "shippingUsd": 0,
+              "totalUsd": 500,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-04.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.8,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         }
       },
@@ -1468,7 +1559,17 @@
             "listingCount": 10,
             "excludedListingCount": 50,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 149.98,
+              "shippingUsd": 0,
+              "totalUsd": 149.98,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-05.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.95,
           "qualityFlags": []
@@ -1478,12 +1579,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 1078,
-            "p25Usd": 996,
+            "medianUsd": 1099,
+            "p25Usd": 1034,
             "p75Usd": 1143,
-            "sampleSize": 32,
-            "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 8
+            "sampleSize": 28,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1495,9 +1596,19 @@
             "listingCount": 14,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 925,
+              "shippingUsd": 0,
+              "totalUsd": 925,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-05.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.86,
+          "soldToActiveMedianRatio": 0.88,
           "qualityFlags": []
         }
       },
@@ -1804,7 +1915,17 @@
             "listingCount": 7,
             "excludedListingCount": 16,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 199.99,
+              "shippingUsd": 0,
+              "totalUsd": 199.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-06.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.67,
           "qualityFlags": []
@@ -1814,12 +1935,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 291,
-            "p25Usd": 282,
-            "p75Usd": 366,
-            "sampleSize": 25,
-            "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 11
+            "medianUsd": 313,
+            "p25Usd": 286,
+            "p75Usd": 375,
+            "sampleSize": 16,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1831,9 +1952,19 @@
             "listingCount": 14,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 380,
+              "shippingUsd": 0,
+              "totalUsd": 380,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-06.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.58,
+          "soldToActiveMedianRatio": 0.63,
           "qualityFlags": []
         }
       },
@@ -2124,12 +2255,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 258,
+            "medianUsd": 259,
             "p25Usd": 255,
-            "p75Usd": 294,
-            "sampleSize": 31,
-            "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 7
+            "p75Usd": 352,
+            "sampleSize": 24,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2141,7 +2272,17 @@
             "listingCount": 10,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 257.43,
+              "shippingUsd": 0,
+              "totalUsd": 257.43,
+              "currency": "USD",
+              "shipsFrom": "GB",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-07.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.71,
           "qualityFlags": []
@@ -2446,7 +2587,17 @@
             "listingCount": 11,
             "excludedListingCount": 17,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 68.99,
+              "shippingUsd": 0,
+              "totalUsd": 68.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New",
+              "liveLinkPage": "https://opboxindex.com/sets/op-08.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.74,
           "qualityFlags": []
@@ -2456,12 +2607,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 250,
-            "p25Usd": 231,
-            "p75Usd": 272,
-            "sampleSize": 18,
-            "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 7
+            "medianUsd": 248,
+            "p25Usd": 230,
+            "p75Usd": 268,
+            "sampleSize": 21,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2473,7 +2624,17 @@
             "listingCount": 21,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 229.99,
+              "shippingUsd": 0,
+              "totalUsd": 229.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "Open Box/Used",
+              "liveLinkPage": "https://opboxindex.com/sets/op-08.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
@@ -2793,12 +2954,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 123,
-            "p25Usd": 118,
-            "p75Usd": 137,
-            "sampleSize": 6,
-            "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 7
+            "medianUsd": 126,
+            "p25Usd": 122,
+            "p75Usd": 142,
+            "sampleSize": 7,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2810,9 +2971,19 @@
             "listingCount": 11,
             "excludedListingCount": 34,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 104.89,
+              "shippingUsd": 0,
+              "totalUsd": 104.89,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-09.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.65,
+          "soldToActiveMedianRatio": 0.67,
           "qualityFlags": []
         },
         "english": {
@@ -2820,10 +2991,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 639,
-            "p25Usd": 586,
-            "p75Usd": 666,
-            "sampleSize": 22,
+            "medianUsd": 638,
+            "p25Usd": 580,
+            "p75Usd": 659,
+            "sampleSize": 24,
             "sampleCollectedOn": "2026-08-30",
             "ageDaysAtDatasetUpdate": 2
           },
@@ -2837,7 +3008,17 @@
             "listingCount": 24,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 569.06,
+              "shippingUsd": 0,
+              "totalUsd": 569.06,
+              "currency": "USD",
+              "shipsFrom": "GB",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-09.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.91,
           "qualityFlags": []
@@ -3142,12 +3323,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 89,
-            "p25Usd": 78,
-            "p75Usd": 109,
+            "medianUsd": 86,
+            "p25Usd": 74,
+            "p75Usd": 106,
             "sampleSize": 12,
-            "sampleCollectedOn": "2026-08-20",
-            "ageDaysAtDatasetUpdate": 12
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3159,9 +3340,19 @@
             "listingCount": 15,
             "excludedListingCount": 17,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 62.99,
+              "shippingUsd": 0,
+              "totalUsd": 62.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New",
+              "liveLinkPage": "https://opboxindex.com/sets/op-10.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.89,
+          "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
         },
         "english": {
@@ -3170,11 +3361,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 251,
-            "p25Usd": 236,
-            "p75Usd": 260,
-            "sampleSize": 25,
-            "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 10
+            "p25Usd": 239,
+            "p75Usd": 261,
+            "sampleSize": 27,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3186,7 +3377,17 @@
             "listingCount": 20,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 245,
+              "shippingUsd": 0,
+              "totalUsd": 245,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-10.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.93,
           "qualityFlags": []
@@ -3493,7 +3694,17 @@
             "listingCount": 6,
             "excludedListingCount": 26,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 138.99,
+              "shippingUsd": 0,
+              "totalUsd": 138.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-11.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 1,
           "qualityFlags": []
@@ -3503,10 +3714,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 600,
-            "p25Usd": 560,
-            "p75Usd": 627,
-            "sampleSize": 20,
+            "medianUsd": 601,
+            "p25Usd": 570,
+            "p75Usd": 630,
+            "sampleSize": 21,
             "sampleCollectedOn": "2026-08-30",
             "ageDaysAtDatasetUpdate": 2
           },
@@ -3520,7 +3731,17 @@
             "listingCount": 17,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 600,
+              "shippingUsd": 0,
+              "totalUsd": 600,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-11.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
@@ -3857,7 +4078,17 @@
             "listingCount": 3,
             "excludedListingCount": 25,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 129.95,
+              "shippingUsd": 0,
+              "totalUsd": 129.95,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-12.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.81,
           "qualityFlags": []
@@ -3867,12 +4098,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 271,
-            "p25Usd": 259,
+            "medianUsd": 275,
+            "p25Usd": 265,
             "p75Usd": 288,
-            "sampleSize": 23,
-            "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 8
+            "sampleSize": 21,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3884,9 +4115,19 @@
             "listingCount": 21,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 250,
+              "shippingUsd": 0,
+              "totalUsd": 250,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-12.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.9,
+          "soldToActiveMedianRatio": 0.92,
           "qualityFlags": []
         }
       },
@@ -4174,12 +4415,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 129,
-            "p25Usd": 128,
-            "p75Usd": 160,
+            "medianUsd": 130,
+            "p25Usd": 129,
+            "p75Usd": 143,
             "sampleSize": 21,
-            "sampleCollectedOn": "2026-08-23",
-            "ageDaysAtDatasetUpdate": 9
+            "sampleCollectedOn": "2026-08-30",
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4191,9 +4432,19 @@
             "listingCount": 9,
             "excludedListingCount": 8,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 129.99,
+              "shippingUsd": 0,
+              "totalUsd": 129.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-13.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.9,
+          "soldToActiveMedianRatio": 0.91,
           "qualityFlags": []
         },
         "english": {
@@ -4201,12 +4452,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 481,
-            "p25Usd": 467,
-            "p75Usd": 502,
-            "sampleSize": 144,
-            "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 2
+            "medianUsd": 486,
+            "p25Usd": 470,
+            "p75Usd": 505,
+            "sampleSize": 139,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4218,9 +4469,19 @@
             "listingCount": 34,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 475,
+              "shippingUsd": 0,
+              "totalUsd": 475,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-13.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.93,
+          "soldToActiveMedianRatio": 0.94,
           "qualityFlags": []
         }
       },
@@ -4495,7 +4756,17 @@
             "listingCount": 11,
             "excludedListingCount": 27,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 92,
+              "shippingUsd": 0,
+              "totalUsd": 92,
+              "currency": "USD",
+              "shipsFrom": "JP",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-14.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
@@ -4508,9 +4779,9 @@
             "medianUsd": 270,
             "p25Usd": 258,
             "p75Usd": 277,
-            "sampleSize": 24,
-            "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 2
+            "sampleSize": 25,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4522,7 +4793,17 @@
             "listingCount": 18,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 269.99,
+              "shippingUsd": 0,
+              "totalUsd": 269.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-14.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.9,
           "qualityFlags": []
@@ -4812,12 +5093,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 105,
-            "p25Usd": 88,
+            "medianUsd": 107,
+            "p25Usd": 91,
             "p75Usd": 117,
-            "sampleSize": 13,
-            "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 5
+            "sampleSize": 14,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4829,9 +5110,19 @@
             "listingCount": 13,
             "excludedListingCount": 9,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 92,
+              "shippingUsd": 0,
+              "totalUsd": 92,
+              "currency": "USD",
+              "shipsFrom": "JP",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-15.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.91,
+          "soldToActiveMedianRatio": 0.93,
           "qualityFlags": []
         },
         "english": {
@@ -4839,12 +5130,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 250,
-            "p25Usd": 242,
-            "p75Usd": 265,
-            "sampleSize": 19,
-            "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 10
+            "medianUsd": 255,
+            "p25Usd": 248,
+            "p75Usd": 275,
+            "sampleSize": 17,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4856,9 +5147,19 @@
             "listingCount": 10,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 240,
+              "shippingUsd": 25,
+              "totalUsd": 265,
+              "currency": "USD",
+              "shipsFrom": "ES",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-15.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.83,
+          "soldToActiveMedianRatio": 0.85,
           "qualityFlags": []
         }
       },
@@ -5124,7 +5425,17 @@
             "listingCount": 18,
             "excludedListingCount": 17,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 108,
+              "shippingUsd": 0,
+              "totalUsd": 108,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-16.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.88,
           "qualityFlags": []
@@ -5134,12 +5445,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 210,
-            "p25Usd": 200,
-            "p75Usd": 231,
-            "sampleSize": 85,
-            "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 2
+            "medianUsd": 214,
+            "p25Usd": 201,
+            "p75Usd": 232,
+            "sampleSize": 92,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5151,9 +5462,19 @@
             "listingCount": 7,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 229.98,
+              "shippingUsd": 0,
+              "totalUsd": 229.98,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-16.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.84,
+          "soldToActiveMedianRatio": 0.86,
           "qualityFlags": []
         }
       },
@@ -5396,12 +5717,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 160,
-            "p25Usd": 139,
-            "p75Usd": 176,
-            "sampleSize": 37,
-            "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 2
+            "medianUsd": 156,
+            "p25Usd": 135,
+            "p75Usd": 170,
+            "sampleSize": 42,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5413,9 +5734,19 @@
             "listingCount": 24,
             "excludedListingCount": 10,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 119,
+              "shippingUsd": 10,
+              "totalUsd": 129,
+              "currency": "USD",
+              "shipsFrom": "JP",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-17.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 1.1,
+          "soldToActiveMedianRatio": 1.08,
           "qualityFlags": []
         },
         "english": {
@@ -5423,12 +5754,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 371,
+            "medianUsd": 370,
             "p25Usd": 350,
-            "p75Usd": 400,
-            "sampleSize": 370,
-            "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 2
+            "p75Usd": 393,
+            "sampleSize": 420,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5440,9 +5771,19 @@
             "listingCount": 17,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 321,
+              "shippingUsd": 0,
+              "totalUsd": 321,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/op-17.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 1.05,
+          "soldToActiveMedianRatio": 1.04,
           "qualityFlags": []
         }
       },
@@ -5477,7 +5818,17 @@
             "listingCount": 4,
             "excludedListingCount": 39,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 179.99,
+              "shippingUsd": 0,
+              "totalUsd": 179.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/eb-01.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.64,
           "qualityFlags": []
@@ -5487,12 +5838,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 911,
-            "p25Usd": 853,
-            "p75Usd": 979,
-            "sampleSize": 12,
-            "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 2
+            "medianUsd": 903,
+            "p25Usd": 893,
+            "p75Usd": 972,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5504,9 +5855,19 @@
             "listingCount": 7,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 750,
+              "shippingUsd": 0,
+              "totalUsd": 750,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/eb-01.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.95,
+          "soldToActiveMedianRatio": 0.94,
           "qualityFlags": []
         }
       },
@@ -5826,7 +6187,17 @@
             "listingCount": 3,
             "excludedListingCount": 22,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 299.99,
+              "shippingUsd": 0,
+              "totalUsd": 299.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/eb-02.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.45,
           "qualityFlags": [
@@ -5838,12 +6209,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 912,
-            "p25Usd": 859,
-            "p75Usd": 1002,
-            "sampleSize": 10,
-            "sampleCollectedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 7
+            "medianUsd": 897,
+            "p25Usd": 838,
+            "p75Usd": 1001,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5855,9 +6226,19 @@
             "listingCount": 6,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 749.99,
+              "shippingUsd": 0,
+              "totalUsd": 749.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/eb-02.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 1.1,
+          "soldToActiveMedianRatio": 1.08,
           "qualityFlags": []
         }
       },
@@ -6093,12 +6474,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 127,
+            "medianUsd": 124,
             "p25Usd": 115,
-            "p75Usd": 143,
-            "sampleSize": 13,
-            "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 11
+            "p75Usd": 141,
+            "sampleSize": 12,
+            "sampleCollectedOn": "2026-08-30",
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6110,9 +6491,19 @@
             "listingCount": 12,
             "excludedListingCount": 42,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 110.99,
+              "shippingUsd": 0,
+              "totalUsd": 110.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/eb-03.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.86,
+          "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
         },
         "english": {
@@ -6137,7 +6528,17 @@
             "listingCount": 13,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 219,
+              "shippingUsd": 0,
+              "totalUsd": 219,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/eb-03.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 1,
           "qualityFlags": []
@@ -6443,11 +6844,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 159,
-            "p25Usd": 150,
+            "p25Usd": 149,
             "p75Usd": 160,
-            "sampleSize": 8,
-            "sampleCollectedOn": "2026-08-27",
-            "ageDaysAtDatasetUpdate": 5
+            "sampleSize": 10,
+            "sampleCollectedOn": "2026-08-31",
+            "ageDaysAtDatasetUpdate": 1
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6459,7 +6860,17 @@
             "listingCount": 13,
             "excludedListingCount": 25,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 144.99,
+              "shippingUsd": 0,
+              "totalUsd": 144.99,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/prb-01.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.74,
           "qualityFlags": []
@@ -6469,12 +6880,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 994,
-            "p25Usd": 951,
-            "p75Usd": 1001,
-            "sampleSize": 9,
-            "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 11
+            "medianUsd": 991,
+            "p25Usd": 949,
+            "p75Usd": 999,
+            "sampleSize": 10,
+            "sampleCollectedOn": "2026-08-30",
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6486,7 +6897,17 @@
             "listingCount": 10,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 800,
+              "shippingUsd": 0,
+              "totalUsd": 800,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/prb-01.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
           "soldToActiveMedianRatio": 0.9,
           "qualityFlags": []
@@ -6670,12 +7091,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 78,
-            "p25Usd": 72,
-            "p75Usd": 90,
-            "sampleSize": 12,
-            "sampleCollectedOn": "2026-08-21",
-            "ageDaysAtDatasetUpdate": 11
+            "medianUsd": 87,
+            "p25Usd": 73,
+            "p75Usd": 99,
+            "sampleSize": 9,
+            "sampleCollectedOn": "2026-08-27",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6687,9 +7108,19 @@
             "listingCount": 8,
             "excludedListingCount": 22,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 70,
+              "shippingUsd": 20,
+              "totalUsd": 90,
+              "currency": "USD",
+              "shipsFrom": "JP",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/prb-02.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.73,
+          "soldToActiveMedianRatio": 0.81,
           "qualityFlags": []
         },
         "english": {
@@ -6697,12 +7128,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 389,
-            "p25Usd": 333,
-            "p75Usd": 397,
-            "sampleSize": 16,
-            "sampleCollectedOn": "2026-08-22",
-            "ageDaysAtDatasetUpdate": 10
+            "medianUsd": 371,
+            "p25Usd": 351,
+            "p75Usd": 395,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-09-01",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6714,9 +7145,19 @@
             "listingCount": 18,
             "excludedListingCount": 0,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 0
+            "ageDaysAtDatasetUpdate": 0,
+            "cheapestListing": {
+              "itemPriceUsd": 380,
+              "shippingUsd": 0,
+              "totalUsd": 380,
+              "currency": "USD",
+              "shipsFrom": "US",
+              "condition": "New/Factory Sealed",
+              "liveLinkPage": "https://opboxindex.com/sets/prb-02.html",
+              "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
+            }
           },
-          "soldToActiveMedianRatio": 0.93,
+          "soldToActiveMedianRatio": 0.88,
           "qualityFlags": []
         }
       },

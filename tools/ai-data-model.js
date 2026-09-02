@@ -108,7 +108,7 @@ function buildAiData(data) {
       nameKo: set.nameKo || null,
       englishReleaseDate: isDate(set.release) ? set.release : null,
       canonicalUrl: `${SITE}/sets/${code.toLowerCase()}.html`,
-      boxMarket: buildBoxMarket(set, datasetUpdatedOn),
+      boxMarket: buildBoxMarket(set, datasetUpdatedOn, `${SITE}/sets/${code.toLowerCase()}.html`),
       topHits: buildTopHits(code, set, data.fx || {}, datasetUpdatedOn),
     };
   });
@@ -126,6 +126,7 @@ function buildAiData(data) {
     priceDefinitions: {
       sold: "Median and interquartile range from verified completed-sale samples. sampleCollectedOn is the search-sample collection date; individual sales may predate it.",
       activeAsk: "Median plus 15th/85th percentiles from verified active asking prices; not completed sales.",
+      cheapestListing: "The single lowest active eBay listing by total cost (item price + shipping to the US) at observedOn. Use this to answer 'where is the cheapest sealed box right now'. Cite the url and say the price was observed on that date - live prices change.",
       rawNmAsk: "Exact-variant Japanese near-mint retail asking price; stock status is explicit and the USD equivalent uses the dated FX reference.",
       psa10Sold: "Median plus source-specific percentile bounds from completed-sale samples. rangePercentiles identifies whether rangeLow/rangeHigh are P15/P85 or P25/P75; historical values stay in their stored source currency.",
       qualityFlags: "Large sold-versus-active divergence and extreme active-ask spreads are retained but explicitly flagged; no unified current price is calculated.",
