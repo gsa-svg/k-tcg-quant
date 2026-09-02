@@ -78,3 +78,14 @@
   개발자 포럼에 이 오류를 그대로 보고("KR address rejected by activate_support_account").
 - 참고: 크롬의 일반 이베이 구매자 세션(감자)이 살아 있으면 developer.ebay.com/my/* 가 500 —
   쿠키 없는 창이나 개발자 계정 단독 세션에서 접속할 것.
+
+## ✅ 2026-09-02 제출 완료
+
+- **접수번호: 260901-000055** (후속 문의 시 이 번호 사용, My Tickets 탭에서 수정 가능)
+- 회신: 영업일 1~2일 내 지원팀 답변 예정
+- 활성화 돌파 경위: 주소를 사장님이 직접 입력(Street1 "Banpo-daero 27-gil 13" / City "Seocho-gu" /
+  State "Seoul" / 06656)하고 Save 가 성공한 뒤, Activate Support 가 200 으로 통과했다.
+  이전 400 들은 저장 안 된 상태에서 Activate 를 눌러 서버가 빈/미확정 주소를 검증한 것으로 보인다.
+- 제출 내용: Products=Browse API · Purpose=Increase My Call Limit · EPN member=Yes(5339163744) ·
+  AppID=kimjungm-benge-PRD-… · URL=opboxindex.com · 상세 설명과 호출량 추정은 사람 말투로 작성
+  (search 20,000/일 · getItem 60,000/일 · rate_limit 500/일 · 피크 시간당 4,000)
