@@ -54,8 +54,11 @@
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
       .opCol:hover i, .opCol.on i { background: #8af3f2; }
       .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: #8d95a7; font-size: 11px; }
-      .opGuide { position: absolute; left: 0; right: 0; top: 0; border-top: 1px dashed rgba(255,255,255,.18); pointer-events: none; }
-      .opGuide span { position: absolute; right: 0; top: -16px; font-size: 10.5px; color: #7d8698; background: #0a0c10; padding: 0 3px; }
+ /* 눈금선 3줄(0·절반·최고) — 막대 높이를 값으로 읽으려면 기준선이 있어야 한다. */
+      .opGuide { position: absolute; inset: 0; pointer-events: none; }
+      .opGuide .gLine { position: absolute; left: 0; right: 0; display: block; border-top: 1px dashed rgba(255,255,255,.16); }
+      .opGuide .gLine span { position: absolute; right: 0; top: -15px; font-size: 11px; color: #8d95a7;
+        background: #0a0c10; padding: 0 4px; font-variant-numeric: tabular-nums; }
       .covWarn { margin: 10px 0 0; padding: 9px 12px; border-radius: 10px; font-size: 12.5px; line-height: 1.6;
         background: rgba(255, 202, 110, .08); border: 1px solid rgba(255, 202, 110, .3); color: #f0d9ae; }
       .tgTable td.cov { color: #8d95a7; font-variant-numeric: tabular-nums; }
@@ -464,7 +467,14 @@
             bars.appendChild(c);
             return c;
           });
-          axis.innerHTML = "<span>" + rows[0].ax + "</span><span>" + rows[rows.length - 1].ax + "</span>";
+          // 날짜 라벨을 고르게 뿌린다 — 시작·끝 둘뿐이면 가운데 막대가 언제인지 모른다.
+          axis.innerHTML = "";
+          var want = bars.getBoundingClientRect().width < 420 ? 3 : 5;
+          var step = Math.max(1, Math.round((rows.length - 1) / (want - 1)));
+          var picked = [];
+          for (var t = 0; t < rows.length; t += step) picked.push(t);
+          if (picked[picked.length - 1] !== rows.length - 1) picked.push(rows.length - 1);
+          picked.forEach(function (idx) { var sp = document.createElement("span"); sp.textContent = rows[idx].ax; axis.appendChild(sp); });
         }
         function summary() {
           var m = M[metric];
@@ -526,9 +536,13 @@
             }
           });
           guide.innerHTML = "";
-          var tag = document.createElement("span");
-          tag.textContent = vals.length ? m.fmt(top) : "";
-          guide.appendChild(tag);
+          if (vals.length) {
+            [1, 0.5, 0].forEach(function (fr) {
+              var ln = document.createElement("i"); ln.className = "gLine"; ln.style.bottom = (fr * 100) + "%";
+              var tg = document.createElement("span"); tg.textContent = m.fmt(top * fr); ln.appendChild(tg);
+              guide.appendChild(ln);
+            });
+          }
           summary();
         }
         var picked = -1;
