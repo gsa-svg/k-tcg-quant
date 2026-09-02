@@ -200,9 +200,9 @@ const html = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
     <link rel="canonical" href="${SITE}/tcg-auction.html" />
-    <title>TCG Auction Data — Sell-Through &amp; Hammer Value by Card Game | OP Box Index</title>
+    <title>TCG Auction Data — What Sells and For How Much, by Card Game | OP Box Index</title>
     <meta name="description" content="Settled eBay auction results across ${rows.length} trading card games: how many auctions run, what share sells, what passes unsold, and how much money changes hands. Every auction is read again after it closes." />
-    <meta property="og:title" content="TCG Auction Data — Sell-Through by Card Game" />
+    <meta property="og:title" content="TCG Auction Data — What Sells, by Card Game" />
     <meta property="og:description" content="Ended, sold, unsold and hammer value across ${rows.length} card games, from auctions we settle ourselves." />
     <meta property="og:url" content="${SITE}/tcg-auction.html" />
     <meta property="og:image" content="${SITE}/og-image.png" />
@@ -298,9 +298,9 @@ const html = `<!doctype html>
       <div class="tgStats">
         <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">auctions live now</small></div>
         <div class="tgStat"><b>${num(totEndingToday)}</b><small data-ko="오늘 종료">ending today</small></div>
-        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="우리가 정산 확인">settled by us</small></div>
-        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="낙찰률">sold</small></div>
-        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="총 거래액">hammer value</small></div>
+        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="우리가 확인">we checked</small></div>
+        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="팔렸습니다">of them sold</small></div>
+        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="총 거래 금액">total spent</small></div>
       </div>
 
       <div class="chartCard">
@@ -311,13 +311,13 @@ const html = `<!doctype html>
           </div>
           <div class="metricTabs" role="group" aria-label="Metric">
             <button type="button" data-metric="ending" aria-pressed="true" data-ko="오늘 종료 예정">Auctions ending today</button>
-            <button type="button" data-metric="ended" aria-pressed="false" data-ko="종료 후 확인">Checked after close</button>
-            <button type="button" data-metric="sold" aria-pressed="false" data-ko="그중 낙찰">Of those, sold</button>
-            <button type="button" data-metric="rate" aria-pressed="false" data-ko="낙찰률">Sell-through</button>
-            <button type="button" data-metric="gmv" aria-pressed="false" data-ko="거래액">Hammer value</button>
+            <button type="button" data-metric="ended" aria-pressed="false" data-ko="우리가 확인한 수">Ones we checked</button>
+            <button type="button" data-metric="sold" aria-pressed="false" data-ko="팔린 경매 수">Ones that sold</button>
+            <button type="button" data-metric="rate" aria-pressed="false" data-ko="팔릴 확률">How often they sell</button>
+            <button type="button" data-metric="gmv" aria-pressed="false" data-ko="총 거래 금액">Total money spent</button>
           </div>
         </div>
-        <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 우리가 확인한 비율이 달라서, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다.">⚠ Not market size. We check a different share of each game, so totals follow our sample, not the market.</p>
+        <p class="covWarn" id="tgCovWarn" style="display:none" data-ko="⚠ 이 순위는 시장 규모가 아닙니다. 게임마다 우리가 확인한 비율이 달라서, 합계는 시장 크기가 아니라 우리가 담은 양을 따라갑니다.">⚠ Not market size. We check a different share of each game, so totals follow what we saw, not the market.</p>
         <div class="barList" id="tcgBars"></div>
         <div class="legend" id="tcgLegend"></div>
       </div>
@@ -352,7 +352,7 @@ const html = `<!doctype html>
       <div style="overflow-x:auto">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th>Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="종료">Ended</th><th data-ko="낙찰">Sold</th><th>Passed</th><th data-ko="표본 비율">Our share</th><th data-ko="거래액">Hammer</th><th>Median bid</th></tr>
+            <tr><th data-ko="게임">Game</th><th data-ko="지금 열린 경매">Open now</th><th data-ko="오늘 끝남">Ending today</th><th data-ko="우리가 확인">We checked</th><th data-ko="팔림">Sold</th><th data-ko="안 팔림">Unsold</th><th data-ko="우리가 본 비율">How much we saw</th><th data-ko="총 거래 금액">Total spent</th><th data-ko="보통 낙찰가">Typical price</th></tr>
           </thead>
           <tbody>
 ${tableRows}

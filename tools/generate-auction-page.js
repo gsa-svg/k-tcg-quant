@@ -211,7 +211,7 @@ const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Bre
   { "@type": "ListItem", position: 2, name: "Auction Data", item: `${SITE}/auction.html` },
 ] });
 
-const title = "One Piece Card Auction Data — Real eBay Winning Bids & Sell-Through | OP Box Index";
+const title = "One Piece Card Auction Data — Real eBay Winning Bids and How Often Cards Sell | OP Box Index";
 const desc = `Completed eBay auction results for One Piece cards and sealed boxes: ${num(totN)} auctions tracked over ${aggDays.length} full days, ${st}% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (${DATA_DATE}).`;
 
 const html = `<!doctype html>
@@ -369,9 +369,9 @@ const html = `<!doctype html>
       <h1 data-ko="원피스 카드 경매 결과 — 실제 낙찰가">One Piece card auction results — real winning bids</h1>
       <div class="statRow">
         <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span data-ko="낙찰${aggNoteKo}">sold${aggNote}</span></div>
-        <div class="stat"><b>${num(totN)}</b><span data-ko="원피스 경매 정산 건수">One Piece auctions settled</span></div>
-        <div class="stat"><b>${num(totSold)}</b><span data-ko="낙찰됨">found a buyer</span></div>
-        <div class="stat"><b>${num(totN - totSold)}</b><span data-ko="유찰됨">passed unsold</span></div>
+        <div class="stat"><b>${num(totN)}</b><span data-ko="우리가 확인한 경매">auctions we checked</span></div>
+        <div class="stat"><b>${num(totSold)}</b><span data-ko="팔렸습니다">of them sold</span></div>
+        <div class="stat"><b>${num(totN - totSold)}</b><span data-ko="안 팔렸습니다">did not sell</span></div>
       </div>
 
       <div class="chartCard">
@@ -411,7 +411,7 @@ ${kindRows.length >= 2 ? `      <div class="chartCard">
       <h2 data-ko="일별 결과 — 최근 ${daily.length}일">Daily results — last ${daily.length} days</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="종료일">Ended</th><th data-ko="추적한 경매">Auctions tracked</th><th data-ko="낙찰">Sold</th><th data-ko="낙찰률">Sell-through</th><th data-ko="중앙 낙찰가">Median winning bid</th><th data-ko="중앙 입찰수">Median bids</th></tr></thead>
+        <thead><tr><th class="l" data-ko="날짜">Date</th><th data-ko="끝난 경매 수">Auctions</th><th data-ko="팔린 수">Sold</th><th data-ko="팔릴 확률">How often sold</th><th data-ko="보통 낙찰가">Typical price</th><th data-ko="보통 입찰 수">Typical bids</th></tr></thead>
         <tbody>
 ${dTr}
         </tbody>
@@ -421,7 +421,7 @@ ${dTr}
       <h2 data-ko="밀봉 박스는 팔린다. 싱글은 대개 안 팔린다.">Sealed boxes sell. Singles mostly don't.</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="상품 종류">Product type</th><th data-ko="경매 건수">Auctions</th><th data-ko="낙찰">Sold</th><th data-ko="낙찰률">Sell-through</th></tr></thead>
+        <thead><tr><th class="l" data-ko="상품 종류">What it is</th><th data-ko="끝난 경매 수">Auctions</th><th data-ko="팔린 수">Sold</th><th data-ko="팔릴 확률">How often sold</th></tr></thead>
         <tbody>
 ${kTr}
         </tbody>
@@ -429,16 +429,16 @@ ${kTr}
       </div>
 
 ${tcgGameCount >= 5 ? `
-      <p class="priceNote"><span data-ko="이 페이지는 원피스 전용입니다. 같은 수집으로 ${tcgGameCount}개 카드게임을 함께 봅니다 — 게임별 비교표는">This page is One Piece only. The same settlement run covers ${tcgGameCount} card games — see</span> <a href="tcg-auction.html" data-ko="TCG 경매 데이터">TCG auction data</a> <span data-ko="에서 볼 수 있습니다.">for the cross-game table.</span></p>
+      <p class="priceNote"><span data-ko="이 페이지는 원피스 전용입니다. 같은 수집으로 ${tcgGameCount}개 카드게임을 함께 봅니다 — 게임별 비교표는">This page is One Piece only. We check ${tcgGameCount} card games the same way — see</span> <a href="tcg-auction.html" data-ko="TCG 경매 데이터">TCG auction data</a> <span data-ko="에서 볼 수 있습니다.">for the cross-game table.</span></p>
 ` : ""}
       <h2 data-ko="카드별 경매 순위" id="cardRankTitle">Card auction leaders</h2>
       <div class="metricTabs" role="group" aria-label="Rank by" style="margin:2px 0 10px">
-        <button type="button" data-rank="med" aria-pressed="true" data-ko="중앙 낙찰가순">By median price</button>
-        <button type="button" data-rank="sales" aria-pressed="false" data-ko="판매 건수순">By sales count</button>
+        <button type="button" data-rank="med" aria-pressed="true" data-ko="비싼 순서">Most expensive</button>
+        <button type="button" data-rank="sales" aria-pressed="false" data-ko="많이 팔린 순서">Most sold</button>
       </div>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="중앙 낙찰가">Median winning bid</th><th data-ko="구간">Range</th><th data-ko="낙찰률">Sell-through</th><th data-ko="판매 건수">Sales</th></tr></thead>
+        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="보통 낙찰가">Typical price</th><th data-ko="가격 범위">Price range</th><th data-ko="팔릴 확률">How often sold</th><th data-ko="팔린 수">Sold</th></tr></thead>
         <tbody id="cardRankBody">
 ${cTr}
         </tbody>
