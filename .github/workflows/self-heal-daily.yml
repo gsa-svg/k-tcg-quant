@@ -20,8 +20,10 @@ name: Self-heal daily collections
 on:
   workflow_dispatch:
   schedule:
-    - cron: "40 15 * * *"   # UTC 15:40 = KST 00:40(익일). UTC 기준 그날 오전분 누락을 먼저 잡는다.
-    - cron: "40 21 * * *"   # UTC 21:40 = KST 06:40. 쿼터 리셋(UTC 00:00) 전 마지막 그물.
+    # 2시간마다 — 정산 공백이 부분수집의 원인이라 하루 두 번으로는 못 막는다.
+    # 실측(2026-09-03): 90분 크론이 3회 예정 중 1회만 실행돼 그날 6시간이 비었다.
+    # 8/27~9/2 의 "부분수집" 배지가 전부 이 공백에서 나왔다(9~17시간).
+    - cron: "50 1,3,5,7,9,11,13,15,17,19,21,23 * * *"
 
 permissions:
   actions: write            # 같은 저장소 워크플로를 dispatch 하는 데 필요
@@ -53,6 +55,36 @@ jobs:
               "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$2/dispatches" \
               -d '{"ref":"main"}'
           }
+
+          # ⓪ 경매 정산 — 가장 중요하다. 정산이 밀리면 그 시간대 경매가 통째로 빠지고,
+          #    그 하루가 "부분수집"으로 낙인찍힌다(8/27~9/2 배지가 전부 이것이다).
+          #    종료 후 30시간이 지나면 eBay 가 조회를 막아 그 건은 영영 못 채운다 — 늦으면 끝이다.
+          #    최근 정산 기록이 150분보다 오래됐으면(=90분 크론이 한 번 이상 빠졌으면) 바로 쏜다.
+          STALE=$(node -e "
+            const fs=require('fs');
+            const f='data/auction-archive/$TODAY.json';
+            let newest=0;
+            if(fs.existsSync(f)){
+              for(const r of (JSON.parse(fs.readFileSync(f,'utf8')).sales||[])){
+                const t=Date.parse(r.settledAt||r.endedAt||0);
+                if(t>newest)newest=t;
+              }
+            }
+            // 기록이 아예 없으면(하루 시작 직후) 어제 파일의 마지막을 본다
+            if(!newest){
+              const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
+              const g='data/auction-archive/'+y+'.json';
+              if(fs.existsSync(g))for(const r of (JSON.parse(fs.readFileSync(g,'utf8')).sales||[])){
+                const t=Date.parse(r.settledAt||r.endedAt||0); if(t>newest)newest=t;
+              }
+            }
+            const mins=newest?Math.round((Date.now()-newest)/60000):9999;
+            console.log(mins);
+          ")
+          echo "마지막 정산 기록: ${STALE}분 전"
+          if [ "$STALE" -gt 150 ]; then
+            dispatch "경매 정산(${STALE}분 공백)" "settle-auctions.yml"
+          fi
 
           # ① TCG 스냅샷 — points 에 오늘 d 가 있는가
           if ! node -e "const s=require('./data/tcg-snapshot.json');process.exit((s.points||[]).some(p=>p.d==='$TODAY')?0:1)"; then
