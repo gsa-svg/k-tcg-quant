@@ -406,6 +406,9 @@ function summarize(rows) {
   };
   out.note = `Daily sample of live ${GAME.label} auctions on eBay: how many are running by set and item type, how many have attracted bids, and the median current bid. Bids are live, not final sale prices — eBay does not expose completed-sale data at this access tier. Sellers and locations excluded from our price data are excluded here too. Set and card codes are parsed from listing titles; titles we cannot classify confidently are counted under 'unclassified' rather than guessed. Price figures (medBid) are measured only on auctions ending within 6 hours that already have bids, because a freshly listed auction still shows its opening price, not its value; nPrice reports how many listings each price is based on. This is a sample, not a census: boxes and packs are sampled with dedicated queries, so the box/pack/card split is not a market share figure — compare each category against its own history, not against the others. Price figures are per unit: multi-item lots are divided by the quantity parsed from the title, and listings whose quantity cannot be determined (case/lot/bulk) are excluded from price samples while still counted in listing volume.`;
   out.updated = today;
+  // 전수가 마지막으로 돈 시각 — 자가치유가 "쿼터 창이 열렸는데 전수가 안 돌았다"를 이걸로 판단한다(2026-09-03:
+  // 창 첫 크론 07:20 UTC 를 GitHub 이 통째로 건너뛰었는데 아무도 몰랐다).
+  out.sweptAt = new Date().toISOString();
   out.points = [...out.points.filter((p) => p.d !== today), point]
     .sort((a, b) => a.d.localeCompare(b.d))
     .slice(-KEEP_DAYS)

@@ -10,6 +10,7 @@ const { recordSummary } = require("./self-heal-daily");
 const healthy = {
   now: "2026-09-03T07:50:00.000Z",
   search: { liveWatched: 500, newestEndMinutes: -600 },
+  window: { minutesOpen: 50, opSwept: true, tcgChecked: true },
   auction: { staleMinutes: 45, due: 20, urgent: 0, oldestHours: 1 },
   tcg: { snapshotToday: true, due: 100, urgent: 0 },
   activeListingsFresh: true,
@@ -25,6 +26,18 @@ assert.ok(emptyWatch.alerts.some((a) => /감시목록.*비어/.test(a)), "a watc
 const thinWatch = buildHealPlan({ ...healthy, search: { liveWatched: 5, newestEndMinutes: -30 } });
 assert.deepEqual(thinWatch.requests.map((r) => r.key), ["search"]);
 assert.deepEqual(thinWatch.alerts, [], "a thin but recently refilled watch list is a request, not an alert");
+
+// 쿼터 창이 열렸는데 첫 실행(전수 검색·TCG 정산)이 없으면 크론이 빠진 것 — 2026-09-03 실제로 07:20·07:30 이 통째로 빠졌다.
+const skippedWindow = buildHealPlan({ ...healthy, search: { liveWatched: 5, newestEndMinutes: -30 }, window: { minutesOpen: 100, opSwept: false, tcgChecked: false } });
+assert.deepEqual(skippedWindow.requests.map((r) => r.key), ["sweep", "tcg"], "a fresh window with no sweep and no TCG settlement must dispatch both");
+assert.deepEqual(skippedWindow.requests[0].inputs, { mode: "full" }, "the sweep must be a full scan, not a top-up");
+assert.deepEqual(skippedWindow.alerts, [], "100 minutes in is a request, not yet an alert");
+const lateWindow = buildHealPlan({ ...healthy, window: { minutesOpen: 300, opSwept: false, tcgChecked: false } });
+assert.equal(lateWindow.alerts.length, 2, "hours without the window's first runs must alert for both");
+const freshWindow = buildHealPlan({ ...healthy, window: { minutesOpen: 20, opSwept: false, tcgChecked: false } });
+assert.deepEqual(freshWindow.requests, [], "right after the reset the scheduled runs have not had their chance yet");
+const noBacklog = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, due: 0 }, window: { minutesOpen: 100, opSwept: true, tcgChecked: false } });
+assert.deepEqual(noBacklog.requests, [], "nothing due means no TCG settlement to force");
 
 const missingTcg = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false } });
 assert.deepEqual(missingTcg.requests.map((r) => r.key), ["tcg"]);

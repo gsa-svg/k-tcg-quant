@@ -4,6 +4,7 @@ const path = require("node:path");
 const { previousDayAssessment } = require("./collection-continuity");
 const { buildHealPlan, hasThreeConsecutiveFailures } = require("./self-heal-policy");
 const { createGitHubWorkflowClient, ensureWorkflowDispatch } = require("./workflow-dispatch");
+const { nextReset } = require("./ebay-budget");
 
 const ROOT = path.resolve(__dirname, "..");
 const DAY = 86400000;
@@ -64,7 +65,17 @@ function inspectArtifacts(now = new Date()) {
     if (ended > newestEnd) newestEnd = ended;
   }
   const search = { liveWatched, newestEndMinutes: newestEnd ? Math.round((nowMs - newestEnd) / 60000) : 9999 };
-  const tcgBacklog = backlogSummary(readJson("data/tcg-watch.json")?.pending, nowMs);
+  const tcgWatch = readJson("data/tcg-watch.json");
+  const tcgBacklog = backlogSummary(tcgWatch?.pending, nowMs);
+  // eBay 쿼터 창(07:00 UTC 리셋) 기준으로 "이번 창의 첫 실행이 있었나"를 산출물 도장으로 본다 — 2026-09-03.
+  // GitHub 이 창 첫 크론(07:20 전수 검색·07:30 TCG)을 통째로 건너뛰었는데, 종전 기준(오늘 스냅샷 있음·backlog 800)
+  // 으로는 정상으로 보여 4,800콜이 놀았다. 크론 실행 이력이 아니라 파일의 도장(sweptAt·checkedAt)을 믿는다.
+  const windowStart = nextReset(nowMs) - DAY;
+  const window = {
+    minutesOpen: Math.round((nowMs - windowStart) / 60000),
+    opSwept: Date.parse(readJson("data/auction-market.json")?.sweptAt || 0) >= windowStart,
+    tcgChecked: Date.parse(tcgWatch?.checkedAt || 0) >= windowStart,
+  };
   // known-gaps.json 에 등록된 영구 공백은 previous.known 으로 빠진다 — 재실행해도 돌아오지 않으므로 경고·dispatch 대상이 아니다.
   const previous = previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day: previousDay, requirePresence: true, root: ROOT });
   return {
@@ -72,6 +83,7 @@ function inspectArtifacts(now = new Date()) {
     today,
     previousDay,
     search,
+    window,
     auction: { staleMinutes: newest ? Math.round((nowMs - newest) / 60000) : 9999, ...auctionBacklog },
     tcg: { snapshotToday: (tcgSnapshot?.points || []).some((point) => point?.d === today), ...tcgBacklog },
     activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,
@@ -106,7 +118,7 @@ async function main() {
         const result = await ensureWorkflowDispatch({
           workflow: request.workflow,
           listRuns: () => client.listRuns(request.workflow),
-          send: () => client.dispatch(request.workflow),
+          send: () => client.dispatch(request.workflow, request.inputs),
         });
         results.push({ workflow: request.workflow, status: result.status });
         if (hasThreeConsecutiveFailures(result.runs)) {

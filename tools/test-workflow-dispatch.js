@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 const assert = require("node:assert/strict");
-const { ensureWorkflowDispatch, retry } = require("./workflow-dispatch");
+const { ensureWorkflowDispatch, retry, createGitHubWorkflowClient } = require("./workflow-dispatch");
 
 (async () => {
+  // dispatch 입력이 본문에 실려야 한다 — 전수 검색(mode=full)은 입력 없이는 보충(topup)으로 돈다.
+  const bodies = [];
+  const client = createGitHubWorkflowClient({ token: "t", repository: "o/r", fetchImpl: async (url, init) => { bodies.push(JSON.parse(init.body)); return { ok: true }; } });
+  await client.dispatch("collect-auction-market.yml", { mode: "full" });
+  await client.dispatch("collect-tcg.yml");
+  assert.deepEqual(bodies, [{ ref: "main", inputs: { mode: "full" } }, { ref: "main" }]);
+
   const delays = [];
   let calls = 0;
   const value = await retry(async () => {

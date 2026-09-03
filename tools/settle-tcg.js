@@ -154,7 +154,9 @@ async function getItem(tok, id) {
 
   const cutoff = now - GIVE_UP_HOURS * 3600 * 1000;
   const pending = watch.pending.filter((p) => !done.has(p.id) && Date.parse(p.end) > cutoff);
-  fs.writeFileSync(WATCH, `${JSON.stringify({ ...watch, updated: new Date().toISOString(), pending })}\n`, "utf8");
+  // checkedAt: 정산이 실제로 돈 시각. 자가치유가 "쿼터 창이 열렸는데 이번 창에 정산이 없다"를 이걸로 판단한다
+  // (2026-09-03: 창 첫 크론 07:30 UTC 를 GitHub 이 건너뛰었는데 backlog 기준(800건)에 안 걸려 아무도 안 돌렸다).
+  fs.writeFileSync(WATCH, `${JSON.stringify({ ...watch, updated: new Date().toISOString(), checkedAt: new Date().toISOString(), pending })}\n`, "utf8");
 
   const byGame = {};
   for (const rows of byDay.values()) for (const r of rows) {

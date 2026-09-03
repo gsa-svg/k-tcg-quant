@@ -60,11 +60,12 @@ function createGitHubWorkflowClient({ token, repository, fetchImpl = fetch }) {
       if (!response.ok) throw new Error(`GitHub runs ${workflow}: HTTP ${response.status}`);
       return (await response.json()).workflow_runs || [];
     },
-    async dispatch(workflow) {
+    // inputs: workflow_dispatch 입력(예: collect-auction-market 의 mode=full). 없으면 워크플로 기본값이 쓰인다.
+    async dispatch(workflow, inputs) {
       const response = await fetchImpl(`${base}/${workflow}/dispatches`, {
         method: "POST",
         headers: { ...headers, "Content-Type": "application/json" },
-        body: JSON.stringify({ ref: "main" }),
+        body: JSON.stringify(inputs ? { ref: "main", inputs } : { ref: "main" }),
       });
       if (!response.ok) throw new Error(`GitHub dispatch ${workflow}: HTTP ${response.status}`);
     },
