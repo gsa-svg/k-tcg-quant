@@ -492,7 +492,11 @@ ${tableRows}
             return r ? '<span><i style="background:' + HUE[k] + '"></i>' + r.name + "</span>" : "";
           }).join("") + '<span><i style="background:' + GREY + '"></i>All other games</span>';
         }
-        var tabs = document.querySelectorAll(".metricTabs button");
+        // ⚠️ ".metricTabs button" 은 **페이지의 모든 탭 버튼**을 잡는다 — 아래 게임별 흐름 차트의
+        //    기간(일별·주별·월별)·지표 버튼까지 전부. 그래서 이 차트의 지표를 누르면 흐름 차트의
+        //    기간 선택이 통째로 꺼져 "지금 일별인지 주별인지" 알 수 없었다(2026-09-03 소유자 발견).
+        //    자기 그룹만 잡도록 data-metric 으로 좁힌다.
+        var tabs = document.querySelectorAll("button[data-metric]");
         Array.prototype.forEach.call(tabs, function (b) {
           b.addEventListener("click", function () {
             Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
