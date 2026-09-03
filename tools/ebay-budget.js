@@ -81,14 +81,26 @@ const SCHEDULE = {
   safety: null,                             // 상시 — 재시도·돌발 워크플로용이라 줄이지 않는다
 };
 
-/** 지금부터 UTC 자정까지 남은 실행 비율만큼만 예약을 잡는다. */
+// 한 회차가 실제로 쓰는 양(실측). 예약은 이만큼만 잡는다 — 2026-09-03 재정정.
+// 종전엔 "남은 모든 회차분"을 통째로 예약했는데, 그러면 하루 뒷부분에서 예약이 잔여를 넘어선다.
+// 실측 사고: UTC 03시 잔여 1,660 인데 예약 1,900 → 정산 가용 0.
+// 326건이 종료돼 대기 중인데 한 건도 못 돌았고, 그 시간대가 통째로 "부분수집"이 됐다.
+//
+// 정산은 늦으면 끝난다(종료 후 30시간이면 eBay 가 조회를 막는다). 검색·스냅샷은 다음 회차에
+// 다시 하면 된다. 그러니 시간이 급한 쪽에 우선권을 준다 — 다음 1회분만 남기고 나머지는 정산에.
+const PER_RUN = {
+  tcg: 300,       // 스냅샷은 하루 1회(~340)라 이미 돌았으면 정산분만 남으면 된다
+  search: 450,    // 실측: 12,134건 스캔에 440콜
+  safety: 200,    // 재시도·돌발 워크플로 — 줄이지 않는다
+};
+
+/** 다음 1회분만 예약한다. 그날 그 워크플로가 더 안 돌면 0. */
 function reserveLeft(key, nowUtcHour) {
-  const full = RESERVE[key] || 0;
   const sched = SCHEDULE[key];
-  if (!sched) return full;                  // safety 는 항상 전액
+  if (!sched) return PER_RUN[key] ?? RESERVE[key] ?? 0;   // safety 는 항상 전액
   const h = Number.isFinite(nowUtcHour) ? nowUtcHour : new Date().getUTCHours();
-  const left = sched.filter((x) => x > h).length;
-  return Math.round((full * left) / sched.length);
+  const more = sched.some((x) => x > h);                  // 오늘 남은 실행이 있나
+  return more ? (PER_RUN[key] ?? 0) : 0;
 }
 
 // 이번 실행에서 정산에 쓸 수 있는 건수.
