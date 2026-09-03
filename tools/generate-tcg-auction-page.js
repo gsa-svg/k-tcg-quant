@@ -552,11 +552,17 @@ ${tableRows}
         // 화면은 마지막 결측 다음날부터 그린다. 보이는 모든 막대가 실측이고, 라벨이 없는 날을
         // 가리키는 일이 없어진다(09/01 라벨이 8% 스텁 위에 찍혀 옆의 8/31 막대가 주인처럼 읽혔다).
         // 자가치유 수집이 새 결측을 막으므로 이 창은 매일 자란다.
+        // 앞뒤로 값이 없는 구간만 잘라낸다 — 계열 **중간**의 결측은 자르지 않고 빈 자리로 남긴다.
+        // 2026-09-03 실패에서 배운 것: 마지막 결측 다음날부터만 그렸더니 Weiss Schwarz 가
+        // 막대 2개(9/2·9/3)로 화면을 채워 그래프 자체가 쓸모없어졌다. 빈칸을 숨기려다 차트를 죽였다.
+        // 이제 시간축은 통째로 유지하고, 값이 없는 날은 막대를 그리지 않아 **눈에 띄는 빈 자리**로 둔다.
         function visibleRows() {
           var all = DATA.games[game][period] || [];
-          var start = 0;
-          for (var i = 0; i < all.length; i++) { if (all[i][metric] == null || !isFinite(all[i][metric])) start = i + 1; }
-          return all.slice(start);
+          var f = -1, l = -1;
+          for (var i = 0; i < all.length; i++) {
+            if (all[i][metric] != null && isFinite(all[i][metric])) { if (f < 0) f = i; l = i; }
+          }
+          return f < 0 ? [] : all.slice(f, l + 1);
         }
         function buildBars() {
           rows = visibleRows();
@@ -625,8 +631,10 @@ ${tableRows}
             var c = cols[i], bar = c.firstChild;
             c.classList.toggle("pt", !!r.p);
             if (v == null || !isFinite(v)) {
-              // 범위 안의 드문 결측일 — 벽이 아니라 바닥의 짧은 토막으로만 표시한다.
-              c.classList.add("nul"); bar.style.height = "8%";
+              // 계열 중간의 결측일 — 막대를 아예 그리지 않아 **빈 자리**로 남긴다.
+              // 빗금 벽(값처럼 보임)도, 8% 토막(라벨이 그 위에 찍혀 옆 막대를 가리킴)도 안 된다.
+              // 시간축은 유지되므로 빠진 날이 몇 개인지 눈으로 보인다 — 숨기지도, 꾸미지도 않는다.
+              c.classList.add("nul"); bar.style.height = "0";
               c.setAttribute("aria-label", r.d + " — not measured");
             } else {
               c.classList.remove("nul");
