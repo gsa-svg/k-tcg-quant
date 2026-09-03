@@ -135,7 +135,9 @@ async function main() {
   for (const alert of uniqueAlerts) console.error(`::error::${alert}`);
   recordSummary(plan, results, uniqueAlerts);
   console.log(JSON.stringify({ selfHeal: uniqueAlerts.length ? "ALERT" : "OK", results, alerts: uniqueAlerts }));
-  if (uniqueAlerts.length) process.exitCode = 1;
+  // SELF_HEAL_ALERT=false 는 로컬 PC 하트비트(30분마다 dispatch)용 — 같은 경고를 30분마다 실패 메일로 보내지 않는다.
+  // 크론이 부른 실행은 기본(true)이라 그대로 실패 처리되어 메일이 간다.
+  if (uniqueAlerts.length && process.env.SELF_HEAL_ALERT !== "false") process.exitCode = 1;
 }
 
 if (require.main === module) main().catch((error) => {

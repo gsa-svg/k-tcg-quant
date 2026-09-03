@@ -19,6 +19,16 @@ name: Self-heal daily collections
 
 on:
   workflow_dispatch:
+    inputs:
+      alert:
+        # false = 경고가 있어도 실패(exit 1)로 끝내지 않는다 — 로컬 PC 하트비트(30분마다 dispatch)용.
+        # 같은 경고를 30분마다 실패 메일로 보내지 않기 위해서다. 크론 실행은 항상 true(실패 메일).
+        # 실측 2026-09-03: GitHub cron 이 예정의 ~30% 만 돌았고 2.5시간 넘게 하나도 안 돈 구간이 있었다.
+        # 자가치유 자체도 cron 이라 같이 멈추므로, 이 PC(C:\Users\kimtt\opbox-heartbeat)가 밖에서 깨운다.
+        description: "false = 경고가 있어도 실패로 끝내지 않음(로컬 하트비트용)"
+        type: choice
+        options: ["true", "false"]
+        default: "true"
   schedule:
     # 2시간마다 — 정산 공백이 부분수집의 원인이라 하루 두 번으로는 못 막는다.
     # 실측(2026-09-03): 90분 크론이 3회 예정 중 1회만 실행돼 그날 6시간이 비었다.
@@ -56,4 +66,5 @@ jobs:
       - name: Check, deduplicate, and dispatch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SELF_HEAL_ALERT: ${{ github.event.inputs.alert || 'true' }}
         run: node tools/self-heal-daily.js
