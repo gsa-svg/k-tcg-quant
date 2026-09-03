@@ -199,7 +199,7 @@ function summarize(rows) {
   // 검색이 먼저 다 써 버리면 정산이 굶는다. 정산 못 한 매물은 되살릴 수 없다(경매는 끝나면
   // 조회 불가). 검색은 다음 회차가 다시 하면 되므로, 정산 몫을 남겨 두고 스캔한다.
   // 실측 2026-09-02: 한 회차 스캔이 440콜(12,134건). 하루 8회면 3,520콜로 하루치의 70% 다.
-  const SETTLE_RESERVE = 2600;   // 정산·TCG·안전 몫
+  const SETTLE_RESERVE = Number(process.env.SCAN_RESERVE ?? 2600);   // 정산·TCG·안전 몫. SCAN_RESERVE 로 회차별 덮어쓰기(2026-09-03 감시목록 0건 긴급 복구에 사용)
   let quotaLeft = await remaining();
   let scanBudget = quotaLeft == null ? 400 : Math.max(0, quotaLeft - SETTLE_RESERVE);
   let calls = 0;
