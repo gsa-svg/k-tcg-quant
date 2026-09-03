@@ -437,11 +437,16 @@
         host.appendChild(bars); bars.appendChild(guide); host.appendChild(axis);
         var cols = [], rows = [];
         // 이 지표가 측정되기 시작한 날부터만 그린다 — 앞의 "측정 전" 빗금 벽을 없앤다.
+        // 그래프는 **끊긴 적 없는 구간**만 그린다 — 2026-09-03 소유자 지시("빈칸 보이면 누가 믿냐").
+        // 계열 중간의 결측일(수집 사고로 영구 소실된 날)은 공개 데이터(CSV·JSON)에 null 로 남고,
+        // 화면은 마지막 결측 다음날부터 그린다. 보이는 모든 막대가 실측이고, 라벨이 없는 날을
+        // 가리키는 일이 없어진다(09/01 라벨이 8% 스텁 위에 찍혀 옆의 8/31 막대가 주인처럼 읽혔다).
+        // 자가치유 수집이 새 결측을 막으므로 이 창은 매일 자란다.
         function visibleRows() {
           var all = DATA.games[game][period] || [];
-          var first = -1;
-          for (var i = 0; i < all.length; i++) { if (all[i][metric] != null && isFinite(all[i][metric])) { first = i; break; } }
-          return first < 0 ? [] : all.slice(first);
+          var start = 0;
+          for (var i = 0; i < all.length; i++) { if (all[i][metric] == null || !isFinite(all[i][metric])) start = i + 1; }
+          return all.slice(start);
         }
         function buildBars() {
           rows = visibleRows();
