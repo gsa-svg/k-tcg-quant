@@ -20,6 +20,7 @@
 //    쓴 몫을 놓쳐 429 를 맞는다(2026-09-02 에 실제로 맞았다).
 const fs = require("fs");
 const path = require("path");
+const { TCG_SCHEDULE_UTC } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
 
@@ -76,7 +77,7 @@ const RESERVE = {
 
 // 각 예약이 걸린 워크플로의 하루 실행 시각(UTC). 쿼터는 UTC 자정에 리셋된다.
 const SCHEDULE = {
-  tcg: [0, 6, 12, 18],                      // collect-tcg (0시엔 스냅샷도 함께)
+  tcg: TCG_SCHEDULE_UTC,                     // collect-tcg (0시엔 스냅샷도 함께)
   search: [2, 5, 8, 11, 14, 17, 20, 23],    // collect-auction-market
   safety: null,                             // 상시 — 재시도·돌발 워크플로용이라 줄이지 않는다
 };

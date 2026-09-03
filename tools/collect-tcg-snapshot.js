@@ -19,6 +19,7 @@
 // Run: node tools/collect-tcg-snapshot.js
 const fs = require("node:fs");
 const path = require("node:path");
+const { TCGS, TCG_WATCH_PER_GAME } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "data", "tcg-snapshot.json");
@@ -38,17 +39,16 @@ const KEEP_DAYS = 730;
 // 왜 늘리나: 100 이면 큰 게임이 전부 정확히 100 으로 잘려 나온다(8/19: 포켓몬·매직·유희왕 모두 100).
 // 화면에 "종료 100건"으로 뜨면 그게 그 게임의 하루 규모처럼 읽힌다.
 //
-// 왜 200 에서 멈추나: **정산 처리량이 상한이다.** 정산은 하루 4회 × 900건 = 3,600건이 한계고,
-// 감시 유입이 그걸 넘으면 밀린 건이 종료 후 30시간을 넘겨 조회가 막힌다 — 영원한 빈칸이 된다.
-// 17게임 × 200 = 3,400건으로 처리 능력 안에 든다(여유 6%).
-// (500 으로 올려 봤더니 유입 8,949 vs 처리 3,600 이라 하루 5,300건씩 밀렸다.)
+// 왜 무작정 늘리지 않나: **정산 처리량과 eBay 쿼터가 상한이다.** 감시 유입이 처리량을 넘으면
+// 종료 후 30시간을 넘겨 조회가 막힌다 — 영원한 빈칸이 된다. 현재는 13게임 × 250 = 3,250건을
+// 하루 8회로 나눠 정산하고, 실제 잔여 쿼터와 backlog/urgent 감시로 과적재를 막는다.
 //
-// ⚠️ 전수는 아니다. 포켓몬만 하루 4만 건이 끝난다 — 200 은 그 0.5% 다.
+// ⚠️ 전수는 아니다. 포켓몬만 하루 4만 건이 끝난다 — 250도 1% 미만이다.
 //    화면은 "우리가 종료 후 읽은 수"라고 적어야 하고, 이 값을 시장 규모로 부르면 안 된다.
 // 200 → 250 (2026-09-03). 소유자 지시 "표본을 더 늘려" — 게임 4종을 빼서 생긴 몫을 남은 게임에 준다.
 // 계산: 빠진 4종이 쓰던 감시 ≈ 하루 250건 + 큰 게임 8종 × +50 = +400 ≈ 서로 상쇄.
-// 처리 천장(settle-tcg 900×4회=3,600/일)과 쿼터 안에서 소화된다. 밀리면 empties·빈칸 감시가 잡는다.
-const WATCH_PER_GAME = 250;
+// 8회 정산과 실제 잔여 쿼터 안에서 소화한다. 밀리면 backlog·urgent·빈칸 감시가 잡는다.
+const WATCH_PER_GAME = TCG_WATCH_PER_GAME;
 
 // 검색어는 "그 게임을 가장 넓게 잡는 것" 하나로 고정한다. 게임마다 검색어 수가 다르면 비교가 깨진다.
 // (원피스 실측: 'One Piece TCG' 14,544 vs 'One Piece Card Game' 6,770 — 검색어 하나로 2배가 갈린다.)
@@ -60,22 +60,6 @@ const WATCH_PER_GAME = 250;
 // ⚠️ 순서가 규칙이다. 검색어가 겹치면(일본판 포켓몬은 'Pokemon TCG' 에도 잡힌다) **먼저 나온 게임이 가져간다**.
 //    그래서 좁은 검색어를 위에 둔다. 2026-08-07 실측으로 같은 매물이 pokemon·pokemonjp 양쪽에
 //    기록되는 걸 가드가 잡았다 — 그대로 뒀으면 일본판이 두 번 세어져 게임 간 비교가 통째로 틀어졌다.
-const TCGS = [
-  { k: "pokemonjp",  nm: "Pokemon (Japanese)",       q: "Pokemon Card Japanese" },
-  { k: "pokemon",    nm: "Pokemon",                  q: "Pokemon TCG" },
-  { k: "magic",      nm: "Magic: The Gathering",     q: "Magic The Gathering" },
-  { k: "yugioh",     nm: "Yu-Gi-Oh!",                q: "Yu-Gi-Oh" },
-  { k: "onepiece",   nm: "One Piece",                q: "One Piece TCG" },
-  { k: "lorcana",    nm: "Disney Lorcana",           q: "Disney Lorcana" },
-  { k: "weiss",      nm: "Weiss Schwarz",            q: "Weiss Schwarz" },
-  { k: "digimon",    nm: "Digimon",                  q: "Digimon Card Game" },
-  { k: "riftbound",  nm: "Riftbound (LoL)",          q: "Riftbound League of Legends" },
-  { k: "unionarena", nm: "Union Arena",              q: "Union Arena" },
-  { k: "gundam",     nm: "Gundam Card Game",         q: "Gundam Card Game" },
-  { k: "dragonball", nm: "Dragon Ball Fusion World", q: "Dragon Ball Fusion World" },
-  { k: "palworld",   nm: "Palworld TCG",             q: "Palworld TCG" },
-];
-
 // 수집 제외 — 2026-09-03 소유자 지시("저 리스트는 수집하지 말고 제외시켜, 다른 걸 더 수집해").
 // swu · vanguard · metazoo · fab 네 게임을 뺐다. 거래가 얇아 표본 몫만 차지했다
 // (하루 종료: SWU 56 · 뱅가드 50 · 메타주·FaB 그 이하 — 포켓몬은 37,980).
@@ -166,8 +150,8 @@ const { remaining } = require("./ebay-budget");
     // "지금 걸린 개수"일 뿐이고, 낙찰률 같은 걸 낼 수는 없다 — 그래서 건수만 적는다.
     const fixed = await search(tok, g.q, 1, null, "FIXED_PRICE");
     // 24시간 안에 끝나는 경매가 몇 개인가 — eBay 가 직접 알려주는 **실제 수**다(표본이 아니다).
-    // 2026-08-20 실측: 포켓몬 37,988건. 우리가 종료 후 실제로 읽는 건 그중 200건뿐이라,
-    // 화면에 "종료 200건"만 내보내면 그게 하루 규모처럼 읽힌다. 둘을 나란히 둔다.
+    // 2026-08-20 실측: 포켓몬 37,988건. 우리가 종료 후 실제로 읽는 건 현재 최대 250건이라,
+    // 화면에 표본만 내보내면 그게 하루 규모처럼 읽힌다. 둘을 나란히 둔다.
     //   endingToday = 그날 실제로 끝나는 수 · ended/sold = 우리가 확인한 수
     // ⚠️ 종료일 필터는 itemEndDate:[..날짜] 형식이어야 먹는다. [시작..끝] 로 주면 조용히 무시된다
     //    (실측: 필터 없음 292,720 vs 잘못된 범위 293,469 — 오히려 늘었다).

@@ -43,6 +43,14 @@ jobs:
       - name: Check workflow YAML
         run: node tools/audit-workflows.js
 
+      - name: Check auction reliability contracts
+        run: |
+          node tools/test-auction-continuity.js
+          node tools/test-ebay-budget-schedule.js
+          node tools/test-self-heal-policy.js
+          node tools/test-workflow-dispatch.js
+          node tools/test-tcg-trend-model.js
+
       # 최신 날짜만이 아니라 **중간에 빠진 날**을 본다 — 원피스·팰월드·TCG 전부.
       # 실거래와 경매 관측은 소급 수집이 안 된다. 그날 지나면 영영 못 채운다.
       # 창이 21일이라 오래된 공백은 자동으로 빠지고, 새 공백만 다음 날 바로 뜬다.

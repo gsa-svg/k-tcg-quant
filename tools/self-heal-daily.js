@@ -1,0 +1,119 @@
+#!/usr/bin/env node
+const fs = require("node:fs");
+const path = require("node:path");
+const { previousDayAssessment } = require("./collection-continuity");
+const { buildHealPlan, hasThreeConsecutiveFailures } = require("./self-heal-policy");
+const { createGitHubWorkflowClient, ensureWorkflowDispatch } = require("./workflow-dispatch");
+
+const ROOT = path.resolve(__dirname, "..");
+const DAY = 86400000;
+const iso = (time) => new Date(time).toISOString().slice(0, 10);
+const readJson = (relativePath) => {
+  try { return JSON.parse(fs.readFileSync(path.join(ROOT, relativePath), "utf8")); }
+  catch { return null; }
+};
+
+/** Reads at most today's and yesterday's append-only archives to find the latest processed row. */
+function newestSettlementTime(days) {
+  let newest = 0;
+  for (const day of days) {
+    for (const row of readJson(`data/auction-archive/${day}.json`)?.sales || []) {
+      const time = Date.parse(row.settledAt || row.endedAt || 0);
+      if (time > newest) newest = time;
+    }
+    if (newest) break;
+  }
+  return newest;
+}
+
+/** Summarizes due and source-expiry-risk items without mutating the watch ledger. */
+function backlogSummary(pending, nowMs) {
+  let due = 0;
+  let urgent = 0;
+  let oldestHours = 0;
+  for (const row of pending || []) {
+    const ended = Date.parse(row.endsAt || row.end || 0);
+    if (!ended || ended >= nowMs) continue;
+    const ageHours = (nowMs - ended) / 3600000;
+    due += 1;
+    oldestHours = Math.max(oldestHours, ageHours);
+    if (ageHours > 20) urgent += 1;
+  }
+  return { due, urgent, oldestHours: Math.round(oldestHours) };
+}
+
+/** Builds the filesystem-only health input consumed by the pure policy. */
+function inspectArtifacts(now = new Date()) {
+  const nowMs = now.getTime();
+  const today = iso(nowMs);
+  const previousDay = iso(nowMs - DAY);
+  const auctionSeries = readJson("data/auction-series.json");
+  const tcgSnapshot = readJson("data/tcg-snapshot.json");
+  const tcgSeries = readJson("data/tcg-series.json");
+  const newest = newestSettlementTime([today, previousDay]);
+  const auctionBacklog = backlogSummary(readJson("data/auction-watch.json")?.pending, nowMs);
+  const tcgBacklog = backlogSummary(readJson("data/tcg-watch.json")?.pending, nowMs);
+  const previous = previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day: previousDay, requirePresence: true });
+  return {
+    now: now.toISOString(),
+    today,
+    previousDay,
+    auction: { staleMinutes: newest ? Math.round((nowMs - newest) / 60000) : 9999, ...auctionBacklog },
+    tcg: { snapshotToday: (tcgSnapshot?.points || []).some((point) => point?.d === today), ...tcgBacklog },
+    activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,
+    fxFresh: String(readJson("data/fx.json")?.date || "").slice(0, 10) === today,
+    previousDayProblems: previous.problems,
+    previousDayRecovery: previous.recovery,
+  };
+}
+
+/** Records a secret-free execution summary for the Actions run page. */
+function recordSummary(plan, results, alerts) {
+  const lines = ["### Self-heal result", "", `- Requests: ${plan.requests.length}`, `- Alerts: ${alerts.length}`];
+  for (const result of results) lines.push(`- ${result.workflow}: ${result.status}`);
+  for (const alert of alerts) lines.push(`- ALERT: ${alert}`);
+  if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join("\n")}\n`, "utf8");
+}
+
+async function main() {
+  const health = inspectArtifacts();
+  const plan = buildHealPlan(health);
+  const alerts = [...plan.alerts];
+  const results = [];
+
+  console.log(JSON.stringify({ health, plan }, null, 2));
+  if (process.argv.includes("--dry-run")) return;
+
+  if (plan.requests.length) {
+    const client = createGitHubWorkflowClient({ token: process.env.GH_TOKEN, repository: process.env.GITHUB_REPOSITORY });
+    for (const request of plan.requests) {
+      try {
+        const result = await ensureWorkflowDispatch({
+          workflow: request.workflow,
+          listRuns: () => client.listRuns(request.workflow),
+          send: () => client.dispatch(request.workflow),
+        });
+        results.push({ workflow: request.workflow, status: result.status });
+        if (hasThreeConsecutiveFailures(result.runs)) {
+          alerts.push(`${request.workflow} 최근 완료 실행 3회가 연속 실패했습니다`);
+        }
+      } catch (error) {
+        results.push({ workflow: request.workflow, status: "failed" });
+        alerts.push(`${request.workflow} 재실행 요청이 3회 모두 실패했습니다: ${error.message}`);
+      }
+    }
+  }
+
+  const uniqueAlerts = [...new Set(alerts)];
+  for (const alert of uniqueAlerts) console.error(`::error::${alert}`);
+  recordSummary(plan, results, uniqueAlerts);
+  console.log(JSON.stringify({ selfHeal: uniqueAlerts.length ? "ALERT" : "OK", results, alerts: uniqueAlerts }));
+  if (uniqueAlerts.length) process.exitCode = 1;
+}
+
+if (require.main === module) main().catch((error) => {
+  console.error(`::error::self-heal crashed: ${error.stack || error.message}`);
+  process.exit(1);
+});
+
+module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary };

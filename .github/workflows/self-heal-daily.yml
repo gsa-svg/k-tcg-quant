@@ -39,123 +39,21 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-      # 원본 데이터의 "오늘 날짜 존재 여부"만 본다. 실행 이력이 아니라 산출물을 보는 이유:
-      # 워크플로가 성공했다고 보고하면서 아무것도 안 모은 사고가 실제로 있었다(2026-08-05).
-      - name: Check & dispatch
+      - name: Verify self-heal contracts
+        run: |
+          node --check tools/self-heal-daily.js
+          node tools/test-auction-continuity.js
+          node tools/test-ebay-budget-schedule.js
+          node tools/test-self-heal-policy.js
+          node tools/test-workflow-dispatch.js
+
+      # 실제 산출물을 다시 판정한다. 판단·중복제어·발송·기록을 분리해 로컬에서 테스트한다.
+      # 다음 2시간 회차가 이전 dispatch 결과를 실제 원장으로 검증하며, 진행 중인 실행은 다시 쏘지 않는다.
+      - name: Check, deduplicate, and dispatch
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TODAY=$(date -u +%F)
-          dispatch () {
-            echo "::warning::$1 이 오늘($TODAY) 비어 있어 재실행을 겁니다"
-            curl -sf -X POST \
-              -H "Authorization: token $GH_TOKEN" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$2/dispatches" \
-              -d '{"ref":"main"}'
-          }
-
-          # ⓪ 경매 정산 — 가장 중요하다. 정산이 밀리면 그 시간대 경매가 통째로 빠지고,
-          #    그 하루가 "부분수집"으로 낙인찍힌다(8/27~9/2 배지가 전부 이것이다).
-          #    종료 후 30시간이 지나면 eBay 가 조회를 막아 그 건은 영영 못 채운다 — 늦으면 끝이다.
-          #    최근 정산 기록이 150분보다 오래됐으면(=90분 크론이 한 번 이상 빠졌으면) 바로 쏜다.
-          STALE=$(node -e "
-            const fs=require('fs');
-            const f='data/auction-archive/$TODAY.json';
-            let newest=0;
-            if(fs.existsSync(f)){
-              for(const r of (JSON.parse(fs.readFileSync(f,'utf8')).sales||[])){
-                const t=Date.parse(r.settledAt||r.endedAt||0);
-                if(t>newest)newest=t;
-              }
-            }
-            // 기록이 아예 없으면(하루 시작 직후) 어제 파일의 마지막을 본다
-            if(!newest){
-              const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
-              const g='data/auction-archive/'+y+'.json';
-              if(fs.existsSync(g))for(const r of (JSON.parse(fs.readFileSync(g,'utf8')).sales||[])){
-                const t=Date.parse(r.settledAt||r.endedAt||0); if(t>newest)newest=t;
-              }
-            }
-            const mins=newest?Math.round((Date.now()-newest)/60000):9999;
-            console.log(mins);
-          ")
-          # 시각만 보면 부족하다 — 정산이 "돌기는 했는데 처리량이 0" 인 사고가 실제로 있었다
-          # (2026-09-03: 예약이 잔여를 넘어 예산 0 → 326건 대기인데 0건 처리, 워크플로는 success).
-          # 그래서 **밀린 물량**과 **소실 임박 건**을 함께 본다. 이게 마지막 방어선이다.
-          BACKLOG=$(node -e "
-            const fs=require('fs');
-            let due=0, urgent=0, oldest=0;
-            try{
-              const w=JSON.parse(fs.readFileSync('data/auction-watch.json','utf8'));
-              const now=Date.now();
-              for(const p of (w.pending||[])){
-                const t=Date.parse(p.endsAt||p.end||0);
-                if(!t||t>=now)continue;
-                due++;
-                const h=(now-t)/3600000;
-                if(h>oldest)oldest=h;
-                if(h>20)urgent++;          // 30시간이면 eBay 조회 불가 — 20시간이면 이미 위험
-              }
-            }catch(e){}
-            console.log(due+' '+urgent+' '+Math.round(oldest));
-          ")
-          DUE=$(echo $BACKLOG | cut -d' ' -f1)
-          URGENT=$(echo $BACKLOG | cut -d' ' -f2)
-          OLDEST=$(echo $BACKLOG | cut -d' ' -f3)
-          echo "마지막 정산 기록 ${STALE}분 전 · 정산 대기 ${DUE}건 · 20시간 초과 ${URGENT}건 · 최고령 ${OLDEST}시간"
-
-          # 셋 중 하나라도 걸리면 즉시 정산을 쏜다. 늦으면 그 건은 영영 못 채운다.
-          if [ "$STALE" -gt 150 ] || [ "$DUE" -gt 200 ] || [ "$URGENT" -gt 0 ]; then
-            dispatch "경매 정산(공백 ${STALE}분·대기 ${DUE}건·임박 ${URGENT}건)" "settle-auctions.yml"
-            # 임박 건이 있으면 한 번으로 부족할 수 있다 — 검색까지 함께 돌려 감시 목록을 채운다.
-            if [ "$URGENT" -gt 0 ]; then
-              echo "::warning::소실 임박 ${URGENT}건(최고령 ${OLDEST}h) — 정산을 연속 실행합니다"
-              sleep 240
-              dispatch "경매 정산(임박 2차)" "settle-auctions.yml"
-            fi
-          fi
-
-          # ① TCG — 스냅샷이 오늘 없거나, 정산이 밀렸거나, 소실 임박 건이 있으면 쏜다.
-          #    (collect-tcg 한 워크플로가 스냅샷·정산을 다 하므로 한 번 쏘면 둘 다 처리된다.)
-          TCGB=$(node -e "
-            const fs=require('fs');
-            let due=0, urgent=0, snapOk=0;
-            try{
-              const s=JSON.parse(fs.readFileSync('data/tcg-snapshot.json','utf8'));
-              snapOk=(s.points||[]).some(p=>p.d==='$TODAY')?1:0;
-            }catch(e){}
-            try{
-              const w=JSON.parse(fs.readFileSync('data/tcg-watch.json','utf8'));
-              const now=Date.now();
-              for(const p of (w.pending||[])){
-                const t=Date.parse(p.end||p.endsAt||0);
-                if(!t||t>=now)continue;
-                due++;
-                if((now-t)/3600000>20)urgent++;
-              }
-            }catch(e){}
-            console.log(snapOk+' '+due+' '+urgent);
-          ")
-          SNAP=$(echo $TCGB | cut -d' ' -f1)
-          TDUE=$(echo $TCGB | cut -d' ' -f2)
-          TURGENT=$(echo $TCGB | cut -d' ' -f3)
-          echo "TCG: 오늘 스냅샷 ${SNAP} · 정산 대기 ${TDUE}건 · 임박 ${TURGENT}건"
-          if [ "$SNAP" -eq 0 ] || [ "$TDUE" -gt 800 ] || [ "$TURGENT" -gt 0 ]; then
-            dispatch "TCG(스냅샷 ${SNAP}·대기 ${TDUE}·임박 ${TURGENT})" "collect-tcg.yml"
-          fi
-
-          # ② 진행 중 매물 관측 — updated 가 오늘인가 (UTC 18시 크론이라 15:40 회차에선 아직일 수 있음 → 21:40 회차가 잡는다)
-          if [ "$(date -u +%H)" -ge 20 ]; then
-            if ! node -e "const s=require('./data/active-listing-audit.json');process.exit(String(s.updated||'').slice(0,10)==='$TODAY'?0:1)"; then
-              dispatch "매물 관측" "update-active-listings.yml"
-            fi
-          fi
-
-          # ③ 환율 — date 가 오늘인가
-          if ! node -e "const s=require('./data/fx.json');process.exit(String(s.date||'').slice(0,10)==='$TODAY'?0:1)"; then
-            dispatch "환율" "update-fx.yml"
-          fi
-
-          echo "self-heal 점검 완료 ($TODAY)"
+        run: node tools/self-heal-daily.js

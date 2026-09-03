@@ -8,7 +8,7 @@
 // ── 데이터
 //   data/tcg-series.json   게임 × 날짜: ended/sold/amount/medPrice + live/endingToday
 //   data/tcg-snapshot.json 그날 eBay 가 직접 알려준 진행 중·오늘 종료 수(표본이 아니라 실제 수)
-// 낙찰률은 우리가 종료 후 다시 읽어 확인한 것만 쓴다. 게임마다 하루 ~200건을 같은 잣대로 훑는
+// 낙찰률은 우리가 종료 후 다시 읽어 확인한 것만 쓴다. 게임마다 하루 최대 250건을 같은 잣대로 훑는
 // 횡단 표본이라, 원피스 전용 수집(하루 1,000건대)과 수치가 다르다 — 그 사실을 화면에 적는다.
 //
 // ⚠️ 순위표를 만들되 "어느 게임이 좋다"는 판정은 하지 않는다. 정렬은 규모(종료 건수) 순이다.
@@ -22,6 +22,8 @@ const OUT = path.join(ROOT, "tcg-auction.html");
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
 const { navHtml } = require("./site-nav");
+const { EXCLUDED_TCG_KEYS } = require("./tcg-config");
+const { visibleTrendRows } = require("./tcg-trend-model");
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const num = (n) => (n == null || !isFinite(n) ? "—" : Number(n).toLocaleString("en-US"));
@@ -36,7 +38,7 @@ const MIN_PRICE_N = 20;     // 중앙 낙찰가를 말하려면 낙찰 건수가
 // 게임별 중앙 낙찰가는 원장에서 직접 낸다 — 2026-09-01 정정.
 // 종전에는 일별 중앙값들을 다시 중앙값 냈는데, 그건 그 기간의 중앙값이 아니다.
 // 실측 차이: Union Arena $20.50(실제 $28.00, +37%) · Weiss Schwarz $28.00(실제 $21.50, -23%).
-// 하루 표본이 게임당 200건 안팎이라 일별 중앙값이 크게 흔들리고, 그것들을 다시 중앙값 내면
+// 하루 표본이 게임당 최대 250건이라 일별 중앙값이 크게 흔들리고, 그것들을 다시 중앙값 내면
 // 원래 분포와 상관없는 수가 남는다. 낙찰 건을 한 줄로 세워 자르는 것만이 중앙값이다.
 const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
 const ledgerPrices = {};
@@ -63,7 +65,7 @@ const names = snapshot.terms || {};
 // 화면 제외 — 2026-09-03 소유자 지시("수집하지 말고 제외시켜"). 수집 목록(collect-tcg-snapshot)에서
 // 뺀 네 게임을 화면에서도 뺀다. 안 빼면 수집이 멈춘 게임이 죽어가는 데이터로 표에 계속 남는다.
 // 원장(tcg-archive)의 과거 기록은 그대로다 — 목록에 되넣으면 이어진다.
-const EXCLUDED_GAMES = new Set(["swu", "vanguard", "metazoo", "fab"]);
+const EXCLUDED_GAMES = new Set(EXCLUDED_TCG_KEYS);
 const agg = {};
 for (const day of days) {
   for (const [key, g] of Object.entries(day.games)) {
@@ -187,7 +189,7 @@ const trendOrder = rows.map((r) => r.key).filter((k) => trendGames[k]);
 const tcgTrendJson = JSON.stringify({ order: trendOrder, games: trendGames });
 
 // ── 커버리지 — 2026-09-02 추가. 이것 없이 거래액을 나란히 놓으면 순위가 거꾸로 읽힌다.
-// 게임마다 하루 200건 안팎씩 같은 잣대로 훑는데, 그 게임이 하루에 끝내는 총 건수는
+// 게임마다 하루 최대 250건씩 같은 잣대로 훑는데, 그 게임이 하루에 끝내는 총 건수는
 // 포켓몬 42,363건 · Riftbound 167건으로 250배 차이난다. 그래서 우리가 담는 비율이
 // 0.4% ~ 63% 로 벌어지고, 거래액 합계는 '시장 규모'가 아니라 '우리가 얼마나 봤는가'가 된다.
 // 실제로 Riftbound 가 포켓몬의 12배로 나와 시장이 그만큼 크다는 오해를 샀다.
@@ -537,7 +539,7 @@ ${tableRows}
           ending: { en: "Ending today", ko: "오늘 종료", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
             help: ["Auctions closing that day (eBay's own count).", "그날 끝나는 경매 수 (eBay 가 알려준 실제 수)"] },
           ended: { en: "Checked", ko: "확인 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
-            help: ["We re-read up to ~200 per game after close.", "끝난 뒤 우리가 다시 읽은 수 (게임당 하루 최대 200건 표본)"] },
+            help: ["We re-read up to ~250 per game after close.", "끝난 뒤 우리가 다시 읽은 수 (게임당 하루 최대 250건 표본)"] },
           rate: { en: "Sold %", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; },
             help: ["Of the ones we checked, the share that sold.", "우리가 확인한 것 중 팔린 비율"] },
           gmv: { en: "Total spent", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); },
@@ -560,13 +562,9 @@ ${tableRows}
         // 2026-09-03 실패에서 배운 것: 마지막 결측 다음날부터만 그렸더니 Weiss Schwarz 가
         // 막대 2개(9/2·9/3)로 화면을 채워 그래프 자체가 쓸모없어졌다. 빈칸을 숨기려다 차트를 죽였다.
         // 이제 시간축은 통째로 유지하고, 값이 없는 날은 막대를 그리지 않아 **눈에 띄는 빈 자리**로 둔다.
+        var visibleTrendRows = ${visibleTrendRows.toString()};
         function visibleRows() {
-          var all = DATA.games[game][period] || [];
-          var f = -1, l = -1;
-          for (var i = 0; i < all.length; i++) {
-            if (all[i][metric] != null && isFinite(all[i][metric])) { if (f < 0) f = i; l = i; }
-          }
-          return f < 0 ? [] : all.slice(f, l + 1);
+          return visibleTrendRows(DATA.games[game][period] || [], metric);
         }
         function buildBars() {
           rows = visibleRows();

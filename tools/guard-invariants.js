@@ -1456,8 +1456,23 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   }
 }
 
+// ── R5. 경매 수집 신뢰성 — 날짜 존재만 보는 감사가 부분수집을 놓치지 않아야 하고,
+//    실제 크론·쿼터 예약·자가치유·그래프 18조합 계약이 함께 움직여야 한다.
+for (const test of [
+  "test-auction-continuity.js",
+  "test-ebay-budget-schedule.js",
+  "test-self-heal-policy.js",
+  "test-workflow-dispatch.js",
+  "test-tcg-trend-model.js",
+]) {
+  const result = spawnSync(process.execPath, [path.join(__dirname, test)], { cwd: ROOT, encoding: "utf8" });
+  if (result.error || result.status !== 0) {
+    errors.push(`R5: ${test} 실패 — ${(result.stderr || result.error?.message || result.stdout || "unknown").trim().slice(0, 500)}`);
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));

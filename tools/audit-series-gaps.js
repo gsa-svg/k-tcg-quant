@@ -15,19 +15,31 @@
 // Run: node tools/audit-series-gaps.js [--days 21] [--json]
 const fs = require("node:fs");
 const path = require("node:path");
+const { previousDayProblems } = require("./collection-continuity");
 
-const ROOT = path.resolve(__dirname, "..");
+const argValue = (name) => {
+  const index = process.argv.indexOf(name);
+  return index > -1 ? process.argv[index + 1] : null;
+};
+const ROOT = path.resolve(argValue("--root") || path.resolve(__dirname, ".."));
 const DAY = 86400000;
 const argN = process.argv.indexOf("--days");
 const WINDOW = argN > -1 ? Number(process.argv[argN + 1]) || 21 : 21;
+const DAILY_ONLY = process.argv.includes("--daily-only");
 
 const iso = (t) => new Date(t).toISOString().slice(0, 10);
-const TODAY = iso(Date.now());
+const TODAY = argValue("--today") || iso(Date.now());
 // 오늘은 아직 진행 중이라 공백으로 세지 않는다.
 const LAST_FULL = iso(Date.parse(TODAY) - DAY);
 
 const read = (p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8")); } catch { return null; } };
 const problems = [], notes = [];
+
+function finish() {
+  const out = { audit: problems.length ? "FAIL" : "NO_GAPS", today: TODAY, window: WINDOW, problems, notes };
+  console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
+  return problems.length ? 1 : 0;
+}
 
 // 조사가 끝난 영구 공백은 problems 가 아니라 notes 로 낸다 — data/known-gaps.json.
 // 매번 FAIL 이 나면 사람이 이 감사를 무시하게 되고, 그러면 진짜 새 공백도 같이 묻힌다.
@@ -72,12 +84,22 @@ function checkDaily(label, dates, opts = {}) {
 
 // ── A) 매일 도는 계열 ────────────────────────────────────────────────
 const auc = read("data/auction-series.json");
-if (auc) checkDaily("원피스 경매 일별", (auc.daily || []).map((r) => r.d));
+if (auc) {
+  checkDaily("원피스 경매 일별", (auc.daily || []).map((r) => r.d));
+}
 else problems.push("원피스 경매 시계열 파일을 못 읽었다");
 
 const tcg = read("data/tcg-snapshot.json");
-if (tcg) checkDaily("TCG 시장 스냅샷", (tcg.points || []).map((r) => r.d));
+if (tcg) {
+  checkDaily("TCG 시장 스냅샷", (tcg.points || []).map((r) => r.d));
+}
 else problems.push("TCG 스냅샷 파일을 못 읽었다");
+const tcgSeries = read("data/tcg-series.json");
+if (!tcgSeries) problems.push("TCG 정산 시계열 파일을 못 읽었다");
+
+// 중간 날짜 존재 여부와 "직전 완료일이 실제로 온전한가"는 별개다.
+// 과거 부분수집 전체를 매일 FAIL 시키면 경고 피로로 새 사고가 묻히므로 직전 하루만 강하게 본다.
+if (auc && tcg && tcgSeries) problems.push(...previousDayProblems({ auctionSeries: auc, tcgSnapshot: tcg, tcgSeries, day: LAST_FULL }));
 
 const pw = read("data/palworld-auction-market.json");
 if (pw) checkDaily("팰월드 경매 관측", (pw.points || []).map((r) => r.d));
@@ -85,6 +107,8 @@ else problems.push("팰월드 경매 관측 파일을 못 읽었다");
 
 const pwSold = read("data/palworld-auction-sold.json");
 if (pwSold) checkDaily("팰월드 낙찰 일별", (pwSold.daily || []).map((r) => r.d));
+
+if (DAILY_ONLY) process.exit(finish());
 
 // ── B) 수동 수집(박스 sold) — 월·수·금 ──────────────────────────────
 // 이 수집만 브라우저가 필요해 자동화가 안 된다. 그래서 가장 잘 빠진다.
@@ -160,6 +184,4 @@ function isoWeek(d) {
   return `${t.getUTCFullYear()}-W${String(week).padStart(2, "0")}`;
 }
 
-const out = { audit: problems.length ? "FAIL" : "NO_GAPS", today: TODAY, window: WINDOW, problems, notes };
-console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
-process.exit(problems.length ? 1 : 0);
+process.exit(finish());
