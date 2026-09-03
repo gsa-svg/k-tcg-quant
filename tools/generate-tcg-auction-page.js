@@ -111,11 +111,29 @@ const totEndingToday = rows.reduce((t, r) => t + (r.endingToday || 0), 0);
 // ── 게임별 흐름 시계열 — 2026-09-02 소유자 제안("표는 하루 지나면 사라지는 데이터").
 // tcg-series 의 일별×게임 기록을 그대로 싣는다. live/ending 은 eBay 가 알려준 실제 수,
 // ended/sold/rate 는 우리 정산 표본, med 는 그날 낙찰가 중앙값(표본 5건 미만이면 비움).
+// ── 게임별 흐름: 일·주·월 — 2026-09-03 소유자 지시("이것도 일봉·주봉·월봉으로 다 만들어야지").
+// live/ending 은 eBay 가 알려준 실제 수, ended/sold 는 우리 정산 표본.
+// 주·월의 낙찰가 중앙값은 원장(tcg-archive)에서 그 기간 낙찰 건을 한 줄로 세워 다시 자른다 —
+// 일별 중앙값을 평균 내면 중앙값이 아니다(원피스 페이지와 같은 원칙).
+const ledgerByGameDay = {};
+// ⚠️ 정규식의 \d 는 셸을 거치면 d 로 깨진다 — 오늘만 두 번째다(collect-status 그물, 여기).
+//    이 파일을 스크립트로 패치할 때는 반드시 Edit 도구로 쓰거나, 쓰고 나서 \d 가 살아있는지 확인할 것.
+for (const f of fs.readdirSync(ARCHIVE).filter((x) => /^\d{4}-\d{2}-\d{2}\.json$/.test(x))) {
+  const day = JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8"));
+  for (const r of day.sales || []) {
+    if (!r || r.sold !== true || !Number.isFinite(r.price)) continue;
+    const d = (r.endedAt || f.slice(0, 10)).slice(0, 10);
+    ((ledgerByGameDay[r.g] = ledgerByGameDay[r.g] || {})[d] = ledgerByGameDay[r.g][d] || []).push(r.price);
+  }
+}
+const weekKeyOf = (d) => { const t = new Date(d + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return t.toISOString().slice(0, 10); };
+const midOf = (arr) => { const q = arr.slice().sort((x, y) => x - y); return q[Math.floor((q.length - 1) / 2)]; };
+
 const trendGames = {};
 for (const day of days) {
   for (const [key, g] of Object.entries(day.games || {})) {
-    const t = (trendGames[key] = trendGames[key] || { name: (names[key] || {}).name || key, rows: [] });
-    t.rows.push({
+    const t = (trendGames[key] = trendGames[key] || { name: (names[key] || {}).name || key, daily: [] });
+    t.daily.push({
       d: day.d, ax: day.d.slice(5).replace("-", "/"),
       live: Number.isFinite(g.live) ? g.live : null,
       ending: Number.isFinite(g.endingToday) ? g.endingToday : null,
@@ -125,6 +143,39 @@ for (const day of days) {
       med: Number.isFinite(g.medPrice) && (g.priceN || 0) >= 5 ? g.medPrice : null,
     });
   }
+}
+// 주·월 접기. 스냅샷 성격(live)은 평균, 유량(ending/ended/sold/gmv)은 합, 비율은 합에서 다시 계산.
+function foldTrend(dailyRows, keyOf, labOf, axOf, gameKey) {
+  const buckets = new Map();
+  for (const r of dailyRows) {
+    const k = keyOf(r.d);
+    if (!buckets.has(k)) buckets.set(k, []);
+    buckets.get(k).push(r);
+  }
+  const keys = [...buckets.keys()].sort();
+  return keys.map((k, i) => {
+    const rs = buckets.get(k);
+    const known = (f) => rs.map((r) => r[f]).filter((v) => v != null && isFinite(v));
+    const sum = (f) => { const v = known(f); return v.length ? v.reduce((x, y) => x + y, 0) : null; };
+    const ended = rs.reduce((x, r) => x + (r.ended || 0), 0);
+    const sold = rs.reduce((x, r) => x + (r.sold || 0), 0);
+    const prices = [];
+    for (const r of rs) for (const p of (ledgerByGameDay[gameKey] || {})[r.d] || []) prices.push(p);
+    return {
+      d: labOf(k), ax: axOf(k),
+      p: i === keys.length - 1 ? 1 : 0,          // 마지막 기간은 아직 차는 중
+      live: known("live").length ? Math.round(sum("live") / known("live").length) : null,
+      ending: sum("ending"),
+      ended, sold,
+      rate: ended >= 30 ? Math.round((sold / ended) * 1000) / 10 : null,
+      gmv: rs.reduce((x, r) => x + (r.gmv || 0), 0),
+      med: prices.length >= 5 ? midOf(prices) : null,
+    };
+  });
+}
+for (const [key, t] of Object.entries(trendGames)) {
+  t.weekly = foldTrend(t.daily, weekKeyOf, (k) => "Week of " + k.slice(5).replace("-", "/"), (k) => k.slice(5).replace("-", "/"), key);
+  t.monthly = foldTrend(t.daily, (d) => d.slice(0, 7), (k) => k, (k) => k.slice(2), key);
 }
 const trendOrder = rows.map((r) => r.key).filter((k) => trendGames[k]);
 const tcgTrendJson = JSON.stringify({ order: trendOrder, games: trendGames });
@@ -342,6 +393,11 @@ const html = `<!doctype html>
             <span data-ko="게임 선택">Pick a game</span>
             <select id="trendGame" aria-label="Game"></select>
           </label>
+          <div class="metricTabs" role="group" aria-label="Period">
+            <button type="button" data-tp="daily" aria-pressed="true" data-ko="일별">Daily</button>
+            <button type="button" data-tp="weekly" aria-pressed="false" data-ko="주별">Weekly</button>
+            <button type="button" data-tp="monthly" aria-pressed="false" data-ko="월별">Monthly</button>
+          </div>
           <div class="metricTabs" role="group" aria-label="Metric">
             <button type="button" data-tm="live" aria-pressed="false" data-ko="진행중">Live</button>
             <button type="button" data-tm="ending" aria-pressed="true" data-ko="오늘 종료">Ending today</button>
@@ -441,12 +497,18 @@ ${tableRows}
       })();
     </script>
     <script>
-      // 게임별 흐름 차트 — 게임 선택 + 지표 탭. 막대 대신 그래프 전체에서 가장 가까운 날을 집는다
-      // (일별 42개면 막대가 5px 대라 손가락으로 못 짚는다 — 원피스 페이지와 같은 방식).
+      // 게임별 흐름 차트 — 2026-09-03 다시 씀(소유자: "이 그래프가 뭘 의미하는지 전혀 모르겠어").
+      // 고친 것 셋:
+      //  ① 측정 전 구간을 빗금 벽으로 그리던 것 → 그 지표의 첫 측정일부터만 그린다.
+      //     (live/ending 은 8/21부터 기록돼, 그 전 2주가 화면의 절반을 빗금으로 채우고 있었다.)
+      //  ② 일별/주별/월별 전환 — 원피스 차트와 같은 방식.
+      //  ③ 막대를 짚으면 숫자 나열 대신 **관계가 보이는 문장**으로 말한다:
+      //     "종료 10,902건 중 200건 확인, 46건 낙찰" — 셋이 무슨 사이인지 문장이 말해준다.
       (function () {
         var DATA = ${tcgTrendJson};
         var host = document.getElementById("trendChart");
         var readout = document.getElementById("trendReadout");
+        var plain = document.getElementById("trendPlain");
         var sel = document.getElementById("trendGame");
         if (!host || !sel || !DATA.order.length) return;
         var KO = function () { return document.documentElement.lang === "ko"; };
@@ -458,21 +520,35 @@ ${tableRows}
         var game = DATA.order.indexOf("onepiece") >= 0 ? "onepiece" : DATA.order[0];
         sel.value = game;
         var metric = "ending";
+        var period = "daily";
         var M = {
-          live: { en: "Live", ko: "진행중", help: ["Auctions open now.", "진행 중인 경매 수"], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          ending: { en: "Ending today", ko: "오늘 종료", help: ["Auctions closing today.", "오늘 종료되는 경매 수"], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          ended: { en: "Checked", ko: "확인 수", help: ["Auctions we re-read after close.", "종료 후 확인한 경매 수"], fmt: function (v) { return Math.round(v).toLocaleString("en-US"); } },
-          rate: { en: "Sold %", ko: "낙찰률", help: ["Share of ended auctions that sold.", "종료 경매 중 낙찰 비율"], fmt: function (v) { return v.toFixed(1) + "%"; } },
-          gmv: { en: "Total spent", ko: "거래액", help: ["Winning bids added up.", "낙찰가 합계"], fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); } },
-          med: { en: "Price", ko: "낙찰가", help: ["Middle price of sold items.", "낙찰가 중앙값"], fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); } }
+          live: { en: "Live", ko: "진행중", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["Auctions open at our daily check.", "매일 확인 시점에 열려 있던 경매 수"] },
+          ending: { en: "Ending today", ko: "오늘 종료", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["Auctions closing that day (eBay's own count).", "그날 끝나는 경매 수 (eBay 가 알려준 실제 수)"] },
+          ended: { en: "Checked", ko: "확인 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
+            help: ["We re-read up to ~200 per game after close.", "끝난 뒤 우리가 다시 읽은 수 (게임당 하루 최대 200건 표본)"] },
+          rate: { en: "Sold %", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; },
+            help: ["Of the ones we checked, the share that sold.", "우리가 확인한 것 중 팔린 비율"] },
+          gmv: { en: "Total spent", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); },
+            help: ["Winning bids added up (checked sample only).", "확인한 표본의 낙찰가 합계"] },
+          med: { en: "Price", ko: "낙찰가", fmt: function (v) { return "$" + (v < 100 ? v.toFixed(2) : Math.round(v).toLocaleString("en-US")); },
+            help: ["Middle winning price of the checked sample.", "확인한 표본의 낙찰가 중앙값"] }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
         var guide = document.createElement("div"); guide.className = "opGuide";
         var axis = document.createElement("div"); axis.className = "opAxis";
         host.appendChild(bars); bars.appendChild(guide); host.appendChild(axis);
         var cols = [], rows = [];
+        // 이 지표가 측정되기 시작한 날부터만 그린다 — 앞의 "측정 전" 빗금 벽을 없앤다.
+        function visibleRows() {
+          var all = DATA.games[game][period] || [];
+          var first = -1;
+          for (var i = 0; i < all.length; i++) { if (all[i][metric] != null && isFinite(all[i][metric])) { first = i; break; } }
+          return first < 0 ? [] : all.slice(first);
+        }
         function buildBars() {
-          rows = DATA.games[game].rows;
+          rows = visibleRows();
           bars.querySelectorAll(".opCol").forEach(function (c) { c.remove(); });
           cols = rows.map(function (r) {
             var c = document.createElement("div");
@@ -481,57 +557,53 @@ ${tableRows}
             bars.appendChild(c);
             return c;
           });
-          // 날짜 라벨을 고르게 뿌린다 — 시작·끝 둘뿐이면 가운데 막대가 언제인지 모른다.
           axis.innerHTML = "";
+          if (!rows.length) return;
           var want = bars.getBoundingClientRect().width < 420 ? 3 : 5;
           var step = Math.max(1, Math.round((rows.length - 1) / (want - 1)));
-          var picked = [];
-          for (var t = 0; t < rows.length; t += step) picked.push(t);
-          if (picked[picked.length - 1] !== rows.length - 1) picked.push(rows.length - 1);
-          picked.forEach(function (idx) { var sp = document.createElement("span"); sp.textContent = rows[idx].ax; axis.appendChild(sp); });
+          var ticks = [];
+          for (var t = 0; t < rows.length; t += step) ticks.push(t);
+          if (ticks[ticks.length - 1] !== rows.length - 1) ticks.push(rows.length - 1);
+          ticks.forEach(function (idx) { var sp = document.createElement("span"); sp.textContent = rows[idx].ax; axis.appendChild(sp); });
         }
         function summary() {
           var m = M[metric];
           var withV = rows.filter(function (r) { return r[metric] != null && isFinite(r[metric]); });
           readout.innerHTML = "";
-          if (!withV.length) return;
+          if (plain) plain.innerHTML = "";
+          if (!withV.length) {
+            if (plain) plain.textContent = KO() ? "이 지표는 아직 기록이 없습니다." : "No data recorded yet for this view.";
+            return;
+          }
           var last = withV[withV.length - 1];
           var hi = withV.slice().sort(function (a, b) { return b[metric] - a[metric]; })[0];
           var lo = withV.slice().sort(function (a, b) { return a[metric] - b[metric]; })[0];
-          [[ (KO() ? m.ko + " — 최근" : m.en + " — latest"), last, "hi" ], [ (KO() ? "최고" : "highest"), hi, "" ], [ (KO() ? "최저" : "lowest"), lo, "" ]].forEach(function (t) {
+          [[(KO() ? "최근" : "Latest"), last, "hi"], [(KO() ? "최고" : "High"), hi, ""], [(KO() ? "최저" : "Low"), lo, ""]].forEach(function (t) {
             var sp = document.createElement("span");
             if (t[2]) sp.className = t[2];
             sp.appendChild(document.createTextNode(t[0] + " "));
-            var b = document.createElement("b"); b.textContent = M[metric].fmt(t[1][metric]); sp.appendChild(b);
-            sp.appendChild(document.createTextNode(" \u00b7 " + t[1].ax));
+            var b = document.createElement("b"); b.textContent = m.fmt(t[1][metric]); sp.appendChild(b);
+            sp.appendChild(document.createTextNode(" · " + t[1].ax));
             readout.appendChild(sp);
           });
-          // \ud55c \ubb38\uc7a5 \uc694\uc57d \u2014 \uac8c\uc784 \uc774\ub984 + \uc9c0\uae08 \uac12 + \ubc29\ud5a5 + \uc774 \uc9c0\ud45c\uac00 \ubb54\uc9c0.
-          // \ub9c8\uc6b0\uc2a4\ub97c \ubabb \uc62c\ub824\ub3c4, \uc6a9\uc5b4\ub97c \ubab0\ub77c\ub3c4 \ub73b\uc774 \ud1b5\ud574\uc57c \ud55c\ub2e4(2026-09-02 \uc18c\uc720\uc790 \uc9c0\uc2dc).
-          var plain = document.getElementById("trendPlain");
           if (!plain) return;
-          plain.innerHTML = "";
-          var gname = DATA.games[game].name;
           var st = document.createElement("strong");
-          st.textContent = gname + " \u00b7 " + (KO() ? m.ko : m.en) + " " + m.fmt(last[metric]);
+          st.textContent = DATA.games[game].name + " · " + (KO() ? m.ko : m.en) + " " + m.fmt(last[metric]);
           plain.appendChild(st);
           var half = Math.max(1, Math.min(7, Math.floor(withV.length / 2)));
-          var recent = withV.slice(-half).map(function (r) { return r[metric]; });
-          var older = withV.slice(-half * 2, -half).map(function (r) { return r[metric]; });
-          var mid = function (a) { var s = a.slice().sort(function (x, y) { return x - y; }); return s[Math.floor((s.length - 1) / 2)]; };
-          if (older.length) {
-            var diff = mid(recent) - mid(older);
-            var pct = mid(older) ? Math.abs(diff / mid(older)) * 100 : 0;
-            plain.appendChild(document.createTextNode(pct < 5 ? (KO() ? " \ucd5c\uadfc \ud750\ub984\uc740 \ube44\uc2b7\ud569\ub2c8\ub2e4." : " Holding steady lately.")
-              : diff > 0 ? (KO() ? " \ucd5c\uadfc \uc62c\ub77c\uac00\ub294 \uc911\uc785\ub2c8\ub2e4." : " Trending up lately.")
-              : (KO() ? " \ucd5c\uadfc \ub0b4\ub824\uac00\ub294 \uc911\uc785\ub2c8\ub2e4." : " Trending down lately.")));
+          var mid = function (a) { var q = a.slice().sort(function (x, y) { return x - y; }); return q[Math.floor((q.length - 1) / 2)]; };
+          var recent = mid(withV.slice(-half).map(function (r) { return r[metric]; }));
+          var older = withV.length > half ? mid(withV.slice(-half * 2, -half).map(function (r) { return r[metric]; })) : null;
+          if (older != null) {
+            var pct = older ? Math.abs((recent - older) / older) * 100 : 0;
+            plain.appendChild(document.createTextNode(pct < 5 ? (KO() ? " 최근 흐름은 비슷합니다." : " Holding steady lately.")
+              : recent > older ? (KO() ? " 최근 늘고 있습니다." : " Trending up lately.")
+              : (KO() ? " 최근 줄고 있습니다." : " Trending down lately.")));
           }
-          if (m.help) {
-            var hp = document.createElement("span");
-            hp.className = "opHelp";
-            hp.textContent = m.help[KO() ? 1 : 0];
-            plain.appendChild(hp);
-          }
+          var hp = document.createElement("span");
+          hp.className = "opHelp";
+          hp.textContent = m.help[KO() ? 1 : 0];
+          plain.appendChild(hp);
         }
         function draw() {
           var m = M[metric];
@@ -540,8 +612,10 @@ ${tableRows}
           rows.forEach(function (r, i) {
             var v = r[metric];
             var c = cols[i], bar = c.firstChild;
+            c.classList.toggle("pt", !!r.p);
             if (v == null || !isFinite(v)) {
-              c.classList.add("nul"); bar.style.height = "100%";
+              // 범위 안의 드문 결측일 — 벽이 아니라 바닥의 짧은 토막으로만 표시한다.
+              c.classList.add("nul"); bar.style.height = "8%";
               c.setAttribute("aria-label", r.d + " — not measured");
             } else {
               c.classList.remove("nul");
@@ -566,38 +640,55 @@ ${tableRows}
           picked = i; cols[i].classList.add("on");
           var r = rows[i], m = M[metric];
           readout.innerHTML = "";
+          // 숫자 나열이 아니라 관계를 문장으로: "종료 10,902건 중 200건 확인, 46건 낙찰".
           var sp = document.createElement("span"); sp.className = "hi";
-          sp.appendChild(document.createTextNode(r.d + " "));
-          var b = document.createElement("b");
-          b.textContent = r[metric] == null ? (KO() ? "측정 안 됨" : "not measured") : (KO() ? m.ko : m.en) + " " + (r[metric] == null ? "" : m.fmt(r[metric]));
-          sp.appendChild(b); readout.appendChild(sp);
-          [[KO() ? "정산" : "checked", r.ended], [KO() ? "낙찰" : "sold", r.sold]].forEach(function (t) {
-            var s2 = document.createElement("span");
-            s2.appendChild(document.createTextNode(t[0] + " "));
-            var b2 = document.createElement("b"); b2.textContent = (t[1] || 0).toLocaleString("en-US"); s2.appendChild(b2);
-            readout.appendChild(s2);
-          });
+          var n = function (v) { return v == null ? "—" : Math.round(v).toLocaleString("en-US"); };
+          var txt;
+          if (KO()) {
+            txt = r.d + " — ";
+            if (metric === "live" && r.live != null) txt += "진행중 " + n(r.live) + "건 · ";
+            if (r.ending != null) txt += "종료 " + n(r.ending) + "건 중 ";
+            txt += n(r.ended) + "건 확인, " + n(r.sold) + "건 낙찰";
+            if (metric === "gmv") txt += " · 거래액 " + m.fmt(r.gmv);
+            if (metric === "med" && r.med != null) txt += " · 낙찰가 " + m.fmt(r.med);
+          } else {
+            txt = r.d + " — ";
+            if (metric === "live" && r.live != null) txt += n(r.live) + " open · ";
+            if (r.ending != null) txt += n(r.ending) + " ended; ";
+            txt += "we checked " + n(r.ended) + ", " + n(r.sold) + " sold";
+            if (metric === "gmv") txt += " · " + m.fmt(r.gmv) + " spent";
+            if (metric === "med" && r.med != null) txt += " · typical price " + m.fmt(r.med);
+          }
+          sp.textContent = txt;
+          readout.appendChild(sp);
         }
         function clear() {
           if (cols[picked]) cols[picked].classList.remove("on");
           picked = -1; summary();
         }
         bars.addEventListener("pointermove", function (ev) {
+          if (!rows.length) return;
           var rr = bars.getBoundingClientRect();
           var i = Math.round(((ev.clientX - rr.left) / rr.width) * (rows.length - 1));
           select(Math.max(0, Math.min(rows.length - 1, i)));
         });
         bars.addEventListener("pointerleave", clear);
         sel.addEventListener("change", function () { game = sel.value; picked = -1; buildBars(); draw(); });
-        var tabs = document.querySelectorAll("button[data-tm]");
-        Array.prototype.forEach.call(tabs, function (b) {
+        Array.prototype.forEach.call(document.querySelectorAll("button[data-tm]"), function (b) {
           b.addEventListener("click", function () {
             metric = b.getAttribute("data-tm"); picked = -1;
-            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
-            draw();
+            Array.prototype.forEach.call(document.querySelectorAll("button[data-tm]"), function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            buildBars(); draw();
           });
         });
-        document.addEventListener("opboxlang", function () { picked = -1; draw(); });
+        Array.prototype.forEach.call(document.querySelectorAll("button[data-tp]"), function (b) {
+          b.addEventListener("click", function () {
+            period = b.getAttribute("data-tp"); picked = -1;
+            Array.prototype.forEach.call(document.querySelectorAll("button[data-tp]"), function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            buildBars(); draw();
+          });
+        });
+        document.addEventListener("opboxlang", function () { picked = -1; buildBars(); draw(); });
         buildBars(); draw();
       })();
     </script>
