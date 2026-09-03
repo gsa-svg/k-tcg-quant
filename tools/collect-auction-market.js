@@ -262,7 +262,8 @@ function summarize(rows) {
       if (items.length < PAGE_SIZE) break;
       }
       // 이 밴드를 다 훑었는데도 남아 있으면(=페이징 상한에 걸림) 밴드를 더 쪼개야 한다는 신호.
-      if (bandTotal > PAGES * PAGE_SIZE) console.error(`[band-full] ${q} $${band[0]}~${band[1]} total=${bandTotal} > 수집 상한 ${PAGES * PAGE_SIZE}`);
+      // 보충 모드(band null)는 앞쪽 몇 페이지만 보므로 페이징 상한 신호가 의미 없다.
+      if (band && bandTotal > PAGES * PAGE_SIZE) console.error(`[band-full] ${q} $${band[0]}~${band[1]} total=${bandTotal} > 수집 상한 ${PAGES * PAGE_SIZE}`);
     }
   }
 
