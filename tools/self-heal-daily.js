@@ -87,7 +87,9 @@ function inspectArtifacts(now = new Date()) {
     auction: { staleMinutes: newest ? Math.round((nowMs - newest) / 60000) : 9999, ...auctionBacklog },
     tcg: { snapshotToday: (tcgSnapshot?.points || []).some((point) => point?.d === today), ...tcgBacklog },
     activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,
-    fxFresh: String(readJson("data/fx.json")?.date || "").slice(0, 10) === today,
+    // fx.json 의 date 는 ECB 고시일(영업일 14:15 UTC 발표, 주말·공휴일 없음)이라 "오늘"과 같을 수 없는 날이 대부분이다.
+    // 종전 기준(date === today)은 매 회차 update-fx 를 다시 쏘게 했다(30분 하트비트면 하루 48번). 4일 안이면 신선하다.
+    fxFresh: Date.parse(String(readJson("data/fx.json")?.date || "")) >= nowMs - 4 * DAY,
     previousDayProblems: previous.problems,
     previousDayKnown: previous.known,
     previousDayRecovery: previous.recovery,
