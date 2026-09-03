@@ -234,6 +234,11 @@ const html = `<!doctype html>
         border: 2px solid #50dad9; box-shadow: 0 0 0 3px rgba(80,218,217,.14); }
       .trendHead select:hover { background-color: rgba(80,218,217,.18); }
       .trendHead select:focus-visible { outline: 3px solid #8af3f2; outline-offset: 2px; }
+      /* ⚠️ select 배경을 바꾸면 펼친 목록(option)도 그 배경을 물려받는다. 글자색을 같이 지정하지 않으면
+         밝은 바탕에 밝은 글씨가 되어 아무것도 안 보인다(2026-09-03 실제로 그렇게 나갔다).
+         option 은 브라우저가 따로 그리므로 배경·글자색을 명시한다. */
+      .trendHead select option { background-color: #14171c; color: #eef2ff; font-weight: 500; }
+      .trendHead select option:checked { background-color: #1d3b3b; color: #8af3f2; }
       /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다(2026-09-02 소유자 지시). */
       .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
       .opPlain strong { color: #8af3f2; font-weight: 650; }
