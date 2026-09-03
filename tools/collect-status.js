@@ -104,7 +104,7 @@ const SOURCES = [
   { key: "op-market", name: "원피스 경매 시장 스캔", mode: "auto", every: "3시간마다", wf: "collect-auction-market",
     warn: 1, late: 2, get: pick.field("data/auction-market.json", "updated"),
     files: ["auction-market.json", "auction-watch.json", "auction-deals.json", "auction-findings.json"] },
-  { key: "tcg", name: "TCG 17종 경매", mode: "auto", every: "6시간(스냅샷 1일 1회)", wf: "collect-tcg",
+  { key: "tcg", name: "TCG 경매(게임별)", mode: "auto", every: "6시간(스냅샷 1일 1회)", wf: "collect-tcg",
     warn: 1, late: 2, get: pick.archiveDir("data/tcg-archive"),
     files: ["tcg-archive", "tcg-snapshot.json", "tcg-series.json", "tcg-watch.json"] },
   { key: "palworld-auction", name: "팰월드 경매", mode: "auto", every: "3시간마다", wf: "collect-auction-market",

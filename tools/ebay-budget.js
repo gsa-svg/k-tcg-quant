@@ -69,7 +69,7 @@ async function remaining() {
 
 // 용도별로 떼어 두는 몫. 하루 총량 5,000 기준.
 const RESERVE = {
-  tcg: 1100,      // TCG 스냅샷(게임 17종 × 5페이지)과 TCG 정산
+  tcg: 1100,      // TCG 스냅샷(게임 13종 × 5페이지)과 TCG 정산 — 2026-09-03 얇은 4종(swu·vanguard·metazoo·fab) 제외
   search: 1000,   // 원피스·팰월드 매물 검색 — 감시 목록을 채우는 곳. 여기가 마르면 정산할 것이 없어진다.
   safety: 200,    // 다른 워크플로(진행 매물·PSA10 링크)와 재시도용
 };

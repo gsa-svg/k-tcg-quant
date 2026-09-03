@@ -186,7 +186,9 @@ const wilson = (s, n) => {
 let tcgGameCount = 0;
 try {
   const tSeries = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "tcg-series.json"), "utf8"));
-  tcgGameCount = Object.keys(tSeries.games || {}).length;
+  // 수집 제외 4종(2026-09-03)은 세지 않는다 — TCG 페이지 표시 목록과 숫자가 어긋나면 안 된다.
+  const excluded = new Set(["swu", "vanguard", "metazoo", "fab"]);
+  tcgGameCount = Object.keys(tSeries.games || {}).filter((k) => !excluded.has(k)).length;
 } catch { tcgGameCount = 0; }
 
 
@@ -312,7 +314,7 @@ const html = `<!doctype html>
       .opCol.pt i { background: rgba(80,218,217,.34); }
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
       .opCol:hover i, .opCol:focus-visible i, .opCol.on i { background: #8af3f2; }
-      .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 11px; }
+      .opAxis { position: relative; height: 16px; margin-top: 6px; color: #8d95a7; font-size: 11px; }
       .opTip { position: absolute; z-index: 5; pointer-events: none; background: #10141b; border: 1px solid rgba(255,255,255,.16);
         border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; max-width: min(240px, 88vw); }
       .opTip b { color: #eef2ff; }
@@ -511,11 +513,7 @@ ${cTr}
           var picked = [];
           for (var t = 0; t < days.length; t += step) picked.push(t);
           if (picked[picked.length - 1] !== days.length - 1) picked.push(days.length - 1);
-          picked.forEach(function (idx) {
-            var sp = document.createElement("span");
-            sp.textContent = days[idx].ax;
-            axis.appendChild(sp);
-          });
+          picked.forEach(function (idx) { var sp = document.createElement("span"); sp.textContent = days[idx].ax; sp.style.position = "absolute"; if (idx === 0) { sp.style.left = "0"; } else if (idx === days.length - 1) { sp.style.right = "0"; } else { sp.style.left = (((idx + 0.5) / days.length) * 100) + "%"; sp.style.transform = "translateX(-50%)"; } axis.appendChild(sp); });
         }
 
         var metric = "rate";

@@ -59,6 +59,11 @@ const from = days[0].d, to = days[days.length - 1].d;
 
 // 게임별 합계(기간 전체)
 const names = snapshot.terms || {};
+
+// 화면 제외 — 2026-09-03 소유자 지시("수집하지 말고 제외시켜"). 수집 목록(collect-tcg-snapshot)에서
+// 뺀 네 게임을 화면에서도 뺀다. 안 빼면 수집이 멈춘 게임이 죽어가는 데이터로 표에 계속 남는다.
+// 원장(tcg-archive)의 과거 기록은 그대로다 — 목록에 되넣으면 이어진다.
+const EXCLUDED_GAMES = new Set(["swu", "vanguard", "metazoo", "fab"]);
 const agg = {};
 for (const day of days) {
   for (const [key, g] of Object.entries(day.games)) {
@@ -99,7 +104,7 @@ const rows = Object.entries(agg)
       liveFixed: a.liveFixed,
     };
   })
-  .filter((r) => r.ended > 0)
+  .filter((r) => r.ended > 0 && !EXCLUDED_GAMES.has(r.key))
   .sort((a, b) => b.ended - a.ended);
 
 const totEnded = rows.reduce((t, r) => t + r.ended, 0);
@@ -132,6 +137,7 @@ const midOf = (arr) => { const q = arr.slice().sort((x, y) => x - y); return q[M
 const trendGames = {};
 for (const day of days) {
   for (const [key, g] of Object.entries(day.games || {})) {
+    if (EXCLUDED_GAMES.has(key)) continue;
     const t = (trendGames[key] = trendGames[key] || { name: (names[key] || {}).name || key, daily: [] });
     t.daily.push({
       d: day.d, ax: day.d.slice(5).replace("-", "/"),
@@ -304,7 +310,7 @@ const html = `<!doctype html>
       .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; }
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
       .opCol:hover i, .opCol.on i { background: #8af3f2; }
-      .opAxis { display: flex; justify-content: space-between; margin-top: 6px; color: #8d95a7; font-size: 11px; }
+      .opAxis { position: relative; height: 16px; margin-top: 6px; color: #8d95a7; font-size: 11px; }
  /* 눈금선 3줄(0·절반·최고) — 막대 높이를 값으로 읽으려면 기준선이 있어야 한다. */
       .opGuide { position: absolute; inset: 0; pointer-events: none; }
       .opGuide .gLine { position: absolute; left: 0; right: 0; display: block; border-top: 1px dashed rgba(255,255,255,.16); }
@@ -564,7 +570,7 @@ ${tableRows}
           var ticks = [];
           for (var t = 0; t < rows.length; t += step) ticks.push(t);
           if (ticks[ticks.length - 1] !== rows.length - 1) ticks.push(rows.length - 1);
-          ticks.forEach(function (idx) { var sp = document.createElement("span"); sp.textContent = rows[idx].ax; axis.appendChild(sp); });
+          ticks.forEach(function (idx) { var sp = document.createElement("span"); sp.textContent = rows[idx].ax; sp.style.position = "absolute"; if (idx === 0) { sp.style.left = "0"; } else if (idx === rows.length - 1) { sp.style.right = "0"; } else { sp.style.left = (((idx + 0.5) / rows.length) * 100) + "%"; sp.style.transform = "translateX(-50%)"; } axis.appendChild(sp); });
         }
         function summary() {
           var m = M[metric];

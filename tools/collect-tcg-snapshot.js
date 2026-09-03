@@ -45,7 +45,10 @@ const KEEP_DAYS = 730;
 //
 // ⚠️ 전수는 아니다. 포켓몬만 하루 4만 건이 끝난다 — 200 은 그 0.5% 다.
 //    화면은 "우리가 종료 후 읽은 수"라고 적어야 하고, 이 값을 시장 규모로 부르면 안 된다.
-const WATCH_PER_GAME = 200;
+// 200 → 250 (2026-09-03). 소유자 지시 "표본을 더 늘려" — 게임 4종을 빼서 생긴 몫을 남은 게임에 준다.
+// 계산: 빠진 4종이 쓰던 감시 ≈ 하루 250건 + 큰 게임 8종 × +50 = +400 ≈ 서로 상쇄.
+// 처리 천장(settle-tcg 900×4회=3,600/일)과 쿼터 안에서 소화된다. 밀리면 empties·빈칸 감시가 잡는다.
+const WATCH_PER_GAME = 250;
 
 // 검색어는 "그 게임을 가장 넓게 잡는 것" 하나로 고정한다. 게임마다 검색어 수가 다르면 비교가 깨진다.
 // (원피스 실측: 'One Piece TCG' 14,544 vs 'One Piece Card Game' 6,770 — 검색어 하나로 2배가 갈린다.)
@@ -68,14 +71,17 @@ const TCGS = [
   { k: "digimon",    nm: "Digimon",                  q: "Digimon Card Game" },
   { k: "riftbound",  nm: "Riftbound (LoL)",          q: "Riftbound League of Legends" },
   { k: "unionarena", nm: "Union Arena",              q: "Union Arena" },
-  { k: "swu",        nm: "Star Wars Unlimited",      q: "Star Wars Unlimited" },
   { k: "gundam",     nm: "Gundam Card Game",         q: "Gundam Card Game" },
   { k: "dragonball", nm: "Dragon Ball Fusion World", q: "Dragon Ball Fusion World" },
-  { k: "fab",        nm: "Flesh and Blood",          q: "Flesh and Blood TCG" },
-  { k: "metazoo",    nm: "MetaZoo",                  q: "MetaZoo TCG" },
-  { k: "vanguard",   nm: "Cardfight Vanguard",       q: "Cardfight Vanguard" },
   { k: "palworld",   nm: "Palworld TCG",             q: "Palworld TCG" },
 ];
+
+// 수집 제외 — 2026-09-03 소유자 지시("저 리스트는 수집하지 말고 제외시켜, 다른 걸 더 수집해").
+// swu · vanguard · metazoo · fab 네 게임을 뺐다. 거래가 얇아 표본 몫만 차지했다
+// (하루 종료: SWU 56 · 뱅가드 50 · 메타주·FaB 그 이하 — 포켓몬은 37,980).
+// 그 몫으로 남은 게임의 감시 상한을 200→250 으로 올린다(아래 WATCH_PER_GAME).
+// 이미 쌓인 원장(tcg-archive)은 append-only 그대로 둔다 — 화면에서만 빠진다. 되돌리려면
+// 여기 목록에 다시 넣으면 된다(키가 같으므로 과거 데이터와 그대로 이어진다).
 
 function loadEnv(p) {
   if (!fs.existsSync(p)) return {};
