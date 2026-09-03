@@ -15,7 +15,7 @@
 // Run: node tools/audit-series-gaps.js [--days 21] [--json]
 const fs = require("node:fs");
 const path = require("node:path");
-const { previousDayProblems } = require("./collection-continuity");
+const { previousDayAssessment } = require("./collection-continuity");
 
 const argValue = (name) => {
   const index = process.argv.indexOf(name);
@@ -99,7 +99,13 @@ if (!tcgSeries) problems.push("TCG 정산 시계열 파일을 못 읽었다");
 
 // 중간 날짜 존재 여부와 "직전 완료일이 실제로 온전한가"는 별개다.
 // 과거 부분수집 전체를 매일 FAIL 시키면 경고 피로로 새 사고가 묻히므로 직전 하루만 강하게 본다.
-if (auc && tcg && tcgSeries) problems.push(...previousDayProblems({ auctionSeries: auc, tcgSnapshot: tcg, tcgSeries, day: LAST_FULL }));
+// 조사가 끝나 known-gaps.json 에 사유·확인일과 함께 등록된 날은 경고가 아니라 메모로 남긴다.
+// 2026-09-03: 이 분기가 없어서 복구 불가로 확인된 9/2 공백이 2시간마다 재실행+실패 메일을 냈다.
+if (auc && tcg && tcgSeries) {
+  const prev = previousDayAssessment({ auctionSeries: auc, tcgSnapshot: tcg, tcgSeries, day: LAST_FULL, root: ROOT });
+  problems.push(...prev.problems);
+  notes.push(...prev.known.map((k) => `${k} · known-gaps.json 등록(복구 불가 확인)`));
+}
 
 const pw = read("data/palworld-auction-market.json");
 if (pw) checkDaily("팰월드 경매 관측", (pw.points || []).map((r) => r.d));

@@ -1,4 +1,22 @@
+const fs = require("node:fs");
+const path = require("node:path");
 const { TCG_KEYS, TCG_WATCH_PER_GAME } = require("./tcg-config");
+
+// 조사가 끝난 영구 공백 — data/known-gaps.json. audit-series-gaps.js 의 규칙과 같다:
+// 사유(reason)·확인일(confirmed)이 없는 항목은 인정하지 않는다(새 공백을 조용히 덮는 데 못 쓰게).
+// 2026-09-03: 직전 완료일 검사가 이 목록을 안 봐서, 복구 불가로 확인된 9/2 공백이 2시간마다
+// 빨간불·재실행·실패 메일을 냈다. 영구 공백은 notes(known)로 내려보내고 재실행 대상에서도 뺀다.
+function loadKnownGaps(root) {
+  const known = new Set();
+  try {
+    const j = JSON.parse(fs.readFileSync(path.join(root, "data", "known-gaps.json"), "utf8"));
+    for (const g of (j && j.gaps) || []) {
+      if (!g.reason || !g.confirmed) continue;
+      for (const d of g.dates || []) known.add(`${g.series}|${d}`);
+    }
+  } catch {}
+  return known;
+}
 
 /** Returns a problem only when the completed day's aggregate is explicitly partial. */
 function previousAuctionDayProblems(series, day, label = "원피스 경매 일별", requirePresence = false) {
@@ -43,16 +61,32 @@ function previousTcgSettlementProblems(tcgSeries, tcgSnapshot, day, requiredKeys
   return thin.length ? [`TCG 정산 일별 — 직전 완료일 ${day} 처리량 부족(확인/보수적 최소): ${thin.join(", ")}`] : [];
 }
 
-/** Separates visible problems from the subset that can still be retried before source expiry. */
-function previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day, requiredTcgKeys = TCG_KEYS, requirePresence = false }) {
-  const auction = previousAuctionDayProblems(auctionSeries, day, "원피스 경매 일별", requirePresence);
-  const snapshot = previousTcgDayProblems(tcgSnapshot, day, requiredTcgKeys, "TCG 시장 스냅샷", requirePresence);
-  const settlement = previousTcgSettlementProblems(tcgSeries, tcgSnapshot, day, requiredTcgKeys, requirePresence);
+const AUCTION_LABEL = "원피스 경매 일별";
+const SNAPSHOT_LABEL = "TCG 시장 스냅샷";
+const SETTLEMENT_LABEL = "TCG 정산 일별";
+
+/**
+ * Separates visible problems from the subset that can still be retried before source expiry.
+ * A day registered in known-gaps.json for a series is reported under `known` (a note), not
+ * `problems`, and is never scheduled for recovery — it has already been confirmed unrecoverable.
+ */
+function previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day, requiredTcgKeys = TCG_KEYS, requirePresence = false, knownGaps, root }) {
+  // root 를 준 호출자(감사기·자가치유)만 known-gaps.json 을 읽는다. 순수 테스트는 디스크를 안 본다.
+  const known = knownGaps instanceof Set ? knownGaps : root ? loadKnownGaps(root) : new Set();
+  const isKnown = (label) => known.has(`${label}|${day}`);
+  const split = (label, list) => (isKnown(label) ? { problems: [], known: list } : { problems: list, known: [] });
+
+  const auction = split(AUCTION_LABEL, previousAuctionDayProblems(auctionSeries, day, AUCTION_LABEL, requirePresence));
+  const snapshot = split(SNAPSHOT_LABEL, previousTcgDayProblems(tcgSnapshot, day, requiredTcgKeys, SNAPSHOT_LABEL, requirePresence));
+  const settlement = split(SETTLEMENT_LABEL, previousTcgSettlementProblems(tcgSeries, tcgSnapshot, day, requiredTcgKeys, requirePresence));
+
   return {
-    problems: [...auction, ...snapshot, ...settlement],
+    problems: [...auction.problems, ...snapshot.problems, ...settlement.problems],
+    known: [...auction.known, ...snapshot.known, ...settlement.known],
     // Snapshot counts cannot be recreated after midnight. Settlement can still be recovered
     // from watched auctions until eBay's roughly 30-hour lookup window closes.
-    recovery: { auction: auction.length > 0, tcg: settlement.length > 0 },
+    // Known permanent gaps are excluded: re-dispatching cannot bring them back.
+    recovery: { auction: auction.problems.length > 0, tcg: settlement.problems.length > 0 },
   };
 }
 
@@ -61,4 +95,4 @@ function previousDayProblems(options) {
   return previousDayAssessment(options).problems;
 }
 
-module.exports = { previousAuctionDayProblems, previousTcgDayProblems, previousTcgSettlementProblems, previousDayAssessment, previousDayProblems };
+module.exports = { loadKnownGaps, previousAuctionDayProblems, previousTcgDayProblems, previousTcgSettlementProblems, previousDayAssessment, previousDayProblems };

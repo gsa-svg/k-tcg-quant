@@ -53,7 +53,8 @@ function inspectArtifacts(now = new Date()) {
   const newest = newestSettlementTime([today, previousDay]);
   const auctionBacklog = backlogSummary(readJson("data/auction-watch.json")?.pending, nowMs);
   const tcgBacklog = backlogSummary(readJson("data/tcg-watch.json")?.pending, nowMs);
-  const previous = previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day: previousDay, requirePresence: true });
+  // known-gaps.json 에 등록된 영구 공백은 previous.known 으로 빠진다 — 재실행해도 돌아오지 않으므로 경고·dispatch 대상이 아니다.
+  const previous = previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day: previousDay, requirePresence: true, root: ROOT });
   return {
     now: now.toISOString(),
     today,
@@ -63,6 +64,7 @@ function inspectArtifacts(now = new Date()) {
     activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,
     fxFresh: String(readJson("data/fx.json")?.date || "").slice(0, 10) === today,
     previousDayProblems: previous.problems,
+    previousDayKnown: previous.known,
     previousDayRecovery: previous.recovery,
   };
 }
