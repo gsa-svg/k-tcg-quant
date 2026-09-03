@@ -1,16 +1,25 @@
 name: Collect auction market
 
-# 경매 시장 관측 — 하루 4회.
-# 왜 야간 워크플로에 안 넣나: 한 번 스캔하면 "종료 6시간 이내" 구간만 잡힌다. 하루 한 번이면
-# 24시간 중 6시간만 보게 되므로 가격 표본이 얇다. 6시간 간격으로 돌려 하루를 덮는다.
+# 경매 시장 관측 + 정산 감시목록 채우기 — 2026-09-03 두 모드로 재편.
+#   전수(07:20 UTC, 창 시작 직후): 가격 밴드 × 전 페이지(~440콜). 시장 관측점을 찍고 24시간 안에 끝날 경매를 감시목록에.
+#   보충(3시간마다, --topup): 종료 임박 순 앞쪽만(~50콜). 다음 9시간 안에 끝날 경매를 감시목록에 보태고 가격 표본만 합친다.
+# 왜: eBay 쿼터 창은 07:00 UTC 리셋(실측). 종전엔 전수를 하루 8번 돌려 쿼터의 70% 를 썼고, 창 뒷부분에서
+# "정산 몫 남기기" 규칙에 걸려 검색이 통째로 건너뛰어졌다 → 감시목록 0건 → 그 시간대 종료 경매 영구 손실(9/2·9/3).
+# 검색은 가장 싸고 가장 급하다(감시목록에 없으면 정산 자체가 불가능) — 그래서 싸게 자주 돈다.
 # data/auction-market.json data/auction-watch.json 은 이 워크플로가 단독으로 소유한다 — 다른 워크플로가 같이 쓰면 충돌한다.
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "full = 전수(시장 관측점 갱신) · topup = 감시목록 보충만(싸다). 자가치유는 기본값(topup)으로 부른다."
+        type: choice
+        options: [topup, full]
+        default: topup
   schedule:
-    # 3시간 간격 — 2026-08-28 전수 수집 전환(스캔 12,000건/2.5분)으로 주기를 좁혔다.
-    # 감시 지평선이 7시간이라 3시간 간격이면 마감 경매를 놓치지 않는다.
-    - cron: "0 20,23,2,5,8,11,14,17 * * *"
+    # ⚠️ 두 줄로 나눈 이유: github.event.schedule 은 매칭된 cron 문자열 그대로라, 첫 줄만 전수로 분기할 수 있다.
+    - cron: "20 7 * * *"                     # 전수 — 창 시작 직후(KST 16:20)
+    - cron: "20 1,4,10,13,16,19,22 * * *"    # 보충 — 3시간 간격
 
 permissions:
   contents: write
@@ -35,14 +44,19 @@ jobs:
         with:
           node-version: "22"
 
-      # eBay Browse 한도는 하루 5,000콜이다. 바닥일 때 시작하면 전부 429 로 실패하고
-      # 원장에는 구멍만 남는다(2026-09-01 실측: settle 이 due 391건 중 390건을 놓쳤다).
-      # 남은 콜이 이 회차에 필요한 양보다 적으면 여기서 멈춘다 — 감시목록은 그대로라 다음 회차에 재시도된다.
-      - name: eBay quota gate
-        run: node tools/check-ebay-quota.js --min 400
+      # 쿼터 게이트 없음 — 스크립트가 잔여를 보고 스스로 판단한다(부족하면 0건으로 정상 종료).
+      # 게이트로 exit 1 하면 워크플로가 죽고 실패 메일만 남는다(2026-09-02 사고). 2026-09-03 제거.
+      - name: Mode
+        id: mode
+        run: |
+          if [ "${{ github.event.schedule }}" = "20 7 * * *" ] || [ "${{ github.event.inputs.mode }}" = "full" ]; then
+            echo "flag=" >> "$GITHUB_OUTPUT"; echo "mode=full"
+          else
+            echo "flag=--topup" >> "$GITHUB_OUTPUT"; echo "mode=topup"
+          fi
 
       - name: Collect
-        run: node tools/collect-auction-market.js
+        run: node tools/collect-auction-market.js ${{ steps.mode.outputs.flag }}
 
       # 팰월드도 같은 깊이로 본다(종류별·세트별·수량별) — 2026-08-19.
       # 다른 TCG 16종은 collect-tcg-snapshot.js 가 개괄만 훑는다. 팰월드는 우리가 원장을
@@ -50,7 +64,7 @@ jobs:
       # 실패해도 원피스 수집을 막지 않는다: 팰월드가 없다고 원피스 관측을 버릴 이유가 없다.
       - name: Collect (Palworld)
         continue-on-error: true
-        run: node tools/collect-auction-market.js --game=palworld
+        run: node tools/collect-auction-market.js --game=palworld ${{ steps.mode.outputs.flag }}
 
       - name: Guard
         run: node tools/guard-invariants.js

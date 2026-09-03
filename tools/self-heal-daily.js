@@ -51,7 +51,19 @@ function inspectArtifacts(now = new Date()) {
   const tcgSnapshot = readJson("data/tcg-snapshot.json");
   const tcgSeries = readJson("data/tcg-series.json");
   const newest = newestSettlementTime([today, previousDay]);
-  const auctionBacklog = backlogSummary(readJson("data/auction-watch.json")?.pending, nowMs);
+  const auctionWatch = readJson("data/auction-watch.json");
+  const auctionBacklog = backlogSummary(auctionWatch?.pending, nowMs);
+  // 감시목록에 "아직 진행 중"인 원피스 경매가 없으면 검색이 안 돌고 있다는 뜻이다 — 2026-09-03.
+  // 그 사이 끝나는 경매는 영구히 못 읽는다(9/2·9/3 사고). 정산 backlog 와 별개로 본다.
+  let newestEnd = 0;
+  let liveWatched = 0;
+  for (const row of auctionWatch?.pending || []) {
+    const ended = Date.parse(row.endsAt || 0);
+    if (!ended) continue;
+    if (ended > nowMs) liveWatched += 1;
+    if (ended > newestEnd) newestEnd = ended;
+  }
+  const search = { liveWatched, newestEndMinutes: newestEnd ? Math.round((nowMs - newestEnd) / 60000) : 9999 };
   const tcgBacklog = backlogSummary(readJson("data/tcg-watch.json")?.pending, nowMs);
   // known-gaps.json 에 등록된 영구 공백은 previous.known 으로 빠진다 — 재실행해도 돌아오지 않으므로 경고·dispatch 대상이 아니다.
   const previous = previousDayAssessment({ auctionSeries, tcgSnapshot, tcgSeries, day: previousDay, requirePresence: true, root: ROOT });
@@ -59,6 +71,7 @@ function inspectArtifacts(now = new Date()) {
     now: now.toISOString(),
     today,
     previousDay,
+    search,
     auction: { staleMinutes: newest ? Math.round((nowMs - newest) / 60000) : 9999, ...auctionBacklog },
     tcg: { snapshotToday: (tcgSnapshot?.points || []).some((point) => point?.d === today), ...tcgBacklog },
     activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,

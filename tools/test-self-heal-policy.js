@@ -9,6 +9,7 @@ const { recordSummary } = require("./self-heal-daily");
 
 const healthy = {
   now: "2026-09-03T07:50:00.000Z",
+  search: { liveWatched: 500, newestEndMinutes: -600 },
   auction: { staleMinutes: 45, due: 20, urgent: 0, oldestHours: 1 },
   tcg: { snapshotToday: true, due: 100, urgent: 0 },
   activeListingsFresh: true,
@@ -16,6 +17,14 @@ const healthy = {
   previousDayProblems: [],
 };
 assert.deepEqual(buildHealPlan(healthy), { requests: [], alerts: [] });
+
+// 감시목록에 진행 중 경매가 없으면 검색이 안 도는 것 — 지금 끝나는 경매를 영구히 놓치는 중이다(9/2·9/3 사고).
+const emptyWatch = buildHealPlan({ ...healthy, search: { liveWatched: 0, newestEndMinutes: 400 } });
+assert.deepEqual(emptyWatch.requests.map((r) => r.key), ["search"], "an empty watch list must dispatch a search top-up first");
+assert.ok(emptyWatch.alerts.some((a) => /감시목록.*비어/.test(a)), "a watch list empty for hours must alert");
+const thinWatch = buildHealPlan({ ...healthy, search: { liveWatched: 5, newestEndMinutes: -30 } });
+assert.deepEqual(thinWatch.requests.map((r) => r.key), ["search"]);
+assert.deepEqual(thinWatch.alerts, [], "a thin but recently refilled watch list is a request, not an alert");
 
 const missingTcg = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false } });
 assert.deepEqual(missingTcg.requests.map((r) => r.key), ["tcg"]);

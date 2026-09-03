@@ -95,6 +95,14 @@ const GAMES = {
   },
 };
 
+// 실행 모드 — 2026-09-03.
+//   전수(기본): 가격 밴드 × 전 페이지. 시장 관측점(출품량·세트별)을 찍고 24시간 안에 끝날 경매를 감시목록에 넣는다.
+//   보충(--topup): 밴드 없이 종료 임박 순 앞쪽만. 다음 9시간 안에 끝날 경매를 감시목록에 보태고 가격 표본만 합친다.
+// 왜 나눴나: 전수는 회차당 ~440콜이라 하루 8번 돌리면 쿼터의 70% 다. 감시목록을 채우는 데는
+// "곧 끝나는 것"만 보면 되고 그건 ~50콜이다. 검색이 빠지면 그 시간대 경매는 영영 못 읽으므로
+// 싸게 자주 도는 쪽이 맞다.
+const TOPUP = process.argv.includes("--topup");
+const TOPUP_HORIZON_MIN = 540;   // 보충 지평 9시간 — 3시간 간격에서 두 번 빠져도 버틴다
 const GAME_KEY = (process.argv.find((a) => a.startsWith("--game=")) || "--game=onepiece").split("=")[1];
 const GAME = GAMES[GAME_KEY];
 if (!GAME) throw new Error(`알 수 없는 게임: ${GAME_KEY} (가능: ${Object.keys(GAMES).join(", ")})`);
@@ -141,7 +149,7 @@ async function search(tok, q, offset, band) {
 // ── 분류 ─────────────────────────────────────────────────────────────
 // box/carton/pack/card 판정은 공용 모듈(가드 Q2가 검증). 여기선 그걸 그대로 쓴다.
 const { categorize } = require("./auction-classify");
-const { remaining } = require("./ebay-budget");
+const { quota } = require("./ebay-budget");
 
 // 세트 코드: OP-06 / OP06 / EB-01 / PRB-01 / ST-21 형태를 모두 받아 정규화한다.
 // 카드번호(OP06-093)가 있으면 거기서 세트를 딴다 — 제목에 세트명이 따로 없어도 정확하다.
@@ -195,28 +203,37 @@ function summarize(rows) {
   const rows = [];
   let totalReported = 0;
 
-  // ── 쿼터 양보 (2026-09-02)
-  // 검색이 먼저 다 써 버리면 정산이 굶는다. 정산 못 한 매물은 되살릴 수 없다(경매는 끝나면
-  // 조회 불가). 검색은 다음 회차가 다시 하면 되므로, 정산 몫을 남겨 두고 스캔한다.
-  // 실측 2026-09-02: 한 회차 스캔이 440콜(12,134건). 하루 8회면 3,520콜로 하루치의 70% 다.
-  const SETTLE_RESERVE = Number(process.env.SCAN_RESERVE ?? 2600);   // 정산·TCG·안전 몫. SCAN_RESERVE 로 회차별 덮어쓰기(2026-09-03 감시목록 0건 긴급 복구에 사용)
-  let quotaLeft = await remaining();
-  let scanBudget = quotaLeft == null ? 400 : Math.max(0, quotaLeft - SETTLE_RESERVE);
+  // ── 쿼터 (2026-09-03 재정렬)
+  // 검색은 정산보다 **우선**한다. 감시목록에 없는 경매는 끝나면 영영 못 읽지만, 정산은 30시간 안에만
+  // 하면 된다. 종전 규칙(정산 몫 2,600 을 남기고 스캔)은 창 뒷부분에서 검색을 통째로 건너뛰게 해
+  // 9/2·9/3 에 감시목록이 0건이 됐다(그 사이 종료분은 영구 손실).
+  //   보충: 안전 몫(200)만 남기고 최대 150콜.   전수: 정산 한 회차(600)를 남긴다 — 창이 열린 직후라 넉넉하다.
+  const { remaining: quotaLeft } = await quota();
+  let scanBudget = quotaLeft == null
+    ? (TOPUP ? 60 : 400)
+    : Math.min(TOPUP ? 150 : Infinity, Math.max(0, quotaLeft - (TOPUP ? 200 : 600)));
   let calls = 0;
   if (quotaLeft != null && scanBudget <= 0) {
-    console.log(JSON.stringify({ game: GAME_KEY, note: "쿼터가 정산 몫까지라 스캔을 건너뛴다", quotaLeft }));
+    console.log(JSON.stringify({ game: GAME_KEY, mode: TOPUP ? "topup" : "full", note: "쿼터가 바닥이라 스캔을 건너뛴다", quotaLeft }));
     return;
   }
 
+  // 보충 모드는 밴드가 필요 없다 — 종료 임박 순 앞쪽 몇 페이지만 보고, 지평(9시간)을 넘기면 멈춘다.
+  const bands = TOPUP ? [null] : PRICE_BANDS;
   for (const q of QUERIES) {
-    for (const band of PRICE_BANDS) {
+    for (const band of bands) {
       let bandTotal = 0;
-      for (let p = 0; p < PAGES; p++) {
-      if (calls >= scanBudget) break;   // 정산 몫을 침범하지 않는다
+      let beyondHorizon = false;
+      for (let p = 0; p < PAGES && !beyondHorizon; p++) {
+      if (calls >= scanBudget) break;   // 남겨 둔 몫을 침범하지 않는다
       calls++;
       const { items, total } = await search(tok, q, p * PAGE_SIZE, band);
       if (p === 0) { bandTotal = total; totalReported += total; }
       if (!items.length) break;
+      if (TOPUP) {
+        const lastEnd = Date.parse(items[items.length - 1].itemEndDate || 0);
+        if (Number.isFinite(lastEnd) && lastEnd > Date.now() + TOPUP_HORIZON_MIN * 60000) beyondHorizon = true;
+      }
       for (const it of items) {
         const id = it.itemId;
         const title = it.title || "";
@@ -253,9 +270,12 @@ function summarize(rows) {
 
   // ── 정산 감시목록 적재.
   // 여기서 본 경매 중 곧 끝나는 것들을 기록해두면, settle-auctions.js 가 종료 후 다시 조회해
-  // 진짜 낙찰가를 가져온다. 스캔이 6시간마다이므로 다음 스캔 전에 끝날 것들을 모두 담아야 한다
-  // (여유 1시간). 감시목록에 없으면 그 경매의 낙찰가는 영원히 못 얻는다.
-  const WATCH_HORIZON_MIN = 420;   // 7시간
+  // 진짜 낙찰가를 가져온다. 감시목록에 없으면 그 경매의 낙찰가는 영원히 못 얻는다.
+  // 지평(horizon)은 "다음 스캔이 몇 번 빠져도 버티는가"다 — 2026-09-03 정정.
+  // 종전 7시간은 3시간 간격 스캔이 두 번만 빠져도 구멍이 났다(GitHub 크론은 실제로 빠진다. 9/2·9/3 사고).
+  //   전수: 24시간 — 스캔이 하루 통째로 빠져도 그날 종료분은 이미 감시 중이다.
+  //   보충: 9시간 — 3시간 간격에서 두 번 빠져도 버틴다(페이지 비용 때문에 짧게).
+  const WATCH_HORIZON_MIN = TOPUP ? TOPUP_HORIZON_MIN : 1440;
   const watchPath = path.join(ROOT, "data", GAME_KEY === "onepiece" ? "auction-watch.json" : `${GAME_KEY}-auction-watch.json`);
   let watch;
   try { watch = JSON.parse(fs.readFileSync(watchPath, "utf8")); } catch { watch = { pending: [] }; }
@@ -282,22 +302,6 @@ function summarize(rows) {
   try { out = JSON.parse(fs.readFileSync(outPath, "utf8")); } catch { out = { points: [] }; }
   const prior = out.points.find((p) => p.d === today);
 
-  // ── 하루 안에서 가격 표본을 누적한다.
-  // 한 번 스캔하면 "종료 6시간 이내" 구간만 잡히므로 하루 한 번으론 24시간 중 6시간만 본다.
-  // 그래서 하루 여러 번 돌리는데, 같은 날 실행이 이전 표본을 덮어쓰면 여러 번 돌리는 의미가 없다.
-  // 경매 id 로 합집합을 만들어 같은 경매를 두 번 세지 않으면서 표본만 두껍게 한다.
-  const obs = new Map((prior?.priceObs || []).map((o) => [o.id, o]));
-  for (const r of rows) {
-    if (!(r.bidCount > 0)) continue;
-    if (r.minsLeft == null || r.minsLeft > PRICE_WINDOW_MIN) continue;
-    if (!Number.isFinite(r.bid)) continue;
-    // 같은 경매를 또 봤다면 더 나중 값(더 수렴한 값)으로 갱신한다.
-    obs.set(r.id, { id: r.id, kind: r.kind, set: r.set, cardId: r.cardId, qty: r.qty, bid: r.bid, bidCount: r.bidCount });
-  }
-  const priceObs = [...obs.values()];
-
-  // 출품량은 "지금 몇 건이 돌고 있나"라 시점 스냅샷이다(누적이 아님) — 마지막 스캔 값을 쓴다.
-  // 가격은 위에서 만든 당일 누적 표본에서 계산한다. 둘의 성격이 다르므로 분리해 둔다.
   // 가격은 "개당가": 다수량이면 총액÷수량, 수량 불명(qty null)이면 표본에서 제외.
   // 당일 앞선 실행이 남긴 qty 없는 관측은 종전대로 bid 그대로 쓴다(다음 날부터 전부 qty 있음).
   const unitBid = (o) => {
@@ -305,10 +309,53 @@ function summarize(rows) {
     if (!("qty" in o)) return o.bid;
     return o.qty == null ? null : Number((o.bid / o.qty).toFixed(2));
   };
-  const priceOf = (sel) => {
-    const s = priceObs.filter(sel).map(unitBid).filter(Number.isFinite);
+  const priceOf = (obsList, sel) => {
+    const s = obsList.filter(sel).map(unitBid).filter(Number.isFinite);
     return { nPrice: s.length, medBid: med(s), maxBid: s.length ? Math.max(...s) : null };
   };
+  const asObs = (r) => ({ id: r.id, kind: r.kind, set: r.set, cardId: r.cardId, qty: r.qty, bid: r.bid, bidCount: r.bidCount });
+  const isPriceObs = (r) => r.bidCount > 0 && r.minsLeft != null && r.minsLeft <= PRICE_WINDOW_MIN && Number.isFinite(r.bid);
+
+  // 보충 모드는 시장 관측점의 출품량(n·contested)을 건드리지 않는다 — 앞쪽 몇 페이지만 본 표본이라
+  // 출품량으로 쓰면 그날 값이 줄어든다. 가격 표본만 당일 점에 합치고 가격 통계를 다시 계산한다.
+  // 그날 전수가 아직 없으면(창이 열리기 전 새벽 보충) 감시목록만 채우고 끝낸다.
+  if (TOPUP) {
+    if (prior) {
+      const obsT = new Map((prior.priceObs || []).map((o) => [o.id, o]));
+      for (const r of rows) if (isPriceObs(r)) obsT.set(r.id, asObs(r));
+      prior.priceObs = [...obsT.values()];
+      const p = (sel) => priceOf(prior.priceObs, sel);
+      for (const k of Object.keys(prior.byKind || {})) {
+        Object.assign(prior.byKind[k], p((o) => o.kind === k));
+        if (prior.byKind[k].byQty) {
+          Object.assign(prior.byKind[k].byQty.single, p((o) => o.kind === k && o.qty === 1));
+          Object.assign(prior.byKind[k].byQty.multi, p((o) => o.kind === k && Number.isFinite(o.qty) && o.qty > 1));
+        }
+      }
+      for (const s of Object.keys(prior.bySet || {})) Object.assign(prior.bySet[s], p((o) => o.set === s));
+      for (const c of prior.topCards || []) Object.assign(c, p((o) => o.cardId === c.id));
+      prior.runs = (prior.runs || 0) + 1;
+      fs.writeFileSync(outPath, JSON.stringify(out) + "\n", "utf8");
+    }
+    console.log(JSON.stringify({
+      game: GAME_KEY, mode: "topup", calls, scanned: rows.length,
+      watchAdded: added, watchPending: watch.pending.length, priceSamples: prior ? prior.priceObs.length : null,
+    }));
+    return;
+  }
+
+  // ── 하루 안에서 가격 표본을 누적한다.
+  // 한 번 스캔하면 "종료 6시간 이내" 구간만 잡히므로 하루 한 번으론 24시간 중 6시간만 본다.
+  // 그래서 하루 여러 번 돌리는데, 같은 날 실행이 이전 표본을 덮어쓰면 여러 번 돌리는 의미가 없다.
+  // 경매 id 로 합집합을 만들어 같은 경매를 두 번 세지 않으면서 표본만 두껍게 한다.
+  const obs = new Map((prior?.priceObs || []).map((o) => [o.id, o]));
+  // 같은 경매를 또 봤다면 더 나중 값(더 수렴한 값)으로 갱신한다.
+  for (const r of rows) if (isPriceObs(r)) obs.set(r.id, asObs(r));
+  const priceObs = [...obs.values()];
+  const price = (sel) => priceOf(priceObs, sel);
+
+  // 출품량은 "지금 몇 건이 돌고 있나"라 시점 스냅샷이다(누적이 아님) — 마지막 전수 값을 쓴다.
+  // 가격은 위에서 만든 당일 누적 표본에서 계산한다. 둘의 성격이 다르므로 분리해 둔다.
   const counts = (rs) => ({
     n: rs.length,
     contested: rs.filter((r) => r.bidCount > 0).length,
@@ -317,13 +364,13 @@ function summarize(rows) {
 
   const byKind = {};
   for (const k of ["box", "carton", "pack", "card"]) {
-    byKind[k] = { ...counts(rows.filter((r) => r.kind === k)), ...priceOf((o) => o.kind === k) };
+    byKind[k] = { ...counts(rows.filter((r) => r.kind === k)), ...price((o) => o.kind === k) };
   }
   // 박스는 "부스터박스 갯수"별로 세분: single(1개) / multi(2개 이상 묶음). 카톤은 위 carton 으로 별도.
   const boxRows = rows.filter((r) => r.kind === "box");
   byKind.box.byQty = {
-    single: { ...counts(boxRows.filter((r) => r.qty === 1)), ...priceOf((o) => o.kind === "box" && o.qty === 1) },
-    multi: { ...counts(boxRows.filter((r) => Number.isFinite(r.qty) && r.qty > 1)), ...priceOf((o) => o.kind === "box" && Number.isFinite(o.qty) && o.qty > 1) },
+    single: { ...counts(boxRows.filter((r) => r.qty === 1)), ...price((o) => o.kind === "box" && o.qty === 1) },
+    multi: { ...counts(boxRows.filter((r) => Number.isFinite(r.qty) && r.qty > 1)), ...price((o) => o.kind === "box" && Number.isFinite(o.qty) && o.qty > 1) },
   };
 
   const setStats = {};
@@ -332,7 +379,7 @@ function summarize(rows) {
     if (rs.length < MIN_SET_N) continue;
     setStats[s] = {
       ...counts(rs),
-      ...priceOf((o) => o.set === s),
+      ...price((o) => o.set === s),
       byKind: Object.fromEntries(["box", "carton", "pack", "card"].map((k) => [k, rs.filter((r) => r.kind === k).length])),
       boxByQty: { single: rs.filter((r) => r.kind === "box" && r.qty === 1).length, multi: rs.filter((r) => r.kind === "box" && Number.isFinite(r.qty) && r.qty > 1).length },
     };
@@ -340,7 +387,7 @@ function summarize(rows) {
 
   const cardIds = new Set(rows.filter((r) => r.cardId).map((r) => r.cardId));
   const topCards = [...cardIds]
-    .map((id) => ({ id, ...counts(rows.filter((r) => r.cardId === id)), ...priceOf((o) => o.cardId === id) }))
+    .map((id) => ({ id, ...counts(rows.filter((r) => r.cardId === id)), ...price((o) => o.cardId === id) }))
     .sort((a, b) => b.n - a.n || (b.medBid ?? 0) - (a.medBid ?? 0))
     .slice(0, TOP_CARDS);
 

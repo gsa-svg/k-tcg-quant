@@ -15,6 +15,20 @@ function buildHealPlan(input) {
   const auction = input.auction || {};
   const tcg = input.tcg || {};
   const recovery = input.previousDayRecovery || {};
+  const search = input.search || {};
+
+  // 검색이 맨 앞이다. 감시목록에 진행 중 경매가 없으면 지금 끝나는 경매를 영구히 놓치는 중이다 —
+  // 정산·스냅샷은 뒤에 다시 할 수 있지만 이건 못 한다. 보충(--topup)은 ~50콜이라 부담이 없다.
+  if (Number.isFinite(search.liveWatched) && search.liveWatched < 20) {
+    requests.push({
+      key: "search",
+      workflow: "collect-auction-market.yml",
+      reason: `원피스 감시목록 진행중 ${search.liveWatched}건 · 마지막 종료 ${search.newestEndMinutes}분 전`,
+    });
+    if (search.liveWatched === 0 && search.newestEndMinutes > 180) {
+      alerts.push("원피스 감시목록이 3시간 넘게 비어 있습니다 — 검색이 돌지 않아 그 사이 종료 경매를 영구히 놓치는 중입니다");
+    }
+  }
 
   if (recovery.auction || auction.staleMinutes > 150 || auction.due > 200 || auction.urgent > 0) {
     requests.push({

@@ -1,20 +1,16 @@
-// eBay 하루 호출량(5,000건)을 용도별로 나눈다 — 2026-09-02 신설.
+// eBay 하루 호출량(5,000건) 배분 — 2026-09-02 신설, 2026-09-03 리셋 창 기준으로 재정렬.
 //
-// ── 왜 필요했나
-// 소유자 지시: "당분간 데일리로 이베이 쿼터는 max 로 다 수집해서 그래프·데이터를 고도화하자."
-// 종전에는 settle-auctions 가 회차당 250건으로 못박혀 있었다(하루 12회 = 3,000건 상한).
-// 그런데 실제로는 그 상한에 닿지도 못했다 — 2026-09-02 실측으로 정산 대기가 242건뿐이었다.
-// 병목은 상한이 아니라 **감시 목록에 들어온 매물 수**였다. 원피스는 하루 1,864건이 끝나는데
-// 감시 목록에는 526건만 들어와 있었다(28%). 정산기는 감시 중인 것만 정산할 수 있다.
-//
-// 그래서 두 가지를 함께 바꾼다.
-//   ① 검색(collect-auction-market)을 더 자주 돌려 감시 목록을 채운다 — 검색은 싸다.
-//      실측: 12,134건 스캔에 440콜(1콜당 27건). 정산은 1건당 1콜이라 비교가 안 된다.
-//   ② 정산 상한을 고정값이 아니라 **그 시점의 잔여 쿼터**에서 계산한다.
-//
-// ── 배분 원칙
-// 이 사이트의 주제는 원피스다. 남는 쿼터는 원피스 커버리지에 먼저 쓴다.
-// 다만 TCG 스냅샷·정산이 굶으면 게임 간 비교가 끊기므로 그쪽 몫을 먼저 떼어 둔다.
+// ── 실측으로 확정된 사실 (2026-09-03)
+// · 쿼터 창은 UTC 자정이 아니라 **07:00 UTC(한국 16:00)** 에 리셋된다 — analytics 응답의 reset 값.
+//   종전 코드는 자정 기준으로 "오늘 남은 실행"을 세어 7시간 어긋났고, 창 끝(00~07 UTC)에
+//   스냅샷·검색이 굶어 8/29·8/30·9/1 스냅샷과 9/2·9/3 원피스 감시목록이 비었다.
+// · getItems(벌크 20건 조회)는 이 앱 권한으로 403 — 지름길이 없다. 정산은 1건 = 1콜.
+// · 창 하나(5,000)로 원피스 전량(정산 ~1,900 + 검색)과 TCG 13종 × 250(정산 3,250)을 다 할 수 없다.
+//   그래서 **순서**가 규칙이다(소유자: 이 사이트의 주제는 원피스, TCG 는 남는 만큼 최대로):
+//     ① 원피스 검색 — 감시목록에 없으면 그 경매는 영원히 못 읽는다. 가장 싸고(회차 ~50콜) 가장 급하다.
+//     ② 원피스 정산 — 종료 후 30시간 안에 읽어야 한다.
+//     ③ TCG 스냅샷 — 하루 한 점, 그 순간에만 존재하는 값. 창이 열리자마자(07:30 UTC) 찍는다.
+//     ④ TCG 정산 — 남는 쿼터 전부. 단, 이 창에서 끝나는 원피스 건수만큼은 남겨 둔다.
 //
 // ⚠️ 잔여량은 eBay 가 알려주는 실제 값을 쓴다. 우리가 센 횟수로 추정하면 다른 워크플로가
 //    쓴 몫을 놓쳐 429 를 맞는다(2026-09-02 에 실제로 맞았다).
@@ -23,6 +19,10 @@ const path = require("path");
 const { TCG_SCHEDULE_UTC } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
+const HOUR = 3600000;
+
+// 쿼터 창이 리셋되는 UTC 시각. analytics 응답의 reset 을 우선 쓰고, 못 읽었을 때만 이 값으로 계산한다.
+const RESET_UTC_HOUR = 7;
 
 function loadEnv(p) {
   const out = {};
@@ -48,94 +48,134 @@ async function token() {
   return j.access_token;
 }
 
-// Browse API 의 남은 호출 수. 못 읽으면 null — 부르는 쪽이 보수적으로 굴어야 한다.
-async function remaining() {
+/** 다음 리셋 시각(ms). API 가 reset 을 안 주면 07:00 UTC 규칙으로 계산한다. */
+function nextReset(nowMs = Date.now()) {
+  const d = new Date(nowMs);
+  const today = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), RESET_UTC_HOUR);
+  return today > nowMs ? today : today + 24 * HOUR;
+}
+
+// Browse API 의 남은 호출 수와 리셋 시각. 못 읽으면 remaining null — 부르는 쪽이 보수적으로 굴어야 한다.
+async function quota() {
   try {
     const tok = await token();
     const r = await fetch("https://api.ebay.com/developer/analytics/v1_beta/rate_limit/?api_name=Browse&api_context=buy", {
       headers: { Authorization: `Bearer ${tok}` },
     });
-    if (!r.ok) return null;
+    if (!r.ok) return { remaining: null, limit: null, reset: null };
     const j = await r.json();
     for (const a of j.rateLimits || []) {
       for (const res of a.resources || []) {
+        // 정산·검색이 쓰는 버킷은 buy.browse 다. buy.browse.item.bulk 는 권한이 없어 못 쓴다(403).
+        if (res.name && res.name !== "buy.browse") continue;
         for (const r2 of res.rates || []) {
-          if (Number.isFinite(r2.remaining)) return r2.remaining;
+          if (Number.isFinite(r2.remaining)) {
+            const reset = r2.reset ? Date.parse(r2.reset) : NaN;
+            return { remaining: r2.remaining, limit: r2.limit ?? null, reset: Number.isFinite(reset) ? reset : null };
+          }
         }
       }
     }
   } catch {}
-  return null;
+  return { remaining: null, limit: null, reset: null };
 }
 
-// 용도별로 떼어 두는 몫. 하루 총량 5,000 기준.
-const RESERVE = {
-  tcg: 1100,      // TCG 스냅샷(게임 13종 × 5페이지)과 TCG 정산 — 2026-09-03 얇은 4종(swu·vanguard·metazoo·fab) 제외
-  search: 1000,   // 원피스·팰월드 매물 검색 — 감시 목록을 채우는 곳. 여기가 마르면 정산할 것이 없어진다.
-  safety: 200,    // 다른 워크플로(진행 매물·PSA10 링크)와 재시도용
-};
+async function remaining() {
+  return (await quota()).remaining;
+}
 
-// 각 예약이 걸린 워크플로의 하루 실행 시각(UTC). 쿼터는 UTC 자정에 리셋된다.
-const SCHEDULE = {
-  tcg: TCG_SCHEDULE_UTC,                     // collect-tcg (0시엔 스냅샷도 함께)
-  search: [2, 5, 8, 11, 14, 17, 20, 23],    // collect-auction-market
-  safety: null,                             // 상시 — 재시도·돌발 워크플로용이라 줄이지 않는다
-};
-
-// 한 회차가 실제로 쓰는 양(실측). 예약은 이만큼만 잡는다 — 2026-09-03 재정정.
-// 종전엔 "남은 모든 회차분"을 통째로 예약했는데, 그러면 하루 뒷부분에서 예약이 잔여를 넘어선다.
-// 실측 사고: UTC 03시 잔여 1,660 인데 예약 1,900 → 정산 가용 0.
-// 326건이 종료돼 대기 중인데 한 건도 못 돌았고, 그 시간대가 통째로 "부분수집"이 됐다.
-//
-// 정산은 늦으면 끝난다(종료 후 30시간이면 eBay 가 조회를 막는다). 검색·스냅샷은 다음 회차에
-// 다시 하면 된다. 그러니 시간이 급한 쪽에 우선권을 준다 — 다음 1회분만 남기고 나머지는 정산에.
+// 한 회차가 실제로 쓰는 양(실측). 예약은 **다음 1회분만** 잡는다 — 2026-09-03.
+// "남은 모든 회차분"을 예약하면 창 뒷부분에서 예약이 잔여를 넘어 정산 가용이 0 이 된다
+// (실측 사고: 잔여 1,660 · 예약 1,900 → 326건 대기인데 0건 처리).
 const PER_RUN = {
-  tcg: 300,       // 스냅샷은 하루 1회(~340)라 이미 돌았으면 정산분만 남으면 된다
-  search: 450,    // 실측: 12,134건 스캔에 440콜
-  safety: 200,    // 재시도·돌발 워크플로 — 줄이지 않는다
+  tcg: 300,       // TCG 정산 한 회차 — 원피스가 예약해 두는 최소 몫(TCG 가 완전히 굶지 않게)
+  search: 80,     // 원피스 검색 보충(--topup) 한 회차. 실측 2026-09-03: 종료 임박 정렬 10쿼리 ≈ 50콜
+  safety: 200,    // 재시도·돌발 워크플로(진행 매물·PSA10 링크) — 줄이지 않는다
 };
 
-/** 다음 1회분만 예약한다. 그날 그 워크플로가 더 안 돌면 0. */
-function reserveLeft(key, nowUtcHour) {
+// 각 예약이 걸린 워크플로의 실행 시각(UTC 시). 리셋 창 안에 아직 안 온 실행이 있을 때만 예약한다.
+const SEARCH_SCHEDULE_UTC = Object.freeze([1, 4, 7, 10, 13, 16, 19, 22]);   // collect-auction-market (07 = 전수, 나머지 = 보충)
+const SCHEDULE = {
+  tcg: TCG_SCHEDULE_UTC,
+  search: SEARCH_SCHEDULE_UTC,
+  safety: null,                             // 상시
+};
+
+/** 지금(now)과 리셋(reset) 사이에 그 시각(UTC 시)의 실행이 남아 있는가. */
+function runsBeforeReset(hours, nowMs, resetMs) {
+  const d = new Date(nowMs);
+  const base = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  return (hours || []).some((h) => {
+    let t = base + h * HOUR;
+    if (t <= nowMs) t += 24 * HOUR;
+    return t < resetMs;
+  });
+}
+
+/** 리셋 전에 그 워크플로가 더 돌면 다음 1회분, 아니면 0. safety 는 항상 전액. */
+function reserveLeft(key, nowMs = Date.now(), resetMs = nextReset(nowMs)) {
   const sched = SCHEDULE[key];
-  if (!sched) return PER_RUN[key] ?? RESERVE[key] ?? 0;   // safety 는 항상 전액
-  const h = Number.isFinite(nowUtcHour) ? nowUtcHour : new Date().getUTCHours();
-  const more = sched.some((x) => x > h);                  // 오늘 남은 실행이 있나
-  return more ? (PER_RUN[key] ?? 0) : 0;
+  if (!sched) return PER_RUN[key] ?? 0;
+  return runsBeforeReset(sched, nowMs, resetMs) ? (PER_RUN[key] ?? 0) : 0;
+}
+
+/**
+ * 이 창에서 끝나는 원피스·팰월드 감시 건수 — TCG 가 정산 전에 남겨 둬야 하는 몫.
+ * 감시목록에 endsAt 이 다 있으니 추정이 아니라 실제 개수다. 리셋 뒤에 끝나는 건 다음 창 몫이다.
+ */
+function auctionNeed(resetMs, root = ROOT) {
+  let need = 0;
+  for (const f of ["auction-watch.json", "palworld-auction-watch.json"]) {
+    try {
+      const w = JSON.parse(fs.readFileSync(path.join(root, "data", f), "utf8"));
+      for (const p of w.pending || []) {
+        const t = Date.parse(p.endsAt || p.end || 0);
+        if (Number.isFinite(t) && t < resetMs) need += 1;
+      }
+    } catch {}
+  }
+  return need;
+}
+
+function reserveFor(key, nowMs, resetMs) {
+  if (key === "auction") return auctionNeed(resetMs);
+  return reserveLeft(key, nowMs, resetMs);
 }
 
 // 이번 실행에서 정산에 쓸 수 있는 건수.
-//   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: 전부)
-//   opts.share: 남은 몫 중 이번 회차가 가져갈 비율. 2시간마다 도는 정산이 한 번에 다 쓰면
-//               그날 나머지 시간대가 굶는다. 기본 0.4 는 실측 없이 정한 값이 아니라,
-//               하루 12회 중 앞쪽 몇 회가 몰아 쓰고도 뒤가 남도록 잡은 것이다.
+//   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: tcg·search·safety — 원피스 정산용).
+//                    TCG 정산은 ["auction","search","safety"] 로 부른다(원피스 몫을 먼저 남긴다).
+//   opts.share: 남은 몫 중 이번 회차가 가져갈 비율. 한 번에 다 쓰면 창 나머지 시간대가 굶는다.
 //   opts.min / opts.max: 하한·상한(한 번에 너무 적거나 많이 돌지 않게)
 async function settleBudget(opts = {}) {
   const share = opts.share ?? 0.4;
   const min = opts.min ?? 50;
   const max = opts.max ?? 1200;
-  // 예약은 **앞으로 남은 실행 몫만** 잡는다 — 2026-09-03 정정.
-  // 종전엔 고정값(합계 2,300)이라, 하루가 지나 그 워크플로들이 이미 돌았어도 계속 붙들고 있었다.
-  // 실측: 잔여 2,420 인데 예약 2,300 이 물려 정산 가용이 120(회차당 48건)까지 쪼그라들었다.
-  // 그 결과 원피스는 하루 1,900건이 끝나는데 750~979건만 정산됐고, 쿼터는 1,400 넘게 남아 돌았다.
-  // 소유자 지시("이베이 쿼터는 max 로 다 수집")와 정반대다.
-  // 그래서 UTC 자정(쿼터 리셋)까지 **아직 오지 않은 실행 횟수**의 비율만큼만 남긴다.
-  const keep = (opts.reserveFor || ["tcg", "search", "safety"]).reduce((t, k) => t + reserveLeft(k), 0);
-
-  const left = await remaining();
-  if (left == null) return { n: min, left: null, note: "잔여량을 못 읽어 하한만 쓴다" };
+  const now = Date.now();
+  const q = await quota();
+  const left = q.remaining;
+  if (left == null) return { n: min, left: null, keep: null, reset: null, note: "잔여량을 못 읽어 하한만 쓴다" };
+  const reset = q.reset ?? nextReset(now);
+  const keys = opts.reserveFor || ["tcg", "search", "safety"];
+  const keep = keys.reduce((t, k) => t + reserveFor(k, now, reset), 0);
   const usable = Math.max(0, left - keep);
   const n = Math.max(0, Math.min(max, Math.floor(usable * share)));
-  if (n < min) return { n: n > 0 ? n : 0, left, note: `가용 ${usable} — 몫이 하한 미만` };
-  return { n, left, note: `잔여 ${left} · 예약 ${keep} · 가용 ${usable} · 이번 회차 ${n}` };
+  const resetAt = new Date(reset).toISOString().slice(11, 16);
+  if (n < min) return { n: n > 0 ? n : 0, left, keep, reset, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} — 몫이 하한 미만 · 리셋 ${resetAt}Z` };
+  return { n, left, keep, reset, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n} · 리셋 ${resetAt}Z` };
 }
 
-module.exports = { remaining, settleBudget, RESERVE, reserveLeft, SCHEDULE };
+module.exports = { quota, remaining, settleBudget, reserveLeft, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
 
 if (require.main === module) {
   (async () => {
-    const left = await remaining();
+    const q = await quota();
     const b = await settleBudget();
-    console.log(JSON.stringify({ 잔여: left, 예약: RESERVE, 이번회차_정산가능: b.n, 설명: b.note }, null, 1));
+    const t = await settleBudget({ reserveFor: ["auction", "search", "safety"], share: 0.5, min: 60, max: 900 });
+    console.log(JSON.stringify({
+      잔여: q.remaining, 한도: q.limit, 리셋: q.reset ? new Date(q.reset).toISOString() : null,
+      원피스_이번회차: b.n, 원피스_설명: b.note,
+      TCG_이번회차: t.n, TCG_설명: t.note,
+    }, null, 1));
   })();
 }

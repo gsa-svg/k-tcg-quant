@@ -62,16 +62,34 @@ async function getItem(tok, id) {
   if (!fs.existsSync(WATCH)) { console.log(JSON.stringify({ status: "skip", why: "감시 목록 없음" })); return; }
   const watch = JSON.parse(fs.readFileSync(WATCH, "utf8"));
   const now = Date.now();
-  // TCG 몫만 쓴다 — 원피스 정산·검색 몫은 남긴다(그쪽이 이 사이트의 주제다).
-  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["search", "safety"], share: 0.5 });
+  // 원피스가 이 창에서 끝나는 건수(감시목록의 실제 개수)·검색·안전 몫을 먼저 남기고, 나머지에서 쓴다.
+  // 2026-09-03 정정: 종전엔 검색·안전만 남겨서 TCG 가 회차마다 남은 쿼터의 절반을 가져갔고,
+  // 자가치유가 TCG 를 3번 더 돌린 날 원피스 정산 예산이 0 이 됐다. 이 사이트의 주제는 원피스다.
+  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["auction", "search", "safety"], share: 0.5 });
   if (budget.n <= 0) {
     console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
     return;
   }
-  const due = watch.pending
+  const dueAll = watch.pending
     .filter((p) => Date.parse(p.end) < now && Date.parse(p.end) > now - GIVE_UP_HOURS * 3600 * 1000)
-    .sort((a, b) => Date.parse(a.end) - Date.parse(b.end))     // 오래된 것부터 — 조회 가능 시한이 먼저 끝난다
-    .slice(0, budget.n);
+    .sort((a, b) => Date.parse(a.end) - Date.parse(b.end));    // 오래된 것부터 — 조회 가능 시한이 먼저 끝난다
+  // 게임별로 돌아가며 뽑는다 — 2026-09-03. 오래된 순으로만 자르면 큰 게임(포켓몬·매직)이 회차를 독점해
+  // 작은 게임은 0건이 된다(실측 9/3: 포켓몬 250 · 건담 1). 각 게임 안에서는 여전히 오래된 것부터다.
+  const byGameQueue = new Map();
+  for (const p of dueAll) {
+    if (!byGameQueue.has(p.g)) byGameQueue.set(p.g, []);
+    byGameQueue.get(p.g).push(p);
+  }
+  const due = [];
+  while (due.length < budget.n) {
+    let took = false;
+    for (const queue of byGameQueue.values()) {
+      if (!queue.length || due.length >= budget.n) continue;
+      due.push(queue.shift());
+      took = true;
+    }
+    if (!took) break;
+  }
   if (!due.length) { console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length })); return; }
 
   const tok = await token();
