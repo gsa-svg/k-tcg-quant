@@ -19,7 +19,8 @@ const TCGS = Object.freeze([
 const TCG_KEYS = Object.freeze(TCGS.map((game) => game.k));
 const EXCLUDED_TCG_KEYS = Object.freeze(["swu", "vanguard", "metazoo", "fab"]);
 // eBay 쿼터 창은 07:00 UTC 에 리셋된다(실측 2026-09-03). 07 회차가 창의 첫 실행 = 스냅샷 + 정산.
-const TCG_SCHEDULE_UTC = Object.freeze([1, 4, 7, 10, 13, 16, 19, 22]);
+// 06(06:45) 은 창 마지막 회차 — 남은 쿼터를 남김 없이 쓴다(포켓몬 여유분).
+const TCG_SCHEDULE_UTC = Object.freeze([1, 4, 6, 7, 10, 13, 16, 19, 22]);
 const TCG_WATCH_PER_GAME = 250;
 
 module.exports = { TCGS, TCG_KEYS, EXCLUDED_TCG_KEYS, TCG_SCHEDULE_UTC, TCG_WATCH_PER_GAME };

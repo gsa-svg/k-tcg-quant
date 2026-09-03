@@ -65,7 +65,8 @@ async function getItem(tok, id) {
   // 원피스가 이 창에서 끝나는 건수(감시목록의 실제 개수)·검색·안전 몫을 먼저 남기고, 나머지에서 쓴다.
   // 2026-09-03 정정: 종전엔 검색·안전만 남겨서 TCG 가 회차마다 남은 쿼터의 절반을 가져갔고,
   // 자가치유가 TCG 를 3번 더 돌린 날 원피스 정산 예산이 0 이 됐다. 이 사이트의 주제는 원피스다.
-  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["auction", "search", "safety"], share: 0.5 });
+  // drainKey: 창 마지막 회차(06:45 UTC)는 남김 없이 쓴다 — 리셋되면 사라지는 몫이고, 포켓몬 여유분이 기다리고 있다.
+  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["auction", "search", "safety"], share: 0.5, drainKey: "tcg" });
   if (budget.n <= 0) {
     console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
     return;
@@ -123,6 +124,8 @@ async function getItem(tok, id) {
       // 제목이 없어 숫자만으로는 확인 불가였다(getItem 재조회는 쿼터를 또 쓴다).
       // 하루 1,500건 × ~60자 = 90KB — 검증 가능성의 값으로 싸다. 이미 받아온 응답에서 꺼낼 뿐이다.
       title: (it.title || "").slice(0, 120) || undefined,
+      // 남는 쿼터로 더 읽은 포켓몬 여유분(topup-pokemon-watch.js). 표본 250 과 나눠 볼 수 있게 남긴다.
+      extra: p.extra ? true : undefined,
     });
   }
 

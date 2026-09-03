@@ -22,6 +22,7 @@ on:
     # 종전 00:00 UTC 는 창의 끝이라 잔여가 바닥나 8/29·8/30·9/1 스냅샷이 통째로 빠졌다.
     - cron: "30 7 * * *"                    # 스냅샷 + 정산 (창 시작, KST 16:30)
     - cron: "30 1,4,10,13,16,19,22 * * *"   # 정산만 (3시간 간격)
+    - cron: "45 6 * * *"                    # 창 마지막 회차 — 남은 쿼터를 남김 없이(포켓몬 여유분). 07:00 리셋 직전
 
 permissions:
   contents: write
@@ -57,6 +58,11 @@ jobs:
         run: node tools/collect-tcg-snapshot.js
 
       # 정산은 자주 돌아야 한다. 종료 후 30시간이 지나면 조회가 안 되고, 그 건은 영영 빈칸이 된다.
+      # 포켓몬 여유분 — 남는 쿼터는 포켓몬 수집에 쓴다(2026-09-03 소유자 지시). 검색어당 1콜(200건).
+      # 정산은 다른 게임 몫을 먼저 처리하고 남는 예산으로만 이 여유분을 읽는다.
+      - name: Pokemon top-up (leftover quota)
+        run: node tools/topup-pokemon-watch.js
+
       - name: Settle ended auctions
         run: node tools/settle-tcg.js
 

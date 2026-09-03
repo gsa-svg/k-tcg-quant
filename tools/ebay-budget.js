@@ -120,6 +120,15 @@ function reserveLeft(key, nowMs = Date.now(), resetMs = nextReset(nowMs)) {
 }
 
 /**
+ * 창 마지막 회차인가 — 이 워크플로가 리셋 전에 더 안 돌면 남은 몫을 남김 없이 쓴다.
+ * 리셋되면 사라지는 몫이다. 소유자(2026-09-03): "한도는 항상 쓴 적도 없다 — 남으면 포켓몬 수집에 써라."
+ */
+function isLastRunBeforeReset(key, nowMs = Date.now(), resetMs = nextReset(nowMs)) {
+  const sched = SCHEDULE[key];
+  return !!sched && !runsBeforeReset(sched, nowMs, resetMs);
+}
+
+/**
  * 이 창에서 끝나는 원피스·팰월드 감시 건수 — TCG 가 정산 전에 남겨 둬야 하는 몫.
  * 감시목록에 endsAt 이 다 있으니 추정이 아니라 실제 개수다. 리셋 뒤에 끝나는 건 다음 창 몫이다.
  */
@@ -147,8 +156,8 @@ function reserveFor(key, nowMs, resetMs) {
 //                    TCG 정산은 ["auction","search","safety"] 로 부른다(원피스 몫을 먼저 남긴다).
 //   opts.share: 남은 몫 중 이번 회차가 가져갈 비율. 한 번에 다 쓰면 창 나머지 시간대가 굶는다.
 //   opts.min / opts.max: 하한·상한(한 번에 너무 적거나 많이 돌지 않게)
+//   opts.drainKey: 이 워크플로의 스케줄 키. 리셋 전 마지막 회차면 share 를 1 로 올려 남김 없이 쓴다.
 async function settleBudget(opts = {}) {
-  const share = opts.share ?? 0.4;
   const min = opts.min ?? 50;
   const max = opts.max ?? 1200;
   const now = Date.now();
@@ -156,16 +165,19 @@ async function settleBudget(opts = {}) {
   const left = q.remaining;
   if (left == null) return { n: min, left: null, keep: null, reset: null, note: "잔여량을 못 읽어 하한만 쓴다" };
   const reset = q.reset ?? nextReset(now);
+  const drain = opts.drainKey ? isLastRunBeforeReset(opts.drainKey, now, reset) : false;
+  const share = drain ? 1 : (opts.share ?? 0.4);
   const keys = opts.reserveFor || ["tcg", "search", "safety"];
   const keep = keys.reduce((t, k) => t + reserveFor(k, now, reset), 0);
   const usable = Math.max(0, left - keep);
   const n = Math.max(0, Math.min(max, Math.floor(usable * share)));
   const resetAt = new Date(reset).toISOString().slice(11, 16);
-  if (n < min) return { n: n > 0 ? n : 0, left, keep, reset, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} — 몫이 하한 미만 · 리셋 ${resetAt}Z` };
-  return { n, left, keep, reset, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n} · 리셋 ${resetAt}Z` };
+  const tail = `${drain ? " · 창 마지막 회차(남김 없이)" : ""} · 리셋 ${resetAt}Z`;
+  if (n < min) return { n: n > 0 ? n : 0, left, keep, reset, drain, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} — 몫이 하한 미만${tail}` };
+  return { n, left, keep, reset, drain, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n}${tail}` };
 }
 
-module.exports = { quota, remaining, settleBudget, reserveLeft, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
+module.exports = { token, quota, remaining, settleBudget, reserveLeft, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
 
 if (require.main === module) {
   (async () => {

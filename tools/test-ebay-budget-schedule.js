@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { SCHEDULE, PER_RUN, reserveLeft, nextReset, runsBeforeReset, auctionNeed, RESET_UTC_HOUR } = require("./ebay-budget");
+const { SCHEDULE, PER_RUN, reserveLeft, isLastRunBeforeReset, nextReset, runsBeforeReset, auctionNeed, RESET_UTC_HOUR } = require("./ebay-budget");
 
 const cronHours = (file) => {
   const workflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", file), "utf8");
@@ -28,10 +28,15 @@ const reset = at("2026-09-04T07:00:00Z");
 assert.equal(runsBeforeReset([1, 4, 7], at("2026-09-03T22:10:00Z"), reset), true, "01:30/04:30 UTC runs are still inside the window");
 assert.equal(runsBeforeReset([7, 10], at("2026-09-03T22:10:00Z"), reset), false, "the 07:30 run belongs to the next window");
 assert.equal(reserveLeft("tcg", at("2026-09-03T22:10:00Z"), reset), PER_RUN.tcg);
-assert.equal(reserveLeft("tcg", at("2026-09-04T05:00:00Z"), reset), 0, "after the last in-window TCG run nothing is reserved");
+assert.equal(reserveLeft("tcg", at("2026-09-04T05:00:00Z"), reset), PER_RUN.tcg, "the 06:45 drain run is still ahead at 05:00");
+assert.equal(reserveLeft("tcg", at("2026-09-04T06:50:00Z"), reset), 0, "after the last in-window TCG run nothing is reserved");
 assert.equal(reserveLeft("search", at("2026-09-04T03:00:00Z"), reset), PER_RUN.search, "the 04:20 top-up is still ahead");
 assert.equal(reserveLeft("search", at("2026-09-04T06:50:00Z"), reset), 0);
 assert.equal(reserveLeft("safety", at("2026-09-04T06:50:00Z"), reset), PER_RUN.safety, "safety is never released");
+// 창 마지막 회차는 남김 없이 쓴다(소유자: 남으면 포켓몬). 06:45 TCG 회차 뒤엔 리셋까지 TCG 실행이 없다.
+assert.equal(isLastRunBeforeReset("tcg", at("2026-09-04T06:46:00Z"), reset), true, "the 06:45 UTC TCG run is the last before the 07:00 reset");
+assert.equal(isLastRunBeforeReset("tcg", at("2026-09-04T04:31:00Z"), reset), false, "04:30 still has the 06:45 run ahead");
+assert.equal(isLastRunBeforeReset("safety", at("2026-09-04T06:46:00Z"), reset), false, "unscheduled keys never drain");
 // 종전 버그 재현 방지: 06:30 UTC 에 "오늘" 남은 실행을 자정 기준으로 세면 예약이 잔여를 넘는다.
 assert.equal(reserveLeft("tcg", at("2026-09-03T06:30:00Z")), 0, "06:30 UTC: the next TCG run (07:30) is past the 07:00 reset");
 

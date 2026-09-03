@@ -539,7 +539,7 @@ ${tableRows}
           ending: { en: "Ending today", ko: "오늘 종료", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
             help: ["Auctions closing that day (eBay's own count).", "그날 끝나는 경매 수 (eBay 가 알려준 실제 수)"] },
           ended: { en: "Checked", ko: "확인 수", fmt: function (v) { return Math.round(v).toLocaleString("en-US"); },
-            help: ["We re-read up to ~250 per game after close.", "끝난 뒤 우리가 다시 읽은 수 (게임당 하루 최대 250건 표본)"] },
+            help: ["We re-read ~250 per game after close; Pokemon also gets any leftover quota.", "끝난 뒤 우리가 다시 읽은 수 (게임당 하루 250건 표본 · 포켓몬은 남는 한도만큼 더)"] },
           rate: { en: "Sold %", ko: "낙찰률", fmt: function (v) { return v.toFixed(1) + "%"; },
             help: ["Of the ones we checked, the share that sold.", "우리가 확인한 것 중 팔린 비율"] },
           gmv: { en: "Total spent", ko: "거래액", fmt: function (v) { return "$" + Math.round(v).toLocaleString("en-US"); },
