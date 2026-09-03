@@ -74,6 +74,23 @@ const RESERVE = {
   safety: 200,    // 다른 워크플로(진행 매물·PSA10 링크)와 재시도용
 };
 
+// 각 예약이 걸린 워크플로의 하루 실행 시각(UTC). 쿼터는 UTC 자정에 리셋된다.
+const SCHEDULE = {
+  tcg: [0, 6, 12, 18],                      // collect-tcg (0시엔 스냅샷도 함께)
+  search: [2, 5, 8, 11, 14, 17, 20, 23],    // collect-auction-market
+  safety: null,                             // 상시 — 재시도·돌발 워크플로용이라 줄이지 않는다
+};
+
+/** 지금부터 UTC 자정까지 남은 실행 비율만큼만 예약을 잡는다. */
+function reserveLeft(key, nowUtcHour) {
+  const full = RESERVE[key] || 0;
+  const sched = SCHEDULE[key];
+  if (!sched) return full;                  // safety 는 항상 전액
+  const h = Number.isFinite(nowUtcHour) ? nowUtcHour : new Date().getUTCHours();
+  const left = sched.filter((x) => x > h).length;
+  return Math.round((full * left) / sched.length);
+}
+
 // 이번 실행에서 정산에 쓸 수 있는 건수.
 //   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: 전부)
 //   opts.share: 남은 몫 중 이번 회차가 가져갈 비율. 2시간마다 도는 정산이 한 번에 다 쓰면
@@ -84,7 +101,13 @@ async function settleBudget(opts = {}) {
   const share = opts.share ?? 0.4;
   const min = opts.min ?? 50;
   const max = opts.max ?? 1200;
-  const keep = (opts.reserveFor || ["tcg", "search", "safety"]).reduce((t, k) => t + (RESERVE[k] || 0), 0);
+  // 예약은 **앞으로 남은 실행 몫만** 잡는다 — 2026-09-03 정정.
+  // 종전엔 고정값(합계 2,300)이라, 하루가 지나 그 워크플로들이 이미 돌았어도 계속 붙들고 있었다.
+  // 실측: 잔여 2,420 인데 예약 2,300 이 물려 정산 가용이 120(회차당 48건)까지 쪼그라들었다.
+  // 그 결과 원피스는 하루 1,900건이 끝나는데 750~979건만 정산됐고, 쿼터는 1,400 넘게 남아 돌았다.
+  // 소유자 지시("이베이 쿼터는 max 로 다 수집")와 정반대다.
+  // 그래서 UTC 자정(쿼터 리셋)까지 **아직 오지 않은 실행 횟수**의 비율만큼만 남긴다.
+  const keep = (opts.reserveFor || ["tcg", "search", "safety"]).reduce((t, k) => t + reserveLeft(k), 0);
 
   const left = await remaining();
   if (left == null) return { n: min, left: null, note: "잔여량을 못 읽어 하한만 쓴다" };
@@ -94,7 +117,7 @@ async function settleBudget(opts = {}) {
   return { n, left, note: `잔여 ${left} · 예약 ${keep} · 가용 ${usable} · 이번 회차 ${n}` };
 }
 
-module.exports = { remaining, settleBudget, RESERVE };
+module.exports = { remaining, settleBudget, RESERVE, reserveLeft, SCHEDULE };
 
 if (require.main === module) {
   (async () => {
