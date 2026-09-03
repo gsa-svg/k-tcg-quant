@@ -1,0 +1,74 @@
+name: Self-heal daily collections
+
+# 하루짜리 수집이 GitHub 스케줄 누락으로 빠지는 것을 그날 안에 스스로 메꾼다 — 2026-09-03 신설.
+#
+# 왜: GitHub cron 은 보장이 아니다. 실측으로 collect-tcg 00시(UTC) 크론이
+# 8/29·8/30·9/1·9/3 네 번 통째로 건너뛰었다. 스냅샷·매물관측은 시점 기록이라
+# 그날 지나면 소급이 안 된다 — 누락은 즉시가 아니면 영원이다.
+# 소유자 절대지시: "하루라도 빈칸 안 생기게 관리해라. 알림 받고 사람이 트리거하는 건 관리가 아니다."
+#
+# 어떻게: 늦은 시간대(UTC 15시·21시 = KST 자정 전 두 번)에 그날 산출물의 날짜를 확인하고,
+# 오늘치가 없으면 해당 워크플로를 workflow_dispatch 로 다시 쏜다.
+# - collect-tcg 스냅샷은 워크플로 안에서도 자가치유한다(매 실행 시도 + 스크립트의 하루 1회 가드).
+#   여기는 그마저 다 빠졌을 때의 마지막 그물이다.
+# - 신선하면 아무것도 하지 않는다 — 정상일에는 콜 1도 안 쓴다.
+#
+# ⚠️ 주간 수집(collect-grading·update-market-data 등)은 여기서 다루지 않는다 —
+#    스크립트의 주 단위 멱등성이 검증되지 않았고, 하루 늦어도 값이 변하지 않는 수집이라
+#    매일 아침 알림(collect-status)이 잡으면 된다.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "40 15 * * *"   # UTC 15:40 = KST 00:40(익일). UTC 기준 그날 오전분 누락을 먼저 잡는다.
+    - cron: "40 21 * * *"   # UTC 21:40 = KST 06:40. 쿼터 리셋(UTC 00:00) 전 마지막 그물.
+
+permissions:
+  actions: write            # 같은 저장소 워크플로를 dispatch 하는 데 필요
+  contents: read
+
+concurrency:
+  group: self-heal-daily
+  cancel-in-progress: false
+
+jobs:
+  heal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # 원본 데이터의 "오늘 날짜 존재 여부"만 본다. 실행 이력이 아니라 산출물을 보는 이유:
+      # 워크플로가 성공했다고 보고하면서 아무것도 안 모은 사고가 실제로 있었다(2026-08-05).
+      - name: Check & dispatch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY=$(date -u +%F)
+          dispatch () {
+            echo "::warning::$1 이 오늘($TODAY) 비어 있어 재실행을 겁니다"
+            curl -sf -X POST \
+              -H "Authorization: token $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/$2/dispatches" \
+              -d '{"ref":"main"}'
+          }
+
+          # ① TCG 스냅샷 — points 에 오늘 d 가 있는가
+          if ! node -e "const s=require('./data/tcg-snapshot.json');process.exit((s.points||[]).some(p=>p.d==='$TODAY')?0:1)"; then
+            dispatch "TCG 스냅샷" "collect-tcg.yml"
+          fi
+
+          # ② 진행 중 매물 관측 — updated 가 오늘인가 (UTC 18시 크론이라 15:40 회차에선 아직일 수 있음 → 21:40 회차가 잡는다)
+          if [ "$(date -u +%H)" -ge 20 ]; then
+            if ! node -e "const s=require('./data/active-listing-audit.json');process.exit(String(s.updated||'').slice(0,10)==='$TODAY'?0:1)"; then
+              dispatch "매물 관측" "update-active-listings.yml"
+            fi
+          fi
+
+          # ③ 환율 — date 가 오늘인가
+          if ! node -e "const s=require('./data/fx.json');process.exit(String(s.date||'').slice(0,10)==='$TODAY'?0:1)"; then
+            dispatch "환율" "update-fx.yml"
+          fi
+
+          echo "self-heal 점검 완료 ($TODAY)"
