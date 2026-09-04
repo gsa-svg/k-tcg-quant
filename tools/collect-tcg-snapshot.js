@@ -235,7 +235,10 @@ const { remaining } = require("./ebay-budget");
   const pending = prevWatch.pending
     .filter((p) => Date.parse(p.end) > cutoff)
     .concat(fresh);
+  // checkedAt(정산이 돈 시각) 같은 다른 키는 보존한다 — 자가치유가 "이번 창에 정산이 있었나"를 이걸로 본다.
+  // 2026-09-04: 날짜가 바뀐 첫 스냅샷이 파일을 통째로 다시 써서 도장을 지웠고, 자가치유가 헛경고를 냈다.
   fs.writeFileSync(WATCH, `${JSON.stringify({
+    ...prevWatch,
     note: "Auctions we are waiting to settle, one row per listing. settle-tcg.js re-reads each after it ends and writes the outcome to data/tcg-archive. Entries older than 30 hours past their end time are dropped rather than guessed at.",
     updated: new Date().toISOString(),
     pending,
