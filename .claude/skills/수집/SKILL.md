@@ -100,6 +100,8 @@ PSA 카드별은 `node tools/collect-psa-card-pop.js --probe` 로 먼저 살핀�
 node tools/build-box-sold-series.js       # 박스 원장 → 주간/월간 시계열
 node tools/build-market-index.js          # 지수·개봉미터
 node tools/build-grading-series.js        # 등급 인구를 건드렸으면
+node tools/inject-card-grades.js          # 등급 원장 → 카드 화면값(graderPop). 빠지면 등급 감사가 "화면 총량 vs 원장" FAIL (2026-09-03 실제)
+node tools/compact-series.js              # ⚠️ inject 직후 필수 — 들여쓰기 저장을 압축. 빼면 가드 T2 FAIL (2026-09-04 실제)
 node tools/generate-card-pages.js
 node tools/generate-set-pages.js
 node tools/generate-upcoming-set-pages.js
