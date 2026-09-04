@@ -17,8 +17,11 @@ on:
 permissions:
   contents: write
 
+# 검색(collect-auction-market)과 같은 그룹 — 둘 다 data/auction-watch.json 을 통째로 다시 쓴다.
+# 동시에 돌면 뒤에 푸시하는 쪽이 rebase 충돌로 죽고 그 회차 정산이 버려진다(2026-09-04 00:17 UTC 실제 사고,
+# "could not apply ... Settle completed auctions"). 같은 그룹이면 GitHub 이 순서대로 돌린다.
 concurrency:
-  group: settle-auctions
+  group: auction-ledger
   cancel-in-progress: false
 
 jobs:

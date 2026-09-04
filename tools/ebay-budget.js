@@ -152,7 +152,7 @@ function reserveFor(key, nowMs, resetMs) {
 }
 
 // 이번 실행에서 정산에 쓸 수 있는 건수.
-//   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: tcg·search·safety — 원피스 정산용).
+//   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: search·safety — 원피스 정산용).
 //                    TCG 정산은 ["auction","search","safety"] 로 부른다(원피스 몫을 먼저 남긴다).
 //   opts.share: 남은 몫 중 이번 회차가 가져갈 비율. 한 번에 다 쓰면 창 나머지 시간대가 굶는다.
 //   opts.min / opts.max: 하한·상한(한 번에 너무 적거나 많이 돌지 않게)
@@ -167,7 +167,9 @@ async function settleBudget(opts = {}) {
   const reset = q.reset ?? nextReset(now);
   const drain = opts.drainKey ? isLastRunBeforeReset(opts.drainKey, now, reset) : false;
   const share = drain ? 1 : (opts.share ?? 0.4);
-  const keys = opts.reserveFor || ["tcg", "search", "safety"];
+  // 기본(원피스 정산)은 검색·안전만 남긴다 — TCG 는 원피스보다 뒤다. 창 끝에서 TCG 드레인 몫(300)까지
+  // 남기면 원피스 정산이 0 이 된다(2026-09-04 00:30 UTC 실측: 잔여 480 · 예약 580 → 가용 0).
+  const keys = opts.reserveFor || ["search", "safety"];
   const keep = keys.reduce((t, k) => t + reserveFor(k, now, reset), 0);
   const usable = Math.max(0, left - keep);
   const n = Math.max(0, Math.min(max, Math.floor(usable * share)));

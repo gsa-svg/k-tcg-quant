@@ -24,8 +24,10 @@ on:
 permissions:
   contents: write
 
+# 정산(settle-auctions)과 같은 그룹 — 둘 다 data/auction-watch.json 을 통째로 다시 쓴다(검색은 추가, 정산은 제거).
+# 동시에 돌면 뒤에 푸시하는 쪽이 rebase 충돌로 죽는다(2026-09-04 00:17 UTC 실제 사고). 같은 그룹이면 순서대로 돈다.
 concurrency:
-  group: collect-auction-market
+  group: auction-ledger
   cancel-in-progress: false
 
 jobs:
