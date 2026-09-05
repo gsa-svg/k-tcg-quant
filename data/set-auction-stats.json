@@ -2,180 +2,78 @@
  "note": "Per-set auction outcomes over the last 30 days, built from data/auction-archive (every auction is read again after it closes, so these are settled results, not asking prices). sellThrough and passThrough use only auctions whose outcome eBay reported; rows with fewer than 30 decided auctions carry null rates and thin:true. amount is winning bid x quantity in USD.",
  "window": {
   "days": 30,
-  "from": "2026-08-05",
-  "to": "2026-09-04",
+  "from": "2026-08-06",
+  "to": "2026-09-05",
   "minDecided": 30,
   "files": 31
  },
- "updated": "2026-09-04",
+ "updated": "2026-09-05",
  "sets": {
-  "OP-05": {
-   "ended": 1549,
-   "sold": 406,
-   "unsold": 1143,
-   "sellThrough": 26.2,
-   "passThrough": 73.8,
-   "amount": 83566,
-   "medPrice": 26,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 1483,
-     "sold": 366,
-     "sellThrough": 24.7
-    },
-    "pack": {
-     "ended": 53,
-     "sold": 27,
-     "sellThrough": 50.9
-    }
-   },
-   "thin": false
-  },
-  "OP-11": {
-   "ended": 820,
-   "sold": 347,
-   "unsold": 473,
+  "PRB-02": {
+   "ended": 582,
+   "sold": 246,
+   "unsold": 336,
    "sellThrough": 42.3,
    "passThrough": 57.7,
-   "amount": 53133,
-   "medPrice": 23.5,
-   "medBidders": 4,
+   "amount": 30517,
+   "medPrice": 30.25,
+   "medBidders": 5,
    "byCat": {
     "card": {
-     "ended": 749,
-     "sold": 293,
-     "sellThrough": 39.1
-    },
-    "box": {
-     "ended": 11,
-     "sold": 11,
-     "sellThrough": 100
+     "ended": 548,
+     "sold": 219,
+     "sellThrough": 40
     },
     "pack": {
-     "ended": 55,
-     "sold": 38,
-     "sellThrough": 69.1
+     "ended": 22,
+     "sold": 18,
+     "sellThrough": 81.8
     }
    },
    "thin": false
   },
-  "OP-13": {
-   "ended": 2124,
-   "sold": 774,
-   "unsold": 1350,
-   "sellThrough": 36.4,
-   "passThrough": 63.6,
-   "amount": 116416,
-   "medPrice": 20.5,
-   "medBidders": 4,
+  "ST-10": {
+   "ended": 150,
+   "sold": 66,
+   "unsold": 84,
+   "sellThrough": 44,
+   "passThrough": 56,
+   "amount": 10830,
+   "medPrice": 15,
+   "medBidders": 5,
    "byCat": {
     "card": {
-     "ended": 1965,
-     "sold": 657,
-     "sellThrough": 33.4
+     "ended": 140,
+     "sold": 60,
+     "sellThrough": 42.9
     },
     "pack": {
-     "ended": 122,
-     "sold": 83,
-     "sellThrough": 68
-    },
-    "box": {
-     "ended": 30,
-     "sold": 28,
-     "sellThrough": 93.3
-    }
-   },
-   "thin": false
-  },
-  "OP-09": {
-   "ended": 1421,
-   "sold": 532,
-   "unsold": 889,
-   "sellThrough": 37.4,
-   "passThrough": 62.6,
-   "amount": 70237,
-   "medPrice": 21,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 1368,
-     "sold": 502,
-     "sellThrough": 36.7
-    },
-    "pack": {
-     "ended": 39,
-     "sold": 19,
-     "sellThrough": 48.7
-    },
-    "box": {
      "ended": 10,
-     "sold": 7,
-     "sellThrough": 70
-    }
-   },
-   "thin": false
-  },
-  "EB-01": {
-   "ended": 406,
-   "sold": 97,
-   "unsold": 309,
-   "sellThrough": 23.9,
-   "passThrough": 76.1,
-   "amount": 6816,
-   "medPrice": 14.65,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 395,
-     "sold": 93,
-     "sellThrough": 23.5
-    },
-    "pack": {
-     "ended": 11,
-     "sold": 4,
-     "sellThrough": 36.4
-    }
-   },
-   "thin": false
-  },
-  "ST-35": {
-   "ended": 75,
-   "sold": 36,
-   "unsold": 39,
-   "sellThrough": 48,
-   "passThrough": 52,
-   "amount": 941,
-   "medPrice": 19,
-   "medBidders": 2.5,
-   "byCat": {
-    "card": {
-     "ended": 73,
-     "sold": 34,
-     "sellThrough": 46.6
+     "sold": 6,
+     "sellThrough": 60
     }
    },
    "thin": false
   },
   "OP-14": {
-   "ended": 1958,
-   "sold": 706,
-   "unsold": 1252,
+   "ended": 1983,
+   "sold": 716,
+   "unsold": 1267,
    "sellThrough": 36.1,
    "passThrough": 63.9,
-   "amount": 80011,
-   "medPrice": 36,
+   "amount": 79427,
+   "medPrice": 31.5,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 1882,
-     "sold": 655,
-     "sellThrough": 34.8
+     "ended": 1900,
+     "sold": 659,
+     "sellThrough": 34.7
     },
     "pack": {
-     "ended": 62,
-     "sold": 41,
-     "sellThrough": 66.1
+     "ended": 69,
+     "sold": 47,
+     "sellThrough": 68.1
     },
     "box": {
      "ended": 13,
@@ -185,168 +83,53 @@
    },
    "thin": false
   },
-  "OP-01": {
-   "ended": 1423,
-   "sold": 478,
-   "unsold": 945,
-   "sellThrough": 33.6,
-   "passThrough": 66.4,
-   "amount": 105492,
-   "medPrice": 40,
-   "medBidders": 5,
+  "OP-09": {
+   "ended": 1449,
+   "sold": 534,
+   "unsold": 915,
+   "sellThrough": 36.9,
+   "passThrough": 63.1,
+   "amount": 72602,
+   "medPrice": 20.5,
+   "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 1325,
-     "sold": 418,
-     "sellThrough": 31.5
+     "ended": 1397,
+     "sold": 504,
+     "sellThrough": 36.1
     },
     "pack": {
-     "ended": 58,
-     "sold": 34,
-     "sellThrough": 58.6
-    },
-    "box": {
      "ended": 38,
-     "sold": 24,
-     "sellThrough": 63.2
-    }
-   },
-   "thin": false
-  },
-  "EB-04": {
-   "ended": 1032,
-   "sold": 271,
-   "unsold": 761,
-   "sellThrough": 26.3,
-   "passThrough": 73.7,
-   "amount": 41389,
-   "medPrice": 12.07,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 980,
-     "sold": 237,
-     "sellThrough": 24.2
-    },
-    "pack": {
-     "ended": 51,
-     "sold": 33,
-     "sellThrough": 64.7
-    }
-   },
-   "thin": false
-  },
-  "EB-03": {
-   "ended": 1356,
-   "sold": 448,
-   "unsold": 908,
-   "sellThrough": 33,
-   "passThrough": 67,
-   "amount": 41350,
-   "medPrice": 10.6,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 1303,
-     "sold": 408,
-     "sellThrough": 31.3
+     "sold": 19,
+     "sellThrough": 50
     },
     "box": {
-     "ended": 14,
-     "sold": 12,
-     "sellThrough": 85.7
-    },
-    "pack": {
-     "ended": 39,
-     "sold": 28,
-     "sellThrough": 71.8
+     "ended": 10,
+     "sold": 7,
+     "sellThrough": 70
     }
    },
    "thin": false
-  },
-  "OP-08": {
-   "ended": 849,
-   "sold": 207,
-   "unsold": 642,
-   "sellThrough": 24.4,
-   "passThrough": 75.6,
-   "amount": 18622,
-   "medPrice": 18,
-   "medBidders": 3,
-   "byCat": {
-    "card": {
-     "ended": 822,
-     "sold": 185,
-     "sellThrough": 22.5
-    },
-    "pack": {
-     "ended": 21,
-     "sold": 16,
-     "sellThrough": 76.2
-    }
-   },
-   "thin": false
-  },
-  "OP-03": {
-   "ended": 668,
-   "sold": 157,
-   "unsold": 511,
-   "sellThrough": 23.5,
-   "passThrough": 76.5,
-   "amount": 11595,
-   "medPrice": 19.99,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 652,
-     "sold": 148,
-     "sellThrough": 22.7
-    },
-    "pack": {
-     "ended": 12,
-     "sold": 6,
-     "sellThrough": 50
-    }
-   },
-   "thin": false
-  },
-  "ST-07": {
-   "ended": 21,
-   "sold": 5,
-   "unsold": 16,
-   "sellThrough": null,
-   "passThrough": null,
-   "amount": 360,
-   "medPrice": 5,
-   "medBidders": 1,
-   "byCat": {
-    "card": {
-     "ended": 21,
-     "sold": 5,
-     "sellThrough": 23.8
-    }
-   },
-   "thin": true
   },
   "OP-16": {
    "ended": 3042,
-   "sold": 861,
-   "unsold": 2181,
-   "sellThrough": 28.3,
-   "passThrough": 71.7,
-   "amount": 55911,
-   "medPrice": 7.8,
+   "sold": 858,
+   "unsold": 2184,
+   "sellThrough": 28.2,
+   "passThrough": 71.8,
+   "amount": 56699,
+   "medPrice": 8,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 2773,
-     "sold": 679,
-     "sellThrough": 24.5
+     "ended": 2772,
+     "sold": 674,
+     "sellThrough": 24.3
     },
     "pack": {
-     "ended": 248,
-     "sold": 164,
-     "sellThrough": 66.1
+     "ended": 249,
+     "sold": 166,
+     "sellThrough": 66.7
     },
     "box": {
      "ended": 13,
@@ -356,176 +139,66 @@
    },
    "thin": false
   },
-  "ST-08": {
-   "ended": 36,
-   "sold": 11,
-   "unsold": 25,
-   "sellThrough": 30.6,
-   "passThrough": 69.4,
-   "amount": 253,
-   "medPrice": 10,
-   "medBidders": 2,
-   "byCat": {
-    "card": {
-     "ended": 36,
-     "sold": 11,
-     "sellThrough": 30.6
-    }
-   },
-   "thin": false
-  },
-  "OP-15": {
-   "ended": 2154,
-   "sold": 595,
-   "unsold": 1559,
-   "sellThrough": 27.6,
-   "passThrough": 72.4,
-   "amount": 33185,
-   "medPrice": 11.5,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 1982,
-     "sold": 487,
-     "sellThrough": 24.6
-    },
-    "pack": {
-     "ended": 166,
-     "sold": 104,
-     "sellThrough": 62.7
-    }
-   },
-   "thin": false
-  },
-  "ST-17": {
-   "ended": 100,
-   "sold": 38,
-   "unsold": 62,
-   "sellThrough": 38,
-   "passThrough": 62,
-   "amount": 1804,
-   "medPrice": 41,
-   "medBidders": 5,
-   "byCat": {
-    "card": {
-     "ended": 90,
-     "sold": 30,
-     "sellThrough": 33.3
-    },
-    "pack": {
-     "ended": 10,
-     "sold": 8,
-     "sellThrough": 80
-    }
-   },
-   "thin": false
-  },
   "OP-10": {
-   "ended": 1422,
-   "sold": 326,
-   "unsold": 1096,
-   "sellThrough": 22.9,
-   "passThrough": 77.1,
-   "amount": 11904,
-   "medPrice": 13.17,
+   "ended": 1440,
+   "sold": 325,
+   "unsold": 1115,
+   "sellThrough": 22.6,
+   "passThrough": 77.4,
+   "amount": 12417,
+   "medPrice": 14.14,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 1375,
-     "sold": 304,
-     "sellThrough": 22.1
+     "ended": 1390,
+     "sold": 303,
+     "sellThrough": 21.8
     },
     "pack": {
-     "ended": 38,
+     "ended": 41,
      "sold": 16,
-     "sellThrough": 42.1
+     "sellThrough": 39
     }
    },
    "thin": false
   },
-  "PRB-02": {
-   "ended": 573,
-   "sold": 252,
-   "unsold": 321,
-   "sellThrough": 44,
-   "passThrough": 56,
-   "amount": 31966,
-   "medPrice": 30.25,
-   "medBidders": 5,
-   "byCat": {
-    "card": {
-     "ended": 537,
-     "sold": 223,
-     "sellThrough": 41.5
-    },
-    "pack": {
-     "ended": 23,
-     "sold": 19,
-     "sellThrough": 82.6
-    }
-   },
-   "thin": false
-  },
-  "OP-06": {
-   "ended": 1259,
-   "sold": 312,
-   "unsold": 947,
-   "sellThrough": 24.8,
-   "passThrough": 75.2,
-   "amount": 38136,
-   "medPrice": 15.59,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 1214,
-     "sold": 280,
-     "sellThrough": 23.1
-    },
-    "pack": {
-     "ended": 42,
-     "sold": 29,
-     "sellThrough": 69
-    }
-   },
-   "thin": false
-  },
-  "OP-04": {
-   "ended": 1117,
-   "sold": 171,
-   "unsold": 946,
-   "sellThrough": 15.3,
-   "passThrough": 84.7,
-   "amount": 7961,
-   "medPrice": 13.5,
+  "OP-08": {
+   "ended": 842,
+   "sold": 202,
+   "unsold": 640,
+   "sellThrough": 24,
+   "passThrough": 76,
+   "amount": 18717,
+   "medPrice": 19.5,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 1075,
-     "sold": 149,
-     "sellThrough": 13.9
+     "ended": 814,
+     "sold": 179,
+     "sellThrough": 22
     },
     "pack": {
-     "ended": 37,
-     "sold": 17,
-     "sellThrough": 45.9
+     "ended": 21,
+     "sold": 16,
+     "sellThrough": 76.2
     }
    },
    "thin": false
   },
   "OP-07": {
-   "ended": 1154,
-   "sold": 383,
-   "unsold": 771,
-   "sellThrough": 33.2,
-   "passThrough": 66.8,
-   "amount": 44660,
-   "medPrice": 34,
+   "ended": 1171,
+   "sold": 377,
+   "unsold": 794,
+   "sellThrough": 32.2,
+   "passThrough": 67.8,
+   "amount": 42134,
+   "medPrice": 36,
    "medBidders": 5,
    "byCat": {
     "card": {
-     "ended": 1130,
-     "sold": 370,
-     "sellThrough": 32.7
+     "ended": 1147,
+     "sold": 364,
+     "sellThrough": 31.7
     },
     "pack": {
      "ended": 19,
@@ -535,135 +208,191 @@
    },
    "thin": false
   },
-  "ST-10": {
-   "ended": 148,
-   "sold": 67,
-   "unsold": 81,
-   "sellThrough": 45.3,
-   "passThrough": 54.7,
-   "amount": 10834,
-   "medPrice": 14.5,
+  "ST-13": {
+   "ended": 228,
+   "sold": 95,
+   "unsold": 133,
+   "sellThrough": 41.7,
+   "passThrough": 58.3,
+   "amount": 6088,
+   "medPrice": 26.5,
    "medBidders": 5,
    "byCat": {
-    "pack": {
-     "ended": 11,
-     "sold": 7,
-     "sellThrough": 63.6
-    },
     "card": {
-     "ended": 137,
-     "sold": 60,
-     "sellThrough": 43.8
+     "ended": 225,
+     "sold": 92,
+     "sellThrough": 40.9
+    }
+   },
+   "thin": false
+  },
+  "OP-05": {
+   "ended": 1556,
+   "sold": 390,
+   "unsold": 1166,
+   "sellThrough": 25.1,
+   "passThrough": 74.9,
+   "amount": 83411,
+   "medPrice": 29.99,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 1493,
+     "sold": 352,
+     "sellThrough": 23.6
+    },
+    "pack": {
+     "ended": 50,
+     "sold": 25,
+     "sellThrough": 50
+    }
+   },
+   "thin": false
+  },
+  "EB-03": {
+   "ended": 1348,
+   "sold": 445,
+   "unsold": 903,
+   "sellThrough": 33,
+   "passThrough": 67,
+   "amount": 43267,
+   "medPrice": 11.18,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 1296,
+     "sold": 406,
+     "sellThrough": 31.3
+    },
+    "box": {
+     "ended": 13,
+     "sold": 11,
+     "sellThrough": 84.6
+    },
+    "pack": {
+     "ended": 39,
+     "sold": 28,
+     "sellThrough": 71.8
     }
    },
    "thin": false
   },
   "ST-01": {
-   "ended": 560,
+   "ended": 562,
    "sold": 326,
-   "unsold": 234,
-   "sellThrough": 58.2,
-   "passThrough": 41.8,
-   "amount": 50199,
+   "unsold": 236,
+   "sellThrough": 58,
+   "passThrough": 42,
+   "amount": 50181,
    "medPrice": 57.66,
    "medBidders": 6,
    "byCat": {
     "card": {
-     "ended": 546,
+     "ended": 547,
      "sold": 321,
-     "sellThrough": 58.8
+     "sellThrough": 58.7
     },
     "pack": {
-     "ended": 14,
+     "ended": 15,
      "sold": 5,
-     "sellThrough": 35.7
+     "sellThrough": 33.3
     }
    },
    "thin": false
   },
-  "ST-03": {
-   "ended": 143,
-   "sold": 58,
-   "unsold": 85,
-   "sellThrough": 40.6,
-   "passThrough": 59.4,
-   "amount": 3514,
-   "medPrice": 19.75,
-   "medBidders": 3,
-   "byCat": {
-    "card": {
-     "ended": 140,
-     "sold": 55,
-     "sellThrough": 39.3
-    }
-   },
-   "thin": false
-  },
-  "OP-12": {
-   "ended": 961,
-   "sold": 373,
-   "unsold": 588,
-   "sellThrough": 38.8,
-   "passThrough": 61.2,
-   "amount": 37308,
-   "medPrice": 16.09,
+  "EB-04": {
+   "ended": 1028,
+   "sold": 271,
+   "unsold": 757,
+   "sellThrough": 26.4,
+   "passThrough": 73.6,
+   "amount": 41595,
+   "medPrice": 12.07,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 885,
-     "sold": 317,
-     "sellThrough": 35.8
+     "ended": 977,
+     "sold": 238,
+     "sellThrough": 24.4
     },
     "pack": {
-     "ended": 59,
-     "sold": 40,
-     "sellThrough": 67.8
-    },
-    "box": {
-     "ended": 14,
-     "sold": 13,
-     "sellThrough": 92.9
+     "ended": 50,
+     "sold": 32,
+     "sellThrough": 64
     }
    },
    "thin": false
   },
-  "ST-13": {
-   "ended": 227,
-   "sold": 91,
-   "unsold": 136,
-   "sellThrough": 40.1,
-   "passThrough": 59.9,
-   "amount": 6035,
-   "medPrice": 29,
+  "OP-01": {
+   "ended": 1422,
+   "sold": 465,
+   "unsold": 957,
+   "sellThrough": 32.7,
+   "passThrough": 67.3,
+   "amount": 104348,
+   "medPrice": 41.75,
    "medBidders": 5,
    "byCat": {
     "card": {
-     "ended": 224,
-     "sold": 88,
-     "sellThrough": 39.3
+     "ended": 1324,
+     "sold": 405,
+     "sellThrough": 30.6
+    },
+    "box": {
+     "ended": 39,
+     "sold": 24,
+     "sellThrough": 61.5
+    },
+    "pack": {
+     "ended": 57,
+     "sold": 34,
+     "sellThrough": 59.6
+    }
+   },
+   "thin": false
+  },
+  "OP-15": {
+   "ended": 2164,
+   "sold": 595,
+   "unsold": 1569,
+   "sellThrough": 27.5,
+   "passThrough": 72.5,
+   "amount": 31477,
+   "medPrice": 11,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 1986,
+     "sold": 480,
+     "sellThrough": 24.2
+    },
+    "pack": {
+     "ended": 172,
+     "sold": 111,
+     "sellThrough": 64.5
     }
    },
    "thin": false
   },
   "EB-02": {
-   "ended": 459,
-   "sold": 242,
-   "unsold": 217,
+   "ended": 452,
+   "sold": 238,
+   "unsold": 214,
    "sellThrough": 52.7,
    "passThrough": 47.3,
-   "amount": 94710,
+   "amount": 83547,
    "medPrice": 31,
    "medBidders": 6,
    "byCat": {
     "card": {
-     "ended": 432,
-     "sold": 227,
-     "sellThrough": 52.5
+     "ended": 426,
+     "sold": 223,
+     "sellThrough": 52.3
     },
     "pack": {
-     "ended": 17,
+     "ended": 16,
      "sold": 9,
-     "sellThrough": 52.9
+     "sellThrough": 56.3
     },
     "box": {
      "ended": 10,
@@ -673,25 +402,332 @@
    },
    "thin": false
   },
-  "OP-02": {
-   "ended": 702,
-   "sold": 212,
-   "unsold": 490,
-   "sellThrough": 30.2,
-   "passThrough": 69.8,
-   "amount": 12064,
-   "medPrice": 17.5,
+  "ST-21": {
+   "ended": 281,
+   "sold": 187,
+   "unsold": 94,
+   "sellThrough": 66.5,
+   "passThrough": 33.5,
+   "amount": 20344,
+   "medPrice": 77.5,
+   "medBidders": 6,
+   "byCat": {
+    "card": {
+     "ended": 275,
+     "sold": 182,
+     "sellThrough": 66.2
+    }
+   },
+   "thin": false
+  },
+  "ST-26": {
+   "ended": 47,
+   "sold": 21,
+   "unsold": 26,
+   "sellThrough": 44.7,
+   "passThrough": 55.3,
+   "amount": 3469,
+   "medPrice": 15,
+   "medBidders": 2,
+   "byCat": {
+    "card": {
+     "ended": 47,
+     "sold": 21,
+     "sellThrough": 44.7
+    }
+   },
+   "thin": false
+  },
+  "OP-13": {
+   "ended": 2140,
+   "sold": 761,
+   "unsold": 1379,
+   "sellThrough": 35.6,
+   "passThrough": 64.4,
+   "amount": 144958,
+   "medPrice": 20.5,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 677,
-     "sold": 200,
-     "sellThrough": 29.5
+     "ended": 1984,
+     "sold": 645,
+     "sellThrough": 32.5
     },
     "pack": {
-     "ended": 22,
+     "ended": 119,
+     "sold": 82,
+     "sellThrough": 68.9
+    },
+    "box": {
+     "ended": 30,
+     "sold": 28,
+     "sellThrough": 93.3
+    }
+   },
+   "thin": false
+  },
+  "OP-12": {
+   "ended": 973,
+   "sold": 371,
+   "unsold": 602,
+   "sellThrough": 38.1,
+   "passThrough": 61.9,
+   "amount": 36712,
+   "medPrice": 16,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 896,
+     "sold": 314,
+     "sellThrough": 35
+    },
+    "box": {
+     "ended": 14,
+     "sold": 13,
+     "sellThrough": 92.9
+    },
+    "pack": {
+     "ended": 60,
+     "sold": 41,
+     "sellThrough": 68.3
+    }
+   },
+   "thin": false
+  },
+  "OP-03": {
+   "ended": 677,
+   "sold": 153,
+   "unsold": 524,
+   "sellThrough": 22.6,
+   "passThrough": 77.4,
+   "amount": 11554,
+   "medPrice": 20.5,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 661,
+     "sold": 144,
+     "sellThrough": 21.8
+    },
+    "pack": {
+     "ended": 12,
+     "sold": 6,
+     "sellThrough": 50
+    }
+   },
+   "thin": false
+  },
+  "OP-02": {
+   "ended": 717,
+   "sold": 210,
+   "unsold": 507,
+   "sellThrough": 29.3,
+   "passThrough": 70.7,
+   "amount": 10216,
+   "medPrice": 16.92,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 691,
+     "sold": 197,
+     "sellThrough": 28.5
+    },
+    "pack": {
+     "ended": 23,
+     "sold": 11,
+     "sellThrough": 47.8
+    }
+   },
+   "thin": false
+  },
+  "OP-04": {
+   "ended": 1114,
+   "sold": 167,
+   "unsold": 947,
+   "sellThrough": 15,
+   "passThrough": 85,
+   "amount": 7891,
+   "medPrice": 13.5,
+   "medBidders": 3,
+   "byCat": {
+    "card": {
+     "ended": 1073,
+     "sold": 146,
+     "sellThrough": 13.6
+    },
+    "pack": {
+     "ended": 37,
+     "sold": 17,
+     "sellThrough": 45.9
+    }
+   },
+   "thin": false
+  },
+  "OP-06": {
+   "ended": 1244,
+   "sold": 294,
+   "unsold": 950,
+   "sellThrough": 23.6,
+   "passThrough": 76.4,
+   "amount": 37074,
+   "medPrice": 14.5,
+   "medBidders": 3.5,
+   "byCat": {
+    "card": {
+     "ended": 1202,
+     "sold": 263,
+     "sellThrough": 21.9
+    },
+    "pack": {
+     "ended": 39,
+     "sold": 28,
+     "sellThrough": 71.8
+    }
+   },
+   "thin": false
+  },
+  "ST-30": {
+   "ended": 290,
+   "sold": 102,
+   "unsold": 188,
+   "sellThrough": 35.2,
+   "passThrough": 64.8,
+   "amount": 3326,
+   "medPrice": 9.88,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 285,
+     "sold": 100,
+     "sellThrough": 35.1
+    }
+   },
+   "thin": false
+  },
+  "EB-01": {
+   "ended": 411,
+   "sold": 95,
+   "unsold": 316,
+   "sellThrough": 23.1,
+   "passThrough": 76.9,
+   "amount": 6770,
+   "medPrice": 14.65,
+   "medBidders": 3,
+   "byCat": {
+    "card": {
+     "ended": 400,
+     "sold": 91,
+     "sellThrough": 22.8
+    },
+    "pack": {
+     "ended": 11,
+     "sold": 4,
+     "sellThrough": 36.4
+    }
+   },
+   "thin": false
+  },
+  "ST-18": {
+   "ended": 175,
+   "sold": 106,
+   "unsold": 69,
+   "sellThrough": 60.6,
+   "passThrough": 39.4,
+   "amount": 9446,
+   "medPrice": 51,
+   "medBidders": 7,
+   "byCat": {
+    "card": {
+     "ended": 171,
+     "sold": 103,
+     "sellThrough": 60.2
+    }
+   },
+   "thin": false
+  },
+  "OP-11": {
+   "ended": 828,
+   "sold": 339,
+   "unsold": 489,
+   "sellThrough": 40.9,
+   "passThrough": 59.1,
+   "amount": 43280,
+   "medPrice": 22.5,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 758,
+     "sold": 286,
+     "sellThrough": 37.7
+    },
+    "pack": {
+     "ended": 55,
+     "sold": 38,
+     "sellThrough": 69.1
+    },
+    "box": {
+     "ended": 10,
      "sold": 10,
-     "sellThrough": 45.5
+     "sellThrough": 100
+    }
+   },
+   "thin": false
+  },
+  "ST-08": {
+   "ended": 35,
+   "sold": 10,
+   "unsold": 25,
+   "sellThrough": 28.6,
+   "passThrough": 71.4,
+   "amount": 253,
+   "medPrice": 10,
+   "medBidders": 2,
+   "byCat": {
+    "card": {
+     "ended": 35,
+     "sold": 10,
+     "sellThrough": 28.6
+    }
+   },
+   "thin": false
+  },
+  "ST-29": {
+   "ended": 173,
+   "sold": 113,
+   "unsold": 60,
+   "sellThrough": 65.3,
+   "passThrough": 34.7,
+   "amount": 5220,
+   "medPrice": 28.5,
+   "medBidders": 5,
+   "byCat": {
+    "card": {
+     "ended": 161,
+     "sold": 101,
+     "sellThrough": 62.7
+    },
+    "pack": {
+     "ended": 12,
+     "sold": 12,
+     "sellThrough": 100
+    }
+   },
+   "thin": false
+  },
+  "ST-14": {
+   "ended": 92,
+   "sold": 33,
+   "unsold": 59,
+   "sellThrough": 35.9,
+   "passThrough": 64.1,
+   "amount": 1542,
+   "medPrice": 19.5,
+   "medBidders": 4,
+   "byCat": {
+    "card": {
+     "ended": 92,
+     "sold": 33,
+     "sellThrough": 35.9
     }
    },
    "thin": false
@@ -702,50 +738,50 @@
    "unsold": 64,
    "sellThrough": 22.9,
    "passThrough": 77.1,
-   "amount": 898,
+   "amount": 899,
    "medPrice": 15.5,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 81,
+     "ended": 80,
      "sold": 18,
-     "sellThrough": 22.2
+     "sellThrough": 22.5
     }
    },
    "thin": false
   },
-  "ST-21": {
-   "ended": 286,
-   "sold": 193,
-   "unsold": 93,
-   "sellThrough": 67.5,
-   "passThrough": 32.5,
-   "amount": 21945,
-   "medPrice": 76.5,
-   "medBidders": 6,
+  "ST-35": {
+   "ended": 76,
+   "sold": 36,
+   "unsold": 40,
+   "sellThrough": 47.4,
+   "passThrough": 52.6,
+   "amount": 941,
+   "medPrice": 19,
+   "medBidders": 2.5,
    "byCat": {
     "card": {
-     "ended": 279,
-     "sold": 187,
-     "sellThrough": 67
+     "ended": 74,
+     "sold": 34,
+     "sellThrough": 45.9
     }
    },
    "thin": false
   },
-  "ST-04": {
-   "ended": 109,
-   "sold": 34,
-   "unsold": 75,
-   "sellThrough": 31.2,
-   "passThrough": 68.8,
-   "amount": 939,
-   "medPrice": 14.5,
-   "medBidders": 3,
+  "ST-17": {
+   "ended": 97,
+   "sold": 35,
+   "unsold": 62,
+   "sellThrough": 36.1,
+   "passThrough": 63.9,
+   "amount": 1709,
+   "medPrice": 42,
+   "medBidders": 5,
    "byCat": {
     "card": {
-     "ended": 99,
-     "sold": 26,
-     "sellThrough": 26.3
+     "ended": 87,
+     "sold": 27,
+     "sellThrough": 31
     },
     "pack": {
      "ended": 10,
@@ -755,190 +791,77 @@
    },
    "thin": false
   },
-  "ST-30": {
-   "ended": 279,
-   "sold": 99,
-   "unsold": 180,
-   "sellThrough": 35.5,
-   "passThrough": 64.5,
-   "amount": 3309,
-   "medPrice": 11,
+  "PRB-01": {
+   "ended": 134,
+   "sold": 63,
+   "unsold": 71,
+   "sellThrough": 47,
+   "passThrough": 53,
+   "amount": 29867,
+   "medPrice": 59.5,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 275,
-     "sold": 97,
-     "sellThrough": 35.3
+     "ended": 129,
+     "sold": 62,
+     "sellThrough": 48.1
     }
    },
    "thin": false
   },
-  "ST-29": {
-   "ended": 170,
-   "sold": 113,
-   "unsold": 57,
-   "sellThrough": 66.5,
-   "passThrough": 33.5,
-   "amount": 5079,
-   "medPrice": 29,
-   "medBidders": 5,
-   "byCat": {
-    "card": {
-     "ended": 159,
-     "sold": 102,
-     "sellThrough": 64.2
-    },
-    "pack": {
-     "ended": 11,
-     "sold": 11,
-     "sellThrough": 100
-    }
-   },
-   "thin": false
-  },
-  "ST-18": {
-   "ended": 172,
-   "sold": 104,
-   "unsold": 68,
-   "sellThrough": 60.5,
-   "passThrough": 39.5,
-   "amount": 9568,
-   "medPrice": 51,
-   "medBidders": 6.5,
-   "byCat": {
-    "card": {
-     "ended": 168,
-     "sold": 101,
-     "sellThrough": 60.1
-    }
-   },
-   "thin": false
-  },
-  "ST-12": {
-   "ended": 61,
-   "sold": 17,
-   "unsold": 44,
-   "sellThrough": 27.9,
-   "passThrough": 72.1,
-   "amount": 317,
-   "medPrice": 9.73,
+  "ST-03": {
+   "ended": 140,
+   "sold": 53,
+   "unsold": 87,
+   "sellThrough": 37.9,
+   "passThrough": 62.1,
+   "amount": 3379,
+   "medPrice": 19.5,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 61,
-     "sold": 17,
-     "sellThrough": 27.9
+     "ended": 138,
+     "sold": 51,
+     "sellThrough": 37
     }
    },
    "thin": false
   },
   "ST-06": {
-   "ended": 45,
-   "sold": 18,
+   "ended": 44,
+   "sold": 17,
    "unsold": 27,
-   "sellThrough": 40,
-   "passThrough": 60,
-   "amount": 526,
-   "medPrice": 17.5,
+   "sellThrough": 38.6,
+   "passThrough": 61.4,
+   "amount": 485,
+   "medPrice": 16.5,
    "medBidders": 3,
    "byCat": {
     "card": {
      "ended": 36,
-     "sold": 15,
-     "sellThrough": 41.7
+     "sold": 14,
+     "sellThrough": 38.9
     }
    },
    "thin": false
   },
-  "ST-22": {
-   "ended": 118,
-   "sold": 36,
-   "unsold": 82,
-   "sellThrough": 30.5,
-   "passThrough": 69.5,
-   "amount": 690,
-   "medPrice": 4.25,
-   "medBidders": 2,
-   "byCat": {
-    "card": {
-     "ended": 114,
-     "sold": 36,
-     "sellThrough": 31.6
-    }
-   },
-   "thin": false
-  },
-  "PRB-01": {
-   "ended": 132,
-   "sold": 61,
-   "unsold": 71,
-   "sellThrough": 46.2,
-   "passThrough": 53.8,
-   "amount": 29848,
-   "medPrice": 66.58,
+  "ST-31": {
+   "ended": 144,
+   "sold": 65,
+   "unsold": 79,
+   "sellThrough": 45.1,
+   "passThrough": 54.9,
+   "amount": 6926,
+   "medPrice": 21.21,
    "medBidders": 4,
    "byCat": {
     "card": {
-     "ended": 127,
-     "sold": 60,
-     "sellThrough": 47.2
+     "ended": 138,
+     "sold": 59,
+     "sellThrough": 42.8
     }
    },
    "thin": false
-  },
-  "ST-24": {
-   "ended": 18,
-   "sold": 5,
-   "unsold": 13,
-   "sellThrough": null,
-   "passThrough": null,
-   "amount": 46,
-   "medPrice": 8,
-   "medBidders": 3,
-   "byCat": {
-    "card": {
-     "ended": 17,
-     "sold": 4,
-     "sellThrough": 23.5
-    }
-   },
-   "thin": true
-  },
-  "ST-28": {
-   "ended": 42,
-   "sold": 5,
-   "unsold": 37,
-   "sellThrough": 11.9,
-   "passThrough": 88.1,
-   "amount": 54,
-   "medPrice": null,
-   "medBidders": 3,
-   "byCat": {
-    "card": {
-     "ended": 42,
-     "sold": 5,
-     "sellThrough": 11.9
-    }
-   },
-   "thin": false
-  },
-  "ST-05": {
-   "ended": 29,
-   "sold": 9,
-   "unsold": 20,
-   "sellThrough": null,
-   "passThrough": null,
-   "amount": 39,
-   "medPrice": 2.65,
-   "medBidders": 2,
-   "byCat": {
-    "card": {
-     "ended": 26,
-     "sold": 8,
-     "sellThrough": 30.8
-    }
-   },
-   "thin": true
   },
   "ST-02": {
    "ended": 72,
@@ -963,154 +886,123 @@
    },
    "thin": false
   },
-  "ST-14": {
-   "ended": 91,
-   "sold": 33,
-   "unsold": 58,
-   "sellThrough": 36.3,
-   "passThrough": 63.7,
-   "amount": 1542,
-   "medPrice": 19.5,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 91,
-     "sold": 33,
-     "sellThrough": 36.3
-    }
-   },
-   "thin": false
-  },
-  "ST-26": {
-   "ended": 48,
-   "sold": 23,
-   "unsold": 25,
-   "sellThrough": 47.9,
-   "passThrough": 52.1,
-   "amount": 5005,
-   "medPrice": 18,
-   "medBidders": 2,
-   "byCat": {
-    "card": {
-     "ended": 48,
-     "sold": 23,
-     "sellThrough": 47.9
-    }
-   },
-   "thin": false
-  },
-  "ST-09": {
-   "ended": 28,
-   "sold": 3,
-   "unsold": 25,
-   "sellThrough": null,
-   "passThrough": null,
-   "amount": 55,
-   "medPrice": null,
-   "medBidders": null,
-   "byCat": {
-    "card": {
-     "ended": 28,
-     "sold": 3,
-     "sellThrough": 10.7
-    }
-   },
-   "thin": true
-  },
-  "ST-15": {
-   "ended": 97,
-   "sold": 40,
-   "unsold": 57,
-   "sellThrough": 41.2,
-   "passThrough": 58.8,
-   "amount": 2094,
-   "medPrice": 12.93,
+  "ST-12": {
+   "ended": 59,
+   "sold": 16,
+   "unsold": 43,
+   "sellThrough": 27.1,
+   "passThrough": 72.9,
+   "amount": 276,
+   "medPrice": 4.99,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 90,
-     "sold": 35,
-     "sellThrough": 38.9
-    }
-   },
-   "thin": false
-  },
-  "ST-20": {
-   "ended": 34,
-   "sold": 3,
-   "unsold": 31,
-   "sellThrough": 8.8,
-   "passThrough": 91.2,
-   "amount": 57,
-   "medPrice": null,
-   "medBidders": null,
-   "byCat": {
-    "card": {
-     "ended": 33,
-     "sold": 3,
-     "sellThrough": 9.1
-    }
-   },
-   "thin": false
-  },
-  "ST-31": {
-   "ended": 139,
-   "sold": 64,
-   "unsold": 75,
-   "sellThrough": 46,
-   "passThrough": 54,
-   "amount": 6165,
-   "medPrice": 21.5,
-   "medBidders": 4,
-   "byCat": {
-    "card": {
-     "ended": 133,
-     "sold": 58,
-     "sellThrough": 43.6
+     "ended": 59,
+     "sold": 16,
+     "sellThrough": 27.1
     }
    },
    "thin": false
   },
   "ST-33": {
-   "ended": 40,
+   "ended": 42,
    "sold": 15,
-   "unsold": 25,
-   "sellThrough": 37.5,
-   "passThrough": 62.5,
+   "unsold": 27,
+   "sellThrough": 35.7,
+   "passThrough": 64.3,
    "amount": 219,
    "medPrice": 14.75,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 32,
+     "ended": 33,
      "sold": 15,
-     "sellThrough": 46.9
+     "sellThrough": 45.5
     }
    },
    "thin": false
   },
   "ST-36": {
-   "ended": 44,
+   "ended": 46,
    "sold": 15,
-   "unsold": 29,
-   "sellThrough": 34.1,
-   "passThrough": 65.9,
+   "unsold": 31,
+   "sellThrough": 32.6,
+   "passThrough": 67.4,
    "amount": 214,
    "medPrice": 10.5,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 36,
+     "ended": 38,
      "sold": 15,
-     "sellThrough": 41.7
+     "sellThrough": 39.5
+    }
+   },
+   "thin": false
+  },
+  "ST-04": {
+   "ended": 108,
+   "sold": 32,
+   "unsold": 76,
+   "sellThrough": 29.6,
+   "passThrough": 70.4,
+   "amount": 855,
+   "medPrice": 13,
+   "medBidders": 2.5,
+   "byCat": {
+    "card": {
+     "ended": 98,
+     "sold": 24,
+     "sellThrough": 24.5
+    },
+    "pack": {
+     "ended": 10,
+     "sold": 8,
+     "sellThrough": 80
+    }
+   },
+   "thin": false
+  },
+  "ST-07": {
+   "ended": 21,
+   "sold": 4,
+   "unsold": 17,
+   "sellThrough": null,
+   "passThrough": null,
+   "amount": 257,
+   "medPrice": null,
+   "medBidders": null,
+   "byCat": {
+    "card": {
+     "ended": 21,
+     "sold": 4,
+     "sellThrough": 19
+    }
+   },
+   "thin": true
+  },
+  "ST-15": {
+   "ended": 101,
+   "sold": 42,
+   "unsold": 59,
+   "sellThrough": 41.6,
+   "passThrough": 58.4,
+   "amount": 2107,
+   "medPrice": 12.25,
+   "medBidders": 3,
+   "byCat": {
+    "card": {
+     "ended": 93,
+     "sold": 37,
+     "sellThrough": 39.8
     }
    },
    "thin": false
   },
   "ST-23": {
-   "ended": 9,
+   "ended": 10,
    "sold": 4,
-   "unsold": 5,
+   "unsold": 6,
    "sellThrough": null,
    "passThrough": null,
    "amount": 104,
@@ -1119,43 +1011,61 @@
    "byCat": {},
    "thin": true
   },
+  "ST-24": {
+   "ended": 18,
+   "sold": 5,
+   "unsold": 13,
+   "sellThrough": null,
+   "passThrough": null,
+   "amount": 46,
+   "medPrice": 8,
+   "medBidders": 3,
+   "byCat": {
+    "card": {
+     "ended": 17,
+     "sold": 4,
+     "sellThrough": 23.5
+    }
+   },
+   "thin": true
+  },
   "ST-32": {
-   "ended": 69,
-   "sold": 28,
-   "unsold": 41,
-   "sellThrough": 40.6,
-   "passThrough": 59.4,
-   "amount": 726,
-   "medPrice": 21.5,
+   "ended": 74,
+   "sold": 30,
+   "unsold": 44,
+   "sellThrough": 40.5,
+   "passThrough": 59.5,
+   "amount": 978,
+   "medPrice": 22.5,
    "medBidders": 3.5,
    "byCat": {
     "card": {
-     "ended": 58,
-     "sold": 25,
-     "sellThrough": 43.1
+     "ended": 61,
+     "sold": 27,
+     "sellThrough": 44.3
     },
     "pack": {
-     "ended": 11,
+     "ended": 13,
      "sold": 3,
-     "sellThrough": 27.3
+     "sellThrough": 23.1
     }
    },
    "thin": false
   },
   "ST-34": {
-   "ended": 46,
+   "ended": 50,
    "sold": 21,
-   "unsold": 25,
-   "sellThrough": 45.7,
-   "passThrough": 54.3,
+   "unsold": 29,
+   "sellThrough": 42,
+   "passThrough": 58,
    "amount": 313,
    "medPrice": 14.99,
    "medBidders": 3,
    "byCat": {
     "card": {
-     "ended": 41,
+     "ended": 45,
      "sold": 19,
-     "sellThrough": 46.3
+     "sellThrough": 42.2
     }
    },
    "thin": false
@@ -1178,23 +1088,95 @@
    },
    "thin": false
   },
-  "ST-27": {
-   "ended": 17,
-   "sold": 4,
-   "unsold": 13,
-   "sellThrough": null,
-   "passThrough": null,
-   "amount": 1152,
+  "ST-20": {
+   "ended": 33,
+   "sold": 3,
+   "unsold": 30,
+   "sellThrough": 9.1,
+   "passThrough": 90.9,
+   "amount": 57,
    "medPrice": null,
    "medBidders": null,
    "byCat": {
     "card": {
-     "ended": 17,
-     "sold": 4,
-     "sellThrough": 23.5
+     "ended": 32,
+     "sold": 3,
+     "sellThrough": 9.4
+    }
+   },
+   "thin": false
+  },
+  "ST-22": {
+   "ended": 116,
+   "sold": 35,
+   "unsold": 81,
+   "sellThrough": 30.2,
+   "passThrough": 69.8,
+   "amount": 686,
+   "medPrice": 4.12,
+   "medBidders": 2,
+   "byCat": {
+    "card": {
+     "ended": 112,
+     "sold": 35,
+     "sellThrough": 31.3
+    }
+   },
+   "thin": false
+  },
+  "ST-05": {
+   "ended": 28,
+   "sold": 8,
+   "unsold": 20,
+   "sellThrough": null,
+   "passThrough": null,
+   "amount": 39,
+   "medPrice": 2.65,
+   "medBidders": 2,
+   "byCat": {
+    "card": {
+     "ended": 25,
+     "sold": 7,
+     "sellThrough": 28
     }
    },
    "thin": true
+  },
+  "ST-27": {
+   "ended": 18,
+   "sold": 5,
+   "unsold": 13,
+   "sellThrough": null,
+   "passThrough": null,
+   "amount": 1412,
+   "medPrice": 295,
+   "medBidders": 6,
+   "byCat": {
+    "card": {
+     "ended": 18,
+     "sold": 5,
+     "sellThrough": 27.8
+    }
+   },
+   "thin": true
+  },
+  "ST-28": {
+   "ended": 43,
+   "sold": 4,
+   "unsold": 39,
+   "sellThrough": 9.3,
+   "passThrough": 90.7,
+   "amount": 39,
+   "medPrice": null,
+   "medBidders": null,
+   "byCat": {
+    "card": {
+     "ended": 43,
+     "sold": 4,
+     "sellThrough": 9.3
+    }
+   },
+   "thin": false
   },
   "ST-19": {
    "ended": 5,
@@ -1220,6 +1202,24 @@
    "byCat": {},
    "thin": true
   },
+  "ST-09": {
+   "ended": 27,
+   "sold": 3,
+   "unsold": 24,
+   "sellThrough": null,
+   "passThrough": null,
+   "amount": 55,
+   "medPrice": null,
+   "medBidders": null,
+   "byCat": {
+    "card": {
+     "ended": 27,
+     "sold": 3,
+     "sellThrough": 11.1
+    }
+   },
+   "thin": true
+  },
   "OP-19": {
    "ended": 2,
    "sold": 1,
@@ -1233,9 +1233,9 @@
    "thin": true
   },
   "ST-25": {
-   "ended": 6,
+   "ended": 8,
    "sold": 4,
-   "unsold": 2,
+   "unsold": 4,
    "sellThrough": null,
    "passThrough": null,
    "amount": 28,
@@ -1245,29 +1245,29 @@
    "thin": true
   },
   "OP-17": {
-   "ended": 943,
-   "sold": 695,
-   "unsold": 248,
-   "sellThrough": 73.7,
-   "passThrough": 26.3,
-   "amount": 70432,
-   "medPrice": 14.75,
+   "ended": 1140,
+   "sold": 802,
+   "unsold": 338,
+   "sellThrough": 70.4,
+   "passThrough": 29.6,
+   "amount": 85864,
+   "medPrice": 15.35,
    "medBidders": 5,
    "byCat": {
     "box": {
-     "ended": 29,
-     "sold": 25,
-     "sellThrough": 86.2
+     "ended": 38,
+     "sold": 33,
+     "sellThrough": 86.8
     },
     "card": {
-     "ended": 749,
-     "sold": 514,
-     "sellThrough": 68.6
+     "ended": 906,
+     "sold": 582,
+     "sellThrough": 64.2
     },
     "pack": {
-     "ended": 159,
-     "sold": 150,
-     "sellThrough": 94.3
+     "ended": 189,
+     "sold": 180,
+     "sellThrough": 95.2
     }
    },
    "thin": false
