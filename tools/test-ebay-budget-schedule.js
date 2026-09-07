@@ -55,3 +55,14 @@ try {
   fs.rmSync(root, { recursive: true, force: true });
 }
 console.log("eBay budget schedule tests passed");
+
+// 여유분 배분(topup-tcg-watch): 가용 − 못 읽은 대기 − 여유를 게임 수로 나눈다. 못 읽은 여유분이 많은 게임은 쉰다.
+{
+  const { planTopup, MAX_DUE_PER_GAME, PAGE, MARGIN } = require("./topup-tcg-watch");
+  const games = ["a", "b", "c", "d"];
+  assert.deepEqual(planTopup({ usable: 1000, owed: 150, games }), { room: 1000 - 150 - MARGIN, perGame: Math.floor((1000 - 150 - MARGIN) / 4), eligible: games });
+  assert.equal(planTopup({ usable: 100, owed: 90, games }).perGame, 0, "남는 게 없으면 넣지 않는다");
+  assert.equal(planTopup({ usable: 5000, owed: 0, games }).perGame, PAGE, "게임당 한 페이지를 넘지 않는다");
+  const skewed = planTopup({ usable: 1000, owed: 0, games, dueByGame: { a: MAX_DUE_PER_GAME } });
+  assert.deepEqual(skewed.eligible, ["b", "c", "d"], "못 읽은 여유분이 상한 이상인 게임은 쉰다");
+}

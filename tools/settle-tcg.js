@@ -139,7 +139,7 @@ async function getItem(tok, id) {
       // 제목이 없어 숫자만으로는 확인 불가였다(getItem 재조회는 쿼터를 또 쓴다).
       // 하루 1,500건 × ~60자 = 90KB — 검증 가능성의 값으로 싸다. 이미 받아온 응답에서 꺼낼 뿐이다.
       title: (it.title || "").slice(0, 120) || undefined,
-      // 남는 쿼터로 더 읽은 포켓몬 여유분(topup-pokemon-watch.js). 표본 250 과 나눠 볼 수 있게 남긴다.
+      // 남는 쿼터로 더 읽은 여유분(topup-tcg-watch.js · 전 게임 배분). 표본 250 과 나눠 볼 수 있게 남긴다.
       extra: p.extra ? true : undefined,
     });
   }
