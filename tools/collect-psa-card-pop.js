@@ -58,9 +58,11 @@ function sources() {
 async function main() {
   const probe = process.argv.includes("--probe");
   const outPath = process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : null;
-  if (!probe && !outPath) throw new Error("사용법: --probe 또는 <출력덤프.json>");
+  if (!probe && !outPath && !process.argv.includes("--urls")) throw new Error("사용법: --probe 또는 --urls 또는 <출력덤프.json>");
 
   const list = sources();
+  // --urls: 실브라우저 수집용 목록만 출력(GemRate 가 헤드리스를 봇으로 막을 때 — 2026-09-07 실측 "잠시만 기다리십시오").
+  if (process.argv.includes("--urls")) { console.log(JSON.stringify(list)); return; }
   console.log(`세트 ${list.length}개 (jp ${list.filter((s) => s.ed === "jp").length} · en ${list.filter((s) => s.ed === "en").length})`);
 
   const executable = chromeExecutable();

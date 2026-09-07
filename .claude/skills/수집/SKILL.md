@@ -75,6 +75,15 @@ macOS 는 옆자리 타인 기기다 — 절대 선택 금지, 되묻지도 않�
 PSA 카드별은 `node tools/collect-psa-card-pop.js --probe` 로 먼저 살핀다. GemRate 가 봇 차단
 페이지("잠시만 기다리십시오…")를 주면 실브라우저로 열어야 한다 — plain fetch 는 안 된다(2026-09-02 실증).
 
+세트 추이(PSA 일본판 주간·영문판 총량·판별 주간)도 같은 이유로 실브라우저다(2026-09-07 실증, 워크플로
+`update-market-data` 의 GemRate 스텝이 매주 실패한다). 실브라우저 탭에서 각 세트의 `set-population-trend`
+페이지를 열어 `globalThis.RowData` 를 `{date,total_grades,total_gems}` 로 `sessionStorage` 에 모으고
+`{jp:{code:rows}, en:{code:rows}}` 로 Blob 다운로드 → `node tools/psa-trend-ingest.js <덤프>` →
+`node tools/psa-edition-weekly-ingest.js <덤프>` → `node tools/import-gemrate-psa-history.js` →
+`node tools/import-gemrate-en-totals.js` → `node tools/inject-psa-wow.js`. URL 목록은
+`node tools/collect-psa-card-pop.js --urls` 의 경로를 `set-population-trend` 로 되돌리면 된다.
+import 를 빼먹으면 원장만 새것이고 화면은 옛것이라 가드 D3 가 FAIL 난다(2026-09-07 실제).
+
 ⚠️ **절대 원칙(2026-07-24 소유자 지시)**: 카드번호만 보고 매칭 금지. 번호+변형(tier) 둘 다
 일치할 때만 기록한다. 모호하면 스킵하고 보고한다. 가드 Q4 가 이걸 회귀검사한다.
 
