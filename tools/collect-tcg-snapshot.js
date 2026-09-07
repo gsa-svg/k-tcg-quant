@@ -48,7 +48,18 @@ const KEEP_DAYS = 730;
 // 200 → 250 (2026-09-03). 소유자 지시 "표본을 더 늘려" — 게임 4종을 빼서 생긴 몫을 남은 게임에 준다.
 // 계산: 빠진 4종이 쓰던 감시 ≈ 하루 250건 + 큰 게임 8종 × +50 = +400 ≈ 서로 상쇄.
 // 8회 정산과 실제 잔여 쿼터 안에서 소화한다. 밀리면 backlog·urgent·빈칸 감시가 잡는다.
-const WATCH_PER_GAME = TCG_WATCH_PER_GAME;
+// 감시 표본 상한(게임당). 실제 크기는 창 시작 시 "이번 창에서 TCG 가 읽을 수 있는 콜 수"로 정한다 — 2026-09-07.
+// 250 × 13 = 3,250 을 매일 넣었지만 원피스 정산·검색·안전 몫을 뺀 TCG 몫은 보통 1,200~2,400 콜이라
+// 절반 가까이 30시간 시한을 넘겨 버려졌고, 얇은 날이 만성이었다(9/6: 로카나 6·바이스 9). 유입은 처리량 안이어야 한다.
+// 하한 125 = 연속성 점검(collection-continuity)의 보수적 최소. 잔여를 못 읽으면 하한을 쓴다.
+const WATCH_PER_GAME_MAX = TCG_WATCH_PER_GAME;
+const WATCH_PER_GAME_MIN = 125;
+const SNAPSHOT_CALLS = TCGS.length * (PAGES + 3);   // 게임당: 총계 1 + 24시간 1 + 즉시구매 1 + 표본 PAGES
+function watchPerGameFor(usableCalls) {
+  if (!Number.isFinite(usableCalls)) return WATCH_PER_GAME_MIN;
+  const forSettle = Math.max(0, usableCalls - SNAPSHOT_CALLS) * 0.9;   // 10% 는 사라진 매물·재시도 여유
+  return Math.max(WATCH_PER_GAME_MIN, Math.min(WATCH_PER_GAME_MAX, Math.floor(forSettle / TCGS.length)));
+}
 
 // 검색어는 "그 게임을 가장 넓게 잡는 것" 하나로 고정한다. 게임마다 검색어 수가 다르면 비교가 깨진다.
 // (원피스 실측: 'One Piece TCG' 14,544 vs 'One Piece Card Game' 6,770 — 검색어 하나로 2배가 갈린다.)
@@ -108,7 +119,7 @@ const median = (a) => {
   return Math.round(s[Math.floor(s.length / 2)] * 100) / 100;
 };
 
-const { remaining } = require("./ebay-budget");
+const { remaining, settleBudget } = require("./ebay-budget");
 
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("eBay 자격증명 없음");
@@ -121,6 +132,11 @@ const { remaining } = require("./ebay-budget");
     console.log(JSON.stringify({ skipped: true, reason: "쿼터 부족", remaining: left }));
     return;
   }
+
+  // 이번 창의 TCG 몫(원피스 정산·검색·안전을 뺀 가용 콜) → 게임당 감시 표본 크기
+  const tcgBudget = await settleBudget({ reserveFor: ["auction", "search", "safety"], share: 1, min: 0, max: 1e9 });
+  const WATCH_PER_GAME = watchPerGameFor(tcgBudget.left == null ? null : tcgBudget.n);
+  console.log(JSON.stringify({ watchPerGame: WATCH_PER_GAME, tcgUsable: tcgBudget.left == null ? null : tcgBudget.n, note: tcgBudget.note }));
 
   const day = new Date().toISOString().slice(0, 10);
 
@@ -246,7 +262,7 @@ const { remaining } = require("./ebay-budget");
 
   console.log(JSON.stringify({
     status: "ok", day, games: games.length,
-    watchAdded: fresh.length, watchPending: pending.length,
+    watchAdded: fresh.length, watchPending: pending.length, watchPerGame: WATCH_PER_GAME,
     rows: games.map((g) => `${g.k} auc=${g.live} fix=${g.liveFixed} bid=${g.bidRate}% med=${g.medBid}`),
   }, null, 1));
 })().catch((e) => { console.error(String(e.message || e)); process.exit(1); });
