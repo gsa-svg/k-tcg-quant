@@ -59,10 +59,19 @@ try { publishedBefore = JSON.parse(fs.readFileSync(path.join(CARDS_DIR, "card-ma
 if (!Object.keys(publishedBefore).length) throw new Error("card-map.json 을 못 읽었다 — 이전 공개 목록 없이 생성하면 살아 있던 페이지가 빠진다");
 const top = [...seen.values()].sort((a, b) => b.card.nmJpy - a.card.nmJpy).slice(0, TOP_N);
 const inTop = new Set(top.map((x) => keyOfCard(x.card)));
-const keptFromBefore = [...seen.values()]
-  .filter((x) => !inTop.has(keyOfCard(x.card)) && publishedBefore[keyOfCard(x.card)])
+// PSA 10 실판매 표본(n>=3)이 있는 카드는 순위와 무관하게 전부 낸다 — 2026-09-07(소유자 지시 "유입 늘려라").
+// 카드 단위 "<카드> psa 10 price" 검색이 이 사이트에 오는 가장 구체적인 질문인데, 답이 있는 카드가 88장인데
+// 페이지는 28장뿐이었다. 기준을 "실판매 중앙값이 있는가"로 두는 이유: 호가만 있는 카드는 페이지가 얇고
+// 값이 흔들린다(빈 값이 틀린 값보다 낫다). 한 번 낸 URL 은 card-map.json 이 지켜서 사라지지 않는다.
+const strong = [...seen.values()]
+  .filter((x) => !inTop.has(keyOfCard(x.card)))
+  .filter((x) => { const p = x.card.psa10Ebay; return p && p.soldBased && p.middle != null && (p.sampleSize || 0) >= 3; })
   .sort((a, b) => b.card.nmJpy - a.card.nmJpy);
-const cands = [...top, ...keptFromBefore];
+const inStrong = new Set(strong.map((x) => keyOfCard(x.card)));
+const keptFromBefore = [...seen.values()]
+  .filter((x) => !inTop.has(keyOfCard(x.card)) && !inStrong.has(keyOfCard(x.card)) && publishedBefore[keyOfCard(x.card)])
+  .sort((a, b) => b.card.nmJpy - a.card.nmJpy);
+const cands = [...top, ...strong, ...keptFromBefore];
 
 // PSA pop 매칭(세트 psa 표)
 function popOf(setObj, card) {
@@ -481,4 +490,4 @@ if (!sm.includes(`<loc>${SITE}/cards/</loc>`)) {
   sm = sm.replace("</urlset>", `  <url>\n    <loc>${SITE}/cards/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n</urlset>`);
 }
 fs.writeFileSync(smPath, sm);
-console.log(JSON.stringify({ cards: written.length, keptFromBefore: keptFromBefore.length, orphans, pruned, sitemapRemoved: removed, sitemapAdded: added }));
+console.log(JSON.stringify({ cards: written.length, strong: strong.length, keptFromBefore: keptFromBefore.length, orphans, pruned, sitemapRemoved: removed, sitemapAdded: added }));
