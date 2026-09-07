@@ -176,6 +176,23 @@ for (const { code, set: s, card: c } of cands) {
     { "@type": "ListItem", position: 2, name: "Card prices", item: SITE + "/cards/" },
     { "@type": "ListItem", position: 3, name: `${c.name} (${c.number})`, item: canonical }] });
 
+  // Product 스키마 — 세트 페이지와 같은 패턴(2026-09-07). 화면에 보이는 값만 그대로 싣는다:
+  // 일본판 NM(소매) 달러값과 PSA 10 표시가(sold n>=3 이면 중앙값, 아니면 최저 매물가).
+  // 둘의 최소·최대가 가격 범위(AggregateOffer)다 — 같은 카드의 상태별 가격이므로 한 상품으로 본다.
+  // 값이 하나뿐이면 Offer 하나. 가격이 아예 없으면 스키마를 만들지 않는다(추정 금지).
+  const prodPrices = [nmUsd, p10 ? p10.v : null].filter((v) => Number.isFinite(v) && v > 0);
+  const prodLd = prodPrices.length ? JSON.stringify({
+    "@context": "https://schema.org", "@type": "Product",
+    name: `One Piece Card Game ${c.number} ${c.name} (Japanese)`,
+    image: imgAbs || `${SITE}/og-image.png`,
+    description: desc,
+    sku: c.number, brand: { "@type": "Brand", name: "Bandai" }, category: "Trading Card Games",
+    url: canonical,
+    offers: prodPrices.length > 1
+      ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(Math.min(...prodPrices)), highPrice: Math.round(Math.max(...prodPrices)), offerCount: (p10 && p10.n ? p10.n : 1) + 1, availability: "https://schema.org/InStock", url: canonical }
+      : { "@type": "Offer", priceCurrency: "USD", price: Math.round(prodPrices[0]), availability: "https://schema.org/InStock", url: canonical },
+  }) : "";
+
   const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -207,6 +224,7 @@ for (const { code, set: s, card: c } of cands) {
     <script type="application/ld+json">${artLd}</script>
     <script type="application/ld+json">${faqLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
+    ${prodLd ? `<script type="application/ld+json">${prodLd}</script>` : ""}
     <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <script defer src="../lang-toggle.js?v=${CSS_VER}"></script>
     <meta name="theme-color" content="#0a0c10" />

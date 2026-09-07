@@ -289,3 +289,11 @@ jobs:
             git diff --cached --quiet || git commit --amend --no-edit
             sleep $((attempt * 5))
           done
+
+      # 검색엔진에 갱신을 즉시 통지 — IndexNow(Bing·Naver·Yandex). 구글은 안 받지만 네이버 색인 지연을 줄인다.
+      # 페이지 값이 매일 바뀌므로 사이트맵 전체(110개)를 보낸다. 도구는 8월에 만들어 두고 어느 워크플로도
+      # 안 돌리고 있었다(2026-09-07 발견). 실패해도 갱신을 막지 않는다.
+      - name: Notify IndexNow
+        if: success()
+        continue-on-error: true
+        run: node tools/indexnow-submit.js
