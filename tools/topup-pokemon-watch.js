@@ -21,6 +21,10 @@ const POKEMON_KEYS = ["pokemonjp", "pokemon"];   // 스냅샷과 같은 순서 �
 const TARGET_LIVE = 1200;    // 아직 안 끝난 포켓몬 대기가 이보다 많으면 더 넣지 않는다
 const PAGE = 200;            // Browse API 한 호출 상한
 const MIN_QUOTA = 400;       // 이 아래면 정산할 몫도 없다 — 넣어 봐야 만료된다
+const MAX_DUE = 1500;        // 끝났는데 아직 못 읽은 포켓몬이 이보다 많으면 더 넣지 않는다 — 2026-09-07.
+                             // 9/6 실측: 회차마다 400건씩 넣어 하루 만에 대기 1만 건, 그중 6천 건이 시한을 넘겨 버려졌다.
+                             // 남는 쿼터로 읽는 여유분은 남는 쿼터만큼만 넣어야 뜻이 있다.
+const GIVE_UP_HOURS = 30;    // settle-tcg.js 와 같은 시한
 const marketplaceId = process.env.EBAY_MARKETPLACE_ID || "EBAY_US";
 
 async function search(tok, q) {
@@ -41,6 +45,11 @@ async function search(tok, q) {
   const live = watch.pending.filter((p) => POKEMON_KEYS.includes(p.g) && Date.parse(p.end) > now).length;
   if (live >= TARGET_LIVE) {
     console.log(JSON.stringify({ status: "skip", why: "포켓몬 대기 충분", live }));
+    return;
+  }
+  const due = watch.pending.filter((p) => POKEMON_KEYS.includes(p.g) && Date.parse(p.end) <= now && Date.parse(p.end) > now - GIVE_UP_HOURS * 3600 * 1000).length;
+  if (due >= MAX_DUE) {
+    console.log(JSON.stringify({ status: "skip", why: "정산 못 한 포켓몬 대기 충분", due, live }));
     return;
   }
   const { remaining } = await quota();

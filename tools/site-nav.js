@@ -66,6 +66,28 @@ function navHtml(prefix = "", current = null, opts = {}) {
   return `<nav class="nav"${label}>${links}</nav>`;
 }
 
+// ── 푸터 "가격 가이드" 링크 — 2026-09-07 신설.
+// 9/1 에 메뉴에서 뺀 허브(카드·세트 가이드·PSA·비교)로 가는 사이트 전체 링크가 4~15 페이지로 줄어,
+// 9/1 에 새로 낸 카드 페이지 28개가 사실상 고립됐다(내부 링크 없는 페이지는 색인이 늦고 순위가 안 붙는다).
+// 메뉴는 소유자 결정대로 두고, 푸터 첫 줄에 한 줄로만 넣는다. 주소는 전부 정식(canonical) 형태다 —
+// index.html 꼴로 걸면 서치콘솔에 "대체 페이지(표준 태그 있음)"가 쌓인다. inject-nav 가 전 페이지에 같은 줄을 넣는다.
+const GUIDE_STYLE = 'style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"';
+const GUIDE_LABEL_STYLE = 'style="color:#9aa4b6;font-weight:700;"';
+const GUIDE_ITEMS = [
+  ["Booster boxes", "/"], ["Set guides", "/sets/index.html"], ["Card prices", "/cards/"], ["Top PSA 10", "/psa10-ranking.html"],
+  ["PSA population", "/psa-grading.html"], ["Compare sets", "/compare.html"], ["Free data", "/free-data.html"], ["한국어", "/ko/"],
+];
+const GUIDE_ITEMS_KO = [
+  ["부스터 박스", "/ko/"], ["세트 가이드", "/sets/index.html"], ["카드 시세", "/ko/cards.html"], ["PSA10 랭킹", "/psa10-ranking.html"],
+  ["PSA 인구", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["English", "/"],
+];
+function guideLinksHtml(inKo = false) {
+  const items = inKo ? GUIDE_ITEMS_KO : GUIDE_ITEMS;
+  const label = inKo ? "가격 가이드" : "Price guides";
+  const links = items.map(([text, href]) => `<a href="${href}">${text}</a>`).join(" · ");
+  return `<nav class="guideLinks" aria-label="${label}" ${GUIDE_STYLE}><span ${GUIDE_LABEL_STYLE}>${label}:</span> ${links}</nav>`;
+}
+
 // ko/ 페이지용. ko/ 안에 있는 파일은 ko/ 안을 가리키고, 나머지는 ../ 로 나간다.
 const KO_ITEMS = [
   ["부스터 박스", "./"],
@@ -88,4 +110,4 @@ function navHtmlKo() {
 // 가드가 쓰는 목록 — 모든 페이지에 이 한국어 라벨이 다 있어야 한다.
 const KO_LABELS = ITEMS.map(([, ko]) => ko);
 
-module.exports = { ITEMS, navHtml, navHtmlKo, KO_LABELS };
+module.exports = { ITEMS, navHtml, navHtmlKo, KO_LABELS, guideLinksHtml };

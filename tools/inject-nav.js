@@ -14,7 +14,18 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const { navHtml, navHtmlKo } = require("./site-nav");
+const { navHtml, navHtmlKo, guideLinksHtml } = require("./site-nav");
+// 푸터 가격 가이드 줄 — 첫 <footer …> 바로 뒤. 있으면 교체, 없으면 삽입. 푸터가 없는 페이지는 건드리지 않는다.
+const GUIDE_RE = /<nav class="guideLinks"[^>]*>[\s\S]*?<\/nav>/;
+const FOOTER_OPEN_RE = /<footer\b[^>]*>/;
+function withGuideLinks(html, inKo) {
+  const want = guideLinksHtml(inKo);
+  if (GUIDE_RE.test(html)) return html.replace(GUIDE_RE, want);
+  const m = html.match(FOOTER_OPEN_RE);
+  if (!m) return html;
+  const at = m.index + m[0].length;
+  return html.slice(0, at) + "\n      " + want + html.slice(at);
+}
 
 const checkOnly = process.argv.includes("--check");
 const NAV_RE = /<nav class="nav"[^>]*>[\s\S]*?<\/nav>/;
@@ -43,9 +54,15 @@ const changed = [], skipped = [], mismatch = [];
 for (const rel of listHtml()) {
   const abs = path.join(ROOT, rel);
   let html = fs.readFileSync(abs, "utf8");
+  const inKo = rel.startsWith("ko/");
+  // 가격 가이드 줄은 상단 메뉴가 없는 페이지에도 넣는다(푸터만 있으면 된다).
+  const withGuide = withGuideLinks(html, inKo);
+  if (withGuide !== html) {
+    if (checkOnly) mismatch.push(rel + " (guideLinks)");
+    else { fs.writeFileSync(abs, withGuide, "utf8"); html = withGuide; if (!changed.includes(rel)) changed.push(rel); }
+  }
   if (!NAV_RE.test(html)) { skipped.push(rel); continue; }
 
-  const inKo = rel.startsWith("ko/");
   const depth = rel.includes("/") ? 1 : 0;
   // current 는 항상 루트 기준 전체 경로를 넘긴다("sets/op-01.html"). 종전에는 하위 폴더면 null 을
   // 넘겼는데, site-nav 가 그 값으로 한국어 링크를 붙일지 판단하게 되면서 구분이 필요해졌다.

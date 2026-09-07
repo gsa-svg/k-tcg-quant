@@ -47,6 +47,27 @@ const { ensureWorkflowDispatch, retry, createGitHubWorkflowClient } = require(".
   });
   assert.equal(sent.status, "dispatched");
   assert.equal(sends, 1, "a cancelled prior run must transition back to a new dispatch");
+
+  // 쿨다운: 최근 실행이 있으면 결손이 남아 있어도 다시 쏘지 않는다(9/6 하루 56회 재실행 방지)
+  const recent = await ensureWorkflowDispatch({
+    workflow: "collect-tcg.yml",
+    cooldownMinutes: 150,
+    now: "2026-09-06T10:00:00.000Z",
+    listRuns: async () => [{ status: "completed", conclusion: "success", created_at: "2026-09-06T09:20:00.000Z" }],
+    send: async () => { sends += 1; },
+  });
+  assert.equal(recent.status, "cooldown");
+  assert.equal(sends, 1, "a run 40 minutes ago must block a re-dispatch inside the 150-minute cooldown");
+  const stale = await ensureWorkflowDispatch({
+    workflow: "collect-tcg.yml",
+    cooldownMinutes: 150,
+    now: "2026-09-06T13:00:00.000Z",
+    listRuns: async () => [{ status: "completed", conclusion: "success", created_at: "2026-09-06T09:20:00.000Z" }],
+    send: async () => { sends += 1; },
+    sleep: async () => {},
+  });
+  assert.equal(stale.status, "dispatched");
+  assert.equal(sends, 2, "once the cooldown has passed the request goes out again");
   console.log("workflow dispatch tests passed");
 })().catch((error) => {
   console.error(error.stack);

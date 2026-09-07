@@ -5,7 +5,21 @@ const os = require("node:os");
 const path = require("node:path");
 const { buildHealPlan, hasThreeConsecutiveFailures } = require("./self-heal-policy");
 const { previousDayAssessment } = require("./collection-continuity");
-const { recordSummary } = require("./self-heal-daily");
+const { recordSummary, backlogSummary, COOLDOWN_MINUTES, snapshotInWindow } = require("./self-heal-daily");
+
+// 스냅샷 판정은 쿼터 창 기준: 자정을 넘겨도 창 시작일의 점이 있으면 있는 것(자정~07:30 UTC 매일 재실행 폭주 방지)
+assert.equal(snapshotInWindow([{ d: "2026-09-06" }], "2026-09-07", "2026-09-06"), true);
+assert.equal(snapshotInWindow([{ d: "2026-09-06" }], "2026-09-07", "2026-09-07"), false, "새 창이 열렸는데 점이 없으면 없는 것");
+assert.equal(snapshotInWindow([], "2026-09-07", "2026-09-06"), false);
+
+// due 는 아직 읽을 수 있는 것(종료 후 30시간 안)만 — 시한 지난 건은 lost 로 분리(9/6: 만료 6천 건이 due 에 섞여 30분마다 재실행)
+{
+  const now = Date.parse("2026-09-07T00:00:00.000Z");
+  const h = (hours) => new Date(now - hours * 3600000).toISOString();
+  const summary = backlogSummary([{ end: h(-2) }, { end: h(1) }, { end: h(25) }, { end: h(31) }, { end: h(100) }], now);
+  assert.deepEqual(summary, { due: 2, urgent: 1, lost: 2, oldestHours: 25 });
+  assert.ok(COOLDOWN_MINUTES.tcg >= 120 && COOLDOWN_MINUTES.auction >= 30, "재실행 쿨다운은 워크플로 정상 주기에 가깝게");
+}
 
 const healthy = {
   now: "2026-09-03T07:50:00.000Z",

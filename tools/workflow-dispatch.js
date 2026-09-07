@@ -38,6 +38,16 @@ async function ensureWorkflowDispatch(options) {
     logger.log(`[self-heal] ${options.workflow} already queued/running; duplicate skipped`);
     return { status: "already_running", runs };
   }
+  // 쿨다운: 최근 실행(크론이든 dispatch 든)이 cooldownMinutes 안에 있으면 다시 쏘지 않는다 — 2026-09-07.
+  // 30분 하트비트가 같은 결손을 보고 하루 56번 재실행을 요청했다(9/6 실측). 결손이 그 사이에 사라질 리 없는데
+  // 매번 쐈다. 상태 파일 없이 GitHub 실행 이력만으로 판단하므로 PC·클라우드 어느 쪽이 불러도 같은 답이 나온다.
+  const cooldownMs = (options.cooldownMinutes || 0) * 60000;
+  const newest = runs.map((run) => Date.parse(run?.created_at || 0)).filter(Number.isFinite).sort((a, b) => b - a)[0];
+  const nowMs = options.now ? Date.parse(options.now) : Date.now();
+  if (cooldownMs > 0 && newest && nowMs - newest < cooldownMs) {
+    logger.log(`[self-heal] ${options.workflow} ran ${Math.round((nowMs - newest) / 60000)} min ago; within ${options.cooldownMinutes} min cooldown, skipped`);
+    return { status: "cooldown", runs };
+  }
   await retry(options.send, {
     attempts: 3,
     baseDelayMs: options.baseDelayMs,

@@ -62,6 +62,18 @@ async function getItem(tok, id) {
   if (!fs.existsSync(WATCH)) { console.log(JSON.stringify({ status: "skip", why: "감시 목록 없음" })); return; }
   const watch = JSON.parse(fs.readFileSync(WATCH, "utf8"));
   const now = Date.now();
+  // 시한(30시간)이 지난 대기는 쿼터가 없어 정산을 건너뛰는 회차에도 지운다 — 2026-09-07.
+  // 종전엔 정산이 실제로 돈 회차에만 지워서, 쿼터가 바닥난 주말에 만료분 6천 건이 파일에 쌓였고
+  // 자가치유는 그걸 "대기"로 세어 재실행을 반복했다. 지우는 것은 어차피 못 읽는 건이다(추측 금지).
+  {
+    const cutoff = now - GIVE_UP_HOURS * 3600 * 1000;
+    const kept = watch.pending.filter((p) => Date.parse(p.end) > cutoff);
+    if (kept.length !== watch.pending.length) {
+      console.log(JSON.stringify({ pruned: watch.pending.length - kept.length, note: "시한 지난 대기 제거" }));
+      watch.pending = kept;
+      fs.writeFileSync(WATCH, `${JSON.stringify({ ...watch, updated: new Date().toISOString() })}\n`, "utf8");
+    }
+  }
   // 원피스가 이 창에서 끝나는 건수(감시목록의 실제 개수)·검색·안전 몫을 먼저 남기고, 나머지에서 쓴다.
   // 2026-09-03 정정: 종전엔 검색·안전만 남겨서 TCG 가 회차마다 남은 쿼터의 절반을 가져갔고,
   // 자가치유가 TCG 를 3번 더 돌린 날 원피스 정산 예산이 0 이 됐다. 이 사이트의 주제는 원피스다.

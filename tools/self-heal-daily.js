@@ -28,19 +28,35 @@ function newestSettlementTime(days) {
 }
 
 /** Summarizes due and source-expiry-risk items without mutating the watch ledger. */
-function backlogSummary(pending, nowMs) {
+// due = 끝났고 **아직 읽을 수 있는**(종료 후 giveUpHours 안) 것만 센다 — 2026-09-07 정정.
+// 종전엔 끝난 것을 전부 세어 이미 시한이 지난 포켓몬 여유분 6천 건이 due 에 들어갔고, "대기 800 초과"가
+// 항상 참이라 자가치유가 30분마다 TCG 를 다시 쐈다(9/6 실측 56회). 시한을 넘긴 건 lost 로 따로 센다 — 재실행해도 안 돌아온다.
+function backlogSummary(pending, nowMs, giveUpHours = 30) {
   let due = 0;
   let urgent = 0;
+  let lost = 0;
   let oldestHours = 0;
   for (const row of pending || []) {
     const ended = Date.parse(row.endsAt || row.end || 0);
     if (!ended || ended >= nowMs) continue;
     const ageHours = (nowMs - ended) / 3600000;
+    if (ageHours > giveUpHours) { lost += 1; continue; }
     due += 1;
     oldestHours = Math.max(oldestHours, ageHours);
     if (ageHours > 20) urgent += 1;
   }
-  return { due, urgent, oldestHours: Math.round(oldestHours) };
+  return { due, urgent, lost, oldestHours: Math.round(oldestHours) };
+}
+
+// 요청별 쿨다운(분): 그 워크플로의 정상 주기보다 짧게 다시 쏘지 않는다. 결손은 30분 안에 바뀌지 않는다.
+// sweep·active·fx 는 산출물 도장(sweptAt·updated·date)이 이미 하루 한 번으로 막는다.
+const COOLDOWN_MINUTES = { tcg: 150, auction: 45, search: 90, sweep: 0, active: 360, fx: 360 };
+
+/** True when a snapshot point exists for the current quota window (07:00 UTC reset), not just the UTC date. */
+// 스냅샷은 창 시작(07:30 UTC)에 찍는다. 종전 기준(오늘 UTC 날짜의 점)은 00:00~07:30 UTC 사이에 매일 거짓이라
+// 그 7시간 동안 하트비트마다 TCG 재실행을 요청했고, 스냅샷이 창 시작 대신 자정 직후에 찍혔다 — 2026-09-07.
+function snapshotInWindow(points, today, windowDay) {
+  return (points || []).some((point) => point?.d === today || point?.d === windowDay);
 }
 
 /** Builds the filesystem-only health input consumed by the pure policy. */
@@ -85,7 +101,7 @@ function inspectArtifacts(now = new Date()) {
     search,
     window,
     auction: { staleMinutes: newest ? Math.round((nowMs - newest) / 60000) : 9999, ...auctionBacklog },
-    tcg: { snapshotToday: (tcgSnapshot?.points || []).some((point) => point?.d === today), ...tcgBacklog },
+    tcg: { snapshotToday: snapshotInWindow(tcgSnapshot?.points, today, iso(windowStart)), ...tcgBacklog },
     activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,
     // fx.json 의 date 는 ECB 고시일(영업일 14:15 UTC 발표, 주말·공휴일 없음)이라 "오늘"과 같을 수 없는 날이 대부분이다.
     // 종전 기준(date === today)은 매 회차 update-fx 를 다시 쏘게 했다(30분 하트비트면 하루 48번). 4일 안이면 신선하다.
@@ -119,6 +135,7 @@ async function main() {
       try {
         const result = await ensureWorkflowDispatch({
           workflow: request.workflow,
+          cooldownMinutes: COOLDOWN_MINUTES[request.key] || 0,
           listRuns: () => client.listRuns(request.workflow),
           send: () => client.dispatch(request.workflow, request.inputs),
         });
@@ -147,4 +164,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary };
+module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary, COOLDOWN_MINUTES, snapshotInWindow };

@@ -256,7 +256,8 @@ for (const { code, set: s, card: c } of cands) {
       ${navHtml("../")}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow"><a href="index.html" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
+      <!-- 허브 링크는 정식 주소(/cards/)로 — index.html 형태는 서치콘솔에 "대체 페이지(표준 태그 있음)"로 쌓인다(2026-09-07) -->
+      <p class="eyebrow"><a href="./" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
       <h1>${esc(c.name)} <small style="color:#7d8698;font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
       ${AFF_TOP}
       <div class="cardHero">
@@ -314,7 +315,7 @@ for (const { code, set: s, card: c } of cands) {
       <nav class="relatedLinks">
         <a href="../sets/${setSlug}.html">${esc(code)} set guide &amp; box price</a>
         <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
-        <a href="index.html">All tracked cards</a>
+        <a href="./">All tracked cards</a>
         <a href="../about.html">About the research</a>
         <a href="../methodology.html">Methodology</a>
       </nav>
