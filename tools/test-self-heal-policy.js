@@ -5,7 +5,17 @@ const os = require("node:os");
 const path = require("node:path");
 const { buildHealPlan, hasThreeConsecutiveFailures } = require("./self-heal-policy");
 const { previousDayAssessment } = require("./collection-continuity");
-const { recordSummary, backlogSummary, COOLDOWN_MINUTES, snapshotInWindow } = require("./self-heal-daily");
+const { recordSummary, backlogSummary, COOLDOWN_MINUTES, snapshotInWindow, cooldownFor } = require("./self-heal-daily");
+
+// 창 첫 실행(스냅샷 없음 / 이번 창 정산 없음)은 쿨다운 0 — 크론 누락을 메우는 일을 이력 때문에 미루지 않는다
+{
+  const base = { tcg: { snapshotToday: true }, window: { minutesOpen: 100, tcgChecked: true } };
+  assert.equal(cooldownFor({ key: "tcg" }, base), COOLDOWN_MINUTES.tcg);
+  assert.equal(cooldownFor({ key: "tcg" }, { ...base, tcg: { snapshotToday: false } }), 0, "no snapshot in this window: dispatch now");
+  assert.equal(cooldownFor({ key: "tcg" }, { ...base, window: { minutesOpen: 100, tcgChecked: false } }), 0, "no settlement in this window: dispatch now");
+  assert.equal(cooldownFor({ key: "tcg" }, { ...base, window: { minutesOpen: 30, tcgChecked: false } }), COOLDOWN_MINUTES.tcg, "30 min in, the cron still has its chance");
+  assert.equal(cooldownFor({ key: "auction" }, base), COOLDOWN_MINUTES.auction);
+}
 
 // 스냅샷 판정은 쿼터 창 기준: 자정을 넘겨도 창 시작일의 점이 있으면 있는 것(자정~07:30 UTC 매일 재실행 폭주 방지)
 assert.equal(snapshotInWindow([{ d: "2026-09-06" }], "2026-09-07", "2026-09-06"), true);
@@ -55,7 +65,15 @@ assert.deepEqual(noBacklog.requests, [], "nothing due means no TCG settlement to
 
 const missingTcg = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false } });
 assert.deepEqual(missingTcg.requests.map((r) => r.key), ["tcg"]);
-assert.ok(missingTcg.alerts.some((a) => /3회 이상/.test(a)), "a day still missing after three heal windows must alert");
+assert.deepEqual(missingTcg.alerts, [], "50 minutes into the window a missing snapshot is a request, not an alert");
+const missingTcgLate = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false }, window: { ...healthy.window, minutesOpen: 300 } });
+assert.ok(missingTcgLate.alerts.some((a) => /3회 이상/.test(a)), "four hours into the window with no snapshot must alert");
+
+// 검색(전수/보충)을 쏜 회차에는 정산을 같이 쏘지 않는다 — 같은 원장을 동시에 쓰면 정산 커밋이 충돌로 버려진다(2026-09-07 07:47 UTC)
+const sweepAndStale = buildHealPlan({ ...healthy, window: { minutesOpen: 100, opSwept: false, tcgChecked: true }, auction: { staleMinutes: 450, due: 326, urgent: 2, oldestHours: 22 } });
+assert.deepEqual(sweepAndStale.requests.map((r) => r.key), ["sweep"], "the sweep goes first; settlement waits for the next heartbeat");
+const searchAndStale = buildHealPlan({ ...healthy, search: { liveWatched: 5, newestEndMinutes: -30 }, auction: { staleMinutes: 450, due: 326, urgent: 2, oldestHours: 22 } });
+assert.deepEqual(searchAndStale.requests.map((r) => r.key), ["search"], "a top-up and a settlement never share a round");
 
 const staleAuction = buildHealPlan({ ...healthy, auction: { staleMinutes: 450, due: 326, urgent: 2, oldestHours: 22 } });
 assert.deepEqual(staleAuction.requests.map((r) => r.key), ["auction"]);

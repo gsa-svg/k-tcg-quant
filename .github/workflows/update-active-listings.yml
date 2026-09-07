@@ -2,12 +2,10 @@ name: Update active listing links
 # rerun 2026-07-10 (secret fixed)
 # rerun 2026-07-22: audit-seo 가 eb-05·op-17 의 FAQ 스키마 누락으로 실패(숨긴 FAQ 정리 때 제거됨) → 보이는 FAQ+스키마 복원 후 재실행
 
+# push 트리거는 2026-09-07 제거 — 워크플로 파일을 고칠 때마다 전체 수집이 예정에 없이 돌았고(쿼터 없는 시간이면 게이트에서 실패 메일),
+# 검증은 self-heal 워크플로의 테스트 스텝이 이미 한다. 수동 실행은 workflow_dispatch.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/update-active-listings.yml"
   schedule:
     # Every day at 03:00 KST (18:00 UTC).
     - cron: "0 18 * * *"

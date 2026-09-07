@@ -41,7 +41,11 @@ function buildHealPlan(input) {
     }
   }
 
-  if (recovery.auction || auction.staleMinutes > 150 || auction.due > 200 || auction.urgent > 0) {
+  // 검색(전수·보충)과 정산은 같은 원장(auction-watch.json)을 통째로 다시 쓴다. 한 회차에 둘을 같이 쏘면 2초 차이로 동시에 돌아
+  // 정산 커밋이 리베이스 충돌로 버려진다(2026-09-07 07:47 UTC 실측 — concurrency 그룹이 같은데도 막지 못했다).
+  // 검색을 쏜 회차엔 정산을 미룬다. 정산은 다음 하트비트(30분 뒤)나 크론이 잡는다 — 30시간 시한 안이라 잃는 건 없다.
+  const ledgerBusy = requests.some((r) => r.workflow === "collect-auction-market.yml");
+  if (!ledgerBusy && (recovery.auction || auction.staleMinutes > 150 || auction.due > 200 || auction.urgent > 0)) {
     requests.push({
       key: "auction",
       workflow: "settle-auctions.yml",
@@ -59,7 +63,10 @@ function buildHealPlan(input) {
       reason: `${recovery.tcg ? "직전 완료일 정산 부족 · " : ""}${tcgUnchecked ? `창 열린 지 ${windowOpen}분 정산 없음 · ` : ""}오늘 스냅샷 ${tcg.snapshotToday ? 1 : 0} · 대기 ${tcg.due}건 · 임박 ${tcg.urgent}건`,
     });
     if (tcgUnchecked && windowOpen > 240) alerts.push("쿼터 창이 열린 지 4시간이 지났는데 TCG 정산이 한 번도 돌지 않았습니다");
-    if (!tcg.snapshotToday && elapsedDailyOpportunities(input.now) >= 3) {
+    // 스냅샷은 창 시작(07:30 UTC)에 찍으므로 "없음"의 기준도 창이다 — 창이 열린 지 4시간이 지나도 없어야 경고(2026-09-07 정정:
+    // 종전 UTC 자정 기준 2시간 창 3회는 창이 열린 직후(07:47)에 바로 울렸다). 창 정보가 없을 때만 옛 기준을 쓴다.
+    const snapshotLate = windowOpen != null ? windowOpen > 240 : elapsedDailyOpportunities(input.now) >= 3;
+    if (!tcg.snapshotToday && snapshotLate) {
       alerts.push("TCG 스냅샷 복구 기회가 3회 이상 지났는데도 오늘 관측이 없습니다");
     }
   }

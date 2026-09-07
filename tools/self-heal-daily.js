@@ -52,6 +52,19 @@ function backlogSummary(pending, nowMs, giveUpHours = 30) {
 // sweep·active·fx 는 산출물 도장(sweptAt·updated·date)이 이미 하루 한 번으로 막는다.
 const COOLDOWN_MINUTES = { tcg: 150, auction: 45, search: 90, sweep: 0, active: 360, fx: 360 };
 
+/** Cooldown for one request: window-opening TCG work (no snapshot / no settlement in this window) is never throttled. */
+// 2026-09-07 07:47 UTC 실측: 창이 열렸는데(07:30 크론 누락) 76분 전 실행이 있다는 이유로 스냅샷을 09:02 까지 미뤘다.
+// 창 첫 실행은 크론 누락을 메우는 바로 그 일이라 쿨다운 대상이 아니다. 나머지(밀린 대기·전날 결손)만 쿨다운한다.
+function cooldownFor(request, health) {
+  if (request.key === "tcg") {
+    const window = health.window || {};
+    const firstRunMissing = health.tcg?.snapshotToday === false
+      || (window.tcgChecked === false && Number.isFinite(window.minutesOpen) && window.minutesOpen > 60);
+    if (firstRunMissing) return 0;
+  }
+  return COOLDOWN_MINUTES[request.key] || 0;
+}
+
 /** True when a snapshot point exists for the current quota window (07:00 UTC reset), not just the UTC date. */
 // 스냅샷은 창 시작(07:30 UTC)에 찍는다. 종전 기준(오늘 UTC 날짜의 점)은 00:00~07:30 UTC 사이에 매일 거짓이라
 // 그 7시간 동안 하트비트마다 TCG 재실행을 요청했고, 스냅샷이 창 시작 대신 자정 직후에 찍혔다 — 2026-09-07.
@@ -135,7 +148,7 @@ async function main() {
       try {
         const result = await ensureWorkflowDispatch({
           workflow: request.workflow,
-          cooldownMinutes: COOLDOWN_MINUTES[request.key] || 0,
+          cooldownMinutes: cooldownFor(request, health),
           listRuns: () => client.listRuns(request.workflow),
           send: () => client.dispatch(request.workflow, request.inputs),
         });
@@ -164,4 +177,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary, COOLDOWN_MINUTES, snapshotInWindow };
+module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary, COOLDOWN_MINUTES, snapshotInWindow, cooldownFor };
