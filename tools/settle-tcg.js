@@ -71,9 +71,12 @@ async function getItem(tok, id) {
     console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
     return;
   }
+  // 게임 안에서는 표본(스냅샷 250)이 먼저, 여유분(extra)은 그 뒤 — 2026-09-07 정정.
+  // 주말 실측: 포켓몬 여유분이 오래된 순으로 앞줄을 차지해 9/6 표본이 0/125 이 됐다(쿼터는 창 끝 전에 바닥).
+  // "남으면 포켓몬"이지 "포켓몬 먼저"가 아니다. 같은 급 안에서는 오래된 것부터(조회 시한이 먼저 끝난다).
   const dueAll = watch.pending
     .filter((p) => Date.parse(p.end) < now && Date.parse(p.end) > now - GIVE_UP_HOURS * 3600 * 1000)
-    .sort((a, b) => Date.parse(a.end) - Date.parse(b.end));    // 오래된 것부터 — 조회 가능 시한이 먼저 끝난다
+    .sort((a, b) => (a.extra ? 1 : 0) - (b.extra ? 1 : 0) || Date.parse(a.end) - Date.parse(b.end));
   // 게임별로 돌아가며 뽑는다 — 2026-09-03. 오래된 순으로만 자르면 큰 게임(포켓몬·매직)이 회차를 독점해
   // 작은 게임은 0건이 된다(실측 9/3: 포켓몬 250 · 건담 1). 각 게임 안에서는 여전히 오래된 것부터다.
   const byGameQueue = new Map();
