@@ -192,6 +192,9 @@ jobs:
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
           node tools/generate-ai-data.js 2>&1 | tee logs/generate-ai-data.log
           node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
+          # 메뉴·언어 토글은 생성기가 덮어쓴다 → 반드시 생성기 뒤에. 빠지면 가드 N1 FAIL(2026-09-06 까지 매주 실패한 원인).
+          node tools/inject-nav.js 2>&1 | tee logs/inject-nav.log
+          node tools/inject-lang-toggle.js 2>&1 | tee logs/inject-lang-toggle.log
           node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
           node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
           node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
@@ -249,6 +252,8 @@ jobs:
             node tools/generate-free-data.js
             node tools/generate-ai-data.js
             node tools/test-ai-data.js
+            node tools/inject-nav.js
+            node tools/inject-lang-toggle.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
             node tools/audit-ai-discovery.js

@@ -148,6 +148,19 @@ jobs:
           set -o pipefail
           mkdir -p logs
           node tools/audit-active-listings.js 2>&1 | tee logs/audit-active-listings.log
+          # 가격 품질 감사 — collect-status 가 이 워크플로 몫으로 기대하는 산출물인데 실행이 빠져 있었다(2026-09-07 발견).
+          # --hide-suspicious-nm 은 packs.json 을 들여쓰기로 저장한다 → 다음 단계의 compact-series 가 되돌린다.
+          node tools/audit-price-quality.js --hide-suspicious-nm 2>&1 | tee logs/audit-price-quality-hide.log
+          node tools/audit-price-quality.js 2>&1 | tee logs/audit-price-quality.log
+
+      # PSA10 활성 구매링크 전수 오매칭 감사(읽기 전용, 카드당 getItem 1회 ≈ 180회/일, 약 90초).
+      # 감사가 막혀도 매물 갱신은 계속돼야 하므로 실패를 삼킨다.
+      - name: Audit PSA10 listing mismatches
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          mkdir -p logs
+          node tools/audit-psa10-mismatches.js 2>&1 | tee logs/audit-psa10-mismatches.log
 
       - name: Regenerate SEO set pages (bake fresh data)
         run: |
@@ -216,13 +229,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -267,7 +280,7 @@ jobs:
             node tools/inject-set-comparison.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
-            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short
