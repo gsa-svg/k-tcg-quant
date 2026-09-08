@@ -140,6 +140,11 @@ node tools/guard-invariants.js
 
 통과하면 커밋·푸시한다. 커밋 메시지에는 **무엇을 몇 건 넣었는지 숫자로** 적는다.
 
+⚠️ 사이트맵에 URL 을 추가한 날은 **서치콘솔에서 사이트맵을 다시 제출**한다(실브라우저, 계정 슬롯 /u/1/,
+`https://search.google.com/u/1/search-console/sitemaps?resource_id=https%3A%2F%2Fopboxindex.com%2F` → 입력칸에 `sitemap.xml` → 제출).
+2026-09-08 실측: 구글이 7/24 이후 사이트맵을 다시 안 읽어 190페이지 중 53개만 알고 있었다. 재제출하니 당일 190개로 갱신됐다.
+입력은 좌표 클릭(입력칸→타이핑→제출 버튼)이 먹고, ref 클릭·form_input 은 안 먹었다.
+
 배포 뒤 실제 화면이 바뀌었는지 한 곳만 확인한다(예: 방금 값이 들어간 세트 페이지를
 `curl -s "https://opboxindex.com/sets/op-17.html?cb=$(date +%s)" | grep -c "<새 값>"`).
 GitHub Pages 반영에 1~2분 걸린다.
