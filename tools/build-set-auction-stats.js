@@ -48,7 +48,7 @@ for (const f of used) {
   for (const s of reclassify(day.sales || [])) {
     const code = s.set;
     if (!code || !/^(OP|EB|PRB|ST)-\d{2}$/.test(code)) continue;
-    const b = (bySet[code] = bySet[code] || { ended: 0, sold: 0, unsold: 0, amount: 0, prices: [], bids: [], byCat: {} });
+    const b = (bySet[code] = bySet[code] || { ended: 0, sold: 0, unsold: 0, amount: 0, prices: [], bids: [], byCat: {}, byEd: {} });
     b.ended++;
     // sold 가 null 인 건은 낙찰 여부가 확인 안 된 것 — 분모에서 뺀다(추측하지 않는다).
     if (s.sold === true) {
@@ -61,8 +61,27 @@ for (const f of used) {
     const c = (b.byCat[cat] = b.byCat[cat] || { ended: 0, sold: 0 });
     c.ended++;
     if (s.sold === true) c.sold++;
+    // 판본(jp/en)별로도 센다 — 영문판 페이지(sets/<code>-english.html)가 "영문판 경매" 만 보여주기 위해서다.
+    // 제목만으로 판을 못 가린 건(ed 없음)은 어느 쪽에도 넣지 않는다 — 추측하지 않는다.
+    if (s.ed === "jp" || s.ed === "en") {
+      const e = (b.byEd[s.ed] = b.byEd[s.ed] || { ended: 0, sold: 0, unsold: 0, prices: [], byCat: {} });
+      e.ended++;
+      if (s.sold === true) {
+        e.sold++;
+        const unit = "qty" in s ? s.unitPrice : s.price;
+        if (Number.isFinite(unit) && unit > 0) e.prices.push(unit);
+      } else if (s.sold === false) e.unsold++;
+      const ec = (e.byCat[cat] = e.byCat[cat] || { ended: 0, sold: 0 });
+      ec.ended++;
+      if (s.sold === true) ec.sold++;
+    }
   }
 }
+
+// 분류(byCat)를 화면용으로 접는다: 10건 미만 분류는 빼고, 낙찰률은 소수 1자리.
+const foldCats = (byCat) => Object.fromEntries(Object.entries(byCat)
+  .filter(([, v]) => v.ended >= 10)
+  .map(([k, v]) => [k, { ended: v.ended, sold: v.sold, sellThrough: Math.round((v.sold / v.ended) * 1000) / 10 }]));
 
 const sets = {};
 for (const [code, b] of Object.entries(bySet)) {
@@ -78,9 +97,17 @@ for (const [code, b] of Object.entries(bySet)) {
     amount: Math.round(b.amount),
     medPrice: b.prices.length >= 5 ? med(b.prices) : null,
     medBidders: b.bids.length >= 5 ? med(b.bids) : null,
-    byCat: Object.fromEntries(Object.entries(b.byCat)
-      .filter(([, v]) => v.ended >= 10)
-      .map(([k, v]) => [k, { ended: v.ended, sold: v.sold, sellThrough: Math.round((v.sold / v.ended) * 1000) / 10 }])),
+    byCat: foldCats(b.byCat),
+    // 판본별(jp/en). 같은 얇음 규칙: 확정 30건 미만이면 비율을 비운다.
+    byEd: Object.fromEntries(Object.entries(b.byEd).map(([ed, e]) => {
+      const dec = e.sold + e.unsold;
+      return [ed, {
+        ended: e.ended, sold: e.sold, unsold: e.unsold,
+        sellThrough: dec < MIN_N ? null : Math.round((e.sold / dec) * 1000) / 10,
+        medPrice: e.prices.length >= 5 ? med(e.prices) : null,
+        byCat: foldCats(e.byCat),
+      }];
+    })),
     thin,
   };
 }

@@ -39,7 +39,7 @@ function latest(src, code, edition, predicate = () => true) {
 }
 
 assert.deepEqual(actual, expected, "generated AI data must exactly match the verified source snapshot");
-assert.equal(actual.schemaVersion, "1.0.2");
+assert.equal(actual.schemaVersion, "1.0.3");
 // 확장 파일 3개(2026-09-08): 카드 페이지 전부 · 등급 인구 · 경매(원피스+TCG) — 원장과 같은 값, 내부 필드 없음, 핵심 파일에서 링크
 {
   const cards = JSON.parse(fs.readFileSync(path.join(ROOT, "opbox-ai-cards.json"), "utf8"));

@@ -79,7 +79,7 @@ if (!fs.existsSync(aiPath)) {
   let aiData;
   try { aiData = JSON.parse(fs.readFileSync(aiPath, "utf8")); } catch { errors.push("opbox-ai-data.json: invalid JSON"); }
   if (aiData) {
-    if (aiData.schemaVersion !== "1.0.2") errors.push("opbox-ai-data.json: unsupported schemaVersion");
+    if (aiData.schemaVersion !== "1.0.3") errors.push("opbox-ai-data.json: unsupported schemaVersion");
     // 확장 파일 3개(2026-09-08): 카드 페이지 전부 · 등급 인구 · 경매(원피스+TCG). 답변 엔진이 우리 숫자로 답하는 근거 파일이다.
     for (const [key, file] of [["cardPages", "opbox-ai-cards.json"], ["grading", "opbox-ai-grading.json"], ["auctions", "opbox-ai-auctions.json"]]) {
       if (aiData.related?.[key] !== `https://opboxindex.com/${file}`) errors.push(`opbox-ai-data.json: related.${key} must point at ${file}`);

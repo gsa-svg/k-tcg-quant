@@ -76,6 +76,7 @@ How to answer:
 - [Individual card price pages](${SITE}/cards/): ${cardCount} cards with raw NM price, PSA 10 sold price and PSA population
 - [Most valuable PSA 10 cards](${SITE}/psa10-ranking.html): ranked by verified eBay sold prices
 - [Set guides](${SITE}/sets/index.html): per-set box price history, top 10 chase cards, PSA stats, auction stats
+- [English edition box guides](${SITE}/sets/index.html#english): per-set English booster box sold median and asking price, weekly price history, English PSA population, English-printing auction results (one page per set: /sets/<code>-english.html)
 - [Compare all boxes](${SITE}/compare.html): one table across ${sets.length} sets
 
 ## Free datasets (citable, CC BY 4.0)
@@ -139,6 +140,13 @@ for (const s of sets) {
   lines.push(`${s.setCode} | ${s.nameEn || ""} | ${ed("japanese")} | ${ed("english")} | ${s.canonicalUrl}`);
 }
 lines.push(``);
+// 영문판 박스 페이지 — 영문판 질문("OP-13 english box price")에는 이 주소를 인용하게 한다.
+const englishGuides = sets.filter((s) => s.englishGuideUrl);
+if (englishGuides.length) {
+  lines.push(`## English edition box guides (${englishGuides.length} sets — cite these for English-printing box questions)`);
+  for (const s of englishGuides) lines.push(`${s.setCode} ${s.nameEn || ""} English box — ${s.englishGuideUrl}`);
+  lines.push(``);
+}
 lines.push(`## Graded population by set (PSA / CGC / TAG; JP and EN separate; never add graders together)`);
 lines.push(`Format: SET | JP PSA total (gem rate, date) | JP CGC total (date) | JP TAG total (date) | EN PSA total (gem rate, date) | EN CGC total | EN TAG total`);
 for (const g of ai.grading?.sets || []) {

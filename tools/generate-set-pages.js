@@ -4,17 +4,14 @@
 // - Idempotently inserts new URLs into sitemap.xml.
 // Run: node tools/generate-set-pages.js
 const fs = require("fs");
-const { navHtml } = require("./site-nav");
 const path = require("path");
-// styles.css 버전을 하드코딩하면 범프할 때마다 어긋난다(2026-07-27 실사고: 가드 V1 21건).
-const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
+// <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
+const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap } = require("./set-page-shared");
 
 const ROOT = path.join(__dirname, "..");
 // 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 없으면 섹션을 그리지 않는다.
 let SET_AUCTION = { sets: {}, window: {}, updated: "" };
 try { SET_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-auction-stats.json"), "utf8")); } catch { /* 아직 안 구웠으면 생략 */ }
-const SITE = "https://opboxindex.com";
-const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
 // One Piece cards use standard-size sleeves. This listing has verified high sales,
 // but the copy intentionally avoids a permanent "best-selling" claim.
 const SLEEVE_EBAY = `https://www.ebay.com/itm/136768331994?${EPN}`;
@@ -60,7 +57,6 @@ try { COMMENTARY = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-comme
 let PRIORITY_SET_SEO = { sets: {} };
 try { PRIORITY_SET_SEO = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "priority-set-seo.json"), "utf8")); } catch (e) {}
 
-const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // ---- 실데이터 구워넣기용 헬퍼 (가격은 항상 "as of 날짜"로 정직하게, 매일 재생성으로 최신 유지)
 const FX = data.fx || {};
@@ -73,16 +69,8 @@ const krwUsd = (krw) => (Number.isFinite(krw) && FX.usdKrw ? krw / FX.usdKrw : n
 // 박스 가격이 3개 공존하는 문제의 근원. 시리즈가 곧 차트이므로 이제 문장과 그림이 같은 숫자를 말한다.
 const soldPts = (code, ed) => (((SOLD_SERIES.sets || {})[code] || {})[ed] || []).filter((pt) => pt && pt.median != null).map((pt) => ({ d: pt.d, p: pt.median }));
 const toUsd = (val, cur) => (val == null ? null : cur === "USD" ? val : krwUsd(val));
-const usd = (n) => (n == null ? null : "$" + Math.round(n).toLocaleString("en-US"));
-const intl = (n) => (n == null ? "" : Number(n).toLocaleString("en-US"));
 const RARITY = { L: "Leader", SEC: "Secret Rare", SR: "Super Rare", R: "Rare", UC: "Uncommon", C: "Common", SP: "Special", P: "Promo" };
 const rarityLabel = (r) => RARITY[r] || r || "";
-const monthYear = (iso) => {
-  if (!iso) return "";
-  const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? iso : `${m[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-};
 // TCGplayer 단일 리스팅 폴백가(priceUsd)의 이상치 표시.
 // 왜: priceUsd 는 변형매칭 미확정(variantOK undefined) 단일 호가라 트롤/오매칭 값이 섞인다.
 // 실제 라이브 사고(2026-07-21 감사): EB-02 Boa Hancock $6,969.69(69 밈), OP-09 Gol D. Roger $6,720.
@@ -125,50 +113,8 @@ function cardPrices(c) {
   return { nm, nmSrc, psa, psaKind };
 }
 
-function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref = "" }) {
-  // hreflang 은 반드시 양방향이어야 구글이 인정한다. ko 짝이 있을 때만, en(자기)·ko·x-default 를 함께 선언.
-  // (ko 페이지는 이미 en 을 가리키는데 en 쪽이 침묵해서 단방향으로 무시되던 문제 — 2026-07-21 감사)
-  const hreflang = koHref
-    ? `\n    <link rel="alternate" hreflang="en" href="${canonical}" />\n    <link rel="alternate" hreflang="ko" href="${koHref}" />\n    <link rel="alternate" hreflang="x-default" href="${canonical}" />`
-    : "";
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Google Analytics 4 (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-P73SE1WVD0');
-    </script>
-    <script defer src="/track.js"></script>
-    <!-- AdSense is intentionally limited to substantial editorial/core pages during site approval.
-         Set guides keep eBay EPN links but do not request Google ads. -->
-    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
-    <link rel="canonical" href="${canonical}" />${hreflang}
-    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <meta name="theme-color" content="#0a0c10" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <title>${esc(title)}</title>
-    <meta name="description" content="${esc(desc)}" />
-    <meta property="og:site_name" content="OP Box Index" />
-    <meta property="og:type" content="${ogType}" />
-    <meta property="og:title" content="${esc(title)}" />
-    <meta property="og:description" content="${esc(desc)}" />
-    <meta property="og:url" content="${canonical}" />
-    <meta property="og:image" content="https://opboxindex.com/og-image.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    ${extraLd}
-    <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
-    <script defer src="../lang-toggle.js?v=${CSS_VER}"></script>
-    <style>
-      /* 제목 블록이 폭을 100% 잡고 있어 박스 이미지가 늘 아래 줄로 밀렸다(2026-08-27).
+// 이 페이지들에만 쓰는 스타일. 공용 껍데기(pageHead)의 <style> 자리에 끼워 넣는다.
+const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스 이미지가 늘 아래 줄로 밀렸다(2026-08-27).
          min-width:0 + flex:1 로 같은 줄에 세우면 hero 가 한 화면의 1/4을 덜 먹는다. */
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero > div { flex: 1 1 320px; min-width: 0; }
@@ -232,35 +178,9 @@ function head({ title, desc, canonical, ogType = "article", extraLd = "", koHref
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
       .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(16,215,160,.05); font-size: 14px; line-height: 1.55; color: var(--muted); }
       .gearRec strong { color: #eef2ff; }
-      .gearRec a { color: var(--accent); font-weight: 800; white-space: nowrap; }
-    </style>
-    <style id="opBoxChartCss">${BoxChart.CSS}</style>
-  </head>
-  <body>
-    <a class="skipLink" href="#main-content">Skip to main content</a>
-    <header class="topbar">
-      <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      ${navHtml("../")}
-    </header>
-    <main id="main-content" class="bodyPage">`;
-}
+      .gearRec a { color: var(--accent); font-weight: 800; white-space: nowrap; }`;
+const head = (opts) => pageHead({ ...opts, extraCss: SET_PAGE_CSS });
 
-// EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게" 있어야 한다.
-// 2026-08-10 EPN 위반 통지: 문구는 적절하나 푸터에 있어 잘 보이지 않는다. 그래서 본문 상단에도 넣는다.
-// 푸터의 affNote 는 그대로 두고 이걸 추가하는 것이다 — 둘 중 하나를 지우지 말 것.
-const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>`;
-
-const FOOT = `
-      <script src="../box-chart.js?v=${CSS_VER}" defer></script>
-      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>
-    </main>
-    <footer class="footer">
-      <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../free-data.html">Free data (CSV)</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
-    </footer>
-  </body>
-</html>
-`;
 
 // 라이브 가격 위젯: 데이터 fetch 실패/부재 시 위젯 자체를 숨김(불확실하면 숨김 원칙)
 function liveWidget(code) {
@@ -434,7 +354,8 @@ const CARD_GRADES = (() => {
 // 중앙값을 쓰는 이유: OP-01(PSA 57,143 · 박스 $305)이 평균을 통째로 끌어올린다. 평균 대비로 보면
 // 대부분의 세트가 "평균 이하"로 나와 정보가 안 된다.
 //
-// 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도(주간 거래건수 ÷ 7). 물건이 며칠 만에 빠지는가를 뜻한다.
+// 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 시리즈의 n 은 평균 창(windowDays, 28~56일) 안의 판매 건수라
+// 창 길이로 나눠야 하루 속도가 된다(종전 ÷7 은 n 을 주간 건수로 잘못 봐 재고일수를 4배 이상 작게 냈다 — 2026-09-08 수정).
 // 매물 수만으로는 큰 세트와 작은 세트를 비교할 수 없어서 속도로 나눈다.
 const SET_METRICS = (() => {
   let series;
@@ -448,13 +369,14 @@ const SET_METRICS = (() => {
     const sup = (v.supply || []).slice(-1)[0];
     const set = data.sets[code] || {};
     const weekN = last.n || 0;
+    const windowDays = v.windowDays?.jp || null;
     const stock = sup ? sup.jp : null;
     out[code] = {
       price: last.median != null ? Math.round(last.median) : null,
       priceD: last.d || null,   // 이 값의 관측일 — 큰 숫자에 날짜 없이 두면 25일 묵은 세트도 오늘 값처럼 보인다(2026-08-26 감사)
       chg: prior && prior.median ? Number(((last.median / prior.median - 1) * 100).toFixed(1)) : null,
       stock,
-      days: stock != null && weekN ? Number((stock / (weekN / 7)).toFixed(1)) : null,
+      days: stock != null && weekN && windowDays ? Number((stock / (weekN / windowDays)).toFixed(1)) : null,
       psa: set.psaFull?.total ?? null,
       gem: set.psaFull?.gemRate ?? null,
     };
@@ -488,6 +410,8 @@ function setPage(code, prev, next) {
   const cards = (s.cards || []).slice(0, 10);
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
   const canonical = `${SITE}/sets/${slug(code)}.html`;
+  // 영문판 박스 페이지(generate-english-set-pages.js 산출물)가 있을 때만 링크한다 — 파일 존재가 유일한 기준.
+  const englishHref = fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)) ? `${slug(code)}-english.html` : "";
   const prioritySeo = PRIORITY_SET_SEO.sets?.[code];
   // 기본 제목은 박스 가격만 말했는데, GSC 실측(2026-09-01) 미국 검색어에는
   // "op10 most expensive cards" 처럼 **카드**를 찾는 것이 섞여 있다. 이 페이지엔 이미
@@ -798,7 +722,7 @@ function setPage(code, prev, next) {
     if (midA != null && (bmA.sampleSize || 0) >= 5) facts.push(`Current eBay asking prices run around <strong>${usd(midA)}</strong> (${bmA.sampleSize} active listings).`);
     const enPts = soldPts(code, "en");
     const enLastP = enPts.length ? enPts[enPts.length - 1].p : null;
-    if (enLastP != null && jpVal != null) facts.push(`The English ${code} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box.`);
+    if (enLastP != null && jpVal != null) facts.push(`The English ${code} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box${englishHref ? ` (<a href="${englishHref}">English box guide</a>)` : ""}.`);
     if (cards.length) {
       const tf = cardPrices(cards[0]);
       if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}` : ""}.`);
@@ -838,6 +762,7 @@ function setPage(code, prev, next) {
       <div class="ctaRow">
         <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>
         <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">Browse ${code} boxes on eBay</a>
+        ${englishHref ? `<a href="${englishHref}">English ${code} box price</a>` : ""}
       </div>
       ${/* 갓 나온 세트는 박스 시세만 있고 체이스 카드 목록이 아직 없다. 헤더만 있는 빈 표를
             내보내면 "데이터가 있는데 비어 있다"로 읽힌다 — 섹션을 아예 그리지 않고,
@@ -908,6 +833,10 @@ function hubPage() {
       url: `${SITE}/sets/${slug(code)}.html`,
     })),
   })}</script>`;
+  // 영문판 박스 페이지가 있는 세트만 — 파일 존재가 기준(generate-english-set-pages.js 가 먼저 돈다).
+  const englishItems = ORDER.filter((code) => fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)))
+    .map((code) => `<li><a href="${slug(code)}-english.html"><strong>${code}</strong> ${esc(data.sets[code].nameEn || "")}</a> — English box: sold median, asking, weekly history, English PSA</li>`)
+    .join("\n        ");
   return `${head({ title, desc, canonical, ogType: "website", extraLd: ld })}
       <p class="eyebrow">Set Guides</p>
       <h1>One Piece booster box price guides — every Japanese set</h1>
@@ -915,6 +844,10 @@ function hubPage() {
       <ul class="chaseList">
         ${items}
       </ul>
+      ${englishItems ? `<h2 id="english">English edition box prices</h2>
+      <ul class="chaseList">
+        ${englishItems}
+      </ul>` : ""}
       <h2>Upcoming sets</h2>
       <ul class="chaseList">
         <li><a href="op-17.html"><strong>OP-17 The World's Strongest Warriors</strong></a> — JP Aug 22 / EN Aug 28, 2026. Release facts + pre-order data from the last three launches.</li>
@@ -1114,24 +1047,7 @@ written++;
 fs.writeFileSync(path.join(ROOT, "psa10-ranking.html"), rankingPage(), "utf8");
 written++;
 
-// ---- sitemap: idempotent insert
-const smPath = path.join(ROOT, "sitemap.xml");
-let sm = fs.readFileSync(smPath, "utf8");
-const today = new Date().toISOString().slice(0, 10);
+// ---- sitemap: 같은 URL 은 lastmod 만 갱신, 새 URL 만 추가(set-page-shared.upsertSitemap)
 const urls = [`${SITE}/psa10-ranking.html`, `${SITE}/sets/index.html`, ...ORDER.map((c) => `${SITE}/sets/${slug(c)}.html`)];
-let added = 0;
-const bumpLastmod = (u) => {
-  const esc = u.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(`(<loc>${esc}</loc>[\\s\\S]*?<lastmod>)[^<]*(</lastmod>)`);
-  if (re.test(sm)) { sm = sm.replace(re, `$1${today}$2`); return true; }
-  return false;
-};
-for (const u of urls) {
-  if (bumpLastmod(u)) continue; // refresh existing entry's lastmod to today
-  const entry = `  <url><loc>${u}</loc><lastmod>${today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>\n`;
-  sm = sm.replace("</urlset>", entry + "</urlset>");
-  added++;
-}
-bumpLastmod(`${SITE}/`); // home is data-driven — keep it fresh too
-fs.writeFileSync(smPath, sm, "utf8");
+const { added } = upsertSitemap(urls);
 console.log(JSON.stringify({ pagesWritten: written, sitemapAdded: added }));

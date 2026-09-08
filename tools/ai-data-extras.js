@@ -58,6 +58,11 @@ function buildAuctions(series, setStats) {
       amountUsd: num(s.amount), medianWinningBidUsd: num(s.medPrice), medianBidders: num(s.medBidders),
       thinSample: !!s.thin,
       byCategory: Object.fromEntries(Object.entries(s.byCat || {}).map(([cat, v]) => [cat, { ended: num(v.ended), sold: num(v.sold), sellThroughPct: num(v.sellThrough) }])),
+      // 판본(일본판/영문판)별 — 제목으로 판을 못 가린 건은 어느 쪽에도 없다. 영문판 페이지가 같은 숫자를 보여준다.
+      byPrinting: Object.fromEntries(Object.entries(s.byEd || {}).map(([ed, v]) => [ed === "jp" ? "japanese" : "english", {
+        ended: num(v.ended), sold: num(v.sold), sellThroughPct: num(v.sellThrough), medianWinningBidUsd: num(v.medPrice),
+        byCategory: Object.fromEntries(Object.entries(v.byCat || {}).map(([cat, c]) => [cat, { ended: num(c.ended), sold: num(c.sold), sellThroughPct: num(c.sellThrough) }])),
+      }])),
     });
   }
   return {
@@ -67,7 +72,7 @@ function buildAuctions(series, setStats) {
       amountUsd: "sum of winning bids in USD for auctions that sold",
       partialDay: "true when part of that day's auctions could not be read back (a gap, not zero activity)",
       byCategory: "box = sealed booster boxes, graded = PSA/CGC/TAG slabs, raw = ungraded singles, pack = booster packs, lot = multi-card lots",
-      byPrinting: "jp = Japanese, en = English, other = unidentified or other languages",
+      byPrinting: "jp = Japanese, en = English, other = unidentified or other languages; per set, byPrinting.japanese / byPrinting.english split that set's auctions and leave unidentified printings out",
     },
     canonicalPage: `${SITE}/auction.html`,
     daily, weekly,

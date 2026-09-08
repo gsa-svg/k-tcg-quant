@@ -1,6 +1,10 @@
 "use strict";
 
+const fs = require("node:fs");
+const path = require("node:path");
 const { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd } = require("./market-data-normalizers");
+
+const ROOT = path.resolve(__dirname, "..");
 
 function rawNmAsk(card, fx, datasetUpdatedOn) {
   if (card.nmHiddenReason || !isPositive(card.nmJpy)) return null;
@@ -110,12 +114,14 @@ function buildAiData(data) {
       nameKo: set.nameKo || null,
       englishReleaseDate: isDate(set.release) ? set.release : null,
       canonicalUrl: `${SITE}/sets/${code.toLowerCase()}.html`,
+      // 영문판 박스 페이지(sets/<code>-english.html)가 있으면 그 주소, 없으면 null — 파일 존재가 기준이다.
+      englishGuideUrl: fs.existsSync(path.join(ROOT, "sets", `${code.toLowerCase()}-english.html`)) ? `${SITE}/sets/${code.toLowerCase()}-english.html` : null,
       boxMarket: buildBoxMarket(set, datasetUpdatedOn, `${SITE}/sets/${code.toLowerCase()}.html`),
       topHits: buildTopHits(code, set, data.fx || {}, datasetUpdatedOn),
     };
   });
   return {
-    schemaVersion: "1.0.2",
+    schemaVersion: "1.0.3",
     datasetId: "opbox-ai-market-data",
     name: "OP Box Index — One Piece TCG box markets and Top 7 hits",
     datasetUpdatedOn,

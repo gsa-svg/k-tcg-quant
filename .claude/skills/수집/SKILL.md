@@ -112,6 +112,7 @@ node tools/build-grading-series.js        # 등급 인구를 건드렸으면
 node tools/inject-card-grades.js          # 등급 원장 → 카드 화면값(graderPop). 빠지면 등급 감사가 "화면 총량 vs 원장" FAIL (2026-09-03 실제)
 node tools/compact-series.js              # ⚠️ inject 직후 필수 — 들여쓰기 저장을 압축. 빼면 가드 T2 FAIL (2026-09-04 실제)
 node tools/generate-card-pages.js
+node tools/generate-english-set-pages.js  # 영문판 박스 페이지 22장 — 반드시 generate-set-pages 보다 먼저(허브·일본판 페이지가 이 파일을 보고 링크를 건다)
 node tools/generate-set-pages.js
 node tools/generate-upcoming-set-pages.js
 node tools/generate-ko-pages.js
