@@ -178,7 +178,7 @@ lines.push(`## Card prices (${cardCount} tracked card variants) — ${SITE}/card
 lines.push(`Format: CARD# | name | set | raw NM (JPY, USD equiv., date) | PSA 10 sold median (n, date) | PSA population total / PSA 10 | page`);
 for (const c of ai.cardPages?.pages || []) {
   const nm = c.rawNmAsk ? `¥${n(c.rawNmAsk.priceJpy)} ≈ ${usd(c.rawNmAsk.usdEquivalent)} (${c.rawNmAsk.observedOn || c.rawNmAsk.fxObservedOn || ""})` : "n/a";
-  const p10 = c.psa10Sold ? `${usd(c.psa10Sold.median)} (n=${c.psa10Sold.sampleSize}, ${c.psa10Sold.sampleCollectedOn || c.psa10Sold.observedOn || ""})` : "n/a";
+  const p10 = c.psa10Sold && Number.isFinite(c.psa10Sold.medianUsd) ? `${usd(c.psa10Sold.medianUsd)} (n=${c.psa10Sold.sampleSize}, ${c.psa10Sold.sampleCollectedOn || ""})` : "n/a";
   const pop = c.psaPopulation ? `${n(c.psaPopulation.total)} / ${n(c.psaPopulation.grade10)}` : "n/a";
   lines.push(`${c.cardNumber} | ${c.name} | ${c.containerSetCode} | ${nm} | ${p10} | ${pop} | ${c.url}`);
 }

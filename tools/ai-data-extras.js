@@ -134,6 +134,16 @@ function buildGrading(series) {
   };
 }
 
+// PSA 10 sold 는 원장 통화(KRW/JPY/USD) 그대로 실린다 — 답변 AI 가 KRW 를 달러로 읽는 사고(2026-09-08 llms-full 실측)를 막기 위해
+// 같은 날 환율로 USD 환산값을 병기한다. 원본 필드는 손대지 않는다.
+function withUsd(p, fx) {
+  if (!p) return null;
+  const rate = p.currency === "USD" ? 1 : p.currency === "KRW" && fx?.usdKrw ? 1 / fx.usdKrw : p.currency === "JPY" && fx?.usdKrw && fx?.jpyKrw ? fx.jpyKrw / fx.usdKrw : null;
+  if (!rate) return p;
+  const usd = (v) => (Number.isFinite(v) ? Math.round(v * rate * 100) / 100 : null);
+  return { ...p, medianUsd: usd(p.median), rangeLowUsd: usd(p.rangeLow), rangeHighUsd: usd(p.rangeHigh), fxObservedOn: fx?.date || null };
+}
+
 /** Every published card price page, with the same numbers the page shows. */
 function buildCardPages(data, cardMap, fx, datasetUpdatedOn, helpers) {
   if (!cardMap || !data?.sets) return null;
@@ -158,7 +168,7 @@ function buildCardPages(data, cardMap, fx, datasetUpdatedOn, helpers) {
       url: `${SITE}/cards/${file}`,
       exactVariantRequired: true,
       rawNmAsk: helpers.rawNmAsk(card, fx, datasetUpdatedOn),
-      psa10Sold: helpers.psa10Sold(card, datasetUpdatedOn),
+      psa10Sold: withUsd(helpers.psa10Sold(card, datasetUpdatedOn), fx),
       psaPopulation: helpers.psaPopulation(card, datasetUpdatedOn),
     });
   }
