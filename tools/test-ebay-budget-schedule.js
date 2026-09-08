@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { SCHEDULE, PER_RUN, reserveLeft, isLastRunBeforeReset, nextReset, runsBeforeReset, auctionNeed, RESET_UTC_HOUR } = require("./ebay-budget");
+const { SCHEDULE, PER_RUN, reserveLeft, isLastRunBeforeReset, nextReset, runsBeforeReset, auctionNeed, activeListingsFresh, RESET_UTC_HOUR } = require("./ebay-budget");
 
 const cronHours = (file) => {
   const workflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", file), "utf8");
@@ -65,4 +65,19 @@ console.log("eBay budget schedule tests passed");
   assert.equal(planTopup({ usable: 5000, owed: 0, games }).perGame, PAGE, "게임당 한 페이지를 넘지 않는다");
   const skewed = planTopup({ usable: 1000, owed: 0, games, dueByGame: { a: MAX_DUE_PER_GAME } });
   assert.deepEqual(skewed.eligible, ["b", "c", "d"], "못 읽은 여유분이 상한 이상인 게임은 쉰다");
+}
+
+// 진행 매물 갱신 예약(active) — 이 쿼터 창에서 아직 안 돌았을 때만 1회분을 남긴다(2026-09-08).
+// 2026-09-07 20:51 UTC: 예약이 없어 TCG 보충이 잔여를 다 쓴 뒤 update-active-listings 가 429 로 죽었다.
+{
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "opbox-active-"));
+  fs.mkdirSync(path.join(root, "data"));
+  const write = (updated) => fs.writeFileSync(path.join(root, "data", "active-listing-audit.json"), JSON.stringify({ updated }));
+  const reset = at("2026-09-09T07:00:00Z");
+  write("2026-09-08T20:22:08.133Z");
+  assert.equal(activeListingsFresh(reset, root), true, "이 창(리셋 24시간 전 이후)에 갱신됐으면 예약을 풀어 준다");
+  write("2026-09-07T20:22:08.133Z");
+  assert.equal(activeListingsFresh(reset, root), false, "지난 창의 갱신은 이 창의 예약을 풀지 못한다");
+  assert.equal(activeListingsFresh(reset, path.join(root, "missing")), false, "감사 파일이 없으면 예약을 유지한다");
+  assert.ok(PER_RUN.active >= 650, "카드 207장 PSA10 링크(≈500) + 박스 호가·매물 수·특가(≈150)를 덮어야 한다");
 }

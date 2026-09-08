@@ -90,7 +90,11 @@ async function remaining() {
 const PER_RUN = {
   tcg: 300,       // TCG 정산 한 회차 — 원피스가 예약해 두는 최소 몫(TCG 가 완전히 굶지 않게)
   search: 80,     // 원피스 검색 보충(--topup) 한 회차. 실측 2026-09-03: 종료 임박 정렬 10쿼리 ≈ 50콜
-  safety: 200,    // 재시도·돌발 워크플로(진행 매물·PSA10 링크) — 줄이지 않는다
+  safety: 200,    // 재시도·돌발 워크플로 — 줄이지 않는다
+  // 진행 매물 하루 1회 갱신(update-active-listings, 18 UTC 예약·지연 흔함) 한 회차 전체:
+  //   PSA10 링크 카드 207장 × (검색 1~3 + getItem 1) ≈ 500 + 박스 호가 JP/EN + 매물 수 + 특가 검색 ≈ 200.
+  // 예약이 없어서 TCG 보충이 잔여를 다 쓴 날 429 로 죽었다(2026-09-07 20:51 UTC 실제). 이 창에서 아직 안 돌았으면 남긴다.
+  active: 800,
 };
 
 // 각 예약이 걸린 워크플로의 실행 시각(UTC 시). 리셋 창 안에 아직 안 온 실행이 있을 때만 예약한다.
@@ -146,8 +150,18 @@ function auctionNeed(resetMs, root = ROOT) {
   return need;
 }
 
+/** 이 쿼터 창(리셋 24시간 전 이후)에 진행 매물 갱신이 이미 돌았는가 — data/active-listing-audit.json 의 updated 로 판단. */
+function activeListingsFresh(resetMs, root = ROOT) {
+  try {
+    const audit = JSON.parse(fs.readFileSync(path.join(root, "data", "active-listing-audit.json"), "utf8"));
+    const t = Date.parse(audit.updated);
+    return Number.isFinite(t) && t >= resetMs - 24 * HOUR;
+  } catch { return false; }
+}
+
 function reserveFor(key, nowMs, resetMs) {
   if (key === "auction") return auctionNeed(resetMs);
+  if (key === "active") return activeListingsFresh(resetMs) ? 0 : PER_RUN.active;
   return reserveLeft(key, nowMs, resetMs);
 }
 
@@ -169,7 +183,7 @@ async function settleBudget(opts = {}) {
   const share = drain ? 1 : (opts.share ?? 0.4);
   // 기본(원피스 정산)은 검색·안전만 남긴다 — TCG 는 원피스보다 뒤다. 창 끝에서 TCG 드레인 몫(300)까지
   // 남기면 원피스 정산이 0 이 된다(2026-09-04 00:30 UTC 실측: 잔여 480 · 예약 580 → 가용 0).
-  const keys = opts.reserveFor || ["search", "safety"];
+  const keys = opts.reserveFor || ["search", "safety", "active"];
   const keep = keys.reduce((t, k) => t + reserveFor(k, now, reset), 0);
   const usable = Math.max(0, left - keep);
   const n = Math.max(0, Math.min(max, Math.floor(usable * share)));
@@ -179,7 +193,7 @@ async function settleBudget(opts = {}) {
   return { n, left, keep, reset, drain, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n}${tail}` };
 }
 
-module.exports = { token, quota, remaining, settleBudget, reserveLeft, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
+module.exports = { token, quota, remaining, settleBudget, reserveLeft, activeListingsFresh, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
 
 if (require.main === module) {
   (async () => {

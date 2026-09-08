@@ -134,7 +134,7 @@ const { remaining, settleBudget } = require("./ebay-budget");
   }
 
   // 이번 창의 TCG 몫(원피스 정산·검색·안전을 뺀 가용 콜) → 게임당 감시 표본 크기
-  const tcgBudget = await settleBudget({ reserveFor: ["auction", "search", "safety"], share: 1, min: 0, max: 1e9 });
+  const tcgBudget = await settleBudget({ reserveFor: ["auction", "search", "safety", "active"], share: 1, min: 0, max: 1e9 });
   const WATCH_PER_GAME = watchPerGameFor(tcgBudget.left == null ? null : tcgBudget.n);
   console.log(JSON.stringify({ watchPerGame: WATCH_PER_GAME, tcgUsable: tcgBudget.left == null ? null : tcgBudget.n, note: tcgBudget.note }));
 

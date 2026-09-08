@@ -65,7 +65,7 @@ async function main() {
   }
 
   // share 1 · min 0 · max 큰 값 = "원피스·검색·안전을 뺀 TCG 가용 콜 수" 그 자체를 받는다.
-  const budget = await settleBudget({ reserveFor: ["auction", "search", "safety"], share: 1, min: 0, max: 1e9 });
+  const budget = await settleBudget({ reserveFor: ["auction", "search", "safety", "active"], share: 1, min: 0, max: 1e9 });
   if (budget.left == null) { console.log(JSON.stringify({ status: "skip", why: "잔여량을 못 읽음" })); return; }
   const games = TCGS.map((g) => g.k);
   const plan = planTopup({ usable: budget.n, owed, games, dueByGame });

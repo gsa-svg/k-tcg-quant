@@ -78,7 +78,7 @@ async function getItem(tok, id) {
   // 2026-09-03 정정: 종전엔 검색·안전만 남겨서 TCG 가 회차마다 남은 쿼터의 절반을 가져갔고,
   // 자가치유가 TCG 를 3번 더 돌린 날 원피스 정산 예산이 0 이 됐다. 이 사이트의 주제는 원피스다.
   // drainKey: 창 마지막 회차(06:45 UTC)는 남김 없이 쓴다 — 리셋되면 사라지는 몫이고, 포켓몬 여유분이 기다리고 있다.
-  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["auction", "search", "safety"], share: 0.5, drainKey: "tcg" });
+  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["auction", "search", "safety", "active"], share: 0.5, drainKey: "tcg" });
   if (budget.n <= 0) {
     console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
     return;
