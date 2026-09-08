@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "1.0.1",
+  "schemaVersion": "1.0.2",
   "datasetId": "opbox-ai-market-data",
   "name": "OP Box Index — One Piece TCG box markets and Top 7 hits",
   "datasetUpdatedOn": "2026-09-07",
@@ -35,6 +35,12 @@
       "japanese",
       "english"
     ]
+  },
+  "related": {
+    "cardPages": "https://opboxindex.com/opbox-ai-cards.json",
+    "grading": "https://opboxindex.com/opbox-ai-grading.json",
+    "auctions": "https://opboxindex.com/opbox-ai-auctions.json",
+    "fullText": "https://opboxindex.com/llms-full.txt"
   },
   "sets": [
     {

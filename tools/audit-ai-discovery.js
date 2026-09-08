@@ -77,7 +77,19 @@ if (!fs.existsSync(aiPath)) {
   let aiData;
   try { aiData = JSON.parse(fs.readFileSync(aiPath, "utf8")); } catch { errors.push("opbox-ai-data.json: invalid JSON"); }
   if (aiData) {
-    if (aiData.schemaVersion !== "1.0.1") errors.push("opbox-ai-data.json: unsupported schemaVersion");
+    if (aiData.schemaVersion !== "1.0.2") errors.push("opbox-ai-data.json: unsupported schemaVersion");
+    // 확장 파일 3개(2026-09-08): 카드 페이지 전부 · 등급 인구 · 경매(원피스+TCG). 답변 엔진이 우리 숫자로 답하는 근거 파일이다.
+    for (const [key, file] of [["cardPages", "opbox-ai-cards.json"], ["grading", "opbox-ai-grading.json"], ["auctions", "opbox-ai-auctions.json"]]) {
+      if (aiData.related?.[key] !== `https://opboxindex.com/${file}`) errors.push(`opbox-ai-data.json: related.${key} must point at ${file}`);
+      try {
+        const extra = JSON.parse(fs.readFileSync(path.join(ROOT, file), "utf8"));
+        if (extra.license?.url !== "https://creativecommons.org/licenses/by/4.0/") errors.push(`${file}: CC BY 4.0 licence missing`);
+        if (key === "cardPages" && (extra.count || 0) < 100) errors.push(`${file}: should list every published card page`);
+        if (key === "grading" && (extra.sets || []).length < 20) errors.push(`${file}: graded-set coverage incomplete`);
+        if (key === "auctions" && !(extra.onePiece?.daily?.length >= 7 && extra.tcg?.games?.length >= 10)) errors.push(`${file}: auction sections incomplete`);
+      } catch { errors.push(`${file}: missing or invalid JSON`); }
+    }
+    if (!fs.existsSync(path.join(ROOT, "llms-full.txt"))) errors.push("llms-full.txt: missing (generate-llms.js)");
     if (aiData.license?.url !== "https://creativecommons.org/licenses/by/4.0/") errors.push("opbox-ai-data.json: CC BY 4.0 licence missing");
     if (!Array.isArray(aiData.sets) || aiData.sets.length < 20) errors.push("opbox-ai-data.json: tracked set coverage is incomplete");
     for (const set of aiData.sets || []) {

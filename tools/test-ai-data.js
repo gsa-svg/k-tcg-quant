@@ -39,7 +39,25 @@ function latest(src, code, edition, predicate = () => true) {
 }
 
 assert.deepEqual(actual, expected, "generated AI data must exactly match the verified source snapshot");
-assert.equal(actual.schemaVersion, "1.0.1");
+assert.equal(actual.schemaVersion, "1.0.2");
+// 확장 파일 3개(2026-09-08): 카드 페이지 전부 · 등급 인구 · 경매(원피스+TCG) — 원장과 같은 값, 내부 필드 없음, 핵심 파일에서 링크
+{
+  const cards = JSON.parse(fs.readFileSync(path.join(ROOT, "opbox-ai-cards.json"), "utf8"));
+  const grading = JSON.parse(fs.readFileSync(path.join(ROOT, "opbox-ai-grading.json"), "utf8"));
+  const auctions = JSON.parse(fs.readFileSync(path.join(ROOT, "opbox-ai-auctions.json"), "utf8"));
+  const cardMap = JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8"));
+  assert.equal(actual.related.cardPages, "https://opboxindex.com/opbox-ai-cards.json");
+  assert.equal(cards.count, Object.keys(cardMap).length, "every published card page must be listed");
+  for (const page of cards.pages) assert.match(page.url, /^https:\/\/opboxindex\.com\/cards\/[a-z0-9-]+\.html$/);
+  assert.ok(grading.sets.length >= 20, "grading file must cover the tracked sets");
+  assert.ok(auctions.onePiece.daily.length >= 7 && auctions.onePiece.daily.every((d) => /^\d{4}-\d{2}-\d{2}$/.test(d.date)), "auction days must be dated");
+  assert.ok(auctions.tcg.games.length >= 10, "TCG section must list the tracked games");
+  for (const [name, obj] of [["cards", cards], ["grading", grading], ["auctions", auctions]]) {
+    const serialized = JSON.stringify(obj);
+    for (const forbidden of ["bestListing", "itemPrices", "seller", "\"query\"", "marketplaceId", "ebay.com/itm/"]) assert.ok(!serialized.includes(forbidden), `${name}: internal field leaked: ${forbidden}`);
+    assert.ok(Buffer.byteLength(serialized) < 400_000, `${name}: extra file must stay small enough to fetch in one request`);
+  }
+}
 assert.equal(actual.datasetUpdatedOn, source.updated);
 assert.equal(actual.sets.length, [...source.jp.list, ...source.extra.list].length);
 assert.equal(new Set(actual.sets.map((set) => set.setCode)).size, actual.sets.length, "set codes must be unique");

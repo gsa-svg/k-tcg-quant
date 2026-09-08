@@ -119,6 +119,8 @@ node tools/generate-auction-page.js
 node tools/generate-tcg-auction-page.js
 node tools/generate-free-data.js
 node tools/generate-ai-data.js
+node tools/generate-ai-extras.js          # 카드 전체·등급·경매 AI 파일 3개
+node tools/generate-llms.js                # ⚠️ 그 뒤 — llms.txt·llms-full.txt(답변 AI용 사실 파일) 재생성
 node tools/inject-nav.js                  # ⚠️ 반드시 페이지 생성 뒤에
 node tools/inject-lang-toggle.js          # ⚠️ 반드시 페이지 생성 뒤에
 ```

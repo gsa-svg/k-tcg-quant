@@ -97,6 +97,8 @@ function buildTopHits(code, set, fx, datasetUpdatedOn) {
 }
 
 /** Build the compact, citation-oriented public contract without network access. */
+// 확장 데이터(카드 페이지 전부·등급 인구·경매)는 별도 파일 3개 — generate-ai-extras.js (2026-09-08).
+// 이 핵심 파일은 답변 엔진이 한 번에 읽도록 200KB 아래를 지킨다(test-ai-data). related 로 길만 안내한다.
 function buildAiData(data) {
   const datasetUpdatedOn = isDate(data.updated) ? data.updated : null;
   const codes = [...(data.jp?.list || []), ...(data.extra?.list || [])];
@@ -113,7 +115,7 @@ function buildAiData(data) {
     };
   });
   return {
-    schemaVersion: "1.0.1",
+    schemaVersion: "1.0.2",
     datasetId: "opbox-ai-market-data",
     name: "OP Box Index — One Piece TCG box markets and Top 7 hits",
     datasetUpdatedOn,
@@ -137,8 +139,15 @@ function buildAiData(data) {
       usdKrw: Number.isFinite(data.fx?.usdKrw) ? data.fx.usdKrw : null,
     },
     coverage: { trackedSets: sets.length, topHitsPerSet: 7, editions: ["japanese", "english"] },
+    // 같은 계약의 나머지 부분 — 각각 작고 독립적으로 읽힌다. 카드 페이지 전부, 세트별 등급 인구, 경매(원피스·TCG 13종), 사실 텍스트 파일.
+    related: {
+      cardPages: `${SITE}/opbox-ai-cards.json`,
+      grading: `${SITE}/opbox-ai-grading.json`,
+      auctions: `${SITE}/opbox-ai-auctions.json`,
+      fullText: `${SITE}/llms-full.txt`,
+    },
     sets,
   };
 }
 
-module.exports = { buildAiData, buildBoxMarket };
+module.exports = { buildAiData, buildBoxMarket, rawNmAsk, psa10Sold, psaPopulation };

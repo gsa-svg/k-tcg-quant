@@ -1,0 +1,4339 @@
+{
+ "schemaVersion": "1.0.0",
+ "datasetId": "opbox-ai-card-pages",
+ "name": "OP Box Index — every tracked One Piece card variant with raw NM and PSA 10 prices",
+ "datasetUpdatedOn": "2026-09-07",
+ "publisher": {
+  "name": "OP Box Index",
+  "url": "https://opboxindex.com/"
+ },
+ "canonicalPage": "https://opboxindex.com/cards/",
+ "license": {
+  "name": "CC BY 4.0",
+  "url": "https://creativecommons.org/licenses/by/4.0/"
+ },
+ "attribution": "Data: OP Box Index — https://opboxindex.com/free-data.html",
+ "nullPolicy": "null means unavailable or not verified; it never means zero",
+ "coreDataset": "https://opboxindex.com/opbox-ai-data.json",
+ "note": "One page per tracked card variant. Numbers match the page; rawNmAsk is a Japanese retail asking price, psa10Sold a verified eBay sold median.",
+ "count": 108,
+ "pages": [
+  {
+   "cardNumber": "OP13-118",
+   "name": "Monkey D. Luffy 118 Red Manga Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-13",
+   "url": "https://opboxindex.com/cards/op13-118-monkey-d-luffy-118-red-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 1980000,
+    "usdEquivalent": 12794.28,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 21270433,
+    "rangeLow": 21270433,
+    "rangeHigh": 21962671,
+    "rangePercentiles": [
+     25,
+     75
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-07-10",
+    "ageDaysAtDatasetUpdate": 59
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 710,
+    "grade10": 607,
+    "grade9": 90,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP05-119",
+   "name": "Monkey D. Luffy 119 SP Gold",
+   "rarity": "SEC",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op05-119-monkey-d-luffy-119-sp-gold.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 1480000,
+    "usdEquivalent": 9563.4,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2116,
+    "grade10": 1274,
+    "grade9": 677,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-119",
+   "name": "Monkey D. Luffy",
+   "rarity": null,
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/op05-119-monkey-d-luffy.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 798000,
+    "usdEquivalent": 5156.48,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3391,
+    "grade10": 3125,
+    "grade9": 231,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST01-012",
+   "name": "Monkey D. Luffy 012 Alternate Art Gold Stamped Signature",
+   "rarity": "SR",
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/st01-012-monkey-d-luffy-012-alternate-art-gold-stamped-signature.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 798000,
+    "usdEquivalent": 5156.48,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4063,
+    "grade10": 3668,
+    "grade9": 302,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-119",
+   "name": "Monkey D. Luffy 119 SP Silver",
+   "rarity": "SEC",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op05-119-monkey-d-luffy-119-sp-silver.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 798000,
+    "usdEquivalent": 5156.48,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2015,
+    "grade10": 1157,
+    "grade9": 647,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP13-119",
+   "name": "Portgas D. Ace 119 Red Manga Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-13",
+   "url": "https://opboxindex.com/cards/op13-119-portgas-d-ace-119-red-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 798000,
+    "usdEquivalent": 5156.48,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 626,
+    "grade10": 556,
+    "grade9": 64,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP09-118",
+   "name": "Gol D. Roger",
+   "rarity": "Gold Manga Alternate Art",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op09-118-gol-d-roger.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 598000,
+    "usdEquivalent": 3864.13,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 885,
+    "grade10": 818,
+    "grade9": 56,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP13-120",
+   "name": "Sabo 120 Red Manga Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-13",
+   "url": "https://opboxindex.com/cards/op13-120-sabo-120-red-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 598000,
+    "usdEquivalent": 3864.13,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 635,
+    "grade10": 563,
+    "grade9": 57,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB02-061",
+   "name": "Monkey D. Luffy 061 Manga",
+   "rarity": "SEC",
+   "containerSetCode": "EB-02",
+   "url": "https://opboxindex.com/cards/eb02-061-monkey-d-luffy-061-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 398000,
+    "usdEquivalent": 2571.78,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 4074446,
+    "rangeLow": 3688837,
+    "rangeHigh": 8282073,
+    "rangePercentiles": [
+     25,
+     75
+    ],
+    "sampleSize": 10,
+    "sampleCollectedOn": "2026-07-09",
+    "ageDaysAtDatasetUpdate": 60
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2745,
+    "grade10": 2445,
+    "grade9": 263,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-060",
+   "name": "Monkey D. Luffy OP05-060 SP",
+   "rarity": null,
+   "containerSetCode": "EB-02",
+   "url": "https://opboxindex.com/cards/op05-060-monkey-d-luffy-op05-060-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 398000,
+    "usdEquivalent": 2571.78,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 539,
+    "grade10": 473,
+    "grade9": 61,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP13-118",
+   "name": "Monkey D. Luffy 118 Super Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-13",
+   "url": "https://opboxindex.com/cards/op13-118-monkey-d-luffy-118-super-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 298000,
+    "usdEquivalent": 1925.6,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2443,
+    "grade10": 1999,
+    "grade9": 400,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP06-118",
+   "name": "Roronoa Zoro Alternate Art Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-06",
+   "url": "https://opboxindex.com/cards/op06-118-roronoa-zoro-alternate-art-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 248000,
+    "usdEquivalent": 1602.52,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 3110,
+    "rangeLow": 3110,
+    "rangeHigh": 3334,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4611,
+    "grade10": 4302,
+    "grade9": 239,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB01-006",
+   "name": "Tony TonyChopper Alternate Art Manga",
+   "rarity": "SR",
+   "containerSetCode": "EB-01",
+   "url": "https://opboxindex.com/cards/eb01-006-tony-tonychopper-alternate-art-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 248000,
+    "usdEquivalent": 1602.52,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 2609109,
+    "rangeLow": 2532361,
+    "rangeHigh": 4389436,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 5,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2773,
+    "grade10": 2468,
+    "grade9": 254,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-119",
+   "name": "Monkey D. Luffy 119 Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op09-119-monkey-d-luffy-119-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 248000,
+    "usdEquivalent": 1602.52,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 2742624,
+    "rangeLow": 2710103,
+    "rangeHigh": 2773596,
+    "rangePercentiles": [
+     25,
+     75
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-07-10",
+    "ageDaysAtDatasetUpdate": 59
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2906,
+    "grade10": 2496,
+    "grade9": 349,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-093",
+   "name": "Marshall D. Teach SP Gold",
+   "rarity": "SR",
+   "containerSetCode": "OP-12",
+   "url": "https://opboxindex.com/cards/op09-093-marshall-d-teach-sp-gold.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 248000,
+    "usdEquivalent": 1602.52,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1137,
+    "grade10": 1008,
+    "grade9": 102,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-051",
+   "name": "Buggy OP09 051 SP Gold",
+   "rarity": "R",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op09-051-buggy-op09-051-sp-gold.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 248000,
+    "usdEquivalent": 1602.52,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 704,
+    "grade10": 340,
+    "grade9": 174,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-120",
+   "name": "Shanks Manga",
+   "rarity": "SEC",
+   "containerSetCode": "PRB-01",
+   "url": "https://opboxindex.com/cards/op01-120-shanks-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 198000,
+    "usdEquivalent": 1279.43,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 84,
+    "grade10": 72,
+    "grade9": 10,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP02-013",
+   "name": "Portgas D. Ace Manga",
+   "rarity": "SR",
+   "containerSetCode": "PRB-01",
+   "url": "https://opboxindex.com/cards/op02-013-portgas-d-ace-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 198000,
+    "usdEquivalent": 1279.43,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 82,
+    "grade10": 69,
+    "grade9": 11,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP06-119",
+   "name": "Sanji OP06 119 Manga",
+   "rarity": "SEC",
+   "containerSetCode": "PRB-02",
+   "url": "https://opboxindex.com/cards/op06-119-sanji-op06-119-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 198000,
+    "usdEquivalent": 1279.43,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 2002,
+    "rangeLow": 2002,
+    "rangeHigh": 2002,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2842,
+    "grade10": 2336,
+    "grade9": 472,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP16-065",
+   "name": "Sakazuki (Manga)",
+   "rarity": "SR",
+   "containerSetCode": "OP-16",
+   "url": "https://opboxindex.com/cards/op16-065-sakazuki-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 198000,
+    "usdEquivalent": 1279.43,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 500,
+    "grade10": 469,
+    "grade9": 26,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP07-051",
+   "name": "Boa Hancock 051 Parallel Manga",
+   "rarity": "SR",
+   "containerSetCode": "OP-07",
+   "url": "https://opboxindex.com/cards/op07-051-boa-hancock-051-parallel-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 178000,
+    "usdEquivalent": 1150.19,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 2976467,
+    "rangeLow": 2682227,
+    "rangeHigh": 3315617,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 19,
+    "sampleCollectedOn": "2026-07-10",
+    "ageDaysAtDatasetUpdate": 59
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 5329,
+    "grade10": 4627,
+    "grade9": 611,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-093",
+   "name": "Marshall D. Teach 093 Manga",
+   "rarity": "SR",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op09-093-marshall-d-teach-093-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 178000,
+    "usdEquivalent": 1150.19,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2493,
+    "grade10": 2131,
+    "grade9": 313,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP16-063",
+   "name": "Kuzan (Manga)",
+   "rarity": "R",
+   "containerSetCode": "OP-16",
+   "url": "https://opboxindex.com/cards/op16-063-kuzan-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 178000,
+    "usdEquivalent": 1150.19,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 451,
+    "grade10": 410,
+    "grade9": 34,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP16-073",
+   "name": "Borsalino (Manga)",
+   "rarity": "R",
+   "containerSetCode": "OP-16",
+   "url": "https://opboxindex.com/cards/op16-073-borsalino-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 178000,
+    "usdEquivalent": 1150.19,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 429,
+    "grade10": 365,
+    "grade9": 59,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-069",
+   "name": "Trafalgar Law 069 Alternate Art Manga",
+   "rarity": "SR",
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/op05-069-trafalgar-law-069-alternate-art-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 148000,
+    "usdEquivalent": 956.34,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 2056,
+    "rangeLow": 1677,
+    "rangeHigh": 2320,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 14,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2950,
+    "grade10": 2100,
+    "grade9": 753,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-004",
+   "name": "Shanks 004 Manga",
+   "rarity": "SR",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op09-004-shanks-004-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 148000,
+    "usdEquivalent": 956.34,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 1635657,
+    "rangeLow": 1340852,
+    "rangeHigh": 2218280,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 12,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2610,
+    "grade10": 2018,
+    "grade9": 543,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP11-118",
+   "name": "Monkey D. Luffy 118 Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op11-118-monkey-d-luffy-118-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 148000,
+    "usdEquivalent": 956.34,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1652,
+    "rangeLow": 1477,
+    "rangeHigh": 2253,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 17,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4323,
+    "grade10": 3766,
+    "grade9": 505,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-120",
+   "name": "Shanks Parallel Manga Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-120-shanks-parallel-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 148000,
+    "usdEquivalent": 956.34,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4900,
+    "grade10": 4252,
+    "grade9": 555,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP02-013",
+   "name": "Portgas D. Ace Parallel Manga Alternate Art",
+   "rarity": "SR",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-013-portgas-d-ace-parallel-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 148000,
+    "usdEquivalent": 956.34,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4416,
+    "grade10": 3798,
+    "grade9": 509,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP04-083",
+   "name": "Sabo Alternate Art Manga",
+   "rarity": "SR",
+   "containerSetCode": "OP-04",
+   "url": "https://opboxindex.com/cards/op04-083-sabo-alternate-art-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 128000,
+    "usdEquivalent": 827.11,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1125,
+    "rangeLow": 1076,
+    "rangeHigh": 1284,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 10,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3827,
+    "grade10": 3249,
+    "grade9": 493,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB03-026",
+   "name": "Boa Hancock SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-026-boa-hancock-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 128000,
+    "usdEquivalent": 827.11,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 2010,
+    "rangeLow": 1852,
+    "rangeHigh": 2319,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 8,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2184,
+    "grade10": 1896,
+    "grade9": 262,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP03-122",
+   "name": "Sogeking Alternate Art Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-03",
+   "url": "https://opboxindex.com/cards/op03-122-sogeking-alternate-art-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 99800,
+    "usdEquivalent": 644.88,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 1147931,
+    "rangeLow": 1006572,
+    "rangeHigh": 1248743,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 10,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3384,
+    "grade10": 2926,
+    "grade9": 390,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-078",
+   "name": "Boa Hancock SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-04",
+   "url": "https://opboxindex.com/cards/op01-078-boa-hancock-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 99800,
+    "usdEquivalent": 644.88,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1263,
+    "rangeLow": 1126,
+    "rangeHigh": 1502,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 11,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 5395,
+    "grade10": 4872,
+    "grade9": 383,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-051",
+   "name": "Buggy 051 Manga",
+   "rarity": "R",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op09-051-buggy-051-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 99800,
+    "usdEquivalent": 644.88,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 1573139,
+    "rangeLow": 1270015,
+    "rangeHigh": 1803347,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 11,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2369,
+    "grade10": 2039,
+    "grade9": 281,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP12-118",
+   "name": "Jewelry Bonney 118 Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-12",
+   "url": "https://opboxindex.com/cards/op12-118-jewelry-bonney-118-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 99800,
+    "usdEquivalent": 644.88,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1111,
+    "rangeLow": 941,
+    "rangeHigh": 1201,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2609,
+    "grade10": 1942,
+    "grade9": 601,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP10-119",
+   "name": "Trafalgar Law 119 Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-10",
+   "url": "https://opboxindex.com/cards/op10-119-trafalgar-law-119-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 79800,
+    "usdEquivalent": 515.65,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-07",
+    "ageDaysAtDatasetUpdate": 0
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 1074339,
+    "rangeLow": 980174,
+    "rangeHigh": 1530629,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3596,
+    "grade10": 3052,
+    "grade9": 461,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB03-055",
+   "name": "Nico Robin 055 SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-055-nico-robin-055-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 79800,
+    "usdEquivalent": 515.65,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1202,
+    "rangeLow": 889,
+    "rangeHigh": 2003,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 11,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1480,
+    "grade10": 1341,
+    "grade9": 131,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB03-053",
+   "name": "Nami 053 SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-053-nami-053-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 79800,
+    "usdEquivalent": 515.65,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1114,
+    "rangeLow": 1018,
+    "rangeHigh": 1352,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 7,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1573,
+    "grade10": 1368,
+    "grade9": 187,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP08-118",
+   "name": "Silvers Rayleigh Parallel Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/op08-118-silvers-rayleigh-parallel-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 69800,
+    "usdEquivalent": 451.03,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 923,
+    "rangeLow": 779,
+    "rangeHigh": 1001,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 22,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3556,
+    "grade10": 3195,
+    "grade9": 301,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP06-001",
+   "name": "Uta SP",
+   "rarity": "L",
+   "containerSetCode": "EB-02",
+   "url": "https://opboxindex.com/cards/op06-001-uta-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 59800,
+    "usdEquivalent": 386.41,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 752022,
+    "rangeLow": 477313,
+    "rangeHigh": 1485105,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 255,
+    "grade10": 244,
+    "grade9": 10,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP11-080",
+   "name": "Gear Two Alternate Art",
+   "rarity": "R",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op11-080-gear-two-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 49800,
+    "usdEquivalent": 321.8,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 601,
+    "rangeLow": 551,
+    "rangeHigh": 693,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 26,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3076,
+    "grade10": 2871,
+    "grade9": 159,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-078",
+   "name": "Gum Gum Giant Alternate Art",
+   "rarity": "R",
+   "containerSetCode": "PRB-02",
+   "url": "https://opboxindex.com/cards/op09-078-gum-gum-giant-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 49800,
+    "usdEquivalent": 321.8,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 818,
+    "rangeLow": 616,
+    "rangeHigh": 1555,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 9,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2239,
+    "grade10": 2011,
+    "grade9": 201,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP14-112",
+   "name": "Boa Hancock OP14 112 SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op14-112-boa-hancock-op14-112-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 49800,
+    "usdEquivalent": 321.8,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 723,
+    "rangeLow": 696,
+    "rangeHigh": 811,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2088,
+    "grade10": 1990,
+    "grade9": 86,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-003",
+   "name": "Monkey D. Luffy 003 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-003-monkey-d-luffy-003-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 39800,
+    "usdEquivalent": 257.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 847,
+    "rangeLow": 792,
+    "rangeHigh": 1377,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3817,
+    "grade10": 3283,
+    "grade9": 449,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB02-061",
+   "name": "Monkey D. Luffy EB02 061 SP",
+   "rarity": "SEC",
+   "containerSetCode": "PRB-02",
+   "url": "https://opboxindex.com/cards/eb02-061-monkey-d-luffy-eb02-061-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 39800,
+    "usdEquivalent": 257.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 812,
+    "rangeLow": 667,
+    "rangeHigh": 1001,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 11,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1374,
+    "grade10": 1244,
+    "grade9": 116,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB03-003",
+   "name": "Uta 003 SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-003-uta-003-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 39800,
+    "usdEquivalent": 257.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 466,
+    "rangeLow": 462,
+    "rangeHigh": 825,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 7,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1296,
+    "grade10": 991,
+    "grade9": 291,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-016",
+   "name": "Nami SP",
+   "rarity": "R",
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/op01-016-nami-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 34800,
+    "usdEquivalent": 224.87,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 479,
+    "rangeLow": 401,
+    "rangeHigh": 851,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 16,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 5565,
+    "grade10": 5115,
+    "grade9": 380,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP06-101",
+   "name": "O Nami SP",
+   "rarity": "R",
+   "containerSetCode": "OP-07",
+   "url": "https://opboxindex.com/cards/op06-101-o-nami-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 34800,
+    "usdEquivalent": 224.87,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 509,
+    "rangeLow": 501,
+    "rangeHigh": 576,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 8,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4789,
+    "grade10": 4537,
+    "grade9": 192,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP08-106",
+   "name": "Nami SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op08-106-nami-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 34800,
+    "usdEquivalent": 224.87,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 982701,
+    "rangeLow": 306954,
+    "rangeHigh": 1227816,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 5133,
+    "grade10": 4809,
+    "grade9": 269,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP14-118",
+   "name": "Youll Frighten Me Alternate Art",
+   "rarity": "R",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op14-118-youll-frighten-me-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 34800,
+    "usdEquivalent": 224.87,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 476249,
+    "rangeLow": 438339,
+    "rangeHigh": 680033,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2072,
+    "grade10": 1871,
+    "grade9": 180,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST26-005",
+   "name": "Monkey D. Luffy SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-15",
+   "url": "https://opboxindex.com/cards/st26-005-monkey-d-luffy-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 34800,
+    "usdEquivalent": 224.87,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 735,
+    "rangeLow": 631,
+    "rangeHigh": 1200,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 7,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1495,
+    "grade10": 1413,
+    "grade9": 74,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-067",
+   "name": "Zoro Juurou SP",
+   "rarity": "R",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op05-067-zoro-juurou-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 29800,
+    "usdEquivalent": 192.56,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 479616,
+    "rangeLow": 286004,
+    "rangeHigh": 595490,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 8,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3181,
+    "grade10": 2851,
+    "grade9": 272,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST18-005",
+   "name": "Luffy Tarou SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/st18-005-luffy-tarou-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 29800,
+    "usdEquivalent": 192.56,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 551,
+    "rangeLow": 526,
+    "rangeHigh": 650,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 22,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2478,
+    "grade10": 1842,
+    "grade9": 598,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-001",
+   "name": "Roronoa Zoro 001 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-001-roronoa-zoro-001-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 24800,
+    "usdEquivalent": 160.25,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 794996,
+    "rangeLow": 490807,
+    "rangeHigh": 1142510,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 13,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3438,
+    "grade10": 3081,
+    "grade9": 303,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP09-020",
+   "name": "Come On Well Fight You Alternate Art",
+   "rarity": "R",
+   "containerSetCode": "PRB-02",
+   "url": "https://opboxindex.com/cards/op09-020-come-on-well-fight-you-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 24800,
+    "usdEquivalent": 160.25,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 456,
+    "rangeLow": 392,
+    "rangeHigh": 526,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 12,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1573,
+    "grade10": 1451,
+    "grade9": 116,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP13-031",
+   "name": "Trafalgar Law SP",
+   "rarity": "R",
+   "containerSetCode": "OP-15",
+   "url": "https://opboxindex.com/cards/op13-031-trafalgar-law-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 24800,
+    "usdEquivalent": 160.25,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 473,
+    "rangeLow": 446,
+    "rangeHigh": 551,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 6,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 447,
+    "grade10": 424,
+    "grade9": 21,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST15-002",
+   "name": "EdwardNewgate SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-10",
+   "url": "https://opboxindex.com/cards/st15-002-edwardnewgate-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 19800,
+    "usdEquivalent": 127.94,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 478,
+    "rangeLow": 401,
+    "rangeHigh": 501,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1347,
+    "grade10": 1194,
+    "grade9": 134,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST16-004",
+   "name": "Shanks SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/st16-004-shanks-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 19800,
+    "usdEquivalent": 127.94,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 330,
+    "rangeLow": 320,
+    "rangeHigh": 375,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 13,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1580,
+    "grade10": 1349,
+    "grade9": 198,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB03-031",
+   "name": "Vinsmoke Reiju SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-031-vinsmoke-reiju-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 19800,
+    "usdEquivalent": 127.94,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 516,
+    "rangeLow": 446,
+    "rangeHigh": 551,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 12,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 999,
+    "grade10": 897,
+    "grade9": 98,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST18-004",
+   "name": "Zoro Juurou SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-12",
+   "url": "https://opboxindex.com/cards/st18-004-zoro-juurou-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 17800,
+    "usdEquivalent": 115.02,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 401,
+    "rangeLow": 375,
+    "rangeHigh": 426,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 38,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1050,
+    "grade10": 938,
+    "grade9": 92,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-016",
+   "name": "Nami Parallel",
+   "rarity": "R",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-016-nami-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 14800,
+    "usdEquivalent": 95.63,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 532366,
+    "rangeLow": 383689,
+    "rangeHigh": 1613799,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 26,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 9333,
+    "grade10": 8611,
+    "grade9": 587,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP14-096",
+   "name": "Ground Death Alternate Art",
+   "rarity": "R",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op14-096-ground-death-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 14800,
+    "usdEquivalent": 95.63,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 154,
+    "rangeLow": 135,
+    "rangeHigh": 185,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 26,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 477,
+    "grade10": 452,
+    "grade9": 25,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB03-042",
+   "name": "Koala SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-042-koala-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 14800,
+    "usdEquivalent": 95.63,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 345,
+    "rangeLow": 300,
+    "rangeHigh": 375,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 9,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 795,
+    "grade10": 715,
+    "grade9": 70,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP01-002",
+   "name": "Trafalgar Law 002 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-002-trafalgar-law-002-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 373,
+    "rangeLow": 220,
+    "rangeHigh": 696,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2729,
+    "grade10": 2467,
+    "grade9": 232,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP03-040",
+   "name": "Nami 040 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-03",
+   "url": "https://opboxindex.com/cards/op03-040-nami-040-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 188009,
+    "rangeLow": 185323,
+    "rangeHigh": 413513,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2667,
+    "grade10": 2311,
+    "grade9": 313,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP01-047",
+   "name": "Trafalgar Law SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-04",
+   "url": "https://opboxindex.com/cards/op01-047-trafalgar-law-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 418,
+    "rangeLow": 335,
+    "rangeHigh": 501,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 12,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1631,
+    "grade10": 1488,
+    "grade9": 113,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP02-120",
+   "name": "Uta SP",
+   "rarity": "SEC",
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/op02-120-uta-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 300,
+    "rangeLow": 285,
+    "rangeHigh": 345,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 11,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4218,
+    "grade10": 3964,
+    "grade9": 203,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-121",
+   "name": "Yamato SP",
+   "rarity": "SEC",
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/op01-121-yamato-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 250,
+    "rangeLow": 223,
+    "rangeHigh": 325,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 7,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 3639,
+    "grade10": 3390,
+    "grade9": 203,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP07-038",
+   "name": "Boa Hancock 038 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-07",
+   "url": "https://opboxindex.com/cards/op07-038-boa-hancock-038-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 258,
+    "rangeLow": 238,
+    "rangeHigh": 287,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 10,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 4977,
+    "grade10": 4723,
+    "grade9": 218,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST02-007",
+   "name": "Jewelry Bonney SP",
+   "rarity": "C",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/st02-007-jewelry-bonney-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 289,
+    "rangeLow": 245,
+    "rangeHigh": 300,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 16,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2040,
+    "grade10": 1922,
+    "grade9": 99,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP06-119",
+   "name": "Sanji SP",
+   "rarity": "SEC",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op06-119-sanji-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 325,
+    "rangeLow": 300,
+    "rangeHigh": 325,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 13,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1383,
+    "grade10": 1198,
+    "grade9": 169,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP12-030",
+   "name": "Dracule Mihawk OP12 030 SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op12-030-dracule-mihawk-op12-030-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 288,
+    "rangeLow": 265,
+    "rangeHigh": 300,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 12,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1001,
+    "grade10": 940,
+    "grade9": 46,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP06-093",
+   "name": "Perona OP06 093 SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op06-093-perona-op06-093-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 12800,
+    "usdEquivalent": 82.71,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 232,
+    "rangeLow": 220,
+    "rangeHigh": 240,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 8,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1086,
+    "grade10": 1034,
+    "grade9": 38,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-024",
+   "name": "Monkey D. Luffy 024 Parallel",
+   "rarity": "SR",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-024-monkey-d-luffy-024-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 9980,
+    "usdEquivalent": 64.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 250,
+    "rangeLow": 200,
+    "rangeHigh": 451,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 30,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2180,
+    "grade10": 1972,
+    "grade9": 179,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-100",
+   "name": "Enel 100 SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-05",
+   "url": "https://opboxindex.com/cards/op05-100-enel-100-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 9980,
+    "usdEquivalent": 64.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 310,
+    "rangeLow": 258,
+    "rangeHigh": 330,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 14,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2114,
+    "grade10": 1964,
+    "grade9": 115,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-091",
+   "name": "Rebecca SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-06",
+   "url": "https://opboxindex.com/cards/op05-091-rebecca-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 9980,
+    "usdEquivalent": 64.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 225,
+    "rangeLow": 200,
+    "rangeHigh": 250,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 22,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2696,
+    "grade10": 2584,
+    "grade9": 77,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP03-112",
+   "name": "Charlotte Pudding SP",
+   "rarity": "R",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/op03-112-charlotte-pudding-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 9980,
+    "usdEquivalent": 64.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 178,
+    "rangeLow": 160,
+    "rangeHigh": 190,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 12,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2164,
+    "grade10": 2035,
+    "grade9": 104,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP07-085",
+   "name": "Stussy SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op07-085-stussy-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 9980,
+    "usdEquivalent": 64.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 290,
+    "rangeLow": 245,
+    "rangeHigh": 300,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 15,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1652,
+    "grade10": 1303,
+    "grade9": 331,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "EB01-057",
+   "name": "Shirahoshi SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/eb01-057-shirahoshi-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 9980,
+    "usdEquivalent": 64.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 320000,
+    "rangeLow": 253237,
+    "rangeHigh": 560114,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1833,
+    "grade10": 1645,
+    "grade9": 164,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP01-025",
+   "name": "Roronoa Zoro 025 Parallel",
+   "rarity": "SR",
+   "containerSetCode": "OP-01",
+   "url": "https://opboxindex.com/cards/op01-025-roronoa-zoro-025-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 7980,
+    "usdEquivalent": 51.56,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 695,
+    "rangeLow": 401,
+    "rangeHigh": 851,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 17,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2263,
+    "grade10": 2041,
+    "grade9": 182,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST14-003",
+   "name": "Sanji SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-10",
+   "url": "https://opboxindex.com/cards/st14-003-sanji-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 7980,
+    "usdEquivalent": 51.56,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 389816,
+    "rangeLow": 275209,
+    "rangeHigh": 454393,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 5,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 701,
+    "grade10": 634,
+    "grade9": 54,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "EB03-018",
+   "name": "Tashigi SP",
+   "rarity": "SR",
+   "containerSetCode": "EB-03",
+   "url": "https://opboxindex.com/cards/eb03-018-tashigi-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 7980,
+    "usdEquivalent": 51.56,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 337,
+    "rangeLow": 315,
+    "rangeHigh": 401,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 6,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 767,
+    "grade10": 632,
+    "grade9": 114,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP06-050",
+   "name": "Tashigi SP",
+   "rarity": "R",
+   "containerSetCode": "OP-12",
+   "url": "https://opboxindex.com/cards/op06-050-tashigi-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 6980,
+    "usdEquivalent": 45.1,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 140,
+    "rangeLow": 119,
+    "rangeHigh": 150,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 18,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 341,
+    "grade10": 312,
+    "grade9": 24,
+    "observedOn": "2026-09-02",
+    "ageDaysAtDatasetUpdate": 5
+   }
+  },
+  {
+   "cardNumber": "OP06-022",
+   "name": "Yamato Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-06",
+   "url": "https://opboxindex.com/cards/op06-022-yamato-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 5980,
+    "usdEquivalent": 38.64,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 118,
+    "rangeLow": 100,
+    "rangeHigh": 133,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 20,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2111,
+    "grade10": 1880,
+    "grade9": 203,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "ST06-006",
+   "name": "Tashigi SP",
+   "rarity": "C",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/st06-006-tashigi-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 5980,
+    "usdEquivalent": 38.64,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 135,
+    "rangeLow": 125,
+    "rangeHigh": 160,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 10,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1220,
+    "grade10": 1133,
+    "grade9": 68,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP11-041",
+   "name": "Nami 041 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-11",
+   "url": "https://opboxindex.com/cards/op11-041-nami-041-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 5980,
+    "usdEquivalent": 38.64,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 173,
+    "rangeLow": 110,
+    "rangeHigh": 500,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 10,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1266,
+    "grade10": 1179,
+    "grade9": 74,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP11-106",
+   "name": "Zeus SP",
+   "rarity": "R",
+   "containerSetCode": "OP-15",
+   "url": "https://opboxindex.com/cards/op11-106-zeus-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 5980,
+    "usdEquivalent": 38.64,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 584,
+    "rangeLow": 512,
+    "rangeHigh": 701,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 8,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": null
+  },
+  {
+   "cardNumber": "OP02-062",
+   "name": "Monkey D. Luffy 062 Alternate Art",
+   "rarity": "SR",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-062-monkey-d-luffy-062-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 4980,
+    "usdEquivalent": 32.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 250,
+    "rangeLow": 250,
+    "rangeHigh": 250,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 888,
+    "grade10": 814,
+    "grade9": 67,
+    "observedOn": "2026-09-02",
+    "ageDaysAtDatasetUpdate": 5
+   }
+  },
+  {
+   "cardNumber": "EB01-061",
+   "name": "Mr2BonKurei Bentham Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "EB-01",
+   "url": "https://opboxindex.com/cards/eb01-061-mr2bonkurei-bentham-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 4980,
+    "usdEquivalent": 32.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 225,
+    "rangeLow": 223,
+    "rangeHigh": 394,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 7,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 874,
+    "grade10": 823,
+    "grade9": 41,
+    "observedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   }
+  },
+  {
+   "cardNumber": "OP05-074",
+   "name": "EustassCaptainKid SP",
+   "rarity": "SR",
+   "containerSetCode": "OP-07",
+   "url": "https://opboxindex.com/cards/op05-074-eustasscaptainkid-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 4980,
+    "usdEquivalent": 32.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 106578,
+    "rangeLow": 104831,
+    "rangeHigh": 153462,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 496,
+    "grade10": 463,
+    "grade9": 25,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP10-019",
+   "name": "Divine Departure Parallel",
+   "rarity": "R",
+   "containerSetCode": "OP-10",
+   "url": "https://opboxindex.com/cards/op10-019-divine-departure-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 4980,
+    "usdEquivalent": 32.18,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 149,
+    "rangeLow": 123,
+    "rangeHigh": 170,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 28,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2605,
+    "grade10": 2409,
+    "grade9": 160,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP02-001",
+   "name": "EdwardNewgate 001 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-001-edwardnewgate-001-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 3980,
+    "usdEquivalent": 25.72,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 148663,
+    "rangeLow": 122782,
+    "rangeHigh": 201100,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 728,
+    "grade10": 589,
+    "grade9": 123,
+    "observedOn": "2026-09-01",
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP03-099",
+   "name": "Charlotte Katakuri 099 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-03",
+   "url": "https://opboxindex.com/cards/op03-099-charlotte-katakuri-099-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 3980,
+    "usdEquivalent": 25.72,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 120,
+    "rangeLow": 120,
+    "rangeHigh": 197,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 968,
+    "grade10": 811,
+    "grade9": 140,
+    "observedOn": "2026-09-02",
+    "ageDaysAtDatasetUpdate": 5
+   }
+  },
+  {
+   "cardNumber": "OP08-001",
+   "name": "Tony TonyChopper 001 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/op08-001-tony-tonychopper-001-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 3980,
+    "usdEquivalent": 25.72,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 233,
+    "rangeLow": 220,
+    "rangeHigh": 250,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 8,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 733,
+    "grade10": 684,
+    "grade9": 42,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "ST03-004",
+   "name": "Gecko Moria SP",
+   "rarity": "C",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/st03-004-gecko-moria-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 3980,
+    "usdEquivalent": 25.72,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 105,
+    "rangeLow": 85,
+    "rangeHigh": 130,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 9,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 639,
+    "grade10": 577,
+    "grade9": 52,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP08-058",
+   "name": "Charlotte Pudding 058 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-08",
+   "url": "https://opboxindex.com/cards/op08-058-charlotte-pudding-058-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 3980,
+    "usdEquivalent": 25.72,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 100,
+    "rangeLow": 95,
+    "rangeHigh": 150,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 7,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1254,
+    "grade10": 1186,
+    "grade9": 55,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP06-021",
+   "name": "Perona 021 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-06",
+   "url": "https://opboxindex.com/cards/op06-021-perona-021-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 3480,
+    "usdEquivalent": 22.49,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 100,
+    "rangeLow": 76,
+    "rangeHigh": 110,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 5,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1255,
+    "grade10": 1225,
+    "grade9": 22,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP02-002",
+   "name": "Monkey D. Garp 002 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-002-monkey-d-garp-002-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 2980,
+    "usdEquivalent": 19.26,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 244,
+    "rangeLow": 190,
+    "rangeHigh": 298,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 581,
+    "grade10": 511,
+    "grade9": 61,
+    "observedOn": "2026-09-02",
+    "ageDaysAtDatasetUpdate": 5
+   }
+  },
+  {
+   "cardNumber": "OP02-093",
+   "name": "Smoker 093 Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-093-smoker-093-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 2980,
+    "usdEquivalent": 19.26,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 130,
+    "rangeLow": 120,
+    "rangeHigh": 140,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 4,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 529,
+    "grade10": 462,
+    "grade9": 62,
+    "observedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   }
+  },
+  {
+   "cardNumber": "OP02-036",
+   "name": "Nami Alternate Art",
+   "rarity": "SR",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-036-nami-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 2980,
+    "usdEquivalent": 19.26,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 201,
+    "rangeLow": 155,
+    "rangeHigh": 250,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 27,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2225,
+    "grade10": 2068,
+    "grade9": 132,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP07-019",
+   "name": "Jewelry Bonney 019 Parallel",
+   "rarity": "L",
+   "containerSetCode": "OP-07",
+   "url": "https://opboxindex.com/cards/op07-019-jewelry-bonney-019-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 2980,
+    "usdEquivalent": 19.26,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 120,
+    "rangeLow": 93,
+    "rangeHigh": 139,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 6,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1435,
+    "grade10": 1345,
+    "grade9": 76,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP02-041",
+   "name": "Monkey D. Luffy 041 Alternate Art",
+   "rarity": "R",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-041-monkey-d-luffy-041-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 2480,
+    "usdEquivalent": 16.03,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 145,
+    "rangeLow": 145,
+    "rangeHigh": 160,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 5,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 608,
+    "grade10": 556,
+    "grade9": 42,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "EB01-046",
+   "name": "Brook 046 Alternate Art",
+   "rarity": "SR",
+   "containerSetCode": "EB-01",
+   "url": "https://opboxindex.com/cards/eb01-046-brook-046-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 1980,
+    "usdEquivalent": 12.79,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 220,
+    "rangeLow": 207,
+    "rangeHigh": 250,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 5,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 238,
+    "grade10": 222,
+    "grade9": 14,
+    "observedOn": "2026-08-25",
+    "ageDaysAtDatasetUpdate": 13
+   }
+  },
+  {
+   "cardNumber": "EB01-048",
+   "name": "Laboon 048 Alternate Art",
+   "rarity": "SR",
+   "containerSetCode": "EB-01",
+   "url": "https://opboxindex.com/cards/eb01-048-laboon-048-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 1480,
+    "usdEquivalent": 9.56,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 320,
+    "rangeLow": 320,
+    "rangeHigh": 411,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 410,
+    "grade10": 387,
+    "grade9": 20,
+    "observedOn": "2026-09-01",
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "EB01-021",
+   "name": "Hannyabal Alternate Art",
+   "rarity": "L",
+   "containerSetCode": "EB-01",
+   "url": "https://opboxindex.com/cards/eb01-021-hannyabal-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 980,
+    "usdEquivalent": 6.33,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 55,
+    "rangeLow": 55,
+    "rangeHigh": 60,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 343,
+    "grade10": 328,
+    "grade9": 14,
+    "observedOn": "2026-09-03",
+    "ageDaysAtDatasetUpdate": 4
+   }
+  },
+  {
+   "cardNumber": "OP02-059",
+   "name": "Boa Hancock Box Topper",
+   "rarity": "UC",
+   "containerSetCode": "OP-02",
+   "url": "https://opboxindex.com/cards/op02-059-boa-hancock-box-topper.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 80,
+    "usdEquivalent": 0.52,
+    "fxObservedOn": "2026-09-07",
+    "sourceName": "遊々亭",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-05",
+    "ageDaysAtDatasetUpdate": 2
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 383677,
+    "rangeLow": 237284,
+    "rangeHigh": 1189431,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-06-29",
+    "ageDaysAtDatasetUpdate": 70
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2175,
+    "grade10": 1926,
+    "grade9": 196,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP07-038",
+   "name": "Boa Hancock SP",
+   "rarity": "L",
+   "containerSetCode": "EB-02",
+   "url": "https://opboxindex.com/cards/op07-038-boa-hancock-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": null,
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 591,
+    "grade10": 525,
+    "grade9": 58,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  },
+  {
+   "cardNumber": "OP05-001",
+   "name": "Sabo SP",
+   "rarity": "L",
+   "containerSetCode": "EB-02",
+   "url": "https://opboxindex.com/cards/op05-001-sabo-sp.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": null,
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1159,
+    "rangeLow": 1159,
+    "rangeHigh": 1382,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-08-31",
+    "ageDaysAtDatasetUpdate": 7
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 85,
+    "grade10": 73,
+    "grade9": 12,
+    "observedOn": "2026-09-04",
+    "ageDaysAtDatasetUpdate": 3
+   }
+  }
+ ]
+}
