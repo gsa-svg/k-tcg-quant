@@ -513,7 +513,13 @@
           var mid = function (a) { var q = a.slice().sort(function (x, y) { return x - y; }); return q[Math.floor((q.length - 1) / 2)]; };
           var recent = mid(withV.slice(-half).map(function (r) { return r[metric]; }));
           var older = withV.length > half ? mid(withV.slice(-half * 2, -half).map(function (r) { return r[metric]; })) : null;
-          if (older != null) {
+          // 최근 날이 표본 부족(수집 공백)이면 흐름을 말하지 않는다 — 2026-09-08. 9/7 TCG 정산이 38건뿐이던 날 로카나에
+          // "Checked 0 · Trending down lately" 가 떴다. 0 은 시장이 아니라 우리 수집 공백이고, 빈 값이 틀린 값보다 낫다.
+          var minN = (DATA.minRateSample || 20);
+          var lastThin = last.ended == null || last.ended < minN;
+          if (lastThin) {
+            plain.appendChild(document.createTextNode(KO() ? " 최근 날은 확인 수가 " + minN + "건 미만(수집 공백)이라 흐름을 판단하지 않습니다." : " Latest day has fewer than " + minN + " checked auctions (a collection gap, not a market move) — no trend is drawn from it."));
+          } else if (older != null) {
             var pct = older ? Math.abs((recent - older) / older) * 100 : 0;
             plain.appendChild(document.createTextNode(pct < 5 ? (KO() ? " 최근 흐름은 비슷합니다." : " Holding steady lately.")
               : recent > older ? (KO() ? " 최근 늘고 있습니다." : " Trending up lately.")
