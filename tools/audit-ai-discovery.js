@@ -20,6 +20,8 @@ const retrievalBots = [
   // 2026-08-27 정책 변경: GPTBot·ClaudeBot 은 학습 전용이 아니라 각사 검색 코퍼스도
   // 채우는 봇이라 허용으로 전환(외부 SEO 감사 지적, 소유자 승인). 학습 전용 차단은 아래 유지.
   "GPTBot", "ClaudeBot",
+  // 2026-09-08: 제미나이·클로드 외에 애플·덕덕고·You.com·미스트랄 답변 에이전트도 같은 접근을 보장한다.
+  "Applebot", "DuckAssistBot", "YouBot", "MistralAI-User",
 ];
 const internalPaths = ["/docs/", "/tools/", "/social/", "/HANDOFF.md", "/CLAUDE.md", "/AGENTS.md", "/SECURITY.md"];
 const { isAllowed } = robotsPolicy(robots);

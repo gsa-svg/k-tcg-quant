@@ -208,6 +208,53 @@ Disallow: /CLAUDE.md
 Disallow: /AGENTS.md
 Disallow: /SECURITY.md
 
+# Other answer/search agents — ALLOWED explicitly (2026-09-08): Apple (Siri / Apple Intelligence search), DuckDuckGo AI,
+# You.com and Mistral Le Chat all fetch pages to answer. The default group already allows them; naming them also
+# opens the raw /data/ path the same way as the other answer engines.
+User-agent: Applebot
+Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
+
+User-agent: DuckAssistBot
+Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
+
+User-agent: YouBot
+Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
+
+User-agent: MistralAI-User
+Allow: /
+Allow: /data/
+Disallow: /docs/
+Disallow: /tools/
+Disallow: /social/
+Disallow: /HANDOFF.md
+Disallow: /CLAUDE.md
+Disallow: /AGENTS.md
+Disallow: /SECURITY.md
+
 # Training-only scrapers — BLOCKED (bulk-harvest for model training, no exposure benefit).
 User-agent: anthropic-ai
 Disallow: /
