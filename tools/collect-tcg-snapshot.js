@@ -19,7 +19,7 @@
 // Run: node tools/collect-tcg-snapshot.js
 const fs = require("node:fs");
 const path = require("node:path");
-const { TCGS, TCG_WATCH_PER_GAME } = require("./tcg-config");
+const { TCGS, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "data", "tcg-snapshot.json");
@@ -53,7 +53,7 @@ const KEEP_DAYS = 730;
 // 절반 가까이 30시간 시한을 넘겨 버려졌고, 얇은 날이 만성이었다(9/6: 로카나 6·바이스 9). 유입은 처리량 안이어야 한다.
 // 하한 125 = 연속성 점검(collection-continuity)의 보수적 최소. 잔여를 못 읽으면 하한을 쓴다.
 const WATCH_PER_GAME_MAX = TCG_WATCH_PER_GAME;
-const WATCH_PER_GAME_MIN = 125;
+const WATCH_PER_GAME_MIN = TCG_WATCH_PER_GAME_MIN;   // 하한은 tcg-config 한 곳에서 관리(연속성 점검과 공유)
 const SNAPSHOT_CALLS = TCGS.length * (PAGES + 3);   // 게임당: 총계 1 + 24시간 1 + 즉시구매 1 + 표본 PAGES
 function watchPerGameFor(usableCalls) {
   if (!Number.isFinite(usableCalls)) return WATCH_PER_GAME_MIN;

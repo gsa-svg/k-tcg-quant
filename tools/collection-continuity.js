@@ -1,6 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { TCG_KEYS, TCG_WATCH_PER_GAME } = require("./tcg-config");
+const { TCG_KEYS, TCG_WATCH_PER_GAME_MIN } = require("./tcg-config");
 
 // 조사가 끝난 영구 공백 — data/known-gaps.json. audit-series-gaps.js 의 규칙과 같다:
 // 사유(reason)·확인일(confirmed)이 없는 항목은 인정하지 않는다(새 공백을 조용히 덮는 데 못 쓰게).
@@ -54,7 +54,10 @@ function previousTcgSettlementProblems(tcgSeries, tcgSnapshot, day, requiredKeys
   for (const key of requiredKeys) {
     const endingToday = snapshots.get(key)?.endingToday;
     if (!Number.isFinite(endingToday)) continue;
-    const minimum = Math.max(1, Math.floor(Math.min(endingToday, TCG_WATCH_PER_GAME) * 0.5));
+    // 기준은 표본 **하한**(125)의 절반이다. 상한(250)을 쓰면 하한 표본인 날 1건만 못 읽어도 실패로 잡힌다
+    // (2026-09-07 실제: 12개 게임이 123~124/125 로 빨간불 → 복구 불가능한 1건 때문에 실패 메일).
+    // 이 검사의 목적은 "성공했는데 비어 있는 정산"을 잡는 것이지 몇 건 유실을 잡는 게 아니다.
+    const minimum = Math.max(1, Math.floor(Math.min(endingToday, TCG_WATCH_PER_GAME_MIN) * 0.5));
     const settled = Number(seriesDay.games?.[key]?.ended) || 0;
     if (settled < minimum) thin.push(`${key} ${settled}/${minimum}`);
   }
