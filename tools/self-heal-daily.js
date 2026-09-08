@@ -58,6 +58,8 @@ const COOLDOWN_MINUTES = { tcg: 150, auction: 45, search: 90, sweep: 0, active: 
 function cooldownFor(request, health) {
   if (request.key === "tcg") {
     const window = health.window || {};
+    // 창 마감 드레인: 06:17 하트비트가 잡아야 하므로 이력이 있어도 15분만 쉰다(06:45 크론이 오면 그쪽이 또 돈다 — 남은 몫만 쓴다).
+    if (Number.isFinite(window.minutesOpen) && window.minutesOpen >= 1380) return 15;
     const firstRunMissing = health.tcg?.snapshotToday === false
       || (window.tcgChecked === false && Number.isFinite(window.minutesOpen) && window.minutesOpen > 60);
     if (firstRunMissing) return 0;
@@ -169,7 +171,10 @@ async function main() {
   console.log(JSON.stringify({ selfHeal: uniqueAlerts.length ? "ALERT" : "OK", results, alerts: uniqueAlerts }));
   // SELF_HEAL_ALERT=false 는 로컬 PC 하트비트(30분마다 dispatch)용 — 같은 경고를 30분마다 실패 메일로 보내지 않는다.
   // 크론이 부른 실행은 기본(true)이라 그대로 실패 처리되어 메일이 간다.
-  if (uniqueAlerts.length && process.env.SELF_HEAL_ALERT !== "false") process.exitCode = 1;
+  // 실패 메일은 지금 손댈 수 있는 경고만 — 2026-09-08. "직전 완료일 부족/부분수집"은 이미 지난 일이라(소급 불가) 매 회차 메일로
+  // 반복해 봐야 받는 사람만 지친다(하루 3통). 그 메모는 요약에 남고, collect-status 와 아침 점검이 짚는다.
+  const actionable = uniqueAlerts.filter((a) => !/일별 —/.test(a));
+  if (actionable.length && process.env.SELF_HEAL_ALERT !== "false") process.exitCode = 1;
 }
 
 if (require.main === module) main().catch((error) => {

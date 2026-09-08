@@ -56,11 +56,14 @@ function buildHealPlan(input) {
 
   // 이번 창에 TCG 정산이 한 번도 안 돌았는데 대기가 있으면 돌린다 — backlog 800 기준만으로는 창 첫 크론 누락을 못 잡는다.
   const tcgUnchecked = windowOpen != null && windowOpen > 60 && window.tcgChecked === false && tcg.due > 0;
-  if (recovery.tcg || !tcg.snapshotToday || tcg.due > 800 || tcg.urgent > 0 || tcgUnchecked) {
+  // 창 마감 소진 — 2026-09-08. TCG 는 원피스 몫을 다 남기고 나머지만 쓰므로 실제 몫은 창 끝(06:45 UTC 드레인)에 생긴다.
+  // 그 크론이 안 오면 남은 콜이 리셋에 사라지고 그날 TCG 표본은 굶는다(9/7: 38건). 마감 60분 전부터 대기가 있으면 요청한다.
+  const drainDue = windowOpen != null && windowOpen >= 1380 && windowOpen < 1440 && tcg.due > 0;
+  if (recovery.tcg || !tcg.snapshotToday || tcg.due > 800 || tcg.urgent > 0 || tcgUnchecked || drainDue) {
     requests.push({
       key: "tcg",
       workflow: "collect-tcg.yml",
-      reason: `${recovery.tcg ? "직전 완료일 정산 부족 · " : ""}${tcgUnchecked ? `창 열린 지 ${windowOpen}분 정산 없음 · ` : ""}오늘 스냅샷 ${tcg.snapshotToday ? 1 : 0} · 대기 ${tcg.due}건 · 임박 ${tcg.urgent}건`,
+      reason: `${drainDue ? `창 마감 ${1440 - windowOpen}분 전 남은 쿼터 소진 · ` : ""}${recovery.tcg ? "직전 완료일 정산 부족 · " : ""}${tcgUnchecked ? `창 열린 지 ${windowOpen}분 정산 없음 · ` : ""}오늘 스냅샷 ${tcg.snapshotToday ? 1 : 0} · 대기 ${tcg.due}건 · 임박 ${tcg.urgent}건`,
     });
     if (tcgUnchecked && windowOpen > 240) alerts.push("쿼터 창이 열린 지 4시간이 지났는데 TCG 정산이 한 번도 돌지 않았습니다");
     // 스냅샷은 창 시작(07:30 UTC)에 찍으므로 "없음"의 기준도 창이다 — 창이 열린 지 4시간이 지나도 없어야 경고(2026-09-07 정정:

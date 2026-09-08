@@ -27,7 +27,7 @@ const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
 // 넘어서는 쪽이라(게임당 200건 × 17게임 × 4회), 쿼터가 남으면 더 처리하고 없으면 줄여야 한다.
 // 배분 규칙은 tools/ebay-budget.js 한 곳에 있다.
 const MIN_PER_RUN = 60;
-const MAX_PER_RUN_CAP = 900;      // 워크플로 타임아웃(20분) 안에 드는 실측 상한 — 건당 0.54초
+const MAX_PER_RUN_CAP = 1500;     // 워크플로 타임아웃(30분) 안에 드는 상한 — 건당 0.54초 ≈ 13.5분. 창 마감 드레인 회차가 남은 몫을 다 쓰도록 900→1500(2026-09-08)
 const GIVE_UP_HOURS = 30;         // 이보다 오래된 건 조회가 안 될 수 있다 — 추측하지 않고 버린다.
 
 function loadEnv(p) {

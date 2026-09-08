@@ -63,6 +63,14 @@ assert.deepEqual(freshWindow.requests, [], "right after the reset the scheduled 
 const noBacklog = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, due: 0 }, window: { minutesOpen: 100, opSwept: true, tcgChecked: false } });
 assert.deepEqual(noBacklog.requests, [], "nothing due means no TCG settlement to force");
 
+// 창 마감 60분 전부터는 대기가 있으면 TCG 를 요청한다(남은 쿼터 소진) — 06:45 드레인 크론이 안 와도 잃지 않게
+const drain = buildHealPlan({ ...healthy, window: { minutesOpen: 1397, opSwept: true, tcgChecked: true } });
+assert.deepEqual(drain.requests.map((r) => r.key), ["tcg"], "the last hour of the window must dispatch the TCG drain");
+assert.ok(/창 마감/.test(drain.requests[0].reason));
+assert.equal(cooldownFor({ key: "tcg" }, { tcg: { snapshotToday: true }, window: { minutesOpen: 1397, tcgChecked: true } }), 15, "the drain is only lightly throttled");
+const noDrain = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, due: 0 }, window: { minutesOpen: 1397, opSwept: true, tcgChecked: true } });
+assert.deepEqual(noDrain.requests, [], "nothing due means nothing to drain");
+
 const missingTcg = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false } });
 assert.deepEqual(missingTcg.requests.map((r) => r.key), ["tcg"]);
 assert.deepEqual(missingTcg.alerts, [], "50 minutes into the window a missing snapshot is a request, not an alert");

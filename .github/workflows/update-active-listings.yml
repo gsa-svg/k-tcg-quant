@@ -18,7 +18,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # 크론이 늦게 오면(18:00 예정 → 20:51 실측, 2026-09-07) 자가치유 dispatch(20:17) 와 겹쳐 하루 두 번 돈다.
+  # 한 번에 eBay 콜 ~600 이라 두 번이면 창 잔여가 0 이 되고 그날 TCG 정산이 통째로 굶는다(9/7 TCG 38건).
+  # 예약 실행은 "오늘(UTC) 이미 갱신됐으면" 건너뛴다. 수동 실행(workflow_dispatch)은 항상 돈다.
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          today=$(date -u +%F)
+          updated=$(node -e "try{console.log(String(require('./data/active-listing-audit.json').updated||'').slice(0,10))}catch(e){console.log('')}")
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$updated" = "$today" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"; echo "already updated today ($updated) — scheduled run skipped"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "proceed (event=${{ github.event_name }}, updated=$updated)"
+          fi
+
   update:
+    needs: gate
+    if: needs.gate.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
