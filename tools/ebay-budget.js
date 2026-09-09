@@ -159,9 +159,18 @@ function activeListingsFresh(resetMs, root = ROOT) {
   } catch { return false; }
 }
 
-function reserveFor(key, nowMs, resetMs) {
-  if (key === "auction") return auctionNeed(resetMs);
-  if (key === "active") return activeListingsFresh(resetMs) ? 0 : PER_RUN.active;
+// 진행 매물 갱신 몫은 그 워크플로가 돌 시각(18 UTC)에서 4시간 지난 22 UTC(창 시작 + 15h)까지만 지킨다.
+// 그때까지 안 돌았으면(실패·미실행) 이 창에서는 포기하고 TCG 정산에 돌린다 — 2026-09-08 밤 실제:
+// 갱신이 다른 이유(등급 감사 FAIL)로 죽었는데 800 을 밤새 쥐고 있어 TCG 정산이 굶었다(lorcana 26/62).
+const ACTIVE_RESERVE_UNTIL_HOURS = 15;
+
+function reserveFor(key, nowMs, resetMs, root = ROOT) {
+  if (key === "auction") return auctionNeed(resetMs, root);
+  if (key === "active") {
+    if (activeListingsFresh(resetMs, root)) return 0;
+    const windowStart = resetMs - 24 * HOUR;
+    return nowMs >= windowStart + ACTIVE_RESERVE_UNTIL_HOURS * HOUR ? 0 : PER_RUN.active;
+  }
   return reserveLeft(key, nowMs, resetMs);
 }
 
@@ -193,7 +202,7 @@ async function settleBudget(opts = {}) {
   return { n, left, keep, reset, drain, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n}${tail}` };
 }
 
-module.exports = { token, quota, remaining, settleBudget, reserveLeft, activeListingsFresh, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
+module.exports = { token, quota, remaining, settleBudget, reserveLeft, reserveFor, activeListingsFresh, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
 
 if (require.main === module) {
   (async () => {

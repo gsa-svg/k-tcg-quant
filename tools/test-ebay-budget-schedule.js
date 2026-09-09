@@ -80,4 +80,12 @@ console.log("eBay budget schedule tests passed");
   assert.equal(activeListingsFresh(reset, root), false, "지난 창의 갱신은 이 창의 예약을 풀지 못한다");
   assert.equal(activeListingsFresh(reset, path.join(root, "missing")), false, "감사 파일이 없으면 예약을 유지한다");
   assert.ok(PER_RUN.active >= 650, "카드 207장 PSA10 링크(≈500) + 박스 호가·매물 수·특가(≈150)를 덮어야 한다");
+  // 예약은 22 UTC(창 시작 + 15h)까지만 — 그 뒤엔 실패한 갱신 때문에 정산이 굶지 않게 푼다(2026-09-08 밤 실제).
+  const { reserveFor } = require("./ebay-budget");
+  write("2026-09-07T20:22:08.133Z");
+  assert.equal(reserveFor("active", at("2026-09-08T10:00:00Z"), reset, root), PER_RUN.active, "18 UTC 실행 전에는 1회분을 지킨다");
+  assert.equal(reserveFor("active", at("2026-09-08T21:59:00Z"), reset, root), PER_RUN.active, "지연 실행(20~21 UTC)까지는 지킨다");
+  assert.equal(reserveFor("active", at("2026-09-08T22:00:00Z"), reset, root), 0, "22 UTC 를 넘기면 이 창에서는 포기하고 정산에 돌린다");
+  write("2026-09-08T20:22:08.133Z");
+  assert.equal(reserveFor("active", at("2026-09-08T10:00:00Z"), reset, root), 0, "이미 돌았으면 시각과 무관하게 0");
 }
