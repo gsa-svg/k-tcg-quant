@@ -67,10 +67,15 @@ for (const [code, node] of Object.entries(SERIES.sets || {})) {
     if (!rs.length) { problems.push(`${code}|${ed} — 그래프에 점이 ${pts.length}개인데 원장에 즉시구매 실거래가 없다`); continue; }
     const lastSale = rs[rs.length - 1].t;
 
-    // 마지막 점 = 마지막 실제 판매일
+    // 마지막 점 = 마지막 실제 판매일. 단, 마지막 판매일 앞 창(windowDays) 안에 최소 표본(MIN_N)이 안 모이면
+    // 생성기가 그 점을 일부러 비운 것이다(빈 구간이 틀린 값보다 낫다). 그건 문제가 아니라 얇은 꼬리다 —
+    // OP-02 일본판: 7/7 이후 56일 창에 6건이 안 모여 8/4 판매 1건이 점이 못 됐고, 이 검사가 이틀 연속 빨간불을 냈다(2026-09-08).
     const lastPt = pts[pts.length - 1];
-    if (lastPt.d !== new Date(lastSale).toISOString().slice(0, 10)) {
-      problems.push(`${code}|${ed} — 마지막 점 ${lastPt.d} 이 마지막 실거래일 ${new Date(lastSale).toISOString().slice(0, 10)} 과 다르다`);
+    const lastSaleD = new Date(lastSale).toISOString().slice(0, 10);
+    if (lastPt.d !== lastSaleD) {
+      const inTail = rs.filter((r) => r.t > lastSale - win * DAY && r.t <= lastSale).length;
+      if (inTail >= MIN_N) problems.push(`${code}|${ed} — 마지막 점 ${lastPt.d} 이 마지막 실거래일 ${lastSaleD} 과 다르다`);
+      else notes.push(`${code}|${ed} — 마지막 판매 ${lastSaleD} 앞 ${win}일에 ${inTail}건뿐이라 점을 찍지 않음(마지막 점 ${lastPt.d})`);
     }
 
     // 점 간격 = STEP 격자

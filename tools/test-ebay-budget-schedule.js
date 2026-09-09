@@ -89,3 +89,17 @@ console.log("eBay budget schedule tests passed");
   write("2026-09-08T20:22:08.133Z");
   assert.equal(reserveFor("active", at("2026-09-08T10:00:00Z"), reset, root), 0, "이미 돌았으면 시각과 무관하게 0");
 }
+
+// 원피스 유입 예약 — auctionNeed(지금 아는 대기)에 리셋까지 남은 시간 × 시간당 유입(≈70)을 더한다(2026-09-09).
+// 2026-09-08: 창 앞에서 TCG 보충이 원피스의 뒷시간 몫까지 가져가 TCG 대기 3,284 중 ≈2,000 이 시한을 넘겨 버려졌다.
+{
+  const { auctionInflow, OP_INFLOW_PER_HOUR, reserveFor } = require("./ebay-budget");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "opbox-inflow-"));
+  fs.mkdirSync(path.join(root, "data"));
+  fs.writeFileSync(path.join(root, "data", "auction-watch.json"), JSON.stringify({ pending: [{ id: "a", endsAt: "2026-09-09T03:00:00Z" }] }));
+  const reset = at("2026-09-09T07:00:00Z");
+  assert.equal(auctionInflow(at("2026-09-08T07:30:00Z"), reset), Math.round(OP_INFLOW_PER_HOUR * 23.5), "창 시작엔 거의 하루치 유입을 남긴다");
+  assert.equal(auctionInflow(at("2026-09-09T06:45:00Z"), reset), Math.round(OP_INFLOW_PER_HOUR * 0.25), "드레인 회차엔 15분치만 남는다");
+  assert.equal(auctionInflow(at("2026-09-09T07:30:00Z"), reset), 0, "리셋이 지났으면 0");
+  assert.equal(reserveFor("auction", at("2026-09-09T06:45:00Z"), reset, root), 1 + Math.round(OP_INFLOW_PER_HOUR * 0.25), "auction 예약 = 아는 대기 + 유입 추정");
+}

@@ -164,8 +164,16 @@ function activeListingsFresh(resetMs, root = ROOT) {
 // 갱신이 다른 이유(등급 감사 FAIL)로 죽었는데 800 을 밤새 쥐고 있어 TCG 정산이 굶었다(lorcana 26/62).
 const ACTIVE_RESERVE_UNTIL_HOURS = 15;
 
+// 원피스 경매는 창 안에서 계속 새로 검색돼 들어온다(하루 ≈1,700건 정산 = 시간당 ≈70). auctionNeed 는 "지금 알고 있는"
+// 대기만 세므로, 창 앞부분에서 TCG 가 그 몫까지 가져가면 뒤에서 원피스가 우선 정산하고 TCG 여유분은 시한을 넘겨
+// 버려진다(2026-09-08: TCG 대기 3,284 중 ≈2,000 소실, 검색 콜만 낭비). 리셋까지 남은 시간 × 시간당 유입을 함께 남긴다.
+const OP_INFLOW_PER_HOUR = 70;
+function auctionInflow(nowMs, resetMs) {
+  return Math.max(0, Math.round((OP_INFLOW_PER_HOUR * (resetMs - nowMs)) / HOUR));
+}
+
 function reserveFor(key, nowMs, resetMs, root = ROOT) {
-  if (key === "auction") return auctionNeed(resetMs, root);
+  if (key === "auction") return auctionNeed(resetMs, root) + auctionInflow(nowMs, resetMs);
   if (key === "active") {
     if (activeListingsFresh(resetMs, root)) return 0;
     const windowStart = resetMs - 24 * HOUR;
@@ -202,7 +210,7 @@ async function settleBudget(opts = {}) {
   return { n, left, keep, reset, drain, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n}${tail}` };
 }
 
-module.exports = { token, quota, remaining, settleBudget, reserveLeft, reserveFor, activeListingsFresh, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
+module.exports = { token, quota, remaining, settleBudget, reserveLeft, reserveFor, activeListingsFresh, auctionInflow, OP_INFLOW_PER_HOUR, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
 
 if (require.main === module) {
   (async () => {
