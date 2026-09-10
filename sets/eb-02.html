@@ -46,7 +46,7 @@
       .setHero > div { flex: 1 1 320px; min-width: 0; }
       .setHero img { width: 132px; flex: 0 0 auto; border-radius: 10px; border: 1px solid var(--line); }
       /* 모바일 첫 화면: 박스 그림 184px 가 제목·헤더와 함께 첫 숫자를 폴드 밖(y≈858px)으로 밀었다(2026-09-09 실측). 작게 줄인다. */
-      @media (max-width: 560px) { .setHero { flex-wrap: nowrap; gap: 12px; } .setHero > div { flex: 1 1 0; } .setHero img { width: 72px; height: auto; } }
+      @media (max-width: 560px) { .setHero img { width: 72px; height: auto; } }
       .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,215,160,.05); }
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
