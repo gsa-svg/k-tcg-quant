@@ -38,7 +38,7 @@ function write(file, obj) {
 }
 
 const cards = extras.buildCardPages(packs, src.cardMap, packs.fx || {}, datasetUpdatedOn, { rawNmAsk, psa10Sold, psaPopulation });
-const grading = extras.buildGrading(src.gradingSeries);
+const grading = extras.buildGrading(src.gradingSeries, packs);   // PSA 총량은 페이지와 같은 packs 값
 const onePiece = extras.buildAuctions(src.auctionSeries, src.setAuctionStats);
 const tcg = extras.buildTcgAuctions(src.tcgSeries);
 if (!cards || !grading || !onePiece || !tcg) throw new Error("확장 데이터 원장 누락 — 아무것도 쓰지 않음");

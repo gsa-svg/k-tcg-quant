@@ -116,16 +116,33 @@ function latestPoint(arr) {
 }
 
 /** Per-set graded population: PSA, CGC and TAG kept separate; Japanese and English never summed. */
-function buildGrading(series) {
+// PSA 총량은 페이지가 보여주는 것과 **같은 값**(packs 의 psaFull / psaFullEn, GemRate 전체집계)을 쓴다 — 2026-09-10 감사:
+// 종전엔 주간 추이 원장(grading-series)의 마지막 점(9/2)을 실어 페이지(9/5, 58,473)와 AI 파일(58,130)이 서로 달랐다.
+// CGC·TAG 는 추이 원장이 유일한 출처라 그대로 둔다. psaFull 이 없으면 추이 원장으로 떨어진다.
+function psaFromPacks(pf) {
+  if (!pf || !Number.isFinite(pf.total)) return null;
+  const gem = Number.isFinite(pf.gems) ? pf.gems : null;
+  return {
+    observedOn: pf.updated || null,
+    total: pf.total,
+    gem10: gem,
+    gemRatePct: Number.isFinite(pf.gemRate) ? pf.gemRate : (gem != null && pf.total ? Math.round((gem / pf.total) * 1000) / 10 : null),
+    addedSinceLastPoint: Number.isFinite(pf.wowAdd) ? pf.wowAdd : null,
+  };
+}
+
+function buildGrading(series, packs) {
   if (!series?.sets) return null;
   const sets = [];
   for (const [code, eds] of Object.entries(series.sets)) {
-    const edition = (ed) => {
-      if (!ed) return null;
-      const psa = Array.isArray(ed.psa) ? latestPoint(ed.psa) : (ed.psaLatest ? latestPoint([ed.psaLatest]) : null);
-      return { psa, cgc: latestPoint(ed.cgc), tag: latestPoint(ed.tag) };
+    const set = packs?.sets?.[code] || {};
+    const edition = (ed, pf) => {
+      if (!ed && !pf) return null;
+      const fromSeries = ed ? (Array.isArray(ed.psa) ? latestPoint(ed.psa) : (ed.psaLatest ? latestPoint([ed.psaLatest]) : null)) : null;
+      const psa = psaFromPacks(pf) || fromSeries;
+      return { psa, cgc: ed ? latestPoint(ed.cgc) : null, tag: ed ? latestPoint(ed.tag) : null };
     };
-    sets.push({ setCode: code, canonicalUrl: `${SITE}/psa-grading.html`, japanese: edition(eds.jp), english: edition(eds.en) });
+    sets.push({ setCode: code, canonicalUrl: `${SITE}/psa-grading.html`, japanese: edition(eds.jp, set.psaFull), english: edition(eds.en, set.psaFullEn) });
   }
   return {
     basis: series.basis || series.note || "weekly graded-population counts per set and printing",
