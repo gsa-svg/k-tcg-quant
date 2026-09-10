@@ -26,6 +26,11 @@ const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.jso
 const FX = d.fx || {};
 const jpyUsd = (jpy) => (Number.isFinite(jpy) ? (jpy * FX.jpyKrw) / FX.usdKrw : null);
 const krwUsd = (krw) => (Number.isFinite(krw) ? krw / FX.usdKrw : null);
+// 관측일 환율로 되돌리는 변환 — PSA10 실거래(KRW 저장)에 쓴다. 이력에 없는 날짜면 오늘 환율로 떨어진다.
+const { fxAt } = require("./market-data-normalizers");
+const toUsdAt = (v, cur, date) => (v == null ? null : cur === "USD" ? v : cur === "KRW" ? v / (fxAt(date) || FX.usdKrw) : null);
+// 변형 판별(tier) — 등급 원장·경매 변형 집계와 같은 함수.
+const { ourTier } = require("./cgc-card-pop-ingest.js");
 const toUsd = (v, cur) => (v == null ? null : cur === "USD" ? v : krwUsd(v));
 const usd = (n) => (n == null ? null : "$" + Math.round(n).toLocaleString("en-US"));
 const jpy = (n) => (n == null ? null : "¥" + Math.round(n).toLocaleString("en-US"));
@@ -86,7 +91,7 @@ function popOf(setObj, card) {
 function psa10Of(card) {
   const sold = card.psa10Ebay;
   if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
-    const v = toUsd(sold.middle, sold.currency);
+    const v = toUsdAt(sold.middle, sold.currency, sold.updated);
     if (v != null) return { v, kind: "sold", n: sold.sampleSize, date: sold.updated };
   }
   const bl = card.psa10Active && card.psa10Active.bestListing;
@@ -294,22 +299,24 @@ for (const { code, set: s, card: c } of cands) {
       ${gradeSection}
 
       ${(() => {
-        // 이 카드가 경매에서 실제로 어떻게 팔렸나 — 우리가 종료 후 재조회해 쌓은 원장에서만 나온다.
-        // 애드센스가 '가치 없는 콘텐츠'로 거절한 뒤(2026-09-01), 카드 상세를 고유 데이터로 채우려고 넣었다.
-        const a = CARD_AUCTION.cards && CARD_AUCTION.cards[c.number];
-        if (!a || a.n < 5) return "";
-        // 경매 통계는 카드번호로만 집계돼 변형(패러렐·망가·SP)과 기본판이 섞인다 — 2026-09-09 감사: 109장 중 50장이
-        // 더 싼 다른 변형의 낙찰가를 "이 카드" 로 게시했다(OP13-118 레드망가 NM $12,839 vs 낙찰 중앙값 $69).
-        // 낙찰 중앙값이 이 변형의 NM 값 범위(1/3~3배) 밖이면 다른 변형이 섞인 것으로 보고 싣지 않는다. 빈 값이 틀린 값보다 낫다.
-        if (Number.isFinite(nmUsd) && nmUsd > 0 && Number.isFinite(a.medPrice) && (a.medPrice < nmUsd / 3 || a.medPrice > nmUsd * 3)) return "";
-        const recent = (a.last || []).filter((x) => Number.isFinite(x.price)).slice(0, 6);
-        const rows = recent.map((x) => `<tr><td>${esc(x.d)}</td><td>${Math.round(x.price).toLocaleString("en-US")}</td><td>${x.bids ?? "—"}</td></tr>`).join("");
-        const band = a.low != null && a.high != null ? ` Most winning bids landed between <strong>${Math.round(a.low)}</strong> and <strong>${Math.round(a.high)}</strong>.` : "";
-        const bidders = a.medBidders ? ` A typical sold lot drew ${a.medBidders} bidders.` : "";
-        return `      <h2>${esc(c.name)} at auction</h2>
-      <p>Across the last 45 days we settled <strong>${a.n}</strong> ended auctions carrying this card number — read again after each one closed. <strong>${a.sold}</strong> sold (${a.sellThrough}%), the rest passed unsold.${a.medPrice != null ? ` The median winning bid was <strong>${Math.round(a.medPrice).toLocaleString("en-US")}</strong>.` : ""}${band}${bidders}</p>
-      ${rows ? `<table class="cardTable"><thead><tr><th>Closed</th><th>Winning bid</th><th>Bids</th></tr></thead><tbody>${rows}</tbody></table>` : ""}
-      <p class="priceNote">Auctions only. Auctions are grouped by card number; this block is shown only when the winning-bid median sits within this variant's raw-NM price band, so cheaper printings of the same number are filtered out. Unsold auctions stay in the denominator.</p>`;
+        // 이 카드번호가 경매에서 실제로 어떻게 팔렸나 — 우리가 종료 후 재조회해 쌓은 원장에서만 나온다.
+        // 2026-09-10: 번호 단위 통계는 변형(패러렐·망가·SP)과 기본판이 섞여 "이 카드" 값으로 쓸 수 없었다(109장 중 50장 오표시).
+        // 그래서 판(JP/EN) × 변형(제목에서 읽은 tier, 등급 원장과 같은 ourTier)별로 나눠 표로 보이고 이 카드의 변형 행을 표시한다.
+        // 감정품(PSA/CGC/TAG) 경매는 뺐다(다른 시장). 3건 미만 행은 싣지 않는다 — 빈 값이 틀린 값보다 낫다.
+        const V = CARD_AUCTION.variants || {};
+        const mine = ourTier(c.name);
+        const TIER = { base: "Base print", alt: "Alternate art / parallel", super: "Super alternate art (manga)", red: "Red alt art / red manga", sp: "SP", gold: "SP gold", silver: "SP silver", signature: "Signature / stamped", boxtopper: "Box topper", wanted: "Wanted poster", tr: "Treasure rare" };
+        const rows = [];
+        for (const ed of ["jp", "en"]) for (const tier of Object.keys(TIER)) {
+          const v = V[`${c.number}|${ed}|${tier}`];
+          if (!v || v.sold < 3) continue;
+          rows.push({ ed, tier, v });
+        }
+        if (!rows.length) return "";
+        const tr = rows.map(({ ed, tier, v }) => `<tr${(ed === "jp" && tier === mine) ? ' class="mine"' : ""}><td>${ed === "jp" ? "Japanese" : "English"}</td><td>${TIER[tier]}${ed === "jp" && tier === mine ? " · this card (Japanese print)" : ""}</td><td>${v.n}</td><td>${v.sold}</td><td>${v.sellThrough != null ? v.sellThrough + "%" : "—"}</td><td>${usd(v.medPrice)}</td><td>${v.low != null && v.high != null ? `${usd(v.low)}–${usd(v.high)}` : "—"}</td></tr>`).join("");
+        return `      <h2>${esc(c.number)} at auction — by print and variant</h2>
+      <table class="cardTable"><thead><tr><th>Print</th><th>Variant (from listing title)</th><th>Ended</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th><th>P25–P75</th></tr></thead><tbody>${tr}</tbody></table>
+      <p class="priceNote">Settled eBay auctions for ${esc(c.name)} (${esc(c.number)}) over the last 45 days, each read again after it closed. Variant read from listing titles. Graded slabs excluded. Unsold auctions stay in the denominator. Rows under 3 sales hidden. English rows share the card number but can be a different kind of card from the Japanese ${esc(c.name)} tracked here.</p>`;
       })()}
       <h2>${esc(c.name)} variant record</h2>
       <ul class="factList">

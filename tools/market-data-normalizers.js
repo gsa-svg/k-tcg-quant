@@ -91,6 +91,22 @@ function buildBoxMarket(set, datasetUpdatedOn, setUrl) {
   return { japanese: edition("jp"), english: edition("en") };
 }
 
+// 관측일 기준 USD/KRW 환율 — data/fx-history.json(ECB 영업일 환율)에서 그 날 또는 직전 영업일 값. 없으면 null.
+// 왜: PSA10 실거래 중앙값은 수집일 환율로 KRW 로 저장돼 있다. 오늘 환율로 되돌리면 환율이 움직인 만큼 값이 틀어진다
+// (2026-09-09 감사: OP-13 카드 $15,854 표시 vs 수집일 환율 기준 $14,134 — 12% 부풀림). 관측일 환율로 되돌리면 원래 달러값이 나온다.
+let FX_HISTORY = null;
+function fxAt(date) {
+  if (!/^\d{4}-\d{2}-\d{2}/.test(String(date || ""))) return null;
+  if (!FX_HISTORY) {
+    try { FX_HISTORY = JSON.parse(require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "data", "fx-history.json"), "utf8")).rates || {}; }
+    catch { FX_HISTORY = {}; }
+  }
+  const d = String(date).slice(0, 10);
+  if (FX_HISTORY[d]) return FX_HISTORY[d];
+  const earlier = Object.keys(FX_HISTORY).filter((k) => k < d).sort();
+  return earlier.length ? FX_HISTORY[earlier[earlier.length - 1]] : null;
+}
+
 function toUsd(value, currency, fx) {
   if (!isPositive(value)) return null;
   if (currency === "USD") return round(value);
@@ -104,4 +120,4 @@ function stockStatus(value) {
   return String(value).trim() === "×" ? "out_of_stock" : "in_stock";
 }
 
-module.exports = { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd };
+module.exports = { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd, fxAt };

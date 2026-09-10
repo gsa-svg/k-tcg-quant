@@ -6,7 +6,7 @@
 // 규칙: 추정 금지 · 라벨 보존(sold/ask/NM/PSA) · 날짜 동반 · 내부 필드(검색어·매물 id·판매자) 비공개.
 const fs = require("node:fs");
 const path = require("node:path");
-const { SITE, isDate, isPositive } = require("./market-data-normalizers");
+const { SITE, isDate, isPositive, fxAt } = require("./market-data-normalizers");
 
 const ROOT = path.resolve(__dirname, "..");
 const readJson = (rel) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return null; } };
@@ -143,10 +143,12 @@ function buildGrading(series) {
 // 같은 날 환율로 USD 환산값을 병기한다. 원본 필드는 손대지 않는다.
 function withUsd(p, fx) {
   if (!p) return null;
-  const rate = p.currency === "USD" ? 1 : p.currency === "KRW" && fx?.usdKrw ? 1 / fx.usdKrw : p.currency === "JPY" && fx?.usdKrw && fx?.jpyKrw ? fx.jpyKrw / fx.usdKrw : null;
+  // KRW 로 저장된 실거래는 **관측일(sampleCollectedOn) 환율**로 되돌린다 — 오늘 환율이면 환율 변동만큼 틀어진다(2026-09-09 감사).
+  const histKrw = p.currency === "KRW" ? fxAt(p.sampleCollectedOn) : null;
+  const rate = p.currency === "USD" ? 1 : p.currency === "KRW" && (histKrw || fx?.usdKrw) ? 1 / (histKrw || fx.usdKrw) : p.currency === "JPY" && fx?.usdKrw && fx?.jpyKrw ? fx.jpyKrw / fx.usdKrw : null;
   if (!rate) return p;
   const usd = (v) => (Number.isFinite(v) ? Math.round(v * rate * 100) / 100 : null);
-  return { ...p, medianUsd: usd(p.median), rangeLowUsd: usd(p.rangeLow), rangeHighUsd: usd(p.rangeHigh), fxObservedOn: fx?.date || null };
+  return { ...p, medianUsd: usd(p.median), rangeLowUsd: usd(p.rangeLow), rangeHighUsd: usd(p.rangeHigh), fxObservedOn: histKrw ? p.sampleCollectedOn : (fx?.date || null) };
 }
 
 /** Every published card price page, with the same numbers the page shows. */

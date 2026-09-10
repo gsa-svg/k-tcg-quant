@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
 const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap } = require("./set-page-shared");
+const { fxAt } = require("./market-data-normalizers");   // 관측일 환율(PSA10 실거래 KRW 되돌리기)
 
 const ROOT = path.join(__dirname, "..");
 // 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 없으면 섹션을 그리지 않는다.
@@ -69,6 +70,8 @@ const krwUsd = (krw) => (Number.isFinite(krw) && FX.usdKrw ? krw / FX.usdKrw : n
 // 박스 가격이 3개 공존하는 문제의 근원. 시리즈가 곧 차트이므로 이제 문장과 그림이 같은 숫자를 말한다.
 const soldPts = (code, ed) => (((SOLD_SERIES.sets || {})[code] || {})[ed] || []).filter((pt) => pt && pt.median != null).map((pt) => ({ d: pt.d, p: pt.median }));
 const toUsd = (val, cur) => (val == null ? null : cur === "USD" ? val : krwUsd(val));
+// PSA10 실거래는 수집일 환율로 KRW 저장 → 오늘 환율로 되돌리면 환율 변동만큼 틀어진다(2026-09-09 감사: 12% 부풀림). 관측일 환율로 되돌린다.
+const toUsdAt = (val, cur, date) => (val == null ? null : cur === "USD" ? val : cur === "KRW" ? val / (fxAt(date) || FX.usdKrw) : null);
 const RARITY = { L: "Leader", SEC: "Secret Rare", SR: "Super Rare", R: "Rare", UC: "Uncommon", C: "Common", SP: "Special", P: "Promo" };
 const rarityLabel = (r) => RARITY[r] || r || "";
 // TCGplayer 단일 리스팅 폴백가(priceUsd)의 이상치 표시.
@@ -102,7 +105,7 @@ function cardPrices(c) {
   let psa = null, psaKind = "";
   const sold = c.psa10Ebay;
   if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
-    const v = toUsd(sold.middle, sold.currency);
+    const v = toUsdAt(sold.middle, sold.currency, sold.updated);
     if (v != null) { psa = v; psaKind = "sold"; }
   }
   if (psa == null && c.psa10Active && c.psa10Active.bestListing && c.psa10Active.bestListing.total != null) {
@@ -856,10 +859,10 @@ function rankingRows() {
     for (const c of (data.sets[code].cards || [])) {
       const sold = c.psa10Ebay;
       if (!(sold && sold.soldBased && sold.middle != null)) continue;
-      const psa = toUsd(sold.middle, sold.currency);
+      const psa = toUsdAt(sold.middle, sold.currency, sold.updated);
       const n = sold.sampleSize || 0;
       if (psa == null || n < 3) continue;
-      rows.push({ code, name: c.name, number: c.number, rarity: c.rarity, psa, n, low: toUsd(sold.low, sold.currency), high: toUsd(sold.high, sold.currency), updated: sold.updated });
+      rows.push({ code, name: c.name, number: c.number, rarity: c.rarity, psa, n, low: toUsdAt(sold.low, sold.currency, sold.updated), high: toUsdAt(sold.high, sold.currency, sold.updated), updated: sold.updated });
     }
   }
   rows.sort((a, b) => b.psa - a.psa);

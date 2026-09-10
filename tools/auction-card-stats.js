@@ -17,6 +17,8 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const { readRecent } = require("./auction-archive");
 const { reclassify } = require("./auction-aggregate");
+// 변형 판별은 등급 원장 적재기와 같은 규칙(ourTier)을 쓴다 — 카드 페이지가 같은 키로 찾는다.
+const { ourTier } = require("./cgc-card-pop-ingest.js");
 const outPath = path.join(ROOT, "data", "auction-card-stats.json");
 
 // 원장은 data/auction-archive/<날짜>.json 이다(2026-07-29 분리). 45일 창을 직접 읽는다 —
@@ -38,6 +40,32 @@ function main() {
 
   const byCard = {};
   for (const r of sales) (byCard[r.cardId] = byCard[r.cardId] || []).push(r);
+
+  // 판(JP/EN) × 변형(제목에서 읽은 tier)별 집계 — 2026-09-10 신설.
+  // 번호 단위 통계(cards)는 패러렐·망가·SP 와 기본판이 섞여 "이 카드" 의 값으로 쓸 수 없었다(카드 페이지 109장 중 50장 오표시).
+  // 감정품(PSA/CGC/TAG)은 뺀다 — 생카드와 다른 시장이다. 판을 못 가린 건(ed 없음)도 뺀다 — 추측하지 않는다.
+  const byVariant = {};
+  for (const r of sales) {
+    if (r.grade || !(r.ed === "jp" || r.ed === "en")) continue;
+    const key = `${r.cardId}|${r.ed}|${ourTier(r.title)}`;
+    (byVariant[key] = byVariant[key] || []).push(r);
+  }
+  const variants = {};
+  for (const [key, rows] of Object.entries(byVariant)) {
+    const decided = rows.filter((r) => r.sold !== null);
+    const soldRows = rows.filter((r) => r.sold === true && Number.isFinite(unit(r)));
+    if (soldRows.length < MIN_SOLD) continue;
+    const prices = soldRows.map(unit);
+    variants[key] = {
+      n: rows.length,
+      sold: soldRows.length,
+      sellThrough: decided.length ? Number((decided.filter((r) => r.sold).length / decided.length * 100).toFixed(1)) : null,
+      medPrice: med(prices),
+      low: q(prices, 0.25),
+      high: q(prices, 0.75),
+      last: [...soldRows].sort((a, b) => b.d.localeCompare(a.d)).slice(0, LAST_N).map((r) => ({ d: r.d, price: unit(r), bids: Number.isFinite(r.bids) ? r.bids : null })),
+    };
+  }
 
   const cards = {};
   for (const [cardId, rows] of Object.entries(byCard)) {
@@ -66,6 +94,9 @@ function main() {
     window: "rolling 45d (daily auction archive)",
     updated: new Date().toISOString(),
     cardCount: Object.keys(cards).length,
+    variantNote: "variants: key = cardNumber|print(jp/en)|variant tier read from the listing title (base/alt/super/red/sp/gold/silver/signature/boxtopper/wanted/tr); raw (ungraded) auctions only; rows with < 3 sales omitted",
+    variantCount: Object.keys(variants).length,
+    variants,
     cards,
   };
   fs.writeFileSync(outPath, JSON.stringify(out) + "\n", "utf8");
