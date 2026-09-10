@@ -16,7 +16,7 @@
 // Run: node tools/topup-tcg-watch.js [--dry-run]   (--dry-run: 검색까지만 하고 감시목록에 쓰지 않는다)
 const fs = require("fs");
 const path = require("path");
-const { token, settleBudget } = require("./ebay-budget");
+const { token, settleBudget, nextReset } = require("./ebay-budget");
 const { TCGS } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
@@ -52,6 +52,7 @@ async function main() {
   const watch = fs.existsSync(WATCH) ? JSON.parse(fs.readFileSync(WATCH, "utf8")) : { pending: [] };
   const now = Date.now();
   const cutoff = now - GIVE_UP_HOURS * 3600 * 1000;
+  const resetMs = nextReset(now);   // 이 쿼터 창이 끝나는 시각(07:00 UTC)
   const have = new Set(watch.pending.map((p) => p.id));
 
   // 아직 못 읽은 대기(시한 안) — 전부 1콜씩 든다. 게임별 "끝났는데 못 읽은 여유분"은 상한 판정용.
@@ -87,6 +88,10 @@ async function main() {
       if (n >= plan.perGame) break;
       if (!it.itemId || !it.itemEndDate || have.has(it.itemId)) continue;
       if (Date.parse(it.itemEndDate) <= now) continue;
+      // 여유분은 **이 창 안에서 끝나는 것만** 넣는다(리셋 30분 전까지). 리셋 뒤에 끝나는 여유분은 다음 창의 쿼터로
+      // 읽게 되는데, 그 창의 표본(base)이 아직 안 끝난 이른 시간에 먼저 읽혀 표본 몫을 잡아먹는다
+      // (2026-09-09 실제: 9/8 여유분 ≈2,000건이 9/9 창을 먼저 써서 9/9 표본이 lorcana 0·weiss 4 로 굶었다).
+      if (Date.parse(it.itemEndDate) > resetMs - 30 * 60 * 1000) continue;
       have.add(it.itemId);
       // extra: 표본(스냅샷 250)이 아니라 남는 쿼터로 더 읽는 여유분 — 원장에도 같이 적혀 나중에 나눠 볼 수 있다.
       fresh.push({ g: g.k, id: it.itemId, end: it.itemEndDate, seen: day, extra: true });

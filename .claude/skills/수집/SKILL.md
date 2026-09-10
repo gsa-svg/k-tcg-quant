@@ -119,6 +119,7 @@ node tools/generate-ko-pages.js
 node tools/generate-auction-page.js
 node tools/generate-tcg-auction-page.js
 node tools/generate-free-data.js
+node tools/generate-feed.js                # RSS — 아티클 목록에서 매번 다시 굽는다(2026-07-17 에 멈춰 있던 것을 2026-09-10 편입)
 node tools/generate-ai-data.js
 node tools/generate-ai-extras.js          # 카드 전체·등급·경매 AI 파일 3개
 node tools/generate-llms.js                # ⚠️ 그 뒤 — llms.txt·llms-full.txt(답변 AI용 사실 파일) 재생성

@@ -17,7 +17,8 @@ function rawNmAsk(card, fx, datasetUpdatedOn) {
     priceJpy: card.nmJpy,
     usdEquivalent: toUsd(card.nmJpy, "JPY", fx),
     fxObservedOn: isDate(fx.date) ? fx.date : null,
-    sourceName: card.nmVenue || "Japanese retailer",
+    // 외부 소스명은 공개하지 않는다(소유자 규칙 S1 — "Weekly ungraded market" 식 중립 라벨만). 업체명이 여기로 새어 나갔었다(2026-09-09 감사).
+    sourceName: "Japanese retailer",
     stockStatus: stockStatus(card.nmStock),
     observedOn,
     ageDaysAtDatasetUpdate: ageDays(datasetUpdatedOn, observedOn),

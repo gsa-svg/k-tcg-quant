@@ -28,7 +28,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <link>${SITE}/</link>
   <description>Data reports and guides on One Piece Card Game sealed booster boxes: prices, PSA grading data and market analysis.</description>
   <language>en-us</language>
-  <lastBuildDate>${rfc822(items[0].pub)}</lastBuildDate>
+  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   <atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml" />
 ${items.map((it) => `  <item>
     <title>${esc(it.title)}</title>

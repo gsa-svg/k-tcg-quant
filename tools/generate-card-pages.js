@@ -298,14 +298,18 @@ for (const { code, set: s, card: c } of cands) {
         // 애드센스가 '가치 없는 콘텐츠'로 거절한 뒤(2026-09-01), 카드 상세를 고유 데이터로 채우려고 넣었다.
         const a = CARD_AUCTION.cards && CARD_AUCTION.cards[c.number];
         if (!a || a.n < 5) return "";
+        // 경매 통계는 카드번호로만 집계돼 변형(패러렐·망가·SP)과 기본판이 섞인다 — 2026-09-09 감사: 109장 중 50장이
+        // 더 싼 다른 변형의 낙찰가를 "이 카드" 로 게시했다(OP13-118 레드망가 NM $12,839 vs 낙찰 중앙값 $69).
+        // 낙찰 중앙값이 이 변형의 NM 값 범위(1/3~3배) 밖이면 다른 변형이 섞인 것으로 보고 싣지 않는다. 빈 값이 틀린 값보다 낫다.
+        if (Number.isFinite(nmUsd) && nmUsd > 0 && Number.isFinite(a.medPrice) && (a.medPrice < nmUsd / 3 || a.medPrice > nmUsd * 3)) return "";
         const recent = (a.last || []).filter((x) => Number.isFinite(x.price)).slice(0, 6);
         const rows = recent.map((x) => `<tr><td>${esc(x.d)}</td><td>${Math.round(x.price).toLocaleString("en-US")}</td><td>${x.bids ?? "—"}</td></tr>`).join("");
         const band = a.low != null && a.high != null ? ` Most winning bids landed between <strong>${Math.round(a.low)}</strong> and <strong>${Math.round(a.high)}</strong>.` : "";
         const bidders = a.medBidders ? ` A typical sold lot drew ${a.medBidders} bidders.` : "";
         return `      <h2>${esc(c.name)} at auction</h2>
-      <p>Across the last 45 days we settled <strong>${a.n}</strong> ended auctions for this exact card — read again after each one closed. <strong>${a.sold}</strong> sold (${a.sellThrough}%), the rest passed unsold.${a.medPrice != null ? ` The median winning bid was <strong>${Math.round(a.medPrice).toLocaleString("en-US")}</strong>.` : ""}${band}${bidders}</p>
+      <p>Across the last 45 days we settled <strong>${a.n}</strong> ended auctions carrying this card number — read again after each one closed. <strong>${a.sold}</strong> sold (${a.sellThrough}%), the rest passed unsold.${a.medPrice != null ? ` The median winning bid was <strong>${Math.round(a.medPrice).toLocaleString("en-US")}</strong>.` : ""}${band}${bidders}</p>
       ${rows ? `<table class="cardTable"><thead><tr><th>Closed</th><th>Winning bid</th><th>Bids</th></tr></thead><tbody>${rows}</tbody></table>` : ""}
-      <p class="priceNote">Auctions only, this variant only — a manga rare and its plain parallel are counted separately. Unsold auctions stay in the denominator.</p>`;
+      <p class="priceNote">Auctions only. Auctions are grouped by card number; this block is shown only when the winning-bid median sits within this variant's raw-NM price band, so cheaper printings of the same number are filtered out. Unsold auctions stay in the denominator.</p>`;
       })()}
       <h2>${esc(c.name)} variant record</h2>
       <ul class="factList">

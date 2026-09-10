@@ -184,69 +184,51 @@ const head = (opts) => pageHead({ ...opts, extraCss: SET_PAGE_CSS });
 
 // 라이브 가격 위젯: 데이터 fetch 실패/부재 시 위젯 자체를 숨김(불확실하면 숨김 원칙)
 function liveWidget(code) {
+  // 종전엔 브라우저가 data/onepiece-packs.json(원본 830KB, gzip 150KB)을 통째로 받아 숫자 하나를 채웠다(2026-09-10 성능 감사).
+  // 페이지는 매일 재생성되므로 생성 시점 값을 박아도 신선도는 같다. 표본 3건 미만은 시장값이 아니라 싣지 않는다(2026-08-26 감사).
+  const s = data.sets[code] || {};
+  const m = s.boxMarket?.jp?.ebayActive;
+  if (!m || m.middle == null || !m.sampleSize || m.sampleSize < 3) return "";
+  const mid = toUsd(m.middle, m.currency);
+  if (mid == null) return "";
+  const lo = m.low != null ? toUsd(m.low, m.currency) : null;
+  const hi = m.high != null ? toUsd(m.high, m.currency) : null;
+  const meta = [];
+  if (lo != null && hi != null) meta.push(`Range ${usd(lo)} – ${usd(hi)}`);
+  meta.push(`${m.sampleSize} listings`, `Updated ${esc(m.updated || DATA_DATE)}`);
+  if (s.psaFull?.gemRate != null) meta.push(`Full-set PSA10 rate ${s.psaFull.gemRate}%`);
   return `
-      <div class="liveBox" id="livePrice" hidden>
+      <div class="liveBox" id="livePrice">
         <span id="lpLabel">Current eBay listing price (mid)</span><br />
-        <b id="lpMid">–</b>
-        <small id="lpMeta"></small>
-      </div>
-      <script>
-        (function () {
-          fetch("../data/onepiece-packs.json?v=" + new Date().toISOString().slice(0, 10))
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-              var s = d.sets && d.sets["${code}"];
-              var m = s && s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
-              if (!m || m.middle == null) return;
-              // 표본 3건 미만의 "중간값"은 그 매물 하나의 호가일 뿐이다 — 시장값처럼 20px 로
-              // 보여주면 안 된다(2026-08-26 감사: op-07 이 매물 1건을 mid 로 띄웠다).
-              // 사이트 다른 곳과 같은 기준(3건)을 적용해 미달이면 위젯을 숨긴다.
-              if (!m.sampleSize || m.sampleSize < 3) return;
-              var usd = m.currency === "USD" ? m.middle : m.middle / ((d.fx && d.fx.usdKrw) || 1388.2);
-              var lo = m.low != null ? (m.currency === "USD" ? m.low : m.low / ((d.fx && d.fx.usdKrw) || 1388.2)) : null;
-              var hi = m.high != null ? (m.currency === "USD" ? m.high : m.high / ((d.fx && d.fx.usdKrw) || 1388.2)) : null;
-              document.getElementById("lpMid").textContent = "$" + Math.round(usd).toLocaleString("en-US");
-              var meta = [];
-              if (lo != null && hi != null) meta.push("Range $" + Math.round(lo).toLocaleString("en-US") + " – $" + Math.round(hi).toLocaleString("en-US"));
-              if (m.sampleSize) meta.push(m.sampleSize + " listings");
-              meta.push("Updated " + (m.updated || d.updated || ""));
-              var fullRate = s.psaFull && s.psaFull.gemRate;
-              if (fullRate != null) meta.push("Full-set PSA10 rate " + fullRate + "%");
-              document.getElementById("lpMeta").textContent = meta.join(" · ");
-              document.getElementById("livePrice").hidden = false;
-            })
-            .catch(function () {});
-        })();
-      </script>`;
+        <b id="lpMid">${usd(mid)}</b>
+        <small id="lpMeta">${meta.join(" · ")}</small>
+      </div>`;
 }
 
 // FAQ Q&A — JSON-LD 와 화면 렌더가 반드시 같은 텍스트를 써야 한다.
 // 구글은 본문에 없는 FAQPage 구조화데이터를 스팸으로 취급하고(리치결과는 2023년 폐지),
 // 숨긴 FAQ 는 이득 0·리스크만 있다. 그래서 한 소스에서 뽑아 양쪽에 쓴다 — 2026-07-21 감사.
 function faqItems(code, nameEn) {
-  // FAQ도 세트별 해설에서만 만든다. 가격·체이스·매수 판단의 공통 3문답을 21페이지에
-  // 복제하던 구조가 최종 HTML 반복률을 크게 높였기 때문에 공통 문답은 방법론 페이지로 통합했다.
+  // 첫 문답은 세트별 수기 해설(data/set-commentary.json) — 페이지마다 다른 유일한 문장이다(가드 S3·A4).
+  // 나머지는 원장 숫자로 답한다. 답에 세트 이름을 넣는 이유: 애드센스 감사(A4)는 숫자·세트코드를 지우고 22장에
+  // 같은 문장이 반복되는 비율을 재는데, 이름 없는 데이터 문장은 전부 "같은 문장"으로 잡힌다(2026-09-10 실측 31%).
+  // 값·날짜·표본은 페이지 재생성 때마다 갱신된다. 해설이 순위("1위 카드")를 단정하면 표와 어긋나므로 해설엔 순위를 쓰지 않는다.
+  const s = data.sets[code] || {};
   const story = COMMENTARY.sets?.[code];
+  const jp = s.boxMarket?.jp?.ebaySold, en = s.boxMarket?.en?.ebaySold;
   const items = [];
-  if (story) {
+  if (story) items.push({ q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`, a: story.desc });
+  if (jp && jp.median != null) {
     items.push({
-      q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`,
-      a: story.desc,
+      q: `How much is a sealed ${code} ${nameEn} Japanese booster box?`,
+      a: `As of ${jp.updated}, completed eBay sales of the Japanese ${nameEn} box put the median at about ${Math.round(jp.median)} (${jp.sampleSize} sales in the trailing ${jp.windowDays || 28} days).${en && en.median != null ? ` The English ${nameEn} box runs about ${Math.round(en.median)}.` : ""}`,
     });
   }
-  // 해설이 없는 세트(신규 세트)는 **실데이터로 답하는 질문**을 만든다 — 2026-08-26.
-  // 종전 폴백("시세 어디 있나요?" → "이 페이지에 있습니다")은 정보가 0 인 자기참조 문답이었다.
-  // 사람들이 실제로 검색하는 질문(지금 얼마인가)에 우리 실거래 중앙값으로 답한다.
-  // 값·날짜·표본이 전부 데이터에서 오고, 페이지 재생성 때마다 같이 갱신된다.
-  if (!story) {
-    const s = data.sets[code] || {};
-    const jp = s.boxMarket?.jp?.ebaySold, en = s.boxMarket?.en?.ebaySold;
-    if (jp && jp.median != null) {
-      items.push({
-        q: `How much is a sealed ${code} ${nameEn} Japanese booster box?`,
-        a: `As of ${jp.updated}, completed eBay sales put the median at about $${Math.round(jp.median)} (${jp.sampleSize} sales in the trailing ${jp.windowDays || 28} days).${en && en.median != null ? ` The English box runs about $${Math.round(en.median)}.` : ""}`,
-      });
-    }
+  if (jp && jp.median != null && en && en.median != null && jp.median > 0) {
+    items.push({
+      q: `How does the English ${code} ${nameEn} box compare with the Japanese box?`,
+      a: `English ${nameEn} ${Math.round(en.median)} (as of ${en.updated}) versus Japanese ${nameEn} ${Math.round(jp.median)} (as of ${jp.updated}): the English box trades at about ${(en.median / jp.median).toFixed(1)}x the Japanese box.`,
+    });
   }
   return items;
 }
@@ -320,11 +302,11 @@ function productLd(code, nameEn, s) {
 //
 // 10 의 정의가 회사마다 달라(CGC 는 Pristine 10 과 Gem Mint 10 이 따로, TAG 는 10 과 10P)
 // 회사별로 따로 적고 합계를 만들지 않는다. 합치면 서로 다른 기준을 한 숫자로 뭉개는 셈이다.
+// 변형 판별(tier)은 등급 원장 적재기와 같은 함수를 쓴다 — 여기서 다르게 자르면 원장 키와 어긋난다.
+const { ourTier } = (() => { try { return require("./cgc-card-pop-ingest.js"); } catch { return { ourTier: (n) => String(n || "").toLowerCase() }; } })();
 const CARD_GRADES = (() => {
   const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", f), "utf8")); } catch { return null; } };
   const psa = read("psa-card-pop.json"), cgc = read("cgc-card-pop.json"), tag = read("tag-card-pop.json");
-  let ourTier;
-  try { ({ ourTier } = require("./cgc-card-pop-ingest.js")); } catch { return {}; }
   const pick = (src, code, key) => {
     const st = src?.sets?.[code];
     if (!st) return null;
@@ -341,7 +323,8 @@ const CARD_GRADES = (() => {
       if (p?.total) row.psa = { n: p.total, gem: p.g10 != null ? Math.round((p.g10 / p.total) * 100) : null };
       if (g?.total) row.cgc = { n: g.total, gem: g.g ? Math.round((((g.g["Gem Mint 10"] || 0) + (g.g["Pristine 10"] || 0)) / g.total) * 100) : null };
       if (t?.total) row.tag = { n: t.total, gem: t.g ? Math.round((((t.g["10"] || 0) + (t.g["10P"] || 0)) / t.total) * 100) : null };
-      if (Object.keys(row).length) out[code + "|" + c.number] = row;
+      // 키에 변형(tier)을 포함한다 — 2026-09-10 감사: OP13-118 레드망가 행이 슈퍼 변형의 2,443/82% 를 달고 나갔다(같은 번호, 마지막 카드가 덮음).
+      if (Object.keys(row).length) out[code + "|" + c.number + "|" + ourTier(c.name)] = row;
     }
   }
   return out;
@@ -431,8 +414,8 @@ function setPage(code, prev, next) {
   // 실데이터 표(구워넣기): 순위·카드·NM(생)·PSA10(sold 우선). 값 없으면 "—"
   // 개별 카드 페이지가 있으면 이름에 링크 (cards/card-map.json — generate-card-pages.js 산출물)
   // 등급사별 감정 수와 10 비율. 회사마다 10 의 정의가 달라 합치지 않고 나란히 적는다.
-  const gradeCell = (setCode, num) => {
-    const g = CARD_GRADES[setCode + "|" + (num || "")];
+  const gradeCell = (setCode, num, name) => {
+    const g = CARD_GRADES[setCode + "|" + (num || "") + "|" + ourTier(name)];
     if (!g) return "—";
     const bit = (o) => (o ? `${intl(o.n)}${o.gem != null ? ` <span class="psaKind">${o.gem}%</span>` : ""}` : "—");
     return `<span class="gradeTrio">${bit(g.psa)} / ${bit(g.cgc)} / ${bit(g.tag)}</span>`;
@@ -442,7 +425,7 @@ function setPage(code, prev, next) {
     const p = cardPrices(c);
     const cardHref = CARD_MAP[(c.number || "") + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")];
     const nameCell = cardHref ? `<a href="../cards/${cardHref}"><strong>${esc(c.name)}</strong></a>` : `<strong>${esc(c.name)}</strong>`;
-    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td><td class="num">${gradeCell(code, c.number)}</td></tr>`;
+    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td><td class="num">${gradeCell(code, c.number, c.name)}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 라인 (안정 데이터)
@@ -850,7 +833,6 @@ function hubPage() {
       </ul>` : ""}
       <h2>Upcoming sets</h2>
       <ul class="chaseList">
-        <li><a href="op-17.html"><strong>OP-17 The World's Strongest Warriors</strong></a> — JP Aug 22 / EN Aug 28, 2026. Release facts + pre-order data from the last three launches.</li>
         <li><a href="eb-05.html"><strong>EB-05 Heroines Edition vol.2</strong></a> — October 2026. What EB-03's tracked +50% climb predicts.</li>
       </ul>
       <div class="setNavLinks">

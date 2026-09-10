@@ -97,5 +97,14 @@ jobs:
               exit 1
             fi
             echo "Push raced; rebasing before retry $((attempt + 1))/3."
-            git pull --rebase
+            # 감시목록은 검색이 넣고 정산이 빼서 두 워크플로가 같이 고친다. 줄 단위 병합이 깨지면 집합 병합(tools/merge-watch-json.js)으로 잇는다.
+            if ! git pull --rebase; then
+              for f in $(git diff --name-only --diff-filter=U); do
+                case "$f" in
+                  data/auction-watch.json|data/palworld-auction-watch.json|data/tcg-watch.json) node tools/merge-watch-json.js "$f" && git add "$f" ;;
+                  *) echo "::error::병합 불가 충돌: $f"; git rebase --abort; exit 1 ;;
+                esac
+              done
+              GIT_EDITOR=true git rebase --continue || { git rebase --abort; exit 1; }
+            fi
           done

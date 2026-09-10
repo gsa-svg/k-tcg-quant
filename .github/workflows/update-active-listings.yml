@@ -30,7 +30,10 @@ jobs:
       - id: check
         run: |
           today=$(date -u +%F)
-          updated=$(node -e "try{console.log(String(require('./data/active-listing-audit.json').updated||'').slice(0,10))}catch(e){console.log('')}")
+          # 예약 실행의 checkout 은 트리거 시점 커밋이라, 직전에 끝난 수동 실행의 결과를 못 본다
+          # (2026-09-09 실제: 20:01 수동 실행 성공 → 20:06 예약 실행이 또 돌다 푸시 충돌로 실패). 최신 main 의 파일로 판단한다.
+          git fetch -q --depth=1 origin main && git show origin/main:data/active-listing-audit.json > /tmp/active-listing-audit.json 2>/dev/null || cp data/active-listing-audit.json /tmp/active-listing-audit.json
+          updated=$(node -e "try{console.log(String(require('/tmp/active-listing-audit.json').updated||'').slice(0,10))}catch(e){console.log('')}")
           if [ "${{ github.event_name }}" = "schedule" ] && [ "$updated" = "$today" ]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"; echo "already updated today ($updated) — scheduled run skipped"
           else
@@ -201,6 +204,7 @@ jobs:
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
+          node tools/generate-feed.js 2>&1 | tee logs/generate-feed.log
           node tools/generate-ai-data.js 2>&1 | tee logs/generate-ai-data.log
           # llms.txt / llms-full.txt 는 AI 데이터에서 매일 다시 쓴다(2026-09-08) — 답변 AI 가 우리 숫자로 답하게
           node tools/generate-ai-extras.js 2>&1 | tee logs/generate-ai-extras.log
@@ -253,13 +257,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
+          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -295,6 +299,7 @@ jobs:
             node tools/generate-ko-topic-pages.js
             node tools/generate-auction-page.js
             node tools/generate-free-data.js
+            node tools/generate-feed.js
             node tools/generate-ai-data.js
             node tools/generate-ai-extras.js
             node tools/generate-llms.js
@@ -307,7 +312,7 @@ jobs:
             node tools/inject-set-comparison.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
-            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short
