@@ -349,13 +349,15 @@ function englishPage(code, prev, next) {
   const nameEn = s.nameEn || code;
   const canonical = `${SITE}/sets/${fileOf(code)}`;
   const items = faqItems(code, nameEn, m);
-  const title = `${code} ${nameEn} English Booster Box Price — eBay Sold & Asking | OP Box Index`;
+  // 제목은 60자 안팎으로 — 2026-09-09 SEO 감사: 100자 제목은 검색결과에서 잘려 "English" 가 안 보였다.
+  const title = `${code} ${nameEn} English Booster Box Price | OP Box Index`;
   const descBits = [];
   if (m.sold?.median != null) descBits.push(`completed eBay sale median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales to ${m.sold.updated})`);
   if (m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3) descBits.push(`asking mid $${Math.round(m.ask.middle)}`);
   if (m.multiple != null) descBits.push(`${m.multiple}x the Japanese box`);
   if (m.gem != null) descBits.push(`English PSA 10 rate ${m.gem}%`);
-  const desc = `English ${code} ${nameEn} sealed booster box: ${descBits.join(", ")}. Weekly price history and settled auction results, updated daily.`;
+  // 설명은 155자 안에서 끝낸다(검색결과 잘림). 값 없는 조각은 빠지므로 길이는 세트마다 다르다.
+  const desc = `English ${code} ${nameEn} box: ${descBits.join(", ")}. Weekly price history and auction results, updated daily.`.slice(0, 155);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box English sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
 
   const summaryBits = [];

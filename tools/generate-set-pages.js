@@ -119,6 +119,8 @@ const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스
       .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero > div { flex: 1 1 320px; min-width: 0; }
       .setHero img { width: 132px; flex: 0 0 auto; border-radius: 10px; border: 1px solid var(--line); }
+      /* 모바일 첫 화면: 박스 그림 184px 가 제목·헤더와 함께 첫 숫자를 폴드 밖(y≈858px)으로 밀었다(2026-09-09 실측). 작게 줄인다. */
+      @media (max-width: 560px) { .setHero img { width: 72px; height: auto; } }
       .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,215,160,.05); }
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
@@ -866,7 +868,8 @@ function rankingRows() {
 
 function rankingPage() {
   const rows = rankingRows();
-  const asOf = (rows[0] && rows[0].updated) || DATA_DATE;
+  // 기준일은 표에 실린 카드들의 **가장 최근** 관측일 — 1위 카드 하나의 날짜를 쓰면 그 카드만 안 갱신됐을 때 페이지 전체가 두 달 묵어 보인다(2026-09-09 감사: "as of 2026-07-10").
+  const asOf = rows.reduce((m, r) => (r.updated && r.updated > m ? r.updated : m), "") || DATA_DATE;
   const canonical = `${SITE}/psa10-ranking.html`;
 
   // ── 해설용 파생 수치 — 전부 rows(실측 sold)에서만 계산한다. 추정 문장 금지.

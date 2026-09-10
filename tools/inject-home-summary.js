@@ -15,6 +15,10 @@ const END = "<!-- HOME_SUMMARY:END -->";
 
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+// 홈에서 영문판 세트 페이지·상위 카드 페이지로 가는 링크가 0 이었다(2026-09-09 SEO 감사: 신규 154 URL 의 내부링크가 얕아 크롤 우선순위가 낮다).
+// 시세표 행마다 영문판 페이지(있을 때)와 1위 카드 페이지(있을 때) 링크를 단다. 카드 슬러그는 generate-card-pages 산출물(card-map.json)에서 온다.
+const CARD_MAP = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8")); } catch { return {}; } })();
+const cardSlug = (c) => (c && c.number ? CARD_MAP[c.number + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")] : null);
 // marketIndex 는 세트별 시세판(board) 공급원으로만 쓴다 — 지수 숫자·개봉미터 표시는
 // 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
 const mi = d.marketIndex;
@@ -33,7 +37,12 @@ const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
 const tr = rows.map((b) => {
   const s = d.sets[b.code] || {};
   const chg = b.changePct;
-  return `<tr><td><a href="sets/${b.code.toLowerCase()}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}</td><td class="num">${usd(b.nowUsd)}</td><td class="num ${chg == null ? "" : chg >= 0 ? "up" : "down"}">${chg != null ? (chg >= 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
+  const slug = b.code.toLowerCase();
+  const enLink = fs.existsSync(path.join(ROOT, "sets", `${slug}-english.html`)) ? ` · <a href="sets/${slug}-english.html" title="English ${esc(b.code)} box price">EN box</a>` : "";
+  const top = (s.cards || [])[0];
+  const topSlug = cardSlug(top);
+  const topLink = topSlug ? ` · <a href="cards/${topSlug}" title="${esc(top.name)} price">${esc(top.name)}</a>` : "";
+  return `<tr><td><a href="sets/${slug}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}<small class="rowLinks">${enLink}${topLink}</small></td><td class="num">${usd(b.nowUsd)}</td><td class="num ${chg == null ? "" : chg >= 0 ? "up" : "down"}">${chg != null ? (chg >= 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
 }).join("\n");
 
 

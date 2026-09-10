@@ -106,7 +106,7 @@ const tableRows = rows.map((b) => {
     <td class="code"><a href="${koSlug(b.code)}.html">${esc(b.code)}</a></td>
     <td class="nm">${esc(nameKo(b.code))}</td>
     <td class="num">${won(krw)}</td>
-    <td class="num ${chgCls}">${pct(b.changePct)}<small class="fromDate">${esc(b.baseDate || "")} 대비</small></td>
+    <td class="num ${chgCls}">${pct(b.changePct)}${b.changeBasis ? `<small class="fromDate">${esc(b.changeBasis)} 대비</small>` : ""}</td>
     <td class="rp">${rpCell}</td>
   </tr>`;
 }).join("\n");
@@ -437,7 +437,7 @@ ${cardRows}
   // 팩트 리스트 — 검증된 값만
   const facts = [];
   facts.push(`현재 박스 시세 <strong>${won(krw)}</strong> (기준일 ${esc(DATA_DATE)})`);
-  if (chg != null) facts.push(`${esc(b.baseDate || "추적 시작일")} 대비 <strong>${pct(chg)}</strong> — 발매일 대비가 아님`);
+  if (chg != null) facts.push(`${esc(b.changeBasis || "추적 시작일")} 대비 <strong>${pct(chg)}</strong> — 발매일 대비가 아님`);
   if (b.msrpYen) facts.push(`발매 정가 <strong>¥${b.msrpYen.toLocaleString("ko-KR")}</strong>`);
   const reprintDates = rr.map((r) => r.date).filter(Boolean);
   facts.push(rr.length ? `재판 기록 <strong>${rr.length}회</strong>${reprintDates.length ? ` (${reprintDates.join(", ")})` : ""} — 유통사·리테일러 재입고 기준` : `<strong>재판 기록 없음</strong> — 확인된 재입고 기록이 없다는 뜻`);
@@ -447,7 +447,7 @@ ${cardRows}
   const setFaqs = [
     { q: `${code} ${nKo} 박스 시세는 지금 얼마인가요?`, a: `${DATA_DATE} 기준 ${code} ${nKo} 일본판 부스터박스 추적가는 약 ${won(krw)}이며, 판매처와 밀봉 상태에 따라 실제 총구매가는 달라질 수 있습니다.` },
     { q: `${code} ${nKo} 재판 기록이 있나요?`, a: rr.length ? `${topic(nKo)} 유통사·리테일러 재입고 기준 ${rr.length}회가 확인됐습니다${reprintDates.length ? `(${reprintDates.join(", ")})` : ""}; 반다이 공식 발표가 아닌 유통 기록입니다.` : `${topic(nKo)} 현재 확인된 유통 재입고 기록이 없지만, 이것만으로 공식 재판 부재를 단정하지 않습니다.` },
-    { q: `${code} ${nKo} 변동률은 어느 시점부터인가요?`, a: b.launchTracked ? `${topic(nKo)} 발매 시점(${esc(b.baseDate || "")})부터 추적해 발매 초기 대비 변동률을 표시합니다.` : `${topic(nKo)} ${esc(b.baseDate || "2026-01-07")}부터 추적해 해당 기준일 대비 변동률을 표시합니다.` },
+    { q: `${code} ${nKo} 변동률은 어느 시점부터인가요?`, a: b.launchTracked ? `${topic(nKo)} 발매 시점${b.changeBasis ? `(${esc(b.changeBasis)})` : ""}부터 추적해 발매 초기 대비 변동률을 표시합니다.` : `${topic(nKo)} ${esc(b.changeBasis || "2026-01-07")}부터 추적해 해당 기준일 대비 변동률을 표시합니다.` },
   ];
   const setFaqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: setFaqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
   const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
