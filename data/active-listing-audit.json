@@ -1,15 +1,27 @@
 {
- "updated": "2026-09-11T20:07:58.606Z",
+ "updated": "2026-09-12T19:50:38.834Z",
  "maxFreshDays": 3,
  "summary": {
   "sets": 22,
-  "boxesChecked": 22,
-  "psa10LinksChecked": 176,
-  "missingBoxLinks": 0,
-  "missingPsa10Links": 34,
+  "boxesChecked": 21,
+  "psa10LinksChecked": 168,
+  "missingBoxLinks": 1,
+  "missingPsa10Links": 32,
   "staleMarkets": 0,
-  "issues": 0,
+  "issues": 1,
   "block": 0
  },
- "issues": []
+ "issues": [
+  {
+   "severity": "review",
+   "type": "box",
+   "code": "OP-07",
+   "rank": null,
+   "number": null,
+   "name": null,
+   "reason": "box_no_qualifying_listing_today",
+   "title": null,
+   "url": null
+  }
+ ]
 }

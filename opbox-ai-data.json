@@ -2,7 +2,7 @@
   "schemaVersion": "1.0.3",
   "datasetId": "opbox-ai-market-data",
   "name": "OP Box Index — One Piece TCG box markets and Top 7 hits",
-  "datasetUpdatedOn": "2026-09-11",
+  "datasetUpdatedOn": "2026-09-12",
   "publisher": {
     "name": "OP Box Index",
     "url": "https://opboxindex.com/"
@@ -61,23 +61,23 @@
             "p75Usd": 358,
             "sampleSize": 16,
             "sampleCollectedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 325.02,
-            "p15Usd": 286.24,
-            "p85Usd": 445.31,
-            "listingCount": 14,
-            "excludedListingCount": 27,
-            "observedOn": "2026-09-11",
+            "medianUsd": 324.66,
+            "p15Usd": 286.72,
+            "p85Usd": 379.99,
+            "listingCount": 13,
+            "excludedListingCount": 28,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 209.44,
+              "itemPriceUsd": 209.62,
               "shippingUsd": 0,
-              "totalUsd": 209.44,
+              "totalUsd": 209.62,
               "currency": "USD",
               "shipsFrom": "GB",
               "condition": "New/Factory Sealed",
@@ -98,7 +98,7 @@
             "p75Usd": 1592,
             "sampleSize": 10,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -109,7 +109,7 @@
             "p85Usd": 5500,
             "listingCount": 21,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 1500,
@@ -147,7 +147,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -156,7 +156,7 @@
             "grade10": 4252,
             "grade9": 555,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -178,7 +178,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -195,7 +195,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -203,7 +203,7 @@
             "grade10": 3283,
             "grade9": 449,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -226,7 +226,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -242,7 +242,7 @@
             ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -250,7 +250,7 @@
             "grade10": 3081,
             "grade9": 303,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -272,7 +272,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -289,7 +289,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -297,7 +297,7 @@
             "grade10": 2467,
             "grade9": 232,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -320,7 +320,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -336,7 +336,7 @@
             ],
             "sampleSize": 26,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -344,7 +344,7 @@
             "grade10": 8611,
             "grade9": 587,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -367,7 +367,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -376,7 +376,7 @@
             "grade10": 1015,
             "grade9": 130,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -398,7 +398,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -415,7 +415,7 @@
             ],
             "sampleSize": 17,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -423,7 +423,7 @@
             "grade10": 2041,
             "grade9": 182,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-01.html"
@@ -448,23 +448,23 @@
             "p75Usd": 168,
             "sampleSize": 6,
             "sampleCollectedOn": "2026-07-06",
-            "ageDaysAtDatasetUpdate": 67
+            "ageDaysAtDatasetUpdate": 68
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 178.89,
+            "medianUsd": 179.99,
             "p15Usd": 149.99,
             "p85Usd": 219.99,
-            "listingCount": 13,
-            "excludedListingCount": 20,
-            "observedOn": "2026-09-11",
+            "listingCount": 12,
+            "excludedListingCount": 21,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 124.34,
+              "itemPriceUsd": 124,
               "shippingUsd": 0,
-              "totalUsd": 124.34,
+              "totalUsd": 124,
               "currency": "USD",
               "shipsFrom": "CA",
               "condition": "New/Factory Sealed",
@@ -485,18 +485,18 @@
             "p75Usd": 579,
             "sampleSize": 10,
             "sampleCollectedOn": "2026-09-07",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 675.59,
-            "p15Usd": 550,
+            "medianUsd": 684.99,
+            "p15Usd": 550.99,
             "p85Usd": 1000,
-            "listingCount": 17,
+            "listingCount": 18,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 499.99,
@@ -509,7 +509,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.85,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         }
       },
@@ -532,7 +532,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -541,7 +541,7 @@
             "grade10": 3798,
             "grade9": 509,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -564,7 +564,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -573,7 +573,7 @@
             "grade10": 943,
             "grade9": 121,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -595,7 +595,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -612,7 +612,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -620,7 +620,7 @@
             "grade10": 511,
             "grade9": 61,
             "observedOn": "2026-09-02",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -643,7 +643,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -659,7 +659,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -667,7 +667,7 @@
             "grade10": 589,
             "grade9": 123,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -689,7 +689,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -706,7 +706,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -714,7 +714,7 @@
             "grade10": 462,
             "grade9": 62,
             "observedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -736,7 +736,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -753,7 +753,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -761,7 +761,7 @@
             "grade10": 814,
             "grade9": 67,
             "observedOn": "2026-09-02",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -783,7 +783,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -800,7 +800,7 @@
             ],
             "sampleSize": 27,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -808,7 +808,7 @@
             "grade10": 2068,
             "grade9": 132,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-02.html"
@@ -833,7 +833,7 @@
             "p75Usd": 157,
             "sampleSize": 7,
             "sampleCollectedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -844,7 +844,7 @@
             "p85Usd": 184.99,
             "listingCount": 7,
             "excludedListingCount": 19,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 129.99,
@@ -870,23 +870,23 @@
             "p75Usd": 594,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 12
+            "ageDaysAtDatasetUpdate": 13
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 639.95,
-            "p15Usd": 575,
+            "medianUsd": 644.95,
+            "p15Usd": 599.99,
             "p85Usd": 899.99,
-            "listingCount": 13,
+            "listingCount": 12,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 550,
+              "itemPriceUsd": 565,
               "shippingUsd": 0,
-              "totalUsd": 550,
+              "totalUsd": 565,
               "currency": "USD",
               "shipsFrom": "US",
               "condition": "New/Factory Sealed",
@@ -917,7 +917,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -933,7 +933,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -941,7 +941,7 @@
             "grade10": 2926,
             "grade9": 390,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -970,7 +970,7 @@
             ],
             "sampleSize": 6,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -978,7 +978,7 @@
             "grade10": 3285,
             "grade9": 320,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1001,7 +1001,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -1017,7 +1017,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1025,7 +1025,7 @@
             "grade10": 2311,
             "grade9": 313,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1054,7 +1054,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1062,7 +1062,7 @@
             "grade10": 872,
             "grade9": 72,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1091,7 +1091,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1099,7 +1099,7 @@
             "grade10": 765,
             "grade9": 61,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1121,7 +1121,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1138,7 +1138,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1146,7 +1146,7 @@
             "grade10": 811,
             "grade9": 140,
             "observedOn": "2026-09-02",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1169,7 +1169,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1178,7 +1178,7 @@
             "grade10": 1132,
             "grade9": 135,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-03.html"
@@ -1203,23 +1203,23 @@
             "p75Usd": 195,
             "sampleSize": 9,
             "sampleCollectedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 16
+            "ageDaysAtDatasetUpdate": 17
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 198.99,
-            "p15Usd": 145,
+            "medianUsd": 209.99,
+            "p15Usd": 149.99,
             "p85Usd": 538,
-            "listingCount": 9,
-            "excludedListingCount": 29,
-            "observedOn": "2026-09-11",
+            "listingCount": 8,
+            "excludedListingCount": 31,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 140,
+              "itemPriceUsd": 145,
               "shippingUsd": 0,
-              "totalUsd": 140,
+              "totalUsd": 145,
               "currency": "USD",
               "shipsFrom": "US",
               "condition": "New/Factory Sealed",
@@ -1227,7 +1227,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.88,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         },
         "english": {
@@ -1240,7 +1240,7 @@
             "p75Usd": 509,
             "sampleSize": 15,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 12
+            "ageDaysAtDatasetUpdate": 13
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1251,12 +1251,12 @@
             "p85Usd": 699.99,
             "listingCount": 14,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 468.02,
+              "itemPriceUsd": 468.43,
               "shippingUsd": 0,
-              "totalUsd": 468.02,
+              "totalUsd": 468.43,
               "currency": "USD",
               "shipsFrom": "GB",
               "condition": "New/Factory Sealed",
@@ -1286,7 +1286,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1303,7 +1303,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1311,7 +1311,7 @@
             "grade10": 4872,
             "grade9": 383,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1333,7 +1333,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1350,7 +1350,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1358,7 +1358,7 @@
             "grade10": 3249,
             "grade9": 493,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1380,7 +1380,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1397,7 +1397,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1405,7 +1405,7 @@
             "grade10": 1488,
             "grade9": 113,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1428,7 +1428,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1437,7 +1437,7 @@
             "grade10": 504,
             "grade9": 27,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1460,7 +1460,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1469,7 +1469,7 @@
             "grade10": 2976,
             "grade9": 135,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1492,7 +1492,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1501,7 +1501,7 @@
             "grade10": 754,
             "grade9": 27,
             "observedOn": "2026-09-02",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1524,7 +1524,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1533,7 +1533,7 @@
             "grade10": 459,
             "grade9": 23,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-04.html"
@@ -1558,18 +1558,18 @@
             "p75Usd": 250,
             "sampleSize": 11,
             "sampleCollectedOn": "2026-09-07",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 151.89,
+            "medianUsd": 195,
             "p15Usd": 149.99,
-            "p85Usd": 300,
-            "listingCount": 8,
+            "p85Usd": 589.99,
+            "listingCount": 10,
             "excludedListingCount": 44,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 149.98,
@@ -1582,7 +1582,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 1.13,
+          "soldToActiveMedianRatio": 0.88,
           "qualityFlags": []
         },
         "english": {
@@ -1595,23 +1595,23 @@
             "p75Usd": 1132,
             "sampleSize": 22,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 1200,
-            "p15Usd": 435.91,
-            "p85Usd": 2361.81,
-            "listingCount": 10,
+            "p15Usd": 499,
+            "p85Usd": 1999.99,
+            "listingCount": 13,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 1150,
+              "itemPriceUsd": 1100,
               "shippingUsd": 0,
-              "totalUsd": 1150,
+              "totalUsd": 1100,
               "currency": "USD",
               "shipsFrom": "US",
               "condition": "New/Factory Sealed",
@@ -1620,9 +1620,7 @@
             }
           },
           "soldToActiveMedianRatio": 0.92,
-          "qualityFlags": [
-            "active_ask_spread_over_5x"
-          ]
+          "qualityFlags": []
         }
       },
       "topHits": [
@@ -1644,7 +1642,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1653,7 +1651,7 @@
             "grade10": 3125,
             "grade9": 231,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [
             "missing_rarity"
@@ -1678,7 +1676,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1687,7 +1685,7 @@
             "grade10": 3668,
             "grade9": 302,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1709,7 +1707,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1726,7 +1724,7 @@
             ],
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1734,7 +1732,7 @@
             "grade10": 2100,
             "grade9": 753,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1757,7 +1755,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1766,7 +1764,7 @@
             "grade10": 1914,
             "grade9": 626,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1788,7 +1786,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1805,7 +1803,7 @@
             ],
             "sampleSize": 16,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1813,7 +1811,7 @@
             "grade10": 5115,
             "grade9": 380,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1836,7 +1834,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -1845,7 +1843,7 @@
             "grade10": 7926,
             "grade9": 767,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1867,7 +1865,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -1884,7 +1882,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -1892,7 +1890,7 @@
             "grade10": 3964,
             "grade9": 203,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-05.html"
@@ -1917,7 +1915,7 @@
             "p75Usd": 180,
             "sampleSize": 6,
             "sampleCollectedOn": "2026-09-07",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1928,7 +1926,7 @@
             "p85Usd": 300,
             "listingCount": 8,
             "excludedListingCount": 18,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 145,
@@ -1954,23 +1952,23 @@
             "p75Usd": 378,
             "sampleSize": 16,
             "sampleCollectedOn": "2026-09-09",
-            "ageDaysAtDatasetUpdate": 2
+            "ageDaysAtDatasetUpdate": 3
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 429,
-            "p15Usd": 385,
+            "medianUsd": 449.99,
+            "p15Usd": 389.19,
             "p85Usd": 500,
-            "listingCount": 17,
+            "listingCount": 16,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 284.93,
+              "itemPriceUsd": 285.18,
               "shippingUsd": 0,
-              "totalUsd": 284.93,
+              "totalUsd": 285.18,
               "currency": "USD",
               "shipsFrom": "GB",
               "condition": "New/Factory Sealed",
@@ -1978,7 +1976,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.73,
+          "soldToActiveMedianRatio": 0.7,
           "qualityFlags": []
         }
       },
@@ -2000,7 +1998,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2017,7 +2015,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2025,7 +2023,7 @@
             "grade10": 4302,
             "grade9": 239,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2048,7 +2046,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2057,7 +2055,7 @@
             "grade10": 1011,
             "grade9": 35,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2086,7 +2084,7 @@
             ],
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": null,
           "qualityFlags": [
@@ -2112,7 +2110,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2121,7 +2119,7 @@
             "grade10": 2490,
             "grade9": 129,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2144,7 +2142,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2153,7 +2151,7 @@
             "grade10": 784,
             "grade9": 30,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2175,7 +2173,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2192,7 +2190,7 @@
             ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2200,7 +2198,7 @@
             "grade10": 2584,
             "grade9": 77,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2223,7 +2221,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2232,7 +2230,7 @@
             "grade10": 656,
             "grade9": 27,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-06.html"
@@ -2257,7 +2255,7 @@
             "p75Usd": 98,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-09-05",
-            "ageDaysAtDatasetUpdate": 6
+            "ageDaysAtDatasetUpdate": 7
           },
           "activeAsk": null,
           "soldToActiveMedianRatio": null,
@@ -2275,23 +2273,23 @@
             "p75Usd": 350,
             "sampleSize": 24,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 356.37,
-            "p15Usd": 245.93,
-            "p85Usd": 653.47,
+            "medianUsd": 356.68,
+            "p15Usd": 246.15,
+            "p85Usd": 654.05,
             "listingCount": 10,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 245.93,
+              "itemPriceUsd": 246.15,
               "shippingUsd": 0,
-              "totalUsd": 245.93,
+              "totalUsd": 246.15,
               "currency": "USD",
               "shipsFrom": "GB",
               "condition": "New/Factory Sealed",
@@ -2322,7 +2320,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -2338,7 +2336,7 @@
             ],
             "sampleSize": 19,
             "sampleCollectedOn": "2026-07-10",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2346,7 +2344,7 @@
             "grade10": 4627,
             "grade9": 611,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2368,7 +2366,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2385,7 +2383,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2393,7 +2391,7 @@
             "grade10": 4537,
             "grade9": 192,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2430,7 +2428,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2447,7 +2445,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2455,7 +2453,7 @@
             "grade10": 4723,
             "grade9": 218,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2478,7 +2476,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2487,7 +2485,7 @@
             "grade10": 510,
             "grade9": 24,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2510,7 +2508,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -2526,7 +2524,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2534,7 +2532,7 @@
             "grade10": 463,
             "grade9": 25,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2557,7 +2555,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2566,7 +2564,7 @@
             "grade10": 1447,
             "grade9": 121,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-07.html"
@@ -2591,26 +2589,26 @@
             "p75Usd": 93,
             "sampleSize": 11,
             "sampleCollectedOn": "2026-09-07",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 109,
-            "p15Usd": 74,
+            "p15Usd": 106.27,
             "p85Usd": 114.99,
-            "listingCount": 10,
+            "listingCount": 9,
             "excludedListingCount": 19,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 74,
-              "shippingUsd": 0,
-              "totalUsd": 74,
+              "itemPriceUsd": 65,
+              "shippingUsd": 20,
+              "totalUsd": 85,
               "currency": "USD",
-              "shipsFrom": "JP",
-              "condition": "New/Factory Sealed",
+              "shipsFrom": "SG",
+              "condition": "New",
               "liveLinkPage": "https://opboxindex.com/sets/op-08.html",
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
@@ -2628,26 +2626,26 @@
             "p75Usd": 259,
             "sampleSize": 22,
             "sampleCollectedOn": "2026-09-09",
-            "ageDaysAtDatasetUpdate": 2
+            "ageDaysAtDatasetUpdate": 3
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 299.99,
-            "p15Usd": 249.99,
+            "p15Usd": 235,
             "p85Usd": 399.99,
-            "listingCount": 15,
+            "listingCount": 16,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 235,
+              "itemPriceUsd": 229.99,
               "shippingUsd": 0,
-              "totalUsd": 235,
+              "totalUsd": 229.99,
               "currency": "USD",
               "shipsFrom": "US",
-              "condition": "New/Factory Sealed",
+              "condition": "Open Box/Used",
               "liveLinkPage": "https://opboxindex.com/sets/op-08.html",
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
@@ -2674,7 +2672,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2691,7 +2689,7 @@
             ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2699,7 +2697,7 @@
             "grade10": 3195,
             "grade9": 301,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2728,7 +2726,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": null,
           "qualityFlags": [
@@ -2754,7 +2752,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -2763,7 +2761,7 @@
             "grade10": 2697,
             "grade9": 100,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2785,7 +2783,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2802,7 +2800,7 @@
             ],
             "sampleSize": 16,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2810,7 +2808,7 @@
             "grade10": 1922,
             "grade9": 99,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2832,7 +2830,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2849,7 +2847,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2857,7 +2855,7 @@
             "grade10": 2035,
             "grade9": 104,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2879,7 +2877,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2896,7 +2894,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2904,7 +2902,7 @@
             "grade10": 684,
             "grade9": 42,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2926,7 +2924,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -2943,7 +2941,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -2951,7 +2949,7 @@
             "grade10": 1133,
             "grade9": 68,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-08.html"
@@ -2976,7 +2974,7 @@
             "p75Usd": 143,
             "sampleSize": 8,
             "sampleCollectedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2986,8 +2984,8 @@
             "p15Usd": 104.89,
             "p85Usd": 150,
             "listingCount": 7,
-            "excludedListingCount": 39,
-            "observedOn": "2026-09-11",
+            "excludedListingCount": 38,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 104.89,
@@ -3013,18 +3011,18 @@
             "p75Usd": 656,
             "sampleSize": 23,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 700,
-            "p15Usd": 650,
+            "p15Usd": 649.99,
             "p85Usd": 899.99,
-            "listingCount": 26,
+            "listingCount": 27,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 599.99,
@@ -3060,7 +3058,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3069,7 +3067,7 @@
             "grade10": 818,
             "grade9": 56,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3092,7 +3090,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3108,7 +3106,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-07-10",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3116,7 +3114,7 @@
             "grade10": 2496,
             "grade9": 349,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3139,7 +3137,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3155,7 +3153,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3163,7 +3161,7 @@
             "grade10": 2018,
             "grade9": 543,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3186,7 +3184,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3195,7 +3193,7 @@
             "grade10": 2131,
             "grade9": 313,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3218,7 +3216,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3234,7 +3232,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3242,7 +3240,7 @@
             "grade10": 2039,
             "grade9": 281,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3265,7 +3263,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3281,7 +3279,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3289,7 +3287,7 @@
             "grade10": 4809,
             "grade9": 269,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3312,7 +3310,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3321,7 +3319,7 @@
             "grade10": 4323,
             "grade9": 292,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-09.html"
@@ -3346,23 +3344,23 @@
             "p75Usd": 101,
             "sampleSize": 10,
             "sampleCollectedOn": "2026-09-06",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 107.32,
-            "p15Usd": 84.08,
+            "medianUsd": 111.93,
+            "p15Usd": 97.99,
             "p85Usd": 126.99,
-            "listingCount": 15,
-            "excludedListingCount": 16,
-            "observedOn": "2026-09-11",
+            "listingCount": 12,
+            "excludedListingCount": 17,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 80,
-              "shippingUsd": 3.99,
-              "totalUsd": 83.99,
+              "itemPriceUsd": 84.08,
+              "shippingUsd": 0,
+              "totalUsd": 84.08,
               "currency": "USD",
               "shipsFrom": "US",
               "condition": "New/Factory Sealed",
@@ -3370,7 +3368,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.79,
+          "soldToActiveMedianRatio": 0.76,
           "qualityFlags": []
         },
         "english": {
@@ -3383,7 +3381,7 @@
             "p75Usd": 262,
             "sampleSize": 24,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3394,7 +3392,7 @@
             "p85Usd": 300,
             "listingCount": 19,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 225,
@@ -3430,7 +3428,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3446,7 +3444,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3454,7 +3452,7 @@
             "grade10": 3052,
             "grade9": 461,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3476,7 +3474,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3493,7 +3491,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3501,7 +3499,7 @@
             "grade10": 1194,
             "grade9": 134,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3541,7 +3539,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -3557,7 +3555,7 @@
             ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3565,7 +3563,7 @@
             "grade10": 634,
             "grade9": 54,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3588,7 +3586,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3597,7 +3595,7 @@
             "grade10": 432,
             "grade9": 31,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3620,7 +3618,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3629,7 +3627,7 @@
             "grade10": 914,
             "grade9": 162,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3651,7 +3649,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3668,7 +3666,7 @@
             ],
             "sampleSize": 28,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3676,7 +3674,7 @@
             "grade10": 2409,
             "grade9": 160,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-10.html"
@@ -3701,7 +3699,7 @@
             "p75Usd": 136,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-09-08",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3709,10 +3707,10 @@
             "currency": "USD",
             "medianUsd": 145,
             "p15Usd": 139.99,
-            "p85Usd": 150.29,
+            "p85Usd": 150.54,
             "listingCount": 5,
             "excludedListingCount": 31,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 138.99,
@@ -3738,18 +3736,18 @@
             "p75Usd": 608,
             "sampleSize": 19,
             "sampleCollectedOn": "2026-09-07",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 648,
-            "p15Usd": 589,
-            "p85Usd": 750,
-            "listingCount": 17,
+            "p15Usd": 570,
+            "p85Usd": 749.87,
+            "listingCount": 18,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 500,
@@ -3785,7 +3783,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3794,7 +3792,7 @@
             "grade10": 1274,
             "grade9": 677,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3817,7 +3815,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -3826,7 +3824,7 @@
             "grade10": 1157,
             "grade9": 647,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3848,7 +3846,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3865,7 +3863,7 @@
             ],
             "sampleSize": 17,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3873,7 +3871,7 @@
             "grade10": 3766,
             "grade9": 505,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3895,7 +3893,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3912,7 +3910,7 @@
             ],
             "sampleSize": 26,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3920,7 +3918,7 @@
             "grade10": 2871,
             "grade9": 159,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3942,7 +3940,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -3959,7 +3957,7 @@
             ],
             "sampleSize": 22,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -3967,7 +3965,7 @@
             "grade10": 1842,
             "grade9": 598,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -3989,7 +3987,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4006,7 +4004,7 @@
             ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4014,7 +4012,7 @@
             "grade10": 1349,
             "grade9": 198,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -4036,7 +4034,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4053,7 +4051,7 @@
             ],
             "sampleSize": 13,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4061,7 +4059,7 @@
             "grade10": 1198,
             "grade9": 169,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-11.html"
@@ -4086,7 +4084,7 @@
             "p75Usd": 113,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-24",
-            "ageDaysAtDatasetUpdate": 18
+            "ageDaysAtDatasetUpdate": 19
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4096,8 +4094,8 @@
             "p15Usd": 129.95,
             "p85Usd": 172,
             "listingCount": 3,
-            "excludedListingCount": 26,
-            "observedOn": "2026-09-11",
+            "excludedListingCount": 27,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 129.95,
@@ -4123,18 +4121,18 @@
             "p75Usd": 289,
             "sampleSize": 23,
             "sampleCollectedOn": "2026-09-07",
-            "ageDaysAtDatasetUpdate": 4
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 296.99,
+            "medianUsd": 299.87,
             "p15Usd": 270,
-            "p85Usd": 388.85,
+            "p85Usd": 389.19,
             "listingCount": 19,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 260,
@@ -4147,7 +4145,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.93,
+          "soldToActiveMedianRatio": 0.92,
           "qualityFlags": []
         }
       },
@@ -4170,7 +4168,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4179,7 +4177,7 @@
             "grade10": 1008,
             "grade9": 102,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4202,7 +4200,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4211,7 +4209,7 @@
             "grade10": 875,
             "grade9": 78,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4233,7 +4231,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4250,7 +4248,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4258,7 +4256,7 @@
             "grade10": 1942,
             "grade9": 601,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4280,7 +4278,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4297,7 +4295,7 @@
             ],
             "sampleSize": 38,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4305,7 +4303,7 @@
             "grade10": 938,
             "grade9": 92,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4328,7 +4326,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4337,7 +4335,7 @@
             "grade10": 1695,
             "grade9": 93,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4360,7 +4358,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4369,7 +4367,7 @@
             "grade10": 734,
             "grade9": 59,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4391,7 +4389,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4408,7 +4406,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4416,7 +4414,7 @@
             "grade10": 312,
             "grade9": 24,
             "observedOn": "2026-09-02",
-            "ageDaysAtDatasetUpdate": 9
+            "ageDaysAtDatasetUpdate": 10
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-12.html"
@@ -4441,18 +4439,18 @@
             "p75Usd": 152,
             "sampleSize": 23,
             "sampleCollectedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 168.37,
+            "medianUsd": 156.59,
             "p15Usd": 129.99,
             "p85Usd": 228.98,
             "listingCount": 12,
             "excludedListingCount": 10,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 129.99,
@@ -4465,7 +4463,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.77,
+          "soldToActiveMedianRatio": 0.83,
           "qualityFlags": []
         },
         "english": {
@@ -4478,31 +4476,31 @@
             "p75Usd": 507,
             "sampleSize": 111,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 586.87,
+            "medianUsd": 559.18,
             "p15Usd": 510,
-            "p85Usd": 680.12,
+            "p85Usd": 635.63,
             "listingCount": 16,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 485,
+              "itemPriceUsd": 446.29,
               "shippingUsd": 0,
-              "totalUsd": 485,
+              "totalUsd": 446.29,
               "currency": "USD",
-              "shipsFrom": "US",
+              "shipsFrom": "GB",
               "condition": "New/Factory Sealed",
               "liveLinkPage": "https://opboxindex.com/sets/op-13.html",
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.84,
+          "soldToActiveMedianRatio": 0.88,
           "qualityFlags": []
         }
       },
@@ -4525,7 +4523,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -4541,7 +4539,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-07-10",
-            "ageDaysAtDatasetUpdate": 63
+            "ageDaysAtDatasetUpdate": 64
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -4549,7 +4547,7 @@
             "grade10": 607,
             "grade9": 90,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4572,7 +4570,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4581,7 +4579,7 @@
             "grade10": 556,
             "grade9": 64,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4604,7 +4602,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4613,7 +4611,7 @@
             "grade10": 563,
             "grade9": 57,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4636,7 +4634,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4645,7 +4643,7 @@
             "grade10": 1999,
             "grade9": 400,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4668,7 +4666,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4677,7 +4675,7 @@
             "grade10": 1035,
             "grade9": 553,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4700,7 +4698,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4709,7 +4707,7 @@
             "grade10": 1631,
             "grade9": 271,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4732,7 +4730,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4741,7 +4739,7 @@
             "grade10": 964,
             "grade9": 328,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-13.html"
@@ -4766,18 +4764,18 @@
             "p75Usd": 101,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-09-06",
-            "ageDaysAtDatasetUpdate": 5
+            "ageDaysAtDatasetUpdate": 6
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 115,
-            "p15Usd": 92,
-            "p85Usd": 132.4,
-            "listingCount": 14,
-            "excludedListingCount": 27,
-            "observedOn": "2026-09-11",
+            "p15Usd": 97.75,
+            "p85Usd": 129.6,
+            "listingCount": 12,
+            "excludedListingCount": 28,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 92,
@@ -4803,7 +4801,7 @@
             "p75Usd": 272,
             "sampleSize": 17,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4814,7 +4812,7 @@
             "p85Usd": 375,
             "listingCount": 15,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 269.99,
@@ -4850,7 +4848,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4859,7 +4857,7 @@
             "grade10": 340,
             "grade9": 174,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4882,7 +4880,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4891,7 +4889,7 @@
             "grade10": 437,
             "grade9": 78,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4920,7 +4918,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": null,
           "qualityFlags": [
@@ -4946,7 +4944,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -4955,7 +4953,7 @@
             "grade10": 1545,
             "grade9": 320,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -4977,7 +4975,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -4994,7 +4992,7 @@
             ],
             "sampleSize": 18,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5002,7 +5000,7 @@
             "grade10": 1990,
             "grade9": 86,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -5025,7 +5023,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -5041,7 +5039,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5049,7 +5047,7 @@
             "grade10": 1871,
             "grade9": 180,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -5071,7 +5069,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5088,7 +5086,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5096,7 +5094,7 @@
             "grade10": 940,
             "grade9": 46,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-14.html"
@@ -5121,7 +5119,7 @@
             "p75Usd": 117,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5131,8 +5129,8 @@
             "p15Usd": 99.59,
             "p85Usd": 139.99,
             "listingCount": 13,
-            "excludedListingCount": 18,
-            "observedOn": "2026-09-11",
+            "excludedListingCount": 19,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 92,
@@ -5158,18 +5156,18 @@
             "p75Usd": 279,
             "sampleSize": 18,
             "sampleCollectedOn": "2026-09-08",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 290,
-            "p15Usd": 39.99,
+            "medianUsd": 283.88,
+            "p15Usd": 240,
             "p85Usd": 369.69,
-            "listingCount": 10,
+            "listingCount": 11,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 240,
@@ -5182,10 +5180,8 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.9,
-          "qualityFlags": [
-            "active_ask_spread_over_5x"
-          ]
+          "soldToActiveMedianRatio": 0.92,
+          "qualityFlags": []
         }
       },
       "topHits": [
@@ -5207,7 +5203,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5216,7 +5212,7 @@
             "grade10": 1392,
             "grade9": 111,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -5245,7 +5241,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": null,
           "qualityFlags": [],
@@ -5269,7 +5265,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5278,7 +5274,7 @@
             "grade10": 1632,
             "grade9": 91,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -5300,7 +5296,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5317,7 +5313,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5325,7 +5321,7 @@
             "grade10": 1413,
             "grade9": 74,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -5347,7 +5343,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -5364,7 +5360,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": null,
           "qualityFlags": [],
@@ -5405,7 +5401,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5414,7 +5410,7 @@
             "grade10": 1879,
             "grade9": 211,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-15.html"
@@ -5439,18 +5435,18 @@
             "p75Usd": 116,
             "sampleSize": 10,
             "sampleCollectedOn": "2026-09-09",
-            "ageDaysAtDatasetUpdate": 2
+            "ageDaysAtDatasetUpdate": 3
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 128.8,
-            "p15Usd": 115,
+            "p15Usd": 114,
             "p85Usd": 160,
-            "listingCount": 20,
+            "listingCount": 21,
             "excludedListingCount": 19,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 108,
@@ -5476,7 +5472,7 @@
             "p75Usd": 238,
             "sampleSize": 93,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5484,10 +5480,10 @@
             "currency": "USD",
             "medianUsd": 240,
             "p15Usd": 229.99,
-            "p85Usd": 258.88,
+            "p85Usd": 259.11,
             "listingCount": 7,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 229.98,
@@ -5523,7 +5519,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5532,7 +5528,7 @@
             "grade10": 469,
             "grade9": 26,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5555,7 +5551,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5564,7 +5560,7 @@
             "grade10": 410,
             "grade9": 34,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5587,7 +5583,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5596,7 +5592,7 @@
             "grade10": 365,
             "grade9": 59,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5619,7 +5615,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5628,7 +5624,7 @@
             "grade10": 489,
             "grade9": 32,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5651,7 +5647,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5660,7 +5656,7 @@
             "grade10": 342,
             "grade9": 12,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5683,7 +5679,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5692,7 +5688,7 @@
             "grade10": 119,
             "grade9": 6,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5715,7 +5711,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5724,7 +5720,7 @@
             "grade10": 95,
             "grade9": 6,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/op-16.html"
@@ -5749,31 +5745,31 @@
             "p75Usd": 159,
             "sampleSize": 55,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 148.45,
-            "p15Usd": 129.99,
-            "p85Usd": 229.99,
-            "listingCount": 24,
+            "medianUsd": 138,
+            "p15Usd": 129,
+            "p85Usd": 165,
+            "listingCount": 27,
             "excludedListingCount": 17,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 132.99,
-              "shippingUsd": 0,
-              "totalUsd": 132.99,
+              "itemPriceUsd": 129.99,
+              "shippingUsd": 4.99,
+              "totalUsd": 134.98,
               "currency": "USD",
-              "shipsFrom": "JP",
+              "shipsFrom": "US",
               "condition": "New/Factory Sealed",
               "liveLinkPage": "https://opboxindex.com/sets/op-17.html",
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.94,
+          "soldToActiveMedianRatio": 1.01,
           "qualityFlags": []
         },
         "english": {
@@ -5786,31 +5782,31 @@
             "p75Usd": 390,
             "sampleSize": 544,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 436.58,
+            "medianUsd": 430.14,
             "p15Usd": 369.46,
-            "p85Usd": 472.92,
-            "listingCount": 4,
+            "p85Usd": 437.31,
+            "listingCount": 6,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 369.46,
+              "itemPriceUsd": 338.1,
               "shippingUsd": 0,
-              "totalUsd": 369.46,
+              "totalUsd": 338.1,
               "currency": "USD",
-              "shipsFrom": "US",
+              "shipsFrom": "GB",
               "condition": "New/Factory Sealed",
               "liveLinkPage": "https://opboxindex.com/sets/op-17.html",
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.84,
+          "soldToActiveMedianRatio": 0.85,
           "qualityFlags": []
         }
       },
@@ -5834,7 +5830,7 @@
             "p75Usd": 140,
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-01",
-            "ageDaysAtDatasetUpdate": 41
+            "ageDaysAtDatasetUpdate": 42
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5844,8 +5840,8 @@
             "p15Usd": 155,
             "p85Usd": 199.99,
             "listingCount": 5,
-            "excludedListingCount": 37,
-            "observedOn": "2026-09-11",
+            "excludedListingCount": 36,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 155,
@@ -5871,7 +5867,7 @@
             "p75Usd": 955,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-09-08",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5879,10 +5875,10 @@
             "currency": "USD",
             "medianUsd": 1000,
             "p15Usd": 922.5,
-            "p85Usd": 1250,
-            "listingCount": 7,
+            "p85Usd": 1500,
+            "listingCount": 8,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 849.99,
@@ -5918,7 +5914,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -5934,7 +5930,7 @@
             ],
             "sampleSize": 5,
             "sampleCollectedOn": "2026-06-29",
-            "ageDaysAtDatasetUpdate": 74
+            "ageDaysAtDatasetUpdate": 75
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -5942,7 +5938,7 @@
             "grade10": 2468,
             "grade9": 254,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5965,7 +5961,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -5974,7 +5970,7 @@
             "grade10": 932,
             "grade9": 50,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -5996,7 +5992,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6013,7 +6009,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6021,7 +6017,7 @@
             "grade10": 823,
             "grade9": 41,
             "observedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -6043,7 +6039,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6060,7 +6056,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6068,7 +6064,7 @@
             "grade10": 387,
             "grade9": 20,
             "observedOn": "2026-09-01",
-            "ageDaysAtDatasetUpdate": 10
+            "ageDaysAtDatasetUpdate": 11
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -6091,7 +6087,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6100,7 +6096,7 @@
             "grade10": 471,
             "grade9": 8,
             "observedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -6123,7 +6119,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6132,7 +6128,7 @@
             "grade10": 563,
             "grade9": 55,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -6154,7 +6150,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6171,7 +6167,7 @@
             ],
             "sampleSize": 3,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6179,7 +6175,7 @@
             "grade10": 328,
             "grade9": 14,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-01.html"
@@ -6204,23 +6200,23 @@
             "p75Usd": 168,
             "sampleSize": 14,
             "sampleCollectedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 16
+            "ageDaysAtDatasetUpdate": 17
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 229.95,
-            "p15Usd": 155,
-            "p85Usd": 299.99,
+            "medianUsd": 155,
+            "p15Usd": 99.94,
+            "p85Usd": 229.95,
             "listingCount": 5,
-            "excludedListingCount": 22,
-            "observedOn": "2026-09-11",
+            "excludedListingCount": 21,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
-              "itemPriceUsd": 155,
+              "itemPriceUsd": 99.85,
               "shippingUsd": 0,
-              "totalUsd": 155,
+              "totalUsd": 99.85,
               "currency": "USD",
               "shipsFrom": "US",
               "condition": "New/Factory Sealed",
@@ -6228,7 +6224,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.59,
+          "soldToActiveMedianRatio": 0.87,
           "qualityFlags": []
         },
         "english": {
@@ -6241,18 +6237,18 @@
             "p75Usd": 872,
             "sampleSize": 7,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 845,
+            "medianUsd": 850,
             "p15Usd": 829.99,
-            "p85Usd": 899.99,
-            "listingCount": 5,
+            "p85Usd": 850,
+            "listingCount": 6,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 819.99,
@@ -6265,7 +6261,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.99,
+          "soldToActiveMedianRatio": 0.98,
           "qualityFlags": []
         }
       },
@@ -6287,7 +6283,7 @@
             "grade10": 525,
             "grade9": 58,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [
             "variant_match_uncertain"
@@ -6312,7 +6308,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": {
             "basis": "completed_sales",
@@ -6328,7 +6324,7 @@
             ],
             "sampleSize": 10,
             "sampleCollectedOn": "2026-07-09",
-            "ageDaysAtDatasetUpdate": 64
+            "ageDaysAtDatasetUpdate": 65
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6336,7 +6332,7 @@
             "grade10": 2445,
             "grade9": 263,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-02.html"
@@ -6359,7 +6355,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6368,7 +6364,7 @@
             "grade10": 473,
             "grade9": 61,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [
             "missing_rarity"
@@ -6392,7 +6388,7 @@
             "grade10": 191,
             "grade9": 23,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [
             "variant_match_uncertain"
@@ -6416,7 +6412,7 @@
             "grade10": 103,
             "grade9": 14,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [
             "variant_match_uncertain"
@@ -6441,7 +6437,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6450,7 +6446,7 @@
             "grade10": 1191,
             "grade9": 94,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-02.html"
@@ -6473,7 +6469,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6482,7 +6478,7 @@
             "grade10": 170,
             "grade9": 17,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-02.html"
@@ -6507,18 +6503,18 @@
             "p75Usd": 141,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-30",
-            "ageDaysAtDatasetUpdate": 12
+            "ageDaysAtDatasetUpdate": 13
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 159.9,
-            "p15Usd": 115.89,
+            "medianUsd": 155,
+            "p15Usd": 115.96,
             "p85Usd": 199.99,
-            "listingCount": 10,
-            "excludedListingCount": 40,
-            "observedOn": "2026-09-11",
+            "listingCount": 11,
+            "excludedListingCount": 42,
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 115.89,
@@ -6531,7 +6527,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.78,
+          "soldToActiveMedianRatio": 0.8,
           "qualityFlags": []
         },
         "english": {
@@ -6544,7 +6540,7 @@
             "p75Usd": 371,
             "sampleSize": 16,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6555,7 +6551,7 @@
             "p85Usd": 400,
             "listingCount": 12,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 339.95,
@@ -6590,7 +6586,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6607,7 +6603,7 @@
             ],
             "sampleSize": 8,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6615,7 +6611,7 @@
             "grade10": 1896,
             "grade9": 262,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6637,7 +6633,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6654,7 +6650,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6662,7 +6658,7 @@
             "grade10": 1341,
             "grade9": 131,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6684,7 +6680,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6701,7 +6697,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6709,7 +6705,7 @@
             "grade10": 1368,
             "grade9": 187,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6732,7 +6728,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6741,7 +6737,7 @@
             "grade10": 1702,
             "grade9": 324,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6764,7 +6760,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6773,7 +6769,7 @@
             "grade10": 1225,
             "grade9": 150,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6796,7 +6792,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -6805,7 +6801,7 @@
             "grade10": 848,
             "grade9": 106,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6827,7 +6823,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -6844,7 +6840,7 @@
             ],
             "sampleSize": 7,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -6852,7 +6848,7 @@
             "grade10": 991,
             "grade9": 291,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/eb-03.html"
@@ -6877,7 +6873,7 @@
             "p75Usd": 159,
             "sampleSize": 12,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6886,9 +6882,9 @@
             "medianUsd": 177.8,
             "p15Usd": 144.99,
             "p85Usd": 325,
-            "listingCount": 15,
+            "listingCount": 14,
             "excludedListingCount": 29,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 100,
@@ -6914,7 +6910,7 @@
             "p75Usd": 994,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-09-08",
-            "ageDaysAtDatasetUpdate": 3
+            "ageDaysAtDatasetUpdate": 4
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6922,10 +6918,10 @@
             "currency": "USD",
             "medianUsd": 1124.95,
             "p15Usd": 999.99,
-            "p85Usd": 1299,
-            "listingCount": 8,
+            "p85Usd": 1999.99,
+            "listingCount": 11,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 900,
@@ -6975,7 +6971,7 @@
             "grade10": 58,
             "grade9": 5,
             "observedOn": "2026-08-25",
-            "ageDaysAtDatasetUpdate": 17
+            "ageDaysAtDatasetUpdate": 18
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -6998,7 +6994,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -7007,7 +7003,7 @@
             "grade10": 8972,
             "grade9": 1411,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -7045,7 +7041,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -7054,7 +7050,7 @@
             "grade10": 72,
             "grade9": 10,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -7077,7 +7073,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -7086,7 +7082,7 @@
             "grade10": 69,
             "grade9": 11,
             "observedOn": "2026-09-03",
-            "ageDaysAtDatasetUpdate": 8
+            "ageDaysAtDatasetUpdate": 9
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-01.html"
@@ -7126,7 +7122,7 @@
             "p75Usd": 100,
             "sampleSize": 10,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -7137,7 +7133,7 @@
             "p85Usd": 108.99,
             "listingCount": 8,
             "excludedListingCount": 20,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 70,
@@ -7163,18 +7159,18 @@
             "p75Usd": 385,
             "sampleSize": 15,
             "sampleCollectedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "activeAsk": {
             "basis": "active_asking_prices",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 420,
-            "p15Usd": 399,
-            "p85Usd": 499.95,
-            "listingCount": 16,
+            "medianUsd": 425,
+            "p15Usd": 399.99,
+            "p85Usd": 453.04,
+            "listingCount": 18,
             "excludedListingCount": 0,
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0,
             "cheapestListing": {
               "itemPriceUsd": 380,
@@ -7187,7 +7183,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.88,
+          "soldToActiveMedianRatio": 0.87,
           "qualityFlags": []
         }
       },
@@ -7209,7 +7205,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -7226,7 +7222,7 @@
             ],
             "sampleSize": 4,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -7234,7 +7230,7 @@
             "grade10": 2336,
             "grade9": 472,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -7256,7 +7252,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "out_of_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -7273,7 +7269,7 @@
             ],
             "sampleSize": 9,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -7281,7 +7277,7 @@
             "grade10": 2011,
             "grade9": 201,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -7303,7 +7299,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -7320,7 +7316,7 @@
             ],
             "sampleSize": 11,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -7328,7 +7324,7 @@
             "grade10": 1244,
             "grade9": 116,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -7351,7 +7347,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -7360,7 +7356,7 @@
             "grade10": 1082,
             "grade9": 103,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -7382,7 +7378,7 @@
             "fxObservedOn": "2026-09-11",
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
-            "observedOn": "2026-09-11",
+            "observedOn": "2026-09-12",
             "ageDaysAtDatasetUpdate": 0
           },
           "psa10Sold": {
@@ -7399,7 +7395,7 @@
             ],
             "sampleSize": 12,
             "sampleCollectedOn": "2026-08-31",
-            "ageDaysAtDatasetUpdate": 11
+            "ageDaysAtDatasetUpdate": 12
           },
           "psaPopulation": {
             "printing": "japanese",
@@ -7407,7 +7403,7 @@
             "grade10": 1451,
             "grade9": 116,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -7430,7 +7426,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -7439,7 +7435,7 @@
             "grade10": 1231,
             "grade9": 149,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
@@ -7462,7 +7458,7 @@
             "sourceName": "Japanese retailer",
             "stockStatus": "in_stock",
             "observedOn": "2026-09-10",
-            "ageDaysAtDatasetUpdate": 1
+            "ageDaysAtDatasetUpdate": 2
           },
           "psa10Sold": null,
           "psaPopulation": {
@@ -7471,7 +7467,7 @@
             "grade10": 424,
             "grade9": 69,
             "observedOn": "2026-09-04",
-            "ageDaysAtDatasetUpdate": 7
+            "ageDaysAtDatasetUpdate": 8
           },
           "qualityFlags": [],
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
