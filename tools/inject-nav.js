@@ -14,7 +14,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const { navHtml, navHtmlKo, guideLinksHtml } = require("./site-nav");
+const { navHtml, navHtmlKo, guideLinksHtml, nextLinksHtml } = require("./site-nav");
 // 푸터 가격 가이드 줄 — 첫 <footer …> 바로 뒤. 있으면 교체, 없으면 삽입. 푸터가 없는 페이지는 건드리지 않는다.
 const GUIDE_RE = /<nav class="guideLinks"[^>]*>[\s\S]*?<\/nav>/;
 const FOOTER_OPEN_RE = /<footer\b[^>]*>/;
@@ -25,6 +25,19 @@ function withGuideLinks(html, inKo) {
   if (!m) return html;
   const at = m.index + m[0].length;
   return html.slice(0, at) + "\n      " + want + html.slice(at);
+}
+
+// 착지 페이지 "다음 클릭" 줄 — 첫 </h1> 바로 뒤. 있으면 교체, 없으면 삽입. 목적지 자체(홈·응모)와 안내 페이지는 뺀다.
+const NEXT_RE = /<nav class="nextLinks"[^>]*>[\s\S]*?<\/nav>/;
+const NEXT_SKIP = new Set(["index.html", "404.html", "packs.html", "amazon-lottery.html", "privacy.html", "disclaimer.html", "changelog.html", "ko/index.html"]);
+function withNextLinks(html, rel, inKo) {
+  if (NEXT_SKIP.has(rel)) return html;
+  const want = nextLinksHtml(inKo);
+  if (NEXT_RE.test(html)) return html.replace(NEXT_RE, want);
+  const at = html.indexOf("</h1>");
+  if (at < 0) return html;
+  const end = at + "</h1>".length;
+  return html.slice(0, end) + "\n      " + want + html.slice(end);
 }
 
 const checkOnly = process.argv.includes("--check");
@@ -60,6 +73,11 @@ for (const rel of listHtml()) {
   if (withGuide !== html) {
     if (checkOnly) mismatch.push(rel + " (guideLinks)");
     else { fs.writeFileSync(abs, withGuide, "utf8"); html = withGuide; if (!changed.includes(rel)) changed.push(rel); }
+  }
+  const withNext = withNextLinks(html, rel, inKo);
+  if (withNext !== html) {
+    if (checkOnly) mismatch.push(rel + " (nextLinks)");
+    else { fs.writeFileSync(abs, withNext, "utf8"); html = withNext; if (!changed.includes(rel)) changed.push(rel); }
   }
   if (!NAV_RE.test(html)) { skipped.push(rel); continue; }
 

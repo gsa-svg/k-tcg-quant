@@ -1320,3 +1320,9 @@ h2 {
    브라우저 기본값(h1 34px · small 13.33px)도 계단 안으로 끌어온다 — 안 그러면 여기만 어긋난다. */
 h1 { font-size: 28px; }
 small { font-size: 12px; }
+
+
+/* 착지 페이지 "다음 클릭" 줄 — inject-nav 가 </h1> 바로 뒤에 넣는다(2026-09-14). 홈·응모·세트 가이드로 두 장째 유도. */
+.nextLinks { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
+.nextLinks a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border: 1px solid rgba(16, 215, 160, 0.34); border-radius: 999px; background: rgba(16, 215, 160, 0.08); color: var(--accent); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.nextLinks a:hover { background: rgba(16, 215, 160, 0.16); }

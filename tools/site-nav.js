@@ -110,4 +110,15 @@ function navHtmlKo() {
 // 가드가 쓰는 목록 — 모든 페이지에 이 한국어 라벨이 다 있어야 한다.
 const KO_LABELS = ITEMS.map(([, ko]) => ko);
 
-module.exports = { ITEMS, navHtml, navHtmlKo, KO_LABELS, guideLinksHtml };
+// 착지 페이지 "다음 클릭" 줄 — 2026-09-14 신설. GA4 28일 실측: ChatGPT 가 보내는 속 페이지(세트 목록·PSA10 랭킹·OP-17)는
+// 1인당 1.1~1.3장 보고 나가고, 이베이 클릭 53건 중 47건이 홈에서 났다. 그래서 <h1> 바로 밑에 홈·응모·세트 가이드
+// 세 링크를 둬 두 장째로 끌어온다(inject-nav 가 전 페이지에 넣는다). OP-18 문구는 발매·응모 상황에 따라 여기 한 곳만 바꾼다.
+const NEXT_ITEMS = [["Live box prices", "/"], ["OP-18 Amazon invite", "/amazon-lottery.html"], ["All set guides", "/sets/index.html"]];
+const NEXT_ITEMS_KO = [["실시간 박스 시세", "/ko/"], ["OP-18 아마존 응모", "/amazon-lottery.html"], ["카드 시세", "/ko/cards.html"]];
+function nextLinksHtml(inKo = false) {
+  const items = inKo ? NEXT_ITEMS_KO : NEXT_ITEMS;
+  const label = inKo ? "다음 보기" : "Next";
+  return `<nav class="nextLinks" aria-label="${label}">${items.map(([text, href]) => `<a href="${href}">${text} →</a>`).join("")}</nav>`;
+}
+
+module.exports = { ITEMS, navHtml, navHtmlKo, KO_LABELS, guideLinksHtml, nextLinksHtml };
