@@ -26,6 +26,17 @@ const R = (p) => path.join(ROOT, p);
 const readJSON = (p) => JSON.parse(fs.readFileSync(R(p), "utf8"));
 const today = new Date().toISOString().slice(0, 10);
 const daysAgo = (d) => (d ? Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${d}T00:00:00Z`)) / 86400000) : null);
+// 영업일 기준 경과일 — (d, today] 구간의 평일(월~금) 수. 환율(ECB)은 주말·공휴일에 새 값이 없어서
+// 달력일로 세면 월요일 아침마다 "3일째 멈춤"으로 오경보가 났다(2026-09-14 실측). 주말은 세지 않는다.
+const businessDaysAgo = (d) => {
+  if (!d) return null;
+  let n = 0;
+  for (let t = Date.parse(`${d}T00:00:00Z`) + 86400000; t <= Date.parse(`${today}T00:00:00Z`); t += 86400000) {
+    const w = new Date(t).getUTCDay();
+    if (w !== 0 && w !== 6) n++;
+  }
+  return n;
+};
 
 // 최신 날짜를 뽑는 방법은 파일마다 다르다. 각 수집원이 자기 방식을 들고 있게 한다.
 const pick = {
@@ -117,7 +128,7 @@ const SOURCES = [
   { key: "psa10-active", name: "PSA10 진행매물 시세", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
     warn: 2, late: 3, get: pick.packsField("psa10active"), files: [] },
   { key: "fx", name: "환율", mode: "auto", every: "매일 09:10 KST", wf: "update-fx",
-    warn: 2, late: 3, get: pick.field("data/fx.json", "date", "updated"), files: ["fx.json", "fx-history.json"] },
+    warn: 2, late: 3, businessDays: true, get: pick.field("data/fx.json", "date", "updated"), files: ["fx.json", "fx-history.json"] },
   { key: "grading", name: "그레이딩 시계열(PSA/CGC/TAG 통합)", mode: "auto", every: "매주 월요일", wf: "collect-grading",
     warn: 8, late: 12, get: pick.field("data/grading-series.json", "updated"),
     files: ["grading-series.json", "psa-edition-weekly.json", "gemrate-psa-en-totals.json"] },
@@ -193,7 +204,7 @@ const IGNORE = {
 const rows = SOURCES.map((s) => {
   let last = null, err = null;
   try { last = s.get(); } catch (e) { err = String(e.message || e).slice(0, 70); }
-  const age = daysAgo(last);
+  const age = s.businessDays ? businessDaysAgo(last) : daysAgo(last);
   const state = err ? "오류" : age == null ? "없음" : age >= s.late ? "늦음" : age >= s.warn ? "지연" : "정상";
   return { ...s, last, age, state, err };
 });
