@@ -46,7 +46,11 @@ function findCard(code, num, nr) {
   if (!cands.length) return null;
   // 여러 변형이 같은 번호를 쓰면 이름+레어도로 좁힌다. 정확히 하나로 좁혀질 때만 채택한다.
   const exact = cands.filter((c) => norm(`${c.name} ${c.rarity}`) === norm(nr));
-  return exact.length === 1 ? exact[0] : null;
+  if (exact.length === 1) return exact[0];
+  // psa10-sold-refresh 가 내는 name 에는 레어도가 없다(2026-09-14 실측: 변형 형제가 있는 6장이 전부 "카드못찾음").
+  // 이름만으로 정확히 하나면 그것을 쓴다. 이름이 남의 이름을 포함하는 경우("… Alternate Art" ⊂ "… Alternate Art Manga")는 등호라 섞이지 않는다.
+  const byName = cands.filter((c) => norm(c.name) === norm(nr));
+  return byName.length === 1 ? byName[0] : null;
 }
 
 const applied = [], review = [], skipped = [], notFound = [];

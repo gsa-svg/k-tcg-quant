@@ -1,57 +1,12 @@
 {
- "updated": "2026-09-14T01:25:24.917Z",
+ "updated": "2026-09-14T07:59:12.114Z",
  "hideSuspiciousNm": false,
  "summary": {
-  "issues": 40,
+  "issues": 23,
   "block": 0,
-  "review": 40
+  "review": 23
  },
  "issues": [
-  {
-   "severity": "review",
-   "code": "OP-01",
-   "rank": 3,
-   "number": "OP01-001",
-   "name": "Roronoa Zoro 001 Parallel",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 794996,
-    "updated": "2026-06-29",
-    "sampleSize": 13,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-01",
-   "rank": 5,
-   "number": "OP01-016",
-   "name": "Nami Parallel",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 532366,
-    "updated": "2026-06-29",
-    "sampleSize": 26,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-01",
-   "rank": 9,
-   "number": "OP01-078",
-   "name": "Boa Hancock Parallel",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 280822,
-    "updated": "2026-06-29",
-    "sampleSize": 2,
-    "days": 77
-   }
-  },
   {
    "severity": "review",
    "code": "OP-01",
@@ -130,21 +85,6 @@
   {
    "severity": "review",
    "code": "OP-03",
-   "rank": 3,
-   "number": "OP03-040",
-   "name": "Nami 040 Alternate Art",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 188009,
-    "updated": "2026-06-29",
-    "sampleSize": 3,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-03",
    "rank": 4,
    "number": "ST03-009",
    "name": "Donquixote Doflamingo Wanted Poster",
@@ -204,21 +144,6 @@
   {
    "severity": "review",
    "code": "EB-01",
-   "rank": 1,
-   "number": "EB01-006",
-   "name": "Tony TonyChopper Alternate Art Manga",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 2609109,
-    "updated": "2026-06-29",
-    "sampleSize": 5,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "EB-01",
    "rank": 3,
    "number": "EB01-061",
    "name": "Mr2BonKurei Bentham Alternate Art",
@@ -243,21 +168,6 @@
     "updated": "2026-06-29",
     "sampleSize": 2,
     "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-07",
-   "rank": 1,
-   "number": "OP07-051",
-   "name": "Boa Hancock 051 Parallel Manga",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 2976467,
-    "updated": "2026-07-10",
-    "sampleSize": 19,
-    "days": 66
    }
   },
   {
@@ -303,96 +213,6 @@
     "updated": "2026-07-10",
     "sampleSize": 4,
     "days": 66
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-09",
-   "rank": 3,
-   "number": "OP09-004",
-   "name": "Shanks 004 Manga",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 1635657,
-    "updated": "2026-06-29",
-    "sampleSize": 12,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-09",
-   "rank": 5,
-   "number": "OP09-051",
-   "name": "Buggy 051 Manga",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 1573139,
-    "updated": "2026-06-29",
-    "sampleSize": 11,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-09",
-   "rank": 6,
-   "number": "OP08-106",
-   "name": "Nami SP",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 982701,
-    "updated": "2026-06-29",
-    "sampleSize": 4,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-09",
-   "rank": 9,
-   "number": "OP05-067",
-   "name": "Zoro Juurou SP",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 479616,
-    "updated": "2026-06-29",
-    "sampleSize": 8,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-10",
-   "rank": 1,
-   "number": "OP10-119",
-   "name": "Trafalgar Law 119 Manga",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 1074339,
-    "updated": "2026-06-29",
-    "sampleSize": 18,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-10",
-   "rank": 4,
-   "number": "ST14-003",
-   "name": "Sanji SP",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 389816,
-    "updated": "2026-06-29",
-    "sampleSize": 5,
-    "days": 77
    }
   },
   {
@@ -456,21 +276,6 @@
   },
   {
    "severity": "review",
-   "code": "OP-11",
-   "rank": 9,
-   "number": "EB01-057",
-   "name": "Shirahoshi SP",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 320000,
-    "updated": "2026-06-29",
-    "sampleSize": 4,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
    "code": "PRB-02",
    "rank": 1,
    "number": "OP06-119",
@@ -526,66 +331,6 @@
     "updated": "2026-07-10",
     "sampleSize": 3,
     "days": 66
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-13",
-   "rank": 8,
-   "number": "OP13-120",
-   "name": "Sabo 120 Super Alternate Art",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 1553134,
-    "updated": "2026-06-29",
-    "sampleSize": 2,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-14",
-   "rank": 3,
-   "number": "PRB02-006",
-   "name": "Roronoa Zoro PRB02 006 SP",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 1534755,
-    "updated": "2026-06-29",
-    "sampleSize": 10,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-14",
-   "rank": 4,
-   "number": "OP14-119",
-   "name": "Dracule Mihawk Manga",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 1273859,
-    "updated": "2026-06-29",
-    "sampleSize": 2,
-    "days": 77
-   }
-  },
-  {
-   "severity": "review",
-   "code": "OP-14",
-   "rank": 6,
-   "number": "OP14-118",
-   "name": "Youll Frighten Me Alternate Art",
-   "field": "psa10Ebay.updated",
-   "reason": "psa10_price_stale",
-   "current": {
-    "middle": 476249,
-    "updated": "2026-06-29",
-    "sampleSize": 3,
-    "days": 77
    }
   },
   {
