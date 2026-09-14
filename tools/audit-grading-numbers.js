@@ -26,6 +26,8 @@ const tag = rd("tag-grading-history.json");
 
 const errors = [];
 const warn = [];
+// 누적 감소 후보. 루프가 끝난 뒤 같은 등급사·판·날짜에 몇 세트가 함께 줄었는지로 판정한다(아래 참조).
+const drops = [];
 const codes = [...(pk.jp?.list || []), ...(pk.extra?.list || [])];
 
 for (const code of codes) {
@@ -98,8 +100,7 @@ for (const code of codes) {
         if (a.total == null || b.total == null || b.total >= a.total) continue;
         const drop = a.total - b.total;
         const msg = `${name} ${code}.${ed}: 누적 총량 감소 (${a.d} ${a.total} → ${b.d} ${b.total})`;
-        if (drop > 5 && drop > a.total * 0.005) errors.push(`${msg} — 다른 세트 오독 의심`);
-        else warn.push(`${msg} — 재등급/정정으로 보임, 증감 미표시`);
+        drops.push({ key: `${name}|${ed}|${b.d}`, msg, big: drop > 5 && drop > a.total * 0.005 });
         break;
       }
     }
@@ -163,6 +164,18 @@ for (const code of codes) {
   }
 }
 
+// 누적 감소 판정 — 한 세트만 크게 줄면 다른 세트를 읽어온 것이라 막는다(과거 실사고).
+// 같은 등급사·판에서 같은 날 세 세트 이상이 함께 줄면 등급사 집계 자체가 바뀐 것이다
+// (2026-09-14 실측: TAG 일본판 21세트 중 15세트가 1~13장씩 동시 감소, 화면 재확인으로 값 일치). 그건 경고로 남기고 통과시킨다.
+{
+  const byKey = {};
+  for (const d of drops) byKey[d.key] = (byKey[d.key] || 0) + 1;
+  for (const d of drops) {
+    if (d.big && byKey[d.key] < 3) errors.push(`${d.msg} — 다른 세트 오독 의심`);
+    else if (byKey[d.key] >= 3) warn.push(`${d.msg} — 같은 날 ${byKey[d.key]}개 세트 동시 감소, 집계 변동으로 보고 통과. 증감 미표시`);
+    else warn.push(`${d.msg} — 재등급/정정으로 보임, 증감 미표시`);
+  }
+}
 const out = { audit: errors.length ? "GRADING_FAIL" : "GRADING_OK", sets: codes.length, errors, warnings: warn };
 console.log(JSON.stringify(out, null, 1));
 if (errors.length) process.exit(1);
