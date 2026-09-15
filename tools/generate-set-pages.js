@@ -853,73 +853,100 @@ function hubPage() {
 }
 
 // ---- PSA10 가치 랭킹(루트 페이지) — 실거래 sold 값 기준(신뢰 최우선; 나눗셈 멀티플은 NM 부실로 미사용)
+// ── PSA 10 랭킹 페이지 — 2026-09-15 재설계(소유자 지시): 보고서식 산문을 없애고 경매 페이지 문법(숫자 카드·카드 이미지 표·배수 막대·세트별 표)으로.
+//    긴 설명문 추가 금지. 용어는 일반인 기준(raw→ungraded, pop→PSA graded). 모바일(≤640px)은 열을 줄여(#·카드·PSA 10·배수) 가로 스크롤 없이 읽힌다.
+//    이미지는 자체 호스팅만 쓴다(가드 I1) — 외부 CDN 뿐인 카드는 빈 칸.
+const IMG_MAP_CARDS = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "img", "cards", "map.json"), "utf8")); } catch { return {}; } })();
+const cardSlugify = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70);
+const cardKey = (num, name) => `${num}|${String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+function ownImage(c) {
+  const mapped = IMG_MAP_CARDS[cardSlugify(c.number + "-" + c.name)];
+  if (mapped) return mapped;
+  const u = c.image || c.img || "";
+  if (/^https:\/\/opboxindex\.com\//.test(u)) return u.replace(/^https:\/\/opboxindex\.com\//, "");
+  if (u && !/^https?:/.test(u)) return u.replace(/^\.?\//, "");
+  return null;
+}
+
 function rankingRows() {
   const rows = [];
   for (const code of ORDER) {
-    for (const c of (data.sets[code].cards || [])) {
+    const set = data.sets[code];
+    for (const c of (set.cards || [])) {
       const sold = c.psa10Ebay;
       if (!(sold && sold.soldBased && sold.middle != null)) continue;
       const psa = toUsdAt(sold.middle, sold.currency, sold.updated);
       const n = sold.sampleSize || 0;
       if (psa == null || n < 3) continue;
-      rows.push({ code, name: c.name, number: c.number, rarity: c.rarity, psa, n, low: toUsdAt(sold.low, sold.currency, sold.updated), high: toUsdAt(sold.high, sold.currency, sold.updated), updated: sold.updated });
+      const rawUsd = jpyUsd(c.nmJpy);
+      const mult = rawUsd > 0 ? psa / rawUsd : null;
+      const pop = c.graderPop && c.graderPop.psa && c.graderPop.psa.jp ? c.graderPop.psa.jp : null;
+      rows.push({
+        code, setName: set.nameEn || code, name: c.name, number: c.number, rarity: c.rarity, psa, n,
+        low: toUsdAt(sold.low, sold.currency, sold.updated), high: toUsdAt(sold.high, sold.currency, sold.updated), updated: sold.updated,
+        rawUsd, mult: mult && mult <= 40 ? mult : null, pop, img: ownImage(c), slug: CARD_MAP[cardKey(c.number, c.name)] || null,
+      });
     }
   }
   rows.sort((a, b) => b.psa - a.psa);
-  return rows.slice(0, 30);
+  return rows;
 }
 
 function rankingPage() {
   const rows = rankingRows();
-  // 기준일은 표에 실린 카드들의 **가장 최근** 관측일 — 1위 카드 하나의 날짜를 쓰면 그 카드만 안 갱신됐을 때 페이지 전체가 두 달 묵어 보인다(2026-09-09 감사: "as of 2026-07-10").
+  // 기준일은 표에 실린 카드들의 **가장 최근** 관측일 — 1위 카드 하나의 날짜를 쓰면 그 카드만 안 갱신됐을 때 페이지 전체가 두 달 묵어 보인다(2026-09-09 감사).
   const asOf = rows.reduce((m, r) => (r.updated && r.updated > m ? r.updated : m), "") || DATA_DATE;
   const canonical = `${SITE}/psa10-ranking.html`;
-
-  // ── 해설용 파생 수치 — 전부 rows(실측 sold)에서만 계산한다. 추정 문장 금지.
-  //    2026-07-30 애드센스 "가치 낮은 콘텐츠" 대응: 표만 있던 페이지(산문 140단어)에
-  //    데이터가 말해주는 만큼의 분석 산문을 붙인다. 숫자가 바뀌면 문장도 같이 바뀐다.
+  const t1 = rows[0];
+  const over1k = rows.filter((r) => r.psa >= 1000).length;
+  const mults = rows.filter((r) => r.mult).map((r) => r.mult).sort((a, b) => a - b);
+  const medMult = mults.length ? mults[Math.floor(mults.length / 2)] : null;
+  const totalPop = rows.reduce((t, r) => t + (r.pop ? r.pop.total : 0), 0);
+  const totalG10 = rows.reduce((t, r) => t + (r.pop ? r.pop.g10 : 0), 0);
+  const gemPct = totalPop ? Math.round((totalG10 / totalPop) * 100) : null;
   const bySet = {};
   rows.forEach((r) => { (bySet[r.code] = bySet[r.code] || []).push(r); });
-  const setCounts = Object.entries(bySet).sort((a, b) => b[1].length - a[1].length);
-  const topSet = setCounts[0];
-  const t1 = rows[0], t2 = rows[1], t3 = rows[2];
-  const mangaCount = rows.filter((r) => /manga|MAA|GMA|WAA/i.test(`${r.name} ${r.rarity || ""}`)).length;
-  const spCount = rows.filter((r) => /\bSP\b/i.test(`${r.name} ${r.rarity || ""}`)).length;
-  const medPsa = rows.length ? rows.map((r) => r.psa).sort((a, b) => a - b)[Math.floor(rows.length / 2)] : null;
-  const widest = rows.filter((r) => r.low != null && r.high != null && r.low > 0)
-    .map((r) => ({ ...r, spread: r.high / r.low })).sort((a, b) => b.spread - a.spread)[0];
-  const entryRow = rows[rows.length - 1];
+  const setRows = Object.entries(bySet).map(([code, rs]) => {
+    const ps = rs.map((r) => r.psa).sort((a, b) => a - b);
+    return { code, name: rs[0].setName, cards: rs.length, median: ps[Math.floor(ps.length / 2)], top: rs[0],
+      pop: rs.reduce((t, r) => t + (r.pop ? r.pop.total : 0), 0), g10: rs.reduce((t, r) => t + (r.pop ? r.pop.g10 : 0), 0) };
+  }).sort((a, b) => b.median - a.median);
+  const topMult = rows.filter((r) => r.mult).sort((a, b) => b.mult - a.mult).slice(0, 12);
+  const maxMult = topMult.length ? topMult[0].mult : 1;
 
-  const analysis = rows.length < 5 ? "" : `
-      <section class="rankProse" aria-label="What the ranking shows">
-        <h2>What the top of the market looks like right now</h2>
-        <p>As of ${esc(asOf)}, the most valuable Japanese One Piece card in PSA 10 is <strong>${esc(t1.name)}</strong> (${esc(t1.code)}${t1.number ? ` ${esc(t1.number)}` : ""}) at a median sold price of <strong>${usd(t1.psa)}</strong> across ${t1.n} completed sales. ${esc(t2.name)} (${esc(t2.code)}) follows at ${usd(t2.psa)}, with ${esc(t3.name)} (${esc(t3.code)}) at ${usd(t3.psa)}. The median across the whole top ${rows.length} is ${usd(medPsa)} — the drop from the very top is steep, which is typical of a chase-card market where one or two printings absorb most collector demand.</p>
-        <p>${esc(topSet[0])} contributes the most entries to the top ${rows.length} (${topSet[1].length} cards)${setCounts[1] ? `, ahead of ${esc(setCounts[1][0])} with ${setCounts[1][1].length}` : ""}. By style, <strong>${mangaCount} of the ${rows.length}</strong> are manga-art variants and <strong>${spCount}</strong> are SP printings — manga art dominating the top of the ranking has been the defining pattern of this market since the OP-05/OP-06 era.</p>
-        ${widest ? `<p>Ranges matter as much as medians. The widest spread in the current top ${rows.length} belongs to <strong>${esc(widest.name)}</strong> (${esc(widest.code)}): sales from ${usd(widest.low)} to ${usd(widest.high)}, roughly ${widest.spread.toFixed(1)}x between the cheapest and the most expensive completed sale. Spreads that wide usually mean auction-format sales mixed with Buy It Now, or centering-quality differences between individual gems — check recent comps, not just one number, before paying top of range.</p>` : ""}
-        <p>The entry ticket for this list is currently about <strong>${usd(entryRow.psa)}</strong> (#${rows.length}, ${esc(entryRow.name)}, ${esc(entryRow.code)}). Cards below that line are tracked on their individual <a href="cards/">card pages</a> and on each <a href="sets/index.html">set guide</a>.</p>
-        <h2>How to read PSA 10 sold prices</h2>
-        <p>Every number here is a <strong>completed eBay sale of a PSA 10 graded card</strong> — not an asking price, and not a raw NM price. We require at least three sales per card before it can rank, because a single graded sale is an anecdote, not a market. Prices are medians, so one outlier auction cannot drag a card up or down the table on its own. Japanese and English printings are never mixed: the ranking is Japanese-only, since the two print runs have different populations and different buyers.</p>
-        <p>A PSA 10 price only means something next to two other numbers: the card's <a href="psa-grading.html">graded population</a> (how many 10s exist) and its raw NM price (what an ungraded copy costs). A high price on a large population signals durable demand; a high price on a population of twenty can evaporate with three new submissions. Those numbers live on each card's tracker page — click any row.</p>
-      </section>
-      <section class="rankProse" aria-label="Frequently asked questions">
-        <h2>PSA 10 ranking — common questions</h2>
-        <details class="faqItem"><summary>What is the most expensive One Piece card in PSA 10 right now?</summary><p>${esc(t1.name)} (${esc(t1.code)}${t1.number ? ` ${esc(t1.number)}` : ""}) — median ${usd(t1.psa)} across ${t1.n} recent completed sales as of ${esc(asOf)}. The full top ${rows.length} is in the table above, updated with each data refresh.</p></details>
-        <details class="faqItem"><summary>Why Japanese cards only?</summary><p>Japanese and English are different print runs with different scarcity, so mixing them in one ranking would produce numbers that describe neither market. This site tracks the Japanese market as its primary focus; English box prices are tracked separately on set pages.</p></details>
-        <details class="faqItem"><summary>Are these asking prices?</summary><p>No. Every figure is a median of completed eBay sales of the PSA 10 graded card, minimum three sales. Active listings often sit far above what buyers actually pay — on this site asking prices are labelled separately wherever they appear.</p></details>
-        <details class="faqItem"><summary>Does a PSA 10 always sell for more than a raw copy?</summary><p>The completed-sale median is usually higher for the PSA 10 cards in this table, but the premium varies by card. Gem rate and population add supply context; submission selection, character demand and completed-sale depth also matter. See <a href="articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM prices</a> for the data and limits.</p></details>
-      </section>`;
+  const cardCell = (r) => {
+    const inner = `${r.img ? `<img src="${esc(r.img)}" alt="" width="40" height="56" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.name)}</b><small>${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</small></span>`;
+    return `<td class="l cardCell">${r.slug ? `<a href="cards/${esc(r.slug)}">${inner}</a>` : `<span class="cardLink">${inner}</span>`}</td>`;
+  };
+  const rangeCell = (r) => (r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—");
+  const popCell = (total, g10) => (total ? `${intl(total)} <small>${intl(g10)} × 10</small>` : "—");
+  const tableHead = `<thead><tr><th class="rkH">#</th><th class="l">Card</th><th class="psaH">PSA 10</th><th class="hideM">Sales</th><th class="hideM">Low–high</th><th class="hideM">Ungraded</th><th class="mulH">× ungraded</th><th class="hideM">PSA graded (10s)</th></tr></thead>`;
+  const rowHtml = (r, i) => `<tr><td class="rk">${i + 1}</td>${cardCell(r)}<td class="psa">${usd(r.psa)}</td><td class="hideM">${r.n}</td><td class="rng hideM">${rangeCell(r)}</td><td class="hideM">${r.rawUsd != null ? usd(r.rawUsd) : "—"}</td><td class="mul">${r.mult ? r.mult.toFixed(1) + "×" : "—"}</td><td class="pop hideM">${r.pop ? popCell(r.pop.total, r.pop.g10) : "—"}</td></tr>`;
+  const rankTable = (list, offset) => `<div class="tblWrap"><table class="aTable">
+          ${tableHead}
+          <tbody>
+${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
+          </tbody>
+        </table></div>`;
+  const barRows = topMult.map((r) => `<div class="kindRow"><span class="kName">${esc(r.name)} <small>${esc(r.number || "")}</small></span><span class="kTrack"><span class="kFill" style="width:${Math.max(6, Math.round((r.mult / maxMult) * 100))}%"></span><span class="kVal">${r.mult.toFixed(1)}×</span></span><span class="kMed"><small>ungraded</small> ${usd(r.rawUsd)} → <small>PSA 10</small> ${usd(r.psa)}</span></div>`).join("\n");
+  const setTrs = setRows.map((s, i) => `<tr><td class="rk">${i + 1}</td><td class="l"><a href="sets/${esc(slug(s.code))}.html"><b>${esc(s.code)}</b> <small>${esc(s.name)}</small></a></td><td class="psa">${usd(s.median)}</td><td class="hideM">${s.cards}</td><td class="l hideM">${esc(s.top.name)} <small>${usd(s.top.psa)}</small></td><td class="pop hideM">${popCell(s.pop, s.g10)}</td></tr>`).join("\n");
 
-  const faqLd = rows.length < 5 ? "" : `<script type="application/ld+json">${JSON.stringify({
+  const faqQ1 = "What is the most expensive One Piece card in PSA 10 right now?";
+  const faqA1 = `${t1.name} (${t1.code}${t1.number ? ` ${t1.number}` : ""}) — median ${usd(t1.psa)} across ${t1.n} recent completed eBay sales as of ${asOf}.`;
+  const faqQ2 = "Are these asking prices?";
+  const faqA2 = "No. Every figure is a median of completed eBay sales of the PSA 10 graded card, with a minimum of three sales per card.";
+  const faqQ3 = "Why Japanese cards only?";
+  const faqA3 = "Japanese and English are different print runs with different populations and buyers, so they are ranked separately rather than mixed.";
+  const faqLd = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "FAQPage",
     mainEntity: [
-      { "@type": "Question", name: "What is the most expensive One Piece card in PSA 10 right now?", acceptedAnswer: { "@type": "Answer", text: `${t1.name} (${t1.code}${t1.number ? ` ${t1.number}` : ""}) — median $${Math.round(t1.psa).toLocaleString("en-US")} across ${t1.n} recent completed eBay sales as of ${asOf}.` } },
-      { "@type": "Question", name: "Are these asking prices?", acceptedAnswer: { "@type": "Answer", text: "No. Every figure is a median of completed eBay sales of the PSA 10 graded card, with a minimum of three sales per card." } },
-      { "@type": "Question", name: "Why Japanese cards only?", acceptedAnswer: { "@type": "Answer", text: "Japanese and English are different print runs with different populations and buyers, so they are ranked separately rather than mixed." } },
+      { "@type": "Question", name: faqQ1, acceptedAnswer: { "@type": "Answer", text: faqA1 } },
+      { "@type": "Question", name: faqQ2, acceptedAnswer: { "@type": "Answer", text: faqA2 } },
+      { "@type": "Question", name: faqQ3, acceptedAnswer: { "@type": "Answer", text: faqA3 } },
     ],
   })}</script>`;
   const title = `Most Valuable One Piece PSA 10 Cards — Sold Price Ranking | OP Box Index`;
   const desc = `The most valuable Japanese One Piece TCG cards in PSA 10, ranked by recent eBay completed-sale medians with at least three matched sales per card.`;
-  const trs = rows.map((r, i) => `<tr data-code="${esc(r.code)}"><td class="rk">${i + 1}</td><td class="cd"><strong>${esc(r.name)}</strong><span class="sub">${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</span></td><td class="pv">${usd(r.psa)}</td><td class="rg">${r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—"}</td><td class="ns">${r.n}</td></tr>`).join("\n            ");
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "ItemList",
     name: "Most valuable One Piece PSA 10 cards",
@@ -961,61 +988,138 @@ function rankingPage() {
     ${faqLd}
     <link rel="stylesheet" href="styles.css?v=${CSS_VER}" />
     <style>
-      .rankWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
-      .rankProse { max-width: 720px; margin: 26px 0 0; }
-      .rankProse h2 { font-size: 20px; margin: 22px 0 8px; }
-      .rankProse p { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 8px 0; }
-      .rankProse .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
-      .rankProse .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; color: var(--fg); }
-      .rankProse .faqItem p { font-size: 14px; margin: 4px 0 10px; }
-      .rankWrap h1 { margin: 6px 0 6px; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
-      .rankWrap .lead { color: var(--muted); font-size: 16px; line-height: 1.6; max-width: 680px; }
-      .rankTableWrap { overflow-x: auto; margin: 18px 0 8px; }
-      .rankTable { width: 100%; border-collapse: collapse; font-size: 14px; }
-      .rankTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
-      .rankTable td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
-      .rankTable tr[data-code] { cursor: pointer; }
-      .rankTable tr[data-code]:hover td { background: rgba(16,215,160,.06); }
-      .rankTable .rk { color: var(--muted); font-variant-numeric: tabular-nums; }
-      .rankTable .cd .sub { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
-      .rankTable .pv { font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap; }
-      .rankTable .rg, .rankTable .ns { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-      .methodNote { margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .rankWrap { max-width: 980px; margin: 0 auto; padding: 20px clamp(14px,3vw,28px) 44px; }
+      .rankWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
+      .rankWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 6px 0 0; }
+      .rankWrap h2 { font-size: 19px; margin: 0 0 2px; }
+      .statRow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 18px 0 6px; }
+      .stat { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,.02); }
+      .stat b { display: block; font-size: clamp(22px,4vw,30px); font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+      .stat span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+      .stat.hi b { color: var(--accent); }
+      .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0; background: rgba(255,255,255,.015); }
+      .chartHead { margin-bottom: 8px; }
+      .chartHead .sub { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+      .tblWrap { overflow-x: auto; }
+      .aTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0; }
+      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+      .aTable th.l, .aTable td.l { text-align: left; }
+      .aTable td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
+      .aTable td.rk { color: var(--muted); width: 28px; }
+      .aTable td.psa { color: var(--accent); font-weight: 800; font-size: 14.5px; }
+      .aTable td.rng { color: var(--muted); }
+      .aTable td.mul { font-weight: 700; }
+      .aTable td.pop small, .aTable td.l small { color: var(--muted); margin-left: 4px; }
+      .aTable td.l a { color: inherit; text-decoration: none; }
+      .aTable td.l a:hover b { color: var(--accent); }
+      .cardCell a, .cardCell .cardLink { display: flex; align-items: center; gap: 10px; min-width: 200px; }
+      .cardCell img, .cardCell .noImg { width: 40px; height: 56px; border-radius: 4px; object-fit: cover; background: rgba(255,255,255,.06); flex: 0 0 40px; }
+      .cardCell b { display: block; font-size: 13.5px; line-height: 1.25; white-space: normal; }
+      .cardCell small { display: block; color: var(--muted); font-size: 11px; margin: 2px 0 0; }
+      .kindList { margin: 6px 0 2px; }
+      .kindRow { display: grid; grid-template-columns: minmax(150px, 1.3fr) 2fr minmax(160px, 0.9fr); gap: 10px; align-items: center; font-size: 13px; padding: 5px 0; }
+      .kindHead { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; margin-bottom: 4px; }
+      .kindRow .kName { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .kindRow .kName small { color: var(--muted); font-weight: 400; }
+      .kindRow .kTrack { position: relative; height: 22px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
+      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); opacity: .85; }
+      .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 22px; font-size: 12px; color: #061014; font-weight: 800; }
+      .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .kindRow .kMed small { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
+      .rankFaq { max-width: 760px; margin: 22px 0 0; }
+      .rankFaq h2 { font-size: 18px; margin: 0 0 6px; }
+      .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
+      .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
+      .faqItem p { font-size: 13.5px; margin: 4px 0 10px; color: var(--muted); line-height: 1.6; }
       .rankWrap .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      @media (max-width: 640px) {
+        .statRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .stat { padding: 12px; }
+        .stat b { font-size: 22px; }
+        .stat.hi { grid-column: 1 / -1; }
+        .chartCard { padding: 12px 12px 8px; border-radius: 12px; }
+        .aTable { font-size: 12.5px; table-layout: fixed; }
+        .aTable th, .aTable td { padding: 6px 4px; }
+        .aTable th { font-size: 10.5px; letter-spacing: 0; white-space: normal; overflow-wrap: anywhere; }
+        .aTable .hideM { display: none; }
+        .aTable th.rkH { width: 20px; }
+        .aTable th.psaH { width: 72px; }
+        .aTable th.mulH { width: 64px; }
+        .aTable td.rk { width: auto; padding-left: 0; }
+        .aTable td.l { white-space: normal; overflow-wrap: anywhere; }
+        .aTable td.psa { font-size: 13.5px; }
+        .cardCell a, .cardCell .cardLink { min-width: 0; gap: 8px; }
+        .cardCell img, .cardCell .noImg { width: 34px; height: 48px; flex-basis: 34px; }
+        .cardCell span:not(.noImg) { min-width: 0; }
+        .cardCell b { font-size: 12.5px; }
+        .cardCell small { white-space: normal; }
+        .kindRow { grid-template-columns: 1fr; gap: 3px; padding: 7px 0; }
+        .kindRow .kName { white-space: normal; }
+        .kindRow .kMed { text-align: left; font-size: 12px; }
+        .kindHead { display: none; }
+      }
     </style>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 인구">PSA Population</a><a href="sets/index.html" data-ko="세트 가이드">Set Guides</a><a href="amazon-lottery.html" data-ko="아마존 응모">Amazon Raffle</a></nav>
+      <nav class="nav"><a href="./" data-ko="부스터 박스">Booster Boxes</a><a href="/cards/" data-ko="카드">Cards</a><a href="auction.html" data-ko="경매">Auctions</a><a href="compare.html" data-ko="비교">Compare</a><a href="psa10-ranking.html" aria-current="page" data-ko="PSA10 랭킹">Top PSA 10</a><a href="psa-grading.html" data-ko="PSA 등급">PSA Grading</a></nav>
     </header>
     <main id="main-content" class="rankWrap">
-      <p class="eyebrow">PSA 10 Value Ranking</p>
+      <p class="eyebrow">PSA 10 · Japanese printing · as of ${esc(asOf)}</p>
       <h1>Most valuable One Piece PSA 10 cards</h1>
-      <p class="lead">The highest-value Japanese One Piece TCG cards in PSA 10 gem mint, ranked by recent eBay <strong>completed-sale medians</strong> across every set. Each ranked card has at least three matched sales.</p>
-      <div class="rankTableWrap">
-        <table class="rankTable">
-          <thead><tr><th>#</th><th>Card</th><th>PSA 10 sold</th><th>Sold range</th><th>Sales</th></tr></thead>
-          <tbody>
-            ${trs}
-          </tbody>
-        </table>
+      <p class="lead">Median of completed eBay sales · at least 3 sales per card · USD</p>
+
+      <div class="statRow">
+        <div class="stat hi"><b>${usd(t1.psa)}</b><span>highest PSA 10 · ${esc(t1.name)}</span></div>
+        <div class="stat"><b>${rows.length}</b><span>cards ranked</span></div>
+        <div class="stat"><b>${over1k}</b><span>sold above $1,000</span></div>
+        <div class="stat"><b>${medMult ? medMult.toFixed(1) + "×" : "—"}</b><span>PSA 10 vs ungraded (median)</span></div>
+        <div class="stat"><b>${gemPct != null ? gemPct + "%" : "—"}</b><span>of PSA-graded copies are 10s · ${intl(totalPop)} graded</span></div>
       </div>
-      <p class="methodNote">Method: PSA 10 median of recent eBay <em>sold</em> listings (Japanese cards), minimum 3 completed sales, as of ${esc(asOf)}. Values in USD. Tap any row for that card's full live tracker. Reflects graded-card sold prices, not raw singles.</p>
-${analysis}
-      <div class="setNavLinks"><a href="./">Live price tracker</a><a href="cards/">Individual card price pages</a><a href="sets/index.html">Set guides</a><a href="compare.html">Compare boxes</a><a href="articles/psa-population-and-prices.html">PSA population &amp; prices</a></div>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>Top 20 by PSA 10 sold price</h2><p class="sub">Median sale · sales counted · ungraded price · PSA 10 ÷ ungraded · PSA graded copies (10s)</p></div>
+        ${rankTable(rows.slice(0, 20), 0)}
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>Ungraded card → PSA 10: how many times the price grows</h2><p class="sub">PSA 10 sold median ÷ ungraded price · top 12</p></div>
+        <div class="kindList">
+<div class="kindRow kindHead"><span>Card</span><span>PSA 10 ÷ ungraded</span><span class="kMed">ungraded → PSA 10 (USD)</span></div>
+${barRows}
+        </div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>By set</h2><p class="sub">Median PSA 10 per set · ranked cards · top card · PSA graded copies (10s)</p></div>
+        <div class="tblWrap"><table class="aTable">
+          <thead><tr><th class="rkH">#</th><th class="l">Set</th><th class="psaH">Median PSA 10</th><th class="hideM">Cards</th><th class="l hideM">Top card</th><th class="hideM">PSA graded (10s)</th></tr></thead>
+          <tbody>
+${setTrs}
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>Ranks 21–${rows.length}</h2><p class="sub">Same columns as the top 20</p></div>
+        ${rankTable(rows.slice(20), 20)}
+      </div>
+
+      <section class="rankFaq" aria-label="Frequently asked questions">
+        <h2>PSA 10 ranking — common questions</h2>
+        <details class="faqItem"><summary>${esc(faqQ1)}</summary><p>${esc(faqA1)}</p></details>
+        <details class="faqItem"><summary>${esc(faqQ2)}</summary><p>${esc(faqA2)}</p></details>
+        <details class="faqItem"><summary>${esc(faqQ3)}</summary><p>${esc(faqA3)}</p></details>
+      </section>
+      <div class="setNavLinks"><a href="./">Live price tracker</a><a href="cards/">Individual card price pages</a><a href="sets/index.html">Set guides</a><a href="psa-grading.html">PSA population</a><a href="compare.html">Compare boxes</a></div>
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you. Prices change; always confirm on eBay before buying. Not investment advice.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
     </footer>
-    <script>
-      document.querySelectorAll('.rankTable tr[data-code]').forEach(function (tr) {
-        tr.addEventListener('click', function () { location.href = './?set=' + encodeURIComponent(tr.getAttribute('data-code')) + '&hl=en'; });
-      });
-    </script>
   </body>
 </html>
 `;
