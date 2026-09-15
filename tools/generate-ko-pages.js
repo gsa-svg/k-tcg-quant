@@ -160,8 +160,8 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="en" href="${SITE}/" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세·재판 기록 | OP Box Index</title>
-    <meta name="description" content="일본판 원피스 카드게임 부스터박스 전 세트 원화 시세를 매일 갱신. OP-01~OP-16, EB, PRB의 박스 가격, 1월 대비 변동률과 재판 기록을 한눈에. 실거래 및 검증된 매물 기반." />
+    <title>opboxindex - 원피스 카드 시세, 박스 시세, 이베이 경매 데이터</title>
+    <meta name="description" content="원피스 카드·부스터박스 시세(일본판, 원화), 이베이 경매 실제 낙찰 데이터, PSA·CGC·TAG 그레이딩 통계를 한곳에서. 실거래 기반 매일 갱신." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />

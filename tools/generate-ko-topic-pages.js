@@ -141,7 +141,7 @@ ${tr}
   return page({
     file: "cards.html",
     enHref: "cards/index.html",
-    title: "원피스 카드 시세 — NM·PSA10 실거래 상위 30 (일본판) | OP Box Index",
+    title: "opboxindex - 원피스 카드 시세 (NM·PSA10 실거래, 일본판)",
     desc: `원피스 카드 시세를 원화로 정리. 일본판 인기 카드 상위 ${top.length}장의 NM 시세와 PSA 10 실제 낙찰가, 그레이딩 프리미엄 배수까지. 실거래 기반, 매일 갱신 (${DATA_DATE}).`,
     h1: "원피스 카드 시세 — NM·PSA 10 실거래 (일본판)",
     eyebrow: "카드 시세",
@@ -199,7 +199,7 @@ ${tr}
   return page({
     file: "grading.html",
     enHref: "psa-grading.html",
-    title: "원피스 카드 그레이딩 인구 — PSA·CGC·TAG 세트별 현황 | OP Box Index",
+    title: "opboxindex - 원피스 그레이딩 통계 (PSA·CGC·TAG 세트별)",
     desc: `원피스 그레이딩 현황을 세트별·판별로 정리. PSA 일본판 ${num(tj)}장·영문판 ${num(te)}장, 세트별 젬률과 CGC·TAG 누적까지. 공개 인구 리포트 기반 매주 갱신 (${DATA_DATE}).`,
     h1: "원피스 카드 그레이딩 인구 (PSA · CGC · TAG)",
     eyebrow: "그레이딩",
@@ -266,7 +266,7 @@ ${cTr}
   return page({
     file: "auction.html",
     enHref: "auction.html",
-    title: "원피스 카드 이베이 경매 데이터 — 실제 낙찰가·낙찰률 | OP Box Index",
+    title: "opboxindex - 원피스 이베이 경매 데이터 (실제 낙찰가·낙찰률)",
     desc: `원피스 이베이 경매를 종료 후 재조회해 실제 낙찰가를 기록. 최근 ${daily.length}일 ${num(totN)}건 추적, 낙찰률 ${totN ? Math.round((totSold / totN) * 100) : 0}%, 카드별 낙찰 중앙값까지. 호가가 아닌 낙찰가 기준 (${DATA_DATE}).`,
     h1: "원피스 카드 이베이 경매 — 실제 낙찰 데이터",
     eyebrow: "이베이 경매",
