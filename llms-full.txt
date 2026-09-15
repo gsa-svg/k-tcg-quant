@@ -79,9 +79,8 @@ PRB-02 | 22,407 (87.8% gem, 2026-09-13) | 5,647 (2026-09-11) | 32 (59.4% gem, 20
 EB-04 | n/a | 2,090 (2026-09-11) | n/a | n/a | n/a | n/a
 
 ## One Piece eBay auctions (settled after close) — https://opboxindex.com/auction.html
-Last 7 days (2026-09-08 to 2026-09-14): 10,005 auctions ended, 3,578 sold, sell-through 35.8%.
+Last 7 days (2026-09-09 to 2026-09-15): 9,079 auctions ended, 3,209 sold, sell-through 35.3%.
 Format: date | ended | sold | sell-through | winning-bid total | partial-day flag
-2026-09-01 | 750 | 282 | 37.6% | $20,872 | partial (reading gap)
 2026-09-02 | 979 | 396 | 40.45% | $97,908 | partial (reading gap)
 2026-09-03 | 1,190 | 479 | 40.25% | $90,212 | complete
 2026-09-04 | 1,260 | 384 | 30.48% | $93,834 | complete
@@ -94,7 +93,8 @@ Format: date | ended | sold | sell-through | winning-bid total | partial-day fla
 2026-09-11 | 1,349 | 455 | 33.73% | $61,383 | complete
 2026-09-12 | 1,339 | 388 | 28.98% | $26,827 | complete
 2026-09-13 | 1,637 | 525 | 32.07% | $100,076 | complete
-2026-09-14 | 1,685 | 616 | 36.56% | $68,533 | partial (reading gap)
+2026-09-14 | 1,708 | 626 | 36.65% | $68,809 | complete
+2026-09-15 | 482 | 272 | n/a | $62,394 | partial (reading gap)
 
 Per set, last 30 days (2026-08-15 to 2026-09-14): SET | ended | sold | sell-through | median winning bid | box sell-through
 OP-12 | 1,075 | 414 | 38.5% | $14 | 90%
@@ -166,20 +166,20 @@ OP-53 | 1 | 0 | n/a | n/a | n/a | thin sample
 OP-31 | 1 | 0 | n/a | n/a | n/a | thin sample
 
 ## Trading card game auctions (13 games) — https://opboxindex.com/tcg-auction.html
-Last 7 days (2026-09-08 to 2026-09-14), per game: GAME | ended (sample) | sold | sell-through | median winning bid | live auctions on eBay (latest snapshot)
-Pokemon (Japanese) | 921 | 200 | 21.7% | $17 | 42,795
-Pokemon | 935 | 211 | 22.6% | $7 | 297,727
-Magic: The Gathering | 922 | 276 | 29.9% | $15 | 27,802
-Yu-Gi-Oh! | 917 | 126 | 13.7% | $25 | 18,931
-One Piece | 915 | 396 | 43.3% | $18 | 14,763
-Disney Lorcana | 833 | 432 | 51.9% | $81 | 4,479
-Weiss Schwarz | 961 | 234 | 24.3% | $21 | 2,203
-Digimon | 940 | 112 | 11.9% | $11 | 1,932
-Riftbound (LoL) | 772 | 475 | 61.5% | $250 | 951
-Union Arena | 804 | 258 | 32.1% | $23 | 978
-Gundam Card Game | 484 | 128 | 26.4% | $14 | 732
-Dragon Ball Fusion World | 909 | 495 | 54.5% | $43 | 1,505
-Palworld TCG | 331 | 163 | 49.2% | $4 | 360
+Last 7 days (2026-09-09 to 2026-09-15), per game: GAME | ended (sample) | sold | sell-through | median winning bid | live auctions on eBay (latest snapshot)
+Pokemon (Japanese) | 702 | 171 | 24.4% | $21 | 42,160
+Pokemon | 714 | 171 | 23.9% | $9 | 295,308
+Magic: The Gathering | 703 | 232 | 33% | $15 | 27,526
+Yu-Gi-Oh! | 699 | 119 | 17% | $25 | 19,207
+One Piece | 695 | 347 | 49.9% | $19 | 14,489
+Disney Lorcana | 653 | 409 | 62.6% | $92 | 4,146
+Weiss Schwarz | 692 | 185 | 26.7% | $22 | 2,209
+Digimon | 709 | 95 | 13.4% | $11 | 1,907
+Riftbound (LoL) | 689 | 419 | 60.8% | $550 | 1,054
+Union Arena | 706 | 231 | 32.7% | $23 | 984
+Gundam Card Game | 420 | 110 | 26.2% | $110 | 745
+Dragon Ball Fusion World | 770 | 443 | 57.5% | $43 | 1,511
+Palworld TCG | 316 | 163 | 51.6% | $4 | 362
 
 ## Card prices (111 tracked card variants) — https://opboxindex.com/cards/
 Format: CARD# | name | set | raw NM (JPY, USD equiv., date) | PSA 10 sold median (n, date) | PSA population total / PSA 10 | page
