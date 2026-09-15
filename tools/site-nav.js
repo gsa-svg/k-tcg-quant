@@ -92,7 +92,8 @@ function guideLinksHtml(inKo = false) {
 // ko/ 페이지용. ko/ 안에 있는 파일은 ko/ 안을 가리키고, 나머지는 ../ 로 나간다.
 const KO_ITEMS = [
   ["부스터 박스", "./"],
-  // ["카드 시세", "cards.html"],
+  // 2026-09-15 네이버 노출용: "원피스 카드 시세" 검색 착지가 ko/cards.html 이라 한국어 메뉴에만 되살린다(영문 메뉴는 그대로).
+  ["카드 시세", "cards.html"],
   ["원피스 경매", "auction.html"],
   ["TCG 경매", "../tcg-auction.html"],
   // ["세트 비교", "../compare.html"],
