@@ -1,166 +1,103 @@
 #!/usr/bin/env node
-// PSA 그레이딩 접수 현황 페이지 생성 — 2026-07-27 신설.
+// 등급 인구 페이지 생성 — 2026-07-27 신설, 2026-09-15 재설계(소유자 지시).
 //
-// 무엇: 추적 21개 세트의 PSA 누적 등급 수를 일본판/영문판으로 나눠 한 페이지에 모으고,
-// 최근 두 주의 차이(주간 증감)를 함께 싣는다. 주간 막대 그래프는 쓰지 않는다 —
-// 두 날짜의 숫자 두 개면 같은 이야기를 더 정확하게 할 수 있다.
+// 무엇: 추적 22개 세트가 PSA·CGC·TAG 홀더에 몇 장 들어가 있는지, 일본판/영문판을 나눠 한 페이지에 모은다.
+//   경매 페이지 문법(숫자 카드 · 세트별 누적 막대 · 박스 이미지 표), 설명문·FAQ 없음, 모바일은 표 4열.
+//   9/15 이전엔 PSA 한 회사 + 보고서식 산문 + 카드별 3사 표였다 — 소유자: "이미지 없이 카드명만 있으면 못 읽는다, 다른 그레이딩도 같이 보여줘라".
 //
-// 데이터: data/psa-edition-weekly.json (판별 누적 스냅샷, append-only)
-//        data/onepiece-packs.json (psaFull / psaFullEn 최신 총량)
-// 합산 금지: 일본판+영문판을 더하면 젬률이 어느 쪽도 설명하지 못하는 값이 된다.
+// 데이터: data/grading-series.json (세트×판×회사 누적 시계열 — build-grading-series.js)
+//        data/onepiece-packs.json (psaFull / psaFullEn 최신 PSA 총량·젬 수 — 시계열보다 새롭다)
+//        data/psa-edition-weekly.json (PSA 주간 증감)
+// 합산 금지: 일본판+영문판을 더하면 어느 쪽도 설명하지 못하는 값이 된다. 같은 판 안에서 회사별 합계는 낸다(누적 막대).
+// 이미지: 세트 박스(/card-img/box/*.webp) 자체 호스팅만.
 // Run: node tools/generate-psa-grading-page.js
 const fs = require("node:fs");
-const { navHtml } = require("./site-nav");
 const path = require("node:path");
+const { navHtml } = require("./site-nav");
 
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.join(ROOT, "psa-grading.html");
 const pk = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+const gs = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "grading-series.json"), "utf8"));
 const led = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "psa-edition-weekly.json"), "utf8"));
 const ver = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1];
 
 const weeks = led.weeks.slice(-2);
 if (weeks.length < 2) { console.error("주간 비교에 두 점이 필요 — 페이지 미생성"); process.exit(1); }
 const [wPrev, wNow] = weeks;
-const n = (v) => (v == null ? "&mdash;" : v.toLocaleString("en-US"));
-const pc = (v) => (v == null ? null : (v >= 0 ? "+" : "") + v.toFixed(2) + "%");
-const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const n = (v) => (v == null ? "—" : Math.round(v).toLocaleString("en-US"));
+const sn = (v) => (v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(Math.round(v)).toLocaleString("en-US"));
+const pct = (a, b) => (a != null && b ? (a / b * 100).toFixed(1) + "%" : "—");
+const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const GR = ["psa", "cgc", "tag"];
+const GRN = { psa: "PSA", cgc: "CGC", tag: "TAG" };
+// 최상위 등급의 정의가 회사마다 다르다 — 하나로 뭉뚱그리지 않는다. CGC 는 세트 단위 등급 분포를 수집하지 않아 비율이 없다.
+const TOP = { psa: "PSA 10", cgc: "Pristine 10 + Gem Mint 10", tag: "10 + 10P" };
 
-// ── 등급사 3사 비교 — 2026-08-12 신설.
-// 우리는 PSA·CGC·TAG 카드별 인구를 각각 쌓고 있는데, 정작 "같은 카드를 세 곳이 어떻게 매기나"를
-// 아무 데서도 안 보여주고 있었다. 세 곳 다 일정 수 이상 등급이 있는 카드만 골라 나란히 둔다.
-//
-// ⚠️ 최상위 등급의 정의가 회사마다 다르다. 하나로 뭉뚱그리면 안 된다.
-//    PSA = 10 하나 · CGC = Pristine 10 + Gem Mint 10 · TAG = 10 + 10P
-// ⚠️ 이건 "누가 후하게 준다"의 증명이 아니다. 물리적으로 다른 카드고, 어디에 보낼지도
-//    제출자가 고른다. 우리가 말할 수 있는 건 "기록된 결과가 이렇게 다르다"까지다.
-const GRADER_MIN = 20;   // 세 곳 모두 이 장수 이상일 때만 비교에 올린다
-const graderCmp = (() => {
-  const load = (file, gem) => {
-    const p = path.join(ROOT, "data", file);
-    if (!fs.existsSync(p)) return null;
-    const j = JSON.parse(fs.readFileSync(p, "utf8"));
+const codes = [...(pk.jp?.list || []), ...(pk.extra?.list || [])];
+const last = (arr) => (Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null);
+const prev = (arr) => (Array.isArray(arr) && arr.length > 1 ? arr[arr.length - 2] : null);
+const rows = codes.map((code) => {
+  const set = pk.sets[code];
+  const box = set.box && fs.existsSync(path.join(ROOT, set.box.replace(/^\//, ""))) ? set.box.replace(/^\//, "") : null;
+  const ed = (e) => {
+    const g = (gs.sets[code] || {})[e] || {};
     const out = {};
-    const walk = (code, cards) => {
-      for (const [key, pts] of Object.entries(cards)) {
-        if (!Array.isArray(pts) || !pts.length) continue;
-        const last = pts[pts.length - 1];
-        const g = gem(last);
-        if (last.total == null || g == null) continue;
-        out[`${code}|${key}`] = { total: last.total, gem: g, d: last.d, label: last.label || last.par || "" };
+    for (const k of GR) {
+      const l = last(g[k]), p = prev(g[k]);
+      let total = l ? l.total : (g.latestTotal && g.latestTotal.by ? g.latestTotal.by[k] : null);
+      let gem = l && l.gem != null ? l.gem : null;
+      let add = l && l.add != null ? l.add : null, from = p ? p.d : null, to = l ? l.d : null;
+      if (k === "psa") {
+        // PSA 는 최신 전체 스냅샷(psaFull·psaFullEn)이 시계열보다 새롭고, 주간 증감은 판별 원장(psa-edition-weekly)에서 온다.
+        const ps = e === "jp" ? set.psaFull : set.psaFullEn;
+        if (ps) { total = ps.total; gem = ps.gems; }
+        const arr = (led.sets[code] || {})[e] || [];
+        const a = arr.find((x) => x.d === wPrev), b = arr.find((x) => x.d === wNow);
+        if (a && b) { add = b.g - a.g; from = wPrev; to = wNow; } else if (e === "en") { add = null; }
       }
-    };
-    for (const [code, v] of Object.entries(j.sets || {})) {
-      if (v.jp || v.en) { if (v.jp) walk(code, v.jp); if (v.en) walk(code, v.en); }
-      else walk(code, v);   // TAG 는 판별 구분이 없다
+      out[k] = total == null ? null : { total, gem, add, from, to };
     }
     return out;
   };
-  const P = load("psa-card-pop.json", (p) => p.g10 ?? null);
-  const C = load("cgc-card-pop.json", (p) => (p.g ? (p.g["Pristine 10"] || 0) + (p.g["Gem Mint 10"] || 0) : null));
-  const T = load("tag-card-pop.json", (p) => (p.g ? (p.g["10"] || 0) + (p.g["10P"] || 0) : null));
-  if (!P || !C || !T) return null;
-  const rows = [];
-  for (const [k, p] of Object.entries(P)) {
-    const c = C[k], t = T[k];
-    if (!c || !t) continue;
-    if (p.total < GRADER_MIN || c.total < GRADER_MIN || t.total < GRADER_MIN) continue;
-    const rate = (x) => +((x.gem / x.total) * 100).toFixed(1);
-    rows.push({
-      key: k, card: k.split("|").slice(1).join(" "), label: p.label || t.label || "",
-      psa: rate(p), psaN: p.total, cgc: rate(c), cgcN: c.total, tag: rate(t), tagN: t.total,
-    });
-  }
-  if (rows.length < 8) return null;   // 표본이 얇으면 표를 만들지 않는다
-  rows.sort((a, b) => b.psaN - a.psaN);
-  const avg = (f) => +(rows.reduce((a, r) => a + r[f], 0) / rows.length).toFixed(1);
-  return { rows, avgPsa: avg("psa"), avgCgc: avg("cgc"), avgTag: avg("tag"), asOf: Object.values(P)[0].d };
-})();
-
-const codes = [...(pk.jp?.list || []), ...(pk.extra?.list || [])];
-const rows = codes.map((code) => {
-  const set = pk.sets[code];
-  const s = led.sets[code] || {};
-  const delta = (ed) => {
-    const arr = s[ed] || [];
-    const a = arr.find((p) => p.d === wPrev), b = arr.find((p) => p.d === wNow);
-    return a && b ? { add: b.g - a.g, pct: ((b.g - a.g) / a.g) * 100 } : null;
-  };
-  return {
-    code, name: set.nameEn,
-    jp: set.psaFull ? { total: set.psaFull.total, gem: set.psaFull.gemRate } : null, jpD: delta("jp"),
-    en: set.psaFullEn ? { total: set.psaFullEn.total, gem: set.psaFullEn.gemRate } : null, enD: delta("en"),
-  };
+  return { code, name: set.nameEn || code, box, jp: ed("jp"), en: ed("en") };
 });
-rows.sort((a, b) => ((b.jp?.total || 0) + (b.en?.total || 0)) - ((a.jp?.total || 0) + (a.en?.total || 0)));
+const tot = (r, e) => GR.reduce((t, k) => t + ((r[e][k] && r[e][k].total) || 0), 0);
+rows.sort((a, b) => (tot(b, "jp") + tot(b, "en")) - (tot(a, "jp") + tot(a, "en")));
+const sumBy = (e, k, f) => rows.reduce((t, r) => t + ((r[e][k] && r[e][k][f]) || 0), 0);
+const K = {};
+for (const e of ["jp", "en"]) for (const k of GR) K[e + k] = { total: sumBy(e, k, "total"), add: sumBy(e, k, "add"), gem: sumBy(e, k, "gem") };
+const win = (k, e) => { const r = rows.find((x) => x[e][k] && x[e][k].from); return r ? `${r[e][k].from.slice(5)} → ${r[e][k].to.slice(5)}` : ""; };
+const updated = rows.flatMap((r) => ["jp", "en"].flatMap((e) => GR.map((k) => (r[e][k] && r[e][k].to) || ""))).sort().pop() || wNow;
 
-const sum = (f) => rows.reduce((t, r) => t + (f(r) || 0), 0);
-const tj = sum((r) => r.jp?.total), te = sum((r) => r.en?.total);
-const aj = sum((r) => r.jpD?.add), ae = sum((r) => r.enD?.add);
-const updated = pk.sets[codes[0]].psaFull.updated;
-const enCount = rows.filter((r) => r.en).length;
-
-// 주간 증감 한 칸으로는 늘고 있는지 줄고 있는지 알 수 없다. 최근 12주 궤적을 셀 안에 겹쳐 둔다.
-// 세트마다 절대량이 수십~수천으로 갈리므로 각자의 최대값에 맞춰 그린다 — 선은 방향만 말하고,
-// 크기 비교는 옆의 숫자로 한다.
-const spark = (ed, code, w = 54, h = 15) => {
-  const arr = (led.sets[code] || {})[ed] || [];
-  const pts = [];
-  for (let i = 1; i < arr.length; i++) pts.push(Math.max(0, arr[i].g - arr[i - 1].g));
-  const tail = pts.slice(-12);
-  if (tail.length < 4) return "";
-  const max = Math.max(...tail, 1);
-  const step = w / (tail.length - 1);
-  const d = tail.map((v, i) => (i ? "L" : "M") + (i * step).toFixed(1) + " " + (h - 1 - (v / max) * (h - 2)).toFixed(1)).join(" ");
-  return `<svg class="pgSpark ${ed}" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><path d="${d}"/></svg>`;
+// ── 세트별 누적 막대(회사별 색), 일본판·영문판 두 줄, 같은 눈금
+const maxTot = Math.max(...rows.flatMap((r) => [tot(r, "jp"), tot(r, "en")]), 1);
+const stack = (r, e) => {
+  const T = tot(r, e);
+  if (!T) return `<span class="sLine"><i class="edTag">${e.toUpperCase()}</i><span class="sTrack"><span class="sNa">no data yet</span></span></span>`;
+  const segs = GR.map((k) => { const v = (r[e][k] && r[e][k].total) || 0; return v ? `<span class="seg ${k}" style="width:${(v / maxTot * 100).toFixed(2)}%" title="${GRN[k]} ${n(v)}"></span>` : ""; }).join("");
+  return `<span class="sLine"><i class="edTag">${e.toUpperCase()}</i><span class="sTrack">${segs}</span><span class="sVal">${n(T)}</span></span>`;
 };
+const setName = (r) => `<span class="tName">${r.box ? `<img src="${esc(r.box)}" alt="" width="36" height="36" loading="lazy" decoding="async" />` : ""}<span><b>${esc(r.code)}</b> <small>${esc(r.name)}</small></span></span>`;
+const stackRows = rows.slice(0, 12).map((r) => `<div class="sRow">${setName(r)}<span class="sBars">${stack(r, "jp")}${stack(r, "en")}</span></div>`).join("\n");
 
-const cell = (d, ed, code) => (d
-  ? `<td class="pgAdd">+${n(d.add)}${spark(ed, code)}</td><td class="pgPct ${ed}">${pc(d.pct)}</td>`
-  : `<td class="pgAdd">&mdash;</td><td class="pgPct"><span class="pgNa">collecting</span></td>`);
-const tr = (r) => `        <tr data-code="${r.code}">
-          <th scope="row"><a href="sets/${r.code.toLowerCase()}.html"><b>${r.code}</b><span>${esc(r.name)}</span></a></th>
-          <td class="pgNum">${n(r.jp?.total)}</td><td class="pgGem">${r.jp ? r.jp.gem + "%" : "&mdash;"}</td>${cell(r.jpD, "jp", r.code)}
-          <td class="pgNum pgSplit">${n(r.en?.total)}</td><td class="pgGem">${r.en ? r.en.gem + "%" : "&mdash;"}</td>${cell(r.enD, "en", r.code)}
-        </tr>`;
+// ── 표: 세트 × (PSA·CGC·TAG) × (JP·EN). 모바일은 EN 열을 숨기고 JP 셀 밑에 EN 값을 작게 둔다.
+const cellG = (r, k) => {
+  const j = r.jp[k], e = r.en[k];
+  const gemLine = (x) => (x && x.gem != null && x.total ? `<small class="gem">${pct(x.gem, x.total)} top</small>` : "");
+  return `<td class="num ${k}">${j ? n(j.total) : "—"}${j && j.add != null ? `<small>${sn(j.add)}</small>` : ""}${gemLine(j)}<small class="mOnly">EN ${e ? n(e.total) : "—"}</small></td>` +
+    `<td class="num ${k} hideM en">${e ? n(e.total) : "—"}${e && e.add != null ? `<small>${sn(e.add)}</small>` : ""}${gemLine(e)}</td>`;
+};
+const setCell = (r, size) => `<td class="l setCell"><a href="sets/${r.code.toLowerCase()}.html">${r.box ? `<img src="${esc(r.box)}" alt="" width="${size}" height="${size}" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.code)}</b><small>${esc(r.name)}</small></span></a></td>`;
+const tr = (r) => `<tr>${setCell(r, 44)}${GR.map((k) => cellG(r, k)).join("")}</tr>`;
+const foot = `<tr><td class="l"><b>All ${rows.length} sets</b></td>${GR.map((k) => `<td class="num ${k}">${n(K["jp" + k].total)}<small>${sn(K["jp" + k].add)}</small>${K["jp" + k].gem ? `<small class="gem">${pct(K["jp" + k].gem, K["jp" + k].total)} top</small>` : ""}<small class="mOnly">EN ${n(K["en" + k].total)}</small></td><td class="num ${k} hideM en">${n(K["en" + k].total)}<small>${sn(K["en" + k].add)}</small>${K["en" + k].gem ? `<small class="gem">${pct(K["en" + k].gem, K["en" + k].total)} top</small>` : ""}</td>`).join("")}</tr>`;
 
-// ── 해설용 파생 수치 — 표 데이터에서만 계산. 숫자가 바뀌면 문장도 바뀐다(2026-07-30 애드센스 대응).
-const biggest = rows[0];
-const jpGems = rows.filter((r) => r.jp && r.jp.gem != null);
-const hiGem = [...jpGems].sort((a, b) => b.jp.gem - a.jp.gem)[0];
-const loGem = [...jpGems].sort((a, b) => a.jp.gem - b.jp.gem)[0];
-const grew = rows.filter((r) => r.jpD && r.jpD.pct != null).sort((a, b) => b.jpD.pct - a.jpD.pct);
-const fast1 = grew[0], fast2 = grew[1];
-const enBigger = rows.filter((r) => r.jp && r.en && r.en.total > r.jp.total);
+// ── 최근 증가 상위 10(일본판, PSA 주간 증가 기준 정렬)
+const byAdd = [...rows].filter((r) => r.jp.psa && r.jp.psa.add != null).sort((a, b) => b.jp.psa.add - a.jp.psa.add).slice(0, 10);
+const addTr = (r) => `<tr>${setCell(r, 36)}${GR.map((k) => `<td class="num ${k}">${r.jp[k] && r.jp[k].add != null ? sn(r.jp[k].add) : "—"}</td>`).join("")}</tr>`;
 
-const analysis = `
-      <section aria-label="What the numbers show">
-        <h2>What the population data shows right now</h2>
-        <p class="pgNotes"><b>${esc(biggest.code)} ${esc(biggest.name)}</b> carries the largest graded population of any tracked set${biggest.jp ? ` — ${n(biggest.jp.total)} Japanese cards in PSA holders` : ""}${biggest.en ? `, plus ${n(biggest.en.total)} English` : ""}. This is submission volume, not a release-date or sealed-print-run estimate. A large base can reflect collector demand, opening volume, cards held raw before submission, or a mix of all three.</p>
-        ${fast1 && fast1.jpD ? `<p class="pgNotes">The largest Japanese percentage increase this week is <b>${esc(fast1.code)}</b> at ${pc(fast1.jpD.pct)} (+${n(fast1.jpD.add)} cards)${fast2 && fast2.jpD ? `, followed by <b>${esc(fast2.code)}</b> at ${pc(fast2.jpD.pct)}` : ""}. Percentage growth is sensitive to the starting population, so compare the raw additions and the percentage instead of ranking sets by either figure alone.</p>` : ""}
-        ${hiGem && loGem && hiGem !== loGem ? `<p class="pgNotes">Gem rates are not uniform. Among Japanese printings, <b>${esc(hiGem.code)}</b> currently gems at ${hiGem.jp.gem}% while <b>${esc(loGem.code)}</b> sits at ${loGem.jp.gem}%. The difference can reflect print quality, the cards collectors choose to submit, and sample size. It does not by itself prove that one print run is better.</p>` : ""}
-        ${enBigger.length ? `<p class="pgNotes">For ${enBigger.length} set${enBigger.length === 1 ? "" : "s"} (${enBigger.map((r) => esc(r.code)).join(", ")}) the <b>English</b> graded population is actually larger than the Japanese one — a reminder that the two markets have different collector bases, and another reason we never merge the columns.</p>` : ""}
-        <p class="pgNotes">PSA is one of three graders we track. CGC and TAG populations — including CGC's split between Pristine 10 and Gem Mint 10, and TAG's 10 versus 10P — are shown per set on each <a href="sets/index.html">set guide</a>, always kept separate from PSA because the standards do not map onto each other.</p>
-      </section>
-      <section aria-label="Frequently asked questions">
-        <h2>PSA population — common questions</h2>
-        <details class="faqItem" style="max-width:760px"><summary>Which One Piece set has the most PSA-graded cards?</summary><p class="pgNotes">${esc(biggest.code)} ${esc(biggest.name)}${biggest.jp ? `, with ${n(biggest.jp.total)} Japanese cards graded` : ""}${biggest.en ? ` and ${n(biggest.en.total)} English` : ""} as of ${updated}. See the table above for every tracked set.</p></details>
-        <details class="faqItem" style="max-width:760px"><summary>Why does grading volume matter for sealed box prices?</summary><p class="pgNotes">Weekly population growth records newly posted grades, but those cards may come from recent openings or previously held raw copies. We treat it as an indirect collector-activity signal and read it with release timing, box listings and sold data.</p></details>
-        <details class="faqItem" style="max-width:760px"><summary>Why don't you add Japanese and English together?</summary><p class="pgNotes">They are different print runs with different card stock, pull rates and buyers. A combined total, or worse a combined gem rate, would describe neither market. Every figure on this site is labelled by printing.</p></details>
-        <details class="faqItem" style="max-width:760px"><summary>Where does this data come from?</summary><p class="pgNotes">Public PSA population reporting, collected by us weekly and appended to a ledger we never rewrite. Weekly change is only shown for the period we recorded ourselves — we do not backfill history we did not observe.</p></details>
-      </section>`;
-
-const FAQ_LD = JSON.stringify({
-  "@context": "https://schema.org", "@type": "FAQPage",
-  mainEntity: [
-    { "@type": "Question", name: "Which One Piece set has the most PSA-graded cards?", acceptedAnswer: { "@type": "Answer", text: `${biggest.code} ${biggest.name}${biggest.jp ? `, with ${biggest.jp.total.toLocaleString("en-US")} Japanese cards graded` : ""} as of ${updated}.` } },
-    { "@type": "Question", name: "Why does grading volume matter for sealed box prices?", answerCount: 1, acceptedAnswer: { "@type": "Answer", text: "Weekly population growth records newly posted grades, but those cards may come from recent openings or previously held raw copies. We treat it as an indirect collector-activity signal alongside release timing, box listings and sold data." } },
-    { "@type": "Question", name: "Why don't you add Japanese and English together?", acceptedAnswer: { "@type": "Answer", text: "They are different print runs with different card stock, pull rates and buyers; a combined figure would describe neither market." } },
-  ],
-});
-
-const TITLE = "One Piece PSA Population by Set — Japanese vs English | OP Box Index";
-const DESC = `How many One Piece cards from each booster set have been PSA graded, split by Japanese and English printing, with gem rate and week-over-week change. ${rows.length} sets, updated ${updated}.`;
+const TITLE = "One Piece Grading Population by Set — PSA, CGC and TAG | OP Box Index";
+const DESC = `How many One Piece cards from each booster set sit in PSA, CGC and TAG holders, Japanese and English printings kept separate, with the change since each company's previous report. ${rows.length} sets, updated ${updated}.`;
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -189,114 +126,124 @@ const html = `<!doctype html>
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "One Piece PSA population by set (Japanese and English)", description: DESC, isAccessibleForFree: true, creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" }, temporalCoverage: `${wPrev}/${wNow}`, dateModified: updated, variableMeasured: ["Total PSA graded", "PSA 10 gem rate", "Weekly change in graded count"] })}</script>
-    <script type="application/ld+json">${FAQ_LD}</script>
-    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "OP Box Index", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "PSA Population", item: "https://opboxindex.com/psa-grading.html" }] })}</script>
+    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "One Piece grading population by set (PSA, CGC, TAG; Japanese and English)", description: DESC, isAccessibleForFree: true, creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" }, temporalCoverage: `${wPrev}/${updated}`, dateModified: updated, variableMeasured: ["Cards graded by PSA", "Cards graded by CGC", "Cards graded by TAG", "PSA 10 share", "TAG 10 and 10P share", "Change since previous report"] })}</script>
+    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "OP Box Index", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "Grading population", item: "https://opboxindex.com/psa-grading.html" }] })}</script>
     <link rel="stylesheet" href="styles.css?v=${ver}" />
     <script defer src="lang-toggle.js?v=${ver}"></script>
     <style>
-      .pgWrap { max-width: 980px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
+      .pgWrap { max-width: 980px; margin: 0 auto; padding: 20px clamp(14px,3vw,28px) 44px; }
       .pgWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
-      .pgWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; max-width: 680px; }
-      .pgTot { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin: 20px 0 6px; }
-      .pgCard { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
-      .pgCard .k { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; }
-      .pgCard.jp .k { color: #55d8ea; } .pgCard.en .k { color: #4ad9a4; }
-      .pgCard .v { display: block; font-family: "JetBrains Mono", monospace; font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; margin: 4px 0 1px; }
-      .pgCard .d { font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
-      .pgCard.jp .d { color: #55d8ea; } .pgCard.en .d { color: #4ad9a4; }
-      .pgCard .d em { font-style: normal; color: var(--muted); font-weight: 400; margin-left: 6px; }
-      .pgTableWrap { overflow-x: auto; margin: 16px 0 8px; }
-      .pgTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-      .pgTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
-      .pgTable thead th:first-child { text-align: left; }
-      .pgTable thead th.hjp { color: #55d8ea; } .pgTable thead th.hen { color: #4ad9a4; }
-      .pgTable tbody th { text-align: left; font-weight: 400; padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); white-space: nowrap; }
-      .pgTable tbody th a { display: block; }
-      .pgTable tbody th b { display: block; font-family: "JetBrains Mono", monospace; font-size: 12.5px; }
-      .pgTable tbody th span { display: block; color: var(--muted); font-size: 11.5px; }
-      .pgTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; white-space: nowrap; }
-      .pgGem { color: var(--muted); }
-      .pgAdd { color: #cfd6e6; }
-      .pgPct { font-weight: 800; }
-      .pgPct.jp { color: #55d8ea; } .pgPct.en { color: #4ad9a4; }
-      .pgNa { color: #6f7889; font-weight: 400; font-family: system-ui, sans-serif; font-size: 11.5px; }
-      .pgSpark { display: block; margin: 2px 0 -1px; opacity: .8; }
-      .pgSpark path { fill: none; stroke-width: 1.2; stroke-linejoin: round; }
-      .pgSpark.jp path { stroke: #55d8ea; } .pgSpark.en path { stroke: #4ad9a4; }
-      .pgSplit { border-left: 1px solid var(--line); }
-      .pgTable tfoot th, .pgTable tfoot td { border-top: 1px solid var(--line); border-bottom: 0; font-weight: 800; padding-top: 11px; }
-      .pgNotes { margin: 14px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.65; }
-      .pgNotes b { color: var(--ink); }
-      @media (max-width: 640px) { .pgTot { grid-template-columns: 1fr; } .pgTable { font-size: 12.5px; } .pgTable td, .pgTable th { padding: 8px 7px; } }
+      .pgWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 6px 0 0; }
+      .pgWrap h2 { font-size: 19px; margin: 0 0 2px; }
+      .psa { --g: #55d8ea; } .cgc { --g: #f5c451; } .tag { --g: #4ad9a4; }
+      .statRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0 6px; }
+      .stat { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,.02); }
+      .stat .k { display: block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--g); }
+      .stat b { display: block; font-size: clamp(22px,4vw,30px); font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
+      .stat span.s { display: block; font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.45; font-variant-numeric: tabular-nums; }
+      .stat span.s em { font-style: normal; color: var(--g); font-weight: 700; }
+      .chartCard { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px 12px; margin: 18px 0; background: rgba(255,255,255,.015); }
+      .chartHead { margin-bottom: 8px; }
+      .chartHead .sub { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+      .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 4px; font-size: 12px; color: var(--muted); }
+      .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--g); margin-right: 6px; vertical-align: -1px; }
+      .sList { margin: 6px 0 2px; }
+      .sRow { display: grid; grid-template-columns: minmax(170px, 1fr) 3fr; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.04); }
+      .tName { display: flex; align-items: center; gap: 10px; min-width: 0; }
+      .tName img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; flex: 0 0 36px; background: rgba(255,255,255,.06); }
+      .tName b { font-weight: 700; } .tName small { color: var(--muted); display: block; font-size: 11px; }
+      .sBars { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+      .sLine { display: flex; align-items: center; gap: 8px; min-width: 0; }
+      .edTag { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: .04em; color: var(--muted); width: 22px; flex: 0 0 22px; }
+      .sTrack { flex: 1 1 auto; position: relative; height: 16px; border-radius: 4px; background: rgba(255,255,255,.05); overflow: hidden; display: flex; }
+      .seg { display: block; height: 100%; background: var(--g); }
+      .sNa { position: absolute; left: 6px; top: 0; line-height: 16px; font-size: 11px; color: var(--muted); }
+      .sVal { flex: 0 0 auto; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12.5px; }
+      .tblWrap { overflow-x: auto; }
+      .aTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0; }
+      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+      .aTable th.l, .aTable td.l { text-align: left; }
+      .aTable th.psa, .aTable th.cgc, .aTable th.tag { color: var(--g); }
+      .aTable th.en, .aTable td.en { border-left: 1px solid rgba(255,255,255,.06); }
+      .aTable th.en { font-weight: 500; }
+      .aTable td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
+      .aTable td.num { font-weight: 800; font-size: 14px; color: var(--g); }
+      .aTable td.num.en { color: var(--ink); opacity: .9; }
+      .aTable td small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+      .aTable td .mOnly { display: none; }
+      .aTable tfoot td { border-top: 1px solid var(--line); border-bottom: 0; }
+      .setCell a { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; min-width: 180px; }
+      .setCell a:hover b { color: var(--accent); }
+      .setCell img, .setCell .noImg { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; background: rgba(255,255,255,.06); flex: 0 0 44px; }
+      .setCell b { display: block; font-size: 13.5px; line-height: 1.2; }
+      .setCell small { display: block; color: var(--muted); font-size: 11px; margin: 2px 0 0; white-space: normal; }
+      @media (max-width: 640px) {
+        .statRow { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+        .stat { padding: 10px 8px; } .stat b { font-size: 17px; } .stat .k { font-size: 10px; } .stat span.s { font-size: 10.5px; }
+        .chartCard { padding: 12px 12px 8px; border-radius: 12px; }
+        .sRow { grid-template-columns: 1fr; gap: 4px; padding: 8px 0; }
+        .sVal { min-width: 56px; }
+        .aTable { font-size: 12.5px; table-layout: fixed; }
+        .aTable th, .aTable td { padding: 6px 4px; }
+        .aTable th { font-size: 10.5px; letter-spacing: 0; white-space: normal; overflow-wrap: anywhere; }
+        .aTable .hideM { display: none; }
+        .aTable th.numH { width: 66px; }
+        .aTable td.num { font-size: 12.5px; white-space: normal; }
+        .aTable td .mOnly { display: block; color: var(--muted); font-weight: 400; font-size: 10.5px; }
+        .aTable td small.gem { display: none; }
+        .aTable td.l { white-space: normal; overflow-wrap: anywhere; }
+        .setCell a { min-width: 0; gap: 8px; }
+        .setCell img, .setCell .noImg { width: 34px; height: 34px; flex-basis: 34px; }
+        .setCell span:not(.noImg) { min-width: 0; }
+      }
     </style>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      ${navHtml("")}
+      ${navHtml("", "psa-grading.html")}
     </header>
     <main id="main-content" class="pgWrap">
-      <p class="eyebrow">PSA Population</p>
-      <h1>One Piece PSA population by set</h1>
-      <p class="lead">How many cards from each booster set have been submitted to PSA, kept separate for the Japanese and English printings. Weekly additions are an indirect collector-activity signal, not a count of boxes opened in that week: submitted cards may come from recent pulls or older raw holdings. Cumulative totals are as of ${updated}; the weekly change compares ${wNow} against ${wPrev}.</p>
-      <div class="pgTot">
-        <div class="pgCard jp"><span class="k">Japanese &mdash; total graded</span><span class="v">${n(tj)}</span><span class="d">+${n(aj)} <em>this week ${pc((aj / (tj - aj)) * 100)}</em></span></div>
-        <div class="pgCard en"><span class="k">English &mdash; total graded</span><span class="v">${n(te)}</span><span class="d">+${n(ae)} <em>this week ${pc((ae / (te - ae)) * 100)}</em></span></div>
+      <p class="eyebrow">Grading population · PSA · CGC · TAG · updated ${esc(updated)}</p>
+      <h1>One Piece grading population by set</h1>
+      <p class="lead">Cards in PSA, CGC and TAG holders per booster set · Japanese and English printings kept separate · change = new grades since each company's previous report</p>
+
+      <div class="statRow">
+${GR.map((k) => `        <div class="stat ${k}"><span class="k">${GRN[k]} · Japanese</span><b>${n(K["jp" + k].total)}</b><span class="s"><em>${sn(K["jp" + k].add)}</em> ${esc(win(k, "jp"))}${K["jp" + k].gem ? ` · ${pct(K["jp" + k].gem, K["jp" + k].total)} ${TOP[k]}` : ""}</span></div>`).join("\n")}
+${GR.map((k) => `        <div class="stat ${k}"><span class="k">${GRN[k]} · English</span><b>${n(K["en" + k].total)}</b><span class="s"><em>${sn(K["en" + k].add)}</em> ${esc(win(k, "en"))}${K["en" + k].gem ? ` · ${pct(K["en" + k].gem, K["en" + k].total)} ${TOP[k]}` : ""}</span></div>`).join("\n")}
       </div>
-      <div class="pgTableWrap">
-      <table class="pgTable">
-        <caption class="sr-only">PSA graded population and weekly change for every tracked One Piece booster set</caption>
-        <thead><tr>
-          <th scope="col">Booster set</th>
-          <th scope="col" class="hjp">JP graded</th><th scope="col" class="hjp">JP gem</th><th scope="col" class="hjp">JP week</th><th scope="col" class="hjp">%</th>
-          <th scope="col" class="hen">EN graded</th><th scope="col" class="hen">EN gem</th><th scope="col" class="hen">EN week</th><th scope="col" class="hen">%</th>
-        </tr></thead>
-        <tbody>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>Most graded sets</h2><p class="sub">Cards in holders · top 12 sets · one bar per printing, same scale · colour = grading company</p></div>
+        <div class="legend">${GR.map((k) => `<span class="${k}"><i></i>${GRN[k]}</span>`).join("")}</div>
+        <div class="sList">
+${stackRows}
+        </div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>New grades since last report · Japanese printing</h2><p class="sub">PSA ${esc(win("psa", "jp"))} · CGC ${esc(win("cgc", "jp"))} · TAG ${esc(win("tag", "jp"))} · top 10 sets by PSA</p></div>
+        <div class="tblWrap"><table class="aTable">
+          <caption class="sr-only">New grades since each company's previous report, Japanese printing, top 10 sets</caption>
+          <thead><tr><th class="l">Set</th><th class="psa numH">PSA</th><th class="cgc numH">CGC</th><th class="tag numH">TAG</th></tr></thead>
+          <tbody>
+${byAdd.map(addTr).join("\n")}
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="chartCard">
+        <div class="chartHead"><h2>All ${rows.length} sets · PSA · CGC · TAG</h2><p class="sub">Cards in holders · change since last report · top-grade share (PSA 10 · TAG 10 + 10P) · JP and EN side by side</p></div>
+        <div class="tblWrap"><table class="aTable">
+          <caption class="sr-only">Graded population per set at PSA, CGC and TAG, Japanese and English printings</caption>
+          <thead><tr><th class="l">Set</th><th class="psa numH">PSA JP</th><th class="psa en">PSA EN</th><th class="cgc numH">CGC JP</th><th class="cgc en">CGC EN</th><th class="tag numH">TAG JP</th><th class="tag en">TAG EN</th></tr></thead>
+          <tbody>
 ${rows.map(tr).join("\n")}
-        </tbody>
-        <tfoot><tr>
-          <th scope="row"><b>All sets</b><span>${rows.length} tracked</span></th>
-          <td class="pgNum">${n(tj)}</td><td class="pgGem"></td><td class="pgAdd">+${n(aj)}</td><td class="pgPct jp">${pc((aj / (tj - aj)) * 100)}</td>
-          <td class="pgNum pgSplit">${n(te)}</td><td class="pgGem"></td><td class="pgAdd">+${n(ae)}</td><td class="pgPct en">${pc((ae / (te - ae)) * 100)}</td>
-        </tr></tfoot>
-      </table>
+          </tbody>
+          <tfoot>${foot}</tfoot>
+        </table></div>
       </div>
-      <h2>How to read this</h2>
-      <p class="pgNotes"><b>Total graded</b> is every card from that set sitting in a PSA holder, at any grade &mdash; not one specific card. <b>Gem</b> is the share that came back PSA 10. <b>Week</b> is how many new grades appeared between ${wPrev} and ${wNow}, and <b>%</b> is that change against the earlier total. The line under each weekly figure is the last 12 weeks of that set&rsquo;s own additions &mdash; it shows direction, not size.</p>
-      <p class="pgNotes"><b>We never add the two editions together.</b> Japanese and English are separate print runs with different card stock and different print quality, so a combined gem rate would describe neither. ${rows.length - enCount} set${rows.length - enCount === 1 ? " has" : "s have"} no English row at all &mdash; those printings have not been released, which is different from zero cards graded.</p>
-      <p class="pgNotes">A high weekly number is not automatically bullish and does not prove that the cards were pulled that week. It does show more graded copies entering the recorded population. Read it next to release timing and the box price on each <a href="sets/index.html">set guide</a>, and against completed sales on the <a href="psa10-ranking.html">PSA 10 value ranking</a>.</p>
-      <p class="pgNotes">Population figures are compiled from public PSA population reporting. We publish weekly change only from the point we began recording it ourselves; we do not republish historical series compiled by others.</p>
-${graderCmp ? `
-      <h2>The same cards, judged by three graders</h2>
-      <p class="pgNotes">We track per-card population at PSA, CGC and TAG separately. These are the ${graderCmp.rows.length} cards where all three have graded at least ${GRADER_MIN} copies, so a top-grade share is worth stating for each. Population as of ${esc(graderCmp.asOf)}.</p>
-      <div class="pgTot">
-        <div class="pgCard jp"><span class="k">PSA &mdash; top-grade share</span><span class="v">${graderCmp.avgPsa}%</span><span class="d">PSA 10</span></div>
-        <div class="pgCard"><span class="k">CGC &mdash; top-grade share</span><span class="v">${graderCmp.avgCgc}%</span><span class="d">Pristine 10 + Gem Mint 10</span></div>
-        <div class="pgCard en"><span class="k">TAG &mdash; top-grade share</span><span class="v">${graderCmp.avgTag}%</span><span class="d">10 + 10P</span></div>
-      </div>
-      <div class="pgTableWrap">
-      <table class="pgTable">
-        <caption class="sr-only">Top-grade share at PSA, CGC and TAG for cards all three have graded</caption>
-        <thead><tr>
-          <th scope="col">Card</th>
-          <th scope="col" class="hjp">PSA</th><th scope="col" class="hjp">graded</th>
-          <th scope="col">CGC</th><th scope="col">graded</th>
-          <th scope="col" class="hen">TAG</th><th scope="col" class="hen">graded</th>
-        </tr></thead>
-        <tbody>
-${graderCmp.rows.map((r) => `          <tr><th scope="row"><b>${esc(r.card)}</b><span>${esc(String(r.label).slice(0, 44))}</span></th>` +
-  `<td class="pgPct jp">${r.psa}%</td><td class="pgNum">${n(r.psaN)}</td>` +
-  `<td class="pgPct">${r.cgc}%</td><td class="pgNum">${n(r.cgcN)}</td>` +
-  `<td class="pgPct en">${r.tag}%</td><td class="pgNum">${n(r.tagN)}</td></tr>`).join("\n")}
-        </tbody>
-      </table>
-      </div>
-      <p class="pgNotes"><b>Each grader's top grade means something different.</b> PSA has a single 10. CGC splits its top into Pristine 10 and Gem Mint 10, and we count both. TAG has 10 and a stricter 10P above it, and we count both. A share is therefore comparable only as "how often the highest available grade was awarded", not as a like-for-like quality score.</p>
-      <p class="pgNotes"><b>This does not prove one grader is stricter.</b> These are different physical copies, and submitters choose where to send a card &mdash; a collector who expects a gem may favour one company, which moves the recorded share without anyone grading differently. PSA populations are also far larger, so its share rests on a much heavier sample than CGC's or TAG's. What the table shows is that <b>the recorded outcomes differ by grader</b>, which is worth knowing before reading any single company's population as the market's quality level.</p>
-` : ""}
-${analysis}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
@@ -306,4 +253,4 @@ ${analysis}
 </html>
 `;
 fs.writeFileSync(OUT, html, "utf8");
-console.log(JSON.stringify({ page: "psa-grading.html", sets: rows.length, enSets: enCount, weeks: [wPrev, wNow], jpTotal: tj, enTotal: te, bytes: html.length }));
+console.log(JSON.stringify({ page: "psa-grading.html", sets: rows.length, updated, jpPsa: K.jppsa.total, jpCgc: K.jpcgc.total, jpTag: K.jptag.total, enPsa: K.enpsa.total, enCgc: K.encgc.total, enTag: K.entag.total, bytes: html.length }));

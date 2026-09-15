@@ -36,7 +36,8 @@ const ITEMS = [
   ["TCG Auctions", "TCG 경매", "tcg-auction.html", true, "2026-09-16"],
   // ["Compare", "비교", "compare.html", true],
   // ["Top PSA 10", "PSA10 랭킹", "psa10-ranking.html", true],
-  // ["PSA Population", "PSA 인구", "psa-grading.html", true],
+  // 2026-09-15 소유자 지시: PSA·CGC·TAG 를 한 페이지로 재설계하며 메뉴에 복귀(NEW 배지는 9/30 까지).
+  ["Grading", "등급 인구", "psa-grading.html", true, "2026-09-30"],
   // ["Set Guides", "세트 가이드", "sets/index.html", true],
   ["Amazon Raffle", "아마존 응모", "amazon-lottery.html", true],
 ];
@@ -75,11 +76,11 @@ const GUIDE_STYLE = 'style="margin:0 0 14px;font-size:13px;line-height:1.9;color
 const GUIDE_LABEL_STYLE = 'style="color:#9aa4b6;font-weight:700;"';
 const GUIDE_ITEMS = [
   ["Booster boxes", "/"], ["Set guides", "/sets/index.html"], ["Card prices", "/cards/"], ["Top PSA 10", "/psa10-ranking.html"],
-  ["PSA population", "/psa-grading.html"], ["Compare sets", "/compare.html"], ["Free data", "/free-data.html"], ["한국어", "/ko/"],
+  ["Grading population", "/psa-grading.html"], ["Compare sets", "/compare.html"], ["Free data", "/free-data.html"], ["한국어", "/ko/"],
 ];
 const GUIDE_ITEMS_KO = [
   ["부스터 박스", "/ko/"], ["세트 가이드", "/sets/index.html"], ["카드 시세", "/ko/cards.html"], ["PSA10 랭킹", "/psa10-ranking.html"],
-  ["PSA 인구", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["English", "/"],
+  ["등급 인구", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["English", "/"],
 ];
 function guideLinksHtml(inKo = false) {
   const items = inKo ? GUIDE_ITEMS_KO : GUIDE_ITEMS;
@@ -96,7 +97,7 @@ const KO_ITEMS = [
   ["TCG 경매", "../tcg-auction.html"],
   // ["세트 비교", "../compare.html"],
   // ["PSA10 랭킹", "../psa10-ranking.html"],
-  // ["PSA 인구", "grading.html"],
+  ["등급 인구", "grading.html"],
   // ["세트 가이드", "../sets/index.html"],
   ["아마존 응모", "../amazon-lottery.html"],
 ];
