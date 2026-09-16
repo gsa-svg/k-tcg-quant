@@ -905,11 +905,8 @@ function applyStaticI18n() {
   document.documentElement.lang = state.hl === "en" ? "en" : "ko";
   document.body?.classList.toggle("hl-en", state.hl === "en");
   setText(".brand small", "원피스 부스터팩 리서치", "One Piece Booster Box Research");
-  setText('.topbar .nav a[href="packs.html"]', "부스터팩", "Booster Packs");
-  setText('.topbar .nav a[href^="amazon-lottery.html"]', "아마존 응모", "Amazon Raffle");
-  setText('.topbar .nav a[href="about.html"]', "운영원칙", "Principles");
-  setText('.topbar .nav a[href="psa10-ranking.html"]', "PSA10 랭킹", "Top PSA 10");
-  setText('.topbar .nav a[href="sets/index.html"]', "세트 가이드", "Set Guides");
+  // 메뉴 라벨은 tools/site-nav.js 한 곳에서 정의하고 data-ko 로 전환한다(아래 공통 루프).
+  // 여기서 또 박아 두면 site-nav 를 고쳐도 홈만 옛 라벨로 남는다 — 2026-09-16 에 "Amazon Raffle" 로 실제로 어긋났다.
   // 아마존 응모 페이지로 현재 표시 언어 전달
   const amazonLink = document.querySelector('.topbar .nav a[href^="amazon-lottery.html"]');
   if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";
@@ -1990,21 +1987,21 @@ function updateSeo(pack) {
     `${pack.code} ${koName} ${enName} \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7\uD788\uD2B8\uCE74\uB4DC TOP10 | OP Box Index`,
     `${pack.code} ${enName} One Piece Card Prices & Booster Box Price | OP Box Index`,
   ) : isHomePage ? t(
-    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138\u00B7PSA10 \uCE74\uB4DC \uC2DC\uC138\u00B7\uBD80\uC2A4\uD130\uD329 \uC2DC\uC138\uC815\uBCF4 | OP Box Index",
-    "OP Box Index \u2014 Live One Piece Box & Card Prices",
+    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4\u00B7PSA10 \uCE74\uB4DC \uC2DC\uC138 | opboxindex",
+    "OP Box Index \u2014 One Piece Box Prices",
   ) : t(
-    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC804 \uC138\uD2B8 \uC2DC\uC138 \uCD94\uC801 | OP Box Index",
-    "One Piece Booster Box Tracker \u2014 Live Prices by Set | OP Box Index",
+    "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC804 \uC138\uD2B8 \uC2DC\uC138 | opboxindex",
+    "One Piece Booster Box Prices by Set",
   );
   const description = isSetPage ? t(
     `${pack.code} ${koName}(${enName}) \uBD80\uC2A4\uD130\uBC15\uC2A4 \uAC00\uACA9, eBay \uC2DC\uC138, TOP10 \uD788\uD2B8\uCE74\uB4DC, NM, PSA10, PSA \uD1B5\uACC4\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.`,
     `Compare ${pack.code} ${enName} One Piece card prices, Japanese booster box prices, eBay sold and active market data, Top 10 chase cards, NM prices, PSA 10 prices and PSA population stats.`,
   ) : isHomePage ? t(
     "\uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC2DC\uC138, \uC6D0\uD53C\uC2A4 PSA10 \uCE74\uB4DC \uC2DC\uC138, \uBD80\uC2A4\uD130\uD329 \uC2DC\uC138\uC815\uBCF4, eBay \uCD5C\uC800\uAC00\u00B7\uD310\uB9E4\uC644\uB8CC \uAE30\uC900, \uD788\uD2B8\uCE74\uB4DC TOP10\uACFC PSA \uD1B5\uACC4\uB97C \uD55C \uBC88\uC5D0 \uBE44\uAD50\uD569\uB2C8\uB2E4.",
-    "Real eBay prices for One Piece booster boxes and PSA 10 cards, updated daily. Compare Top 10 chase cards, sold-price trends and PSA population data.",
+    "One Piece booster box and PSA 10 prices from eBay sold data, updated daily.",
   ) : t(
     "OP-01\uBD80\uD130 EB\u00B7PRB\uAE4C\uC9C0 \uC77C\uBCF8\uC5B4\uD310\u00B7\uC601\uBB38\uD310 \uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC804 \uC138\uD2B8\uC758 \uC2E4\uAC70\uB798, \uCD5C\uC800 \uB9E4\uBB3C\uACFC \uAC00\uACA9 \uCD94\uC774\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.",
-    "Browse every tracked One Piece booster box by set, with Japanese and English prices, verified eBay listings, sold-price history and chase-card data.",
+    "Japanese and English One Piece booster box prices from eBay sold data.",
   );
   document.title = title;
   document.querySelector('meta[name="description"]')?.setAttribute("content", description);

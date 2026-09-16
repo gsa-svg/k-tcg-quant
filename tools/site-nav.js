@@ -30,16 +30,16 @@
 // 배지 자체는 styles.css 의 ::after 로 그린다 — 자식 요소로 넣으면 언어를 바꿀 때
 // textContent 가 통째로 갈리면서 같이 지워진다.
 const ITEMS = [
-  ["Booster Boxes", "부스터 박스", "./", true],
+  ["One Piece Booster Boxes", "원피스 부스터 박스", "./", true],
   // ["Cards", "카드", "/cards/", false],
-  ["One Piece Auctions", "이베이 경매", "auction.html", true, "2026-09-16"],
+  ["One Piece eBay Auctions", "원피스 이베이 경매", "auction.html", true, "2026-09-16"],
   ["TCG Auctions", "TCG 경매", "tcg-auction.html", true, "2026-09-16"],
   // ["Compare", "비교", "compare.html", true],
   // ["Top PSA 10", "PSA10 랭킹", "psa10-ranking.html", true],
   // 2026-09-15 소유자 지시: PSA·CGC·TAG 를 한 페이지로 재설계하며 메뉴에 복귀(NEW 배지는 9/30 까지).
-  ["Grading", "그레이딩 통계", "psa-grading.html", true, "2026-09-30"],
+  ["One Piece Grading", "원피스 그레이딩 통계", "psa-grading.html", true, "2026-09-30"],
   // ["Set Guides", "세트 가이드", "sets/index.html", true],
-  ["Amazon Raffle", "아마존 응모", "amazon-lottery.html", true],
+  ["Amazon Japan Raffle", "일본 아마존 응모", "amazon-lottery.html", true],
 ];
 
 // ── 한국어 (2026-09-01 정정)
@@ -91,16 +91,16 @@ function guideLinksHtml(inKo = false) {
 
 // ko/ 페이지용. ko/ 안에 있는 파일은 ko/ 안을 가리키고, 나머지는 ../ 로 나간다.
 const KO_ITEMS = [
-  ["부스터 박스", "./"],
+  ["원피스 부스터 박스", "./"],
   // 2026-09-15 네이버 노출용: "원피스 카드 시세" 검색 착지가 ko/cards.html 이라 한국어 메뉴에만 되살린다(영문 메뉴는 그대로).
   ["카드 시세", "cards.html"],
-  ["이베이 경매", "auction.html"],
+  ["원피스 이베이 경매", "auction.html"],
   ["TCG 경매", "../tcg-auction.html"],
   // ["세트 비교", "../compare.html"],
   // ["PSA10 랭킹", "../psa10-ranking.html"],
-  ["그레이딩 통계", "grading.html"],
+  ["원피스 그레이딩 통계", "grading.html"],
   // ["세트 가이드", "../sets/index.html"],
-  ["아마존 응모", "amazon-lottery.html"],
+  ["일본 아마존 응모", "amazon-lottery.html"],
 ];
 
 function navHtmlKo() {
