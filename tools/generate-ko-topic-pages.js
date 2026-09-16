@@ -243,8 +243,8 @@ ${tr}
   return page({
     file: "cards.html",
     enHref: "cards/index.html",
-    title: "원피스 카드 시세 — 일판 낱장 NM·PSA 10 실낙찰가 (원화) | opboxindex",
-    desc: `원피스카드 일판(일본판) 낱장 시세를 원화로. 인기 카드 상위 ${top.length}장의 NM 시세, PSA 10 실낙찰 중앙값, 그레이딩 배수를 한 표에. 정발(한글판)은 집계하지 않는다.`,
+    title: "원피스 카드 시세 — 일판 NM·PSA10 실낙찰 | opboxindex",
+    desc: `원피스카드 일판 낱장 시세 — 인기 ${top.length}장의 NM·PSA 10 실낙찰가를 원화로. 정발(한글판) 제외.`,
     h1: "원피스 카드 시세 — 일판 낱장 NM·PSA 10 실낙찰 (원화)",
     eyebrow: "원피스카드 일판 시세",
     breadcrumbName: "원피스 카드 시세 (일판)",
@@ -301,8 +301,8 @@ ${tr}
   return page({
     file: "grading.html",
     enHref: "psa-grading.html",
-    title: "opboxindex - 원피스 그레이딩 통계 (PSA·CGC·TAG 세트별)",
-    desc: `원피스 그레이딩 현황을 세트별·판별로 정리. PSA 일본판 ${num(tj)}장·영문판 ${num(te)}장, 세트별 젬률과 CGC·TAG 누적까지. 공개 인구 리포트 기반 매주 갱신 (${DATA_DATE}).`,
+    title: "원피스 그레이딩 통계 PSA·CGC·TAG | opboxindex",
+    desc: `PSA·CGC·TAG 세트별 등급 인구와 주간 증가. 일본판·영문판 분리 집계, 매주 갱신 (${DATA_DATE}).`,
     h1: "원피스 카드 그레이딩 인구 (PSA · CGC · TAG)",
     eyebrow: "그레이딩",
     breadcrumbName: "원피스 그레이딩 인구",
@@ -368,8 +368,8 @@ ${cTr}
   return page({
     file: "auction.html",
     enHref: "auction.html",
-    title: "opboxindex - 원피스 이베이 경매 데이터 (실제 낙찰가·낙찰률)",
-    desc: `원피스 이베이 경매를 종료 후 재조회해 실제 낙찰가를 기록. 최근 ${daily.length}일 ${num(totN)}건 추적, 낙찰률 ${totN ? Math.round((totSold / totN) * 100) : 0}%, 카드별 낙찰 중앙값까지. 호가가 아닌 낙찰가 기준 (${DATA_DATE}).`,
+    title: "원피스 이베이 경매 낙찰가·낙찰률 | opboxindex",
+    desc: `원피스 이베이 경매 실제 낙찰가와 낙찰률. 최근 ${daily.length}일 ${num(totN)}건, 호가 아닌 낙찰 기준 (${DATA_DATE}).`,
     h1: "원피스 카드 이베이 경매 — 실제 낙찰 데이터",
     eyebrow: "이베이 경매",
     breadcrumbName: "원피스 이베이 경매 데이터",
@@ -498,8 +498,8 @@ ${src.brands.map((b) => `          <tr><td class="l w">${b.label}</td><td class=
   return page({
     file: "amazon-lottery.html",
     enHref: "amazon-lottery.html",
-    title: "원피스 카드 아마존 응모·포켓몬 응모 — 일본 아마존 초대판매 | opboxindex",
-    desc: `일본 Amazon.co.jp 초대판매(추첨) 응모 가능 상품 — 원피스 ${op.length}건, 포켓몬 ${pk.length}건을 직접 상품 링크로. 응모 조건·절차·해외배송 여부까지 표로.`,
+    title: "원피스 카드 아마존 응모·포켓몬 응모 | opboxindex",
+    desc: `일본 아마존 초대판매(추첨) 응모 가능 목록 — 원피스 ${op.length}건, 포켓몬 ${pk.length}건. 신청 무료.`,
     h1: "원피스 카드 아마존 응모 · 포켓몬 아마존 응모 — 일본 아마존 초대판매(추첨) 목록",
     eyebrow: "아마존 응모",
     breadcrumbName: "아마존 응모 (초대판매)",

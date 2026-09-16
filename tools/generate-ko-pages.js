@@ -187,8 +187,8 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="en" href="${SITE}/" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>원피스 카드 시세 · 일판 부스터박스 시세 (원화) | opboxindex</title>
-    <meta name="description" content="원피스카드 일판(일본판) 시세를 원화로 — 부스터박스 전 세트, 낱장 NM·PSA 10 실낙찰, 이베이 경매 낙찰률. 정발(한글판)은 집계하지 않는다." />
+    <title>원피스 카드 시세 · 일판 부스터박스 시세 | opboxindex</title>
+    <meta name="description" content="원피스카드 일판 시세 — 부스터박스·낱장 원화 시세. 이베이 실낙찰 기준, 정발(한글판) 제외." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
@@ -496,8 +496,12 @@ ${cardRows}
     { "@type": "ListItem", position: 3, name: `${code} ${nKo}`, item: canonical },
   ] });
 
-  const title = `${code} ${nKo} 박스 시세 (일본판) | OP Box Index`;
-  const desc = `${code} ${nKo} 일본판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 재판 기록과 인기 카드 NM 시세까지 매일 갱신. 실거래 및 검증된 매물 기반.`;
+  // 네이버 간단체크: 제목 40자·설명 80자 초과는 사이트 카드에서 잘린다(2026-09-16).
+  // 세트명 길이가 제각각이라(EB-02·PRB 는 14자) 넘치면 브랜드를 떼서 맞춘다 — 자르는 것보다 낫다.
+  const titleFull = `${code} ${nKo} 일판 박스 시세 | opboxindex`;
+  const title = titleFull.length <= 40 ? titleFull : `${code} ${nKo} 일판 박스 시세`;
+  const descFull = `${code} ${nKo} 일판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 재판 기록·인기 카드 NM 시세, 매일 갱신.`;
+  const desc = descFull.length <= 80 ? descFull : `${code} ${nKo} 일판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 매일 갱신.`;
 
   return { slug, html: `<!doctype html>
 <html lang="ko">
