@@ -16,7 +16,11 @@ function initDisplayLanguage() {
   const browserKo =
     (navigator.language || "").toLowerCase().startsWith("ko") ||
     (navigator.languages || []).some((l) => (l || "").toLowerCase().startsWith("ko"));
-  state.hl = urlLang === "ko" && browserKo ? "ko" : "en";
+  // 2026-09-16: 다른 페이지(lang-toggle.js)에서 고른 언어를 홈이 무시하고 늘 영문으로 시작했다 — 저장값을 먼저 본다.
+  let saved = null;
+  try { saved = localStorage.getItem("opbox_lang") || localStorage.getItem("ktcg_hl"); } catch (e) {}
+  if (saved === "ko" || saved === "en") state.hl = saved;
+  else state.hl = urlLang === "ko" && browserKo ? "ko" : "en";
 }
 
 function t(ko, en) {
@@ -196,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260902a";
+const DATA_VERSION = "20260916a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -954,6 +958,13 @@ function applyStaticI18n() {
     "Paid Link: eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다. 구매 비용은 추가되지 않습니다.",
     "Paid Link: As an eBay Partner, OP Box Index may earn a commission from qualifying purchases made through eBay links, at no extra cost to you.",
   );
+  // 메뉴(data-ko)는 lang-toggle.js 가 번역하는데, 이 페이지들은 packs.js 가 토글을 맡아 그 스크립트가 버튼을 안 만든다.
+  // 그래서 본문은 한글인데 메뉴만 영문으로 남았다(2026-09-16 실측). 같은 규칙으로 여기서 바꾼다.
+  document.querySelectorAll("[data-ko]").forEach((el) => {
+    if (el.dataset.en == null) el.dataset.en = el.textContent;
+    el.textContent = state.hl === "ko" ? el.dataset.ko : el.dataset.en;
+  });
+  document.documentElement.lang = state.hl;
   const btn = document.querySelector("#displayLangToggle");
   if (btn) btn.textContent = state.hl === "en" ? "한국어" : "EN";
 }
@@ -962,19 +973,20 @@ function bindDisplayLanguage() {
   // 이 페이지의 언어 전환은 packs.js 가 맡는다는 표시 — lang-toggle.js 가 보고 버튼을 만들지 않는다.
   // 두 개가 붙으면 어느 것을 눌러야 할지 알 수 없다(2026-09-01 에 실제로 그렇게 됐다).
   window.__opboxPacksLang = true;
-  const nav = document.querySelector(".topbar .nav");
-  if (!nav) return;
+  // 버튼은 스크롤되는 .nav 안이 아니라 .topbar 직속(.langBtn) — 메뉴 끝에 붙이면 모바일에서 밀려 안 보인다(2026-09-16).
+  const bar = document.querySelector(".topbar") || document.querySelector(".topbar .nav");
+  if (!bar) return;
   let btn = document.querySelector("#displayLangToggle");
   if (!btn) {
     btn = document.createElement("button");
     btn.id = "displayLangToggle";
     btn.type = "button";
-    btn.style.cssText = "border:1px solid rgba(255,255,255,.16);background:#14171c;color:#eef2ff;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer";
-    nav.appendChild(btn);
+    btn.className = "navKo langBtn";
+    bar.appendChild(btn);
   }
   btn.onclick = () => {
     state.hl = state.hl === "en" ? "ko" : "en";
-    try { localStorage.setItem("ktcg_hl", state.hl); } catch (e) {}
+    try { localStorage.setItem("ktcg_hl", state.hl); localStorage.setItem("opbox_lang", state.hl); } catch (e) {}
     state.renderedLang = null;
     applyStaticI18n();
     renderPackGrid();

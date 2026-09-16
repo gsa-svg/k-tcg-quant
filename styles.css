@@ -183,9 +183,9 @@ a {
   }
 }
 
-/* 언어 전환 버튼(lang-toggle.js 가 만든다). 메뉴 링크와 같은 크기로 두되,
-   테두리를 줘서 '이동'이 아니라 '전환'이라는 것을 눈으로 구분한다. */
-.nav .navKo {
+/* 언어 전환 버튼(lang-toggle.js / packs.js 가 만든다). 2026-09-16: 가로 스크롤 메뉴 맨 끝에 붙어 있어
+   모바일에서 옆으로 밀어야 보였다(소유자: "옥션 누르면 사라진다"). .topbar 직속 .langBtn 으로 빼서 항상 보이게 한다. */
+.navKo {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
@@ -200,12 +200,12 @@ a {
   cursor: pointer;
 }
 
-.nav .navKo:hover {
+.navKo:hover {
   background: #151923;
   color: var(--ink);
 }
 
-.nav .navKo:focus-visible {
+.navKo:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -1326,3 +1326,13 @@ small { font-size: 12px; }
 .nextLinks { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 16px; }
 .nextLinks a { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border: 1px solid rgba(16, 215, 160, 0.34); border-radius: 999px; background: rgba(16, 215, 160, 0.08); color: var(--accent); font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 .nextLinks a:hover { background: rgba(16, 215, 160, 0.16); }
+
+/* 언어 버튼 자리: 데스크톱은 메뉴 오른쪽 끝, 모바일은 브랜드 줄 오른쪽(메뉴 스크롤 띠 밖). 2026-09-16 */
+.topbar .nav { margin-left: auto; }
+.topbar .langBtn { flex: 0 0 auto; order: 3; margin-left: 12px; }
+@media (max-width: 880px) {
+  .topbar { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .topbar .brand { order: 1; }
+  .topbar .langBtn { order: 2; margin-left: auto; min-height: 34px; padding: 0 10px; font-size: 13px; }
+  .topbar .nav { order: 3; width: 100%; margin-left: 0; }
+}

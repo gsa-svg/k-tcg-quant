@@ -29,11 +29,12 @@
     return !!window.__opboxPacksLang || !!document.querySelector("#displayLangToggle");
   }
 
+  // packs.js(홈·세트 페이지)는 "ktcg_hl" 키를 쓴다. 두 키를 같이 읽고 같이 써야 홈에서 고른 언어가 경매 페이지로 이어진다(2026-09-16).
   function stored() {
-    try { return localStorage.getItem(KEY); } catch (e) { return null; }
+    try { return localStorage.getItem(KEY) || localStorage.getItem("ktcg_hl"); } catch (e) { return null; }
   }
   function remember(v) {
-    try { localStorage.setItem(KEY, v); } catch (e) {}
+    try { localStorage.setItem(KEY, v); localStorage.setItem("ktcg_hl", v); } catch (e) {}
   }
 
   // 처음 언어를 정한다: 저장된 선택 > URL(?hl=ko) > 영문.
@@ -76,15 +77,16 @@
 
   function mount() {
     if (packsOwnsToggle()) return;
-    var nav = document.querySelector(".topbar .nav");
-    if (!nav) return;
+    // 버튼은 스크롤되는 .nav 안이 아니라 .topbar 직속에 둔다 — 메뉴 끝에 붙이면 모바일에서 밀려 안 보인다(2026-09-16).
+    var bar = document.querySelector(".topbar") || document.querySelector(".topbar .nav");
+    if (!bar) return;
     var btn = document.querySelector("#langToggle");
     if (!btn) {
       btn = document.createElement("button");
       btn.id = "langToggle";
       btn.type = "button";
-      btn.className = "navKo";
-      nav.appendChild(btn);
+      btn.className = "navKo langBtn";
+      bar.appendChild(btn);
     }
     var lang = initialLang();
     apply(lang);
