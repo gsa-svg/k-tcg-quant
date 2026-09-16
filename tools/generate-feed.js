@@ -76,9 +76,26 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <language>en-us</language>
   <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
   <atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml" />
-${[...items, ...koItems].map(renderItem).join("\n")}
+${items.map(renderItem).join("\n")}
 </channel>
 </rss>
 `;
 fs.writeFileSync(path.join(ROOT, "feed.xml"), xml);
-console.log("feed.xml written:", items.length + koItems.length, "items (articles", items.length + ", ko", koItems.length + "); newest article:", items[0].pub, items[0].title.slice(0, 50));
+
+// 한국어는 별도 피드로 뺀다 — 한 피드에 섞으면 language=en-us 인데 최신 항목이 전부 한국어가 되어
+// 영문 구독 경로가 죽는다(2026-09-16 실측: 44건 중 최신 20건이 전부 한국어). 네이버에는 이 주소를 제출한다.
+const koXml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>OP Box Index — 원피스 카드·박스 시세</title>
+  <link>${SITE}/ko/</link>
+  <description>원피스 카드게임 부스터박스·카드 시세, 이베이 경매 낙찰 데이터, PSA·CGC·TAG 그레이딩 통계.</description>
+  <language>ko-kr</language>
+  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+  <atom:link href="${SITE}/ko/feed.xml" rel="self" type="application/rss+xml" />
+${koItems.map(renderItem).join("\n")}
+</channel>
+</rss>
+`;
+fs.writeFileSync(path.join(ROOT, "ko", "feed.xml"), koXml);
+console.log("feed.xml:", items.length, "en · ko/feed.xml:", koItems.length, "ko; newest article:", items[0].pub, items[0].title.slice(0, 50));

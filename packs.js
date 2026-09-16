@@ -2003,10 +2003,33 @@ function updateSeo(pack) {
     "OP-01\uBD80\uD130 EB\u00B7PRB\uAE4C\uC9C0 \uC77C\uBCF8\uC5B4\uD310\u00B7\uC601\uBB38\uD310 \uC6D0\uD53C\uC2A4 \uBD80\uC2A4\uD130\uBC15\uC2A4 \uC804 \uC138\uD2B8\uC758 \uC2E4\uAC70\uB798, \uCD5C\uC800 \uB9E4\uBB3C\uACFC \uAC00\uACA9 \uCD94\uC774\uB97C \uBE44\uAD50\uD569\uB2C8\uB2E4.",
     "Japanese and English One Piece booster box prices from eBay sold data.",
   );
-  document.title = title;
-  document.querySelector('meta[name="description"]')?.setAttribute("content", description);
-  document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
-  document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
+  // 홈·목록 페이지의 **영문** 제목/설명은 정적 HTML 이 유일한 진실원이다 — 여기서 또 쓰면
+  // 정적값과 렌더 후 값이 갈라지고, 구글은 렌더 후를 읽어 한쪽만 고쳤을 때 조용히 어긋난다
+  // (2026-09-16 실측: 정적 57자 vs 렌더 후 35자). 세트 페이지는 URL 마다 내용이 달라 런타임이 맞고,
+  // 한국어 표시는 네이버가 JS 를 안 돌려 색인과 무관하므로 탭 제목 UX 로만 바꾼다.
+  // 영문으로 되돌아올 때 정적 원문을 복원해야 한다 — 안 하면 한국어 제목이 탭에 그대로 남는다(2026-09-16 실측).
+  const setMeta = (sel, v) => { const el = document.querySelector(sel); if (el) el.setAttribute("content", v); };
+  if (!window.__opboxStaticSeo) {
+    window.__opboxStaticSeo = {
+      title: document.title,
+      desc: document.querySelector('meta[name="description"]')?.getAttribute("content") || "",
+      ogTitle: document.querySelector('meta[property="og:title"]')?.getAttribute("content") || "",
+      ogDesc: document.querySelector('meta[property="og:description"]')?.getAttribute("content") || "",
+    };
+  }
+  if (!isSetPage && state.hl !== "ko") {
+    const st = window.__opboxStaticSeo;
+    document.title = st.title;
+    setMeta('meta[name="description"]', st.desc);
+    setMeta('meta[property="og:title"]', st.ogTitle);
+    setMeta('meta[property="og:description"]', st.ogDesc);
+  }
+  if (isSetPage || state.hl === "ko") {
+    document.title = title;
+    document.querySelector('meta[name="description"]')?.setAttribute("content", description);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
+  }
   let canonical = document.querySelector('link[rel="canonical"]');
   if (!canonical) {
     canonical = document.createElement("link");

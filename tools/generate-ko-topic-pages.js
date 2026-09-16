@@ -242,7 +242,7 @@ ${tr}
 
   return page({
     file: "cards.html",
-    enHref: "cards/index.html",
+    enHref: "cards/",   // 정규 URL — cards/index.html 을 가리키면 구글이 hreflang 을 무시한다(2026-09-16)
     title: "원피스 카드 시세 — 일판 NM·PSA10 실낙찰 | opboxindex",
     desc: `원피스카드 일판 낱장 시세 — 인기 ${top.length}장의 NM·PSA 10 실낙찰가를 원화로. 정발(한글판) 제외.`,
     h1: "원피스 카드 시세 — 일판 낱장 NM·PSA 10 실낙찰 (원화)",
