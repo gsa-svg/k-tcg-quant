@@ -181,19 +181,41 @@
     // ── 매물수 겹쳐그리기는 2026-08-27 소유자 확정으로 제거 — 회색 점선이 가격선과 엉켜
     //    "이게 무슨 그래프인지 모르겠다"는 피드백. 매물수는 아래 전용 공급 패널이 담당한다.
 
-    // ── 거래가 끊긴 구간. 억지로 선을 이어 그리면 없는 거래를 만드는 셈이라 칠하고 이름을 붙인다.
-    let staleLayer = "", staleBadge = "";
+    // ── 거래가 끊긴 구간. 억지로 실선을 이어 그리면 없는 거래를 만드는 셈이다.
+    //    2026-09-16 소유자 요청으로 표시를 강하게 했다. 규칙은 그대로다 — 새 값은 만들지 않는다.
+    //    ① 빗금: "여기엔 데이터가 없다"를 색이 아니라 무늬로 말한다(5% 단색은 화면에서 안 보였다).
+    //    ② 점선 유도선: 마지막 체결가 높이로 오늘까지 긋되 실선·채움과 확실히 구분한다.
+    //       이어진 값이 아니라 "마지막으로 팔린 가격이 여기였다"는 기준선이다.
+    //    ③ 오늘 끝은 속 빈 원 — 채워진 점(실제 관측)과 모양으로 구분한다.
+    let staleLayer = "", staleBadge = "", staleDefs = "";
     if (t1 > tLast + 86400000 * 2) {
       const gx0 = px({ d: pts[pts.length - 1].d }), gx1 = W - PR;
       const tSale = lastSaleD ? Date.parse(lastSaleD) : tLast;
       const days = Math.round((t1 - tSale) / 86400000);
+      const gy = py(pts[pts.length - 1].median);
+      const hid = gid + "hatch";
+      const wide = gx1 - gx0 > 96;
+      staleDefs =
+        '<pattern id="' + hid + '" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+        '<rect width="7" height="7" fill="rgba(245,200,66,.07)"/>' +
+        '<line x1="0" y1="0" x2="0" y2="7" stroke="rgba(245,200,66,.30)" stroke-width="1.6"/></pattern>';
       staleLayer =
         '<rect class="opbcStale" x="' + gx0.toFixed(1) + '" y="' + T + '" width="' + (gx1 - gx0).toFixed(1) +
-        '" height="' + (PRICE_BOTTOM - T) + '"/>' +
+        '" height="' + (PRICE_BOTTOM - T) + '" fill="url(#' + hid + ')"/>' +
         '<line class="opbcStaleEdge" x1="' + gx0.toFixed(1) + '" y1="' + T + '" x2="' + gx0.toFixed(1) + '" y2="' + PRICE_BOTTOM + '"/>' +
-        (gx1 - gx0 > 70 ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 14) +
-          '" text-anchor="middle">' + (lang === "ko" ? "거래 없음" : "no sales") + "</text>" : "");
-      staleBadge = lang === "ko" ? days + "일째 거래 없음" : days + "d since last sale";
+        '<line class="opbcStaleCarry" x1="' + gx0.toFixed(1) + '" y1="' + gy.toFixed(1) +
+        '" x2="' + gx1.toFixed(1) + '" y2="' + gy.toFixed(1) + '" stroke="' + color + '"/>' +
+        '<circle class="opbcStaleEnd" cx="' + gx1.toFixed(1) + '" cy="' + gy.toFixed(1) + '" r="4" stroke="' + color + '"/>' +
+        (wide
+          ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 15) +
+            '" text-anchor="middle">' + (lang === "ko" ? "거래 없음 " + days + "일" : days + "d no sales") + "</text>" +
+            '<text class="opbcStaleSub" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 29) +
+            '" text-anchor="middle">' + (lang === "ko" ? "선은 마지막 체결가" : "line = last traded price") + "</text>"
+          : gx1 - gx0 > 44
+            ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 15) +
+              '" text-anchor="middle">' + (lang === "ko" ? "거래 없음" : "no sales") + "</text>"
+            : "");
+      staleBadge = lang === "ko" ? "거래 없음 " + days + "일" : days + "d no sales";
     }
 
     // 계열 이름표. 거래량은 색이 방향을 뜻하므로 두 색을 같이 보여준다.
@@ -259,7 +281,7 @@
       esc(lang === "ko" ? "박스 실거래 중앙값 추이" : "sealed box median sold price over time") + '">' +
       '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
-      '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient></defs>' +
+      '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient>' + staleDefs + '</defs>' +
       staleLayer + grid + volAxis + bars +
       '<path d="' + area + '" fill="url(#' + gid + ')"/>' +
       '<path class="opbcLine" d="' + line + '" stroke="' + color + '"/>' +
@@ -615,10 +637,13 @@
     ".opbcSupFill{fill:rgba(128,144,176,.10)}",
     ".opbcSupLine{fill:none;stroke:rgba(128,144,176,.55);stroke-width:1.4;stroke-dasharray:5 3;stroke-linejoin:round}",
     ".opbcSupAx{fill:#8090b0}",
-    ".opbcStale{fill:rgba(245,200,66,.05)}",
-    ".opbcStaleEdge{stroke:rgba(245,200,66,.4);stroke-width:1;stroke-dasharray:3 3}",
-    ".opbcStaleTx{fill:#f5c842;font-size:10px;font-weight:700}",
-    ".opbcStaleBadge{margin-left:8px;padding:2px 8px;border-radius:20px;background:rgba(245,200,66,.12);color:#f5c842;font-size:10px;font-weight:800;white-space:nowrap}",
+    ".opbcStale{}",
+    ".opbcStaleEdge{stroke:rgba(245,200,66,.75);stroke-width:1.5;stroke-dasharray:4 3}",
+    ".opbcStaleCarry{stroke-width:2;stroke-dasharray:2 5;stroke-linecap:round;opacity:.65}",
+    ".opbcStaleEnd{fill:#0a0f14;stroke-width:2;opacity:.75}",
+    ".opbcStaleTx{fill:#f5c842;font-size:11px;font-weight:800}",
+    ".opbcStaleSub{fill:rgba(245,200,66,.7);font-size:9.5px;font-weight:600}",
+    ".opbcStaleBadge{margin-left:8px;padding:3px 9px;border-radius:20px;background:rgba(245,200,66,.18);border:1px solid rgba(245,200,66,.45);color:#f5c842;font-size:10.5px;font-weight:800;white-space:nowrap}",
     ".opbcKey{display:flex;gap:14px;margin:6px 0 0;padding:0 4px;font-size:11px;color:var(--muted,#8d95a7)}",
     ".opbcKey span{display:inline-flex;align-items:center;gap:5px}",
     ".opbcKey i{display:inline-block;width:12px;height:2px;border-radius:1px}",
