@@ -109,6 +109,26 @@ const localImg = (slug, fallback) => (IMG_MAP[slug] ? `${SITE}/${IMG_MAP[slug]}`
 
 fs.mkdirSync(CARDS_DIR, { recursive: true });
 
+// 검색 제목용 이름 분해(2026-09-16). 데이터의 c.name 은 "Monkey D. Luffy 012 Alternate Art Gold Stamped Signature"처럼
+// 이름 뒤에 번호 토큰(012 / OP06 119 / OP05-060)과 변형 단어가 붙어 있다. 뒤에서부터 번호·변형 토큰을 떼어
+// 이름을 얻고, 변형은 줄여 쓴다(Alternate Art→Alt Art, Gold Stamped Signature→Gold Stamped, (Manga)→Manga).
+// 같은 이름+번호의 다른 변형(OP05-119 루피 일반/SP Gold/SP Silver 등)은 변형 단어로 구분된다.
+const VARIANT_WORDS = new Set(["alternate", "alt", "art", "manga", "(manga)", "parallel", "sp", "gold", "silver", "super", "red", "box", "topper", "stamped", "signature"]);
+function seoName(c) {
+  const [setCode = "", num3 = ""] = String(c.number).toLowerCase().split("-");
+  const isNumTok = (t) => { const l = t.toLowerCase(); return l === num3 || l === setCode || l === String(c.number).toLowerCase(); };
+  const toks = String(c.name).trim().split(/\s+/);
+  let i = toks.length;
+  while (i > 1 && (isNumTok(toks[i - 1]) || VARIANT_WORDS.has(toks[i - 1].toLowerCase()))) i--;
+  const base = toks.slice(0, i).join(" ");
+  const variant = toks.slice(i).filter((t) => !isNumTok(t)).join(" ")
+    .replace(/\(Manga\)/i, "Manga")
+    .replace(/Alternate Art Gold Stamped Signature/i, "Gold Stamped")
+    .replace(/Alternate Art/gi, "Alt Art");
+  return { base, variant, short: `${base} ${c.number}${variant ? " " + variant : ""}` };
+}
+const seenTitles = new Set();
+
 const hubItems = [];
 const written = [];
 for (const { code, set: s, card: c } of cands) {
@@ -186,9 +206,17 @@ for (const { code, set: s, card: c } of cands) {
       </ul>`;
   }
 
-  // 타이틀은 실제 검색 문구("<카드> psa 10 price") 매칭 + 월 표기 자동 갱신(야간 재생성)
-  const title = `${c.name} (${c.number}) PSA 10 Price & Population — ${MON_LABEL} | OP Box Index`;
-  const desc = `${c.name} ${c.number} current prices: raw Japanese NM ${usd(nmUsd)}${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} near ${usd(p10.v)}` : ""}${pop ? `, PSA population ${intl(pop.total)} (${pop.gem}% gem rate)` : ""}. Variant-verified, updated ${DATA_DATE}.`;
+  // 타이틀 = "<이름> <번호> <짧은 변형> PSA 10 Price" (2026-09-16). 구글은 60자(약 580px) 넘는 제목을 잘라내거나
+  // 다시 쓴다 — 전엔 112장 전부 60자 초과였다. 월 표기·"& Population"·브랜드 꼬리를 뺐다.
+  const sn = seoName(c);
+  const title = sn.short + " PSA 10 Price";
+  // 설명은 155자 이하. 넘치면 같은 숫자를 압축 표현으로 다시 쓴다(숫자는 그대로, 말만 줄임).
+  const descOf = (nmL, p10L, popL, gemL) => `${sn.short}: ${nmL} ${usd(nmUsd)}${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} ${p10L}${usd(p10.v)}` : ""}${pop ? `, ${popL} ${intl(pop.total)} (${pop.gem}% ${gemL})` : ""}. Updated ${DATA_DATE}.`;
+  let desc = descOf("raw Japanese NM", p10 && p10.kind === "sold" ? "median " : "from ", "PSA population", "gem rate");
+  if (desc.length > 155) desc = descOf("raw NM", "", "PSA pop", "gem");
+  if (title.length > 60 || desc.length > 155) throw new Error(`SEO 길이 초과: ${title.length}/${desc.length} ${c.number} ${c.name}`);
+  if (seenTitles.has(title)) throw new Error(`타이틀 중복: ${title}`);
+  seenTitles.add(title);
 
   const faq = [
     { q: `How much is ${c.name} (${c.number}) worth?`, a: `On ${DATA_DATE}, ${c.name} ${c.number} was tracked near ${usd(nmUsd)} in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}` : "; no PSA 10 figure met the exact-variant sales rule"}.` },
@@ -447,8 +475,8 @@ const hub = `<!doctype html>
     <link rel="alternate" hreflang="ko" href="${SITE}/ko/cards.html" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/cards/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>PSA 10 vs Raw Price — One Piece Card Value List (${gradedRows.length} Cards) | OP Box Index</title>
-    <meta name="description" content="How much more a PSA 10 sells for than the raw card: ${gradedRows.length} Japanese One Piece cards with raw NM price, PSA 10 median from completed eBay sales, and the grading premium side by side." />
+    <title>PSA 10 vs Raw Price — One Piece Card List | OP Box Index</title>
+    <meta name="description" content="${gradedRows.length} Japanese One Piece cards with raw NM price, PSA 10 median from completed eBay sales and the grading premium of each, side by side." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="One Piece Card Prices — Top Tracked Cards" />
