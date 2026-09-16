@@ -51,6 +51,17 @@ function soldKrwPts(code) {
   return arr.filter((p) => p && p.median != null).map((p) => ({ d: p.d, p: Math.round(p.median * fx.usdKrw) }));
 }
 
+// PSA 10 실거래 중앙값 → 원화. psa10Ebay.middle 은 세트마다 통화가 다르다(신규 수집 USD / 옛 값 KRW).
+// 확인 없이 원화로 찍어 "PSA 10 실거래 중앙값은 921원 … 약 0.0배"가 세트 페이지 본문에 나갔다(2026-09-16).
+// 통화를 모르면 null — 그 문장 자체를 싣지 않는다(빈칸 > 틀린값).
+// 표본 하한 3건은 ko/cards.html 과 같은 기준이다 — 한쪽만 느슨하면 같은 카드가 페이지마다 다르게 나온다(2026-09-16).
+function psa10Krw(p) {
+  if (!p || p.middle == null || (p.sampleSize || 0) < 3) return null;
+  if (p.currency === "KRW") return p.middle;
+  if (p.currency === "USD") return fx.usdKrw ? p.middle * fx.usdKrw : null;
+  return null;
+}
+
 function nameKo(code) { const s = d.sets[code]; return (s && s.nameKo) || code; }
 function reprintRecords(code) { return ((mi.reprints.bySet[code] || {}).reprintRecords) || []; }
 
@@ -91,6 +102,18 @@ const hubProse = (() => {
       </section>`;
 })();
 
+// 카드 썸네일 — 자체 호스팅 이미지만 쓴다(외부 CDN 직링크는 가드 I1 이 막는다).
+// ko/ 깊이라 출력할 때 "../" 를 붙인다(안 붙이면 /ko/img/... 로 해석돼 404).
+const IMG_MAP_CARDS = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "img", "cards", "map.json"), "utf8")); } catch { return {}; } })();
+const cardSlugify = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70);
+function ownCardImage(c) {
+  const mapped = IMG_MAP_CARDS[cardSlugify(c.number + "-" + c.name)];
+  if (mapped) return mapped;
+  const u = c.image || c.img || "";
+  if (/^https:\/\/opboxindex\.com\//.test(u)) return u.replace(/^https:\/\/opboxindex\.com\//, "").replace(/^\/+/, "");
+  return null;
+}
+
 // 시세표 행 — 변동률 기준일(baseDate)은 세트마다 다름(대부분 2026-01-07, OP-16은 발매추적 4-27) → 행마다 명시
 const koSlug = (code) => code.toLowerCase();
 const tableRows = rows.map((b) => {
@@ -129,6 +152,10 @@ const faqs = [
     q: "일본 아마존에서 응모는 어떻게 하나요?",
     a: "일본 아마존은 인기 박스를 추첨(응모) 방식으로 판매합니다. 한국 배송도 가능(AmazonGlobal, 상품별 상이). 아마존 응모 안내 페이지에서 최신 링크를 확인하세요.",
   },
+  {
+    q: "일판과 정발(한글판)은 시세가 같나요?",
+    a: "다릅니다. 이 사이트 수치는 전부 일판(일본판) 기준이며 정발(한글판)은 집계하지 않습니다.",
+  },
 ];
 const faqLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "FAQPage",
@@ -160,8 +187,8 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="en" href="${SITE}/" />
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>opboxindex - 원피스 카드 시세, 박스 시세, 이베이 경매 데이터</title>
-    <meta name="description" content="원피스 카드·부스터박스 시세(일본판, 원화), 이베이 경매 실제 낙찰 데이터, PSA·CGC·TAG 그레이딩 통계를 한곳에서. 실거래 기반 매일 갱신." />
+    <title>원피스 카드 시세 · 일판 부스터박스 시세 (원화) | opboxindex</title>
+    <meta name="description" content="원피스카드 일판(일본판) 시세를 원화로 — 부스터박스 전 세트, 낱장 NM·PSA 10 실낙찰, 이베이 경매 낙찰률. 정발(한글판)은 집계하지 않는다." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
@@ -225,8 +252,8 @@ const html = `<!doctype html>
       ${NAV_KO}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow">한국어 · 일본판 시세</p>
-      <h1>원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세</h1>
+      <p class="eyebrow">한국어 · 원피스카드 일판 시세</p>
+      <h1>원피스 부스터박스 시세 (일판) — 전 세트 원화 시세</h1>
       <p class="koNote">일본판 원피스 카드게임 부스터박스 전 세트의 <strong>실거래·검증된 매물 기반</strong> 원화 시세입니다. 기준과 출처가 확인된 값만 표시하며 매일 갱신합니다. 기준일 ${esc(DATA_DATE)}.</p>
 
       <section aria-label="전 세트 시세표">
@@ -234,7 +261,7 @@ const html = `<!doctype html>
         <p class="koNote">변동률은 각 세트의 <strong>추적 시작일 대비</strong>입니다(발매일 대비 아님 — 대부분 2026-01-07부터 추적, 기준일은 행마다 표기). 세트 코드를 누르면 세트별 상세 시세로 갑니다.</p>
         <div style="overflow-x:auto">
         <table class="koBoard">
-          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>박스 시세</th><th>기준일 대비</th><th class="l">재판</th></tr></thead>
+          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>일판 박스 시세</th><th>기준일 대비</th><th class="l">재판</th></tr></thead>
           <tbody>
 ${tableRows}
           </tbody>
@@ -254,11 +281,11 @@ ${hubProse}
 
       <section aria-label="주제별 데이터">
         <h2>주제별 데이터 바로가기</h2>
-        <p class="koProse"><a href="cards.html"><strong>원피스 카드 시세</strong></a> — 인기 카드 상위 30장의 NM·PSA 10 실거래가를 원화로. <a href="grading.html"><strong>그레이딩 인구</strong></a> — PSA·CGC·TAG에 세트별로 몇 장이 접수됐고 젬률이 얼마인지. <a href="auction.html"><strong>이베이 경매 낙찰 데이터</strong></a> — 호가가 아닌 실제 낙찰가와 낙찰률. 셋 다 자체 수집 데이터로 매일 갱신됩니다.</p>
+        <p class="koProse"><a href="cards.html"><strong>원피스카드 일판 시세</strong></a> — 인기 카드 상위 30장의 NM·PSA 10 실거래가를 원화로. <a href="grading.html"><strong>그레이딩 인구</strong></a> — PSA·CGC·TAG에 세트별로 몇 장이 접수됐고 젬률이 얼마인지. <a href="auction.html"><strong>이베이 경매 낙찰 데이터</strong></a> — 호가가 아닌 실제 낙찰가와 낙찰률. 셋 다 자체 수집 데이터로 매일 갱신됩니다.</p>
       </section>
 
       <div class="koCta">
-        <a class="primary" href="../amazon-lottery.html">아마존 응모 안내 →</a>
+        <a class="primary" href="amazon-lottery.html">아마존 응모 안내 →</a>
         <a class="ghost" href="../psa-grading.html">그레이딩 인구 데이터 →</a>
         <a class="ghost" href="../sets/index.html">세트별 가이드 →</a>
       </div>
@@ -299,7 +326,13 @@ function setPageKo(b) {
 
   // 인기 카드(NM 보유분만, 원화). 값 없으면 섹션 자체를 숨김.
   const topCards = (s.cards || []).filter((c) => c.nmJpy != null && c.number).slice(0, 8);
-  const cardRows = topCards.map((c) => `<tr><td class="nm">${esc(c.name)}</td><td class="code">${esc(c.number)}</td><td>${esc(c.rarity || "—")}</td><td class="num">${won(c.nmJpy * fx.jpyKrw)}</td></tr>`).join("\n");
+  // 자체 호스팅 이미지가 한 장도 없는 세트는 썸네일 열 자체를 넣지 않는다(빈 열 방지).
+  const cardThumbs = topCards.map((c) => ownCardImage(c));
+  const hasThumb = cardThumbs.some(Boolean);
+  const thumbCell = (i, c) => (hasThumb
+    ? `<td class="thumb">${cardThumbs[i] ? `<img src="../${cardThumbs[i]}" alt="${esc(c.number)} ${esc(c.name)}" width="40" height="56" loading="lazy" decoding="async" />` : ""}</td>`
+    : "");
+  const cardRows = topCards.map((c, i) => `<tr>${thumbCell(i, c)}<td class="nm">${esc(c.name)}</td><td class="code">${esc(c.number)}</td><td>${esc(c.rarity || "—")}</td><td class="num">${won(c.nmJpy * fx.jpyKrw)}</td></tr>`).join("\n");
   // 경매 실적 — 우리가 종료 후 재조회해 쌓은 원장에서만 나오는 축이다.
   // 애드센스가 '가치 없는 콘텐츠'로 거절한 뒤(2026-09-01) 한국어 페이지도 같이 채운다.
   const koAuctionSection = (() => {
@@ -329,7 +362,7 @@ function setPageKo(b) {
         <p class="koNote">${esc(code)} ${esc(nKo)}의 일본판 NM 카드 ${topCards.length}장을 ${esc(DATA_DATE)} 기준으로 비교합니다.</p>
         <div style="overflow-x:auto">
         <table class="koBoard">
-          <thead><tr><th class="l">카드</th><th class="l">번호</th><th class="l">레어도</th><th>NM 시세</th></tr></thead>
+          <thead><tr>${hasThumb ? `<th class="l">이미지</th>` : ""}<th class="l">카드</th><th class="l">번호</th><th class="l">레어도</th><th>NM 시세</th></tr></thead>
           <tbody>
 ${cardRows}
           </tbody>
@@ -394,10 +427,17 @@ ${cardRows}
     const compTxt = Object.entries(comp).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}장`).join(", ");
     const p1 = `이 박스의 가치를 끌고 가는 카드는 <strong>${esc(t0.name)}</strong>(${esc(t0.number)})로, 일본판 NM 시세가 약 <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>입니다. 추적 중인 상위 카드 구성은 ${compTxt} — 어떤 유형이 몇 장인지가 박스 기대값의 골격입니다.`;
     const sold = t0.psa10Ebay && t0.psa10Ebay.soldBased && t0.psa10Ebay.middle != null ? t0.psa10Ebay : null;
-    const p2 = sold
-      ? `${esc(t0.name)}의 <strong>PSA 10 실거래 중앙값은 ${won(sold.middle)}</strong>(표본 ${sold.sampleSize}건)이며, NM 원본 대비 약 ${(sold.middle / (t0.nmJpy * fx.jpyKrw)).toFixed(1)}배입니다.`
-      : `${esc(t0.name)}는 확인 가능한 PSA 10 실거래 표본이 부족해 등급 가격을 추정하지 않고 NM 값만 표시합니다.`;
-    prose.push({ h: "인기 카드가 말해주는 것", p: [p1, p2] });
+    const soldKrw = psa10Krw(sold);
+    const nmKrw = t0.nmJpy != null && fx.jpyKrw ? t0.nmJpy * fx.jpyKrw : null;
+    const mult = soldKrw != null && nmKrw ? soldKrw / nmKrw : null;
+    const cardParas = [p1];
+    if (soldKrw != null) {
+      cardParas.push(`${esc(t0.name)}의 <strong>PSA 10 실거래 중앙값은 ${won(soldKrw)}</strong>(표본 ${sold.sampleSize}건)${mult != null ? `이며, NM 원본 대비 약 ${mult.toFixed(1)}배입니다` : "입니다"}.`);
+    } else if (!sold) {
+      cardParas.push(`${esc(t0.name)}는 확인 가능한 PSA 10 실거래 표본이 부족해 등급 가격을 추정하지 않고 NM 값만 표시합니다.`);
+    }
+    // 표본은 있는데 통화가 안 적힌 값이면 문장을 아예 싣지 않는다.
+    prose.push({ h: "인기 카드가 말해주는 것", p: cardParas });
   }
 
   // 4) 그레이딩 — PSA(판별) + CGC/TAG. 세트마다 숫자가 완전히 다른, 이 사이트 고유 데이터.
@@ -501,6 +541,8 @@ ${cardRows}
       .koBoard td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
       .koBoard td.num { text-align: right; white-space: nowrap; }
       .koBoard td.code { color: #9aa4b6; font-size: 12.5px; }
+      .koBoard td.thumb { width: 52px; padding: 6px 8px; }
+      .koBoard td.thumb img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; display: block; background: #12161d; }
       .koFacts { margin: 14px 0; padding: 12px 16px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 760px; font-size: 14px; line-height: 1.8; }
       .koFacts strong { color: #50dad9; }
       .koNote { color: #7d8698; font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
@@ -533,7 +575,7 @@ ${cardsSection}
       <div class="koCta">
         <a class="primary" href="./">전 세트 시세표 →</a>
         ${enHref ? `<a class="ghost" href="${enHref}">영문 상세(차트·PSA) →</a>` : ""}
-        <a class="ghost" href="../amazon-lottery.html">아마존 응모 안내 →</a>
+        <a class="ghost" href="amazon-lottery.html">아마존 응모 안내 →</a>
       </div>
       <section aria-label="자주 묻는 질문">
         <h2>${esc(code)} 자주 묻는 질문</h2>
@@ -563,7 +605,21 @@ for (const b of rows) {
   const smPath = path.join(ROOT, "sitemap.xml");
   // 심사 게이트 상태에 따라 상세 URL 을 빼거나 되돌린다(tools/sitemap-detail-urls.js).
   const { removed, added } = syncDetailUrls(smPath, written.map((rel) => SITE + "/" + rel));
+  // 이미 등재된 URL 은 빼지도 더하지도 않고 lastmod 만 올린다(upsert). 종전엔 읽어서 그대로 다시 쓰기만 했다.
+  const today = new Date().toISOString().slice(0, 10);
+  const managed = new Set([`${SITE}/ko/`, ...written.map((rel) => SITE + "/" + rel)]);
   let sm = fs.readFileSync(smPath, "utf8");
+  let touched = 0;
+  sm = sm.replace(/[ \t]*<url>[\s\S]*?<\/url>/g, (block) => {
+    const loc = (block.match(/<loc>([^<]+)<\/loc>/) || [])[1];
+    if (!loc || !managed.has(loc)) return block;
+    const eol = block.includes("\r\n") ? "\r\n" : "\n";
+    const next = /<lastmod>[^<]*<\/lastmod>/.test(block)
+      ? block.replace(/<lastmod>[^<]*<\/lastmod>/, `<lastmod>${today}</lastmod>`)
+      : block.replace(/(<loc>[^<]*<\/loc>)/, `$1${eol}    <lastmod>${today}</lastmod>`);
+    if (next !== block) touched++;
+    return next;
+  });
   fs.writeFileSync(smPath, sm, "utf8");
-  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed, sitemapAdded: added }));
+  console.log(JSON.stringify({ wrote: "ko/index.html", setPages: written.length, sitemapRemoved: removed, sitemapAdded: added, sitemapLastmod: touched }));
 }

@@ -30,6 +30,8 @@ const PAGES = [
   "/sets/op-01.html",        // 세트(일별 탭 없어야 함)
   "/sets/op-17.html",        // 신규 세트(카드 없음 분기)
   "/ko/",                    // 한국어 허브
+  "/ko/cards.html",
+  "/ko/amazon-lottery.html",
   "/compare.html",
   "/changelog.html",
 ];

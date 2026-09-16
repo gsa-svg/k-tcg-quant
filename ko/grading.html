@@ -45,18 +45,38 @@
       .koCta .primary { background: #50dad9; color: #08131a; }
       .koCta .ghost { border: 1px solid #2a3140; color: #cfd6e4; }
       .up { color: #10d7a0; } .down { color: #ff7d7d; }
+      .koBoard td.l .cardCell { display: flex; align-items: center; gap: 9px; }
+      .koBoard img.cardThumb { flex: 0 0 auto; width: 40px; height: 56px; object-fit: cover; border-radius: 3px; background: #12151b; }
+      /* 모바일(<=640px): 카드명 칸이 폭을 다 먹어 가격 열이 화면 밖으로 밀렸다(2026-09-16 실측 375px).
+         표본·NM 열을 접고 PSA 10 실낙찰·배수만 남긴다 — 이 페이지를 보는 이유가 그 두 값이다. */
+      @media (max-width: 640px) {
+        /* table-layout:fixed 는 열을 균등 분배해 카드명이 한 글자씩 끊겼다(2026-09-16 375px 실측).
+           자동 배분에 맡기고 숫자 열만 nowrap 으로 폭을 확보한다. */
+        .koBoard { font-size: 12.5px; }
+        .koBoard th.l, .koBoard td.l { width: 100%; }
+        .koBoard th, .koBoard td { padding: 6px 4px; }
+        .koBoard th { font-size: 10.5px; white-space: normal; overflow-wrap: anywhere; }
+        .koBoard .hideM { display: none; }
+        .koBoard td.l { white-space: normal; overflow-wrap: anywhere; }
+        .koBoard td.l small { font-size: 10.5px; }
+        .koBoard img.cardThumb { width: 30px; height: 42px; }
+        .koBoard td.l .cardCell { gap: 7px; min-width: 0; }
+      }
+      .koBoard th.w, .koBoard td.w { white-space: normal; }
+      .koBoard td.l a { color: #50dad9; }
+      .koSteps { color: #cfd6e4; font-size: 13.5px; line-height: 1.8; max-width: 760px; padding-left: 20px; margin: 8px 0 14px; }
     </style>
   </head>
   <body>
     <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
     <header class="topbar">
       <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
-      <nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">이베이 경매</a><a href="../tcg-auction.html">TCG 경매</a><a href="grading.html">그레이딩 통계</a><a href="../amazon-lottery.html">아마존 응모</a><a href="../" class="navKo">English</a></nav>
+      <nav class="nav" aria-label="주요 메뉴"><a href="./">부스터 박스</a><a href="cards.html">카드 시세</a><a href="auction.html">이베이 경매</a><a href="../tcg-auction.html">TCG 경매</a><a href="grading.html">그레이딩 통계</a><a href="amazon-lottery.html">아마존 응모</a><a href="../" class="navKo">English</a></nav>
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · 그레이딩</p>
       <h1>원피스 카드 그레이딩 인구 (PSA · CGC · TAG)</h1>
-      <nav class="nextLinks" aria-label="다음 보기"><a href="/ko/">실시간 박스 시세 →</a><a href="/amazon-lottery.html">OP-18 아마존 응모 →</a><a href="/ko/cards.html">카드 시세 →</a></nav>
+      <nav class="nextLinks" aria-label="다음 보기"><a href="/ko/">실시간 박스 시세 →</a><a href="/ko/amazon-lottery.html">OP-18 아마존 응모 →</a><a href="/ko/cards.html">카드 시세 →</a></nav>
 
       <div style="overflow-x:auto">
       <table class="koBoard">
@@ -95,10 +115,10 @@
         <a class="ghost" href="auction.html">이베이 경매 데이터 →</a>
       </div>
       
-      <p class="koNote">데이터: 이베이 실거래·검증된 매물 집계, 공개 그레이딩 인구 리포트. 환율 ₩1346.24/$ (2026-09-14). 마지막 갱신 2026-09-15. 시세는 참고용이며 투자·구매 판단의 책임은 본인에게 있습니다.</p>
+      <p class="koNote">데이터: 이베이 실거래·검증된 매물 집계, 공개 그레이딩 인구 리포트. 환율 ₩1359.15/$ (2026-09-15). 마지막 갱신 2026-09-15. 시세는 참고용이며 투자·구매 판단의 책임은 본인에게 있습니다.</p>
     </main>
     <footer class="footer">
-      <nav class="guideLinks" aria-label="가격 가이드" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">가격 가이드:</span> <a href="/ko/">부스터 박스</a> · <a href="/sets/index.html">세트 가이드</a> · <a href="/ko/cards.html">카드 시세</a> · <a href="/psa10-ranking.html">PSA10 랭킹</a> · <a href="/ko/grading.html">그레이딩 통계</a> · <a href="/compare.html">세트 비교</a> · <a href="/free-data.html">무료 데이터</a> · <a href="/">English</a></nav>
+      <nav class="guideLinks" aria-label="가격 가이드" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">가격 가이드:</span> <a href="/ko/">부스터 박스</a> · <a href="/sets/index.html">세트 가이드</a> · <a href="/ko/cards.html">카드 시세</a> · <a href="/psa10-ranking.html">PSA10 랭킹</a> · <a href="/ko/grading.html">그레이딩 통계</a> · <a href="/compare.html">세트 비교</a> · <a href="/free-data.html">무료 데이터</a> · <a href="/ko/amazon-lottery.html">아마존 응모</a> · <a href="/">English</a></nav>
       <p>OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
       <nav aria-label="정책 안내"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
     </footer>

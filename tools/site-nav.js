@@ -80,7 +80,7 @@ const GUIDE_ITEMS = [
 ];
 const GUIDE_ITEMS_KO = [
   ["부스터 박스", "/ko/"], ["세트 가이드", "/sets/index.html"], ["카드 시세", "/ko/cards.html"], ["PSA10 랭킹", "/psa10-ranking.html"],
-  ["그레이딩 통계", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["English", "/"],
+  ["그레이딩 통계", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["아마존 응모", "/ko/amazon-lottery.html"], ["English", "/"],
 ];
 function guideLinksHtml(inKo = false) {
   const items = inKo ? GUIDE_ITEMS_KO : GUIDE_ITEMS;
@@ -100,7 +100,7 @@ const KO_ITEMS = [
   // ["PSA10 랭킹", "../psa10-ranking.html"],
   ["그레이딩 통계", "grading.html"],
   // ["세트 가이드", "../sets/index.html"],
-  ["아마존 응모", "../amazon-lottery.html"],
+  ["아마존 응모", "amazon-lottery.html"],
 ];
 
 function navHtmlKo() {
@@ -116,7 +116,7 @@ const KO_LABELS = ITEMS.map(([, ko]) => ko);
 // 1인당 1.1~1.3장 보고 나가고, 이베이 클릭 53건 중 47건이 홈에서 났다. 그래서 <h1> 바로 밑에 홈·응모·세트 가이드
 // 세 링크를 둬 두 장째로 끌어온다(inject-nav 가 전 페이지에 넣는다). OP-18 문구는 발매·응모 상황에 따라 여기 한 곳만 바꾼다.
 const NEXT_ITEMS = [["Live box prices", "/"], ["OP-18 Amazon invite", "/amazon-lottery.html"], ["All set guides", "/sets/index.html"]];
-const NEXT_ITEMS_KO = [["실시간 박스 시세", "/ko/"], ["OP-18 아마존 응모", "/amazon-lottery.html"], ["카드 시세", "/ko/cards.html"]];
+const NEXT_ITEMS_KO = [["실시간 박스 시세", "/ko/"], ["OP-18 아마존 응모", "/ko/amazon-lottery.html"], ["카드 시세", "/ko/cards.html"]];
 function nextLinksHtml(inKo = false) {
   const items = inKo ? NEXT_ITEMS_KO : NEXT_ITEMS;
   const label = inKo ? "다음 보기" : "Next";

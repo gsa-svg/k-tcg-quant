@@ -1342,7 +1342,7 @@ for (const f of fs.readdirSync(path.join(ROOT, "tools")).filter((n) => /^(genera
 //       (OP02-059 박스토퍼 NM 80엔에 PSA10 38만원 = 475배 / OP05-119 NM 12,800엔에 1,330만원 = 103배)
 //       싼 카드는 등급비 때문에 배율이 크게 나오므로, NM 1만엔 이상인 카드만 본다.
 {
-  const KRW_PER_JPY = 10.1, MAX_MULT = 30;
+  const KRW_PER_JPY = 10.1, MAX_MULT = 30, USD_KRW = data.fx?.usdKrw;
   for (const [code, s] of Object.entries(data.sets || {})) {
     const byNum = {};
     (s.cards || []).forEach((c, i) => {
@@ -1355,9 +1355,14 @@ for (const f of fs.readdirSync(path.join(ROOT, "tools")).filter((n) => /^(genera
         errors.push(`M1: ${code} ${n} — 서로 다른 변형이 같은 PSA10 sold 구간을 쓰고 있음(변형별 값이 아님). 확인 전까지 내릴 것`);
       }
       for (const { i, c } of arr) {
-        const mid = c.psa10Ebay?.middle;
+        const p = c.psa10Ebay, mid = p?.middle;
         if (!mid || !c.nmJpy || c.nmJpy < 10000) continue;
-        const mult = mid / (c.nmJpy * KRW_PER_JPY);
+        // psa10Ebay 는 통화가 섞여 있다(USD = eBay US, KRW = 국내). 환산 없이 비교하면 USD 카드의 배율이
+        // 1/1300 로 작아져 검사를 통째로 빠져나간다 — 2026-09-16 기준 108건 중 90건이 USD 였다.
+        const cur = p.currency;
+        if (cur !== "USD" && cur !== "KRW") { errors.push(`M2: ${code} #${i} ${c.name} — psa10Ebay.currency 가 "${cur}" — 원화 환산을 못 해 배율 검사를 건너뛴다`); continue; }
+        if (cur === "USD" && !USD_KRW) { errors.push(`M2: ${code} #${i} ${c.name} — fx.usdKrw 가 없어 USD 표기 PSA10 값을 환산 못 함`); continue; }
+        const mult = (cur === "USD" ? mid * USD_KRW : mid) / (c.nmJpy * KRW_PER_JPY);
         if (mult > MAX_MULT) errors.push(`M2: ${code} #${i} ${c.name} — PSA10 이 NM 의 ${mult.toFixed(0)}배. 둘 중 하나가 다른 변형 값일 가능성`);
       }
     }
