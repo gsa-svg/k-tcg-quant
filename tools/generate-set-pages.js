@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
-const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap } = require("./set-page-shared");
+const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
 const { fxAt } = require("./market-data-normalizers");   // 관측일 환율(PSA10 실거래 KRW 되돌리기)
 
 const ROOT = path.join(__dirname, "..");
@@ -131,6 +131,7 @@ const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
+${BUY_CTA_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
       /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
@@ -411,6 +412,16 @@ function setPage(code, prev, next) {
   if (!story) console.warn(`[set-commentary] ${code} 해설 없음 — 템플릿 문구로 대체됨 (S3 가드가 잡는다)`);
   const desc = prioritySeo?.description || story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
+  // 최저 실매물 버튼 — 검색 링크는 값이 없어 잘 안 눌린다(2026-09-16 실측). 검증된 최저 매물이 있을 때만 낸다.
+  const bmBuy = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
+  const blBuy = bmBuy && bmBuy.bestListing;
+  const jpBuy = blBuy ? buyCta({
+    url: blBuy.url,
+    price: toUsd(blBuy.total, blBuy.currency),
+    mid: bmBuy.middle != null ? toUsd(bmBuy.middle, bmBuy.currency) : null,
+    updated: bmBuy.updated,
+    label: `sealed ${code} Japanese box`,
+  }) : "";
   // s.release = 영문(NA)판 발매일. "일본판 페이지인데 Released=EN날짜"로 읽히던 오표기 수정
   const release = s.release ? `<p class="eyebrow">Japanese edition · EN release ${esc(s.release)}</p>` : `<p class="eyebrow">Japanese edition</p>`;
 
@@ -749,7 +760,8 @@ function setPage(code, prev, next) {
       ${liveWidget(code)}
       <div class="ctaRow">
         <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>
-        <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">Browse ${code} boxes on eBay</a>
+        ${jpBuy}
+        <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${jpBuy ? `All ${code} box listings` : `Browse ${code} boxes on eBay`}</a>
         ${englishHref ? `<a href="${englishHref}">English ${code} box price</a>` : ""}
       </div>
       ${/* 갓 나온 세트는 박스 시세만 있고 체이스 카드 목록이 아직 없다. 헤더만 있는 빈 표를

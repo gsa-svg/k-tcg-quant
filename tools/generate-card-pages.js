@@ -28,6 +28,7 @@ const jpyUsd = (jpy) => (Number.isFinite(jpy) ? (jpy * FX.jpyKrw) / FX.usdKrw : 
 const krwUsd = (krw) => (Number.isFinite(krw) ? krw / FX.usdKrw : null);
 // 관측일 환율로 되돌리는 변환 — PSA10 실거래(KRW 저장)에 쓴다. 이력에 없는 날짜면 오늘 환율로 떨어진다.
 const { fxAt } = require("./market-data-normalizers");
+const { buyCta, BUY_CTA_CSS } = require("./set-page-shared");
 const toUsdAt = (v, cur, date) => (v == null ? null : cur === "USD" ? v : cur === "KRW" ? v / (fxAt(date) || FX.usdKrw) : null);
 // 변형 판별(tier) — 등급 원장·경매 변형 집계와 같은 함수.
 const { ourTier } = require("./cgc-card-pop-ingest.js");
@@ -130,6 +131,17 @@ for (const { code, set: s, card: c } of cands) {
   const rank = c.rank || null;
   const ebayRaw = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} ${c.name} Japanese`)}&_sop=15&${EPN}`;
   const ebayPsa = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} PSA 10 Japanese`)}&_sop=15&${EPN}`;
+  // PSA 10 최저 실매물 버튼. 검색 링크는 값이 없어 잘 안 눌린다(2026-09-16 실측).
+  // 표시가가 sold 중앙값이어도 실매물 URL 은 따로 있으므로 항상 psa10Active 에서 직접 읽는다.
+  const pa = c.psa10Active || {};
+  const paBl = pa.bestListing;
+  const psaBuy = paBl ? buyCta({
+    url: paBl.url,
+    price: toUsd(paBl.total, paBl.currency),
+    mid: pa.middle != null ? toUsd(pa.middle, pa.currency) : null,
+    updated: pa.updated,
+    label: `PSA 10 ${c.number || c.name}`,
+  }) : "";
 
   // 시리즈(가격 이력) 표 — 체크포인트가 2개 이상 쌓인 카드만 표시(1점짜리 무의미한 표 방지).
   // ※ 2026-07-14 이전 초기 수집은 변형매칭 미성숙으로 오염되어 폐기됨(그 이후부터 신뢰 축적).
@@ -259,6 +271,7 @@ for (const { code, set: s, card: c } of cands) {
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: #10d7a0; }
+${BUY_CTA_CSS}
       .srcNoteA { color: #7d8698; font-size: 12.5px; margin: 4px 0 16px; }
       .factList { max-width: 680px; color: #9aa4b6; line-height: 1.7; }
     </style>
@@ -286,8 +299,9 @@ for (const { code, set: s, card: c } of cands) {
           </div>
           <p>${esc(c.name)} is ${rank ? `the <strong>#${rank} chase card</strong> in` : "one of the top chase cards in"} <a href="../sets/${setSlug}.html">${esc(code)} ${esc(s.nameEn || "")}</a>.${boxMult && boxMult > 0.8 ? ` One raw ${esc(c.name)} is currently worth about <strong>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x a sealed ${esc(code)} box</strong> (${usd(boxUsd)}).` : ""} ${pop && pop.gem >= 85 ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, which helps explain its raw-to-slab spread.` : pop ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, so PSA 10 supply is materially smaller than total submissions.` : ""}</p>
           <div class="ctaRow">
-            <a class="primary" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
-            <a href="${ebayPsa}" target="_blank" rel="noopener noreferrer sponsored">PSA 10 on eBay</a>
+            ${psaBuy}
+            <a class="${psaBuy ? "" : "primary"}" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
+            <a href="${ebayPsa}" target="_blank" rel="noopener noreferrer sponsored">${psaBuy ? "All PSA 10 listings" : "PSA 10 on eBay"}</a>
           </div>
         </div>
       </div>

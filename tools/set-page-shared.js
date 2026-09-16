@@ -139,4 +139,49 @@ function upsertSitemap(urls, { priority = "0.8", changefreq = "weekly" } = {}) {
   return { added };
 }
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap };
+// ── 최저 실매물 버튼(buyCta) ─────────────────────────────────────────────
+// 값이 찍힌 버튼이 값 없는 글자 링크보다 훨씬 많이 눌린다. 2026-09-16 실측: 이베이 클릭 53건 중
+// 47건이 값이 찍힌 홈 버튼에서 났고, 나머지 영어 페이지(세트 22·카드 223)는 값 없는 회색 링크뿐이었다.
+// 값이나 URL 이 없으면 빈 문자열을 돌려준다 — 호출부는 기존 검색 링크만 남기면 된다(빈 값 > 틀린 값).
+
+// eBay 호스트·https 를 검증하고 EPN 추적 파라미터를 붙인다. 하나라도 어긋나면 null(링크를 만들지 않는다).
+function epnUrl(raw) {
+  if (!raw) return null;
+  let u;
+  try { u = new URL(String(raw)); } catch { return null; }
+  if (u.protocol !== "https:") return null;
+  if (!/(^|[.])ebay[.][a-z.]+$/i.test(u.hostname)) return null;
+  if (u.searchParams.get("campid")) return u.href; // 이미 붙어 있음
+  for (const kv of EPN.split("&")) {
+    const i = kv.indexOf("=");
+    u.searchParams.set(kv.slice(0, i), kv.slice(i + 1));
+  }
+  return u.href;
+}
+
+// label   : 무엇의 최저가인지 (예: "sealed OP-01 box", "PSA 10 copy")
+// price   : 배송비 포함 총액(USD)
+// mid     : 같은 물건의 중간 호가(USD). 있으면 몇 % 싼지 배지를 붙인다(3% 미만 차이는 생략).
+// updated : 매물 수집일. 싼 매물은 빨리 나가므로 기준일을 반드시 같이 보여준다.
+function buyCta({ url, price, mid, updated, label }) {
+  const href = epnUrl(url);
+  if (!href || price == null) return "";
+  const off = mid != null && mid > 0 && price < mid * 0.97 ? Math.round((1 - price / mid) * 100) : null;
+  const chip = off ? `<em class="buyOff">${off}% under mid ask</em>` : "";
+  const asOf = updated ? `<em class="buyAsOf">as of ${esc(updated)}</em>` : "";
+  return `<a class="buyNow" href="${esc(href)}" target="_blank" rel="noopener noreferrer sponsored">`
+    + `<span class="buyLine">Cheapest ${esc(label)} <b>${usd(price)}</b><span class="buyArrow">&#8599;</span></span>`
+    + `${chip}${asOf}</a>`;
+}
+
+// 세트·영문세트·카드 생성기가 각자 인라인 <style> 에 넣는다(세 곳 모두 styles.css 를 따로 안 쓴다).
+const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; padding: 7px 16px;
+        background: rgba(16,215,160,.16); border-color: rgba(16,215,160,.55); color: #10d7a0; }
+      .ctaRow a.buyNow .buyLine { display: inline-flex; align-items: center; gap: 7px; font-weight: 650; }
+      .ctaRow a.buyNow b { font-size: 16px; letter-spacing: .01em; }
+      .ctaRow a.buyNow .buyArrow { opacity: .75; font-size: 12px; }
+      .ctaRow a.buyNow .buyOff { font-style: normal; font-size: 11.5px; font-weight: 600; color: #ffd166; }
+      .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11px; color: rgba(255,255,255,.55); }
+      .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
+
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS };

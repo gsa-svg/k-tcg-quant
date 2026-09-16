@@ -22,7 +22,7 @@
 // Run: node tools/generate-english-set-pages.js   (generate-set-pages.js 보다 먼저 — 허브·일본판 페이지가 이 파일 존재를 보고 링크를 건다)
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap } = require("./set-page-shared");
+const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
 
 const readJson = (rel, fallback) => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; }
@@ -150,6 +150,21 @@ function chartBlock(code) {
 
 // 지금 걸린 최저가 매물(가격+배송비). "New" 이고 제목이 개봉·빈 박스를 말하지 않을 때만 싣는다 —
 // 검색어에 sealed 가 있어도 "Unsealed"·"Open Box" 매물이 최저가로 잡힌다(OP-13 실측).
+// 최저 실매물 버튼 — cheapestBox 와 같은 검수 조건(미개봉 새 제품, 개봉/손상 문구 제외)을 쓴다.
+// 값이 찍힌 버튼이 검색 링크보다 훨씬 많이 눌린다(2026-09-16 실측).
+function cheapestBoxCta(code, m) {
+  const bl = m.ask && m.ask.bestListing;
+  if (!bl || bl.total == null || !/new/i.test(bl.condition || "")) return "";
+  if (/unseal|open|empty|no packs|reseal|damaged/i.test(bl.title || "")) return "";
+  return buyCta({
+    url: bl.url,
+    price: bl.total,
+    mid: m.ask.middle != null ? m.ask.middle : null,
+    updated: m.ask.updated,
+    label: `sealed English ${code} box`,
+  });
+}
+
 function cheapestBox(code, m) {
   const bl = m.ask?.bestListing;
   if (!bl || bl.total == null || !/new/i.test(bl.condition || "")) return "";
@@ -309,6 +324,7 @@ const PAGE_CSS = `      .setHero { display: flex; gap: 18px; align-items: flex-s
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
+${BUY_CTA_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 760px; }
@@ -359,6 +375,7 @@ function englishPage(code, prev, next) {
   // 설명은 155자 안에서 끝낸다(검색결과 잘림). 값 없는 조각은 빠지므로 길이는 세트마다 다르다.
   const desc = `English ${code} ${nameEn} box: ${descBits.join(", ")}. Weekly price history and auction results, updated daily.`.slice(0, 155);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box English sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
+  const enBuy = cheapestBoxCta(code, m);
 
   const summaryBits = [];
   if (m.sold?.median != null) summaryBits.push(`Sold median <b>${usd(m.sold.median)}</b> (${m.sold.sampleSize} sales · ${esc(m.sold.updated)})`);
@@ -382,7 +399,8 @@ function englishPage(code, prev, next) {
       ${chartBlock(code)}
       ${cheapestBox(code, m)}
       <div class="ctaRow">
-        <a class="primary" href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">Browse English ${code} boxes on eBay</a>
+        ${enBuy}
+        <a class="${enBuy ? "" : "primary"}" href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${enBuy ? `All English ${code} box listings` : `Browse English ${code} boxes on eBay`}</a>
         <a href="../?set=${encodeURIComponent(code)}&amp;hl=en">Open live ${code} tracker</a>
         <a href="${slug(code)}.html">Japanese ${code} box guide</a>
       </div>
