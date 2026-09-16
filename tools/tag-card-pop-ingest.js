@@ -39,11 +39,31 @@ function tagTier(tagSetName) {
   return "base";
 }
 
+// 행 tier = 세트명 tier + 이름 꼬리 — 2026-09-16 실측: TAG 는 금/은·TR 을 세트명이 아니라 **이름 칸 끝**에 붙이기도 한다.
+//   "Monkey.D.LuffySecret Rare - Gold"(세트명은 base/sp) · "BuggyGold"/"BuggySilver" · "Vinsmoke SanjiTreasure Rare"
+// 세트명만 보면 base/sp 로 떨어져 우리 gold/silver/tr 카드에 아무 행도 안 붙었다(OP-11·OP-12·OP-14).
+// 세트명이 base/sp 일 때만 본다. 대소문자 그대로 보는 이유: "Marigold" 같은 인물명 꼬리에 걸리지 않게.
+function rowTier(tagSetName, rowName) {
+  const t = tagTier(tagSetName);
+  if (t !== "base" && t !== "sp") return t;
+  const n = String(rowName || "");
+  if (/Gold\s*$/.test(n)) return "gold";
+  if (/Silver\s*$/.test(n)) return "silver";
+  if (/Treasure\s*Rare\s*$/.test(n)) return "tr";
+  return t;
+}
+
 // 이름 대조 — PSA 적재기와 같은 규칙(표기차만 별칭 처리, 다른 인물은 절대 안 됨).
 // TAG 는 전체번호(OP06-021)로 매칭해 구조적으로는 안전하지만, 등급사가 표기를 바꾸면
 // 조용히 어긋난다. 이름이 있으면 반드시 확인한다 — 옛 기록엔 이름이 없어 그때만 통과시킨다.
-const nameKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
-const TAG_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"]];
+// 숫자는 남기고 영어 숫자말은 숫자로 접는다(2026-09-16): 종전엔 숫자를 지워 TAG "ギア2 Gear 2" 가 "gear" 가 되고
+// 우리 "Gear Two …" 는 "geartwo" 라 OP-11 jp OP11-080|alt 가 안 붙었다. 양쪽 다 이 함수를 거치므로 "gear2" 로 같아진다.
+const NUM_WORDS = { one: "1", two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8", nine: "9", ten: "10" };
+const nameKey = (s) => String(s || "").toLowerCase().replace(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\b/g, (w) => NUM_WORDS[w]).replace(/[^a-z0-9]/g, "");
+// DON 원장 키는 PSA/CGC 적재기·inject-card-grades(donRef)와 같은 글자만 슬러그를 써야 화면이 같은 칸을 읽는다.
+const donKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
+// captian: TAG 오타(2026-09-16 실측, OP-03 jp OP01-051 "Eustass \"Captian\" Kid").
+const TAG_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"], ["captian", "captain"]];
 
 // TAG 의 이름 칸은 **카드명 + 일본어명 + 등급/타입** 이 붙어 나온다(2026-08-26 실측):
 //   "Portgas.D.AceSuper Rare" · "ボア･ハンコック Boa HancockLeader" · "ペローナ PeronaLeader"
@@ -97,7 +117,7 @@ function ingest(dump) {
   // 덤프를 (box,num,tier,ed) 로 그룹
   const byKey = new Map();
   for (const r of dump.cards || []) {
-    const key = `${r.box}|${r.num}|${tagTier(r.tagSet)}|${edOf(r.tagSet)}`;
+    const key = `${r.box}|${r.num}|${rowTier(r.tagSet, r.name)}|${edOf(r.tagSet)}`;
     (byKey.get(key) || byKey.set(key, []).get(key)).push(r);
   }
 
@@ -108,9 +128,13 @@ function ingest(dump) {
       const num = donChar ? "DON!!" : (card.number || "").replace(/^#/, "").toUpperCase();
       if (!num) continue;
       const tier = donChar ? "gold" : ourTier(card.name);
-      const ledgerKey = donChar ? `DON-${nameKey(donChar)}|gold` : null;
+      // 행 조회용 tier — 우리 이름에 TR 표기가 빠진 카드(OP-15 OP13-037 "Roronoa Zoro OP13 037", rarity=TR)는
+      // 이름 기준 base 인데 TAG 행("Roronoa ZoroTreasure Rare")은 rowTier 로 tr 이 됐다. 원장 키·화면(inject)은
+      // 이름 기준 |base 를 그대로 읽으므로 키는 두고 조회만 보정한다(2026-09-16) — 안 그러면 5점 쌓인 그 시리즈가 멈춘다.
+      const findTier = tier === "base" && card.rarity === "TR" ? "tr" : tier;
+      const ledgerKey = donChar ? `DON-${donKey(donChar)}|gold` : null;
       for (const ed of ["jp", "en"]) {
-      let rows = byKey.get(`${code}|${num}|${tier}|${ed}`) || [];
+      let rows = byKey.get(`${code}|${num}|${findTier}|${ed}`) || [];
       // SP 재수록본 — TAG 가 변형을 아예 안 적는 경우가 있다(2026-08-26 실측).
       // EB-02 는 다른 세트의 SP 를 모아 담은 세트인데, TAG 는 그 카드들을 변형 표기 없는
       // "One Piece Extra Booster Anime 25th Collection Japanese" 아래 그대로 넣는다.
@@ -161,7 +185,10 @@ function ingest(dump) {
       const arr = hist.sets[code][ed][key] = hist.sets[code][ed][key] || [];
       if (arr.some((p) => p.d === d)) { skippedDate++; continue; }
       const grades = {}; for (const [k, v] of Object.entries(g)) if (k !== "Total") grades[k] = v;
-      arr.push({ d, total, label: rows[0].tagSet.slice(0, 80), g: grades, ...(rows[0].mergedRows > 1 ? { rows: rows[0].mergedRows } : {}) });
+      // 이름 꼬리에서 읽은 tier 는 라벨 끝에 TAG 표기 관례(" - Gold")로 남긴다 — 감사기가 라벨만 보고 tier 를 검증한다(2026-09-16).
+      const rt = rowTier(rows[0].tagSet, rows[0].name);
+      const sfx = rt !== tagTier(rows[0].tagSet) ? ({ gold: " - Gold", silver: " - Silver", tr: " - Treasure Rare" }[rt] || "") : "";
+      arr.push({ d, total, label: rows[0].tagSet.slice(0, 80) + sfx, g: grades, ...(rows[0].mergedRows > 1 ? { rows: rows[0].mergedRows } : {}) });
       arr.sort((a, b) => a.d.localeCompare(b.d));
       appended++;
       }
@@ -176,7 +203,8 @@ function ingest(dump) {
   }
   hist.note = "Weekly TAG grade distribution for our tracked top-10 One Piece chase cards, kept separate for the Japanese and English printings. Matched by card number + variant tier taken from the TAG set name; the printing comes from whether that name carries 'Japanese'. Each point stores cumulative counts per grade (1..10, 10P). Append-only; ambiguous matches are skipped rather than guessed. Records collected before 2026-08-25 were Japanese-only and live under .jp.";
   hist.grader = "tag";
-  hist.updated = appended > 0 ? d : hist.updated;
+  // 재적재 보호(2026-09-16): 보관해 둔 옛 덤프를 다시 넣어도 updated 는 뒤로 가지 않는다(최댓값 유지).
+  if (appended > 0 && (!hist.updated || d > hist.updated)) hist.updated = d;
   fs.writeFileSync(histPath, JSON.stringify(hist) + "\n", "utf8");
   return { appended, skippedDate, ambiguous: ambiguous.slice(0, 10), cards: Object.values(hist.sets).reduce((a, b) => a + Object.keys(b.jp || {}).length + Object.keys(b.en || {}).length, 0), migrated };
 }

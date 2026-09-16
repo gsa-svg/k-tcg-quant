@@ -80,7 +80,9 @@ function match(dump, data) {
 
   // 이름 대조 — PSA 적재기와 같은 규칙. CGC 덤프에는 카드명이 들어 있는데 쓰지 않고 있었다.
   const nameKey = (s) => String(s || "").toLowerCase().replace(/[^a-z]/g, "");
-  const CGC_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"]];
+  // gekko→gecko 추가 — 2026-09-16. CGC 는 OP-08 jp ST03-004 를 "Gekko Moria" 로 적는다(우리는 "Gecko Moria SP").
+  // 8/26 부터 이름 대조에 걸려 jp 시리즈가 8/25 에서 멈춰 있었다.
+  const CGC_ALIAS = [["bonkurei", "bonclay"], ["bentham", "bonclay"], ["kouzuki", "kozuki"], ["gekko", "gecko"]];
   const nameAgrees = (ourName, rowName) => {
     if (!rowName) return true;                  // CGC 가 이름을 안 준 줄 — 번호로만 간다
     const a = nameKey(ourName), b = nameKey(rowName);
@@ -117,8 +119,14 @@ function match(dump, data) {
           accepted.push({ code, ed, num: `DON-${nameKey(donChar)}`, tier, card: card.name, variant: r.variant || "(빈칸)", rows: 1, total: tot, pristine: pr, gem: gm });
           continue;
         }
-        const same = rows.filter((r) => String(r.num || "").toUpperCase() === num && nameAgrees(card.name, r.name));
-        if (!same.length) continue;
+        const sameNum = rows.filter((r) => String(r.num || "").toUpperCase() === num);
+        const same = sameNum.filter((r) => nameAgrees(card.name, r.name));
+        if (!same.length) {
+          // 번호는 있는데 이름이 전부 안 맞으면 absent 로 낸다 — 2026-09-16. 종전엔 조용히 건너뛰어
+          // OP-08 jp ST03-004 (Gekko/Gecko) 가 리포트에도 안 나온 채 3주를 죽어 있었다. 매칭 결과는 그대로다.
+          if (sameNum.length) absent.push(`${code}|${ed} ${num} [name mismatch: ${[...new Set(sameNum.map((r) => r.name || "(빈칸)"))].join(" / ")}]`);
+          continue;
+        }
         let hits = same.filter((r) => rowTier(code, ed, num, r) === tier);
         if (!hits.length && tier === "wanted" && !spClash.has(`${code}|${num}`)) {
           hits = same.filter((r) => /sp\s*ver/i.test(String(r.variant || "")));

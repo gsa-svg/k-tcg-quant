@@ -13,6 +13,8 @@
 // Run: node tools/audit-collection-health.js [--json]
 const fs = require("node:fs");
 const path = require("node:path");
+// 카드별 인구 파일의 계열 키 "번호|tier" 는 세 적재기가 전부 ourTier(카드명)로 만든다 — 감사도 같은 함수를 쓴다(2026-09-16).
+const { ourTier } = require("./cgc-card-pop-ingest.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const R = (p) => path.join(ROOT, p);
@@ -284,7 +286,10 @@ if (has("data/grading-series.json")) {
     if (!has("data/" + f)) continue;
     const pop = readJSON("data/" + f);
     let fileLatest = "";
-    const latestOf = (arr) => (Array.isArray(arr) && arr.length ? arr[arr.length - 1].d || "" : "");
+    // 관측일 = seen(그 값을 마지막으로 본 수집일) 우선, 없으면 d — 2026-09-16.
+    // PSA 의 d 는 GemRate 인구 변동일이라 값이 안 변하면 점이 안 늘고 seen 만 앞으로 간다(PRB-01 jp EB01-006 오판).
+    // seen 은 d 가 같은 점에 찍히는데 그게 마지막 점이 아닐 수 있어(같은 값의 뒤 점이 있음) 계열 전체에서 가장 늦은 것을 본다.
+    const latestOf = (arr) => (Array.isArray(arr) ? arr.reduce((m, p) => ((p.seen || p.d || "") > m ? p.seen || p.d : m), "") : "");
     // tag-card-pop.json 은 판 구분 없이 세트 바로 밑에 "번호|tier" 키가 온다(구 구조).
     // cgc/psa 는 jp/en 밑에 온다. 둘 다 "판 이름 → {계열}" 맵으로 정규화해서 본다.
     const editionsOf = (bucket) => {
@@ -307,15 +312,17 @@ if (has("data/grading-series.json")) {
     for (const [code, set] of Object.entries(packs.sets || {})) {
       const bucket = (pop.sets || {})[code];
       if (!bucket) continue;
-      for (const card of set.cards || []) {
-        if (!card.number) continue;
+      // 계열 키는 "번호|tier". 번호 접두어만 보면 금/은 쌍둥이(packs 에 같은 번호가 두 줄)가 남의 tier 계열까지 잡아
+      // 같은 줄을 두 번 찍었다 — 2026-09-16. 카드마다 자기 tier 계열만 보고, 키는 한 번씩만 본다.
+      const keys = [...new Set((set.cards || []).filter((c) => c.number).map((c) => `${c.number}|${ourTier(c.name)}`))];
+      for (const key of keys) {
+        const number = key.slice(0, key.indexOf("|"));
         for (const [edKey, eds] of Object.entries(editionsOf(bucket))) {
-          // 그 판에 계열이 아예 없는 카드는 "미수집"이지 "죽은 계열"이 아니다 — absent 리포트가 다룬다.
-          const series = Object.entries(eds).filter(([k]) => k.startsWith(card.number + "|"));
-          if (!series.length) continue;
-          const d = series.map(([, v]) => latestOf(v)).sort().pop();
+          // 그 판에 그 tier 계열이 아예 없는 카드는 "미수집"이지 "죽은 계열"이 아니다 — absent 리포트가 다룬다.
+          const d = latestOf(eds[key]);
+          if (!d) continue;
           const lagDays = Math.round((Date.parse(fileLatest) - Date.parse(d)) / 864e5);
-          if (lagDays > 14) lagging.push(`${code} ${edKey} ${card.number} (${d}, ${lagDays}일 뒤짐)`);
+          if (lagDays > 14) lagging.push(`${code} ${edKey} ${number} (${d}, ${lagDays}일 뒤짐)`);
         }
       }
     }

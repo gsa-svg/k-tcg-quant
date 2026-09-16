@@ -5,7 +5,8 @@
 //   { grader:"psa", collectedAt, sets:{ "OP-13|jp":[{num,name,par,total,g10,g9,updated}] } }
 //   set URL 은 추측하지 않는다 — 이미 검증된 gemrate-psa-history / gemrate-psa-en-totals 의 url 에서
 //   경로만 item-details-advanced 로 바꿔 쓴다(세트명 규칙을 추측하다 OP-06·OP-02 에서 당한 적 있음).
-// 출력: data/psa-card-pop.json — 카드·변형별 주간 점 [{d,total,g10,g9}] append-only. CGC/TAG 원장과 같은 구조.
+// 출력: data/psa-card-pop.json — 카드·변형별 주간 점 [{d,total,g10,g9,par,seen}] append-only. CGC/TAG 원장과 같은 구조.
+//   d = GemRate 의 마지막 인구 변동일, seen = 그 값을 마지막으로 본 수집일(2026-09-16 추가. 감사가 관측일로 쓴다).
 //
 // ⚠️ 이 파일의 존재 이유는 "매칭을 틀리지 않는 것" 하나다(소유자 지시). 그래서:
 //   1) **세트 각인이 그 세트 것일 때만** 본다. OP-13 목록에 있는 OP09 각인 재록 카드는 건너뛴다 —
@@ -185,14 +186,22 @@ function ingest(dump, res) {
   let store;
   try { store = JSON.parse(fs.readFileSync(histPath, "utf8")); } catch { store = { grader: "psa", sets: {} }; }
   store.sets = store.sets || {};
-  let appended = 0, skipped = 0;
+  let appended = 0, skipped = 0, refreshed = 0;
   for (const a of res.accepted) {
     const key = `${a.num}|${a.tier}`;
     const bucket = (store.sets[a.code] = store.sets[a.code] || {});
     const byEd = (bucket[a.ed] = bucket[a.ed] || {});
     const arr = (byEd[key] = byEd[key] || []);
-    if (arr.some((p) => p.d === a.d)) { skipped += 1; continue; }
-    arr.push({ d: a.d, total: a.total, g10: a.g10, g9: a.g9, par: a.par });
+    // d 는 GemRate 의 "마지막 인구 변동일"이지 수집일이 아니다 — 2026-09-16.
+    // 인구가 안 변한 카드는 매주 봐도 d 가 같아 새 점이 안 생기고, 감사가 마지막 d 를 관측일로 읽어
+    // "뒤짐"으로 오판했다(PRB-01 jp EB01-006, 08-17 이후 64장 그대로). 그래서 **실제로 본 날**을 seen 에 남긴다.
+    // 값은 절대 안 건드린다(append-only) — 같은 d 면 seen 만 앞으로 당긴다.
+    const dup = arr.find((p) => p.d === a.d);
+    if (dup) {
+      if (dump.collectedAt > (dup.seen || dup.d)) { dup.seen = dump.collectedAt; refreshed += 1; }
+      skipped += 1; continue;
+    }
+    arr.push({ d: a.d, total: a.total, g10: a.g10, g9: a.g9, par: a.par, seen: dump.collectedAt });
     arr.sort((x, y) => x.d.localeCompare(y.d));
     appended += 1;
   }
@@ -200,7 +209,7 @@ function ingest(dump, res) {
   store.updated = dump.collectedAt;
   store.note = "Weekly PSA population for our tracked top-10 One Piece chase cards, per card and per printing variant, kept separately for Japanese and English. Source: GemRate public set pages. Matched by set stamp + card number + variant; a card is recorded only when exactly one variant row matches, never guessed. Japanese and English are never summed. Append-only.";
   fs.writeFileSync(histPath, `${JSON.stringify(store)}\n`, "utf8");
-  return { appended, skipped };
+  return { appended, skipped, refreshed };
 }
 
 module.exports = { match, ingest, PARALLEL, donRef };

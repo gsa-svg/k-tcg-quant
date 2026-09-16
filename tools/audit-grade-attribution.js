@@ -45,6 +45,10 @@ const cgcTierOf = (s0) => {
 };
 const tagTierOf = (s0) => {
   const s = String(s0 || "").toLowerCase();
+  // 적재기가 이름 칸에서 읽은 금/은·TR 을 라벨 끝에 " - Gold" 식으로 남긴다(2026-09-16). 세트명이 base 여도 이걸 먼저 본다.
+  if (/-\s*gold\s*$/.test(s)) return "gold";
+  if (/-\s*silver\s*$/.test(s)) return "silver";
+  if (/-\s*treasure\s*rare\s*$/.test(s)) return "tr";
   if (/red\s*(manga|super|alt)/.test(s)) return "red";
   if (/manga\s*alternate|manga\s*alt/.test(s)) return "super";
   if (/gold\s*stamped|signature/.test(s)) return "signature";
