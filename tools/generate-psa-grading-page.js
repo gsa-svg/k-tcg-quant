@@ -97,7 +97,7 @@ const byAdd = [...rows].filter((r) => r.jp.psa && r.jp.psa.add != null).sort((a,
 const addTr = (r) => `<tr>${setCell(r, 36)}${GR.map((k) => `<td class="num ${k}">${r.jp[k] && r.jp[k].add != null ? sn(r.jp[k].add) : "—"}</td>`).join("")}</tr>`;
 
 const TITLE = "One Piece Grading Population by Set — PSA, CGC, TAG"; // 60자 이내(2026-09-17)
-const DESC = `One Piece cards per booster set in PSA, CGC and TAG holders, Japanese and English kept separate, with change since each report. ${rows.length} sets, updated ${updated}.`; // 155자 이내(2026-09-17)
+const DESC = `One Piece cards per booster set in PSA, CGC and TAG holders, Japanese and English separate, with change since each report. ${rows.length} sets, updated ${updated}.`; // 155자 이내(2026-09-17)
 const html = `<!doctype html>
 <html lang="en">
   <head>
