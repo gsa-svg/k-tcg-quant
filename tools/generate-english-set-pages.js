@@ -33,6 +33,17 @@ const SET_AUCTION = readJson("data/set-auction-stats.json", { sets: {}, window: 
 const SET_FACTS = readJson("data/set-facts.json", { sets: {} });
 const DATA_DATE = data.updated || new Date().toISOString().slice(0, 10);
 
+// 검색 제목·설명 길이 규칙(2026-09-17) — 구글은 제목 60자·설명 155자를 넘기면 잘라내거나 다시 쓴다.
+// 후보를 우선순위대로 주면 처음 들어맞는 것을 쓰고, 전부 넘치면 생성을 멈춘다(카드 생성기와 같은 방식).
+const TITLE_MAX = 60, DESC_MAX = 155;
+const fit = (cands, max, what) => {
+  const hit = cands.find((c) => c.length <= max);
+  if (!hit) throw new Error(`SEO 길이 초과: ${what} — ${cands[cands.length - 1].length}자 > ${max}자 "${cands[cands.length - 1]}"`);
+  return hit;
+};
+const seenTitles = new Set();
+const uniqueTitle = (t) => { if (seenTitles.has(t)) throw new Error(`타이틀 중복: ${t}`); seenTitles.add(t); return t; };
+
 const slug = (code) => code.toLowerCase();
 const fileOf = (code) => `${slug(code)}-english.html`;
 const pct1 = (a, b) => (a != null && b ? Math.round((a / b - 1) * 1000) / 10 : null);   // 변화율 %, 소수 1자리
@@ -365,15 +376,24 @@ function englishPage(code, prev, next) {
   const nameEn = s.nameEn || code;
   const canonical = `${SITE}/sets/${fileOf(code)}`;
   const items = faqItems(code, nameEn, m);
-  // 제목은 60자 안팎으로 — 2026-09-09 SEO 감사: 100자 제목은 검색결과에서 잘려 "English" 가 안 보였다.
-  const title = `${code} ${nameEn} English Booster Box Price | OP Box Index`;
-  const descBits = [];
-  if (m.sold?.median != null) descBits.push(`completed eBay sale median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales to ${m.sold.updated})`);
-  if (m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3) descBits.push(`asking mid $${Math.round(m.ask.middle)}`);
-  if (m.multiple != null) descBits.push(`${m.multiple}x the Japanese box`);
-  if (m.gem != null) descBits.push(`English PSA 10 rate ${m.gem}%`);
-  // 설명은 155자 안에서 끝낸다(검색결과 잘림). 값 없는 조각은 빠지므로 길이는 세트마다 다르다.
-  const desc = `English ${code} ${nameEn} box: ${descBits.join(", ")}. Weekly price history and auction results, updated daily.`.slice(0, 155);
+  // 제목 = "<코드> <세트명> English Booster Box Price"(2026-09-17). 브랜드 꼬리는 60자 안에 들어맞을 때만, 그래도 넘치면 "Booster" 를 뺀다.
+  // (2026-09-09 감사 때 60자 "안팎"으로 줄였지만 22장 중 20장이 여전히 60자를 넘어 검색결과에서 잘렸다.)
+  const core = `${code} ${nameEn} English Booster Box Price`;
+  const title = uniqueTitle(fit([`${core} | OP Box Index`, core, `${code} ${nameEn} English Box Price`], TITLE_MAX, code));
+  // 설명은 155자 안에서 문장이 끝나야 한다 — 종전 slice(0,155) 는 단어 중간을 잘랐다. 값 없는 조각은 빠진다.
+  // 넘치면 긴 꼬리를 떼고, 그래도 넘치면 같은 숫자를 짧은 말로 다시 쓴다(숫자는 그대로).
+  const bitsOf = (short) => [
+    m.sold?.median != null ? (short ? `eBay sold median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales, ${m.sold.updated})` : `completed eBay sale median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales to ${m.sold.updated})`) : "",
+    m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3 ? (short ? `ask $${Math.round(m.ask.middle)}` : `asking mid $${Math.round(m.ask.middle)}`) : "",
+    m.multiple != null ? (short ? `${m.multiple}x the JP box` : `${m.multiple}x the Japanese box`) : "",
+    m.gem != null ? (short ? `PSA 10 rate ${m.gem}%` : `English PSA 10 rate ${m.gem}%`) : "",
+  ].filter(Boolean).join(", ");
+  const desc = fit([
+    `English ${code} ${nameEn} box: ${bitsOf(false)}. Weekly price history and auction results, updated daily.`,
+    `English ${code} ${nameEn} box: ${bitsOf(false)}. Weekly price history and auction results.`,
+    `English ${code} ${nameEn} box: ${bitsOf(true)}. Weekly price history and auction results.`,
+    `English ${code} ${nameEn} box: ${bitsOf(true)}.`,
+  ], DESC_MAX, code);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box English sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   const enBuy = cheapestBoxCta(code, m);
 

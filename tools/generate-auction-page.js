@@ -213,8 +213,8 @@ const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Bre
   { "@type": "ListItem", position: 2, name: "Auction Data", item: `${SITE}/auction.html` },
 ] });
 
-const title = "One Piece Card Auction Data — Real eBay Winning Bids and How Often Cards Sell | OP Box Index";
-const desc = `Completed eBay auction results for One Piece cards and sealed boxes: ${num(totN)} auctions tracked over ${aggDays.length} full days, ${st}% sell-through, median winning bids per day and per card. Read after close — real sold prices, not asking prices (${DATA_DATE}).`;
+const title = "One Piece Card Auction Results — eBay Winning Bids"; // 60자 이내(2026-09-17)
+const desc = `${num(totN)} completed eBay auctions for One Piece cards and sealed boxes over ${aggDays.length} days, ${st}% sell-through, median winning bids by day and by card.`; // 155자 이내(2026-09-17)
 
 const html = `<!doctype html>
 <html lang="en">

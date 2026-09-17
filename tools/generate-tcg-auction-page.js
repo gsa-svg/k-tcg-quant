@@ -261,9 +261,9 @@ const html = `<!doctype html>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
     <link rel="canonical" href="${SITE}/tcg-auction.html" />
-    <title>TCG Auction Data — What Sells and For How Much, by Card Game | OP Box Index</title>
-    <meta name="description" content="Settled eBay auction results across ${rows.length} trading card games: how many auctions run, what share sells, what passes unsold, and how much money changes hands. Every auction is read again after it closes." />
-    <meta property="og:title" content="TCG Auction Data — What Sells, by Card Game" />
+    <title>TCG Auction Results by Card Game — eBay Sold Data</title>
+    <meta name="description" content="Settled eBay auction results across ${rows.length} trading card games: auctions run, share sold, share unsold and hammer value, each re-read after close." />
+    <meta property="og:title" content="TCG Auction Results by Card Game — eBay Sold Data" />
     <meta property="og:description" content="Ended, sold, unsold and hammer value across ${rows.length} card games, from auctions we settle ourselves." />
     <meta property="og:url" content="${SITE}/tcg-auction.html" />
     <meta property="og:image" content="${SITE}/og-image.png" />

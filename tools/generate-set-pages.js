@@ -58,6 +58,17 @@ try { COMMENTARY = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-comme
 let PRIORITY_SET_SEO = { sets: {} };
 try { PRIORITY_SET_SEO = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "priority-set-seo.json"), "utf8")); } catch (e) {}
 
+// 검색 제목·설명 길이 규칙(2026-09-17) — 구글은 제목 60자·설명 155자를 넘기면 잘라내거나 다시 쓴다.
+// 후보를 우선순위대로 주면 처음 들어맞는 것을 쓰고, 전부 넘치면 생성을 멈춘다(카드 생성기와 같은 방식).
+const TITLE_MAX = 60, DESC_MAX = 155;
+const fit = (cands, max, what) => {
+  const hit = cands.find((c) => c.length <= max);
+  if (!hit) throw new Error(`SEO 길이 초과: ${what} — ${cands[cands.length - 1].length}자 > ${max}자 "${cands[cands.length - 1]}"`);
+  return hit;
+};
+const seenTitles = new Set();
+const uniqueTitle = (t) => { if (seenTitles.has(t)) throw new Error(`타이틀 중복: ${t}`); seenTitles.add(t); return t; };
+
 
 // ---- 실데이터 구워넣기용 헬퍼 (가격은 항상 "as of 날짜"로 정직하게, 매일 재생성으로 최신 유지)
 const FX = data.fx || {};
@@ -402,15 +413,17 @@ function setPage(code, prev, next) {
   // 영문판 박스 페이지(generate-english-set-pages.js 산출물)가 있을 때만 링크한다 — 파일 존재가 유일한 기준.
   const englishHref = fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)) ? `${slug(code)}-english.html` : "";
   const prioritySeo = PRIORITY_SET_SEO.sets?.[code];
-  // 기본 제목은 박스 가격만 말했는데, GSC 실측(2026-09-01) 미국 검색어에는
-  // "op10 most expensive cards" 처럼 **카드**를 찾는 것이 섞여 있다. 이 페이지엔 이미
-  // "Top 10 chase cards" 섹션이 있으니 제목에서 그 사실을 말해 두 검색을 다 받는다.
-  const title = `${prioritySeo?.title || `${code} ${nameEn} Box Price & Most Expensive Cards (Japanese)`} | OP Box Index`;
+  // 제목 = "<코드> <세트명> Japanese Booster Box Price"(2026-09-17). 종전 "... Box Price & Most Expensive Cards (Japanese) | OP Box Index"
+  // 는 22장 전부 60자를 넘어 검색결과에서 잘리거나 다시 쓰였다("most expensive cards" 검색은 본문 Top 10 섹션이 받는다).
+  // 브랜드 꼬리는 들어맞을 때만 붙이고, 그래도 넘치면 "Booster" 를 뺀다. priority-set-seo.json 의 title(재판 랜딩)은 그 파일에서 60자 안으로 관리한다.
+  const title = uniqueTitle(prioritySeo?.title
+    ? fit([`${prioritySeo.title} | OP Box Index`, prioritySeo.title], TITLE_MAX, code)
+    : fit([`${code} ${nameEn} Japanese Booster Box Price | OP Box Index`, `${code} ${nameEn} Japanese Booster Box Price`, `${code} ${nameEn} Japanese Box Price`], TITLE_MAX, code));
   // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
   // 그것부터 템플릿 신호다. 해설이 없는 세트만 기존 골격으로 떨어진다.
   const story = COMMENTARY.sets?.[code];
   if (!story) console.warn(`[set-commentary] ${code} 해설 없음 — 템플릿 문구로 대체됨 (S3 가드가 잡는다)`);
-  const desc = prioritySeo?.description || story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`;
+  const desc = fit([prioritySeo?.description || story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`], DESC_MAX, code);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   // 최저 실매물 버튼 — 검색 링크는 값이 없어 잘 안 눌린다(2026-09-16 실측). 검증된 최저 매물이 있을 때만 낸다.
   const bmBuy = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
@@ -811,8 +824,14 @@ function setPage(code, prev, next) {
 
 function hubPage() {
   const canonical = `${SITE}/sets/index.html`;
-  const title = `One Piece Booster Box Price Guides by Set (Japanese) | OP Box Index`;
-  const desc = `Japanese One Piece booster box price guides for every set: OP-01 through OP-15, EB and PRB — live eBay prices, top chase cards and PSA 10 data.`;
+  // 허브 제목·설명(2026-09-17): 종전 67자 제목은 잘렸고 설명은 "OP-01 through OP-15" 로 굳어 있었다. 세트 수·범위는 ORDER 에서 센다.
+  const lastOp = [...ORDER].reverse().find((c) => c.startsWith("OP-")) || ORDER[ORDER.length - 1];
+  const englishCount = ORDER.filter((code) => fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`))).length;
+  const title = uniqueTitle(fit([`One Piece Booster Box Price Guides by Set | OP Box Index`, `One Piece Booster Box Price Guides by Set`], TITLE_MAX, "sets/index"));
+  const desc = fit([
+    `${ORDER.length} Japanese One Piece booster box price guides (OP-01 to ${lastOp}, EB, PRB) and ${englishCount} English-print box pages: eBay sold medians, chase cards and PSA 10 data.`,
+    `${ORDER.length} Japanese One Piece booster box price guides (OP-01 to ${lastOp}, EB, PRB) and ${englishCount} English-print box pages with eBay sold medians and PSA 10 data.`,
+  ], DESC_MAX, "sets/index");
   // 목록의 꼬리표를 세트별 수기 한 줄로 — "box price, top chase cards & PSA data" 를 21번 반복하면
   // 허브부터 템플릿으로 읽힌다. 해설 없는 세트만 기존 문구로 떨어진다.
   const items = ORDER.map((code) => {
@@ -957,8 +976,12 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       { "@type": "Question", name: faqQ3, acceptedAnswer: { "@type": "Answer", text: faqA3 } },
     ],
   })}</script>`;
-  const title = `Most Valuable One Piece PSA 10 Cards — Sold Price Ranking | OP Box Index`;
-  const desc = `The most valuable Japanese One Piece TCG cards in PSA 10, ranked by recent eBay completed-sale medians with at least three matched sales per card.`;
+  // 랭킹 제목·설명(2026-09-17): 종전 73자 제목은 잘렸다. 브랜드 꼬리를 붙이면 60자를 넘어 뺀다. 설명은 표의 숫자로 쓴다.
+  const title = uniqueTitle(fit([`Most Valuable One Piece PSA 10 Cards (Sold Prices)`], TITLE_MAX, "psa10-ranking"));
+  const desc = fit([
+    `${rows.length} Japanese One Piece cards ranked by PSA 10 median from completed eBay sales, 3+ sales each. Highest ${usd(t1.psa)}, ${over1k} cards above $1,000, as of ${asOf}.`,
+    `${rows.length} Japanese One Piece cards ranked by PSA 10 eBay sold median, 3+ sales each. Highest ${usd(t1.psa)}, ${over1k} above $1,000, as of ${asOf}.`,
+  ], DESC_MAX, "psa10-ranking");
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "ItemList",
     name: "Most valuable One Piece PSA 10 cards",

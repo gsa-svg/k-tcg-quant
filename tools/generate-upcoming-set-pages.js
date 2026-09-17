@@ -53,14 +53,47 @@ function renderSections(sections) {
       </section>`).join("\n");
 }
 
+// 검색 제목·설명(2026-09-17): 구글은 제목 60자·설명 155자를 넘기면 잘라내거나 다시 쓴다(OP-18 은 82자/185자였다).
+// JSON 의 title·description 은 편집용 긴 문장이라 그대로 못 쓴다 — <title> 은 코드 + 세트명(title 에서 " (" / " — " 앞까지)
+// + "Booster Box Release Date", 설명은 코드 + 세트명 + 발매일 FAQ(faq[0]) 답의 앞 문장들로 만든다. 넘치면 생성을 멈춘다.
+const TITLE_MAX = 60, DESC_MAX = 155;
+const fit = (cands, max, what) => {
+  const hit = cands.find((c) => c.length <= max);
+  if (!hit) throw new Error(`SEO 길이 초과: ${what} — ${cands[cands.length - 1].length}자 > ${max}자 "${cands[cands.length - 1]}"`);
+  return hit;
+};
+const seenTitles = new Set();
+function seoName(page) {
+  if (!page.title.startsWith(`${page.code} `)) throw new Error(`${page.slug}: title 은 "${page.code} <세트명>" 으로 시작해야 한다`);
+  const name = page.title.slice(page.code.length + 1).split(/\s+(?:\(|—)/)[0].trim();
+  if (!name) throw new Error(`${page.slug}: title 에서 세트명을 못 뽑았다`);
+  return name;
+}
+function seoTitle(page) {
+  const core = `${page.code} ${seoName(page)} Booster Box Release Date`;
+  const title = fit([`${core} | OP Box Index`, core], TITLE_MAX, page.slug);
+  if (seenTitles.has(title)) throw new Error(`타이틀 중복: ${title}`);
+  seenTitles.add(title);
+  return title;
+}
+function seoDescription(page) {
+  const [question, answer] = page.faq[0];
+  if (!/release/i.test(question)) throw new Error(`${page.slug}: faq[0] 은 발매일 질문이어야 한다(검색 설명의 원문)`);
+  const lead = `${page.code} ${seoName(page)}: `;
+  const sentences = answer.split(/(?<=\.)\s+/);
+  return fit(sentences.map((_, i) => lead + sentences.slice(0, sentences.length - i).join(" ")), DESC_MAX, page.slug);
+}
+
 function renderPage(page) {
   validatePage(page);
   const canonical = `https://opboxindex.com/sets/${page.slug}.html`;
+  const title = seoTitle(page);
+  const description = seoDescription(page);
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: page.headline,
-    description: page.description,
+    description,
     datePublished: page.published,
     dateModified: page.modified,
     inLanguage: "en-US",
@@ -109,12 +142,12 @@ function renderPage(page) {
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>${escapeHtml(page.title)}</title>
-    <meta name="description" content="${escapeHtml(page.description)}" />
+    <title>${escapeHtml(title)}</title>
+    <meta name="description" content="${escapeHtml(description)}" />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="article" />
-    <meta property="og:title" content="${escapeHtml(page.title)}" />
-    <meta property="og:description" content="${escapeHtml(page.description)}" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${canonical}" />
     <meta property="og:image" content="https://opboxindex.com/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
