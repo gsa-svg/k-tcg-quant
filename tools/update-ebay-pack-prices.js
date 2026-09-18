@@ -96,6 +96,7 @@ function listingSnapshot(item) {
   return {
     title: item.title || "",
     url: item.itemWebUrl || "",
+    image: item.image?.imageUrl || item.thumbnailImages?.[0]?.imageUrl || "",
     price: Number(item.price.value),
     shipping: Number(item.shippingOptions?.[0]?.shippingCost?.value || 0),
     total,
