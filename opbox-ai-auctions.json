@@ -2,7 +2,7 @@
  "schemaVersion": "1.0.0",
  "datasetId": "opbox-ai-auctions",
  "name": "OP Box Index — settled eBay auction results: One Piece daily/weekly/by set, and 13 trading card games",
- "datasetUpdatedOn": "2026-09-19",
+ "datasetUpdatedOn": "2026-09-20",
  "publisher": {
   "name": "OP Box Index",
   "url": "https://opboxindex.com/"
@@ -26,67 +26,6 @@
   },
   "canonicalPage": "https://opboxindex.com/auction.html",
   "daily": [
-   {
-    "date": "2026-08-21",
-    "partialDay": false,
-    "ended": 1136,
-    "sold": 199,
-    "unsold": 937,
-    "sellThroughPct": 17.52,
-    "amountUsd": 25259.17,
-    "byCategory": {
-     "box": {
-      "ended": 7,
-      "sold": 6,
-      "sellThroughPct": null,
-      "amountUsd": 5111.02
-     },
-     "graded": {
-      "ended": 89,
-      "sold": 31,
-      "sellThroughPct": 34.8,
-      "amountUsd": 5442.44
-     },
-     "raw": {
-      "ended": 936,
-      "sold": 131,
-      "sellThroughPct": 14,
-      "amountUsd": 13041.79
-     },
-     "pack": {
-      "ended": 29,
-      "sold": 18,
-      "sellThroughPct": 62.1,
-      "amountUsd": 286.9
-     },
-     "lot": {
-      "ended": 75,
-      "sold": 13,
-      "sellThroughPct": 17.3,
-      "amountUsd": 1377.02
-     }
-    },
-    "byPrinting": {
-     "jp": {
-      "ended": 276,
-      "sold": 39,
-      "sellThroughPct": 14.1,
-      "amountUsd": 1730.68
-     },
-     "en": {
-      "ended": 752,
-      "sold": 114,
-      "sellThroughPct": 15.2,
-      "amountUsd": 15608.09
-     },
-     "other": {
-      "ended": 108,
-      "sold": 46,
-      "sellThroughPct": 42.6,
-      "amountUsd": 7920.4
-     }
-    }
-   },
    {
     "date": "2026-08-22",
     "partialDay": true,
@@ -1797,62 +1736,123 @@
    },
    {
     "date": "2026-09-19",
-    "partialDay": true,
-    "ended": 961,
-    "sold": 273,
-    "unsold": 688,
-    "sellThroughPct": 28.41,
-    "amountUsd": 33807.9,
+    "partialDay": false,
+    "ended": 1272,
+    "sold": 366,
+    "unsold": 906,
+    "sellThroughPct": 28.77,
+    "amountUsd": 42243.63,
     "byCategory": {
      "box": {
-      "ended": 6,
-      "sold": 3,
+      "ended": 8,
+      "sold": 4,
       "sellThroughPct": null,
-      "amountUsd": 7255
+      "amountUsd": 7307.99
      },
      "graded": {
-      "ended": 131,
-      "sold": 74,
-      "sellThroughPct": 56.5,
-      "amountUsd": 12158.13
+      "ended": 165,
+      "sold": 89,
+      "sellThroughPct": 53.9,
+      "amountUsd": 17698.39
      },
      "raw": {
-      "ended": 696,
-      "sold": 141,
-      "sellThroughPct": 20.3,
-      "amountUsd": 11908.7
+      "ended": 948,
+      "sold": 205,
+      "sellThroughPct": 21.6,
+      "amountUsd": 14575.17
      },
      "pack": {
-      "ended": 75,
-      "sold": 45,
-      "sellThroughPct": 60,
-      "amountUsd": 2124.87
+      "ended": 85,
+      "sold": 54,
+      "sellThroughPct": 63.5,
+      "amountUsd": 2164.87
      },
      "lot": {
-      "ended": 53,
-      "sold": 10,
-      "sellThroughPct": 18.9,
-      "amountUsd": 361.2
+      "ended": 66,
+      "sold": 14,
+      "sellThroughPct": 21.2,
+      "amountUsd": 497.21
      }
     },
     "byPrinting": {
      "jp": {
-      "ended": 222,
-      "sold": 82,
-      "sellThroughPct": 36.9,
-      "amountUsd": 7670.13
+      "ended": 279,
+      "sold": 90,
+      "sellThroughPct": 32.3,
+      "amountUsd": 9411.15
      },
      "en": {
-      "ended": 641,
-      "sold": 146,
-      "sellThroughPct": 22.8,
-      "amountUsd": 19537.43
+      "ended": 859,
+      "sold": 213,
+      "sellThroughPct": 24.8,
+      "amountUsd": 24090.77
      },
      "other": {
-      "ended": 98,
-      "sold": 45,
-      "sellThroughPct": 45.9,
-      "amountUsd": 6600.34
+      "ended": 134,
+      "sold": 63,
+      "sellThroughPct": 47,
+      "amountUsd": 8741.71
+     }
+    }
+   },
+   {
+    "date": "2026-09-20",
+    "partialDay": true,
+    "ended": 1075,
+    "sold": 347,
+    "unsold": 728,
+    "sellThroughPct": 32.28,
+    "amountUsd": 37378.02,
+    "byCategory": {
+     "box": {
+      "ended": 5,
+      "sold": 3,
+      "sellThroughPct": null,
+      "amountUsd": 8967.29
+     },
+     "graded": {
+      "ended": 93,
+      "sold": 67,
+      "sellThroughPct": 72,
+      "amountUsd": 14380.95
+     },
+     "raw": {
+      "ended": 871,
+      "sold": 224,
+      "sellThroughPct": 25.7,
+      "amountUsd": 10373.41
+     },
+     "pack": {
+      "ended": 51,
+      "sold": 38,
+      "sellThroughPct": 74.5,
+      "amountUsd": 1048.58
+     },
+     "lot": {
+      "ended": 55,
+      "sold": 15,
+      "sellThroughPct": 27.3,
+      "amountUsd": 2607.79
+     }
+    },
+    "byPrinting": {
+     "jp": {
+      "ended": 313,
+      "sold": 88,
+      "sellThroughPct": 28.1,
+      "amountUsd": 6446.02
+     },
+     "en": {
+      "ended": 617,
+      "sold": 173,
+      "sellThroughPct": 28,
+      "amountUsd": 21301.28
+     },
+     "other": {
+      "ended": 145,
+      "sold": 86,
+      "sellThroughPct": 59.3,
+      "amountUsd": 9630.72
      }
     }
    }
@@ -2147,260 +2147,225 @@
    },
    {
     "weekStart": "2026-09-14",
-    "days": 6,
+    "days": 7,
     "partialDays": 0,
-    "ended": 7395,
-    "sold": 2492,
-    "sellThroughPct": 33.7,
-    "amountUsd": 326572.66,
+    "ended": 8781,
+    "sold": 2932,
+    "sellThroughPct": 33.39,
+    "amountUsd": 372386.41,
     "byCategory": {
      "box": {
-      "ended": 82,
-      "sold": 68,
-      "sellThroughPct": 82.9,
-      "amountUsd": 91205.6
+      "ended": 89,
+      "sold": 72,
+      "sellThroughPct": 80.9,
+      "amountUsd": 100225.88
      },
      "graded": {
-      "ended": 866,
-      "sold": 513,
-      "sellThroughPct": 59.2,
-      "amountUsd": 91695.76
+      "ended": 993,
+      "sold": 595,
+      "sellThroughPct": 59.9,
+      "amountUsd": 111616.97
      },
      "raw": {
-      "ended": 5529,
-      "sold": 1434,
+      "ended": 6652,
+      "sold": 1722,
       "sellThroughPct": 25.9,
-      "amountUsd": 113236.94
+      "amountUsd": 126276.82
      },
      "pack": {
-      "ended": 473,
-      "sold": 340,
-      "sellThroughPct": 71.9,
-      "amountUsd": 14259.88
+      "ended": 534,
+      "sold": 387,
+      "sellThroughPct": 72.5,
+      "amountUsd": 15348.46
      },
      "lot": {
-      "ended": 445,
-      "sold": 137,
-      "sellThroughPct": 30.8,
-      "amountUsd": 16174.48
+      "ended": 513,
+      "sold": 156,
+      "sellThroughPct": 30.4,
+      "amountUsd": 18918.28
      }
     }
    }
   ],
   "bySet": {
    "windowDays": 30,
-   "from": "2026-08-19",
-   "to": "2026-09-18",
-   "observedOn": "2026-09-18",
+   "from": "2026-08-20",
+   "to": "2026-09-19",
+   "observedOn": "2026-09-19",
    "sets": [
     {
-     "setCode": "ST-21",
-     "canonicalUrl": "https://opboxindex.com/sets/st-21.html",
-     "ended": 315,
-     "sold": 171,
-     "sellThroughPct": 54.3,
-     "amountUsd": 15698,
-     "medianWinningBidUsd": 61.62,
-     "medianBidders": 7,
+     "setCode": "OP-15",
+     "canonicalUrl": "https://opboxindex.com/sets/op-15.html",
+     "ended": 2222,
+     "sold": 614,
+     "sellThroughPct": 27.6,
+     "amountUsd": 38476,
+     "medianWinningBidUsd": 10.88,
+     "medianBidders": 4,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 308,
-       "sold": 165,
-       "sellThroughPct": 53.6
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 165,
-       "sold": 60,
-       "sellThroughPct": 36.4,
-       "medianWinningBidUsd": 13.53,
-       "byCategory": {
-        "card": {
-         "ended": 160,
-         "sold": 56,
-         "sellThroughPct": 35
-        }
-       }
-      },
-      "japanese": {
-       "ended": 97,
-       "sold": 77,
-       "sellThroughPct": 79.4,
-       "medianWinningBidUsd": 132.5,
-       "byCategory": {
-        "card": {
-         "ended": 97,
-         "sold": 77,
-         "sellThroughPct": 79.4
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-31",
-     "canonicalUrl": "https://opboxindex.com/sets/st-31.html",
-     "ended": 141,
-     "sold": 60,
-     "sellThroughPct": 42.6,
-     "amountUsd": 12443,
-     "medianWinningBidUsd": 15.66,
-     "medianBidders": 3,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 134,
-       "sold": 53,
-       "sellThroughPct": 39.6
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 119,
-       "sold": 50,
-       "sellThroughPct": 42,
-       "medianWinningBidUsd": 12.94,
-       "byCategory": {
-        "card": {
-         "ended": 113,
-         "sold": 44,
-         "sellThroughPct": 38.9
-        }
-       }
-      },
-      "japanese": {
-       "ended": 7,
-       "sold": 3,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "OP-01",
-     "canonicalUrl": "https://opboxindex.com/sets/op-01.html",
-     "ended": 1583,
-     "sold": 460,
-     "sellThroughPct": 29.1,
-     "amountUsd": 99773,
-     "medianWinningBidUsd": 27,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1470,
-       "sold": 408,
-       "sellThroughPct": 27.8
+       "ended": 2028,
+       "sold": 493,
+       "sellThroughPct": 24.3
       },
       "pack": {
-       "ended": 62,
-       "sold": 23,
-       "sellThroughPct": 37.1
+       "ended": 185,
+       "sold": 113,
+       "sellThroughPct": 61.1
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 1331,
+       "sold": 335,
+       "sellThroughPct": 25.2,
+       "medianWinningBidUsd": 9.89,
+       "byCategory": {
+        "card": {
+         "ended": 1230,
+         "sold": 277,
+         "sellThroughPct": 22.5
+        },
+        "pack": {
+         "ended": 97,
+         "sold": 55,
+         "sellThroughPct": 56.7
+        }
+       }
+      },
+      "japanese": {
+       "ended": 590,
+       "sold": 117,
+       "sellThroughPct": 19.8,
+       "medianWinningBidUsd": 4.33,
+       "byCategory": {
+        "pack": {
+         "ended": 59,
+         "sold": 47,
+         "sellThroughPct": 79.7
+        },
+        "card": {
+         "ended": 530,
+         "sold": 69,
+         "sellThroughPct": 13
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-13",
+     "canonicalUrl": "https://opboxindex.com/sets/op-13.html",
+     "ended": 2319,
+     "sold": 827,
+     "sellThroughPct": 35.7,
+     "amountUsd": 168422,
+     "medianWinningBidUsd": 17,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 2154,
+       "sold": 695,
+       "sellThroughPct": 32.3
+      },
+      "pack": {
+       "ended": 132,
+       "sold": 101,
+       "sellThroughPct": 76.5
       },
       "box": {
-       "ended": 45,
-       "sold": 23,
-       "sellThroughPct": 51.1
+       "ended": 26,
+       "sold": 24,
+       "sellThroughPct": 92.3
       }
      },
      "byPrinting": {
       "english": {
-       "ended": 713,
-       "sold": 162,
-       "sellThroughPct": 22.7,
-       "medianWinningBidUsd": 35,
+       "ended": 1438,
+       "sold": 463,
+       "sellThroughPct": 32.2,
+       "medianWinningBidUsd": 17.5,
        "byCategory": {
         "card": {
-         "ended": 666,
-         "sold": 142,
-         "sellThroughPct": 21.3
+         "ended": 1323,
+         "sold": 367,
+         "sellThroughPct": 27.7
         },
         "pack": {
-         "ended": 38,
-         "sold": 13,
-         "sellThroughPct": 34.2
+         "ended": 87,
+         "sold": 70,
+         "sellThroughPct": 80.5
+        },
+        "box": {
+         "ended": 22,
+         "sold": 20,
+         "sellThroughPct": 90.9
         }
        }
       },
       "japanese": {
-       "ended": 582,
-       "sold": 139,
-       "sellThroughPct": 23.9,
-       "medianWinningBidUsd": 24,
+       "ended": 486,
+       "sold": 137,
+       "sellThroughPct": 28.2,
+       "medianWinningBidUsd": 17.95,
        "byCategory": {
         "card": {
-         "ended": 540,
-         "sold": 125,
-         "sellThroughPct": 23.1
-        },
-        "box": {
-         "ended": 19,
-         "sold": 3,
-         "sellThroughPct": 15.8
+         "ended": 455,
+         "sold": 118,
+         "sellThroughPct": 25.9
         },
         "pack": {
-         "ended": 22,
-         "sold": 10,
-         "sellThroughPct": 45.5
+         "ended": 31,
+         "sold": 19,
+         "sellThroughPct": 61.3
         }
        }
       }
      }
     },
     {
-     "setCode": "OP-10",
-     "canonicalUrl": "https://opboxindex.com/sets/op-10.html",
-     "ended": 1604,
-     "sold": 353,
-     "sellThroughPct": 22,
-     "amountUsd": 13003,
-     "medianWinningBidUsd": 14,
-     "medianBidders": 3,
+     "setCode": "EB-01",
+     "canonicalUrl": "https://opboxindex.com/sets/eb-01.html",
+     "ended": 406,
+     "sold": 105,
+     "sellThroughPct": 25.9,
+     "amountUsd": 7430,
+     "medianWinningBidUsd": 15.5,
+     "medianBidders": 4,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 1553,
-       "sold": 330,
-       "sellThroughPct": 21.2
-      },
-      "pack": {
-       "ended": 41,
-       "sold": 16,
-       "sellThroughPct": 39
+       "ended": 399,
+       "sold": 101,
+       "sellThroughPct": 25.3
       }
      },
      "byPrinting": {
-      "japanese": {
-       "ended": 503,
-       "sold": 86,
-       "sellThroughPct": 17.1,
-       "medianWinningBidUsd": 6,
+      "english": {
+       "ended": 160,
+       "sold": 39,
+       "sellThroughPct": 24.4,
+       "medianWinningBidUsd": 20.5,
        "byCategory": {
         "card": {
-         "ended": 496,
-         "sold": 83,
-         "sellThroughPct": 16.7
+         "ended": 153,
+         "sold": 35,
+         "sellThroughPct": 22.9
         }
        }
       },
-      "english": {
-       "ended": 850,
-       "sold": 146,
-       "sellThroughPct": 17.2,
-       "medianWinningBidUsd": 14,
+      "japanese": {
+       "ended": 182,
+       "sold": 41,
+       "sellThroughPct": 22.5,
+       "medianWinningBidUsd": 10.26,
        "byCategory": {
         "card": {
-         "ended": 811,
-         "sold": 130,
-         "sellThroughPct": 16
-        },
-        "pack": {
-         "ended": 30,
-         "sold": 10,
-         "sellThroughPct": 33.3
+         "ended": 182,
+         "sold": 41,
+         "sellThroughPct": 22.5
         }
        }
       }
@@ -2409,23 +2374,23 @@
     {
      "setCode": "OP-16",
      "canonicalUrl": "https://opboxindex.com/sets/op-16.html",
-     "ended": 2996,
-     "sold": 854,
-     "sellThroughPct": 28.5,
-     "amountUsd": 63285,
-     "medianWinningBidUsd": 10.52,
+     "ended": 3030,
+     "sold": 858,
+     "sellThroughPct": 28.3,
+     "amountUsd": 64557,
+     "medianWinningBidUsd": 10.55,
      "medianBidders": 4,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 2721,
-       "sold": 661,
-       "sellThroughPct": 24.3
+       "ended": 2747,
+       "sold": 658,
+       "sellThroughPct": 24
       },
       "pack": {
-       "ended": 251,
-       "sold": 171,
-       "sellThroughPct": 68.1
+       "ended": 258,
+       "sold": 177,
+       "sellThroughPct": 68.6
       },
       "box": {
        "ended": 13,
@@ -2433,45 +2398,45 @@
        "sellThroughPct": 100
       },
       "carton": {
-       "ended": 11,
-       "sold": 9,
-       "sellThroughPct": 81.8
+       "ended": 12,
+       "sold": 10,
+       "sellThroughPct": 83.3
       }
      },
      "byPrinting": {
       "english": {
-       "ended": 2288,
-       "sold": 534,
-       "sellThroughPct": 23.3,
+       "ended": 2318,
+       "sold": 538,
+       "sellThroughPct": 23.2,
        "medianWinningBidUsd": 10.91,
        "byCategory": {
         "card": {
-         "ended": 2136,
-         "sold": 440,
-         "sellThroughPct": 20.6
+         "ended": 2160,
+         "sold": 439,
+         "sellThroughPct": 20.3
         },
         "pack": {
-         "ended": 140,
-         "sold": 82,
-         "sellThroughPct": 58.6
+         "ended": 146,
+         "sold": 87,
+         "sellThroughPct": 59.6
         }
        }
       },
       "japanese": {
-       "ended": 325,
-       "sold": 124,
-       "sellThroughPct": 38.2,
+       "ended": 333,
+       "sold": 127,
+       "sellThroughPct": 38.1,
        "medianWinningBidUsd": 2.58,
        "byCategory": {
-        "pack": {
-         "ended": 84,
-         "sold": 69,
-         "sellThroughPct": 82.1
-        },
         "card": {
-         "ended": 235,
-         "sold": 51,
-         "sellThroughPct": 21.7
+         "ended": 243,
+         "sold": 53,
+         "sellThroughPct": 21.8
+        },
+        "pack": {
+         "ended": 83,
+         "sold": 69,
+         "sellThroughPct": 83.1
         }
        }
       }
@@ -2480,23 +2445,23 @@
     {
      "setCode": "OP-14",
      "canonicalUrl": "https://opboxindex.com/sets/op-14.html",
-     "ended": 1989,
-     "sold": 688,
+     "ended": 1971,
+     "sold": 682,
      "sellThroughPct": 34.6,
-     "amountUsd": 64026,
-     "medianWinningBidUsd": 19,
+     "amountUsd": 57058,
+     "medianWinningBidUsd": 18.5,
      "medianBidders": 4,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 1894,
-       "sold": 616,
+       "ended": 1879,
+       "sold": 611,
        "sellThroughPct": 32.5
       },
       "pack": {
-       "ended": 74,
-       "sold": 55,
-       "sellThroughPct": 74.3
+       "ended": 71,
+       "sold": 54,
+       "sellThroughPct": 76.1
       },
       "box": {
        "ended": 18,
@@ -2506,20 +2471,20 @@
      },
      "byPrinting": {
       "english": {
-       "ended": 1325,
+       "ended": 1317,
        "sold": 385,
-       "sellThroughPct": 29.1,
-       "medianWinningBidUsd": 18.94,
+       "sellThroughPct": 29.2,
+       "medianWinningBidUsd": 15.53,
        "byCategory": {
         "card": {
-         "ended": 1260,
-         "sold": 336,
-         "sellThroughPct": 26.7
+         "ended": 1255,
+         "sold": 337,
+         "sellThroughPct": 26.9
         },
         "pack": {
-         "ended": 52,
-         "sold": 39,
-         "sellThroughPct": 75
+         "ended": 49,
+         "sold": 38,
+         "sellThroughPct": 77.6
         },
         "box": {
          "ended": 10,
@@ -2529,15 +2494,15 @@
        }
       },
       "japanese": {
-       "ended": 325,
-       "sold": 86,
-       "sellThroughPct": 26.5,
-       "medianWinningBidUsd": 2.19,
+       "ended": 320,
+       "sold": 83,
+       "sellThroughPct": 25.9,
+       "medianWinningBidUsd": 2.05,
        "byCategory": {
         "card": {
-         "ended": 307,
-         "sold": 71,
-         "sellThroughPct": 23.1
+         "ended": 302,
+         "sold": 68,
+         "sellThroughPct": 22.5
         },
         "pack": {
          "ended": 16,
@@ -2551,18 +2516,18 @@
     {
      "setCode": "OP-07",
      "canonicalUrl": "https://opboxindex.com/sets/op-07.html",
-     "ended": 1351,
-     "sold": 419,
-     "sellThroughPct": 31,
-     "amountUsd": 41313,
-     "medianWinningBidUsd": 34,
+     "ended": 1373,
+     "sold": 416,
+     "sellThroughPct": 30.3,
+     "amountUsd": 41086,
+     "medianWinningBidUsd": 33.77,
      "medianBidders": 5,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 1329,
-       "sold": 409,
-       "sellThroughPct": 30.8
+       "ended": 1351,
+       "sold": 406,
+       "sellThroughPct": 30.1
       },
       "pack": {
        "ended": 18,
@@ -2572,15 +2537,15 @@
      },
      "byPrinting": {
       "english": {
-       "ended": 849,
-       "sold": 189,
-       "sellThroughPct": 22.3,
+       "ended": 869,
+       "sold": 188,
+       "sellThroughPct": 21.6,
        "medianWinningBidUsd": 26,
        "byCategory": {
         "card": {
-         "ended": 829,
-         "sold": 181,
-         "sellThroughPct": 21.8
+         "ended": 849,
+         "sold": 180,
+         "sellThroughPct": 21.2
         },
         "pack": {
          "ended": 17,
@@ -2590,1464 +2555,15 @@
        }
       },
       "japanese": {
-       "ended": 281,
+       "ended": 282,
        "sold": 89,
-       "sellThroughPct": 31.7,
+       "sellThroughPct": 31.6,
        "medianWinningBidUsd": 32,
        "byCategory": {
         "card": {
-         "ended": 281,
+         "ended": 282,
          "sold": 89,
-         "sellThroughPct": 31.7
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-02",
-     "canonicalUrl": "https://opboxindex.com/sets/op-02.html",
-     "ended": 811,
-     "sold": 232,
-     "sellThroughPct": 28.6,
-     "amountUsd": 11195,
-     "medianWinningBidUsd": 14.89,
-     "medianBidders": 3,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 758,
-       "sold": 220,
-       "sellThroughPct": 29
-      },
-      "pack": {
-       "ended": 49,
-       "sold": 9,
-       "sellThroughPct": 18.4
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 440,
-       "sold": 99,
-       "sellThroughPct": 22.5,
-       "medianWinningBidUsd": 9,
-       "byCategory": {
-        "card": {
-         "ended": 396,
-         "sold": 95,
-         "sellThroughPct": 24
-        },
-        "pack": {
-         "ended": 40,
-         "sold": 1,
-         "sellThroughPct": 2.5
-        }
-       }
-      },
-      "japanese": {
-       "ended": 255,
-       "sold": 64,
-       "sellThroughPct": 25.1,
-       "medianWinningBidUsd": 16,
-       "byCategory": {
-        "card": {
-         "ended": 246,
-         "sold": 56,
-         "sellThroughPct": 22.8
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-15",
-     "canonicalUrl": "https://opboxindex.com/sets/st-15.html",
-     "ended": 123,
-     "sold": 50,
-     "sellThroughPct": 40.7,
-     "amountUsd": 2094,
-     "medianWinningBidUsd": 11.2,
-     "medianBidders": 3,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 109,
-       "sold": 41,
-       "sellThroughPct": 37.6
-      },
-      "pack": {
-       "ended": 14,
-       "sold": 9,
-       "sellThroughPct": 64.3
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 69,
-       "sold": 33,
-       "sellThroughPct": 47.8,
-       "medianWinningBidUsd": 10,
-       "byCategory": {
-        "card": {
-         "ended": 58,
-         "sold": 27,
-         "sellThroughPct": 46.6
-        },
-        "pack": {
-         "ended": 11,
-         "sold": 6,
-         "sellThroughPct": 54.5
-        }
-       }
-      },
-      "japanese": {
-       "ended": 24,
-       "sold": 3,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {
-        "card": {
-         "ended": 24,
-         "sold": 3,
-         "sellThroughPct": 12.5
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-13",
-     "canonicalUrl": "https://opboxindex.com/sets/op-13.html",
-     "ended": 2312,
-     "sold": 823,
-     "sellThroughPct": 35.6,
-     "amountUsd": 172364,
-     "medianWinningBidUsd": 17.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 2153,
-       "sold": 696,
-       "sellThroughPct": 32.3
-      },
-      "pack": {
-       "ended": 126,
-       "sold": 96,
-       "sellThroughPct": 76.2
-      },
-      "box": {
-       "ended": 26,
-       "sold": 24,
-       "sellThroughPct": 92.3
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 1435,
-       "sold": 458,
-       "sellThroughPct": 31.9,
-       "medianWinningBidUsd": 17.92,
-       "byCategory": {
-        "card": {
-         "ended": 1326,
-         "sold": 366,
-         "sellThroughPct": 27.6
-        },
-        "pack": {
-         "ended": 81,
-         "sold": 66,
-         "sellThroughPct": 81.5
-        },
-        "box": {
-         "ended": 22,
-         "sold": 20,
-         "sellThroughPct": 90.9
-        }
-       }
-      },
-      "japanese": {
-       "ended": 479,
-       "sold": 135,
-       "sellThroughPct": 28.2,
-       "medianWinningBidUsd": 18.95,
-       "byCategory": {
-        "card": {
-         "ended": 448,
-         "sold": 117,
-         "sellThroughPct": 26.1
-        },
-        "pack": {
-         "ended": 31,
-         "sold": 18,
-         "sellThroughPct": 58.1
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-08",
-     "canonicalUrl": "https://opboxindex.com/sets/op-08.html",
-     "ended": 989,
-     "sold": 232,
-     "sellThroughPct": 23.5,
-     "amountUsd": 14680,
-     "medianWinningBidUsd": 15.36,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 935,
-       "sold": 193,
-       "sellThroughPct": 20.6
-      },
-      "pack": {
-       "ended": 37,
-       "sold": 22,
-       "sellThroughPct": 59.5
-      },
-      "box": {
-       "ended": 17,
-       "sold": 17,
-       "sellThroughPct": 100
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 534,
-       "sold": 110,
-       "sellThroughPct": 20.6,
-       "medianWinningBidUsd": 13.5,
-       "byCategory": {
-        "card": {
-         "ended": 508,
-         "sold": 94,
-         "sellThroughPct": 18.5
-        },
-        "pack": {
-         "ended": 16,
-         "sold": 6,
-         "sellThroughPct": 37.5
-        },
-        "box": {
-         "ended": 10,
-         "sold": 10,
-         "sellThroughPct": 100
-        }
-       }
-      },
-      "japanese": {
-       "ended": 320,
-       "sold": 59,
-       "sellThroughPct": 18.4,
-       "medianWinningBidUsd": 27,
-       "byCategory": {
-        "card": {
-         "ended": 301,
-         "sold": 43,
-         "sellThroughPct": 14.3
-        },
-        "pack": {
-         "ended": 19,
-         "sold": 16,
-         "sellThroughPct": 84.2
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-06",
-     "canonicalUrl": "https://opboxindex.com/sets/op-06.html",
-     "ended": 1343,
-     "sold": 316,
-     "sellThroughPct": 23.5,
-     "amountUsd": 29866,
-     "medianWinningBidUsd": 16.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1297,
-       "sold": 286,
-       "sellThroughPct": 22.1
-      },
-      "pack": {
-       "ended": 42,
-       "sold": 26,
-       "sellThroughPct": 61.9
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 737,
-       "sold": 120,
-       "sellThroughPct": 16.3,
-       "medianWinningBidUsd": 12.5,
-       "byCategory": {
-        "card": {
-         "ended": 710,
-         "sold": 107,
-         "sellThroughPct": 15.1
-        },
-        "pack": {
-         "ended": 27,
-         "sold": 13,
-         "sellThroughPct": 48.1
-        }
-       }
-      },
-      "japanese": {
-       "ended": 442,
-       "sold": 96,
-       "sellThroughPct": 21.7,
-       "medianWinningBidUsd": 8.5,
-       "byCategory": {
-        "card": {
-         "ended": 432,
-         "sold": 87,
-         "sellThroughPct": 20.1
-        },
-        "pack": {
-         "ended": 10,
-         "sold": 9,
-         "sellThroughPct": 90
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-05",
-     "canonicalUrl": "https://opboxindex.com/sets/op-05.html",
-     "ended": 1678,
-     "sold": 419,
-     "sellThroughPct": 25,
-     "amountUsd": 79151,
-     "medianWinningBidUsd": 29,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1619,
-       "sold": 382,
-       "sellThroughPct": 23.6
-      },
-      "pack": {
-       "ended": 45,
-       "sold": 24,
-       "sellThroughPct": 53.3
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 827,
-       "sold": 191,
-       "sellThroughPct": 23.1,
-       "medianWinningBidUsd": 26,
-       "byCategory": {
-        "card": {
-         "ended": 784,
-         "sold": 162,
-         "sellThroughPct": 20.7
-        },
-        "pack": {
-         "ended": 34,
-         "sold": 20,
-         "sellThroughPct": 58.8
-        }
-       }
-      },
-      "japanese": {
-       "ended": 641,
-       "sold": 124,
-       "sellThroughPct": 19.3,
-       "medianWinningBidUsd": 38,
-       "byCategory": {
-        "card": {
-         "ended": 634,
-         "sold": 123,
-         "sellThroughPct": 19.4
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-03",
-     "canonicalUrl": "https://opboxindex.com/sets/op-03.html",
-     "ended": 732,
-     "sold": 162,
-     "sellThroughPct": 22.1,
-     "amountUsd": 7891,
-     "medianWinningBidUsd": 18.25,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 709,
-       "sold": 152,
-       "sellThroughPct": 21.4
-      },
-      "pack": {
-       "ended": 22,
-       "sold": 10,
-       "sellThroughPct": 45.5
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 455,
-       "sold": 92,
-       "sellThroughPct": 20.2,
-       "medianWinningBidUsd": 17.63,
-       "byCategory": {
-        "card": {
-         "ended": 437,
-         "sold": 83,
-         "sellThroughPct": 19
-        },
-        "pack": {
-         "ended": 18,
-         "sold": 9,
-         "sellThroughPct": 50
-        }
-       }
-      },
-      "japanese": {
-       "ended": 186,
-       "sold": 30,
-       "sellThroughPct": 16.1,
-       "medianWinningBidUsd": 7.88,
-       "byCategory": {
-        "card": {
-         "ended": 181,
-         "sold": 29,
-         "sellThroughPct": 16
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-15",
-     "canonicalUrl": "https://opboxindex.com/sets/op-15.html",
-     "ended": 2210,
-     "sold": 608,
-     "sellThroughPct": 27.5,
-     "amountUsd": 38551,
-     "medianWinningBidUsd": 10.63,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 2011,
-       "sold": 485,
-       "sellThroughPct": 24.1
-      },
-      "pack": {
-       "ended": 190,
-       "sold": 115,
-       "sellThroughPct": 60.5
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 1310,
-       "sold": 329,
-       "sellThroughPct": 25.1,
-       "medianWinningBidUsd": 9.99,
-       "byCategory": {
-        "card": {
-         "ended": 1208,
-         "sold": 271,
-         "sellThroughPct": 22.4
-        },
-        "pack": {
-         "ended": 98,
-         "sold": 55,
-         "sellThroughPct": 56.1
-        }
-       }
-      },
-      "japanese": {
-       "ended": 603,
-       "sold": 116,
-       "sellThroughPct": 19.2,
-       "medianWinningBidUsd": 4.33,
-       "byCategory": {
-        "card": {
-         "ended": 541,
-         "sold": 67,
-         "sellThroughPct": 12.4
-        },
-        "pack": {
-         "ended": 61,
-         "sold": 48,
-         "sellThroughPct": 78.7
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-16",
-     "canonicalUrl": "https://opboxindex.com/sets/st-16.html",
-     "ended": 81,
-     "sold": 25,
-     "sellThroughPct": 30.9,
-     "amountUsd": 1916,
-     "medianWinningBidUsd": 10.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 78,
-       "sold": 25,
-       "sellThroughPct": 32.1
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 25,
-       "sold": 11,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 28,
-       "byCategory": {
-        "card": {
-         "ended": 22,
-         "sold": 11,
-         "sellThroughPct": 50
-        }
-       }
-      },
-      "japanese": {
-       "ended": 36,
-       "sold": 5,
-       "sellThroughPct": 13.9,
-       "medianWinningBidUsd": 9.5,
-       "byCategory": {
-        "card": {
-         "ended": 36,
-         "sold": 5,
-         "sellThroughPct": 13.9
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-17",
-     "canonicalUrl": "https://opboxindex.com/sets/st-17.html",
-     "ended": 102,
-     "sold": 38,
-     "sellThroughPct": 37.3,
-     "amountUsd": 1295,
-     "medianWinningBidUsd": 29,
-     "medianBidders": 4.5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 90,
-       "sold": 28,
-       "sellThroughPct": 31.1
-      },
-      "pack": {
-       "ended": 12,
-       "sold": 10,
-       "sellThroughPct": 83.3
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 59,
-       "sold": 26,
-       "sellThroughPct": 44.1,
-       "medianWinningBidUsd": 29,
-       "byCategory": {
-        "card": {
-         "ended": 48,
-         "sold": 17,
-         "sellThroughPct": 35.4
-        },
-        "pack": {
-         "ended": 11,
-         "sold": 9,
-         "sellThroughPct": 81.8
-        }
-       }
-      },
-      "japanese": {
-       "ended": 26,
-       "sold": 5,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 58,
-       "byCategory": {
-        "card": {
-         "ended": 26,
-         "sold": 5,
-         "sellThroughPct": 19.2
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-09",
-     "canonicalUrl": "https://opboxindex.com/sets/op-09.html",
-     "ended": 1630,
-     "sold": 592,
-     "sellThroughPct": 36.3,
-     "amountUsd": 85959,
-     "medianWinningBidUsd": 27.08,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1571,
-       "sold": 559,
-       "sellThroughPct": 35.6
-      },
-      "pack": {
-       "ended": 47,
-       "sold": 25,
-       "sellThroughPct": 53.2
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 760,
-       "sold": 237,
-       "sellThroughPct": 31.2,
-       "medianWinningBidUsd": 23.5,
-       "byCategory": {
-        "card": {
-         "ended": 725,
-         "sold": 219,
-         "sellThroughPct": 30.2
-        },
-        "pack": {
-         "ended": 31,
-         "sold": 14,
-         "sellThroughPct": 45.2
-        }
-       }
-      },
-      "japanese": {
-       "ended": 506,
-       "sold": 138,
-       "sellThroughPct": 27.3,
-       "medianWinningBidUsd": 29,
-       "byCategory": {
-        "card": {
-         "ended": 498,
-         "sold": 135,
-         "sellThroughPct": 27.1
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "PRB-02",
-     "canonicalUrl": "https://opboxindex.com/sets/prb-02.html",
-     "ended": 630,
-     "sold": 264,
-     "sellThroughPct": 41.9,
-     "amountUsd": 28530,
-     "medianWinningBidUsd": 31,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 591,
-       "sold": 229,
-       "sellThroughPct": 38.7
-      },
-      "box": {
-       "ended": 15,
-       "sold": 15,
-       "sellThroughPct": 100
-      },
-      "pack": {
-       "ended": 18,
-       "sold": 17,
-       "sellThroughPct": 94.4
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 263,
-       "sold": 101,
-       "sellThroughPct": 38.4,
-       "medianWinningBidUsd": 53,
-       "byCategory": {
-        "card": {
-         "ended": 242,
-         "sold": 83,
-         "sellThroughPct": 34.3
-        }
-       }
-      },
-      "japanese": {
-       "ended": 223,
-       "sold": 77,
-       "sellThroughPct": 34.5,
-       "medianWinningBidUsd": 25.49,
-       "byCategory": {
-        "card": {
-         "ended": 216,
-         "sold": 71,
-         "sellThroughPct": 32.9
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "EB-03",
-     "canonicalUrl": "https://opboxindex.com/sets/eb-03.html",
-     "ended": 1374,
-     "sold": 537,
-     "sellThroughPct": 39.1,
-     "amountUsd": 49629,
-     "medianWinningBidUsd": 10.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1314,
-       "sold": 489,
-       "sellThroughPct": 37.2
-      },
-      "pack": {
-       "ended": 36,
-       "sold": 26,
-       "sellThroughPct": 72.2
-      },
-      "box": {
-       "ended": 19,
-       "sold": 17,
-       "sellThroughPct": 89.5
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 830,
-       "sold": 235,
-       "sellThroughPct": 28.3,
-       "medianWinningBidUsd": 13.5,
-       "byCategory": {
-        "card": {
-         "ended": 790,
-         "sold": 201,
-         "sellThroughPct": 25.4
-        },
-        "pack": {
-         "ended": 17,
-         "sold": 12,
-         "sellThroughPct": 70.6
-        },
-        "box": {
-         "ended": 18,
-         "sold": 17,
-         "sellThroughPct": 94.4
-        }
-       }
-      },
-      "japanese": {
-       "ended": 261,
-       "sold": 98,
-       "sellThroughPct": 37.5,
-       "medianWinningBidUsd": 13.5,
-       "byCategory": {
-        "card": {
-         "ended": 247,
-         "sold": 89,
-         "sellThroughPct": 36
-        },
-        "pack": {
-         "ended": 13,
-         "sold": 9,
-         "sellThroughPct": 69.2
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-30",
-     "canonicalUrl": "https://opboxindex.com/sets/st-30.html",
-     "ended": 288,
-     "sold": 98,
-     "sellThroughPct": 34,
-     "amountUsd": 2905,
-     "medianWinningBidUsd": 10.75,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 284,
-       "sold": 97,
-       "sellThroughPct": 34.2
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 222,
-       "sold": 68,
-       "sellThroughPct": 30.6,
-       "medianWinningBidUsd": 8.25,
-       "byCategory": {
-        "card": {
-         "ended": 221,
-         "sold": 68,
-         "sellThroughPct": 30.8
-        }
-       }
-      },
-      "japanese": {
-       "ended": 18,
-       "sold": 10,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 12.5,
-       "byCategory": {
-        "card": {
-         "ended": 18,
-         "sold": 10,
-         "sellThroughPct": 55.6
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-11",
-     "canonicalUrl": "https://opboxindex.com/sets/op-11.html",
-     "ended": 883,
-     "sold": 363,
-     "sellThroughPct": 41.1,
-     "amountUsd": 41751,
-     "medianWinningBidUsd": 17.29,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 819,
-       "sold": 317,
-       "sellThroughPct": 38.7
-      },
-      "pack": {
-       "ended": 47,
-       "sold": 29,
-       "sellThroughPct": 61.7
-      },
-      "box": {
-       "ended": 10,
-       "sold": 10,
-       "sellThroughPct": 100
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 561,
-       "sold": 193,
-       "sellThroughPct": 34.4,
-       "medianWinningBidUsd": 11.5,
-       "byCategory": {
-        "card": {
-         "ended": 513,
-         "sold": 163,
-         "sellThroughPct": 31.8
-        },
-        "pack": {
-         "ended": 37,
-         "sold": 19,
-         "sellThroughPct": 51.4
-        }
-       }
-      },
-      "japanese": {
-       "ended": 160,
-       "sold": 61,
-       "sellThroughPct": 38.1,
-       "medianWinningBidUsd": 21.21,
-       "byCategory": {
-        "card": {
-         "ended": 158,
-         "sold": 59,
-         "sellThroughPct": 37.3
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-20",
-     "canonicalUrl": "https://opboxindex.com/sets/st-20.html",
-     "ended": 36,
-     "sold": 7,
-     "sellThroughPct": 19.4,
-     "amountUsd": 25,
-     "medianWinningBidUsd": 3.25,
-     "medianBidders": 2,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 31,
-       "sold": 4,
-       "sellThroughPct": 12.9
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 23,
-       "sold": 5,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 3.25,
-       "byCategory": {
-        "card": {
-         "ended": 20,
-         "sold": 3,
-         "sellThroughPct": 15
-        }
-       }
-      },
-      "japanese": {
-       "ended": 9,
-       "sold": 0,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "EB-01",
-     "canonicalUrl": "https://opboxindex.com/sets/eb-01.html",
-     "ended": 401,
-     "sold": 106,
-     "sellThroughPct": 26.4,
-     "amountUsd": 7338,
-     "medianWinningBidUsd": 15.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 394,
-       "sold": 102,
-       "sellThroughPct": 25.9
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 187,
-       "sold": 43,
-       "sellThroughPct": 23,
-       "medianWinningBidUsd": 10.26,
-       "byCategory": {
-        "card": {
-         "ended": 187,
-         "sold": 43,
-         "sellThroughPct": 23
-        }
-       }
-      },
-      "english": {
-       "ended": 149,
-       "sold": 38,
-       "sellThroughPct": 25.5,
-       "medianWinningBidUsd": 20.5,
-       "byCategory": {
-        "card": {
-         "ended": 142,
-         "sold": 34,
-         "sellThroughPct": 23.9
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-10",
-     "canonicalUrl": "https://opboxindex.com/sets/st-10.html",
-     "ended": 166,
-     "sold": 72,
-     "sellThroughPct": 43.4,
-     "amountUsd": 11382,
-     "medianWinningBidUsd": 12.5,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 150,
-       "sold": 63,
-       "sellThroughPct": 42
-      },
-      "pack": {
-       "ended": 16,
-       "sold": 9,
-       "sellThroughPct": 56.3
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 89,
-       "sold": 36,
-       "sellThroughPct": 40.4,
-       "medianWinningBidUsd": 17.5,
-       "byCategory": {
-        "card": {
-         "ended": 79,
-         "sold": 33,
-         "sellThroughPct": 41.8
-        },
-        "pack": {
-         "ended": 10,
-         "sold": 3,
-         "sellThroughPct": 30
-        }
-       }
-      },
-      "japanese": {
-       "ended": 44,
-       "sold": 9,
-       "sellThroughPct": 20.5,
-       "medianWinningBidUsd": 109.5,
-       "byCategory": {
-        "card": {
-         "ended": 43,
-         "sold": 8,
-         "sellThroughPct": 18.6
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-04",
-     "canonicalUrl": "https://opboxindex.com/sets/op-04.html",
-     "ended": 1221,
-     "sold": 173,
-     "sellThroughPct": 14.2,
-     "amountUsd": 8072,
-     "medianWinningBidUsd": 13.5,
-     "medianBidders": 3,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1183,
-       "sold": 156,
-       "sellThroughPct": 13.2
-      },
-      "pack": {
-       "ended": 37,
-       "sold": 16,
-       "sellThroughPct": 43.2
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 835,
-       "sold": 76,
-       "sellThroughPct": 9.1,
-       "medianWinningBidUsd": 20,
-       "byCategory": {
-        "card": {
-         "ended": 813,
-         "sold": 68,
-         "sellThroughPct": 8.4
-        },
-        "pack": {
-         "ended": 22,
-         "sold": 8,
-         "sellThroughPct": 36.4
-        }
-       }
-      },
-      "japanese": {
-       "ended": 288,
-       "sold": 47,
-       "sellThroughPct": 16.3,
-       "medianWinningBidUsd": 5.5,
-       "byCategory": {
-        "card": {
-         "ended": 278,
-         "sold": 39,
-         "sellThroughPct": 14
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "EB-04",
-     "canonicalUrl": "https://opboxindex.com/sets/eb-04.html",
-     "ended": 1124,
-     "sold": 294,
-     "sellThroughPct": 26.2,
-     "amountUsd": 86176,
-     "medianWinningBidUsd": 16.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 1082,
-       "sold": 271,
-       "sellThroughPct": 25
-      },
-      "pack": {
-       "ended": 42,
-       "sold": 23,
-       "sellThroughPct": 54.8
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 683,
-       "sold": 150,
-       "sellThroughPct": 22,
-       "medianWinningBidUsd": 17.5,
-       "byCategory": {
-        "card": {
-         "ended": 671,
-         "sold": 146,
-         "sellThroughPct": 21.8
-        },
-        "pack": {
-         "ended": 12,
-         "sold": 4,
-         "sellThroughPct": 33.3
-        }
-       }
-      },
-      "japanese": {
-       "ended": 298,
-       "sold": 57,
-       "sellThroughPct": 19.1,
-       "medianWinningBidUsd": 7.45,
-       "byCategory": {
-        "card": {
-         "ended": 270,
-         "sold": 39,
-         "sellThroughPct": 14.4
-        },
-        "pack": {
-         "ended": 28,
-         "sold": 18,
-         "sellThroughPct": 64.3
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "EB-02",
-     "canonicalUrl": "https://opboxindex.com/sets/eb-02.html",
-     "ended": 497,
-     "sold": 247,
-     "sellThroughPct": 49.7,
-     "amountUsd": 81917,
-     "medianWinningBidUsd": 28.1,
-     "medianBidders": 6,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 467,
-       "sold": 229,
-       "sellThroughPct": 49
-      },
-      "pack": {
-       "ended": 21,
-       "sold": 13,
-       "sellThroughPct": 61.9
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 201,
-       "sold": 82,
-       "sellThroughPct": 40.8,
-       "medianWinningBidUsd": 39.5,
-       "byCategory": {
-        "card": {
-         "ended": 177,
-         "sold": 68,
-         "sellThroughPct": 38.4
-        },
-        "pack": {
-         "ended": 17,
-         "sold": 10,
-         "sellThroughPct": 58.8
-        }
-       }
-      },
-      "japanese": {
-       "ended": 156,
-       "sold": 80,
-       "sellThroughPct": 51.3,
-       "medianWinningBidUsd": 18.5,
-       "byCategory": {
-        "card": {
-         "ended": 152,
-         "sold": 77,
-         "sellThroughPct": 50.7
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-03",
-     "canonicalUrl": "https://opboxindex.com/sets/st-03.html",
-     "ended": 191,
-     "sold": 74,
-     "sellThroughPct": 38.7,
-     "amountUsd": 2578,
-     "medianWinningBidUsd": 22.25,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 187,
-       "sold": 70,
-       "sellThroughPct": 37.4
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 56,
-       "sold": 18,
-       "sellThroughPct": 32.1,
-       "medianWinningBidUsd": 19,
-       "byCategory": {
-        "card": {
-         "ended": 56,
-         "sold": 18,
-         "sellThroughPct": 32.1
-        }
-       }
-      },
-      "english": {
-       "ended": 108,
-       "sold": 39,
-       "sellThroughPct": 36.1,
-       "medianWinningBidUsd": 26.52,
-       "byCategory": {
-        "card": {
-         "ended": 106,
-         "sold": 37,
-         "sellThroughPct": 34.9
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-11",
-     "canonicalUrl": "https://opboxindex.com/sets/st-11.html",
-     "ended": 32,
-     "sold": 13,
-     "sellThroughPct": 40.6,
-     "amountUsd": 68,
-     "medianWinningBidUsd": 3.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 31,
-       "sold": 12,
-       "sellThroughPct": 38.7
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 9,
-       "sold": 2,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      },
-      "english": {
-       "ended": 20,
-       "sold": 9,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 5.26,
-       "byCategory": {
-        "card": {
-         "ended": 20,
-         "sold": 9,
-         "sellThroughPct": 45
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "OP-12",
-     "canonicalUrl": "https://opboxindex.com/sets/op-12.html",
-     "ended": 1060,
-     "sold": 404,
-     "sellThroughPct": 38.1,
-     "amountUsd": 42062,
-     "medianWinningBidUsd": 14.5,
-     "medianBidders": 4,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 976,
-       "sold": 342,
-       "sellThroughPct": 35
-      },
-      "pack": {
-       "ended": 72,
-       "sold": 50,
-       "sellThroughPct": 69.4
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 676,
-       "sold": 230,
-       "sellThroughPct": 34,
-       "medianWinningBidUsd": 10,
-       "byCategory": {
-        "card": {
-         "ended": 605,
-         "sold": 180,
-         "sellThroughPct": 29.8
-        },
-        "pack": {
-         "ended": 63,
-         "sold": 42,
-         "sellThroughPct": 66.7
-        }
-       }
-      },
-      "japanese": {
-       "ended": 200,
-       "sold": 63,
-       "sellThroughPct": 31.5,
-       "medianWinningBidUsd": 23.5,
-       "byCategory": {
-        "card": {
-         "ended": 197,
-         "sold": 61,
-         "sellThroughPct": 31
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-29",
-     "canonicalUrl": "https://opboxindex.com/sets/st-29.html",
-     "ended": 193,
-     "sold": 133,
-     "sellThroughPct": 68.9,
-     "amountUsd": 6062,
-     "medianWinningBidUsd": 28.5,
-     "medianBidders": 6,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 168,
-       "sold": 108,
-       "sellThroughPct": 64.3
-      },
-      "pack": {
-       "ended": 25,
-       "sold": 25,
-       "sellThroughPct": 100
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 96,
-       "sold": 54,
-       "sellThroughPct": 56.3,
-       "medianWinningBidUsd": 23.55,
-       "byCategory": {
-        "card": {
-         "ended": 94,
-         "sold": 52,
-         "sellThroughPct": 55.3
-        }
-       }
-      },
-      "japanese": {
-       "ended": 29,
-       "sold": 25,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 38,
-       "byCategory": {
-        "card": {
-         "ended": 13,
-         "sold": 9,
-         "sellThroughPct": 69.2
-        },
-        "pack": {
-         "ended": 16,
-         "sold": 16,
-         "sellThroughPct": 100
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-01",
-     "canonicalUrl": "https://opboxindex.com/sets/st-01.html",
-     "ended": 667,
-     "sold": 366,
-     "sellThroughPct": 54.9,
-     "amountUsd": 39221,
-     "medianWinningBidUsd": 41,
-     "medianBidders": 6,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 636,
-       "sold": 359,
-       "sellThroughPct": 56.4
-      },
-      "pack": {
-       "ended": 31,
-       "sold": 7,
-       "sellThroughPct": 22.6
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 152,
-       "sold": 89,
-       "sellThroughPct": 58.6,
-       "medianWinningBidUsd": 22.72,
-       "byCategory": {
-        "card": {
-         "ended": 152,
-         "sold": 89,
-         "sellThroughPct": 58.6
-        }
-       }
-      },
-      "english": {
-       "ended": 309,
-       "sold": 123,
-       "sellThroughPct": 39.8,
-       "medianWinningBidUsd": 59.16,
-       "byCategory": {
-        "card": {
-         "ended": 285,
-         "sold": 120,
-         "sellThroughPct": 42.1
-        },
-        "pack": {
-         "ended": 24,
-         "sold": 3,
-         "sellThroughPct": 12.5
+         "sellThroughPct": 31.6
         }
        }
       }
@@ -4056,564 +2572,64 @@
     {
      "setCode": "ST-13",
      "canonicalUrl": "https://opboxindex.com/sets/st-13.html",
-     "ended": 246,
-     "sold": 104,
-     "sellThroughPct": 42.3,
-     "amountUsd": 7533,
+     "ended": 251,
+     "sold": 113,
+     "sellThroughPct": 45,
+     "amountUsd": 9078,
      "medianWinningBidUsd": 20.51,
      "medianBidders": 4,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 242,
-       "sold": 100,
-       "sellThroughPct": 41.3
+       "ended": 247,
+       "sold": 109,
+       "sellThroughPct": 44.1
       }
      },
      "byPrinting": {
       "japanese": {
-       "ended": 69,
-       "sold": 24,
-       "sellThroughPct": 34.8,
-       "medianWinningBidUsd": 22.34,
-       "byCategory": {
-        "card": {
-         "ended": 69,
-         "sold": 24,
-         "sellThroughPct": 34.8
-        }
-       }
-      },
-      "english": {
-       "ended": 118,
-       "sold": 40,
-       "sellThroughPct": 33.9,
-       "medianWinningBidUsd": 10.14,
-       "byCategory": {
-        "card": {
-         "ended": 115,
-         "sold": 37,
-         "sellThroughPct": 32.2
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-28",
-     "canonicalUrl": "https://opboxindex.com/sets/st-28.html",
-     "ended": 51,
-     "sold": 3,
-     "sellThroughPct": 5.9,
-     "amountUsd": 16,
-     "medianWinningBidUsd": null,
-     "medianBidders": null,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 51,
-       "sold": 3,
-       "sellThroughPct": 5.9
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 7,
-       "sold": 1,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      },
-      "english": {
-       "ended": 36,
-       "sold": 2,
-       "sellThroughPct": 5.6,
-       "medianWinningBidUsd": null,
-       "byCategory": {
-        "card": {
-         "ended": 36,
-         "sold": 2,
-         "sellThroughPct": 5.6
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-22",
-     "canonicalUrl": "https://opboxindex.com/sets/st-22.html",
-     "ended": 129,
-     "sold": 27,
-     "sellThroughPct": 20.9,
-     "amountUsd": 501,
-     "medianWinningBidUsd": 3.25,
-     "medianBidders": 2,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 123,
+       "ended": 68,
        "sold": 26,
-       "sellThroughPct": 21.1
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 113,
-       "sold": 24,
-       "sellThroughPct": 21.2,
-       "medianWinningBidUsd": 3.25,
+       "sellThroughPct": 38.2,
+       "medianWinningBidUsd": 21.84,
        "byCategory": {
         "card": {
-         "ended": 107,
-         "sold": 23,
-         "sellThroughPct": 21.5
-        }
-       }
-      },
-      "japanese": {
-       "ended": 5,
-       "sold": 0,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "PRB-01",
-     "canonicalUrl": "https://opboxindex.com/sets/prb-01.html",
-     "ended": 141,
-     "sold": 57,
-     "sellThroughPct": 40.4,
-     "amountUsd": 20998,
-     "medianWinningBidUsd": 51,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 130,
-       "sold": 53,
-       "sellThroughPct": 40.8
-      },
-      "box": {
-       "ended": 10,
-       "sold": 3,
-       "sellThroughPct": 30
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 63,
-       "sold": 23,
-       "sellThroughPct": 36.5,
-       "medianWinningBidUsd": 31,
-       "byCategory": {
-        "card": {
-         "ended": 63,
-         "sold": 23,
-         "sellThroughPct": 36.5
-        }
-       }
-      },
-      "english": {
-       "ended": 54,
-       "sold": 25,
-       "sellThroughPct": 46.3,
-       "medianWinningBidUsd": 88,
-       "byCategory": {
-        "box": {
-         "ended": 10,
-         "sold": 3,
-         "sellThroughPct": 30
-        },
-        "card": {
-         "ended": 43,
-         "sold": 21,
-         "sellThroughPct": 48.8
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-25",
-     "canonicalUrl": "https://opboxindex.com/sets/st-25.html",
-     "ended": 13,
-     "sold": 4,
-     "sellThroughPct": null,
-     "amountUsd": 14,
-     "medianWinningBidUsd": null,
-     "medianBidders": null,
-     "thinSample": true,
-     "byCategory": {
-      "card": {
-       "ended": 13,
-       "sold": 4,
-       "sellThroughPct": 30.8
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 4,
-       "sold": 2,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      },
-      "english": {
-       "ended": 8,
-       "sold": 2,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "ST-36",
-     "canonicalUrl": "https://opboxindex.com/sets/st-36.html",
-     "ended": 68,
-     "sold": 21,
-     "sellThroughPct": 30.9,
-     "amountUsd": 137,
-     "medianWinningBidUsd": 4.99,
-     "medianBidders": 1,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 60,
-       "sold": 20,
-       "sellThroughPct": 33.3
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 63,
-       "sold": 19,
-       "sellThroughPct": 30.2,
-       "medianWinningBidUsd": 5.25,
-       "byCategory": {
-        "card": {
-         "ended": 55,
-         "sold": 18,
-         "sellThroughPct": 32.7
-        }
-       }
-      },
-      "japanese": {
-       "ended": 2,
-       "sold": 0,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "ST-32",
-     "canonicalUrl": "https://opboxindex.com/sets/st-32.html",
-     "ended": 73,
-     "sold": 28,
-     "sellThroughPct": 38.4,
-     "amountUsd": 1364,
-     "medianWinningBidUsd": 23.82,
-     "medianBidders": 2,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 60,
-       "sold": 24,
-       "sellThroughPct": 40
-      },
-      "pack": {
-       "ended": 13,
-       "sold": 4,
-       "sellThroughPct": 30.8
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 54,
-       "sold": 20,
-       "sellThroughPct": 37,
-       "medianWinningBidUsd": 22.99,
-       "byCategory": {
-        "card": {
-         "ended": 42,
-         "sold": 17,
-         "sellThroughPct": 40.5
-        },
-        "pack": {
-         "ended": 12,
-         "sold": 3,
-         "sellThroughPct": 25
-        }
-       }
-      },
-      "japanese": {
-       "ended": 3,
-       "sold": 2,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "ST-35",
-     "canonicalUrl": "https://opboxindex.com/sets/st-35.html",
-     "ended": 80,
-     "sold": 20,
-     "sellThroughPct": 25,
-     "amountUsd": 178,
-     "medianWinningBidUsd": 5.5,
-     "medianBidders": 2,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 71,
-       "sold": 16,
-       "sellThroughPct": 22.5
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 25,
-       "sold": 1,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {
-        "card": {
-         "ended": 25,
-         "sold": 1,
-         "sellThroughPct": 4
-        }
-       }
-      },
-      "english": {
-       "ended": 48,
-       "sold": 16,
-       "sellThroughPct": 33.3,
-       "medianWinningBidUsd": 5.5,
-       "byCategory": {
-        "card": {
-         "ended": 40,
-         "sold": 12,
-         "sellThroughPct": 30
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-24",
-     "canonicalUrl": "https://opboxindex.com/sets/st-24.html",
-     "ended": 17,
-     "sold": 4,
-     "sellThroughPct": null,
-     "amountUsd": 43,
-     "medianWinningBidUsd": null,
-     "medianBidders": null,
-     "thinSample": true,
-     "byCategory": {
-      "card": {
-       "ended": 17,
-       "sold": 4,
-       "sellThroughPct": 23.5
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 7,
-       "sold": 3,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "OP-17",
-     "canonicalUrl": "https://opboxindex.com/sets/op-17.html",
-     "ended": 3589,
-     "sold": 2274,
-     "sellThroughPct": 63.4,
-     "amountUsd": 177767,
-     "medianWinningBidUsd": 10.5,
-     "medianBidders": 5,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 2773,
-       "sold": 1505,
-       "sellThroughPct": 54.3
-      },
-      "pack": {
-       "ended": 735,
-       "sold": 701,
-       "sellThroughPct": 95.4
-      },
-      "box": {
-       "ended": 62,
-       "sold": 49,
-       "sellThroughPct": 79
-      },
-      "carton": {
-       "ended": 19,
-       "sold": 19,
-       "sellThroughPct": 100
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 2596,
-       "sold": 1454,
-       "sellThroughPct": 56,
-       "medianWinningBidUsd": 16,
-       "byCategory": {
-        "card": {
-         "ended": 2279,
-         "sold": 1178,
-         "sellThroughPct": 51.7
-        },
-        "pack": {
-         "ended": 264,
-         "sold": 233,
-         "sellThroughPct": 88.3
-        },
-        "box": {
-         "ended": 48,
-         "sold": 38,
-         "sellThroughPct": 79.2
-        }
-       }
-      },
-      "japanese": {
-       "ended": 542,
-       "sold": 487,
-       "sellThroughPct": 89.9,
-       "medianWinningBidUsd": 2.75,
-       "byCategory": {
-        "pack": {
-         "ended": 449,
-         "sold": 447,
-         "sellThroughPct": 99.6
-        },
-        "card": {
-         "ended": 76,
+         "ended": 68,
          "sold": 26,
+         "sellThroughPct": 38.2
+        }
+       }
+      },
+      "english": {
+       "ended": 120,
+       "sold": 43,
+       "sellThroughPct": 35.8,
+       "medianWinningBidUsd": 12.75,
+       "byCategory": {
+        "card": {
+         "ended": 117,
+         "sold": 40,
          "sellThroughPct": 34.2
-        },
-        "box": {
-         "ended": 11,
-         "sold": 8,
-         "sellThroughPct": 72.7
         }
        }
-      }
-     }
-    },
-    {
-     "setCode": "ST-14",
-     "canonicalUrl": "https://opboxindex.com/sets/st-14.html",
-     "ended": 89,
-     "sold": 30,
-     "sellThroughPct": 33.7,
-     "amountUsd": 1115,
-     "medianWinningBidUsd": 36,
-     "medianBidders": 6,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 89,
-       "sold": 30,
-       "sellThroughPct": 33.7
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 35,
-       "sold": 15,
-       "sellThroughPct": 42.9,
-       "medianWinningBidUsd": 17.5,
-       "byCategory": {
-        "card": {
-         "ended": 35,
-         "sold": 15,
-         "sellThroughPct": 42.9
-        }
-       }
-      },
-      "japanese": {
-       "ended": 41,
-       "sold": 8,
-       "sellThroughPct": 19.5,
-       "medianWinningBidUsd": 66,
-       "byCategory": {
-        "card": {
-         "ended": 41,
-         "sold": 8,
-         "sellThroughPct": 19.5
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-07",
-     "canonicalUrl": "https://opboxindex.com/sets/st-07.html",
-     "ended": 17,
-     "sold": 4,
-     "sellThroughPct": null,
-     "amountUsd": 398,
-     "medianWinningBidUsd": null,
-     "medianBidders": null,
-     "thinSample": true,
-     "byCategory": {
-      "card": {
-       "ended": 17,
-       "sold": 4,
-       "sellThroughPct": 23.5
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 11,
-       "sold": 0,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {
-        "card": {
-         "ended": 11,
-         "sold": 0,
-         "sellThroughPct": 0
-        }
-       }
-      },
-      "japanese": {
-       "ended": 6,
-       "sold": 4,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
       }
      }
     },
     {
      "setCode": "ST-02",
      "canonicalUrl": "https://opboxindex.com/sets/st-02.html",
-     "ended": 89,
+     "ended": 91,
      "sold": 31,
-     "sellThroughPct": 34.8,
+     "sellThroughPct": 34.1,
      "amountUsd": 2260,
      "medianWinningBidUsd": 46,
      "medianBidders": 6,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 78,
+       "ended": 80,
        "sold": 29,
-       "sellThroughPct": 37.2
+       "sellThroughPct": 36.3
       },
       "pack": {
        "ended": 11,
@@ -4623,15 +2639,15 @@
      },
      "byPrinting": {
       "english": {
-       "ended": 66,
+       "ended": 68,
        "sold": 18,
-       "sellThroughPct": 27.3,
+       "sellThroughPct": 26.5,
        "medianWinningBidUsd": 44.5,
        "byCategory": {
         "card": {
-         "ended": 55,
+         "ended": 57,
          "sold": 16,
-         "sellThroughPct": 29.1
+         "sellThroughPct": 28.1
         },
         "pack": {
          "ended": 11,
@@ -4650,46 +2666,1033 @@
      }
     },
     {
-     "setCode": "ST-06",
-     "canonicalUrl": "https://opboxindex.com/sets/st-06.html",
-     "ended": 52,
-     "sold": 22,
-     "sellThroughPct": 42.3,
-     "amountUsd": 710,
-     "medianWinningBidUsd": 26.01,
-     "medianBidders": 4,
+     "setCode": "ST-29",
+     "canonicalUrl": "https://opboxindex.com/sets/st-29.html",
+     "ended": 191,
+     "sold": 131,
+     "sellThroughPct": 68.6,
+     "amountUsd": 5781,
+     "medianWinningBidUsd": 27.01,
+     "medianBidders": 6,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 44,
-       "sold": 20,
-       "sellThroughPct": 45.5
+       "ended": 166,
+       "sold": 106,
+       "sellThroughPct": 63.9
+      },
+      "pack": {
+       "ended": 25,
+       "sold": 25,
+       "sellThroughPct": 100
       }
      },
      "byPrinting": {
       "english": {
-       "ended": 26,
-       "sold": 10,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 49.5,
+       "ended": 95,
+       "sold": 53,
+       "sellThroughPct": 55.8,
+       "medianWinningBidUsd": 21.5,
        "byCategory": {
         "card": {
-         "ended": 18,
+         "ended": 93,
+         "sold": 51,
+         "sellThroughPct": 54.8
+        }
+       }
+      },
+      "japanese": {
+       "ended": 28,
+       "sold": 24,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 37.5,
+       "byCategory": {
+        "card": {
+         "ended": 12,
          "sold": 8,
+         "sellThroughPct": 66.7
+        },
+        "pack": {
+         "ended": 16,
+         "sold": 16,
+         "sellThroughPct": 100
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-06",
+     "canonicalUrl": "https://opboxindex.com/sets/op-06.html",
+     "ended": 1353,
+     "sold": 321,
+     "sellThroughPct": 23.7,
+     "amountUsd": 29986,
+     "medianWinningBidUsd": 16.05,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1307,
+       "sold": 292,
+       "sellThroughPct": 22.3
+      },
+      "pack": {
+       "ended": 42,
+       "sold": 25,
+       "sellThroughPct": 59.5
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 740,
+       "sold": 117,
+       "sellThroughPct": 15.8,
+       "medianWinningBidUsd": 13,
+       "byCategory": {
+        "card": {
+         "ended": 713,
+         "sold": 105,
+         "sellThroughPct": 14.7
+        },
+        "pack": {
+         "ended": 27,
+         "sold": 12,
          "sellThroughPct": 44.4
         }
        }
       },
       "japanese": {
+       "ended": 444,
+       "sold": 99,
+       "sellThroughPct": 22.3,
+       "medianWinningBidUsd": 8.5,
+       "byCategory": {
+        "card": {
+         "ended": 434,
+         "sold": 90,
+         "sellThroughPct": 20.7
+        },
+        "pack": {
+         "ended": 10,
+         "sold": 9,
+         "sellThroughPct": 90
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-04",
+     "canonicalUrl": "https://opboxindex.com/sets/op-04.html",
+     "ended": 1223,
+     "sold": 174,
+     "sellThroughPct": 14.2,
+     "amountUsd": 8400,
+     "medianWinningBidUsd": 12.51,
+     "medianBidders": 3,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1185,
+       "sold": 158,
+       "sellThroughPct": 13.3
+      },
+      "pack": {
+       "ended": 37,
+       "sold": 15,
+       "sellThroughPct": 40.5
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 839,
+       "sold": 78,
+       "sellThroughPct": 9.3,
+       "medianWinningBidUsd": 15.03,
+       "byCategory": {
+        "card": {
+         "ended": 817,
+         "sold": 71,
+         "sellThroughPct": 8.7
+        },
+        "pack": {
+         "ended": 22,
+         "sold": 7,
+         "sellThroughPct": 31.8
+        }
+       }
+      },
+      "japanese": {
+       "ended": 287,
+       "sold": 46,
+       "sellThroughPct": 16,
+       "medianWinningBidUsd": 5.5,
+       "byCategory": {
+        "card": {
+         "ended": 277,
+         "sold": 38,
+         "sellThroughPct": 13.7
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "PRB-02",
+     "canonicalUrl": "https://opboxindex.com/sets/prb-02.html",
+     "ended": 634,
+     "sold": 263,
+     "sellThroughPct": 41.5,
+     "amountUsd": 27570,
+     "medianWinningBidUsd": 31,
+     "medianBidders": 5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 596,
+       "sold": 228,
+       "sellThroughPct": 38.3
+      },
+      "box": {
        "ended": 15,
-       "sold": 2,
+       "sold": 15,
+       "sellThroughPct": 100
+      },
+      "pack": {
+       "ended": 18,
+       "sold": 17,
+       "sellThroughPct": 94.4
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 264,
+       "sold": 102,
+       "sellThroughPct": 38.6,
+       "medianWinningBidUsd": 50.5,
+       "byCategory": {
+        "card": {
+         "ended": 244,
+         "sold": 84,
+         "sellThroughPct": 34.4
+        }
+       }
+      },
+      "japanese": {
+       "ended": 227,
+       "sold": 75,
+       "sellThroughPct": 33,
+       "medianWinningBidUsd": 25.99,
+       "byCategory": {
+        "card": {
+         "ended": 220,
+         "sold": 69,
+         "sellThroughPct": 31.4
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-10",
+     "canonicalUrl": "https://opboxindex.com/sets/op-10.html",
+     "ended": 1611,
+     "sold": 353,
+     "sellThroughPct": 21.9,
+     "amountUsd": 12559,
+     "medianWinningBidUsd": 13.5,
+     "medianBidders": 3,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1557,
+       "sold": 329,
+       "sellThroughPct": 21.1
+      },
+      "pack": {
+       "ended": 44,
+       "sold": 17,
+       "sellThroughPct": 38.6
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 498,
+       "sold": 84,
+       "sellThroughPct": 16.9,
+       "medianWinningBidUsd": 6,
+       "byCategory": {
+        "card": {
+         "ended": 491,
+         "sold": 81,
+         "sellThroughPct": 16.5
+        }
+       }
+      },
+      "english": {
+       "ended": 861,
+       "sold": 146,
+       "sellThroughPct": 17,
+       "medianWinningBidUsd": 13.5,
+       "byCategory": {
+        "card": {
+         "ended": 819,
+         "sold": 129,
+         "sellThroughPct": 15.8
+        },
+        "pack": {
+         "ended": 33,
+         "sold": 11,
+         "sellThroughPct": 33.3
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-03",
+     "canonicalUrl": "https://opboxindex.com/sets/op-03.html",
+     "ended": 744,
+     "sold": 166,
+     "sellThroughPct": 22.3,
+     "amountUsd": 7939,
+     "medianWinningBidUsd": 18.25,
+     "medianBidders": 3.5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 720,
+       "sold": 156,
+       "sellThroughPct": 21.7
+      },
+      "pack": {
+       "ended": 22,
+       "sold": 10,
+       "sellThroughPct": 45.5
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 463,
+       "sold": 95,
+       "sellThroughPct": 20.5,
+       "medianWinningBidUsd": 18.25,
+       "byCategory": {
+        "card": {
+         "ended": 445,
+         "sold": 86,
+         "sellThroughPct": 19.3
+        },
+        "pack": {
+         "ended": 18,
+         "sold": 9,
+         "sellThroughPct": 50
+        }
+       }
+      },
+      "japanese": {
+       "ended": 190,
+       "sold": 31,
+       "sellThroughPct": 16.3,
+       "medianWinningBidUsd": 7.25,
+       "byCategory": {
+        "card": {
+         "ended": 184,
+         "sold": 30,
+         "sellThroughPct": 16.3
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-05",
+     "canonicalUrl": "https://opboxindex.com/sets/op-05.html",
+     "ended": 1701,
+     "sold": 413,
+     "sellThroughPct": 24.3,
+     "amountUsd": 77921,
+     "medianWinningBidUsd": 28.97,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1642,
+       "sold": 377,
+       "sellThroughPct": 23
+      },
+      "pack": {
+       "ended": 47,
+       "sold": 25,
+       "sellThroughPct": 53.2
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 835,
+       "sold": 189,
+       "sellThroughPct": 22.6,
+       "medianWinningBidUsd": 26,
+       "byCategory": {
+        "card": {
+         "ended": 790,
+         "sold": 159,
+         "sellThroughPct": 20.1
+        },
+        "pack": {
+         "ended": 36,
+         "sold": 21,
+         "sellThroughPct": 58.3
+        }
+       }
+      },
+      "japanese": {
+       "ended": 658,
+       "sold": 121,
+       "sellThroughPct": 18.4,
+       "medianWinningBidUsd": 34.5,
+       "byCategory": {
+        "card": {
+         "ended": 651,
+         "sold": 120,
+         "sellThroughPct": 18.4
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-09",
+     "canonicalUrl": "https://opboxindex.com/sets/op-09.html",
+     "ended": 1657,
+     "sold": 593,
+     "sellThroughPct": 35.8,
+     "amountUsd": 85119,
+     "medianWinningBidUsd": 27.81,
+     "medianBidders": 5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1598,
+       "sold": 560,
+       "sellThroughPct": 35
+      },
+      "pack": {
+       "ended": 47,
+       "sold": 25,
+       "sellThroughPct": 53.2
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 785,
+       "sold": 237,
+       "sellThroughPct": 30.2,
+       "medianWinningBidUsd": 25,
+       "byCategory": {
+        "card": {
+         "ended": 750,
+         "sold": 219,
+         "sellThroughPct": 29.2
+        },
+        "pack": {
+         "ended": 31,
+         "sold": 14,
+         "sellThroughPct": 45.2
+        }
+       }
+      },
+      "japanese": {
+       "ended": 503,
+       "sold": 138,
+       "sellThroughPct": 27.4,
+       "medianWinningBidUsd": 29,
+       "byCategory": {
+        "card": {
+         "ended": 495,
+         "sold": 135,
+         "sellThroughPct": 27.3
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "EB-03",
+     "canonicalUrl": "https://opboxindex.com/sets/eb-03.html",
+     "ended": 1384,
+     "sold": 541,
+     "sellThroughPct": 39.1,
+     "amountUsd": 49577,
+     "medianWinningBidUsd": 10.5,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1327,
+       "sold": 495,
+       "sellThroughPct": 37.3
+      },
+      "pack": {
+       "ended": 33,
+       "sold": 24,
+       "sellThroughPct": 72.7
+      },
+      "box": {
+       "ended": 19,
+       "sold": 17,
+       "sellThroughPct": 89.5
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 830,
+       "sold": 237,
+       "sellThroughPct": 28.6,
+       "medianWinningBidUsd": 12.5,
+       "byCategory": {
+        "card": {
+         "ended": 792,
+         "sold": 205,
+         "sellThroughPct": 25.9
+        },
+        "pack": {
+         "ended": 15,
+         "sold": 10,
+         "sellThroughPct": 66.7
+        },
+        "box": {
+         "ended": 18,
+         "sold": 17,
+         "sellThroughPct": 94.4
+        }
+       }
+      },
+      "japanese": {
+       "ended": 264,
+       "sold": 98,
+       "sellThroughPct": 37.1,
+       "medianWinningBidUsd": 13.5,
+       "byCategory": {
+        "card": {
+         "ended": 250,
+         "sold": 89,
+         "sellThroughPct": 35.6
+        },
+        "pack": {
+         "ended": 13,
+         "sold": 9,
+         "sellThroughPct": 69.2
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-02",
+     "canonicalUrl": "https://opboxindex.com/sets/op-02.html",
+     "ended": 821,
+     "sold": 232,
+     "sellThroughPct": 28.3,
+     "amountUsd": 11097,
+     "medianWinningBidUsd": 15.5,
+     "medianBidders": 3,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 766,
+       "sold": 218,
+       "sellThroughPct": 28.5
+      },
+      "pack": {
+       "ended": 50,
+       "sold": 10,
+       "sellThroughPct": 20
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 449,
+       "sold": 99,
+       "sellThroughPct": 22,
+       "medianWinningBidUsd": 9.5,
+       "byCategory": {
+        "card": {
+         "ended": 404,
+         "sold": 94,
+         "sellThroughPct": 23.3
+        },
+        "pack": {
+         "ended": 40,
+         "sold": 1,
+         "sellThroughPct": 2.5
+        }
+       }
+      },
+      "japanese": {
+       "ended": 254,
+       "sold": 63,
+       "sellThroughPct": 24.8,
+       "medianWinningBidUsd": 17.5,
+       "byCategory": {
+        "card": {
+         "ended": 245,
+         "sold": 55,
+         "sellThroughPct": 22.4
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-01",
+     "canonicalUrl": "https://opboxindex.com/sets/op-01.html",
+     "ended": 1581,
+     "sold": 465,
+     "sellThroughPct": 29.4,
+     "amountUsd": 101944,
+     "medianWinningBidUsd": 26,
+     "medianBidders": 5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1470,
+       "sold": 414,
+       "sellThroughPct": 28.2
+      },
+      "pack": {
+       "ended": 59,
+       "sold": 22,
+       "sellThroughPct": 37.3
+      },
+      "box": {
+       "ended": 46,
+       "sold": 23,
+       "sellThroughPct": 50
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 716,
+       "sold": 164,
+       "sellThroughPct": 22.9,
+       "medianWinningBidUsd": 35,
+       "byCategory": {
+        "card": {
+         "ended": 671,
+         "sold": 145,
+         "sellThroughPct": 21.6
+        },
+        "pack": {
+         "ended": 36,
+         "sold": 12,
+         "sellThroughPct": 33.3
+        }
+       }
+      },
+      "japanese": {
+       "ended": 581,
+       "sold": 142,
+       "sellThroughPct": 24.4,
+       "medianWinningBidUsd": 23,
+       "byCategory": {
+        "pack": {
+         "ended": 22,
+         "sold": 10,
+         "sellThroughPct": 45.5
+        },
+        "card": {
+         "ended": 538,
+         "sold": 128,
+         "sellThroughPct": 23.8
+        },
+        "box": {
+         "ended": 20,
+         "sold": 3,
+         "sellThroughPct": 15
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-15",
+     "canonicalUrl": "https://opboxindex.com/sets/st-15.html",
+     "ended": 123,
+     "sold": 50,
+     "sellThroughPct": 40.7,
+     "amountUsd": 2151,
+     "medianWinningBidUsd": 10.2,
+     "medianBidders": 2.5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 109,
+       "sold": 41,
+       "sellThroughPct": 37.6
+      },
+      "pack": {
+       "ended": 14,
+       "sold": 9,
+       "sellThroughPct": 64.3
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 71,
+       "sold": 33,
+       "sellThroughPct": 46.5,
+       "medianWinningBidUsd": 5.81,
+       "byCategory": {
+        "card": {
+         "ended": 60,
+         "sold": 27,
+         "sellThroughPct": 45
+        },
+        "pack": {
+         "ended": 11,
+         "sold": 6,
+         "sellThroughPct": 54.5
+        }
+       }
+      },
+      "japanese": {
+       "ended": 23,
+       "sold": 3,
        "sellThroughPct": null,
        "medianWinningBidUsd": null,
        "byCategory": {
         "card": {
-         "ended": 15,
-         "sold": 2,
-         "sellThroughPct": 13.3
+         "ended": 23,
+         "sold": 3,
+         "sellThroughPct": 13
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-21",
+     "canonicalUrl": "https://opboxindex.com/sets/st-21.html",
+     "ended": 317,
+     "sold": 174,
+     "sellThroughPct": 54.9,
+     "amountUsd": 16024,
+     "medianWinningBidUsd": 60.66,
+     "medianBidders": 7,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 310,
+       "sold": 168,
+       "sellThroughPct": 54.2
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 166,
+       "sold": 60,
+       "sellThroughPct": 36.1,
+       "medianWinningBidUsd": 13,
+       "byCategory": {
+        "card": {
+         "ended": 161,
+         "sold": 56,
+         "sellThroughPct": 34.8
+        }
+       }
+      },
+      "japanese": {
+       "ended": 100,
+       "sold": 82,
+       "sellThroughPct": 82,
+       "medianWinningBidUsd": 134.76,
+       "byCategory": {
+        "card": {
+         "ended": 100,
+         "sold": 82,
+         "sellThroughPct": 82
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-03",
+     "canonicalUrl": "https://opboxindex.com/sets/st-03.html",
+     "ended": 189,
+     "sold": 72,
+     "sellThroughPct": 38.1,
+     "amountUsd": 2552,
+     "medianWinningBidUsd": 22.76,
+     "medianBidders": 5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 185,
+       "sold": 68,
+       "sellThroughPct": 36.8
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 55,
+       "sold": 16,
+       "sellThroughPct": 29.1,
+       "medianWinningBidUsd": 20.63,
+       "byCategory": {
+        "card": {
+         "ended": 55,
+         "sold": 16,
+         "sellThroughPct": 29.1
+        }
+       }
+      },
+      "english": {
+       "ended": 107,
+       "sold": 39,
+       "sellThroughPct": 36.4,
+       "medianWinningBidUsd": 26.52,
+       "byCategory": {
+        "card": {
+         "ended": 105,
+         "sold": 37,
+         "sellThroughPct": 35.2
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-12",
+     "canonicalUrl": "https://opboxindex.com/sets/op-12.html",
+     "ended": 1062,
+     "sold": 404,
+     "sellThroughPct": 38,
+     "amountUsd": 41863,
+     "medianWinningBidUsd": 13.5,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "pack": {
+       "ended": 71,
+       "sold": 48,
+       "sellThroughPct": 67.6
+      },
+      "card": {
+       "ended": 980,
+       "sold": 345,
+       "sellThroughPct": 35.2
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 183,
+       "sold": 62,
+       "sellThroughPct": 33.9,
+       "medianWinningBidUsd": 23,
+       "byCategory": {
+        "card": {
+         "ended": 180,
+         "sold": 60,
+         "sellThroughPct": 33.3
+        }
+       }
+      },
+      "english": {
+       "ended": 697,
+       "sold": 234,
+       "sellThroughPct": 33.6,
+       "medianWinningBidUsd": 10,
+       "byCategory": {
+        "pack": {
+         "ended": 62,
+         "sold": 40,
+         "sellThroughPct": 64.5
+        },
+        "card": {
+         "ended": 628,
+         "sold": 187,
+         "sellThroughPct": 29.8
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "EB-04",
+     "canonicalUrl": "https://opboxindex.com/sets/eb-04.html",
+     "ended": 1110,
+     "sold": 298,
+     "sellThroughPct": 26.8,
+     "amountUsd": 86260,
+     "medianWinningBidUsd": 16.5,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 1069,
+       "sold": 276,
+       "sellThroughPct": 25.8
+      },
+      "pack": {
+       "ended": 41,
+       "sold": 22,
+       "sellThroughPct": 53.7
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 691,
+       "sold": 157,
+       "sellThroughPct": 22.7,
+       "medianWinningBidUsd": 16.5,
+       "byCategory": {
+        "card": {
+         "ended": 679,
+         "sold": 153,
+         "sellThroughPct": 22.5
+        },
+        "pack": {
+         "ended": 12,
+         "sold": 4,
+         "sellThroughPct": 33.3
+        }
+       }
+      },
+      "japanese": {
+       "ended": 278,
+       "sold": 55,
+       "sellThroughPct": 19.8,
+       "medianWinningBidUsd": 8.45,
+       "byCategory": {
+        "pack": {
+         "ended": 27,
+         "sold": 17,
+         "sellThroughPct": 63
+        },
+        "card": {
+         "ended": 251,
+         "sold": 38,
+         "sellThroughPct": 15.1
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "EB-02",
+     "canonicalUrl": "https://opboxindex.com/sets/eb-02.html",
+     "ended": 494,
+     "sold": 245,
+     "sellThroughPct": 49.6,
+     "amountUsd": 77885,
+     "medianWinningBidUsd": 29.6,
+     "medianBidders": 6,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 465,
+       "sold": 227,
+       "sellThroughPct": 48.8
+      },
+      "pack": {
+       "ended": 20,
+       "sold": 13,
+       "sellThroughPct": 65
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 155,
+       "sold": 81,
+       "sellThroughPct": 52.3,
+       "medianWinningBidUsd": 17.55,
+       "byCategory": {
+        "card": {
+         "ended": 152,
+         "sold": 78,
+         "sellThroughPct": 51.3
+        }
+       }
+      },
+      "english": {
+       "ended": 200,
+       "sold": 82,
+       "sellThroughPct": 41,
+       "medianWinningBidUsd": 39.5,
+       "byCategory": {
+        "card": {
+         "ended": 176,
+         "sold": 68,
+         "sellThroughPct": 38.6
+        },
+        "pack": {
+         "ended": 17,
+         "sold": 10,
+         "sellThroughPct": 58.8
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-11",
+     "canonicalUrl": "https://opboxindex.com/sets/op-11.html",
+     "ended": 897,
+     "sold": 367,
+     "sellThroughPct": 40.9,
+     "amountUsd": 42427,
+     "medianWinningBidUsd": 17.04,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 831,
+       "sold": 321,
+       "sellThroughPct": 38.6
+      },
+      "pack": {
+       "ended": 49,
+       "sold": 29,
+       "sellThroughPct": 59.2
+      },
+      "box": {
+       "ended": 10,
+       "sold": 10,
+       "sellThroughPct": 100
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 574,
+       "sold": 198,
+       "sellThroughPct": 34.5,
+       "medianWinningBidUsd": 11.5,
+       "byCategory": {
+        "card": {
+         "ended": 524,
+         "sold": 168,
+         "sellThroughPct": 32.1
+        },
+        "pack": {
+         "ended": 39,
+         "sold": 19,
+         "sellThroughPct": 48.7
+        }
+       }
+      },
+      "japanese": {
+       "ended": 162,
+       "sold": 61,
+       "sellThroughPct": 37.7,
+       "medianWinningBidUsd": 21.21,
+       "byCategory": {
+        "card": {
+         "ended": 160,
+         "sold": 59,
+         "sellThroughPct": 36.9
         }
        }
       }
@@ -4698,31 +3701,31 @@
     {
      "setCode": "ST-04",
      "canonicalUrl": "https://opboxindex.com/sets/st-04.html",
-     "ended": 112,
-     "sold": 37,
-     "sellThroughPct": 33,
+     "ended": 114,
+     "sold": 38,
+     "sellThroughPct": 33.3,
      "amountUsd": 677,
-     "medianWinningBidUsd": 11.5,
+     "medianWinningBidUsd": 9.5,
      "medianBidders": 2,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 105,
-       "sold": 32,
-       "sellThroughPct": 30.5
+       "ended": 107,
+       "sold": 33,
+       "sellThroughPct": 30.8
       }
      },
      "byPrinting": {
       "english": {
-       "ended": 79,
+       "ended": 81,
        "sold": 25,
-       "sellThroughPct": 31.6,
+       "sellThroughPct": 30.9,
        "medianWinningBidUsd": 8.5,
        "byCategory": {
         "card": {
-         "ended": 74,
+         "ended": 76,
          "sold": 21,
-         "sellThroughPct": 28.4
+         "sellThroughPct": 27.6
         }
        }
       },
@@ -4742,38 +3745,84 @@
      }
     },
     {
-     "setCode": "ST-34",
-     "canonicalUrl": "https://opboxindex.com/sets/st-34.html",
-     "ended": 50,
-     "sold": 22,
-     "sellThroughPct": 44,
-     "amountUsd": 277,
-     "medianWinningBidUsd": 14.5,
-     "medianBidders": 2,
+     "setCode": "ST-30",
+     "canonicalUrl": "https://opboxindex.com/sets/st-30.html",
+     "ended": 285,
+     "sold": 96,
+     "sellThroughPct": 33.7,
+     "amountUsd": 2934,
+     "medianWinningBidUsd": 11.75,
+     "medianBidders": 4,
      "thinSample": false,
      "byCategory": {
       "card": {
-       "ended": 47,
-       "sold": 20,
-       "sellThroughPct": 42.6
+       "ended": 281,
+       "sold": 95,
+       "sellThroughPct": 33.8
       }
      },
      "byPrinting": {
       "english": {
-       "ended": 45,
-       "sold": 21,
-       "sellThroughPct": 46.7,
-       "medianWinningBidUsd": 14.5,
+       "ended": 218,
+       "sold": 65,
+       "sellThroughPct": 29.8,
+       "medianWinningBidUsd": 8.34,
        "byCategory": {
         "card": {
-         "ended": 42,
-         "sold": 19,
-         "sellThroughPct": 45.2
+         "ended": 217,
+         "sold": 65,
+         "sellThroughPct": 30
         }
        }
       },
       "japanese": {
-       "ended": 2,
+       "ended": 19,
+       "sold": 11,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 13.5,
+       "byCategory": {
+        "card": {
+         "ended": 19,
+         "sold": 11,
+         "sellThroughPct": 57.9
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-28",
+     "canonicalUrl": "https://opboxindex.com/sets/st-28.html",
+     "ended": 50,
+     "sold": 2,
+     "sellThroughPct": 4,
+     "amountUsd": 2,
+     "medianWinningBidUsd": null,
+     "medianBidders": null,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 50,
+       "sold": 2,
+       "sellThroughPct": 4
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 35,
+       "sold": 2,
+       "sellThroughPct": 5.7,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 35,
+         "sold": 2,
+         "sellThroughPct": 5.7
+        }
+       }
+      },
+      "japanese": {
+       "ended": 6,
        "sold": 0,
        "sellThroughPct": null,
        "medianWinningBidUsd": null,
@@ -4782,33 +3831,343 @@
      }
     },
     {
+     "setCode": "ST-01",
+     "canonicalUrl": "https://opboxindex.com/sets/st-01.html",
+     "ended": 674,
+     "sold": 375,
+     "sellThroughPct": 55.6,
+     "amountUsd": 38402,
+     "medianWinningBidUsd": 41,
+     "medianBidders": 6,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 642,
+       "sold": 368,
+       "sellThroughPct": 57.3
+      },
+      "pack": {
+       "ended": 32,
+       "sold": 7,
+       "sellThroughPct": 21.9
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 150,
+       "sold": 92,
+       "sellThroughPct": 61.3,
+       "medianWinningBidUsd": 22.72,
+       "byCategory": {
+        "card": {
+         "ended": 150,
+         "sold": 92,
+         "sellThroughPct": 61.3
+        }
+       }
+      },
+      "english": {
+       "ended": 314,
+       "sold": 126,
+       "sellThroughPct": 40.1,
+       "medianWinningBidUsd": 57.31,
+       "byCategory": {
+        "card": {
+         "ended": 289,
+         "sold": 123,
+         "sellThroughPct": 42.6
+        },
+        "pack": {
+         "ended": 25,
+         "sold": 3,
+         "sellThroughPct": 12
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-35",
+     "canonicalUrl": "https://opboxindex.com/sets/st-35.html",
+     "ended": 80,
+     "sold": 20,
+     "sellThroughPct": 25,
+     "amountUsd": 175,
+     "medianWinningBidUsd": 5.5,
+     "medianBidders": 1.5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 72,
+       "sold": 17,
+       "sellThroughPct": 23.6
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 48,
+       "sold": 16,
+       "sellThroughPct": 33.3,
+       "medianWinningBidUsd": 5.5,
+       "byCategory": {
+        "card": {
+         "ended": 41,
+         "sold": 13,
+         "sellThroughPct": 31.7
+        }
+       }
+      },
+      "japanese": {
+       "ended": 25,
+       "sold": 1,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 25,
+         "sold": 1,
+         "sellThroughPct": 4
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-26",
+     "canonicalUrl": "https://opboxindex.com/sets/st-26.html",
+     "ended": 58,
+     "sold": 26,
+     "sellThroughPct": 44.8,
+     "amountUsd": 2142,
+     "medianWinningBidUsd": 5.63,
+     "medianBidders": 2,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 58,
+       "sold": 26,
+       "sellThroughPct": 44.8
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 9,
+       "sold": 6,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 11.5,
+       "byCategory": {}
+      },
+      "english": {
+       "ended": 40,
+       "sold": 18,
+       "sellThroughPct": 45,
+       "medianWinningBidUsd": 2.25,
+       "byCategory": {
+        "card": {
+         "ended": 40,
+         "sold": 18,
+         "sellThroughPct": 45
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-18",
+     "canonicalUrl": "https://opboxindex.com/sets/st-18.html",
+     "ended": 259,
+     "sold": 176,
+     "sellThroughPct": 68,
+     "amountUsd": 11533,
+     "medianWinningBidUsd": 43.17,
+     "medianBidders": 7,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 254,
+       "sold": 173,
+       "sellThroughPct": 68.1
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 139,
+       "sold": 109,
+       "sellThroughPct": 78.4,
+       "medianWinningBidUsd": 43.33,
+       "byCategory": {
+        "card": {
+         "ended": 139,
+         "sold": 109,
+         "sellThroughPct": 78.4
+        }
+       }
+      },
+      "english": {
+       "ended": 85,
+       "sold": 42,
+       "sellThroughPct": 49.4,
+       "medianWinningBidUsd": 35.33,
+       "byCategory": {
+        "card": {
+         "ended": 80,
+         "sold": 39,
+         "sellThroughPct": 48.8
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "OP-08",
+     "canonicalUrl": "https://opboxindex.com/sets/op-08.html",
+     "ended": 968,
+     "sold": 233,
+     "sellThroughPct": 24.1,
+     "amountUsd": 14683,
+     "medianWinningBidUsd": 15,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 914,
+       "sold": 194,
+       "sellThroughPct": 21.2
+      },
+      "pack": {
+       "ended": 37,
+       "sold": 22,
+       "sellThroughPct": 59.5
+      },
+      "box": {
+       "ended": 17,
+       "sold": 17,
+       "sellThroughPct": 100
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 525,
+       "sold": 113,
+       "sellThroughPct": 21.5,
+       "medianWinningBidUsd": 12.5,
+       "byCategory": {
+        "card": {
+         "ended": 499,
+         "sold": 97,
+         "sellThroughPct": 19.4
+        },
+        "pack": {
+         "ended": 16,
+         "sold": 6,
+         "sellThroughPct": 37.5
+        },
+        "box": {
+         "ended": 10,
+         "sold": 10,
+         "sellThroughPct": 100
+        }
+       }
+      },
+      "japanese": {
+       "ended": 303,
+       "sold": 58,
+       "sellThroughPct": 19.1,
+       "medianWinningBidUsd": 26,
+       "byCategory": {
+        "card": {
+         "ended": 284,
+         "sold": 42,
+         "sellThroughPct": 14.8
+        },
+        "pack": {
+         "ended": 19,
+         "sold": 16,
+         "sellThroughPct": 84.2
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-14",
+     "canonicalUrl": "https://opboxindex.com/sets/st-14.html",
+     "ended": 90,
+     "sold": 30,
+     "sellThroughPct": 33.3,
+     "amountUsd": 1115,
+     "medianWinningBidUsd": 36,
+     "medianBidders": 6,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 90,
+       "sold": 30,
+       "sellThroughPct": 33.3
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 41,
+       "sold": 8,
+       "sellThroughPct": 19.5,
+       "medianWinningBidUsd": 66,
+       "byCategory": {
+        "card": {
+         "ended": 41,
+         "sold": 8,
+         "sellThroughPct": 19.5
+        }
+       }
+      },
+      "english": {
+       "ended": 36,
+       "sold": 15,
+       "sellThroughPct": 41.7,
+       "medianWinningBidUsd": 17.5,
+       "byCategory": {
+        "card": {
+         "ended": 36,
+         "sold": 15,
+         "sellThroughPct": 41.7
+        }
+       }
+      }
+     }
+    },
+    {
      "setCode": "ST-33",
      "canonicalUrl": "https://opboxindex.com/sets/st-33.html",
-     "ended": 46,
-     "sold": 9,
-     "sellThroughPct": 19.6,
-     "amountUsd": 69,
-     "medianWinningBidUsd": 4.99,
+     "ended": 47,
+     "sold": 8,
+     "sellThroughPct": 17,
+     "amountUsd": 64,
+     "medianWinningBidUsd": 6.25,
      "medianBidders": 2,
      "thinSample": false,
      "byCategory": {
       "card": {
        "ended": 37,
-       "sold": 9,
-       "sellThroughPct": 24.3
+       "sold": 8,
+       "sellThroughPct": 21.6
+      },
+      "pack": {
+       "ended": 10,
+       "sold": 0,
+       "sellThroughPct": 0
       }
      },
      "byPrinting": {
       "english": {
        "ended": 37,
-       "sold": 7,
-       "sellThroughPct": 18.9,
-       "medianWinningBidUsd": 6.25,
+       "sold": 6,
+       "sellThroughPct": 16.2,
+       "medianWinningBidUsd": 7.5,
        "byCategory": {
         "card": {
-         "ended": 32,
-         "sold": 7,
-         "sellThroughPct": 21.9
+         "ended": 31,
+         "sold": 6,
+         "sellThroughPct": 19.4
         }
        }
       },
@@ -4818,178 +4177,6 @@
        "sellThroughPct": null,
        "medianWinningBidUsd": null,
        "byCategory": {}
-      }
-     }
-    },
-    {
-     "setCode": "ST-18",
-     "canonicalUrl": "https://opboxindex.com/sets/st-18.html",
-     "ended": 242,
-     "sold": 163,
-     "sellThroughPct": 67.4,
-     "amountUsd": 11159,
-     "medianWinningBidUsd": 44,
-     "medianBidders": 6,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 237,
-       "sold": 160,
-       "sellThroughPct": 67.5
-      }
-     },
-     "byPrinting": {
-      "english": {
-       "ended": 84,
-       "sold": 40,
-       "sellThroughPct": 47.6,
-       "medianWinningBidUsd": 43.32,
-       "byCategory": {
-        "card": {
-         "ended": 79,
-         "sold": 37,
-         "sellThroughPct": 46.8
-        }
-       }
-      },
-      "japanese": {
-       "ended": 124,
-       "sold": 99,
-       "sellThroughPct": 79.8,
-       "medianWinningBidUsd": 44,
-       "byCategory": {
-        "card": {
-         "ended": 124,
-         "sold": 99,
-         "sellThroughPct": 79.8
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-12",
-     "canonicalUrl": "https://opboxindex.com/sets/st-12.html",
-     "ended": 71,
-     "sold": 17,
-     "sellThroughPct": 23.9,
-     "amountUsd": 3080,
-     "medianWinningBidUsd": 14.56,
-     "medianBidders": 3,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 71,
-       "sold": 17,
-       "sellThroughPct": 23.9
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 14,
-       "sold": 4,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {
-        "card": {
-         "ended": 14,
-         "sold": 4,
-         "sellThroughPct": 28.6
-        }
-       }
-      },
-      "english": {
-       "ended": 48,
-       "sold": 8,
-       "sellThroughPct": 16.7,
-       "medianWinningBidUsd": 8.62,
-       "byCategory": {
-        "card": {
-         "ended": 48,
-         "sold": 8,
-         "sellThroughPct": 16.7
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-09",
-     "canonicalUrl": "https://opboxindex.com/sets/st-09.html",
-     "ended": 21,
-     "sold": 3,
-     "sellThroughPct": null,
-     "amountUsd": 60,
-     "medianWinningBidUsd": null,
-     "medianBidders": null,
-     "thinSample": true,
-     "byCategory": {
-      "card": {
-       "ended": 21,
-       "sold": 3,
-       "sellThroughPct": 14.3
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 6,
-       "sold": 1,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {}
-      },
-      "english": {
-       "ended": 12,
-       "sold": 2,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": null,
-       "byCategory": {
-        "card": {
-         "ended": 12,
-         "sold": 2,
-         "sellThroughPct": 16.7
-        }
-       }
-      }
-     }
-    },
-    {
-     "setCode": "ST-26",
-     "canonicalUrl": "https://opboxindex.com/sets/st-26.html",
-     "ended": 54,
-     "sold": 25,
-     "sellThroughPct": 46.3,
-     "amountUsd": 2122,
-     "medianWinningBidUsd": 2.25,
-     "medianBidders": 2,
-     "thinSample": false,
-     "byCategory": {
-      "card": {
-       "ended": 54,
-       "sold": 25,
-       "sellThroughPct": 46.3
-      }
-     },
-     "byPrinting": {
-      "japanese": {
-       "ended": 8,
-       "sold": 5,
-       "sellThroughPct": null,
-       "medianWinningBidUsd": 10.5,
-       "byCategory": {}
-      },
-      "english": {
-       "ended": 38,
-       "sold": 18,
-       "sellThroughPct": 47.4,
-       "medianWinningBidUsd": 2.25,
-       "byCategory": {
-        "card": {
-         "ended": 38,
-         "sold": 18,
-         "sellThroughPct": 47.4
-        }
-       }
       }
      }
     },
@@ -5022,9 +4209,257 @@
      }
     },
     {
+     "setCode": "ST-17",
+     "canonicalUrl": "https://opboxindex.com/sets/st-17.html",
+     "ended": 98,
+     "sold": 36,
+     "sellThroughPct": 36.7,
+     "amountUsd": 1272,
+     "medianWinningBidUsd": 32.44,
+     "medianBidders": 4.5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 86,
+       "sold": 26,
+       "sellThroughPct": 30.2
+      },
+      "pack": {
+       "ended": 12,
+       "sold": 10,
+       "sellThroughPct": 83.3
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 27,
+       "sold": 5,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 58,
+       "byCategory": {
+        "card": {
+         "ended": 27,
+         "sold": 5,
+         "sellThroughPct": 18.5
+        }
+       }
+      },
+      "english": {
+       "ended": 56,
+       "sold": 25,
+       "sellThroughPct": 44.6,
+       "medianWinningBidUsd": 31,
+       "byCategory": {
+        "card": {
+         "ended": 45,
+         "sold": 16,
+         "sellThroughPct": 35.6
+        },
+        "pack": {
+         "ended": 11,
+         "sold": 9,
+         "sellThroughPct": 81.8
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "PRB-01",
+     "canonicalUrl": "https://opboxindex.com/sets/prb-01.html",
+     "ended": 141,
+     "sold": 56,
+     "sellThroughPct": 39.7,
+     "amountUsd": 19198,
+     "medianWinningBidUsd": 51,
+     "medianBidders": 5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 130,
+       "sold": 52,
+       "sellThroughPct": 40
+      },
+      "box": {
+       "ended": 10,
+       "sold": 3,
+       "sellThroughPct": 30
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 65,
+       "sold": 23,
+       "sellThroughPct": 35.4,
+       "medianWinningBidUsd": 31,
+       "byCategory": {
+        "card": {
+         "ended": 65,
+         "sold": 23,
+         "sellThroughPct": 35.4
+        }
+       }
+      },
+      "english": {
+       "ended": 54,
+       "sold": 25,
+       "sellThroughPct": 46.3,
+       "medianWinningBidUsd": 88,
+       "byCategory": {
+        "box": {
+         "ended": 10,
+         "sold": 3,
+         "sellThroughPct": 30
+        },
+        "card": {
+         "ended": 43,
+         "sold": 21,
+         "sellThroughPct": 48.8
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-31",
+     "canonicalUrl": "https://opboxindex.com/sets/st-31.html",
+     "ended": 135,
+     "sold": 55,
+     "sellThroughPct": 40.7,
+     "amountUsd": 12387,
+     "medianWinningBidUsd": 15.66,
+     "medianBidders": 3,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 128,
+       "sold": 48,
+       "sellThroughPct": 37.5
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 115,
+       "sold": 47,
+       "sellThroughPct": 40.9,
+       "medianWinningBidUsd": 14.27,
+       "byCategory": {
+        "card": {
+         "ended": 109,
+         "sold": 41,
+         "sellThroughPct": 37.6
+        }
+       }
+      },
+      "japanese": {
+       "ended": 5,
+       "sold": 1,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-10",
+     "canonicalUrl": "https://opboxindex.com/sets/st-10.html",
+     "ended": 165,
+     "sold": 69,
+     "sellThroughPct": 41.8,
+     "amountUsd": 11075,
+     "medianWinningBidUsd": 12.5,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 149,
+       "sold": 60,
+       "sellThroughPct": 40.3
+      },
+      "pack": {
+       "ended": 16,
+       "sold": 9,
+       "sellThroughPct": 56.3
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 42,
+       "sold": 8,
+       "sellThroughPct": 19,
+       "medianWinningBidUsd": 98.25,
+       "byCategory": {
+        "card": {
+         "ended": 41,
+         "sold": 7,
+         "sellThroughPct": 17.1
+        }
+       }
+      },
+      "english": {
+       "ended": 89,
+       "sold": 33,
+       "sellThroughPct": 37.1,
+       "medianWinningBidUsd": 22.5,
+       "byCategory": {
+        "card": {
+         "ended": 79,
+         "sold": 30,
+         "sellThroughPct": 38
+        },
+        "pack": {
+         "ended": 10,
+         "sold": 3,
+         "sellThroughPct": 30
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-34",
+     "canonicalUrl": "https://opboxindex.com/sets/st-34.html",
+     "ended": 50,
+     "sold": 20,
+     "sellThroughPct": 40,
+     "amountUsd": 270,
+     "medianWinningBidUsd": 14.75,
+     "medianBidders": 2,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 47,
+       "sold": 18,
+       "sellThroughPct": 38.3
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 45,
+       "sold": 19,
+       "sellThroughPct": 42.2,
+       "medianWinningBidUsd": 14.75,
+       "byCategory": {
+        "card": {
+         "ended": 42,
+         "sold": 17,
+         "sellThroughPct": 40.5
+        }
+       }
+      },
+      "japanese": {
+       "ended": 2,
+       "sold": 0,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
      "setCode": "ST-05",
      "canonicalUrl": "https://opboxindex.com/sets/st-05.html",
-     "ended": 23,
+     "ended": 25,
      "sold": 6,
      "sellThroughPct": null,
      "amountUsd": 23,
@@ -5033,28 +4468,210 @@
      "thinSample": true,
      "byCategory": {
       "card": {
-       "ended": 18,
+       "ended": 19,
        "sold": 5,
-       "sellThroughPct": 27.8
+       "sellThroughPct": 26.3
       }
      },
      "byPrinting": {
       "english": {
-       "ended": 15,
+       "ended": 17,
        "sold": 5,
        "sellThroughPct": null,
        "medianWinningBidUsd": 1.16,
        "byCategory": {
         "card": {
-         "ended": 10,
+         "ended": 11,
          "sold": 4,
-         "sellThroughPct": 40
+         "sellThroughPct": 36.4
         }
        }
       },
       "japanese": {
        "ended": 7,
        "sold": 0,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-36",
+     "canonicalUrl": "https://opboxindex.com/sets/st-36.html",
+     "ended": 66,
+     "sold": 20,
+     "sellThroughPct": 30.3,
+     "amountUsd": 132,
+     "medianWinningBidUsd": 4.89,
+     "medianBidders": 1,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 59,
+       "sold": 19,
+       "sellThroughPct": 32.2
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 61,
+       "sold": 18,
+       "sellThroughPct": 29.5,
+       "medianWinningBidUsd": 4.99,
+       "byCategory": {
+        "card": {
+         "ended": 54,
+         "sold": 17,
+         "sellThroughPct": 31.5
+        }
+       }
+      },
+      "japanese": {
+       "ended": 2,
+       "sold": 0,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-12",
+     "canonicalUrl": "https://opboxindex.com/sets/st-12.html",
+     "ended": 72,
+     "sold": 18,
+     "sellThroughPct": 25,
+     "amountUsd": 3083,
+     "medianWinningBidUsd": 8.91,
+     "medianBidders": 2.5,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 72,
+       "sold": 18,
+       "sellThroughPct": 25
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 49,
+       "sold": 8,
+       "sellThroughPct": 16.3,
+       "medianWinningBidUsd": 8.62,
+       "byCategory": {
+        "card": {
+         "ended": 49,
+         "sold": 8,
+         "sellThroughPct": 16.3
+        }
+       }
+      },
+      "japanese": {
+       "ended": 13,
+       "sold": 4,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 13,
+         "sold": 4,
+         "sellThroughPct": 30.8
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-06",
+     "canonicalUrl": "https://opboxindex.com/sets/st-06.html",
+     "ended": 52,
+     "sold": 22,
+     "sellThroughPct": 42.3,
+     "amountUsd": 710,
+     "medianWinningBidUsd": 26.01,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 45,
+       "sold": 20,
+       "sellThroughPct": 44.4
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 26,
+       "sold": 10,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 49.5,
+       "byCategory": {
+        "card": {
+         "ended": 19,
+         "sold": 8,
+         "sellThroughPct": 42.1
+        }
+       }
+      },
+      "japanese": {
+       "ended": 15,
+       "sold": 2,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 15,
+         "sold": 2,
+         "sellThroughPct": 13.3
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-32",
+     "canonicalUrl": "https://opboxindex.com/sets/st-32.html",
+     "ended": 73,
+     "sold": 29,
+     "sellThroughPct": 39.7,
+     "amountUsd": 1382,
+     "medianWinningBidUsd": 23.66,
+     "medianBidders": 2,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 59,
+       "sold": 25,
+       "sellThroughPct": 42.4
+      },
+      "pack": {
+       "ended": 14,
+       "sold": 4,
+       "sellThroughPct": 28.6
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 56,
+       "sold": 21,
+       "sellThroughPct": 37.5,
+       "medianWinningBidUsd": 22.5,
+       "byCategory": {
+        "card": {
+         "ended": 43,
+         "sold": 18,
+         "sellThroughPct": 41.9
+        },
+        "pack": {
+         "ended": 13,
+         "sold": 3,
+         "sellThroughPct": 23.1
+        }
+       }
+      },
+      "japanese": {
+       "ended": 3,
+       "sold": 2,
        "sellThroughPct": null,
        "medianWinningBidUsd": null,
        "byCategory": {}
@@ -5083,33 +4700,360 @@
      }
     },
     {
-     "setCode": "ST-27",
-     "canonicalUrl": "https://opboxindex.com/sets/st-27.html",
-     "ended": 22,
-     "sold": 14,
-     "sellThroughPct": null,
-     "amountUsd": 2836,
-     "medianWinningBidUsd": 217.75,
-     "medianBidders": 6,
-     "thinSample": true,
+     "setCode": "OP-17",
+     "canonicalUrl": "https://opboxindex.com/sets/op-17.html",
+     "ended": 3772,
+     "sold": 2348,
+     "sellThroughPct": 62.2,
+     "amountUsd": 186031,
+     "medianWinningBidUsd": 10.5,
+     "medianBidders": 5,
+     "thinSample": false,
      "byCategory": {
       "card": {
+       "ended": 2914,
+       "sold": 1547,
+       "sellThroughPct": 53.1
+      },
+      "pack": {
+       "ended": 775,
+       "sold": 732,
+       "sellThroughPct": 94.5
+      },
+      "box": {
+       "ended": 62,
+       "sold": 49,
+       "sellThroughPct": 79
+      },
+      "carton": {
+       "ended": 21,
+       "sold": 20,
+       "sellThroughPct": 95.2
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 2741,
+       "sold": 1501,
+       "sellThroughPct": 54.8,
+       "medianWinningBidUsd": 15.85,
+       "byCategory": {
+        "card": {
+         "ended": 2404,
+         "sold": 1214,
+         "sellThroughPct": 50.5
+        },
+        "pack": {
+         "ended": 283,
+         "sold": 244,
+         "sellThroughPct": 86.2
+        },
+        "box": {
+         "ended": 48,
+         "sold": 38,
+         "sellThroughPct": 79.2
+        }
+       }
+      },
+      "japanese": {
+       "ended": 572,
+       "sold": 510,
+       "sellThroughPct": 89.2,
+       "medianWinningBidUsd": 2.75,
+       "byCategory": {
+        "pack": {
+         "ended": 470,
+         "sold": 467,
+         "sellThroughPct": 99.4
+        },
+        "card": {
+         "ended": 84,
+         "sold": 28,
+         "sellThroughPct": 33.3
+        },
+        "box": {
+         "ended": 11,
+         "sold": 8,
+         "sellThroughPct": 72.7
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-16",
+     "canonicalUrl": "https://opboxindex.com/sets/st-16.html",
+     "ended": 78,
+     "sold": 23,
+     "sellThroughPct": 29.5,
+     "amountUsd": 1586,
+     "medianWinningBidUsd": 9.5,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 74,
+       "sold": 23,
+       "sellThroughPct": 31.1
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 24,
+       "sold": 9,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 28,
+       "byCategory": {
+        "card": {
+         "ended": 20,
+         "sold": 9,
+         "sellThroughPct": 45
+        }
+       }
+      },
+      "japanese": {
+       "ended": 34,
+       "sold": 5,
+       "sellThroughPct": 14.7,
+       "medianWinningBidUsd": 9.5,
+       "byCategory": {
+        "card": {
+         "ended": 34,
+         "sold": 5,
+         "sellThroughPct": 14.7
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-22",
+     "canonicalUrl": "https://opboxindex.com/sets/st-22.html",
+     "ended": 124,
+     "sold": 27,
+     "sellThroughPct": 21.8,
+     "amountUsd": 501,
+     "medianWinningBidUsd": 3.25,
+     "medianBidders": 2,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 118,
+       "sold": 26,
+       "sellThroughPct": 22
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 110,
+       "sold": 24,
+       "sellThroughPct": 21.8,
+       "medianWinningBidUsd": 3.25,
+       "byCategory": {
+        "card": {
+         "ended": 104,
+         "sold": 23,
+         "sellThroughPct": 22.1
+        }
+       }
+      },
+      "japanese": {
+       "ended": 4,
+       "sold": 0,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-20",
+     "canonicalUrl": "https://opboxindex.com/sets/st-20.html",
+     "ended": 33,
+     "sold": 7,
+     "sellThroughPct": 21.2,
+     "amountUsd": 25,
+     "medianWinningBidUsd": 3.25,
+     "medianBidders": 2,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 28,
+       "sold": 4,
+       "sellThroughPct": 14.3
+      }
+     },
+     "byPrinting": {
+      "english": {
        "ended": 22,
-       "sold": 14,
-       "sellThroughPct": 63.6
+       "sold": 5,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 3.25,
+       "byCategory": {
+        "card": {
+         "ended": 19,
+         "sold": 3,
+         "sellThroughPct": 15.8
+        }
+       }
+      },
+      "japanese": {
+       "ended": 8,
+       "sold": 0,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-11",
+     "canonicalUrl": "https://opboxindex.com/sets/st-11.html",
+     "ended": 31,
+     "sold": 13,
+     "sellThroughPct": 41.9,
+     "amountUsd": 68,
+     "medianWinningBidUsd": 3.5,
+     "medianBidders": 4,
+     "thinSample": false,
+     "byCategory": {
+      "card": {
+       "ended": 30,
+       "sold": 12,
+       "sellThroughPct": 40
       }
      },
      "byPrinting": {
       "english": {
        "ended": 20,
-       "sold": 12,
+       "sold": 9,
        "sellThroughPct": null,
-       "medianWinningBidUsd": 217.75,
+       "medianWinningBidUsd": 5.26,
        "byCategory": {
         "card": {
          "ended": 20,
-         "sold": 12,
-         "sellThroughPct": 60
+         "sold": 9,
+         "sellThroughPct": 45
+        }
+       }
+      },
+      "japanese": {
+       "ended": 8,
+       "sold": 2,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-09",
+     "canonicalUrl": "https://opboxindex.com/sets/st-09.html",
+     "ended": 20,
+     "sold": 3,
+     "sellThroughPct": null,
+     "amountUsd": 60,
+     "medianWinningBidUsd": null,
+     "medianBidders": null,
+     "thinSample": true,
+     "byCategory": {
+      "card": {
+       "ended": 20,
+       "sold": 3,
+       "sellThroughPct": 15
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 12,
+       "sold": 2,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 12,
+         "sold": 2,
+         "sellThroughPct": 16.7
+        }
+       }
+      },
+      "japanese": {
+       "ended": 5,
+       "sold": 1,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      }
+     }
+    },
+    {
+     "setCode": "ST-07",
+     "canonicalUrl": "https://opboxindex.com/sets/st-07.html",
+     "ended": 17,
+     "sold": 4,
+     "sellThroughPct": null,
+     "amountUsd": 398,
+     "medianWinningBidUsd": null,
+     "medianBidders": null,
+     "thinSample": true,
+     "byCategory": {
+      "card": {
+       "ended": 17,
+       "sold": 4,
+       "sellThroughPct": 23.5
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 6,
+       "sold": 4,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      },
+      "english": {
+       "ended": 11,
+       "sold": 0,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 11,
+         "sold": 0,
+         "sellThroughPct": 0
+        }
+       }
+      }
+     }
+    },
+    {
+     "setCode": "ST-27",
+     "canonicalUrl": "https://opboxindex.com/sets/st-27.html",
+     "ended": 23,
+     "sold": 15,
+     "sellThroughPct": null,
+     "amountUsd": 3067,
+     "medianWinningBidUsd": 220,
+     "medianBidders": 6,
+     "thinSample": true,
+     "byCategory": {
+      "card": {
+       "ended": 23,
+       "sold": 15,
+       "sellThroughPct": 65.2
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 21,
+       "sold": 13,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": 220,
+       "byCategory": {
+        "card": {
+         "ended": 21,
+         "sold": 13,
+         "sellThroughPct": 61.9
         }
        }
       },
@@ -5190,6 +5134,46 @@
      }
     },
     {
+     "setCode": "ST-25",
+     "canonicalUrl": "https://opboxindex.com/sets/st-25.html",
+     "ended": 15,
+     "sold": 5,
+     "sellThroughPct": null,
+     "amountUsd": 18,
+     "medianWinningBidUsd": null,
+     "medianBidders": 3,
+     "thinSample": true,
+     "byCategory": {
+      "card": {
+       "ended": 15,
+       "sold": 5,
+       "sellThroughPct": 33.3
+      }
+     },
+     "byPrinting": {
+      "japanese": {
+       "ended": 3,
+       "sold": 1,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
+      },
+      "english": {
+       "ended": 11,
+       "sold": 4,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {
+        "card": {
+         "ended": 11,
+         "sold": 4,
+         "sellThroughPct": 36.4
+        }
+       }
+      }
+     }
+    },
+    {
      "setCode": "ST-23",
      "canonicalUrl": "https://opboxindex.com/sets/st-23.html",
      "ended": 14,
@@ -5219,6 +5203,33 @@
          "sellThroughPct": 35.7
         }
        }
+      }
+     }
+    },
+    {
+     "setCode": "ST-24",
+     "canonicalUrl": "https://opboxindex.com/sets/st-24.html",
+     "ended": 16,
+     "sold": 3,
+     "sellThroughPct": null,
+     "amountUsd": 36,
+     "medianWinningBidUsd": null,
+     "medianBidders": null,
+     "thinSample": true,
+     "byCategory": {
+      "card": {
+       "ended": 16,
+       "sold": 3,
+       "sellThroughPct": 18.8
+      }
+     },
+     "byPrinting": {
+      "english": {
+       "ended": 6,
+       "sold": 2,
+       "sellThroughPct": null,
+       "medianWinningBidUsd": null,
+       "byCategory": {}
       }
      }
     },
@@ -5421,154 +5432,6 @@
    }
   ],
   "daily": [
-   {
-    "date": "2026-09-06",
-    "games": {
-     "pokemonjp": {
-      "ended": 41,
-      "sold": 38,
-      "sellThroughPct": 92.68,
-      "medianWinningBidUsd": 0.01,
-      "priceSample": 38,
-      "amountUsd": 1.66,
-      "liveAuctions": 43399,
-      "endingWithin24h": 9141,
-      "bidRatePct": 24
-     },
-     "pokemon": {
-      "ended": 41,
-      "sold": 4,
-      "sellThroughPct": 9.76,
-      "medianWinningBidUsd": null,
-      "priceSample": 4,
-      "amountUsd": 221.66,
-      "liveAuctions": 297798,
-      "endingWithin24h": 63185,
-      "bidRatePct": 20
-     },
-     "magic": {
-      "ended": 134,
-      "sold": 10,
-      "sellThroughPct": 7.46,
-      "medianWinningBidUsd": 9.5,
-      "priceSample": 10,
-      "amountUsd": 462.06,
-      "liveAuctions": 30888,
-      "endingWithin24h": 6249,
-      "bidRatePct": 11
-     },
-     "yugioh": {
-      "ended": 106,
-      "sold": 5,
-      "sellThroughPct": 4.72,
-      "medianWinningBidUsd": 8.11,
-      "priceSample": 5,
-      "amountUsd": 61.66,
-      "liveAuctions": 18984,
-      "endingWithin24h": 4188,
-      "bidRatePct": 14
-     },
-     "onepiece": {
-      "ended": 103,
-      "sold": 49,
-      "sellThroughPct": 47.57,
-      "medianWinningBidUsd": 13.5,
-      "priceSample": 49,
-      "amountUsd": 3526.93,
-      "liveAuctions": 15535,
-      "endingWithin24h": 3333,
-      "bidRatePct": 24
-     },
-     "lorcana": {
-      "ended": 44,
-      "sold": 14,
-      "sellThroughPct": 31.82,
-      "medianWinningBidUsd": 64.35,
-      "priceSample": 14,
-      "amountUsd": 3224.27,
-      "liveAuctions": 4526,
-      "endingWithin24h": 983,
-      "bidRatePct": 26
-     },
-     "weiss": {
-      "ended": 49,
-      "sold": 8,
-      "sellThroughPct": 16.33,
-      "medianWinningBidUsd": 1.99,
-      "priceSample": 8,
-      "amountUsd": 63.63,
-      "liveAuctions": 2404,
-      "endingWithin24h": 502,
-      "bidRatePct": 17
-     },
-     "digimon": {
-      "ended": 72,
-      "sold": 9,
-      "sellThroughPct": 12.5,
-      "medianWinningBidUsd": 14.5,
-      "priceSample": 9,
-      "amountUsd": 607.97,
-      "liveAuctions": 2180,
-      "endingWithin24h": 357,
-      "bidRatePct": 7
-     },
-     "riftbound": {
-      "ended": 121,
-      "sold": 56,
-      "sellThroughPct": 46.28,
-      "medianWinningBidUsd": 71,
-      "priceSample": 56,
-      "amountUsd": 43901.52,
-      "liveAuctions": 1004,
-      "endingWithin24h": 240,
-      "bidRatePct": 43
-     },
-     "unionarena": {
-      "ended": 98,
-      "sold": 61,
-      "sellThroughPct": 62.24,
-      "medianWinningBidUsd": 53,
-      "priceSample": 61,
-      "amountUsd": 6563.71,
-      "liveAuctions": 962,
-      "endingWithin24h": 200,
-      "bidRatePct": 25
-     },
-     "gundam": {
-      "ended": 44,
-      "sold": 14,
-      "sellThroughPct": 31.82,
-      "medianWinningBidUsd": 34.37,
-      "priceSample": 14,
-      "amountUsd": 1335.36,
-      "liveAuctions": 724,
-      "endingWithin24h": 124,
-      "bidRatePct": 20
-     },
-     "dragonball": {
-      "ended": 144,
-      "sold": 87,
-      "sellThroughPct": 60.42,
-      "medianWinningBidUsd": 72,
-      "priceSample": 87,
-      "amountUsd": 19099.81,
-      "liveAuctions": 1475,
-      "endingWithin24h": 316,
-      "bidRatePct": 38
-     },
-     "palworld": {
-      "ended": 253,
-      "sold": 193,
-      "sellThroughPct": 76.28,
-      "medianWinningBidUsd": 5.5,
-      "priceSample": 193,
-      "amountUsd": 7684.62,
-      "liveAuctions": 393,
-      "endingWithin24h": 38,
-      "bidRatePct": 31
-     }
-    }
-   },
    {
     "date": "2026-09-07",
     "games": {
@@ -7163,9 +7026,9 @@
       "bidRatePct": 20
      },
      "gundam": {
-      "ended": 50,
+      "ended": 52,
       "sold": 14,
-      "sellThroughPct": 28,
+      "sellThroughPct": 26.92,
       "medianWinningBidUsd": 118.5,
       "priceSample": 14,
       "amountUsd": 4364,
@@ -7185,12 +7048,12 @@
       "bidRatePct": 44
      },
      "palworld": {
-      "ended": 76,
-      "sold": 40,
-      "sellThroughPct": 52.63,
+      "ended": 77,
+      "sold": 41,
+      "sellThroughPct": 53.25,
       "medianWinningBidUsd": 3.11,
-      "priceSample": 40,
-      "amountUsd": 3426.68,
+      "priceSample": 41,
+      "amountUsd": 3431.67,
       "liveAuctions": 353,
       "endingWithin24h": 90,
       "bidRatePct": 32
@@ -7371,9 +7234,9 @@
       "bidRatePct": 25
      },
      "magic": {
-      "ended": 247,
+      "ended": 248,
       "sold": 37,
-      "sellThroughPct": 14.98,
+      "sellThroughPct": 14.92,
       "medianWinningBidUsd": 13,
       "priceSample": 37,
       "amountUsd": 3266.14,
@@ -7393,103 +7256,251 @@
       "bidRatePct": 21
      },
      "onepiece": {
-      "ended": 237,
-      "sold": 71,
-      "sellThroughPct": 29.96,
+      "ended": 247,
+      "sold": 72,
+      "sellThroughPct": 29.15,
       "medianWinningBidUsd": 16,
-      "priceSample": 71,
-      "amountUsd": 20028.61,
+      "priceSample": 72,
+      "amountUsd": 20034.11,
       "liveAuctions": 15264,
       "endingWithin24h": 2040,
       "bidRatePct": 35
      },
      "lorcana": {
-      "ended": 192,
-      "sold": 68,
-      "sellThroughPct": 35.42,
-      "medianWinningBidUsd": 94,
-      "priceSample": 68,
-      "amountUsd": 23871.62,
+      "ended": 248,
+      "sold": 77,
+      "sellThroughPct": 31.05,
+      "medianWinningBidUsd": 89,
+      "priceSample": 77,
+      "amountUsd": 26624.11,
       "liveAuctions": 4317,
       "endingWithin24h": 705,
       "bidRatePct": 25
      },
      "weiss": {
-      "ended": 174,
-      "sold": 33,
-      "sellThroughPct": 18.97,
-      "medianWinningBidUsd": 16.5,
-      "priceSample": 33,
-      "amountUsd": 3586.75,
+      "ended": 251,
+      "sold": 50,
+      "sellThroughPct": 19.92,
+      "medianWinningBidUsd": 12.99,
+      "priceSample": 50,
+      "amountUsd": 3799.17,
       "liveAuctions": 2465,
       "endingWithin24h": 356,
       "bidRatePct": 20
      },
      "digimon": {
-      "ended": 61,
-      "sold": 14,
-      "sellThroughPct": 22.95,
-      "medianWinningBidUsd": 3.35,
-      "priceSample": 14,
-      "amountUsd": 166.85,
+      "ended": 91,
+      "sold": 16,
+      "sellThroughPct": 17.58,
+      "medianWinningBidUsd": 10,
+      "priceSample": 16,
+      "amountUsd": 337.64,
       "liveAuctions": 1991,
       "endingWithin24h": 97,
       "bidRatePct": 9
      },
      "riftbound": {
-      "ended": 115,
-      "sold": 57,
-      "sellThroughPct": 49.57,
-      "medianWinningBidUsd": 243.79,
-      "priceSample": 57,
-      "amountUsd": 31080.45,
+      "ended": 162,
+      "sold": 85,
+      "sellThroughPct": 52.47,
+      "medianWinningBidUsd": 142.5,
+      "priceSample": 85,
+      "amountUsd": 34317.82,
       "liveAuctions": 1157,
       "endingWithin24h": 192,
       "bidRatePct": 43
      },
      "unionarena": {
-      "ended": 65,
-      "sold": 27,
-      "sellThroughPct": 41.54,
-      "medianWinningBidUsd": 29,
-      "priceSample": 27,
-      "amountUsd": 17968.05,
+      "ended": 93,
+      "sold": 32,
+      "sellThroughPct": 34.41,
+      "medianWinningBidUsd": 50,
+      "priceSample": 32,
+      "amountUsd": 18333.14,
       "liveAuctions": 931,
       "endingWithin24h": 98,
       "bidRatePct": 25
      },
      "gundam": {
-      "ended": 29,
-      "sold": 6,
-      "sellThroughPct": 20.69,
-      "medianWinningBidUsd": 512.01,
-      "priceSample": 6,
-      "amountUsd": 3328.01,
+      "ended": 44,
+      "sold": 16,
+      "sellThroughPct": 36.36,
+      "medianWinningBidUsd": 75,
+      "priceSample": 16,
+      "amountUsd": 4647.12,
       "liveAuctions": 841,
       "endingWithin24h": 95,
       "bidRatePct": 18
      },
      "dragonball": {
-      "ended": 166,
-      "sold": 72,
-      "sellThroughPct": 43.37,
-      "medianWinningBidUsd": 51,
-      "priceSample": 72,
-      "amountUsd": 10125.24,
+      "ended": 199,
+      "sold": 84,
+      "sellThroughPct": 42.21,
+      "medianWinningBidUsd": 57,
+      "priceSample": 84,
+      "amountUsd": 13046.38,
       "liveAuctions": 1575,
       "endingWithin24h": 231,
       "bidRatePct": 41
      },
      "palworld": {
-      "ended": 16,
-      "sold": 7,
-      "sellThroughPct": null,
-      "medianWinningBidUsd": 10.5,
-      "priceSample": 7,
-      "amountUsd": 287,
+      "ended": 26,
+      "sold": 12,
+      "sellThroughPct": 46.15,
+      "medianWinningBidUsd": 7.5,
+      "priceSample": 12,
+      "amountUsd": 292,
       "liveAuctions": 300,
       "endingWithin24h": 34,
       "bidRatePct": 21
+     }
+    }
+   },
+   {
+    "date": "2026-09-20",
+    "games": {
+     "pokemonjp": {
+      "ended": 138,
+      "sold": 47,
+      "sellThroughPct": 34.06,
+      "medianWinningBidUsd": 6.5,
+      "priceSample": 47,
+      "amountUsd": 1665.72,
+      "liveAuctions": 43513,
+      "endingWithin24h": 7951,
+      "bidRatePct": 38
+     },
+     "pokemon": {
+      "ended": 138,
+      "sold": 44,
+      "sellThroughPct": 31.88,
+      "medianWinningBidUsd": 4.25,
+      "priceSample": 44,
+      "amountUsd": 14374.59,
+      "liveAuctions": 311527,
+      "endingWithin24h": 55936,
+      "bidRatePct": 25
+     },
+     "magic": {
+      "ended": 138,
+      "sold": 34,
+      "sellThroughPct": 24.64,
+      "medianWinningBidUsd": 9.12,
+      "priceSample": 34,
+      "amountUsd": 1233.97,
+      "liveAuctions": 28988,
+      "endingWithin24h": 5868,
+      "bidRatePct": 24
+     },
+     "yugioh": {
+      "ended": 138,
+      "sold": 33,
+      "sellThroughPct": 23.91,
+      "medianWinningBidUsd": 15.5,
+      "priceSample": 33,
+      "amountUsd": 4167.72,
+      "liveAuctions": 19929,
+      "endingWithin24h": 3294,
+      "bidRatePct": 22
+     },
+     "onepiece": {
+      "ended": 137,
+      "sold": 35,
+      "sellThroughPct": 25.55,
+      "medianWinningBidUsd": 10,
+      "priceSample": 35,
+      "amountUsd": 2055.59,
+      "liveAuctions": 15232,
+      "endingWithin24h": 2620,
+      "bidRatePct": 39
+     },
+     "lorcana": {
+      "ended": 138,
+      "sold": 65,
+      "sellThroughPct": 47.1,
+      "medianWinningBidUsd": 102.5,
+      "priceSample": 65,
+      "amountUsd": 34044.72,
+      "liveAuctions": 4317,
+      "endingWithin24h": 696,
+      "bidRatePct": 26
+     },
+     "weiss": {
+      "ended": 138,
+      "sold": 37,
+      "sellThroughPct": 26.81,
+      "medianWinningBidUsd": 18.5,
+      "priceSample": 37,
+      "amountUsd": 1350.07,
+      "liveAuctions": 2407,
+      "endingWithin24h": 476,
+      "bidRatePct": 16
+     },
+     "digimon": {
+      "ended": 103,
+      "sold": 8,
+      "sellThroughPct": 7.77,
+      "medianWinningBidUsd": 51,
+      "priceSample": 8,
+      "amountUsd": 520.07,
+      "liveAuctions": 2011,
+      "endingWithin24h": 196,
+      "bidRatePct": 9
+     },
+     "riftbound": {
+      "ended": 88,
+      "sold": 50,
+      "sellThroughPct": 56.82,
+      "medianWinningBidUsd": 157.5,
+      "priceSample": 50,
+      "amountUsd": 35620,
+      "liveAuctions": 1139,
+      "endingWithin24h": 198,
+      "bidRatePct": 50
+     },
+     "unionarena": {
+      "ended": 73,
+      "sold": 27,
+      "sellThroughPct": 36.99,
+      "medianWinningBidUsd": 48,
+      "priceSample": 27,
+      "amountUsd": 13614.75,
+      "liveAuctions": 965,
+      "endingWithin24h": 147,
+      "bidRatePct": 25
+     },
+     "gundam": {
+      "ended": 27,
+      "sold": 9,
+      "sellThroughPct": 33.33,
+      "medianWinningBidUsd": 12.5,
+      "priceSample": 9,
+      "amountUsd": 3366.6,
+      "liveAuctions": 860,
+      "endingWithin24h": 98,
+      "bidRatePct": 19
+     },
+     "dragonball": {
+      "ended": 133,
+      "sold": 72,
+      "sellThroughPct": 54.14,
+      "medianWinningBidUsd": 50,
+      "priceSample": 72,
+      "amountUsd": 11781.55,
+      "liveAuctions": 1571,
+      "endingWithin24h": 235,
+      "bidRatePct": 43
+     },
+     "palworld": {
+      "ended": 48,
+      "sold": 1,
+      "sellThroughPct": 2.08,
+      "medianWinningBidUsd": null,
+      "priceSample": 1,
+      "amountUsd": 46,
+      "liveAuctions": 321,
+      "endingWithin24h": 77,
+      "bidRatePct": 17
      }
     }
    }
