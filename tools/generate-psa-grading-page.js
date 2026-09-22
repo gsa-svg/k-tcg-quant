@@ -96,8 +96,9 @@ const foot = `<tr><td class="l"><b>All ${rows.length} sets</b></td>${GR.map((k) 
 const byAdd = [...rows].filter((r) => r.jp.psa && r.jp.psa.add != null).sort((a, b) => b.jp.psa.add - a.jp.psa.add).slice(0, 10);
 const addTr = (r) => `<tr>${setCell(r, 36)}${GR.map((k) => `<td class="num ${k}">${r.jp[k] && r.jp[k].add != null ? sn(r.jp[k].add) : "—"}</td>`).join("")}</tr>`;
 
-const TITLE = "One Piece Grading Population by Set — PSA, CGC, TAG"; // 60자 이내(2026-09-17)
-const DESC = `One Piece cards per booster set in PSA, CGC and TAG holders, Japanese and English separate, with change since each report. ${rows.length} sets, updated ${updated}.`; // 155자 이내(2026-09-17)
+const TITLE = "One Piece PSA Population Report by Set (PSA, CGC, TAG)"; // 60자 이내. 실제 유입 검색어 "psa population" 에 맞춤(2026-09-22, GSC 노출 1위)
+const DESC = `One Piece PSA population report by set — PSA, CGC and TAG counts, Japanese and English separate, weekly change. ${rows.length} sets, updated ${updated}.`; // 155자 이내(2026-09-22)
+if (DESC.length > 155) throw new Error(`psa-grading description ${DESC.length} > 155`);
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -206,7 +207,7 @@ const html = `<!doctype html>
     </header>
     <main id="main-content" class="pgWrap">
       <p class="eyebrow">Grading population · PSA · CGC · TAG · updated ${esc(updated)}</p>
-      <h1>One Piece grading population by set</h1>
+      <h1>One Piece PSA population report by set</h1>
       <p class="lead">Cards in PSA, CGC and TAG holders per booster set · Japanese and English printings kept separate · change = new grades since each company's previous report</p>
 
       <div class="statRow">

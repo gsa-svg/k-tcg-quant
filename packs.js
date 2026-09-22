@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260918a";
+const DATA_VERSION = "20260922a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1571,7 +1571,7 @@ function renderCompareTable() {
   });
 }
 
-// 오늘의 박스 딜: 검수된 최저 매물(배송 포함)이 최근 실거래 중앙값보다 싼 박스만, 절약액 큰 순 4개.
+// 오늘의 박스 딜: 검수된 최저 매물(배송 포함)이 최근 실거래 중앙값보다 싼 박스만(일본판·영문판), 절약액 큰 순 4개.
 // 기준은 호가가 아니라 실거래(ebaySold.median) — 표본 3건 미만이거나 45일 넘게 낡으면 기준으로 안 쓴다(정확도 원칙).
 // 사진은 매물 사진(bestListing.image). 아직 없으면 세트 그림을 앞면으로 한 입체 박스로 대체한다.
 const DEAL_COUNTRY = { US: ["미국", "US"], JP: ["일본", "Japan"], GB: ["영국", "UK"], CA: ["캐나다", "Canada"], AU: ["호주", "Australia"], SG: ["싱가포르", "Singapore"], DE: ["독일", "Germany"], FR: ["프랑스", "France"], HK: ["홍콩", "Hong Kong"], KR: ["한국", "Korea"] };
@@ -1585,14 +1585,14 @@ function renderTodayDeals() {
   const deals = [];
   const codes = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])];
   const staleBefore = Date.now() - 45 * 86400000;
-  for (const code of codes) {
+  for (const code of codes) for (const ed of ["jp", "en"]) {   // 영문판도 딜 후보 — 미국 유저는 영문판을 산다(2026-09-22)
     const set = state.data.sets?.[code];
-    const jp = set?.boxMarket?.jp;
-    const m = jp?.ebayActive, so = jp?.ebaySold, b = m?.bestListing;
+    const bm = set?.boxMarket?.[ed];
+    const m = bm?.ebayActive, so = bm?.ebaySold, b = m?.bestListing;
     if (!b || !b.url || b.total == null) continue;
     if (!so || so.median == null || (so.sampleSize || 0) < 3 || !so.updated || Date.parse(so.updated) < staleBefore) continue;
     if (!(b.total < so.median)) continue;
-    deals.push({ code, name: set.nameEn || set.nameKo || code, total: b.total, sold: so.median, soldN: so.sampleSize, soldTo: String(so.updated).slice(5, 10), mid: m.middle, asks: m.sampleSize || 0, currency: so.currency || m.currency || "USD", url: b.url, image: b.image || "", country: b.country || "", shipping: Number(b.shipping) || 0, save: so.median - b.total });
+    deals.push({ code, ed, name: set.nameEn || set.nameKo || code, total: b.total, sold: so.median, soldN: so.sampleSize, soldTo: String(so.updated).slice(5, 10), mid: m.middle, asks: m.sampleSize || 0, currency: so.currency || m.currency || "USD", url: b.url, image: b.image || "", country: b.country || "", shipping: Number(b.shipping) || 0, save: so.median - b.total });
   }
   renderSuppliesStrip();
   if (!deals.length) {
@@ -1604,20 +1604,20 @@ function renderTodayDeals() {
   const fmt = (v, cur) => (cur === "USD" ? `$${Math.round(v).toLocaleString("en-US")}` : `${Math.round(v).toLocaleString()} ${cur}`);
   el.hidden = false;
   el.innerHTML = `
-    <div class="dealsHead"><span>${t("오늘의 박스 딜", "Today's box deals")}</span><small>${t("최근 실거래가보다 싼 검수 매물 · 배송 포함 · 일본판", "Verified listings under recent sold · incl. shipping · Japanese")}</small></div>
+    <div class="dealsHead"><span>${t("오늘의 박스 딜", "Today's box deals")}</span><small>${t("최근 실거래가보다 싼 검수 매물 · 배송 포함 · 일본판·영문판", "Verified listings under recent sold · incl. shipping · Japanese & English")}</small></div>
     <div class="dealsRow">${deals.slice(0, 4).map((d) => {
       const pct = Math.round((d.save / d.sold) * 100);
       const vsMid = d.mid ? Math.round((1 - d.total / d.mid) * 100) : 0;
       const art = d.image
-        ? `<span class="dealPhoto"><img src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"><span class="dealLbl">${d.code}</span></span>`
-        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.parentNode.parentNode.remove()"><span class="dealLbl">${d.code}</span></span></span>`;
+        ? `<span class="dealPhoto"><img src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
+        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.parentNode.parentNode.remove()"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
       const ship = d.shipping > 0 ? t(`배송 ${fmt(d.shipping, d.currency)} 포함`, `incl. ${fmt(d.shipping, d.currency)} shipping`) : t("무료배송", "free shipping");
       const asks = d.mid ? ` · ${t(`호가 중간 ${fmt(d.mid, d.currency)}, ${d.asks}건`, `asks mid ${fmt(d.mid, d.currency)}, ${d.asks} listings`)}${vsMid > 0 ? ` (−${vsMid}%)` : ""}` : "";
       return `
       <a class="dealCard" href="${epnUrl(d.url)}" target="_blank" rel="noopener noreferrer sponsored">
         ${art}
         <span class="dealBody">
-          <span class="dealSet"><b>${d.code}</b> ${escapeHtml(d.name)}<span class="dealEd">${t("일본판", "Japanese")}</span></span>
+          <span class="dealSet"><b>${d.code}</b> ${escapeHtml(d.name)}<span class="dealEd">${d.ed === "en" ? t("영문판", "English") : t("일본판", "Japanese")}</span></span>
           <span class="dealPriceRow"><span class="dealPrice">${fmt(d.total, d.currency)}</span><span class="dealWas">${t("최근 실거래", "recent sold")} ${fmt(d.sold, d.currency)}</span></span>
           <span class="dealSave">−${fmt(d.save, d.currency)} · ${t(`실거래 대비 ${pct}% 저렴`, `${pct}% under recent sold`)} <small>${t(`(${d.soldTo}까지 ${d.soldN}건)`, `(${d.soldN} sales to ${d.soldTo})`)}</small></span>
           <span class="dealMeta">${t(`${countryLabel(d.country)} 발송`, `Ships from ${countryLabel(d.country)}`)} · ${ship}${asks}</span>
