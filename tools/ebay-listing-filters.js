@@ -78,6 +78,7 @@ function isJapaneseSealedBoosterBoxTitle(title, code) {
     /booster pack|single pack|loose pack|pack bundle|fresh from box|from box/i,
     /\b(?:[1-9]|1\d|2[0-3])\s*(?:pack|packs|pk)\b/i,
     /open live|live break|box break|rip\s*ship|break spot|personal break|opened/i,
+    /unseal|open box|no packs|missing packs|resealed?|re-sealed|damaged/i,   // 2026-09-22: "unSealed" 영문 박스가 최저 매물로 뜬 뒤 추가
   ];
   return positive.every((pattern) => pattern.test(value)) && !negative.some((pattern) => pattern.test(value));
 }
@@ -97,6 +98,7 @@ function isEnglishSealedBoosterBoxTitle(title, code) {
     /booster pack|single pack|loose pack|pack bundle|fresh from box|from box/i,
     /\b(?:[1-9]|1\d|2[0-3])\s*(?:pack|packs|pk)\b/i,
     /open live|live break|box break|rip\s*ship|break spot|personal break|opened/i,
+    /unseal|open box|no packs|missing packs|resealed?|re-sealed|damaged/i,   // 2026-09-22: "unSealed" 영문 박스가 최저 매물로 뜬 뒤 추가
   ];
   return positive.every((pattern) => pattern.test(value)) && !negative.some((pattern) => pattern.test(value));
 }

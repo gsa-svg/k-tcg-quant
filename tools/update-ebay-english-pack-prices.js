@@ -186,6 +186,7 @@ function analyzeItems(items, code) {
   const bestListing = selectedItems
     .map((item) => item.listing)
     .filter((item) => item?.url && item.currency === currency && (median == null || item.total >= median * 0.5))
+    .filter((item) => /new/i.test(item.condition || ""))   // 개봉/중고 상태는 최저 매물 후보에서 제외 — 2026-09-22
     .sort((a, b) => a.total - b.total)[0] || null;
 
   return {

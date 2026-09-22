@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260922a";
+const DATA_VERSION = "20260922b";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1590,6 +1590,7 @@ function renderTodayDeals() {
     const bm = set?.boxMarket?.[ed];
     const m = bm?.ebayActive, so = bm?.ebaySold, b = m?.bestListing;
     if (!b || !b.url || b.total == null) continue;
+    if (!/new/i.test(b.condition || "") || /unseal|open box|opened|no packs|missing packs|reseal|damaged/i.test(b.title || "")) continue;   // 개봉 박스는 딜이 아니다(2026-09-22)
     if (!so || so.median == null || (so.sampleSize || 0) < 3 || !so.updated || Date.parse(so.updated) < staleBefore) continue;
     if (!(b.total < so.median)) continue;
     deals.push({ code, ed, name: set.nameEn || set.nameKo || code, total: b.total, sold: so.median, soldN: so.sampleSize, soldTo: String(so.updated).slice(5, 10), mid: m.middle, asks: m.sampleSize || 0, currency: so.currency || m.currency || "USD", url: b.url, image: b.image || "", country: b.country || "", shipping: Number(b.shipping) || 0, save: so.median - b.total });
