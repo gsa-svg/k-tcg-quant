@@ -58,11 +58,32 @@ function sources() {
 async function main() {
   const probe = process.argv.includes("--probe");
   const outPath = process.argv[2] && !process.argv[2].startsWith("--") ? process.argv[2] : null;
-  if (!probe && !outPath && !process.argv.includes("--urls")) throw new Error("사용법: --probe 또는 --urls 또는 <출력덤프.json>");
+  if (!probe && !outPath && !process.argv.includes("--urls") && !process.argv.includes("--browser")) throw new Error("사용법: --probe 또는 --urls 또는 --browser(로그인 크롬용 스크립트 출력) 또는 <출력덤프.json>");
 
   const list = sources();
   // --urls: 실브라우저 수집용 목록만 출력(GemRate 가 헤드리스를 봇으로 막을 때 — 2026-09-07 실측 "잠시만 기다리십시오").
   if (process.argv.includes("--urls")) { console.log(JSON.stringify(list)); return; }
+  // --browser: 로그인된 실크롬(javascript_tool)에 붙여넣을 스크립트 출력. 같은 오리진 fetch 로 41세트 HTML 을 받아
+  // `var RowData = '[...]'` 를 파싱한다(2026-09-22 실측: Cloudflare 는 헤드리스만 막고 로그인 탭의 fetch 는 통과).
+  // 실행 → window.__psaOut 에 누적 → 마지막에 Blob 다운로드(psa-card-pop-<날짜>.json) → node tools/psa-card-pop-ingest.js <파일>
+  if (process.argv.includes("--browser")) {
+    const today = new Date().toISOString().slice(0, 10);
+    console.log(`(async()=>{const S=${JSON.stringify(list.map((x) => [x.code, x.ed, x.url]))};
+const dec=(t)=>t.replace(/&#39;/g,"'").replace(/&amp;/g,"&").replace(/&quot;/g,'"');
+const out={},errs=[];
+for(const [code,ed,u] of S){try{const h=await (await fetch(u,{credentials:"include"})).text();
+const want=decodeURIComponent((u.match(/set_name=([^&]+)/)||[])[1]||"");const t=dec((h.match(/<title>([^<]*)/)||[])[1]||"");
+if(!t.includes(want)){errs.push(code+"|"+ed+" title mismatch: "+t.slice(0,60));continue}
+const m=h.match(/var RowData = '([\\s\\S]*?)';\\s*\\n/);if(!m){errs.push(code+"|"+ed+" no RowData");continue}
+const rows=JSON.parse(m[1]);if(rows.length<5){errs.push(code+"|"+ed+" rows "+rows.length);continue}
+out[code+"|"+ed]=rows.map(r=>({num:String(r.card_number??""),name:String(r.name??""),par:String(r.parallel??""),total:Number(r.card_total_grades??0),g10:Number(r.g10??0),g9:Number(r.g9??0)}));
+}catch(e){errs.push(code+"|"+ed+" "+String(e).slice(0,60))}await new Promise(z=>setTimeout(z,300));}
+window.__psaOut=out;
+if(!errs.length){const dump={grader:"psa",collectedAt:"${today}",source:"gemrate item-details-advanced (RowData, browser fetch)",sets:out};
+const blob=new Blob([JSON.stringify(dump)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="psa-card-pop-${today}.json";document.body.appendChild(a);a.click();}
+return {sets:Object.keys(out).length,rows:Object.values(out).reduce((s,a)=>s+a.length,0),errs};})()`);
+    return;
+  }
   console.log(`세트 ${list.length}개 (jp ${list.filter((s) => s.ed === "jp").length} · en ${list.filter((s) => s.ed === "en").length})`);
 
   const executable = chromeExecutable();
