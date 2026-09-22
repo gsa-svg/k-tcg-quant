@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260922b";
+const DATA_VERSION = "20260922c";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -224,6 +224,14 @@ function aucTimeLeft(endsAt) {
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
   if (h > 0) return t(`${h}시간 ${m}분`, `${h}h ${m}m`);
   return `${m}:${String(ss).padStart(2, "0")}`;
+}
+
+// PSA10 실거래 표본은 드물어 NM(21일)보다 느슨한 35일을 낡음 기준으로 쓴다(audit-price-quality 와 같은 값).
+const PSA10_STALE_DAYS = 35;
+function psa10Stale(g) {
+  if (!g || !g.updated) return true;
+  const days = (Date.now() - Date.parse(g.updated)) / 864e5;
+  return !(days <= PSA10_STALE_DAYS);
 }
 
 function withVersion(url) {
@@ -1024,12 +1032,17 @@ function priceLines(c) {
     const d = c.psa10Date ? c.psa10Date.slice(2).replace(/-/g, ".") : "";
     h += `<span class="pl psa"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <b>${p.main}</b> <small>${d ? d + " " : ""}<em>${c.psa10Venue || "PSA/eBay"}</em></small></span>`;
   } else if ((c.psa10Ebay?.sampleSize || 0) >= 3) {
-    h += `<span class="pl psaEbay"><i>${t("일본어판 PSA10 eBay", "Japanese PSA 10 eBay")}</i><span class="bandRows">${priceBandRows(c.psa10Ebay)}</span><small>eBay Sold · ${t(`표본 ${c.psa10Ebay.sampleSize}건`, `${c.psa10Ebay.sampleSize} samples`)}</small></span>`;
+    // 관측일을 반드시 같이 보인다 — 2026-09-22 실측: 18장이 75~85일 묵은 값이었는데 화면엔 표시가 없었다(NM 은 이미 고쳐둔 문제).
+    const p10D = c.psa10Ebay.updated ? c.psa10Ebay.updated.slice(2).replace(/-/g, ".") : "";
+    const p10Stale = psa10Stale(c.psa10Ebay);
+    h += `<span class="pl psaEbay"><i>${t("일본어판 PSA10 eBay", "Japanese PSA 10 eBay")}</i><span class="bandRows">${priceBandRows(c.psa10Ebay)}</span><small${p10Stale ? ' class="plStale"' : ""}>eBay Sold · ${t(`표본 ${c.psa10Ebay.sampleSize}건`, `${c.psa10Ebay.sampleSize} samples`)}${p10D ? ` · ${p10D}` : ""}</small></span>`;
   } else {
     h += `<span class="pl psaNone"><i>${t("일본어판 PSA10", "Japanese PSA 10")}</i> <small>${t("Sold 표본 없음", "No sold sample")}</small></span>`;
   }
   // PSA10 프리미엄: 같은 카드 PSA10 실거래(Sold) ÷ NM 시세. 실측 나눗셈만 — 표본 3건 미만·비정상 배율은 숨김(정확도 원칙).
-  if (c.nmJpy != null && c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3) {
+  // 낡은 PSA10(35일 초과)을 최신 NM 으로 나누면 배율이 거짓이 된다 — 2026-09-22 실측: DON Nami Gold 가 ×0.9 로
+  // "감정품이 생카드보다 싸다"처럼 보였는데, PSA10 은 6월 값이고 NM 만 9월 값이었다. 그런 건 아예 안 보인다.
+  if (c.nmJpy != null && c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3 && !psa10Stale(c.psa10Ebay)) {
     const nmK = marketKrw(c.nmJpy, "JPY");
     const p10K = marketKrw(c.psa10Ebay.middle, c.psa10Ebay.currency || "KRW");
     if (nmK > 0 && p10K > 0) {

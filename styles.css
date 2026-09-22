@@ -1338,3 +1338,18 @@ small { font-size: 12px; }
   .topbar .langBtn { order: 2; margin-left: auto; min-height: 34px; padding: 0 10px; font-size: 13px; }
   .topbar .nav { order: 3; width: 100%; margin-left: 0; }
 }
+
+/* 모바일 탭 영역 — 2026-09-22 실측: 푸터·홈요약·내비 링크가 18~25px 높이라 손가락으로 누르기 좁았다.
+   글자 크기는 그대로 두고 세로 여백만 늘려 44px 안팎을 확보한다(구글 권장 48px 에 근접). */
+@media (max-width: 720px) {
+  .footer a,
+  .homeSummary a,
+  .homeSummary p a {
+    display: inline-block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    line-height: 1.45;
+  }
+  .pinToggle { min-height: 40px; padding-top: 8px; padding-bottom: 8px; }
+  .buyLinks a { min-height: 44px; display: flex; align-items: center; }
+}

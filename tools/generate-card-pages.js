@@ -210,8 +210,13 @@ for (const { code, set: s, card: c } of cands) {
   // 다시 쓴다 — 전엔 112장 전부 60자 초과였다. 월 표기·"& Population"·브랜드 꼬리를 뺐다.
   const sn = seoName(c);
   const title = sn.short + " PSA 10 Price";
+  // PSA10 실거래 표본이 드문 카드는 값이 몇 달 묵기도 한다. 그때 페이지 빌드일(DATA_DATE)로 "Updated" 를 달면
+  // 6월 가격이 오늘 값처럼 읽힌다(2026-09-22 실측 18장). 35일 넘으면 그 숫자 옆에 관측 월을 붙인다.
+  const p10Age = p10 && p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : null;
+  const p10Stale = p10 && p10.kind === "sold" && Number.isFinite(p10Age) && p10Age > 35;
+  const p10Mon = p10Stale ? (() => { const dt = new Date(p10.date); return Number.isNaN(dt.getTime()) ? "" : ` (${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()})`; })() : "";
   // 설명은 155자 이하. 넘치면 같은 숫자를 압축 표현으로 다시 쓴다(숫자는 그대로, 말만 줄임).
-  const descOf = (nmL, p10L, popL, gemL) => `${sn.short}: ${nmL} ${usd(nmUsd)}${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} ${p10L}${usd(p10.v)}` : ""}${pop ? `, ${popL} ${intl(pop.total)} (${pop.gem}% ${gemL})` : ""}. Updated ${DATA_DATE}.`;
+  const descOf = (nmL, p10L, popL, gemL) => `${sn.short}: ${nmL} ${usd(nmUsd)}${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} ${p10L}${usd(p10.v)}${p10Mon}` : ""}${pop ? `, ${popL} ${intl(pop.total)} (${pop.gem}% ${gemL})` : ""}. Updated ${DATA_DATE}.`;
   let desc = descOf("raw Japanese NM", p10 && p10.kind === "sold" ? "median " : "from ", "PSA population", "gem rate");
   if (desc.length > 155) desc = descOf("raw NM", "", "PSA pop", "gem");
   if (title.length > 60 || desc.length > 155) throw new Error(`SEO 길이 초과: ${title.length}/${desc.length} ${c.number} ${c.name}`);
@@ -219,7 +224,7 @@ for (const { code, set: s, card: c } of cands) {
   seenTitles.add(title);
 
   const faq = [
-    { q: `How much is ${c.name} (${c.number}) worth?`, a: `On ${DATA_DATE}, ${c.name} ${c.number} was tracked near ${usd(nmUsd)} in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}` : "; no PSA 10 figure met the exact-variant sales rule"}.` },
+    { q: `How much is ${c.name} (${c.number}) worth?`, a: `On ${DATA_DATE}, ${c.name} ${c.number} was tracked near ${usd(nmUsd)} in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}${p10Mon ? `, last observed in ${p10Mon.trim().replace(/[()]/g, "")}` : ""}` : "; no PSA 10 figure met the exact-variant sales rule"}.` },
     ...(pop ? [{ q: `How rare is a PSA 10 ${c.name}?`, a: `PSA reports ${intl(pop.total)} graded copies of the tracked ${c.name} ${c.number} printing, including ${intl(pop.psa10)} in PSA 10 for a ${pop.gem}% gem rate.` }] : []),
     { q: `Which ${c.name} printing does this page track?`, a: `The ${c.name} value on this page applies only to the ${c.number} artwork shown above; buyers should match its artwork, finish, card number and graded-label variant.` },
   ];
