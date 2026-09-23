@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260922c";
+const DATA_VERSION = "20260923a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -232,6 +232,25 @@ function psa10Stale(g) {
   if (!g || !g.updated) return true;
   const days = (Date.now() - Date.parse(g.updated)) / 864e5;
   return !(days <= PSA10_STALE_DAYS);
+}
+
+// 검수에서 뺀 매물(중국·홍콩 판매자)의 최저가. 링크는 걸지 않는다 — 우리가 위험하다고 판단해 뺀
+// 물건으로 제휴 수익을 내지 않기 위해서다. 숫자를 보이는 목적은 "우리 최저가가 시장 최저가가 아니다"를
+// 숨기지 않는 것이다(2026-09-23, 스닉덩크 대비 2배 지적에서 시작).
+function floorNote(market, best, tag) {
+  if (!market || market.excludedLow == null || best?.total == null) return "";
+  const lo = marketKrw(market.excludedLow, market.currency);
+  const hi = marketKrw(best.total, best.currency);
+  if (lo == null || hi == null || !(lo < hi * 0.95)) return "";   // 5% 넘게 쌀 때만
+  const off = Math.round((1 - lo / hi) * 100);
+  const price = triMain(market.excludedLow, market.currency).main;
+  const n = market.excludedSampleSize || 0;
+  return `<span class="floorNote" title="${t(
+    "중국·홍콩 판매자 매물은 재봉·가품 위험으로 시세 계산에서 뺍니다. 값만 참고로 보입니다.",
+    "Listings from China/Hong Kong sellers are excluded from our price figures for reseal and counterfeit risk. Shown for reference only.")}">
+    <em class="floorTag">${tag}</em>${t(`제외 매물 포함 최저 `, `Market floor `)}<b>${price}</b>
+    <em class="floorOff">-${off}%</em>
+    <small>${t(`중국·홍콩 판매자 ${n}건 — 검수 제외`, `${n} China/HK listings — not verified`)}</small></span>`;
 }
 
 function withVersion(url) {
@@ -338,6 +357,7 @@ function ebayLinks(pack) {
     <div class="marketLinks" aria-label="eBay market links">
       ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}"><em class="langTag">JP</em>${t("일본판 최저가 박스", "Lowest JP box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${market.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
       ${enBestUrl ? `<a class="featured featuredEn" href="${enBestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${enMarket?.updated || ""} 수집 · 영문판 미개봉 박스`, `Captured ${enMarket?.updated || ""} · English sealed box`)}"><em class="langTag langTagEn">EN</em>${t("영문판 최저가 박스", "Lowest EN box")} · <b>${enBestPrice}</b><span class="ctaArrow">↗</span>${enDealChip}${enMarket?.updated ? `<em class="asOf">${t(`${enMarket.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${enMarket.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
+      ${floorNote(market, best, "JP")}${floorNote(enMarket, enBest, "EN")}
       <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">JP Sold</a>
       <a href="${epnUrl(`${base}&LH_BIN=1&_sop=15`)}" target="_blank" rel="noopener noreferrer sponsored">JP Active</a>
       <span class="paidLinkTag">Paid Link</span>
