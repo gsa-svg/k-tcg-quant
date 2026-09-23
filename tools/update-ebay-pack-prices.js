@@ -158,6 +158,7 @@ function supplySignals(items) {
 
 function analyzeItems(items, code) {
   const kept = [];
+  const excludedItems = [];
   let excludedCount = 0;
 
   for (const item of items) {
@@ -167,6 +168,9 @@ function analyzeItems(items, code) {
     if (!isJapaneseSealedBoosterBox(item, code)) continue;
     if (isExcludedEbaySellerOrLocation(item)) {
       excludedCount += 1;
+      // 값도 남긴다 — 우리 시세가 왜 시장 최저보다 높은지 설명하는 데 쓴다(2026-09-23).
+      const ex = listingSnapshot(item);
+      if (ex && ex.total != null) excludedItems.push({ value, currency, listing: ex });
       continue;
     }
     kept.push({ value, currency, listing: listingSnapshot(item), itemId: item.itemId || item.legacyItemId || "", raw: item });
@@ -188,6 +192,16 @@ function analyzeItems(items, code) {
     .filter((item) => /new/i.test(item.condition || ""))   // 개봉/중고 상태는 최저 매물 후보에서 제외 — 2026-09-22
     .sort((a, b) => a.total - b.total)[0] || null;
 
+  // 제외 매물 요약 — 채택 매물과 같은 통화·같은 잣대(미개봉·중간값 50% 이상)로만 센다.
+  // 링크·판매자는 저장하지 않는다(위험하다고 뺀 매물로 제휴 수익을 내지 않기 위해).
+  const exValues = excludedItems
+    .filter((x) => x.currency === currency)
+    .map((x) => x.listing)
+    .filter((l) => l.total != null && /new/i.test(l.condition || "") && !/unseal|open box|no packs|missing packs|reseal|damaged/i.test(l.title || ""))
+    .filter((l) => median == null || l.total >= median * 0.5)
+    .map((l) => l.total)
+    .sort((a, b) => a - b);
+
   return {
     currency,
     low: percentile(values, 0.15),
@@ -195,6 +209,9 @@ function analyzeItems(items, code) {
     high: percentile(values, 0.85),
     sampleSize: values.length,
     excludedCount,
+    excludedLow: exValues.length ? exValues[0] : null,
+    excludedMedian: percentile(exValues, 0.5),
+    excludedSampleSize: exValues.length,
     bestListing,
     // 공급 시계열용 — tools/update-supply-series.js 가 전일과 대조해 신규등록/소멸과 그 가격대를 낸다.
     // id→가격(배송비 포함 총액)으로 저장해야 "어느 가격대의 매물이 빠졌는지"를 알 수 있다.
