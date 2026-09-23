@@ -283,11 +283,11 @@
       '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
       '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient>' + staleDefs + '</defs>' +
       staleLayer + grid + volAxis + bars +
-      '<path d="' + area + '" fill="url(#' + gid + ')"/>' +
-      '<path class="opbcLine" d="' + line + '" stroke="' + color + '"/>' +
+      '<path class="opbcArea" d="' + area + '" fill="url(#' + gid + ')"/>' +
+      '<path class="opbcLine opbcDraw" pathLength="1" d="' + line + '" stroke="' + color + '"/>' +
       hlLabels + flag + dots +
       '<circle cx="' + XY[XY.length - 1].x.toFixed(1) + '" cy="' + XY[XY.length - 1].y.toFixed(1) +
-      '" r="11" fill="' + color + '" opacity=".18"/>' +
+      '" r="11" class="opbcPulse" fill="' + color + '" opacity=".18"/>' +
       hits +
       '<line class="opbcCross" y1="' + T + '" y2="' + (H - B) + '" stroke="' + color + '" stroke-dasharray="3 3" opacity="0"/>' +
       '<g class="opbcDateTag" opacity="0" pointer-events="none"><rect width="46" height="18" rx="4" fill="#242936"/>' +
@@ -634,6 +634,18 @@
     ".opbcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcLine{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}",
     ".opbcDot{stroke:var(--paper,#11141c);stroke-width:1.6}",
+    // 진입 모션(2026-09-23). 데이터와 무관한 시각 효과. .opbcIn 은 아래 scrub() 의 IntersectionObserver 가 붙인다 —
+    // 화면 밖에서 먼저 그려지고 끝나 버리면 아무도 못 본다. JS 없이도 그림은 완성 상태로 보인다.
+    "@media (prefers-reduced-motion:no-preference){",
+    ".opbcPane.opbcIn .opbcDraw{stroke-dasharray:1;stroke-dashoffset:1;animation:opbcDraw 1.1s cubic-bezier(.4,0,.2,1) forwards}",
+    ".opbcPane.opbcIn .opbcArea{opacity:0;animation:opbcFade .8s ease-out .5s forwards}",
+    ".opbcPane.opbcIn .opbcBar{transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0);animation:opbcGrow .6s cubic-bezier(.2,.7,.2,1) .15s forwards}",
+    ".opbcPane.opbcIn .opbcPulse{transform-box:fill-box;transform-origin:center;animation:opbcPulse 2.8s ease-out 1.2s infinite}",
+    "@keyframes opbcDraw{to{stroke-dashoffset:0}}",
+    "@keyframes opbcFade{to{opacity:1}}",
+    "@keyframes opbcGrow{to{transform:scaleY(1)}}",
+    "@keyframes opbcPulse{0%{transform:scale(1);opacity:.18}65%{transform:scale(2.1);opacity:0}100%{transform:scale(2.1);opacity:0}}",
+    "}",
     ".opbcSupFill{fill:rgba(128,144,176,.10)}",
     ".opbcSupLine{fill:none;stroke:rgba(128,144,176,.55);stroke-width:1.4;stroke-dasharray:5 3;stroke-linejoin:round}",
     ".opbcSupAx{fill:#8090b0}",
@@ -808,6 +820,20 @@
     });
     [].slice.call(scope.querySelectorAll(".opbcWrap")).forEach(bindTabs);
     sizeWraps(scope);
+    reveal(scope);
+  }
+
+  // 진입 모션 트리거. 패널이 1/4 이상 보일 때 .opbcIn 을 붙이고 관찰을 끝낸다.
+  // 홈에서 세트를 바꾸면 패널이 새로 만들어져 다시 그려진다 — "값이 바뀌었다"는 신호가 된다.
+  let io = null;
+  function reveal(scope) {
+    const panes = [].slice.call(scope.querySelectorAll(".opbcPane:not(.opbcIn)"));
+    if (!panes.length) return;
+    if (typeof IntersectionObserver === "undefined") { panes.forEach((p) => p.classList.add("opbcIn")); return; }
+    if (!io) io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("opbcIn"); io.unobserve(e.target); } });
+    }, { threshold: 0.25 });
+    panes.forEach((p) => io.observe(p));
   }
 
   // 브라우저에서 이 파일을 읽으면 스타일도 스스로 넣는다.

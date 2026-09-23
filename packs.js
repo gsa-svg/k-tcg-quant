@@ -810,7 +810,7 @@ function renderBoxSeries(set, code) {
   if (html) return html;
   // 아직 시계열을 안 받았으면 빈 자리만 남긴다. 받은 뒤에도 그릴 게 없으면 이 자리는 계속 비어 있다
   // (0 높이라 레이아웃을 밀지 않는다). 예전처럼 "준비 중" 안내문을 띄워 칸을 잡아먹지 않는다.
-  if (!soldSeries && code) loadSoldSeries().then(() => fillBoxMounts());
+  if (!soldSeries && code) loadSoldSeries().then(() => { fillBoxMounts(); fillPackSparks(); });
   return code ? `<div class="opbcMount" data-code="${code}"></div>` : "";
 }
 
@@ -1474,15 +1474,19 @@ function renderTickerBoard() {
   const el = document.querySelector("#tickerBoard");
   const board = state.data?.marketIndex?.board;
   if (!el || !Array.isArray(board)) return;
+  // 28일 넘게 거래 없는 세트는 "4주 등락"의 기준점이 없다 — 값은 보이되 날짜를 붙이고 흐리게, 뒤로 보낸다(2026-09-24).
+  const STALE = 28 * 864e5;
+  const dataT = Date.parse(state.data.updated || "") || Date.now();
+  const isStale = (b) => b.nowDate && dataT - Date.parse(b.nowDate) > STALE;
   const rows = board.filter((b) => b.changePct != null && b.nowUsd != null)
-    .sort((x, y) => y.changePct - x.changePct);
+    .sort((x, y) => (isStale(x) ? 1 : 0) - (isStale(y) ? 1 : 0) || y.changePct - x.changePct);
   if (rows.length < 5) return;
   // 합성 지수(중앙값·평균)는 싣지 않는다 — 지수 화면을 신뢰 문제로 없앤 소유자 결정(2026-08-27).
   // 여기 있는 건 전부 세트별 실판매 원장 수치라 각자 세트 페이지에서 검증된다.
   const f = (p) => `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
   const cls = (p) => (p > 0 ? "up" : p < 0 ? "down" : "flat");
   el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")}</span><div class="tbScroll">${rows.map((b) =>
-    `<button class="tbChip" data-key="${b.code}"><span class="tbCode">${b.code}</span><span class="tbPrice">$${b.nowUsd}</span><b class="${cls(b.changePct)}">${f(b.changePct)}</b></button>`).join("")}</div>`;
+    `<button class="tbChip${isStale(b) ? " stale" : ""}" data-key="${b.code}" title="${t(`일본판 박스 실거래 중앙값 ${b.nowDate || ""} 주${b.n != null ? ` · ${b.n}건` : ""}${isStale(b) ? " · 28일 넘게 거래 없음" : ""}`, `JP box sold median, week of ${b.nowDate || ""}${b.n != null ? ` · n=${b.n}` : ""}${isStale(b) ? " · no sales in 28+ days" : ""}`)}"><span class="tbCode">${b.code}</span><span class="tbPrice">$${b.nowUsd}</span>${isStale(b) ? "" : `<b class="${cls(b.changePct)}">${f(b.changePct)}</b>`}<small class="tbDate">${b.nowDate ? b.nowDate.slice(5) : ""}</small></button>`).join("")}</div>`;
   el.hidden = false;
   el.querySelectorAll(".tbChip").forEach((btn) => btn.addEventListener("click", () => {
     trackEvent("ticker_click", { pack_code: btn.dataset.key });
@@ -1811,8 +1815,9 @@ function renderPackGrid() {
     const box = p.set.box || FALLBACK;
     const thumbnail = boxThumbnail(box);
     const tag = has ? "TOP 10" : boxOnly ? t("박스 시세", "Box price") : t("준비중", "Coming soon");
-    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" src="${thumbnail}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${box}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
+    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" src="${thumbnail}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${box}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTrend" data-code="${p.code}"></span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
   }).join("");
+  fillPackSparks();
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
     btn.addEventListener("click", () => {
       if (state.selected === btn.dataset.key) return;
@@ -1824,6 +1829,47 @@ function renderPackGrid() {
       trackEvent("select_pack", { pack_code: state.selected, language: state.lang });
       document.querySelector("#detail").scrollIntoView({ behavior: "smooth", block: "start" });
     });
+  });
+}
+
+// 세트 칩의 미니 추세선(일본판 주간 실거래 중앙값, 최근 12주) + 현재가 + 4주 등락.
+// 숫자는 marketIndex.board 그대로 — 티커와 같은 값·같은 기준(마지막 주간 중앙값, 28일 전 대비).
+// 선 색도 4주 등락 부호를 따른다 — 12주 모양과 4주 숫자가 서로 다른 말을 하지 않게.
+// 값이 없으면 빈칸으로 둔다. 시계열이 늦게 오면 loadSoldSeries().then 에서 다시 부른다.
+function fillPackSparks() {
+  if (!soldSeries || !state.data) return;
+  const board = {};
+  for (const b of state.data.marketIndex?.board || []) board[b.code] = b;
+  document.querySelectorAll(".packTrend[data-code]").forEach((el) => {
+    if (el.dataset.done) return;
+    const code = el.dataset.code;
+    const b = board[code];
+    const pts = (((soldSeries.sets || {})[code] || {}).jp || []).filter((p) => p && p.median != null).slice(-12);
+    const hasNow = b && b.nowUsd != null;
+    if (pts.length < 3 && !hasNow) { el.dataset.done = "1"; return; }
+    const sign = b && b.changePct != null ? Math.sign(b.changePct) : 0;
+    const color = sign > 0 ? "#10d7a0" : sign < 0 ? "#e5484d" : "#8d95a7";
+    let svg = "";
+    if (pts.length >= 3) {
+      const vs = pts.map((p) => p.median);
+      const lo = Math.min(...vs), hi = Math.max(...vs);
+      const W = 64, H = 18, PAD = 2.5;
+      const y = (v) => hi === lo ? H / 2 : PAD + (1 - (v - lo) / (hi - lo)) * (H - PAD * 2);
+      const xy = vs.map((v, i) => [(i / (vs.length - 1)) * (W - 3) + 1.5, y(v)]);
+      const d = xy.map(([x, yy], i) => (i ? "L" : "M") + x.toFixed(1) + " " + yy.toFixed(1)).join("");
+      const [lx, ly] = xy[xy.length - 1];
+      svg = `<svg class="packSpark" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2" fill="${color}"/></svg>`;
+    }
+    const now = hasNow ? `<span class="packNow"><i class="packEd">JP</i>$${b.nowUsd}</span>` : "";
+    const chg = b && b.changePct != null
+      ? `<b class="packChg ${sign > 0 ? "up" : sign < 0 ? "down" : "flat"}">${b.changePct > 0 ? "+" : ""}${b.changePct.toFixed(1)}%</b>` : "";
+    if (hasNow) {
+      el.title = t(
+        `일본판 박스 실거래 중앙값 $${b.nowUsd} (${b.nowDate} 주)${b.changePct != null ? ` · 4주 등락 ${b.changePct > 0 ? "+" : ""}${b.changePct}% (${b.changeBasis} 대비)` : ""}${pts.length >= 3 ? ` · 선은 최근 ${pts.length}주` : ""}`,
+        `JP box sold median $${b.nowUsd} (week of ${b.nowDate})${b.changePct != null ? ` · 4-week change ${b.changePct > 0 ? "+" : ""}${b.changePct}% vs ${b.changeBasis}` : ""}${pts.length >= 3 ? ` · line = last ${pts.length} weeks` : ""}`);
+    }
+    el.innerHTML = svg + now + chg;
+    el.dataset.done = "1";
   });
 }
 

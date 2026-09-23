@@ -196,6 +196,8 @@ jobs:
           node tools/generate-ai-data.js 2>&1 | tee logs/generate-ai-data.log
           node tools/generate-ai-extras.js 2>&1 | tee logs/generate-ai-extras.log
           node tools/generate-llms.js 2>&1 | tee logs/generate-llms.log
+          # board 가 바뀌면 홈 요약표(index/packs/box-prices)도 같이 — 빠지면 표와 티커가 다른 값을 보인다(2026-09-23 감사).
+          node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
           node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
           # 메뉴·언어 토글은 생성기가 덮어쓴다 → 반드시 생성기 뒤에. 빠지면 가드 N1 FAIL(2026-09-06 까지 매주 실패한 원인).
           node tools/inject-nav.js 2>&1 | tee logs/inject-nav.log

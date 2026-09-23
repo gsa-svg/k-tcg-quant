@@ -34,15 +34,22 @@ function orderKey(code) {
 }
 const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
 
+// 28일 넘게 거래가 없으면 "현재가"가 아니다 — 값은 남기되 날짜를 붙이고 흐리게, 4주 등락은 비운다(기준점이 없다).
+const STALE_DAYS = 28;
+const ageDays = (iso) => (iso && DATA_DATE ? Math.round((Date.parse(DATA_DATE) - Date.parse(iso)) / 864e5) : null);
+const mmdd = (iso) => (iso ? iso.slice(5) : "—");
 const tr = rows.map((b) => {
   const s = d.sets[b.code] || {};
-  const chg = b.changePct;
+  const age = ageDays(b.nowDate);
+  const stale = age != null && age > STALE_DAYS;
+  const chg = stale ? null : b.changePct;
   const slug = b.code.toLowerCase();
   const enLink = fs.existsSync(path.join(ROOT, "sets", `${slug}-english.html`)) ? ` · <a href="sets/${slug}-english.html" title="English ${esc(b.code)} box price">EN box</a>` : "";
   const top = (s.cards || [])[0];
   const topSlug = cardSlug(top);
   const topLink = topSlug ? ` · <a href="cards/${topSlug}" title="${esc(top.name)} price">${esc(top.name)}</a>` : "";
-  return `<tr><td><a href="sets/${slug}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}<small class="rowLinks">${enLink}${topLink}</small></td><td class="num">${usd(b.nowUsd)}</td><td class="num ${chg == null ? "" : chg >= 0 ? "up" : "down"}">${chg != null ? (chg >= 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
+  const when = b.nowDate ? `<td class="num when"${stale ? ` title="Last completed sale ${esc(b.nowDate)} — no sales in the last ${STALE_DAYS} days"` : ""}>${esc(mmdd(b.nowDate))}${b.n != null ? `<small> n=${b.n}</small>` : ""}</td>` : `<td class="num when">—</td>`;
+  return `<tr${stale ? ' class="stale"' : ""}><td><a href="sets/${slug}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}<small class="rowLinks">${enLink}${topLink}</small></td><td class="num">${usd(b.nowUsd)}</td>${when}<td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
 }).join("\n");
 
 
@@ -54,7 +61,8 @@ const priciest = byPrice[0];
 const nameOf = (c) => (d.sets[c] || {}).nameEn || c;
 
 // 상승/하락은 세트별로만 말한다 — 시장 전체를 숫자 하나로 요약하던 지수는 삭제됨(2026-07-29).
-const withChg = rows.filter((b) => b.changePct != null);
+// 28일 넘게 거래 없는 세트는 4주 등락 집계에서도 뺀다 — 표에서 "—" 로 비운 값을 문장에서 세면 안 된다.
+const withChg = rows.filter((b) => b.changePct != null && !(ageDays(b.nowDate) > STALE_DAYS));
 const byChg = [...withChg].sort((a, b) => b.changePct - a.changePct);
 const nUp = withChg.filter((b) => b.changePct > 0).length;
 const nDn = withChg.filter((b) => b.changePct < 0).length;
@@ -72,11 +80,11 @@ const faqs = [
   },
   {
     q: "Are One Piece booster boxes going up or down in price?",
-    a: `They move set by set, not as one block. Of the ${withChg.length} Japanese sets where we have a tracked start price, ${nUp} are up and ${nDn} are down since tracking began${topUp ? `; the largest gain is ${topUp.code} at ${topUp.changePct >= 0 ? "+" : ""}${topUp.changePct}%` : ""}${topDn && topDn.changePct < 0 ? ` and the largest fall is ${topDn.code} at ${topDn.changePct}%` : ""}. See the change column above for each set.`,
+    a: `They move set by set, not as one block. Of the ${withChg.length} Japanese sets with a 4-week reference point, ${nUp} are up and ${nDn} are down over the last 4 weeks (latest weekly sold median vs 4 weeks earlier)${topUp ? `; the largest gain is ${topUp.code} at ${topUp.changePct >= 0 ? "+" : ""}${topUp.changePct}%` : ""}${topDn && topDn.changePct < 0 ? ` and the largest fall is ${topDn.code} at ${topDn.changePct}%` : ""}. See the change column above for each set.`,
   },
   {
     q: "Is a One Piece booster box worth buying sealed?",
-    a: `It depends on the set. Older sets have had years for sealed supply to thin out, while recently released sets are still being opened. We publish each set's current price and its change since we began tracking it, alongside how many copies of its cards have been graded, so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.`,
+    a: `It depends on the set. Older sets have had years for sealed supply to thin out, while recently released sets are still being opened. We publish each set's latest sold median with its date and its 4-week change, alongside how many copies of its cards have been graded, so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.`,
   },
   {
     q: "Where can I check One Piece card and booster box prices for free?",
@@ -108,13 +116,13 @@ const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</
 //    무너져 노출 불가침 위반이다. 접힌 표는 화면 ~40px 이고 봇은 정상 색인한다(7월 원설계).
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
-          <h2>Japanese booster box prices — all ${rows.length} sets (${esc(DATA_DATE)})</h2>
+          <h2>Japanese booster box prices — all ${rows.length} sets <small>data ${esc(DATA_DATE)} · each row dated by its last sale</small></h2>
           <p>${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
           <details class="homeCollapse">
           <summary>Quick table (same data as the full page)</summary>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
-            <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
+            <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Last sale</th><th>4-wk change</th></tr></thead>
             <tbody>
 ${tr}
             </tbody>
@@ -184,10 +192,10 @@ const pricesPage = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Prices · Updated ${esc(DATA_DATE)} · refreshed daily</p>
       <h1>Japanese One Piece booster box prices — all ${rows.length} sets</h1>
-      <p class="note">Median of completed eBay sales · "Change" = vs 4 weeks earlier · ${nUp} up, ${nDn} down</p>
+      <p class="note">Median of completed eBay sales · "Last sale" = week of the latest completed sale (n = sales that week) · "4-wk change" = vs 4 weeks earlier, blank when no sale in ${STALE_DAYS} days · ${nUp} up, ${nDn} down</p>
       <div style="overflow-x:auto">
       <table class="homeSummaryTable">
-        <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Change</th></tr></thead>
+        <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Last sale</th><th>4-wk change</th></tr></thead>
         <tbody>
 ${tr}
         </tbody>

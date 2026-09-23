@@ -96,6 +96,7 @@ for (const c of codes) {
     nameEn: d.sets[c].nameEn || c,
     nowUsd: Math.round(nowUsd),
     nowDate: lastD,   // 마지막 판매 관측일 — 표가 "오늘 값"으로 읽히지 않게
+    n: p[p.length - 1].n ?? null,   // 그 주의 판매 건수 — 화면 라벨 "n=8" 용(2026-09-24)
     changePct: ref ? Math.round((lastV / ref.p - 1) * 1000) / 10 : null,   // 최근 4주
     changeBasis: ref ? ref.d : null,
     launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
@@ -109,7 +110,7 @@ board.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity));
 
 const out = {
   updated: d.updated || SOLD.updated || todayIso,
-  method: "Per-set change from each set's own tracking start date, using weekly medians of completed eBay sales of sealed Japanese booster boxes (our own ledger).",
+  method: "Per-set 4-week change: latest weekly median of completed eBay sales of sealed Japanese booster boxes (our own ledger) vs the weekly median 28 days earlier. Each row carries its own last-sale date.",
   meter: {
     latestWeek: meterLatest,
     weeks: meterWeeks,

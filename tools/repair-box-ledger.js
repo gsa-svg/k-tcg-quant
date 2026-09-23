@@ -27,6 +27,8 @@ const { parseLotQuantity, unitPrice } = require("./lot-quantity");
 
 const EN_ONLY_TRAIT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
 const KOREAN = /korean/i;
+// 다른 카드게임(건담 "Eternal Nexus EB01" 등). 세트코드가 겹쳐 코드로는 못 거른다 — 2026-09-24.
+const { OTHER_GAME } = require("./other-game-words");
 // 낱팩을 팔면서 설명에 "from a fresh booster box" 를 적는 매물. 박스 시세에 섞이면 안 된다.
 const SINGLE_PACK = /\bbooster pack\b(?!s)/i;
 
@@ -46,6 +48,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   const keepJp = [];
   for (const r of eds.jp) {
     if (KOREAN.test(r.title || "")) { moved.toExcluded.push({ code, from: "jp", ...r }); continue; }
+    if (OTHER_GAME.test(r.title || "")) { moved.toExcluded.push({ code, from: "jp", ...r, reason: "other-game" }); continue; }
     if (SINGLE_PACK.test(r.title || "")) { moved.toExcluded.push({ code, from: "jp", ...r, reason: "single-pack" }); continue; }
     if (EN_ONLY_TRAIT.test(r.title || "")) {
       moved.toEn.push({ code, id: r.id, unit: r.unit, title: (r.title || "").slice(0, 70) });
@@ -59,6 +62,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   // 2. 영문판 칸의 한국판 → 제외
   eds.en = eds.en.filter((r) => {
     if (KOREAN.test(r.title || "")) { moved.toExcluded.push({ code, from: "en", ...r }); return false; }
+    if (OTHER_GAME.test(r.title || "")) { moved.toExcluded.push({ code, from: "en", ...r, reason: "other-game" }); return false; }
     if (SINGLE_PACK.test(r.title || "")) { moved.toExcluded.push({ code, from: "en", ...r, reason: "single-pack" }); return false; }
     return true;
   });
@@ -100,6 +104,12 @@ if (moved.toEn.length || moved.toExcluded.length || moved.requantified.length) {
     excluded: moved.toExcluded.length,
     requantified: moved.requantified.length,
     reason: "Sellers had declared English-edition boxes as Japanese; White/Blue Bottom and Wave 1/2 are English-only physical traits. Korean-edition boxes do not belong in a ledger that tracks only the Japanese and English editions. Records were moved, never deleted.",
+  });
+  const og = moved.toExcluded.filter((r) => r.reason === "other-game");
+  if (og.length) ledger.repairs.push({
+    date: today,
+    excluded: og.length,
+    reason: "Other-game products were found in the ledger (Gundam Card Game 'Eternal Nexus EB01' boxes sold under the same EB01 code). They were moved to excluded with reason other-game; the English EB-01 sold median had been pulled from about $900 to $140 by them. Records were moved, never deleted.",
   });
   ledger.updated = ledger.updated || today;
 }

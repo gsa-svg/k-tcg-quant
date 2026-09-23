@@ -34,6 +34,7 @@ const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 // miracle battle carddass = 반다이의 **다른** 카드게임인데 "OP 16" 같은 번호를 써서 우리 세트로 잡힌다
 // (2026-08-24 실측: "Miracle Battle Carddass MBC Japanese OP 16 One Piece Booster Box" $1,118 이
 //  OP-16 일본판 원장에 들어와 있었다 — 그 세트 일본판 중앙값은 $120 이다).
+const { OTHER_GAME } = require("./other-game-words");   // 다른 게임 상품(건담 EB01 등) — 2026-09-24
 const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean|miracle\s*battle|carddass/i;
 const BOOSTER = /booster box/i;
 // "Booster Pack ... x1 -From Fresh booster box" 처럼 **낱팩**을 팔면서 설명에 booster box 를
@@ -110,6 +111,7 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
   if (SINGLE_PACK.test(t)) return { drop: "single-pack" };
   if (BAD.test(t)) return { drop: "bad-word" };
+  if (OTHER_GAME.test(t)) return { drop: "other-game" };
   const codes = new Set();
   for (const m of t.matchAll(SET_CODE)) codes.add(`${m[1].toUpperCase()}-${m[2]}`);
   // 코드가 없으면 세트 이름으로 찾아본다. 이름으로 찾은 코드도 같은 집합에 넣어야

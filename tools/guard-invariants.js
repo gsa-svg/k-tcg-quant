@@ -240,6 +240,19 @@ if (exists("data/box-sold-series.json")) {
     if (!/never modified or deleted|append-only/i.test(lg.note || "")) {
       errors.push("D5: box-sold-ledger.note 에 append-only(과거 기록 불변) 고지 누락 — 원장이 유일한 원본이다");
     }
+    // D12. 다른 카드게임 상품 혼입 금지 — 2026-09-24 실사고: 건담 "Eternal Nexus EB01" 박스 9건이 EB-01 에 들어가
+    //     영문 EB-01 실거래 중앙값이 $903 → $140 으로 무너진 채 배포됐다. 단어 목록은 tools/other-game-words.js 한 곳.
+    //     원장에 한 건이라도 있으면 FAIL — 적재(ingest)가 막고, 놓치면 repair-box-ledger 가 excluded 로 옮긴다.
+    try {
+      const { OTHER_GAME } = require("./other-game-words");
+      const hits = [];
+      for (const [code, eds] of Object.entries(lg.sets || {})) {
+        for (const ed of ["jp", "en"]) for (const r of (eds || {})[ed] || []) {
+          if (OTHER_GAME.test(r.title || "")) hits.push(`${code}.${ed} ${r.id} "${(r.title || "").slice(0, 50)}"`);
+        }
+      }
+      if (hits.length) errors.push(`D12: 원장에 다른 카드게임 상품 ${hits.length}건 — node tools/repair-box-ledger.js 로 옮길 것: ${hits.slice(0, 3).join(" · ")}`);
+    } catch (e) { errors.push("D12: tools/other-game-words.js 를 읽을 수 없음 — " + e.message); }
   }
   for (const [code, eds] of Object.entries(bs.sets || {})) {
     for (const ed of ["jp", "en"]) {
@@ -914,6 +927,30 @@ for (const f of ["googlee0d71bc0695b5651.html", "google1d76c313bd3d0b59.html", "
   if (!exists(f)) errors.push(`F1: 필수 파일 삭제됨: ${f}`);
 }
 
+// ── H2. 홈 요약표 = board — 2026-09-24 신설.
+//    정적 요약표(inject-home-summary)와 티커(marketIndex.board, 클라이언트 렌더)는 같은 숫자를 보여야 한다.
+//    2026-09-23 감사: 주간 워크플로가 build-market-index 만 돌리고 inject-home-summary 를 안 돌려
+//    같은 화면에 OP-15 $107(표) / $100(티커) 이 동시에 떴다. 표 안의 모든 $값이 board.nowUsd 와 같아야 한다.
+if (exists("index.html") && exists("data/onepiece-packs.json")) {
+  const html = read("index.html");
+  const m = html.match(/<!-- HOME_SUMMARY:START -->([\s\S]*?)<!-- HOME_SUMMARY:END -->/);
+  const board = (JSON.parse(read("data/onepiece-packs.json")).marketIndex || {}).board || [];
+  if (m && board.length) {
+    const byCode = {}; for (const b of board) byCode[b.code] = b;
+    const rowRe = /<tr[^>]*><td><a href="sets\/([a-z0-9-]+)\.html">([A-Z0-9-]+)<\/a><\/td><td>[\s\S]*?<td class="num">\$?([\d,]+|—)<\/td>/g;
+    let seen = 0, drift = [];
+    for (const r of m[1].matchAll(rowRe)) {
+      const code = r[2], shown = r[3] === "—" ? null : Number(r[3].replace(/,/g, ""));
+      const b = byCode[code]; if (!b) continue;
+      seen++;
+      const want = b.nowUsd == null ? null : Math.round(b.nowUsd);
+      if (shown !== want) drift.push(`${code} 표 ${shown} ≠ board ${want}`);
+    }
+    if (!seen) errors.push("H2: 홈 요약표에서 세트 행을 하나도 못 읽음 — 행 템플릿이 바뀌었으면 가드도 맞출 것");
+    if (drift.length) errors.push(`H2: 홈 요약표와 board 불일치 ${drift.length}건 — node tools/inject-home-summary.js 다시 실행: ${drift.slice(0, 4).join(" · ")}`);
+  }
+}
+
 // ── H1. hreflang 정합성 — 2026-07-19 사고: 홈이 "한국어판=/?hl=ko"로 선언해
 //    파라미터 변형(packs.html?hl=)을 우리가 정당화 → 홈 노출이 변형들로 갈라짐.
 //    규칙: (a)hreflang 타겟에 ?hl= 파라미터 금지 (b)타겟은 실재 파일 (c)ko↔en 상호확인.
@@ -1480,4 +1517,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
