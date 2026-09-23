@@ -523,247 +523,6 @@ function setAnalytics(set) {
   return { box, soldBox, pricedCards, hitPower, supportRatio, liquidityScore, cardPowerScore, demand, supply, valuation, investmentScore, spreadRatio, risks };
 }
 
-let __chartUid = 0;
-const MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-// 단조 3차 곡선(Fritsch–Carlson): 데이터 점을 지나되 오버슈트 없이 매끈하게. 각진 꺾은선 → 전문 차트의 핵심.
-function smoothLine(pts) {
-  const n = pts.length;
-  if (n < 2) return "";
-  if (n === 2) return `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}L${pts[1].x.toFixed(1)},${pts[1].y.toFixed(1)}`;
-  const dx = [], dy = [], m = [];
-  for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1].x - pts[i].x; dy[i] = pts[i + 1].y - pts[i].y; m[i] = dy[i] / (dx[i] || 1); }
-  const tg = [m[0]];
-  for (let i = 1; i < n - 1; i++) tg[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
-  tg[n - 1] = m[n - 2];
-  for (let i = 0; i < n - 1; i++) {
-    if (m[i] === 0) { tg[i] = 0; tg[i + 1] = 0; }
-    else { const a = tg[i] / m[i], b = tg[i + 1] / m[i], h = Math.hypot(a, b); if (h > 3) { const s = 3 / h; tg[i] = s * a * m[i]; tg[i + 1] = s * b * m[i]; } }
-  }
-  let d = `M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`;
-  for (let i = 0; i < n - 1; i++) {
-    const x1 = pts[i].x + dx[i] / 3, y1 = pts[i].y + tg[i] * dx[i] / 3;
-    const x2 = pts[i + 1].x - dx[i] / 3, y2 = pts[i + 1].y - tg[i + 1] * dx[i] / 3;
-    d += `C${x1.toFixed(1)},${y1.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} ${pts[i + 1].x.toFixed(1)},${pts[i + 1].y.toFixed(1)}`;
-  }
-  return d;
-}
-// 표본 가중 3점 스무딩(값) — 표본 적은 날의 튐 완화
-function smoothVals(points) {
-  return points.map((p, i) => {
-    let sw = 0, sv = 0;
-    for (let j = Math.max(0, i - 1); j <= Math.min(points.length - 1, i + 1); j++) {
-      const w = (points[j].n || 1) * (j === i ? 1.6 : 1);
-      sw += w; sv += points[j].p * w;
-    }
-    return sv / sw;
-  });
-}
-
-// 시세 흐름 패널(단일 라인) — 카드 몰라도 읽히게: 라벨 + 현재가 + "N개월간 올랐어요/내렸어요" 결론 + 부드러운 곡선
-function renderSeriesPanel(points, opts) {
-  if (!points || points.length < 2) return "";
-  const W = 600, H = 178, padL = 70, padR = 22, padT = 20, padB = 36;
-  const sm = smoothVals(points).map((v) => Math.round(v));
-  const xs = points.map((p) => new Date(p.d).getTime());
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...sm), maxY = Math.max(...sm);
-  const yPad = Math.max(1, (maxY - minY) * 0.18);
-  const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
-  const sy = (y) => padT + (1 - (y - (minY - yPad)) / Math.max(1, maxY - minY + yPad * 2)) * (H - padT - padB);
-  const P = xs.map((x, i) => ({ x: sx(x), y: sy(sm[i]) }));
-  const lineD = smoothLine(P);
-  const baseY = (H - padB).toFixed(1);
-  const areaD = `${lineD} L${P[P.length - 1].x.toFixed(1)},${baseY} L${P[0].x.toFixed(1)},${baseY} Z`;
-  // 한 줄 결론: 기간 첫 값 대비 마지막 값 (스무딩 기준, 실측 나눗셈)
-  const chg = (sm[sm.length - 1] - sm[0]) / sm[0];
-  const pct = Math.round(Math.abs(chg) * 100);
-  // 기간 표기: 25일 미만이면 "N일간", 이상이면 "N개월간" (점 2개=하루치에 '1개월간' 뜨는 오류 방지)
-  const dayspan = (maxX - minX) / 86400000;
-  const perKo = dayspan < 25 ? `${Math.max(1, Math.round(dayspan))}일간` : `${Math.max(1, Math.round(dayspan / 30))}개월간`;
-  const perEn = dayspan < 25 ? `${Math.max(1, Math.round(dayspan))}d` : `${Math.max(1, Math.round(dayspan / 30))} mo`;
-  const up = chg >= 0.005, down = chg <= -0.005;
-  const verdict = up
-    ? t(`${perKo} ${pct}% 올랐어요`, `up ${pct}% in ${perEn}`)
-    : down
-      ? t(`${perKo} ${pct}% 내렸어요`, `down ${pct}% in ${perEn}`)
-      : t(`${perKo} 보합`, `flat over ${perEn}`);
-  const arrow = up ? "▲" : down ? "▼" : "―";
-  const vCls = up ? "chgUp" : down ? "chgDown" : "chgFlat";
-  const yTicks = [maxY, minY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 10}" y="${(sy(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
-  let prevMonth = new Date(points[0].d).getUTCMonth();
-  const monthTicks = points.map((p, i) => {
-    const m = new Date(p.d).getUTCMonth();
-    if (m === prevMonth || i === 0) { prevMonth = m; return ""; }
-    prevMonth = m;
-    return `<text x="${sx(xs[i]).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`;
-  }).join("");
-  const lp = P[P.length - 1];
-  const dot = `<circle cx="${lp.x.toFixed(1)}" cy="${lp.y.toFixed(1)}" r="9" class="spHalo ${opts.cls}"></circle><circle cx="${lp.x.toFixed(1)}" cy="${lp.y.toFixed(1)}" r="4.5" class="spDot ${opts.cls}"></circle>`;
-  const uid = "sp" + (++__chartUid);
-  return `<div class="seriesPanel">
-    <div class="spHead"><span><em class="langTag ${opts.tagCls}">${opts.tag}</em><b class="spName">${opts.name}</b></span><span class="spNow">${triMain(points[points.length - 1].p, "KRW").main}<em class="spVerdict ${vCls}">${arrow} ${verdict}</em></span></div>
-    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${opts.name} ${t("시세 흐름", "price trend")}"><defs><linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${opts.fill}" stop-opacity="0.30"></stop><stop offset="0.9" stop-color="${opts.fill}" stop-opacity="0"></stop></linearGradient></defs>${yTicks}${monthTicks}<path d="${areaD}" fill="url(#${uid})"></path><path d="${lineD}" class="spLine ${opts.cls}"></path>${dot}</svg>
-  </div>`;
-}
-
-// 합쳐 보기 — 두 판을 "같은 날 100"으로 정규화한 변화율 비교(주식식). 가격대 차이 문제 없이 방향·폭이 한눈에.
-function renderComparePanel(jpPts, enPts) {
-  // 겹치는 구간: 늦게 시작한 쪽 기준
-  const startD = jpPts[0].d > enPts[0].d ? jpPts[0].d : enPts[0].d;
-  const smooth = (pts) => { const sv = smoothVals(pts); return pts.map((p, i) => ({ d: p.d, p: sv[i] })); };
-  const jp = smooth(jpPts).filter((p) => p.d >= startD);
-  const en = smooth(enPts).filter((p) => p.d >= startD);
-  // 겹치는 구간이 충분히 쌓여야 의미있음: 양쪽 3점+ & 14일+ (점 2개 하루치 '+0% vs +0%' 납작선 방지)
-  const overlapDays = jp.length ? (new Date(jp[jp.length - 1].d) - new Date(jp[0].d)) / 86400000 : 0;
-  if (jp.length < 3 || en.length < 3 || overlapDays < 14) return "";
-  const W = 600, H = 196, padL = 56, padR = 54, padT = 20, padB = 36;
-  const idx = (pts) => { const base = pts[0].p; return pts.map((p) => ({ d: p.d, v: (p.p / base) * 100 })); };
-  const jpI = idx(jp), enI = idx(en);
-  const all = [...jpI, ...enI];
-  const xsAll = all.map((p) => new Date(p.d).getTime());
-  const vsAll = all.map((p) => p.v);
-  const minX = Math.min(...xsAll), maxX = Math.max(...xsAll);
-  let minV = Math.min(...vsAll, 100), maxV = Math.max(...vsAll, 100);
-  const vPad = Math.max(2, (maxV - minV) * 0.18);
-  const sx = (x) => padL + ((x - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
-  const sv = (v) => padT + (1 - (v - (minV - vPad)) / Math.max(1, maxV - minV + vPad * 2)) * (H - padT - padB);
-  const toP = (pts) => pts.map((p) => ({ x: sx(new Date(p.d).getTime()), y: sv(p.v) }));
-  const y100 = sv(100);
-  const fmtChg = (v) => `${v >= 100 ? "+" : "−"}${Math.abs(Math.round(v - 100))}%`;
-  // 위=초록빛, 아래=붉은빛 아주 옅게 → '위면 오름 / 아래면 내림' 직관 강화
-  const zones = `<rect x="${padL}" y="${padT}" width="${(W - padL - padR).toFixed(1)}" height="${Math.max(0, y100 - padT).toFixed(1)}" class="cpZoneUp"></rect><rect x="${padL}" y="${y100.toFixed(1)}" width="${(W - padL - padR).toFixed(1)}" height="${Math.max(0, H - padB - y100).toFixed(1)}" class="cpZoneDn"></rect>`;
-  const base100 = `<line x1="${padL}" y1="${y100.toFixed(1)}" x2="${W - padR}" y2="${y100.toFixed(1)}" class="cpBase"></line><text x="${padL - 10}" y="${(y100 + 4).toFixed(1)}" class="spYLabel cpYBase" text-anchor="end">${t("시작", "start")}</text>`;
-  const tick = (v) => `<line x1="${padL}" y1="${sv(v).toFixed(1)}" x2="${W - padR}" y2="${sv(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 10}" y="${(sv(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${fmtChg(v)}</text>`;
-  let grid = "";
-  if (maxV - 100 >= 2) grid += tick(maxV);
-  if (100 - minV >= 2) grid += tick(minV);
-  const jpEnd = jpI[jpI.length - 1].v, enEnd = enI[enI.length - 1].v;
-  const endMark = (pts, cls, label) => {
-    const p = pts[pts.length - 1];
-    const x = sx(new Date(p.d).getTime()), y = sv(p.v);
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" class="spHalo ${cls}"></circle><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4.5" class="spDot ${cls}"></circle><text x="${(x + 12).toFixed(1)}" y="${(y + 5).toFixed(1)}" class="cpEndTag ${cls}">${label}</text>`;
-  };
-  let prevM = new Date(startD).getUTCMonth();
-  const months = jp.map((p, i) => {
-    const m = new Date(p.d).getUTCMonth();
-    if (m === prevM || i === 0) { prevM = m; return ""; }
-    prevM = m;
-    return `<text x="${sx(new Date(p.d).getTime()).toFixed(1)}" y="${H - padB + 22}" class="spXLabel" text-anchor="middle">${t(`${m + 1}월`, MONTH_EN[m])}</text>`;
-  }).join("");
-  const jpD = smoothLine(toP(jpI)), enD = smoothLine(toP(enI));
-  return `<div class="seriesPanel cpPanel">
-    <div class="spHead"><span><b class="spName">${t("일본판 vs 영문판 — 누가 더 올랐나", "JP vs EN — which rose more")}</b></span><span class="cpEnds"><em class="langTag">JP</em><em class="spVerdict ${jpEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(jpEnd)}</em><em class="langTag langTagEn">EN</em><em class="spVerdict ${enEnd >= 100 ? "chgUp" : "chgDown"}">${fmtChg(enEnd)}</em></span></div>
-    <svg viewBox="0 0 ${W} ${H}" class="spSvg" role="img" aria-label="${t("일본판 영문판 변화율 비교", "JP vs EN change comparison")}">${zones}${grid}${base100}${months}<path d="${jpD}" class="spLine spJp"></path><path d="${enD}" class="spLine spEn"></path>${endMark(jpI, "spJp", "JP")}${endMark(enI, "spEn", "EN")}</svg>
-    <p class="cpNote">${t("가격대가 달라 그대로 겹칠 수 없어, 같은 날을 출발점(시작)으로 놓고 그 뒤 몇 % 움직였는지만 비교합니다. 점선보다 위면 오른 것, 아래면 내린 것.", "Price levels differ, so both lines share one starting day and show only the % change since. Above the dashed line = up, below = down.")}</p>
-  </div>`;
-}
-
-// 날짜 라벨(툴팁용)
-function fmtTipDate(d) {
-  const dt = new Date(d);
-  return t(`${dt.getUTCMonth() + 1}월 ${dt.getUTCDate()}일`, `${MONTH_EN[dt.getUTCMonth()]} ${dt.getUTCDate()}, ${dt.getUTCFullYear()}`);
-}
-
-// 인터랙티브 JP vs EN 교차 그래프 — 위=일본/아래=영문 실제 원화 2단(압축 없음), 마우스/터치 시 날짜·양쪽 가격 툴팁 + 세로 크로스헤어.
-function renderBoxInteractive(set, jpPts, enPts, options = {}) {
-  const W = 600, H = 132, padL = 66, padR = 14, padT = 14, padB = 8;
-  const allT = [...jpPts, ...enPts].map((p) => new Date(p.d).getTime());
-  const minX = Math.min(...allT), maxX = Math.max(...allT);
-  const sx = (tm) => padL + ((tm - minX) / Math.max(1, maxX - minX)) * (W - padL - padR);
-  const uid = ++__chartUid;
-  const panel = (pts, cls, color, gid) => {
-    const ys = pts.map((p) => p.p);
-    const minY = Math.min(...ys), maxY = Math.max(...ys);
-    const yPad = Math.max(1, (maxY - minY) * 0.16);
-    const sy = (v) => padT + (1 - (v - (minY - yPad)) / Math.max(1, maxY - minY + yPad * 2)) * (H - padT - padB);
-    const P = pts.map((p) => ({ x: +sx(new Date(p.d).getTime()).toFixed(1), y: +sy(p.p).toFixed(1), d: p.d, p: p.p }));
-    const lineD = smoothLine(P);
-    const baseY = (H - padB).toFixed(1);
-    const areaD = `${lineD} L${P[P.length - 1].x},${baseY} L${P[0].x},${baseY} Z`;
-    const yTicks = [maxY, minY].map((v) => `<line x1="${padL}" y1="${sy(v).toFixed(1)}" x2="${W - padR}" y2="${sy(v).toFixed(1)}" class="spGrid"></line><text x="${padL - 8}" y="${(sy(v) + 4).toFixed(1)}" class="spYLabel" text-anchor="end">${triMain(v, "KRW").main}</text>`).join("");
-    const svg = `<svg viewBox="0 0 ${W} ${H}" class="bxSvg" role="img" aria-label="${cls === "spJp" ? t("일본판 박스 시세 흐름", "Japanese box price trend") : t("영문판 박스 시세 흐름", "English box price trend")}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".26"></stop><stop offset=".92" stop-color="${color}" stop-opacity="0"></stop></linearGradient></defs>${yTicks}<path d="${areaD}" fill="url(#${gid})"></path><path d="${lineD}" class="spLine ${cls}"></path><line class="bxCross" x1="${padL}" y1="${padT}" x2="${padL}" y2="${(H - padB).toFixed(1)}"></line><circle class="bxDot ${cls}" r="4.5" cx="${padL}" cy="${padT}"></circle></svg>`;
-    return { P, svg };
-  };
-  const jp = panel(jpPts, "spJp", "#10d7a0", "bxgJ" + uid);
-  const en = panel(enPts, "spEn", "#ffdb3c", "bxgE" + uid);
-  let prevM = -1;
-  const xLabels = jpPts.map((p) => {
-    const dt = new Date(p.d), m = dt.getUTCMonth();
-    if (m === prevM) return "";
-    prevM = m;
-    return `<span class="bxXlab" style="left:${(sx(dt.getTime()) / W * 100).toFixed(2)}%">${t(`${m + 1}월`, MONTH_EN[m])}</span>`;
-  }).join("");
-  const data = { W, jp: jp.P.map((o) => [o.x, o.y, o.d, o.p]), en: en.P.map((o) => [o.x, o.y, o.d, o.p]) };
-  const jpNow = jpPts[jpPts.length - 1].p, enNow = enPts[enPts.length - 1].p;
-  const jpChg = Math.round((jpPts[jpPts.length - 1].p / jpPts[0].p - 1) * 100);
-  const enChg = Math.round((enPts[enPts.length - 1].p / enPts[0].p - 1) * 100);
-  const chgTag = (c) => `<b class="${c >= 0 ? "chgUp" : "chgDown"}">${c >= 0 ? "+" : ""}${c}%</b>`;
-  const source = options.source || (set.boxSeries && set.boxSeries.source) || "";
-  const title = options.title || t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English");
-  const src = options.note || (/Weekly ungraded/.test(source)
-    ? t("마켓 시세 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Market price. Hover or tap the chart to read the price on any date.")
-    : t("eBay 현재 매물 중간값 기준 — 검수를 통과한 판매자만 집계하며 수집분의 약 절반을 뺍니다(중국·홍콩). 실거래가가 아니며 표본이 적은 날은 변동이 클 수 있습니다.", "Based on median current eBay listings, not sold prices. Thin-sample days may swing more."));
-  return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${title}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
-}
-
-// 인터랙티브 그래프에 hover/탭 → 크로스헤어+툴팁 이벤트 연결(innerHTML 렌더 직후 호출)
-function initBoxCharts(root) {
-  (root || document).querySelectorAll(".bxCompare").forEach((box) => {
-    let data;
-    try { data = JSON.parse(box.getAttribute("data-bx")); } catch (e) { return; }
-    const svgJp = box.querySelector('.bxPanel[data-ed="jp"] svg');
-    const svgEn = box.querySelector('.bxPanel[data-ed="en"] svg');
-    if (!svgJp || !svgEn) return;
-    const tip = box.querySelector(".bxTip");
-    const crossJp = svgJp.querySelector(".bxCross"), crossEn = svgEn.querySelector(".bxCross");
-    const dotJp = svgJp.querySelector(".bxDot"), dotEn = svgEn.querySelector(".bxDot");
-    const W = data.W;
-    const near = (arr, vx) => { let bi = 0, bd = 1e9; for (let i = 0; i < arr.length; i++) { const dx = Math.abs(arr[i][0] - vx); if (dx < bd) { bd = dx; bi = i; } } return bi; };
-    const move = (clientX, srcSvg) => {
-      const rect = srcSvg.getBoundingClientRect();
-      const vx = (clientX - rect.left) / Math.max(1, rect.width) * W;
-      const ji = near(data.jp, vx), jx = data.jp[ji][0];
-      const ei = near(data.en, jx);
-      [crossJp, crossEn].forEach((c) => { c.setAttribute("x1", jx); c.setAttribute("x2", jx); c.classList.add("on"); });
-      dotJp.setAttribute("cx", data.jp[ji][0]); dotJp.setAttribute("cy", data.jp[ji][1]); dotJp.classList.add("on");
-      dotEn.setAttribute("cx", data.en[ei][0]); dotEn.setAttribute("cy", data.en[ei][1]); dotEn.classList.add("on");
-      tip.innerHTML = `<b>${fmtTipDate(data.jp[ji][2])}</b><span class="bxTipRow"><em class="bxKeyJp">JP</em> ${triMain(data.jp[ji][3], "KRW").main}</span><span class="bxTipRow"><em class="bxKeyEn">EN</em> ${triMain(data.en[ei][3], "KRW").main}</span>`;
-      tip.hidden = false;
-      const brect = box.getBoundingClientRect();
-      let left = clientX - brect.left;
-      left = Math.max(60, Math.min(brect.width - 60, left));
-      tip.style.left = left + "px";
-    };
-    const leave = () => { tip.hidden = true; [crossJp, crossEn, dotJp, dotEn].forEach((e) => e.classList.remove("on")); };
-    [svgJp, svgEn].forEach((svg) => {
-      svg.addEventListener("pointermove", (e) => move(e.clientX, svg));
-      svg.addEventListener("pointerdown", (e) => move(e.clientX, svg));
-      svg.addEventListener("pointerleave", leave);
-    });
-  });
-}
-
-// 인터랙티브 그래프4(+PSA 패널·밸류패널 대체)를 적용할 세트인지 — 두 판(JP·EN) 시세가 모두 준비된 세트만(현재 OP-13). 나머지 세트는 기존 UI 유지.
-const EN_GRAPH_FROM = "2026-08-01";
-function seriesFam(s) { return /Weekly ungraded/i.test(s) ? "wm" : /eBay/i.test(s) ? "ebay" : "other"; }
-function hasInteractiveBox(set) {
-  const jpPts = (set.boxSeries && set.boxSeries.points) || [];
-  const enPts = (set.boxSeriesEn && set.boxSeriesEn.points) || [];
-  if (jpPts.length < 2 || enPts.length < 2) return false;
-  // 비교 그래프는 두 판이 같은 소스일 때만 — 혼합 소스 비교(오해 유발) 방지.
-  // 8월에 eBay EN이 준비돼 두 판 다 eBay가 되면 자동 전환됨.
-  if (seriesFam((set.boxSeries && set.boxSeries.source) || "") !== seriesFam((set.boxSeriesEn && set.boxSeriesEn.source) || "")) return false;
-  return (set.boxSeriesEn && set.boxSeriesEn.ready) || new Date().toISOString().slice(0, 10) >= EN_GRAPH_FROM;
-}
-
-function mergeSeriesPoints(historyPoints, currentPoints) {
-  const pointsByDate = new Map();
-  [...historyPoints, ...currentPoints].forEach((point) => {
-    if (!point || !point.d || !Number.isFinite(Number(point.p))) return;
-    pointsByDate.set(point.d, point);
-  });
-  return [...pointsByDate.values()].sort((a, b) => a.d.localeCompare(b.d));
-}
 
 // 2026-07-22 결정: 기존 박스 트렌드 차트(주간 시장시리즈 + eBay 매물호가 병합)는 소스 전환 지점에
 // 가짜 급등이 생겨 신뢰할 수 없다. 사용자 방침 — "우리 자체 eBay 실거래(sold)만 단일 기준으로 쌓아 보여준다".
@@ -2046,7 +1805,7 @@ function renderDetail() {
   if (!cards.length) {
     // 카드 미집계 세트(예: 신규 OP-16)도 박스 시세가 있으면 죽은 페이지가 아니라 박스 시장을 먼저 보여준다.
     const boxBlocks = `${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}`;
-    const hasBox = /emVal|bmRows|spSvg|bcPane|opbcMount/.test(boxBlocks);
+    const hasBox = /emVal|bmRows|opbcMount/.test(boxBlocks);
     const soon = hasBox
       ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
       : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
@@ -2055,9 +1814,7 @@ function renderDetail() {
       event.stopPropagation();
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
     }));
-    wirePinBtn(el);
-    initBoxCharts(el);
-  fillBoxMounts();
+    wirePinBtn(el);  fillBoxMounts();
     return;
   }
   const hasPsa = (set.psa || []).length > 0;
@@ -2080,9 +1837,7 @@ function renderDetail() {
   }));
   el.querySelectorAll(".hitName a").forEach((a) => a.addEventListener("click", (ev) => ev.stopPropagation()));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
-  wirePinBtn(el);
-  initBoxCharts(el);
-  fillBoxMounts();
+  wirePinBtn(el);  fillBoxMounts();
 }
 
 function renderStats() {

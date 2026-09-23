@@ -885,58 +885,7 @@
       .featuredEn b, .featuredEn .ctaArrow { color: #ffdb3c; }
       .featuredEn .asOf { color: #d6c58a; opacity: 1; }
       .boxChart .note { margin-top: 8px; }
-      /* 분리형 시세 패널 (JP/EN 각각) — 큰 글씨, 한 줄 결론 */
-      .seriesPanel { margin: 10px 0 4px; padding: 12px 14px; border: 1px solid var(--terminal-line); border-radius: 12px; background: rgba(20,23,28,.6); }
-      .spHead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 14px; flex-wrap: wrap; margin-bottom: 8px; }
-      .spName { font-size: 15px; color: #eef2ff; }
-      .spNow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 20px; font-weight: 900; color: #eef2ff; }
-      .spVerdict { font-style: normal; font-size: 13px; font-weight: 800; padding: 2px 9px; border-radius: 999px; }
-      .chgUp { background: rgba(16,215,160,.15); color: var(--accent); }
-      .chgDown { background: rgba(255,122,122,.14); color: #ff8f8f; }
-      .chgFlat { background: rgba(255,255,255,.08); color: #aeb7c9; }
-      .spSvg { display: block; width: 100%; height: auto; }
-      .spGrid { stroke: rgba(255,255,255,.07); stroke-width: 1; stroke-dasharray: 2 5; }
-      .spYLabel, .spXLabel { fill: #7d8698; font-size: 12.5px; font-family: "JetBrains Mono", monospace; letter-spacing: -.2px; }
-      .spLine { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-      .spLine.spJp { stroke: var(--accent); }
-      .spLine.spEn { stroke: var(--terminal-gold); }
-      .spDot.spJp { fill: var(--accent); stroke: var(--terminal-bg); stroke-width: 2; }
-      .spDot.spEn { fill: var(--terminal-gold); stroke: var(--terminal-bg); stroke-width: 2; }
-      .spHalo.spJp { fill: rgba(16,215,160,.22); } .spHalo.spEn { fill: rgba(255,219,60,.22); }
-      .spPending { border-style: dashed; opacity: .9; }
-      .cpPanel { border-color: rgba(255,255,255,.14); background: rgba(16,19,26,.55); }
-      .cpBase { stroke: rgba(255,255,255,.28); stroke-width: 1.5; stroke-dasharray: 4 5; }
-      .cpZoneUp { fill: rgba(16,215,160,.05); } .cpZoneDn { fill: rgba(255,122,122,.045); }
-      .cpEnds { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-      .cpEndTag { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 800; }
-      .cpEndTag.spJp { fill: #10d7a0; } .cpEndTag.spEn { fill: #ffdb3c; }
-      .cpYBase { fill: #aeb7c9; font-weight: 800; }
-      .cpNote { margin: 8px 0 0; color: #7d8698; font-size: 12px; line-height: 1.55; }
-      /* 인터랙티브 JP vs EN 교차 그래프(그래프4) */
-      .bxLegend { display: flex; gap: 12px; align-items: center; font-family: "JetBrains Mono", monospace; font-size: 12.5px; flex-wrap: wrap; }
-      .bxKey { font-style: normal; color: #c7cede; display: flex; gap: 5px; align-items: center; }
-      .bxKey::before { content: ""; width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
-      .bxKeyJp::before { background: var(--accent); } .bxKeyEn::before { background: var(--terminal-gold); }
-      .bxKey b { font-weight: 800; } .bxKey b.chgUp { color: #26d07c; } .bxKey b.chgDown { color: #ff7a7a; }
-      .bxCompare { position: relative; margin: 10px 0 2px; }
-      .bxTip { position: absolute; top: 2px; transform: translateX(-50%); background: #0b0e14; border: 1px solid #2b3342; border-radius: 8px; padding: 6px 10px; font-size: 12.5px; z-index: 6; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.45); white-space: nowrap; }
-      .bxTip b { display: block; color: #eef2ff; margin-bottom: 3px; font-size: 12px; }
-      .bxTip[hidden] { display: none; }
-      .bxTipRow { display: flex; gap: 6px; align-items: center; color: #c7cede; font-family: "JetBrains Mono", monospace; }
-      .bxTip em.bxKeyJp { color: var(--accent); font-style: normal; font-weight: 800; }
-      .bxTip em.bxKeyEn { color: var(--terminal-gold); font-style: normal; font-weight: 800; }
-      .bxPanel { position: relative; margin: 4px 0; }
-      .bxEdLabel { position: absolute; top: 3px; left: 8px; font-size: 11px; font-weight: 800; letter-spacing: .3px; padding: 1px 7px; border-radius: 999px; z-index: 2; }
-      .bxEdJp { color: #0b7a58; background: rgba(16,215,160,.16); }
-      .bxEdEn { color: #8a6a00; background: rgba(255,219,60,.20); }
-      .bxSvg { display: block; width: 100%; height: auto; touch-action: pan-y; cursor: crosshair; }
-      .bxCross { stroke: rgba(255,255,255,.42); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; transition: opacity .06s; pointer-events: none; }
-      .bxCross.on { opacity: 1; }
-      .bxDot { stroke: var(--terminal-bg); stroke-width: 2; opacity: 0; pointer-events: none; }
-      .bxDot.on { opacity: 1; }
-      .bxDot.spJp { fill: var(--accent); } .bxDot.spEn { fill: var(--terminal-gold); }
-      .bxAxis { position: relative; height: 15px; margin-top: 1px; }
-      .bxXlab { position: absolute; transform: translateX(-50%); font-size: 11.5px; color: #7d8698; font-family: "JetBrains Mono", monospace; }
+      /* 옛 분리형 시세 패널·비교 차트 CSS(seriesPanel/spSvg/cpZone/bx*) 는 렌더러 삭제와 함께 제거(2026-09-24) */
       /* PSA 등급·개봉 패널 */
       .psaDest .pdSrc { color: #7d8698; font-size: 11.5px; font-weight: 500; }
       .pdStats { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin: 10px 0 4px; }
