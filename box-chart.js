@@ -118,7 +118,11 @@
     const supArr = (supplyPts || []).filter((p) => p && p.v != null && Date.parse(p.d) >= t0);
     const tSup = supArr.length ? Date.parse(supArr[supArr.length - 1].d) : 0;
     const tNow = today ? Date.parse(today) : 0;
-    const t1 = Math.max(tLast, tSup, tNow);
+    // 월간은 점이 "그 달 1일"이라 오늘까지 축을 늘리면 이번 달 전체가 빈 구간처럼 보인다(2026-09-24 실사고:
+    // 9월 55건 팔린 세트에 "1d no sales" 빗금). 월간 축은 마지막 달에서 끝낸다.
+    const t1 = grain === "month" ? tLast : Math.max(tLast, tSup, tNow);
+    // 빈 구간의 길이는 점(버킷) 날짜가 아니라 실제 마지막 체결일로 잰다.
+    const tSale = lastSaleD ? Date.parse(lastSaleD) : tLast;
     const span = t1 - t0 || 1;
     const px = (p) => PL + ((Date.parse(p.d) - t0) / span) * (W - PL - PR);
     const py = (v) => T + (1 - (v - yMin) / (yMax - yMin)) * (PRICE_BOTTOM - T);
@@ -149,8 +153,13 @@
       (i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle") + '">' + lab(p) + "</text>").join("");
 
     const first = pts[0], last = pts[pts.length - 1];
-    const chg = Math.round(((last.median / first.median) - 1) * 1000) / 10;
+    // 등락 기준은 탭(일·주·월)에 관계없이 하나: 마지막 점에서 28일 이전의 마지막 점 — marketIndex.board(티커·홈 표)와 같은 계산.
+    // 2026-09-24 전에는 "첫 보이는 점 대비"라 같은 세트가 탭마다 ▼8.6/▲9.8/▲10.3 으로 갈렸다.
+    const base28 = pts.filter((p) => Date.parse(p.d) <= tLast - 28 * 86400000).pop() || null;
+    const base = base28 || first;
+    const chg = Math.round(((last.median / base.median) - 1) * 1000) / 10;
     const up = chg >= 0;
+    const chgTag = base28 ? (lang === "ko" ? "4주" : "4w") : (lang === "ko" ? "첫날 대비" : "since " + md(first.d));
     const sampleWord = lang === "ko" ? "건" : " sales";
     const rangeWord = lang === "ko" ? "범위" : "range";
 
@@ -188,9 +197,9 @@
     //       이어진 값이 아니라 "마지막으로 팔린 가격이 여기였다"는 기준선이다.
     //    ③ 오늘 끝은 속 빈 원 — 채워진 점(실제 관측)과 모양으로 구분한다.
     let staleLayer = "", staleBadge = "", staleDefs = "";
-    if (t1 > tLast + 86400000 * 2) {
-      const gx0 = px({ d: pts[pts.length - 1].d }), gx1 = W - PR;
-      const tSale = lastSaleD ? Date.parse(lastSaleD) : tLast;
+    if (grain !== "month" && t1 > tSale + 86400000 * 2) {
+      // 빗금은 마지막 체결일부터(점 위치가 아니라). 체결일이 점보다 뒤면 그 자리부터 시작한다.
+      const gx0 = px({ d: new Date(Math.max(tSale, tLast)).toISOString().slice(0, 10) }), gx1 = W - PR;
       const days = Math.round((t1 - tSale) / 86400000);
       const gy = py(pts[pts.length - 1].median);
       const hid = gid + "hatch";
@@ -255,8 +264,8 @@
       '<line x1="' + PL + '" y1="' + flagY.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + flagY.toFixed(1) +
       '" stroke="' + color + '" stroke-dasharray="2 4" opacity=".45"/>' +
       '<g><rect x="' + (W - PR + 3) + '" y="' + (flagY - 11).toFixed(1) + '" width="' + (PR - 8) + '" height="22" rx="5" fill="' + color + '"/>' +
-      '<text x="' + (W - PR + 3 + (PR - 8) / 2) + '" y="' + (flagY + 4).toFixed(1) +
-      '" text-anchor="middle" font-size="12" font-weight="800" fill="#0a0f14">' + flagTx + "</text></g>";
+      '<text class="opbcFlagTx" x="' + (W - PR + 3 + (PR - 8) / 2) + '" y="' + (flagY + 4).toFixed(1) +
+      '" text-anchor="middle" fill="#0a0f14">' + flagTx + "</text></g>";
     const hiWord = lang === "ko" ? "고점 " : "High ";
     const loWord = lang === "ko" ? "저점 " : "Low ";
     const clampX = (x) => Math.max(PL + 36, Math.min(W - PR - 36, x));
@@ -271,7 +280,7 @@
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
       (badge ? '<span class="opbcBadge">' + esc(badge) + "</span>" : "") +
       '<span class="opbcNow">' + money(last.median) + "</span>" +
-      '<span class="opbcChg ' + (up ? "up" : "dn") + '">' + (up ? "▲" : "▼") + " " + Math.abs(chg) + "%</span>" +
+      '<span class="opbcChg ' + (chg > 0 ? "up" : chg < 0 ? "dn" : "flat") + '">' + (chg > 0 ? "▲" : chg < 0 ? "▼" : "–") + " " + Math.abs(chg) + '% <small class="opbcChgTag">' + chgTag + "</small></span>" +
       '<span class="opbcSpan">' + lab(first) + " – " + lab(last) +
       (grainWord ? " · " + grainWord
         : windowDays ? " · " + windowDays + (lang === "ko" ? "일 평균" : "-day avg") : "") +
@@ -622,16 +631,17 @@
     ".opbcLabel{font-size:12px;font-weight:700;color:var(--muted,#8d95a7)}",
     ".opbcNow{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink,#eef2ff)}",
     ".opbcChg{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}",
-    ".opbcChg.up{color:#10d7a0}.opbcChg.dn{color:#e5484d}",
+    ".opbcChg.up{color:#10d7a0}.opbcChg.dn{color:#e5484d}.opbcChg.flat{color:var(--muted,#8d95a7)}",
+    ".opbcChgTag{font-size:10px;font-weight:700;color:var(--muted,#8d95a7);margin-left:2px}",
     ".opbcSpan{margin-left:auto;font-size:11px;color:var(--muted,#8d95a7);font-variant-numeric:tabular-nums}",
     ".opbcSupWrap{margin-top:16px}",
     ".opbcSupNote{margin:0 0 8px}",
     ".opbcLeg{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--ink,#eef2ff);font-variant-numeric:tabular-nums}",
     ".opbcLeg i{width:9px;height:9px;border-radius:2px;display:inline-block}",
-    ".opbcSupLine{stroke-width:2}",
     ".opbcPane svg{width:100%;height:auto;display:block;margin-top:4px;touch-action:pan-y}",
     ".opbcGrid{stroke:rgba(255,255,255,.055);stroke-width:1}",
     ".opbcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
+    ".opbcFlagTx{font-size:12px;font-weight:800}",
     ".opbcLine{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}",
     ".opbcDot{stroke:var(--paper,#11141c);stroke-width:1.6}",
     // 진입 모션(2026-09-23). 데이터와 무관한 시각 효과. .opbcIn 은 아래 scrub() 의 IntersectionObserver 가 붙인다 —
@@ -646,9 +656,8 @@
     "@keyframes opbcGrow{to{transform:scaleY(1)}}",
     "@keyframes opbcPulse{0%{transform:scale(1);opacity:.18}65%{transform:scale(2.1);opacity:0}100%{transform:scale(2.1);opacity:0}}",
     "}",
-    ".opbcSupFill{fill:rgba(128,144,176,.10)}",
-    ".opbcSupLine{fill:none;stroke:rgba(128,144,176,.55);stroke-width:1.4;stroke-dasharray:5 3;stroke-linejoin:round}",
-    ".opbcSupAx{fill:#8090b0}",
+    // 공급선: 색은 인라인(JP/EN 각자)이 정한다 — CSS 에 stroke 를 두면 둘 다 같은 회색이 된다(2026-09-24 수정).
+    ".opbcSupLine{fill:none;stroke-width:1.8;stroke-dasharray:5 3;stroke-linejoin:round}",
     ".opbcStale{}",
     ".opbcStaleEdge{stroke:rgba(245,200,66,.75);stroke-width:1.5;stroke-dasharray:4 3}",
     ".opbcStaleCarry{stroke-width:2;stroke-dasharray:2 5;stroke-linecap:round;opacity:.65}",
@@ -659,7 +668,6 @@
     ".opbcKey{display:flex;gap:14px;margin:6px 0 0;padding:0 4px;font-size:11px;color:var(--muted,#8d95a7)}",
     ".opbcKey span{display:inline-flex;align-items:center;gap:5px}",
     ".opbcKey i{display:inline-block;width:12px;height:2px;border-radius:1px}",
-    ".opbcKey .kDash{background:rgba(128,144,176,.7);height:0;border-top:2px dashed rgba(128,144,176,.7)}",
     ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;opacity:.55}",
     ".opbcHitDot{cursor:pointer}.opbcHit{cursor:crosshair}",
     ".opbcTipBg{fill:#151a22;stroke:rgba(255,255,255,.16)}",
@@ -679,10 +687,13 @@
     //    (SVG2 기하 속성이라 CSS width/height 가 rect 에 적용된다).
     // 2) 일/주/월 탭이 높이 ~25px 라 오터치가 잦았다 — 패딩을 키워 ~40px 로.
     "@media (max-width:600px){",
-    ".opbcAx{font-size:15px}",
-    ".opbcStaleTx{font-size:13px}",
-    ".opbcTipD{font-size:15px}",
-    ".opbcTipV{font-size:19px}",
+    // viewBox 680 이 폰에서 0.45 배로 줄어든다 — 여기 숫자는 화면 픽셀이 아니라 viewBox 단위다(2026-09-24: 15px 가 6.8px 로 보였다).
+    ".opbcAx{font-size:24px}",
+    ".opbcStaleTx{font-size:22px}",
+    ".opbcStaleSub{font-size:18px}",
+    ".opbcFlagTx{font-size:24px}",
+    ".opbcTipD{font-size:24px}",
+    ".opbcTipV{font-size:34px}",
     ".opbcTipR{font-size:14px}",
     ".opbcTipBg{width:216px;height:74px}",
     ".opbcTab{padding:11px 14px;font-size:13px}",

@@ -113,18 +113,29 @@ function cardPrices(c) {
   let nmSrc = c.nmJpy != null ? "jp" : null;
   // priceUsd 폴백은 이상치(트롤/오매칭)면 버린다 — markTcgOutliers 가 세트 단위로 표시해 둔다.
   if (nm == null && typeof c.priceUsd === "number" && !c._tcgOutlier) { nm = c.priceUsd; nmSrc = "tcg"; } // 일본 NM 리서치 전(예: OP-16): TCGplayer USD 시세 폴백, 라벨은 TCG로 정직 표기
-  let psa = null, psaKind = "";
+  let psa = null, psaKind = "", psaDate = null, psaStale = false, psaN = null;
   const sold = c.psa10Ebay;
   if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
     const v = toUsdAt(sold.middle, sold.currency, sold.updated);
-    if (v != null) { psa = v; psaKind = "sold"; }
+    if (v != null) {
+      psa = v; psaKind = "sold"; psaDate = sold.updated || null; psaN = sold.sampleSize || null;
+      // 35일 넘은 sold 중앙값은 "현재가"가 아니다 — 홈(packs.js PSA10_STALE_DAYS)과 같은 기준(2026-09-24)
+      const age = psaDate ? (Date.parse(DATA_DATE) - Date.parse(psaDate)) / 864e5 : null;
+      psaStale = Number.isFinite(age) && age > 35;
+    }
   }
   if (psa == null && c.psa10Active && c.psa10Active.bestListing && c.psa10Active.bestListing.total != null) {
     const bl = c.psa10Active.bestListing;
     const v = toUsd(bl.total, bl.currency);
     if (v != null) { psa = v; psaKind = "ask"; }
   }
-  return { nm, nmSrc, psa, psaKind };
+  return { nm, nmSrc, psa, psaKind, psaDate, psaStale, psaN };
+}
+// "Jul 2026" 꼴 — stale 한 PSA10 값 옆에 붙인다
+function monShort(iso) {
+  const dt = iso ? new Date(iso) : null;
+  if (!dt || Number.isNaN(dt.getTime())) return "";
+  return ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][dt.getUTCMonth()] + " " + dt.getUTCFullYear();
 }
 
 // 이 페이지들에만 쓰는 스타일. 공용 껍데기(pageHead)의 <style> 자리에 끼워 넣는다.
@@ -191,6 +202,7 @@ ${BUY_CTA_CSS}
       .chaseTable td:first-child { color: var(--muted); font-variant-numeric: tabular-nums; }
       .chaseTable .cNum { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
       .chaseTable .psaKind { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+      .chaseTable td.psaStale { opacity: .62; }   /* 35일 넘은 PSA10 sold — 값은 두되 흐리게(2026-09-24) */
       .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
       .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(16,215,160,.05); font-size: 14px; line-height: 1.55; color: var(--muted); }
@@ -454,7 +466,7 @@ function setPage(code, prev, next) {
     const p = cardPrices(c);
     const cardHref = CARD_MAP[(c.number || "") + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")];
     const nameCell = cardHref ? `<a href="../cards/${cardHref}"><strong>${esc(c.name)}</strong></a>` : `<strong>${esc(c.name)}</strong>`;
-    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num">${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? "sold" : "ask"}</span>` : "—"}</td><td class="num">${gradeCell(code, c.number, c.name)}</td></tr>`;
+    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num${p.psaStale ? " psaStale" : ""}"${p.psaStale ? ` title="Last PSA 10 sales observed ${esc(p.psaDate || "")} (n=${p.psaN || "?"}) — older than 35 days"` : ""}>${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? `sold${p.psaDate ? " · " + esc(p.psaDate.slice(5)) : ""}` : "ask"}</span>` : "—"}</td><td class="num">${gradeCell(code, c.number, c.name)}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 라인 (안정 데이터)
@@ -467,7 +479,7 @@ function setPage(code, prev, next) {
   // 데이터 기반 분석 문단 (세트마다 고유)
   const top = cards[0], tp = top ? cardPrices(top) : {};
   const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
-  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? "whose PSA 10 examples have sold" : "whose PSA 10 copies list"} near ${usd(tp.psa)}` : ""}.` : "";
+  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? (tp.psaStale ? `whose PSA 10 examples last sold near ${usd(tp.psa)} (${monShort(tp.psaDate)}, n=${tp.psaN || "?"})` : `whose PSA 10 examples have sold near ${usd(tp.psa)}`) : `whose PSA 10 copies list near ${usd(tp.psa)}`}` : ""}.` : "";
 
   // 박스 시세 궤적 (세트별 고유 수치 — 차트와 같은 sold 시리즈 기반)
   let trajectory = "";
@@ -737,7 +749,7 @@ function setPage(code, prev, next) {
     if (enLastP != null && jpVal != null) facts.push(`The English ${code} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box${englishHref ? ` (<a href="${englishHref}">English box guide</a>)` : ""}.`);
     if (cards.length) {
       const tf = cardPrices(cards[0]);
-      if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}` : ""}.`);
+      if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? (tf.psaKind === "sold" && tf.psaStale ? `, with PSA 10 copies last selling near ${usd(tf.psa)} (${monShort(tf.psaDate)}, n=${tf.psaN || "?"})` : `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}`) : ""}.`);
     }
     if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
     if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);

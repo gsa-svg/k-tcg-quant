@@ -248,9 +248,9 @@ function floorNote(market, best, tag) {
   return `<span class="floorNote" title="${t(
     "중국·홍콩 판매자 매물은 재봉·가품 위험으로 시세 계산에서 뺍니다. 값만 참고로 보입니다.",
     "Listings from China/Hong Kong sellers are excluded from our price figures for reseal and counterfeit risk. Shown for reference only.")}">
-    <em class="floorTag">${tag}</em>${t(`제외 매물 포함 최저 `, `Market floor `)}<b>${price}</b>
+    <em class="floorTag">${tag}</em>${t(`제외 매물 포함 최저 `, `Unverified low `)}<b>${price}</b>
     <em class="floorOff">-${off}%</em>
-    <small>${t(`중국·홍콩 판매자 ${n}건 — 검수 제외`, `${n} China/HK listings — not verified`)}</small></span>`;
+    <small>${t(`중국·홍콩 판매자 ${n}건 — 시세 계산에서 제외`, `${n} China/HK listings · excluded from price figures`)}</small></span>`;
 }
 
 function withVersion(url) {
@@ -959,7 +959,7 @@ function applyStaticI18n() {
         <p class="introMeta">출처 — TOP10 구성/박스 참고 TCG Quant · 일본판 NM 유유테이/카드러시 · PSA10/박스 eBay · 이미지 TCGplayer · PSA 통계 GemRate. 투자 참고용이며 매수 추천이 아닙니다.</p>
       </details>`,
     `<strong>OP Box Index — One Piece sealed booster box and chase-card research</strong>
-      <p>Compare Japanese One Piece booster boxes, key chase cards, box market flow, PSA population stats and valuation ranges.</p>
+      <p>Compare Japanese One Piece booster boxes, key chase cards, box market flow and PSA population stats.</p>
       <details class="introMore">
         <summary>What you get · sources</summary>
         <ul>
@@ -1552,7 +1552,7 @@ function renderCompareTable() {
     <div><dt>${t("박스가", "Box price")}</dt><dd>${t("일본판 미개봉 박스 중간값. 'ask'는 호가.", "Japanese sealed box median. 'ask' = listing price.")}</dd></div>
     <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성 종합. 매수 추천 아님.", "Card value, demand and scarcity combined. Not buying advice.")}</dd></div>
     <div><dt>${t("최고 카드 실거래", "Top card sold")}</dt><dd>${t("히트카드 최고 실판매가(PSA10, 3건 이상).", "Highest chase card by actual sold price (PSA 10, 3+ sales).")}</dd></div>
-    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("TOP10 호가 합 ÷ 박스가. 참고치이며 개봉 이득 보장 아님.", "Top-10 asking prices ÷ box price. Reference only — no guaranteed open value.")}</dd></div>
+    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("TOP10 카드 가중값(1위 40%·상위3 평균 30%·상위10 평균 30%) ÷ 박스가. 참고치이며 개봉 이득 보장 아님.", "Weighted top-10 card value (top card 40%, top-3 avg 30%, top-10 avg 30%) ÷ box price. Reference only — no guaranteed open value.")}</dd></div>
     <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 실판매 표본과 추세.", "Recent 4-week sold samples and trend.")}</dd></div>
     <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("지금 매물이 얼마나 적은지.", "How few boxes are listed right now.")}</dd></div>
   </dl></details>`;

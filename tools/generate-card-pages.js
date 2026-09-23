@@ -24,6 +24,9 @@ const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network 
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const FX = d.fx || {};
+// 박스 실거래 주간 시리즈 — 세트 페이지(generate-set-pages.js)와 같은 파일. 카드 페이지의 "박스 대비 배수" 분모.
+let SOLD_SERIES = { sets: {} };
+try { SOLD_SERIES = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch (e) {}
 const jpyUsd = (jpy) => (Number.isFinite(jpy) ? (jpy * FX.jpyKrw) / FX.usdKrw : null);
 const krwUsd = (krw) => (Number.isFinite(krw) ? krw / FX.usdKrw : null);
 // 관측일 환율로 되돌리는 변환 — PSA10 실거래(KRW 저장)에 쓴다. 이력에 없는 날짜면 오늘 환율로 떨어진다.
@@ -145,8 +148,14 @@ for (const { code, set: s, card: c } of cands) {
   const imgAbs = IMG_MAP[slug] ? `${SITE}/${IMG_MAP[slug]}` : (selfHosted ? `${SITE}/${selfHosted}` : (c.image || c.img || null));
   const imgRel = IMG_MAP[slug] ? `../${IMG_MAP[slug]}` : (selfHosted ? `../${selfHosted}` : (c.image || c.img || null));
   const setSlug = code.toLowerCase();
-  const boxPts = s.boxSeries && s.boxSeries.points || [];
-  const boxUsd = boxPts.length ? krwUsd(boxPts[boxPts.length - 1].p) : null;
+  // 박스 분모는 세트 페이지·홈과 같은 소스 — 우리 eBay 실거래 주간 중앙값(USD). 2026-09-24 전까지는 7월에 멈춘
+  // 외부 주간 시리즈(boxSeries)를 써서 같은 세트가 카드 페이지 $148 / 세트 페이지 $129 로 갈렸다.
+  // 마지막 점이 28일보다 오래되면 배수를 말하지 않는다 — 낡은 분모로 "currently" 를 쓰면 안 된다.
+  const jpSold = ((SOLD_SERIES.sets || {})[code] || {}).jp || [];
+  const jpLast = jpSold.filter((p) => p && p.median != null).pop() || null;
+  const boxAge = jpLast ? (Date.parse(DATA_DATE) - Date.parse(jpLast.d)) / 864e5 : null;
+  const boxUsd = jpLast && boxAge != null && boxAge <= 28 ? jpLast.median : null;
+  const boxAsOf = boxUsd ? jpLast.d : null;
   const boxMult = boxUsd && nmUsd ? (nmUsd / boxUsd) : null;
   const rank = c.rank || null;
   const ebayRaw = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} ${c.name} Japanese`)}&_sop=15&${EPN}`;
@@ -166,11 +175,25 @@ for (const { code, set: s, card: c } of cands) {
   // 시리즈(가격 이력) 표 — 체크포인트가 2개 이상 쌓인 카드만 표시(1점짜리 무의미한 표 방지).
   // ※ 2026-07-14 이전 초기 수집은 변형매칭 미성숙으로 오염되어 폐기됨(그 이후부터 신뢰 축적).
   const ser = (c.series && c.series.points || []).filter((p) => p.nm != null || p.psa != null);
-  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(krwUsd(p.nm)) : "—"}</td><td class="num">${p.psa != null ? usd(krwUsd(p.psa)) : "—"}</td></tr>`).join("") : "";
+  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(toUsdAt(p.nm, "KRW", p.d)) : "—"}</td><td class="num">${p.psa != null ? usd(toUsdAt(p.psa, "KRW", p.d)) : "—"}</td></tr>`).join("") : "";   // 각 시점의 환율(fx-history) — 헤드라인과 같은 방식(2026-09-24)
+
+  // PSA10 sold 값의 나이. 홈(packs.js PSA10_STALE_DAYS=35)과 같은 기준 — 35일 넘은 sold 중앙값으로는 프리미엄을 계산하지 않는다.
+  const p10Age = p10 && p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : null;
+  const p10Stale = !!(p10 && p10.kind === "sold" && Number.isFinite(p10Age) && p10Age > 35);
+  const p10Mon = p10Stale ? (() => { const dt = new Date(p10.date); return Number.isNaN(dt.getTime()) ? "" : ` (${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()})`; })() : "";
 
   // 그레이딩 경제성(전부 실데이터 파생 — 추정치 없음)
   let gradeSection = "";
-  if (p10 && nmUsd) {
+  if (p10 && nmUsd && p10Stale) {
+    gradeSection = `
+      <h2>Raw vs PSA 10: is grading worth it here?</h2>
+      <p>${esc(c.name)} (${esc(c.number)}): the last PSA 10 sales we observed were in${esc(p10Mon.replace(/[()]/g, ""))} (${p10.n} sales, median ${usd(p10.v)}); the raw NM reference is ${usd(nmUsd)}. A current premium is not computed until fresh PSA 10 sales appear — a ${Math.round(p10Age)}-day-old sample is not a current spread.</p>
+      ${pop ? `<table class="dataTable"><thead><tr><th>Grade</th><th>Population</th><th>Share</th></tr></thead><tbody>
+        <tr><td>PSA 10</td><td class="num">${intl(pop.psa10)}</td><td class="num">${pop.total ? Math.round((pop.psa10 / pop.total) * 100) : 0}%</td></tr>
+        <tr><td>PSA 9</td><td class="num">${intl(pop.psa9)}</td><td class="num">${pop.total ? Math.round((pop.psa9 / pop.total) * 100) : 0}%</td></tr>
+        <tr><td>PSA 8 or lower</td><td class="num">${intl(Math.max(0, (pop.total || 0) - (pop.psa10 || 0) - (pop.psa9 || 0)))}</td><td class="num">${pop.total ? Math.max(0, 100 - Math.round((pop.psa10 / pop.total) * 100) - Math.round((pop.psa9 / pop.total) * 100)) : 0}%</td></tr>
+      </tbody></table>` : ""}`;
+  } else if (p10 && nmUsd) {
     const ratio = p10.v / nmUsd;
     const premium = p10.v - nmUsd;
     let verdict;
@@ -212,9 +235,6 @@ for (const { code, set: s, card: c } of cands) {
   const title = sn.short + " PSA 10 Price";
   // PSA10 실거래 표본이 드문 카드는 값이 몇 달 묵기도 한다. 그때 페이지 빌드일(DATA_DATE)로 "Updated" 를 달면
   // 6월 가격이 오늘 값처럼 읽힌다(2026-09-22 실측 18장). 35일 넘으면 그 숫자 옆에 관측 월을 붙인다.
-  const p10Age = p10 && p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : null;
-  const p10Stale = p10 && p10.kind === "sold" && Number.isFinite(p10Age) && p10Age > 35;
-  const p10Mon = p10Stale ? (() => { const dt = new Date(p10.date); return Number.isNaN(dt.getTime()) ? "" : ` (${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()})`; })() : "";
   // 설명은 155자 이하. 넘치면 같은 숫자를 압축 표현으로 다시 쓴다(숫자는 그대로, 말만 줄임).
   const descOf = (nmL, p10L, popL, gemL) => `${sn.short}: ${nmL} ${usd(nmUsd)}${p10 ? `, PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} ${p10L}${usd(p10.v)}${p10Mon}` : ""}${pop ? `, ${popL} ${intl(pop.total)} (${pop.gem}% ${gemL})` : ""}. Updated ${DATA_DATE}.`;
   let desc = descOf("raw Japanese NM", p10 && p10.kind === "sold" ? "median " : "from ", "PSA population", "gem rate");
@@ -330,7 +350,7 @@ ${BUY_CTA_CSS}
             ${p10 ? `<div class="pc"><span>PSA 10 ${p10.kind === "sold" ? "(sold median)" : "(lowest listing)"}</span><b>${usd(p10.v)}</b><small>${p10.kind === "sold" ? `${p10.n} sales` : "ask, not a sale"} · ${esc(p10.date || "")}</small></div>` : ""}
             ${pop ? `<div class="pc"><span>PSA population</span><b>${intl(pop.total)}</b><small>${intl(pop.psa10)} in PSA 10 · ${pop.gem}% gem rate</small></div>` : ""}
           </div>
-          <p>${esc(c.name)} is ${rank ? `the <strong>#${rank} chase card</strong> in` : "one of the top chase cards in"} <a href="../sets/${setSlug}.html">${esc(code)} ${esc(s.nameEn || "")}</a>.${boxMult && boxMult > 0.8 ? ` One raw ${esc(c.name)} is currently worth about <strong>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x a sealed ${esc(code)} box</strong> (${usd(boxUsd)}).` : ""} ${pop && pop.gem >= 85 ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, which helps explain its raw-to-slab spread.` : pop ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, so PSA 10 supply is materially smaller than total submissions.` : ""}</p>
+          <p>${esc(c.name)} is ${rank ? `the <strong>#${rank} chase card</strong> in` : "one of the top chase cards in"} <a href="../sets/${setSlug}.html">${esc(code)} ${esc(s.nameEn || "")}</a>.${boxMult && boxMult > 0.8 ? ` One raw ${esc(c.name)} is currently worth about <strong>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x a sealed ${esc(code)} box</strong> (${usd(boxUsd)} JP sold median, week of ${esc(boxAsOf)}).` : ""} ${pop && pop.gem >= 85 ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, which helps explain its raw-to-slab spread.` : pop ? `${esc(c.name)} has a ${pop.gem}% exact-variant gem rate, so PSA 10 supply is materially smaller than total submissions.` : ""}</p>
           <div class="ctaRow">
             ${psaBuy}
             <a class="${psaBuy ? "" : "primary"}" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
