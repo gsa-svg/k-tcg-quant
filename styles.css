@@ -1253,6 +1253,7 @@ h2 {
 .tickerBoard .tbChip { flex: 0 0 auto; display: inline-flex; align-items: baseline; gap: 6px; border: 1px solid rgba(255,255,255,.1); background: rgba(12,14,18,.6); border-radius: 8px; padding: 4px 9px; font-size: 12px; cursor: pointer; color: #cfd6e4; }
 .tickerBoard .tbChip:hover { border-color: #50dad9; }
 .tickerBoard .tbChip.stale { opacity: .55; }
+.tickerBoard .tbWeekly { margin-left: 8px; color: #50dad9; font-size: 11px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 .tickerBoard .tbChip .tbDate { color: #8d95a7; font-size: 10px; }
 .tickerBoard .tbChip.stale .tbDate { color: #f5c842; opacity: 1; }
 .tickerBoard .tbCode { font-weight: 800; color: #eef2ff; }

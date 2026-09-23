@@ -1249,7 +1249,7 @@ function renderTickerBoard() {
   // 여기 있는 건 전부 세트별 실판매 원장 수치라 각자 세트 페이지에서 검증된다.
   const f = (p) => `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
   const cls = (p) => (p > 0 ? "up" : p < 0 ? "down" : "flat");
-  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")}</span><div class="tbScroll">${rows.map((b) =>
+  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")} <a class="tbWeekly" href="weekly.html">${t("이번 주 →", "This week →")}</a></span><div class="tbScroll">${rows.map((b) =>
     `<button class="tbChip${isStale(b) ? " stale" : ""}" data-key="${b.code}" title="${t(`일본판 박스 실거래 중앙값 ${b.nowDate || ""} 주${b.n != null ? ` · ${b.n}건` : ""}${isStale(b) ? " · 28일 넘게 거래 없음" : ""}`, `JP box sold median, week of ${b.nowDate || ""}${b.n != null ? ` · n=${b.n}` : ""}${isStale(b) ? " · no sales in 28+ days" : ""}`)}"><span class="tbCode">${b.code}</span><span class="tbPrice">$${b.nowUsd}</span>${isStale(b) ? "" : `<b class="${cls(b.changePct)}">${f(b.changePct)}</b>`}<small class="tbDate">${b.nowDate ? b.nowDate.slice(5) : ""}</small></button>`).join("")}</div>`;
   el.hidden = false;
   el.querySelectorAll(".tbChip").forEach((btn) => btn.addEventListener("click", () => {
