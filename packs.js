@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260923a";
+const DATA_VERSION = "20260923b";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -702,7 +702,7 @@ function renderBoxInteractive(set, jpPts, enPts, options = {}) {
   const title = options.title || t("박스 시세 흐름 · 일본판 vs 영문판", "Box price · Japanese vs English");
   const src = options.note || (/Weekly ungraded/.test(source)
     ? t("마켓 시세 기준. 그래프에 마우스를 올리거나 화면을 탭하면 그날 가격이 나와요.", "Market price. Hover or tap the chart to read the price on any date.")
-    : t("eBay 현재 매물 중간값 기준. 실거래가가 아니며 표본이 적은 날은 변동이 클 수 있습니다.", "Based on median current eBay listings, not sold prices. Thin-sample days may swing more."));
+    : t("eBay 현재 매물 중간값 기준 — 검수를 통과한 판매자만 집계하며 수집분의 약 절반을 뺍니다(중국·홍콩). 실거래가가 아니며 표본이 적은 날은 변동이 클 수 있습니다.", "Based on median current eBay listings, not sold prices. Thin-sample days may swing more."));
   return `<div class="boxChart"><div class="bcHead"><span class="bmLabel">${title}</span><span class="bxLegend"><em class="bxKey bxKeyJp">JP ${triMain(jpNow, "KRW").main} ${chgTag(jpChg)}</em><em class="bxKey bxKeyEn">EN ${triMain(enNow, "KRW").main} ${chgTag(enChg)}</em></span></div><div class="bxCompare" data-bx='${JSON.stringify(data)}'><div class="bxTip" hidden></div><div class="bxPanel" data-ed="jp"><span class="bxEdLabel bxEdJp">${t("일본판", "JP")}</span>${jp.svg}</div><div class="bxPanel" data-ed="en"><span class="bxEdLabel bxEdEn">${t("영문판", "EN")}</span>${en.svg}</div><div class="bxAxis">${xLabels}</div></div><p class="note">${src}</p></div>`;
 }
 
@@ -1337,7 +1337,7 @@ function renderBoxTwoNumber(set) {
     boxTwoRow(bm.jp, { name: t("일본판", "Japanese"), tag: "JP", tagCls: "" }) +
     boxTwoRow(bm.en, { name: t("영문판", "English"), tag: "EN", tagCls: "langTagEn" });
   if (!rows) return "";
-  return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("박스 시세 vs 매물", "Box market vs listing")}</span></div>${rows}<p class="emNote">${t('"실거래"는 실제 팔린 값(시세), "매물"은 지금 살 수 있는 최저 호가입니다. 매물이 실거래보다 높으면 급하지 않을 때 대기 신호. 미개봉 박스만 집계.', 'Sold = what actually sold (market); listing = the cheapest you can buy now. Above sold = wait signal if not urgent. Sealed boxes only.')}</p></div>`;
+  return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("박스 시세 vs 매물", "Box market vs listing")}</span></div>${rows}<p class="emNote">${t('"실거래"는 실제 팔린 값(시세), "매물"은 지금 살 수 있는 최저 호가입니다. 매물이 실거래보다 높으면 급하지 않을 때 대기 신호. 미개봉 박스만 집계. <b>매물 숫자는 검수를 통과한 판매자만 집계합니다</b> — 중국·홍콩 판매자를 재봉·가품 위험으로 빼며, 수집분의 약 절반입니다. 실거래에는 이 필터가 없어 시장 전체를 담습니다. <a href="/methodology.html#exclusions">기준 보기</a>', 'Sold = what actually sold (market); listing = the cheapest you can buy now. Above sold = wait signal if not urgent. Sealed boxes only. <b>Listing figures count only sellers that passed verification</b> — we exclude China and Hong Kong sellers for reseal and counterfeit risk, about half of what we collect. Sold figures have no such filter and cover the whole market. <a href="/methodology.html#exclusions">See the rules</a>')}</p></div>`;
 }
 
 function renderSourceLegend(set) {
