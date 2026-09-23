@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260923b";
+const DATA_VERSION = "20260924a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -908,7 +908,7 @@ function renderHitList(cards) {
             <img src="${img}" alt="${c.name}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" />
           </div>
           <figcaption>
-            <span class="hitName">${c.name}</span>
+            <span class="hitName">${cardPageHref(c) ? `<a href="${cardPageHref(c)}" title="${t("카드 페이지", "Card page")}">${c.name}</a>` : c.name}</span>
             <span class="hitNo">${c.number || ""}</span>
             ${priceLines(c)}
             ${cardBuyLinks(c)}
@@ -940,8 +940,8 @@ function applyStaticI18n() {
   if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";
   setHtml(
     ".packHero .lead",
-    '부스터박스를 고르면 <strong>박스 시세</strong>, <strong>히트카드 TOP 10</strong>, NM·PSA10 가격과 PSA 통계를 한 화면에서 비교합니다.',
-    'Pick a booster box to compare <strong>box prices</strong>, <strong>Top 10 chase cards</strong>, NM / PSA 10 prices and PSA population data in one view.',
+    '<strong>원피스 카드게임</strong> 일본판·영문판 22세트의 미개봉 부스터 박스 시세와 PSA 10 카드 시세를 추적합니다. 이베이 실거래·현재 매물·등급 인구 데이터를 매일 갱신하며, 셋을 섞지 않습니다.',
+    'OP Box Index tracks sealed booster box and PSA 10 card prices for the <strong>One Piece Card Game</strong> across 22 Japanese and English sets, updated daily from completed eBay sales, active listings and grading population data — each kept separate, never blended.',
   );
   setHtml(
     ".introPanel",
@@ -1350,8 +1350,11 @@ async function load() {
   initDisplayLanguage();
   bindDisplayLanguage();
   const isCompareOnly = !document.querySelector("#packList") && document.querySelector("#compareTable");
+  // 카드 페이지 링크 지도(8KB). 데이터(926KB)와 나란히 받아 첫 렌더 전에 갖춘다 — 없어도 화면은 멀쩡하다(이름이 링크가 아닐 뿐).
+  const cardMapP = fetch(withVersion("cards/card-map.json"), { cache: "default" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   try {
     state.data = await fetchPackData();
+    state.cardMap = await cardMapP;
   } catch (err) {
     const target = document.querySelector("#packList") || document.querySelector("#compareTable");
     if (target) target.innerHTML = `<p class="note">${t("데이터를 불러오지 못했습니다.", "Could not load data.")} (${err.message})</p>`;
@@ -1374,6 +1377,8 @@ async function load() {
   renderPackGrid();
   renderDetail();
   updateUrl(true);
+  // 세트 페이지의 "Open live tracker" 로 들어오면 그 세트의 패널이 폰에서 4화면 아래에 있었다 — 바로 거기로.
+  if (state.hasExplicitSet) document.querySelector("#detail")?.scrollIntoView({ block: "start" });
 }
 
 function applyRouteState() {
@@ -1497,12 +1502,11 @@ function renderTickerBoard() {
 function renderMarketStatus() {
   const el = document.querySelector("#marketStatus");
   if (!el || !state.data) return;
-  const sets = Object.values(state.data.sets || {});
-  const pricedSets = sets.filter((set) => (set.cards || []).length > 0).length;
-  const cardCount = sets.reduce((sum, set) => sum + (set.cards || []).length, 0);
-  const boxSamples = sets.reduce((sum, set) => sum + (set.boxMarket?.jp?.ebayActive?.sampleSize || 0), 0);
+  // 2026-09-24: "MARKET LIVE · SETS 21 · CARDS 210 · BOX SAMPLES 147" 은 단위 없는 내부 카운터였고 세트 수도 다른 곳(22)과 달랐다.
+  // 방문자가 알아야 할 것은 셋뿐이다 — 무슨 자료인지, 언제 것인지, 범위가 얼마인지.
+  const setCount = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])].length;
   const updated = state.data.updated || t("확인중", "checking");
-  el.innerHTML = `<span><i></i>Market Live</span><span>Sets ${pricedSets}</span><span>Cards ${cardCount}</span><span>Box Samples ${boxSamples}</span><span>Update ${updated}</span>`;
+  el.innerHTML = `<span><i></i>${t("이베이 실거래", "eBay completed sales")}</span><span>${t("매일 갱신", "updated daily")}</span><span>${t("데이터", "data")} ${updated}</span><span>${setCount} ${t("세트", "sets")} · USD</span>`;
 }
 
 // 전 세트 비교 랭킹: 20개 박스를 한 표로. 지표는 setAnalytics 실측 계산 재사용(추정 없음).
@@ -1873,6 +1877,14 @@ function fillPackSparks() {
   });
 }
 
+// 카드 페이지 링크. cards/card-map.json(번호|정규화이름 → 파일명)은 load() 에서 한 번 받는다.
+// 키 정규화는 tools/inject-home-summary.js cardSlug 와 같아야 한다.
+function cardPageHref(c) {
+  if (!state.cardMap || !c || !c.number) return null;
+  const f = state.cardMap[c.number + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")];
+  return f ? "cards/" + f : null;
+}
+
 function historyChart(history, market) {
   const points = Array.isArray(history) ? history.filter((row) => row.middle != null) : [];
   if (points.length < 2) return `<div class="cardChartEmpty">${t("6개월 그래프는 eBay NM 업데이트가 2회 이상 쌓이면 표시됩니다.", "The 6-month chart appears after at least two eBay NM updates.")}</div>`;
@@ -2038,7 +2050,7 @@ function renderDetail() {
     const soon = hasBox
       ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
       : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
-    el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
+    el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
     el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
       event.stopPropagation();
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
@@ -2060,12 +2072,13 @@ function renderDetail() {
       + renderHitList(cards);
   const fullPsaRate = set.psaFull?.gemRate ?? set.psaGem ?? "-";
   const fullPsaTotal = set.psaFull?.total ?? set.psaTotal;
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div>${ebayLinks(pack)}${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${ebayLinks(pack)}${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();
     trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
   }));
+  el.querySelectorAll(".hitName a").forEach((a) => a.addEventListener("click", (ev) => ev.stopPropagation()));
   el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
   wirePinBtn(el);
   initBoxCharts(el);

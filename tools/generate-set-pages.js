@@ -784,7 +784,7 @@ function setPage(code, prev, next) {
       ${boxChartBlock(code)}
       ${liveWidget(code)}
       <div class="ctaRow">
-        <a class="primary" href="../?set=${enc}&hl=en">Open live ${code} tracker</a>
+        <a class="primary" href="../?set=${enc}" data-ko="${code} 라이브 트래커 — 카드 이미지 · PSA 10 매물 · PSA 표 →">Live ${code} tracker — card images · PSA 10 listings · PSA table →</a>
         ${jpBuy}
         <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${jpBuy ? `All ${code} box listings` : `Browse ${code} boxes on eBay`}</a>
         ${englishHref ? `<a href="${englishHref}">English ${code} box price</a>` : ""}

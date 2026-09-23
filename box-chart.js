@@ -98,7 +98,7 @@
     // 2026-08-27 시각 개편(소유자 확정안): 가격축을 오른쪽으로 옮기고 현재가 플래그를 축에 꽂는다
     // (증권 차트 문법). 왼쪽 여백은 라벨이 사라지므로 좁힌다. 전역 L/R 은 공급 패널이 계속 쓰므로
     // 여기서만 지역 상수를 쓴다.
-    const PL = 16, PR = 64;
+    const PL = 16, PR = 84;   // PR: 폰에서 라벨을 키워도 "$1,800"·플래그가 들어가게 84(64 였을 땐 잘렸다, 2026-09-24)
 
     // y축은 중앙값 선 기준으로 잡는다 — low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다.
     // 다만 **최소 축 폭**을 둔다. 즉시구매만 남기고 나니 OP-01 일본판이 3개월 내내 1% 안에서
@@ -268,7 +268,7 @@
       '" text-anchor="middle" fill="#0a0f14">' + flagTx + "</text></g>";
     const hiWord = lang === "ko" ? "고점 " : "High ";
     const loWord = lang === "ko" ? "저점 " : "Low ";
-    const clampX = (x) => Math.max(PL + 36, Math.min(W - PR - 36, x));
+    const clampX = (x) => Math.max(PL + 72, Math.min(W - PR - 72, x));   // 폰(22px 라벨)에서도 안 잘리게 72(2026-09-24)
     const hiI = meds.indexOf(mHi), loI = meds.indexOf(mLo);
     const hlLabels =
       (hiI === pts.length - 1 ? "" : '<text class="opbcAx" x="' + clampX(XY[hiI].x).toFixed(1) + '" y="' + (py(mHi) - 9).toFixed(1) +
@@ -688,12 +688,12 @@
     // 2) 일/주/월 탭이 높이 ~25px 라 오터치가 잦았다 — 패딩을 키워 ~40px 로.
     "@media (max-width:600px){",
     // viewBox 680 이 폰에서 0.45 배로 줄어든다 — 여기 숫자는 화면 픽셀이 아니라 viewBox 단위다(2026-09-24: 15px 가 6.8px 로 보였다).
-    ".opbcAx{font-size:24px}",
+    ".opbcAx{font-size:22px}",
     ".opbcStaleTx{font-size:22px}",
     ".opbcStaleSub{font-size:18px}",
-    ".opbcFlagTx{font-size:24px}",
-    ".opbcTipD{font-size:24px}",
-    ".opbcTipV{font-size:34px}",
+    ".opbcFlagTx{font-size:22px}",
+    ".opbcTipD{font-size:16px}",
+    ".opbcTipV{font-size:22px}",
     ".opbcTipR{font-size:14px}",
     ".opbcTipBg{width:216px;height:74px}",
     ".opbcTab{padding:11px 14px;font-size:13px}",
@@ -727,7 +727,8 @@
       hl.setAttribute("cx", cx); hl.setAttribute("cy", cy); hl.setAttribute("opacity", "1");
       // 헤드라인(현재가)은 건드리지 않는다 — 훑을 때마다 바뀌면 "지금 얼마"를 잃는다.
       const hd = hitDots[best] ? hitDots[best].dataset : {};
-      const tw = 186, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
+      // 툴팁 폭은 CSS 가 정한다(폰에서 216) — 186 고정이면 폰에서 상자가 오른쪽으로 삐져나갔다(2026-09-24)
+      const tw = parseFloat(getComputedStyle(svg.querySelector(".opbcTipBg")).width) || 186, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
       const ty = cy - 74 < T ? cy + 14 : cy - 74;
       tip.setAttribute("opacity", "1");
       tip.setAttribute("transform", "translate(" + tx + "," + ty + ")");
