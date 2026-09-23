@@ -239,6 +239,18 @@ function reprintShare(records) {
 
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
 const today = new Date().toISOString().slice(0, 10);
+// 그래프에 표시할 사건 — 검증된 발매일만(data/set-facts.json, 반다이 공식 페이지 출처). 2026-09-24.
+let FACTS = { sets: {} };
+try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
+function eventsFor(code) {
+  const f = (FACTS.sets && FACTS.sets[code]) || {};
+  const out = [];
+  const jr = f.jpRelease && (f.jpRelease.date || f.jpRelease);
+  const er = f.enRelease && (f.enRelease.date || f.enRelease);
+  if (typeof jr === "string" && /^\d{4}-\d{2}-\d{2}$/.test(jr)) out.push({ d: jr, ed: "jp", label: "JP release", labelKo: "일본판 발매" });
+  if (typeof er === "string" && /^\d{4}-\d{2}-\d{2}$/.test(er)) out.push({ d: er, ed: "en", label: "EN release", labelKo: "영문판 발매" });
+  return out;
+}
 
 const sets = {};
 let points = 0, drawable = 0;
@@ -259,6 +271,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
     supply: supplyFor(code),
     reprintPct: { jp: reprintShare(eds.jp), en: reprintShare(eds.en) },
     firstPrint: { jp: firstPrintSpot(eds.jp), en: firstPrintSpot(eds.en) },
+    events: eventsFor(code),
   };
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;

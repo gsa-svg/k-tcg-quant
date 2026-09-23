@@ -92,7 +92,7 @@
   // 월간 보기는 날짜가 매달 1일이라 "05/01" 로 찍으면 그날 하루로 오해된다. 달 이름으로 보여준다.
   const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
 
-  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today, lastSaleD) {
+  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today, lastSaleD, events) {
     const pts = clean(rawPts, grain === "day" ? MIN_N_DAY : null);
     if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
     // 2026-08-27 시각 개편(소유자 확정안): 가격축을 오른쪽으로 옮기고 현재가 플래그를 축에 꽂는다
@@ -276,6 +276,14 @@
       (loI === pts.length - 1 || loI === hiI ? "" : '<text class="opbcAx" x="' + clampX(XY[loI].x).toFixed(1) + '" y="' + (py(mLo) + 17).toFixed(1) +
         '" text-anchor="middle" fill="#b6c0d4">' + loWord + money(mLo) + "</text>");
 
+    // 사건 표시(발매일). 창 안에 들어오는 것만 — 세로 점선 + 위쪽 라벨. 값을 바꾸지 않는 설명 레이어다(2026-09-24).
+    const evLayer = (events || []).filter((e) => e && e.d && Date.parse(e.d) >= t0 && Date.parse(e.d) <= t1).map((e) => {
+      const x = px({ d: e.d });
+      const txt = (lang === "ko" ? (e.labelKo || e.label) : e.label) + " " + md(e.d);
+      return '<line class="opbcEvt" x1="' + x.toFixed(1) + '" y1="' + T + '" x2="' + x.toFixed(1) + '" y2="' + PRICE_BOTTOM + '"/>' +
+        '<text class="opbcAx opbcEvtTx" x="' + clampX(x).toFixed(1) + '" y="' + (T - 8) + '" text-anchor="middle">' + esc(txt) + "</text>";
+    }).join("");
+
     return '<figure class="opbcPane" data-ed="' + gid + '">' +
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
       (badge ? '<span class="opbcBadge">' + esc(badge) + "</span>" : "") +
@@ -291,7 +299,7 @@
       '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
       '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient>' + staleDefs + '</defs>' +
-      staleLayer + grid + volAxis + bars +
+      staleLayer + grid + volAxis + bars + evLayer +
       '<path class="opbcArea" d="' + area + '" fill="url(#' + gid + ')"/>' +
       '<path class="opbcLine opbcDraw" pathLength="1" d="' + line + '" stroke="' + color + '"/>' +
       hlLabels + flag + dots +
@@ -503,8 +511,9 @@
     const grid = (g, jpPts, enPts, hidden) => {
       const jpLabel = lang === "ko" ? "일본판" : "Japanese";
       const enLabel = lang === "ko" ? "영문판" : "English";
-      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today, lastSale.jp);
-      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today, lastSale.en);
+      const evs = (series && series.events) || [];
+      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today, lastSale.jp, evs.filter((e) => e.ed === "jp"));
+      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today, lastSale.en, evs.filter((e) => e.ed === "en"));
       // 실제 선이 하나도 없는 단위는 탭 자체를 내지 않는다 — 2026-08-27 소유자 지적.
       // 종전엔 "왜 없는지" 안내 카드만 있는 빈 화면이 떴는데, 그건 고장으로 읽힌다.
       const realLine = !!(jp || en);
@@ -642,6 +651,8 @@
     ".opbcGrid{stroke:rgba(255,255,255,.055);stroke-width:1}",
     ".opbcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcFlagTx{font-size:12px;font-weight:800}",
+    ".opbcEvt{stroke:rgba(255,255,255,.28);stroke-width:1;stroke-dasharray:2 3}",
+    ".opbcEvtTx{fill:#b6c0d4;font-weight:700}",
     ".opbcLine{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}",
     ".opbcDot{stroke:var(--paper,#11141c);stroke-width:1.6}",
     // 진입 모션(2026-09-23). 데이터와 무관한 시각 효과. .opbcIn 은 아래 scrub() 의 IntersectionObserver 가 붙인다 —
