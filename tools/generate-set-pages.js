@@ -185,6 +185,8 @@ ${BUY_CTA_CSS}
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
+      .statLabel a.statDef { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(154,164,182,.6); }
+      .statLabel a.statDef:hover { color: var(--accent, #10d7a0); border-bottom-color: currentColor; }
       /* 숫자가 주인공이다 — 28px/700. 라벨은 10.5px 대문자로 물러난다(TCG 퀀트 실측 규칙).
          tabular-nums 로 자릿수를 고정해야 카드끼리 세로로 줄이 맞는다. */
       .statValue { margin-top: 5px; font-size: 28px; font-weight: 700; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -377,7 +379,9 @@ const SET_METRICS = (() => {
     const jp = v.jp;
     if (!Array.isArray(jp) || jp.length < 5) continue;
     const last = jp[jp.length - 1];
-    const prior = jp[Math.max(0, jp.length - 5)];   // 4주 전
+    // 4주 전 = 마지막 점에서 28일 이상 전의 마지막 점 — 홈 board·그래프 배지와 같은 규칙(2026-09-24, 전엔 "점 4개 뒤"라 주가 비면 어긋났다)
+    const tLast = Date.parse(last.d);
+    const prior = jp.filter((p) => Date.parse(p.d) <= tLast - 28 * 864e5).pop() || null;
     const sup = (v.supply || []).slice(-1)[0];
     const set = data.sets[code] || {};
     const weekN = last.n || 0;
@@ -687,14 +691,17 @@ function setPage(code, prev, next) {
       const cls = (pct > 0) === higherIsBetter ? "statUp" : "statDown";
       return `<span class="${cls}">${pct > 0 ? "▲" : "▼"} ${pct > 0 ? "+" : ""}${pct}%</span>`;
     };
+    // 라벨은 방법론의 정의 행으로 간다(2026-09-24) — 숫자에서 규칙까지 한 번에.
+    const DEF = { "Box price (JP)": "box-median", "4-week change": "change-4w", "Days of inventory": "days-of-inventory", "PSA graded": "psa-graded", "PSA 10 rate": "psa10-rate", "Value density": "value-density", "Chase concentration": "chase-concentration" };
+    const lab = (label) => { const id = DEF[label] || (label.startsWith("Floor of the top") ? "floor-top10" : null); return id ? `<a class="statDef" href="../methodology.html#${id}" title="How this is calculated">${label}</a>` : label; };
     const cell = (label, value, baseText) => cells.push(
-      `<div class="statCard"><div class="statLabel">${label}</div><div class="statValue">${value}</div><div class="statBase">${baseText}</div></div>`);
+      `<div class="statCard"><div class="statLabel">${lab(label)}</div><div class="statValue">${value}</div><div class="statBase">${baseText}</div></div>`);
     // 지표 정의문은 카드마다 3~4줄을 잡아먹어 격자를 두 배로 늘렸다(2026-08-27 실측 366px).
     // 정의는 한 번만 읽으면 되는 글이라 격자 아래 접힌 용어집으로 모은다 — DOM 에는 그대로 남는다.
     const hints = [];
     const hintCell = (label, value, baseText, hint) => {
       hints.push([label, hint]);
-      cells.push(`<div class="statCard" title="${hint.replace(/"/g, "&quot;")}"><div class="statLabel">${label}</div><div class="statValue">${value}</div>${baseText ? `<div class="statBase">${baseText}</div>` : ""}</div>`);
+      cells.push(`<div class="statCard" title="${hint.replace(/"/g, "&quot;")}"><div class="statLabel">${lab(label)}</div><div class="statValue">${value}</div>${baseText ? `<div class="statBase">${baseText}</div>` : ""}</div>`);
     };
 
     const m = SET_METRICS[code] || {};
@@ -802,7 +809,7 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCGplayer market snapshot (not refreshed daily).` : `NM = Japanese near-mint retail. PSA 10 = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
+      <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCGplayer market snapshot (not refreshed daily).` : `<a href="../methodology.html#nm-retail">NM</a> = Japanese near-mint retail. <a href="../methodology.html#psa10-price">PSA 10</a> = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
       : `<p class="priceNote">Single-card data for ${code} is not published yet. This page tracks the sealed box only; card-level prices and grading counts are added once the set's chase list is verified. <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`}
       ${auctionSection}
       <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.

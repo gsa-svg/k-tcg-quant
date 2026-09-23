@@ -93,6 +93,8 @@
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
       .statLabel { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
+      .statLabel a.statDef { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(154,164,182,.6); }
+      .statLabel a.statDef:hover { color: var(--accent, #10d7a0); border-bottom-color: currentColor; }
       /* 숫자가 주인공이다 — 28px/700. 라벨은 10.5px 대문자로 물러난다(TCG 퀀트 실측 규칙).
          tabular-nums 로 자릿수를 고정해야 카드끼리 세로로 줄이 맞는다. */
       .statValue { margin-top: 5px; font-size: 28px; font-weight: 700; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -139,7 +141,7 @@
         </div>
       </div>
       <p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>
-      <section aria-label="Set metrics"><div class="statGrid"><div class="statCard"><div class="statLabel">Box price (JP)</div><div class="statValue">$135</div><div class="statBase">as of 2026-09-21 · 22-set median $129 <span class="statUp">▲ +5%</span></div></div><div class="statCard"><div class="statLabel">4-week change</div><div class="statValue"><span class="statDown">-16.7%</span></div><div class="statBase">22-set median -1.2%</div></div><div class="statCard" title="How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing."><div class="statLabel">Days of inventory</div><div class="statValue">3.3d</div><div class="statBase">7 listed · 22-set median 45.8d <span class="statUp">▼ -93%</span></div></div></div><details class="statGloss"><summary>What these numbers mean</summary><dl><dt>Days of inventory</dt><dd>How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</dd></dl></details></section>
+      <section aria-label="Set metrics"><div class="statGrid"><div class="statCard"><div class="statLabel"><a class="statDef" href="../methodology.html#box-median" title="How this is calculated">Box price (JP)</a></div><div class="statValue">$135</div><div class="statBase">as of 2026-09-21 · 22-set median $129 <span class="statUp">▲ +5%</span></div></div><div class="statCard"><div class="statLabel"><a class="statDef" href="../methodology.html#change-4w" title="How this is calculated">4-week change</a></div><div class="statValue"><span class="statDown">-16.7%</span></div><div class="statBase">22-set median -1.2%</div></div><div class="statCard" title="How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing."><div class="statLabel"><a class="statDef" href="../methodology.html#days-of-inventory" title="How this is calculated">Days of inventory</a></div><div class="statValue">3.3d</div><div class="statBase">7 listed · 22-set median 45.8d <span class="statUp">▼ -93%</span></div></div></div><details class="statGloss"><summary>What these numbers mean</summary><dl><dt>Days of inventory</dt><dd>How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.</dd></dl></details></section>
       
       <section id="key-facts" aria-label="Key facts">
         <details class="keyFactsBox"><summary>Key facts in one paragraph</summary>
