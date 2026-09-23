@@ -29,7 +29,7 @@ function withGuideLinks(html, inKo) {
 
 // 착지 페이지 "다음 클릭" 줄 — 첫 </h1> 바로 뒤. 있으면 교체, 없으면 삽입. 목적지 자체(홈·응모)와 안내 페이지는 뺀다.
 const NEXT_RE = /<nav class="nextLinks"[^>]*>[\s\S]*?<\/nav>/;
-const NEXT_SKIP = new Set(["index.html", "404.html", "packs.html", "amazon-lottery.html", "privacy.html", "disclaimer.html", "changelog.html", "ko/index.html", "ko/amazon-lottery.html"]);
+const NEXT_SKIP = new Set(["index.html", "404.html", "packs.html", "sets/index.html", "amazon-lottery.html", "privacy.html", "disclaimer.html", "changelog.html", "ko/index.html", "ko/amazon-lottery.html"]);
 function withNextLinks(html, rel, inKo) {
   if (NEXT_SKIP.has(rel)) return html;
   const want = nextLinksHtml(inKo);

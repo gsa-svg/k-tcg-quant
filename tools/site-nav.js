@@ -75,11 +75,11 @@ function navHtml(prefix = "", current = null, opts = {}) {
 const GUIDE_STYLE = 'style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"';
 const GUIDE_LABEL_STYLE = 'style="color:#9aa4b6;font-weight:700;"';
 const GUIDE_ITEMS = [
-  ["Booster boxes", "/"], ["Set guides", "/sets/index.html"], ["Card prices", "/cards/"], ["Top PSA 10", "/psa10-ranking.html"],
+  ["Booster boxes", "/"], ["Set guides", "/sets/index.html"], ["All box prices", "/box-prices.html"], ["Card prices", "/cards/"], ["Top PSA 10", "/psa10-ranking.html"],
   ["Grading population", "/psa-grading.html"], ["Compare sets", "/compare.html"], ["Free data", "/free-data.html"], ["한국어", "/ko/"],
 ];
 const GUIDE_ITEMS_KO = [
-  ["부스터 박스", "/ko/"], ["세트 가이드", "/sets/index.html"], ["카드 시세", "/ko/cards.html"], ["PSA10 랭킹", "/psa10-ranking.html"],
+  ["부스터 박스", "/ko/"], ["세트 가이드", "/sets/index.html"], ["전체 박스 시세", "/box-prices.html"], ["카드 시세", "/ko/cards.html"], ["PSA10 랭킹", "/psa10-ranking.html"],
   ["그레이딩 통계", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["아마존 응모", "/ko/amazon-lottery.html"], ["English", "/"],
 ];
 function guideLinksHtml(inKo = false) {

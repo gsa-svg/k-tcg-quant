@@ -150,6 +150,17 @@ const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
       .chaseList li { margin: 6px 0; }
+      .hubTable { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
+      .hubTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; }
+      .hubTable th:nth-child(1), .hubTable th:nth-child(2), .hubTable th:nth-child(6) { text-align: left; }
+      .hubTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; vertical-align: top; }
+      .hubTable td.num { text-align: right; white-space: nowrap; }
+      .hubTable td.up { color: #10d7a0; } .hubTable td.down { color: #e5484d; } .hubTable td.flat, .hubTable td.when { color: #9aa4b6; }
+      .hubTable td.when small { font-size: 10.5px; color: #6f7688; }
+      .hubTable tr.stale td { opacity: .62; } .hubTable tr.stale td.when { opacity: 1; color: #f5c842; }
+      .hubTable .hubTail { display: block; color: #8d95a7; font-size: 12px; margin-top: 2px; }
+      .hubTable td.links { font-size: 12.5px; white-space: nowrap; }
+      @media (max-width: 640px) { .hubTable .hubTail { display: none; } .hubTable td.links { white-space: normal; } }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
@@ -853,13 +864,25 @@ function hubPage() {
   ], DESC_MAX, "sets/index");
   // 목록의 꼬리표를 세트별 수기 한 줄로 — "box price, top chase cards & PSA data" 를 21번 반복하면
   // 허브부터 템플릿으로 읽힌다. 해설 없는 세트만 기존 문구로 떨어진다.
-  const items = ORDER.map((code) => {
+  // 허브 표(2026-09-24): 홈 요약표와 같은 board 값. 가격 없는 이름 목록은 "어느 세트를 볼지" 고르는 데 도움이 안 됐다.
+  const board = {};
+  for (const b of (data.marketIndex && data.marketIndex.board) || []) board[b.code] = b;
+  const hubDate = DATA_DATE;
+  const STALE_DAYS = 28;
+  const rows = ORDER.map((code) => {
     const s = data.sets[code];
-    const tail = COMMENTARY.sets?.[code]?.heading
-      ? esc(COMMENTARY.sets[code].heading.toLowerCase())
-      : "box price, top chase cards &amp; PSA data";
-    return `<li><a href="${slug(code)}.html"><strong>${code}</strong> ${esc(s.nameEn || "")}</a> — ${tail}</li>`;
+    const b = board[code] || {};
+    const age = b.nowDate && hubDate ? Math.round((Date.parse(hubDate) - Date.parse(b.nowDate)) / 864e5) : null;
+    const stale = age != null && age > STALE_DAYS;
+    const chg = stale ? null : b.changePct;
+    const tail = COMMENTARY.sets?.[code]?.heading ? `<small class="hubTail">${esc(COMMENTARY.sets[code].heading)}</small>` : "";
+    const en = fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)) ? `<a href="${slug(code)}-english.html">EN box</a>` : "";
+    const top = (s.cards || [])[0];
+    const topHref = top && top.number ? CARD_MAP[top.number + "|" + String(top.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")] : null;
+    const topLink = topHref ? `<a href="../cards/${topHref}">${esc(top.name)}</a>` : (top ? esc(top.name) : "");
+    return `<tr${stale ? ' class="stale"' : ""}><td><a href="${slug(code)}.html"><strong>${code}</strong></a></td><td><a href="${slug(code)}.html">${esc(s.nameEn || "")}</a>${tail}</td><td class="num">${b.nowUsd != null ? "$" + intl(b.nowUsd) : "—"}</td><td class="num when">${b.nowDate ? esc(b.nowDate.slice(5)) : "—"}${b.n != null ? `<small> n=${b.n}</small>` : ""}</td><td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td><td class="links">${[en, topLink].filter(Boolean).join(" · ")}</td></tr>`;
   }).join("\n        ");
+  const items = rows;
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -878,10 +901,15 @@ function hubPage() {
   return `${head({ title, desc, canonical, ogType: "website", extraLd: ld })}
       <p class="eyebrow">Set Guides</p>
       <h1>One Piece booster box price guides — every Japanese set</h1>
-      <p>Pick a set to see its live Japanese sealed booster box price, top 10 chase cards, PSA 10 population data and buying checklist. All prices update daily from eBay listings and sold history.</p>
-      <ul class="chaseList">
+      <p>Japanese sealed booster box — latest weekly median of completed eBay sales, dated per row (n = sales that week). "4-wk change" = vs 4 weeks earlier, blank when no sale in ${STALE_DAYS} days. Data ${esc(hubDate)}. <a href="../methodology.html#box-median">How these are counted</a>.</p>
+      <div style="overflow-x:auto">
+      <table class="homeSummaryTable hubTable">
+        <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Last sale</th><th>4-wk change</th><th>More</th></tr></thead>
+        <tbody>
         ${items}
-      </ul>
+        </tbody>
+      </table>
+      </div>
       ${englishItems ? `<h2 id="english">English edition box prices</h2>
       <ul class="chaseList">
         ${englishItems}

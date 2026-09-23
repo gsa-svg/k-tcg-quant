@@ -51,6 +51,17 @@
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
       .chaseList li { margin: 6px 0; }
+      .hubTable { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
+      .hubTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; }
+      .hubTable th:nth-child(1), .hubTable th:nth-child(2), .hubTable th:nth-child(6) { text-align: left; }
+      .hubTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; vertical-align: top; }
+      .hubTable td.num { text-align: right; white-space: nowrap; }
+      .hubTable td.up { color: #10d7a0; } .hubTable td.down { color: #e5484d; } .hubTable td.flat, .hubTable td.when { color: #9aa4b6; }
+      .hubTable td.when small { font-size: 10.5px; color: #6f7688; }
+      .hubTable tr.stale td { opacity: .62; } .hubTable tr.stale td.when { opacity: 1; color: #f5c842; }
+      .hubTable .hubTail { display: block; color: #8d95a7; font-size: 12px; margin-top: 2px; }
+      .hubTable td.links { font-size: 12.5px; white-space: nowrap; }
+      @media (max-width: 640px) { .hubTable .hubTail { display: none; } .hubTable td.links { white-space: normal; } }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
@@ -191,7 +202,7 @@
       <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>
     </main>
     <footer class="footer">
-      <nav class="guideLinks" aria-label="Price guides" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">Price guides:</span> <a href="/">Booster boxes</a> · <a href="/sets/index.html">Set guides</a> · <a href="/cards/">Card prices</a> · <a href="/psa10-ranking.html">Top PSA 10</a> · <a href="/psa-grading.html">Grading population</a> · <a href="/compare.html">Compare sets</a> · <a href="/free-data.html">Free data</a> · <a href="/ko/">한국어</a></nav>
+      <nav class="guideLinks" aria-label="Price guides" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">Price guides:</span> <a href="/">Booster boxes</a> · <a href="/sets/index.html">Set guides</a> · <a href="/box-prices.html">All box prices</a> · <a href="/cards/">Card prices</a> · <a href="/psa10-ranking.html">Top PSA 10</a> · <a href="/psa-grading.html">Grading population</a> · <a href="/compare.html">Compare sets</a> · <a href="/free-data.html">Free data</a> · <a href="/ko/">한국어</a></nav>
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <nav aria-label="Footer navigation"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../free-data.html">Free data (CSV)</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
     </footer>
