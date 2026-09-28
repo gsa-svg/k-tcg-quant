@@ -2,7 +2,7 @@
  "schemaVersion": "1.0.0",
  "datasetId": "opbox-ai-grading",
  "name": "OP Box Index — graded population per set (PSA, CGC, TAG)",
- "datasetUpdatedOn": "2026-09-27",
+ "datasetUpdatedOn": "2026-09-28",
  "publisher": {
   "name": "OP Box Index",
   "url": "https://opboxindex.com/"
@@ -21,18 +21,18 @@
   "gem10": "PSA 10 / CGC 10 (Pristine + Gem Mint) / TAG 10 + 10 Pristine counts; graders define 10 differently, so never add them across graders",
   "gemRatePct": "gem10 ÷ total × 100"
  },
- "observedOn": "2026-09-27",
+ "observedOn": "2026-09-28",
  "sets": [
   {
    "setCode": "OP-01",
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 59003,
-     "gem10": 53085,
-     "gemRatePct": 90,
-     "addedSinceLastPoint": 573
+     "observedOn": "2026-09-27",
+     "total": 59875,
+     "gem10": 53846,
+     "gemRatePct": 89.9,
+     "addedSinceLastPoint": 866
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -51,11 +51,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 48971,
-     "gem10": 41397,
-     "gemRatePct": 84.5,
-     "addedSinceLastPoint": 409
+     "observedOn": "2026-09-27",
+     "total": 50030,
+     "gem10": 42138,
+     "gemRatePct": 84.2,
+     "addedSinceLastPoint": 1168
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -78,11 +78,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 29320,
-     "gem10": 26283,
+     "observedOn": "2026-09-27",
+     "total": 29745,
+     "gem10": 26650,
      "gemRatePct": 89.6,
-     "addedSinceLastPoint": 231
+     "addedSinceLastPoint": 458
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -101,11 +101,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 21967,
-     "gem10": 18925,
-     "gemRatePct": 86.2,
-     "addedSinceLastPoint": 103
+     "observedOn": "2026-09-27",
+     "total": 22289,
+     "gem10": 19177,
+     "gemRatePct": 86,
+     "addedSinceLastPoint": 320
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -128,11 +128,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 25391,
-     "gem10": 22342,
-     "gemRatePct": 88,
-     "addedSinceLastPoint": 209
+     "observedOn": "2026-09-27",
+     "total": 25755,
+     "gem10": 22643,
+     "gemRatePct": 87.9,
+     "addedSinceLastPoint": 362
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -151,11 +151,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 17898,
-     "gem10": 14789,
-     "gemRatePct": 82.6,
-     "addedSinceLastPoint": 58
+     "observedOn": "2026-09-27",
+     "total": 18091,
+     "gem10": 14916,
+     "gemRatePct": 82.4,
+     "addedSinceLastPoint": 200
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -178,11 +178,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 32245,
-     "gem10": 29343,
-     "gemRatePct": 91,
-     "addedSinceLastPoint": 262
+     "observedOn": "2026-09-27",
+     "total": 32597,
+     "gem10": 29643,
+     "gemRatePct": 90.9,
+     "addedSinceLastPoint": 382
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -201,11 +201,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 26135,
-     "gem10": 22889,
-     "gemRatePct": 87.6,
-     "addedSinceLastPoint": 153
+     "observedOn": "2026-09-27",
+     "total": 26500,
+     "gem10": 23171,
+     "gemRatePct": 87.4,
+     "addedSinceLastPoint": 389
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -228,11 +228,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 76238,
-     "gem10": 67478,
-     "gemRatePct": 88.5,
-     "addedSinceLastPoint": 984
+     "observedOn": "2026-09-27",
+     "total": 77969,
+     "gem10": 68934,
+     "gemRatePct": 88.4,
+     "addedSinceLastPoint": 1778
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -251,11 +251,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 56286,
-     "gem10": 50059,
-     "gemRatePct": 88.9,
-     "addedSinceLastPoint": 347
+     "observedOn": "2026-09-27",
+     "total": 57337,
+     "gem10": 50904,
+     "gemRatePct": 88.8,
+     "addedSinceLastPoint": 1035
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -278,11 +278,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 36674,
-     "gem10": 34392,
-     "gemRatePct": 93.8,
-     "addedSinceLastPoint": 251
+     "observedOn": "2026-09-27",
+     "total": 37347,
+     "gem10": 35006,
+     "gemRatePct": 93.7,
+     "addedSinceLastPoint": 756
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -301,11 +301,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 39414,
-     "gem10": 35626,
-     "gemRatePct": 90.4,
-     "addedSinceLastPoint": 288
+     "observedOn": "2026-09-27",
+     "total": 40063,
+     "gem10": 36180,
+     "gemRatePct": 90.3,
+     "addedSinceLastPoint": 669
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -328,11 +328,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 36597,
-     "gem10": 33749,
-     "gemRatePct": 92.2,
-     "addedSinceLastPoint": 450
+     "observedOn": "2026-09-27",
+     "total": 37349,
+     "gem10": 34392,
+     "gemRatePct": 92.1,
+     "addedSinceLastPoint": 772
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -351,11 +351,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 33233,
-     "gem10": 29762,
-     "gemRatePct": 89.6,
-     "addedSinceLastPoint": 234
+     "observedOn": "2026-09-27",
+     "total": 33914,
+     "gem10": 30338,
+     "gemRatePct": 89.5,
+     "addedSinceLastPoint": 730
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -378,11 +378,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 24770,
-     "gem10": 22857,
-     "gemRatePct": 92.3,
-     "addedSinceLastPoint": 351
+     "observedOn": "2026-09-27",
+     "total": 25438,
+     "gem10": 23431,
+     "gemRatePct": 92.1,
+     "addedSinceLastPoint": 667
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -401,11 +401,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 34521,
-     "gem10": 30088,
-     "gemRatePct": 87.2,
-     "addedSinceLastPoint": 292
+     "observedOn": "2026-09-27",
+     "total": 35392,
+     "gem10": 30815,
+     "gemRatePct": 87.1,
+     "addedSinceLastPoint": 865
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -428,11 +428,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 73988,
-     "gem10": 66076,
-     "gemRatePct": 89.3,
-     "addedSinceLastPoint": 1042
+     "observedOn": "2026-09-27",
+     "total": 76137,
+     "gem10": 67875,
+     "gemRatePct": 89.1,
+     "addedSinceLastPoint": 2170
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -451,11 +451,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 55071,
-     "gem10": 48599,
+     "observedOn": "2026-09-27",
+     "total": 56303,
+     "gem10": 49654,
      "gemRatePct": 88.2,
-     "addedSinceLastPoint": 477
+     "addedSinceLastPoint": 1137
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -478,11 +478,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 15726,
-     "gem10": 13803,
-     "gemRatePct": 87.8,
-     "addedSinceLastPoint": 246
+     "observedOn": "2026-09-27",
+     "total": 16245,
+     "gem10": 14237,
+     "gemRatePct": 87.6,
+     "addedSinceLastPoint": 569
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -501,11 +501,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 29713,
-     "gem10": 25875,
-     "gemRatePct": 87.1,
-     "addedSinceLastPoint": 292
+     "observedOn": "2026-09-27",
+     "total": 30484,
+     "gem10": 26513,
+     "gemRatePct": 87,
+     "addedSinceLastPoint": 850
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -528,11 +528,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 31498,
-     "gem10": 26315,
-     "gemRatePct": 83.5,
-     "addedSinceLastPoint": 725
+     "observedOn": "2026-09-27",
+     "total": 32703,
+     "gem10": 27352,
+     "gemRatePct": 83.6,
+     "addedSinceLastPoint": 1159
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -551,11 +551,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 50226,
-     "gem10": 43115,
+     "observedOn": "2026-09-27",
+     "total": 51642,
+     "gem10": 44302,
      "gemRatePct": 85.8,
-     "addedSinceLastPoint": 486
+     "addedSinceLastPoint": 1407
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -578,11 +578,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 15790,
-     "gem10": 13660,
+     "observedOn": "2026-09-27",
+     "total": 16443,
+     "gem10": 14217,
      "gemRatePct": 86.5,
-     "addedSinceLastPoint": 306
+     "addedSinceLastPoint": 677
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -601,11 +601,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 47828,
-     "gem10": 41806,
-     "gemRatePct": 87.4,
-     "addedSinceLastPoint": 487
+     "observedOn": "2026-09-27",
+     "total": 49065,
+     "gem10": 42850,
+     "gemRatePct": 87.3,
+     "addedSinceLastPoint": 1299
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -628,11 +628,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 51205,
-     "gem10": 43550,
-     "gemRatePct": 85.1,
-     "addedSinceLastPoint": 1231
+     "observedOn": "2026-09-27",
+     "total": 53863,
+     "gem10": 45756,
+     "gemRatePct": 84.9,
+     "addedSinceLastPoint": 2942
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -651,11 +651,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 92466,
-     "gem10": 80071,
-     "gemRatePct": 86.6,
-     "addedSinceLastPoint": 1202
+     "observedOn": "2026-09-27",
+     "total": 95818,
+     "gem10": 82901,
+     "gemRatePct": 86.5,
+     "addedSinceLastPoint": 3480
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -678,11 +678,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 17269,
-     "gem10": 14926,
+     "observedOn": "2026-09-27",
+     "total": 18537,
+     "gem10": 16016,
      "gemRatePct": 86.4,
-     "addedSinceLastPoint": 582
+     "addedSinceLastPoint": 1285
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -722,11 +722,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 14176,
-     "gem10": 13053,
-     "gemRatePct": 92.1,
-     "addedSinceLastPoint": 1433
+     "observedOn": "2026-09-27",
+     "total": 16738,
+     "gem10": 15393,
+     "gemRatePct": 92,
+     "addedSinceLastPoint": 2752
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -766,11 +766,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 8296,
-     "gem10": 7684,
-     "gemRatePct": 92.6,
-     "addedSinceLastPoint": 2148
+     "observedOn": "2026-09-27",
+     "total": 11929,
+     "gem10": 10986,
+     "gemRatePct": 92.1,
+     "addedSinceLastPoint": 4009
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -789,11 +789,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 2622,
-     "gem10": 2417,
-     "gemRatePct": 92.2,
-     "addedSinceLastPoint": 437
+     "observedOn": "2026-09-27",
+     "total": 3858,
+     "gem10": 3534,
+     "gemRatePct": 91.6,
+     "addedSinceLastPoint": 1091
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -816,11 +816,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-09",
-     "total": 44,
-     "gem10": 37,
-     "gemRatePct": 84.1,
-     "addedSinceLastPoint": 35
+     "observedOn": "2026-09-27",
+     "total": 335,
+     "gem10": 249,
+     "gemRatePct": 74.3,
+     "addedSinceLastPoint": 224
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -848,11 +848,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 12911,
-     "gem10": 11978,
-     "gemRatePct": 92.8,
-     "addedSinceLastPoint": 136
+     "observedOn": "2026-09-27",
+     "total": 13203,
+     "gem10": 12228,
+     "gemRatePct": 92.6,
+     "addedSinceLastPoint": 305
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -871,11 +871,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 7699,
-     "gem10": 6875,
-     "gemRatePct": 89.3,
-     "addedSinceLastPoint": 43
+     "observedOn": "2026-09-27",
+     "total": 7881,
+     "gem10": 7029,
+     "gemRatePct": 89.2,
+     "addedSinceLastPoint": 214
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -898,11 +898,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 12687,
-     "gem10": 11199,
-     "gemRatePct": 88.3,
-     "addedSinceLastPoint": 551
+     "observedOn": "2026-09-27",
+     "total": 13630,
+     "gem10": 12022,
+     "gemRatePct": 88.2,
+     "addedSinceLastPoint": 1093
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -921,11 +921,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 12579,
-     "gem10": 10859,
-     "gemRatePct": 86.3,
-     "addedSinceLastPoint": 183
+     "observedOn": "2026-09-27",
+     "total": 13180,
+     "gem10": 11361,
+     "gemRatePct": 86.2,
+     "addedSinceLastPoint": 634
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -948,11 +948,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 24267,
-     "gem10": 21049,
+     "observedOn": "2026-09-27",
+     "total": 26100,
+     "gem10": 22620,
      "gemRatePct": 86.7,
-     "addedSinceLastPoint": 751
+     "addedSinceLastPoint": 1889
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -971,11 +971,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 19713,
-     "gem10": 17284,
-     "gemRatePct": 87.7,
-     "addedSinceLastPoint": 855
+     "observedOn": "2026-09-27",
+     "total": 21716,
+     "gem10": 18983,
+     "gemRatePct": 87.4,
+     "addedSinceLastPoint": 2160
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -998,11 +998,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 47850,
-     "gem10": 41599,
-     "gemRatePct": 86.9,
-     "addedSinceLastPoint": 833
+     "observedOn": "2026-09-27",
+     "total": 49252,
+     "gem10": 42743,
+     "gemRatePct": 86.8,
+     "addedSinceLastPoint": 1645
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -1021,11 +1021,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 27508,
-     "gem10": 23838,
-     "gemRatePct": 86.7,
-     "addedSinceLastPoint": 219
+     "observedOn": "2026-09-27",
+     "total": 28175,
+     "gem10": 24373,
+     "gemRatePct": 86.5,
+     "addedSinceLastPoint": 756
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -1048,11 +1048,11 @@
    "canonicalUrl": "https://opboxindex.com/psa-grading.html",
    "japanese": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 22407,
-     "gem10": 19678,
-     "gemRatePct": 87.8,
-     "addedSinceLastPoint": 534
+     "observedOn": "2026-09-27",
+     "total": 23976,
+     "gem10": 21009,
+     "gemRatePct": 87.6,
+     "addedSinceLastPoint": 1743
     },
     "cgc": {
      "observedOn": "2026-09-11",
@@ -1071,11 +1071,11 @@
    },
    "english": {
     "psa": {
-     "observedOn": "2026-09-13",
-     "total": 32666,
-     "gem10": 27825,
+     "observedOn": "2026-09-27",
+     "total": 33958,
+     "gem10": 28921,
      "gemRatePct": 85.2,
-     "addedSinceLastPoint": 505
+     "addedSinceLastPoint": 1446
     },
     "cgc": {
      "observedOn": "2026-09-11",

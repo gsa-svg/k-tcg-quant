@@ -2,7 +2,7 @@
  "schemaVersion": "1.0.0",
  "datasetId": "opbox-ai-card-pages",
  "name": "OP Box Index — every tracked One Piece card variant with raw NM and PSA 10 prices",
- "datasetUpdatedOn": "2026-09-27",
+ "datasetUpdatedOn": "2026-09-28",
  "publisher": {
   "name": "OP Box Index",
   "url": "https://opboxindex.com/"
@@ -16,55 +16,8 @@
  "nullPolicy": "null means unavailable or not verified; it never means zero",
  "coreDataset": "https://opboxindex.com/opbox-ai-data.json",
  "note": "One page per tracked card variant. Numbers match the page; rawNmAsk is a Japanese retail asking price, psa10Sold a verified eBay sold median.",
- "count": 111,
+ "count": 112,
  "pages": [
-  {
-   "cardNumber": "OP13-118",
-   "name": "Monkey D. Luffy 118 Red Manga Alternate Art",
-   "rarity": "SEC",
-   "containerSetCode": "OP-13",
-   "url": "https://opboxindex.com/cards/op13-118-monkey-d-luffy-118-red-manga-alternate-art.html",
-   "exactVariantRequired": true,
-   "rawNmAsk": {
-    "basis": "japanese_retail_asking_price",
-    "currency": "JPY",
-    "priceJpy": 1480000,
-    "usdEquivalent": 9393.01,
-    "fxObservedOn": "2026-09-25",
-    "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
-    "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
-   },
-   "psa10Sold": {
-    "basis": "completed_sales",
-    "grade": "PSA 10",
-    "market": "eBay",
-    "currency": "KRW",
-    "median": 21270433,
-    "rangeLow": 21270433,
-    "rangeHigh": 21962671,
-    "rangePercentiles": [
-     25,
-     75
-    ],
-    "sampleSize": 3,
-    "sampleCollectedOn": "2026-07-10",
-    "ageDaysAtDatasetUpdate": 79,
-    "medianUsd": 14133.93,
-    "rangeLowUsd": 14133.93,
-    "rangeHighUsd": 14593.91,
-    "fxObservedOn": "2026-07-10"
-   },
-   "psaPopulation": {
-    "printing": "japanese",
-    "total": 738,
-    "grade10": 625,
-    "grade9": 99,
-    "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
-   }
-  },
   {
    "cardNumber": "OP05-119",
    "name": "Monkey D. Luffy 119 SP Gold",
@@ -81,7 +34,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -90,7 +43,54 @@
     "grade10": 1281,
     "grade9": 686,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP13-118",
+   "name": "Monkey D. Luffy 118 Red Manga Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-13",
+   "url": "https://opboxindex.com/cards/op13-118-monkey-d-luffy-118-red-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 1280000,
+    "usdEquivalent": 8123.69,
+    "fxObservedOn": "2026-09-25",
+    "sourceName": "Japanese retailer",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-27",
+    "ageDaysAtDatasetUpdate": 1
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "KRW",
+    "median": 21270433,
+    "rangeLow": 21270433,
+    "rangeHigh": 21962671,
+    "rangePercentiles": [
+     25,
+     75
+    ],
+    "sampleSize": 3,
+    "sampleCollectedOn": "2026-07-10",
+    "ageDaysAtDatasetUpdate": 80,
+    "medianUsd": 14133.93,
+    "rangeLowUsd": 14133.93,
+    "rangeHighUsd": 14593.91,
+    "fxObservedOn": "2026-07-10"
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 738,
+    "grade10": 625,
+    "grade9": 99,
+    "observedOn": "2026-09-22",
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -109,7 +109,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -118,7 +118,7 @@
     "grade10": 3702,
     "grade9": 309,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -131,13 +131,13 @@
    "rawNmAsk": {
     "basis": "japanese_retail_asking_price",
     "currency": "JPY",
-    "priceJpy": 598000,
-    "usdEquivalent": 3795.28,
+    "priceJpy": 498000,
+    "usdEquivalent": 3160.62,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -146,35 +146,7 @@
     "grade10": 3290,
     "grade9": 259,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
-   }
-  },
-  {
-   "cardNumber": "OP13-119",
-   "name": "Portgas D. Ace 119 Red Manga Alternate Art",
-   "rarity": "SEC",
-   "containerSetCode": "OP-13",
-   "url": "https://opboxindex.com/cards/op13-119-portgas-d-ace-119-red-manga-alternate-art.html",
-   "exactVariantRequired": true,
-   "rawNmAsk": {
-    "basis": "japanese_retail_asking_price",
-    "currency": "JPY",
-    "priceJpy": 598000,
-    "usdEquivalent": 3795.28,
-    "fxObservedOn": "2026-09-25",
-    "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
-    "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
-   },
-   "psa10Sold": null,
-   "psaPopulation": {
-    "printing": "japanese",
-    "total": 648,
-    "grade10": 574,
-    "grade9": 68,
-    "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -193,7 +165,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -202,7 +174,7 @@
     "grade10": 832,
     "grade9": 60,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -221,7 +193,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -230,7 +202,35 @@
     "grade10": 1165,
     "grade9": 666,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP13-119",
+   "name": "Portgas D. Ace 119 Red Manga Alternate Art",
+   "rarity": "SEC",
+   "containerSetCode": "OP-13",
+   "url": "https://opboxindex.com/cards/op13-119-portgas-d-ace-119-red-manga-alternate-art.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 498000,
+    "usdEquivalent": 3160.62,
+    "fxObservedOn": "2026-09-25",
+    "sourceName": "Japanese retailer",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-27",
+    "ageDaysAtDatasetUpdate": 1
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 648,
+    "grade10": 574,
+    "grade9": 68,
+    "observedOn": "2026-09-22",
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -249,7 +249,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -265,7 +265,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-07-09",
-    "ageDaysAtDatasetUpdate": 80,
+    "ageDaysAtDatasetUpdate": 81,
     "medianUsd": 2693.94,
     "rangeLowUsd": 2438.98,
     "rangeHighUsd": 5475.93,
@@ -277,7 +277,7 @@
     "grade10": 2480,
     "grade9": 272,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -296,7 +296,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -305,7 +305,7 @@
     "grade10": 589,
     "grade9": 59,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -322,9 +322,9 @@
     "usdEquivalent": 1573.96,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
+    "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -340,7 +340,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-07-10",
-    "ageDaysAtDatasetUpdate": 79,
+    "ageDaysAtDatasetUpdate": 80,
     "medianUsd": 1822.44,
     "rangeLowUsd": 1800.83,
     "rangeHighUsd": 1843.02,
@@ -352,7 +352,7 @@
     "grade10": 2524,
     "grade9": 354,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -371,7 +371,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -380,7 +380,7 @@
     "grade10": 1027,
     "grade9": 105,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -397,9 +397,9 @@
     "usdEquivalent": 1256.63,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
+    "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -415,7 +415,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 2768,
     "rangeLowUsd": 2548,
     "rangeHighUsd": 2989,
@@ -427,7 +427,7 @@
     "grade10": 4348,
     "grade9": 245,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -444,9 +444,9 @@
     "usdEquivalent": 1256.63,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
+    "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -462,7 +462,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 2815,
     "rangeLowUsd": 2815,
     "rangeHighUsd": 2901,
@@ -474,7 +474,7 @@
     "grade10": 2485,
     "grade9": 258,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -493,7 +493,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -502,7 +502,7 @@
     "grade10": 72,
     "grade9": 11,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -521,7 +521,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -530,7 +530,7 @@
     "grade10": 70,
     "grade9": 11,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -549,7 +549,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -558,7 +558,7 @@
     "grade10": 507,
     "grade9": 66,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -577,7 +577,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -593,7 +593,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1936,
     "rangeLowUsd": 1873,
     "rangeHighUsd": 1998,
@@ -605,7 +605,7 @@
     "grade10": 2401,
     "grade9": 507,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -624,7 +624,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -633,7 +633,7 @@
     "grade10": 358,
     "grade9": 185,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -652,7 +652,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -661,7 +661,7 @@
     "grade10": 2070,
     "grade9": 421,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -680,7 +680,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -689,7 +689,7 @@
     "grade10": 3831,
     "grade9": 514,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -706,9 +706,9 @@
     "usdEquivalent": 939.3,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
+    "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -724,7 +724,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1971,
     "rangeLowUsd": 1723,
     "rangeHighUsd": 2231,
@@ -736,7 +736,7 @@
     "grade10": 4667,
     "grade9": 621,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -755,7 +755,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -771,7 +771,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1601,
     "rangeLowUsd": 1374,
     "rangeHighUsd": 2373,
@@ -783,35 +783,7 @@
     "grade10": 2041,
     "grade9": 549,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
-   }
-  },
-  {
-   "cardNumber": "OP09-093",
-   "name": "Marshall D. Teach 093 Manga",
-   "rarity": "SR",
-   "containerSetCode": "OP-09",
-   "url": "https://opboxindex.com/cards/op09-093-marshall-d-teach-093-manga.html",
-   "exactVariantRequired": true,
-   "rawNmAsk": {
-    "basis": "japanese_retail_asking_price",
-    "currency": "JPY",
-    "priceJpy": 148000,
-    "usdEquivalent": 939.3,
-    "fxObservedOn": "2026-09-25",
-    "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
-    "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
-   },
-   "psa10Sold": null,
-   "psaPopulation": {
-    "printing": "japanese",
-    "total": 2517,
-    "grade10": 2147,
-    "grade9": 321,
-    "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -830,7 +802,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -846,7 +818,7 @@
     ],
     "sampleSize": 20,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1630,
     "rangeLowUsd": 1501,
     "rangeHighUsd": 2044,
@@ -858,7 +830,35 @@
     "grade10": 3822,
     "grade9": 516,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP09-093",
+   "name": "Marshall D. Teach SP Silver",
+   "rarity": "SR",
+   "containerSetCode": "OP-12",
+   "url": "https://opboxindex.com/cards/op09-093-marshall-d-teach-sp-silver.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 148000,
+    "usdEquivalent": 939.3,
+    "fxObservedOn": "2026-09-25",
+    "sourceName": "Japanese retailer",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-27",
+    "ageDaysAtDatasetUpdate": 1
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 986,
+    "grade10": 896,
+    "grade9": 80,
+    "observedOn": "2026-09-22",
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -877,7 +877,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -886,7 +886,7 @@
     "grade10": 628,
     "grade9": 43,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -905,7 +905,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -914,7 +914,7 @@
     "grade10": 535,
     "grade9": 43,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -933,7 +933,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -942,7 +942,7 @@
     "grade10": 491,
     "grade9": 78,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -961,7 +961,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -977,7 +977,7 @@
     ],
     "sampleSize": 15,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 2074,
     "rangeLowUsd": 1997,
     "rangeHighUsd": 2351,
@@ -989,7 +989,7 @@
     "grade10": 2115,
     "grade9": 762,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1008,7 +1008,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1024,7 +1024,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1663,
     "rangeLowUsd": 1499,
     "rangeHighUsd": 1791,
@@ -1036,7 +1036,7 @@
     "grade10": 2025,
     "grade9": 276,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1055,7 +1055,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": null,
    "psaPopulation": {
@@ -1064,7 +1064,35 @@
     "grade10": 4300,
     "grade9": 557,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP09-093",
+   "name": "Marshall D. Teach 093 Manga",
+   "rarity": "SR",
+   "containerSetCode": "OP-09",
+   "url": "https://opboxindex.com/cards/op09-093-marshall-d-teach-093-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 128000,
+    "usdEquivalent": 812.37,
+    "fxObservedOn": "2026-09-25",
+    "sourceName": "Japanese retailer",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-27",
+    "ageDaysAtDatasetUpdate": 1
+   },
+   "psa10Sold": null,
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2517,
+    "grade10": 2147,
+    "grade9": 321,
+    "observedOn": "2026-09-22",
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1083,7 +1111,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1099,7 +1127,7 @@
     ],
     "sampleSize": 11,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1124,
     "rangeLowUsd": 998,
     "rangeHighUsd": 1499,
@@ -1111,7 +1139,7 @@
     "grade10": 4937,
     "grade9": 394,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1130,7 +1158,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1146,7 +1174,7 @@
     ],
     "sampleSize": 7,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1074,
     "rangeLowUsd": 939,
     "rangeHighUsd": 1146,
@@ -1158,7 +1186,7 @@
     "grade10": 3276,
     "grade9": 504,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1177,7 +1205,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1193,7 +1221,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1092,
     "rangeLowUsd": 978,
     "rangeHighUsd": 1149,
@@ -1205,54 +1233,7 @@
     "grade10": 2064,
     "grade9": 287,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
-   }
-  },
-  {
-   "cardNumber": "OP14-119",
-   "name": "Dracule Mihawk Manga",
-   "rarity": "SEC",
-   "containerSetCode": "OP-14",
-   "url": "https://opboxindex.com/cards/op14-119-dracule-mihawk-manga.html",
-   "exactVariantRequired": true,
-   "rawNmAsk": {
-    "basis": "japanese_retail_asking_price",
-    "currency": "JPY",
-    "priceJpy": 99800,
-    "usdEquivalent": 633.39,
-    "fxObservedOn": "2026-09-25",
-    "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
-    "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
-   },
-   "psa10Sold": {
-    "basis": "completed_sales",
-    "grade": "PSA 10",
-    "market": "eBay",
-    "currency": "USD",
-    "median": 1037,
-    "rangeLow": 979,
-    "rangeHigh": 1108,
-    "rangePercentiles": [
-     15,
-     85
-    ],
-    "sampleSize": 16,
-    "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
-    "medianUsd": 1037,
-    "rangeLowUsd": 979,
-    "rangeHighUsd": 1108,
-    "fxObservedOn": "2026-09-25"
-   },
-   "psaPopulation": {
-    "printing": "japanese",
-    "total": 1963,
-    "grade10": 1603,
-    "grade9": 336,
-    "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1271,7 +1252,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1287,7 +1268,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-06-29",
-    "ageDaysAtDatasetUpdate": 90,
+    "ageDaysAtDatasetUpdate": 91,
     "medianUsd": 743.6,
     "rangeLowUsd": 652.03,
     "rangeHighUsd": 808.9,
@@ -1299,7 +1280,7 @@
     "grade10": 2940,
     "grade9": 394,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1318,7 +1299,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1334,7 +1315,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 857,
     "rangeLowUsd": 817,
     "rangeHighUsd": 878,
@@ -1346,7 +1327,7 @@
     "grade10": 3124,
     "grade9": 481,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1365,7 +1346,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1381,7 +1362,7 @@
     ],
     "sampleSize": 12,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 979,
     "rangeLowUsd": 921,
     "rangeHighUsd": 1099,
@@ -1393,7 +1374,54 @@
     "grade10": 1996,
     "grade9": 619,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP14-119",
+   "name": "Dracule Mihawk Manga",
+   "rarity": "SEC",
+   "containerSetCode": "OP-14",
+   "url": "https://opboxindex.com/cards/op14-119-dracule-mihawk-manga.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 79800,
+    "usdEquivalent": 506.46,
+    "fxObservedOn": "2026-09-25",
+    "sourceName": "Japanese retailer",
+    "stockStatus": "out_of_stock",
+    "observedOn": "2026-09-27",
+    "ageDaysAtDatasetUpdate": 1
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 1037,
+    "rangeLow": 979,
+    "rangeHigh": 1108,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 16,
+    "sampleCollectedOn": "2026-09-14",
+    "ageDaysAtDatasetUpdate": 14,
+    "medianUsd": 1037,
+    "rangeLowUsd": 979,
+    "rangeHighUsd": 1108,
+    "fxObservedOn": "2026-09-25"
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 1963,
+    "grade10": 1603,
+    "grade9": 336,
+    "observedOn": "2026-09-22",
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1412,7 +1440,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1428,7 +1456,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 894,
     "rangeLowUsd": 814,
     "rangeHighUsd": 1199,
@@ -1440,7 +1468,7 @@
     "grade10": 1426,
     "grade9": 142,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1459,7 +1487,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1475,7 +1503,7 @@
     ],
     "sampleSize": 9,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 966,
     "rangeLowUsd": 799,
     "rangeHighUsd": 1114,
@@ -1487,7 +1515,7 @@
     "grade10": 1462,
     "grade9": 196,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1506,7 +1534,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1522,7 +1550,7 @@
     ],
     "sampleSize": 20,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 921,
     "rangeLowUsd": 829,
     "rangeHighUsd": 989,
@@ -1534,7 +1562,7 @@
     "grade10": 3251,
     "grade9": 307,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1553,7 +1581,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1569,7 +1597,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1301,
     "rangeLowUsd": 1249,
     "rangeHighUsd": 1426,
@@ -1581,7 +1609,7 @@
     "grade10": 1543,
     "grade9": 298,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1600,7 +1628,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1616,7 +1644,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1057,
     "rangeLowUsd": 846,
     "rangeHighUsd": 1299,
@@ -1628,7 +1656,7 @@
     "grade10": 3399,
     "grade9": 473,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1647,7 +1675,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1663,7 +1691,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-06-29",
-    "ageDaysAtDatasetUpdate": 90,
+    "ageDaysAtDatasetUpdate": 91,
     "medianUsd": 487.14,
     "rangeLowUsd": 309.19,
     "rangeHighUsd": 962.01,
@@ -1675,7 +1703,7 @@
     "grade10": 270,
     "grade9": 12,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1694,7 +1722,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1710,7 +1738,7 @@
     ],
     "sampleSize": 25,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 599,
     "rangeLowUsd": 531,
     "rangeHighUsd": 649,
@@ -1722,7 +1750,7 @@
     "grade10": 3005,
     "grade9": 165,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1741,7 +1769,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1757,7 +1785,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1035,
     "rangeLowUsd": 807,
     "rangeHighUsd": 1274,
@@ -1769,7 +1797,7 @@
     "grade10": 2185,
     "grade9": 218,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1788,7 +1816,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1804,7 +1832,7 @@
     ],
     "sampleSize": 14,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 719,
     "rangeLowUsd": 574,
     "rangeHighUsd": 749,
@@ -1816,7 +1844,7 @@
     "grade10": 2123,
     "grade9": 94,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1835,7 +1863,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1851,7 +1879,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 443,
     "rangeLowUsd": 425,
     "rangeHighUsd": 461,
@@ -1863,7 +1891,7 @@
     "grade10": 1071,
     "grade9": 317,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1882,7 +1910,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1898,7 +1926,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 444,
     "rangeLowUsd": 392,
     "rangeHighUsd": 849,
@@ -1910,7 +1938,7 @@
     "grade10": 5183,
     "grade9": 391,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1929,7 +1957,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1945,7 +1973,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-08-31",
-    "ageDaysAtDatasetUpdate": 27,
+    "ageDaysAtDatasetUpdate": 28,
     "medianUsd": 509,
     "rangeLowUsd": 501,
     "rangeHighUsd": 576,
@@ -1957,7 +1985,7 @@
     "grade10": 4619,
     "grade9": 196,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -1976,7 +2004,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -1992,7 +2020,7 @@
     ],
     "sampleSize": 18,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 515,
     "rangeLowUsd": 440,
     "rangeHighUsd": 599,
@@ -2004,7 +2032,7 @@
     "grade10": 4927,
     "grade9": 277,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2023,7 +2051,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2039,7 +2067,7 @@
     ],
     "sampleSize": 11,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 500,
     "rangeLowUsd": 325,
     "rangeHighUsd": 529,
@@ -2051,7 +2079,7 @@
     "grade10": 1992,
     "grade9": 192,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2070,7 +2098,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2086,7 +2114,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 577,
     "rangeLowUsd": 410,
     "rangeHighUsd": 729,
@@ -2098,7 +2126,7 @@
     "grade10": 2923,
     "grade9": 290,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2117,7 +2145,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2133,7 +2161,7 @@
     ],
     "sampleSize": 15,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 550,
     "rangeLowUsd": 540,
     "rangeHighUsd": 659,
@@ -2145,7 +2173,7 @@
     "grade10": 1931,
     "grade9": 638,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2164,7 +2192,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2180,7 +2208,7 @@
     ],
     "sampleSize": 12,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 618,
     "rangeLowUsd": 485,
     "rangeHighUsd": 999,
@@ -2192,7 +2220,7 @@
     "grade10": 1414,
     "grade9": 130,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2211,7 +2239,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2227,7 +2255,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 679,
     "rangeLowUsd": 467,
     "rangeHighUsd": 999,
@@ -2239,7 +2267,7 @@
     "grade10": 1688,
     "grade9": 89,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2258,7 +2286,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2274,7 +2302,7 @@
     ],
     "sampleSize": 19,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 543,
     "rangeLowUsd": 400,
     "rangeHighUsd": 934,
@@ -2286,7 +2314,7 @@
     "grade10": 3161,
     "grade9": 309,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2305,7 +2333,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2321,7 +2349,7 @@
     ],
     "sampleSize": 11,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 400,
     "rangeLowUsd": 392,
     "rangeHighUsd": 550,
@@ -2333,7 +2361,7 @@
     "grade10": 1525,
     "grade9": 123,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2352,7 +2380,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2368,7 +2396,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 475,
     "rangeLowUsd": 450,
     "rangeHighUsd": 500,
@@ -2380,7 +2408,7 @@
     "grade10": 552,
     "grade9": 25,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2399,7 +2427,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2415,7 +2443,7 @@
     ],
     "sampleSize": 13,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 480,
     "rangeLowUsd": 475,
     "rangeHighUsd": 500,
@@ -2427,7 +2455,7 @@
     "grade10": 1234,
     "grade9": 139,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2446,7 +2474,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2462,7 +2490,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 325,
     "rangeLowUsd": 310,
     "rangeHighUsd": 375,
@@ -2474,7 +2502,7 @@
     "grade10": 1399,
     "grade9": 204,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2493,7 +2521,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2509,7 +2537,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 440,
     "rangeLowUsd": 350,
     "rangeHighUsd": 525,
@@ -2521,7 +2549,7 @@
     "grade10": 951,
     "grade9": 102,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2540,7 +2568,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2556,7 +2584,7 @@
     ],
     "sampleSize": 21,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 409,
     "rangeLowUsd": 375,
     "rangeHighUsd": 450,
@@ -2568,7 +2596,7 @@
     "grade10": 992,
     "grade9": 96,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2587,7 +2615,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2603,7 +2631,7 @@
     ],
     "sampleSize": 14,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 245,
     "rangeLowUsd": 229,
     "rangeHighUsd": 300,
@@ -2615,7 +2643,7 @@
     "grade10": 8710,
     "grade9": 589,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2634,7 +2662,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2650,7 +2678,7 @@
     ],
     "sampleSize": 16,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 160,
     "rangeLowUsd": 150,
     "rangeHighUsd": 185,
@@ -2662,7 +2690,7 @@
     "grade10": 484,
     "grade9": 28,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2681,7 +2709,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2697,7 +2725,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 270,
     "rangeLowUsd": 230,
     "rangeHighUsd": 490,
@@ -2709,7 +2737,7 @@
     "grade10": 2495,
     "grade9": 233,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2728,7 +2756,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2744,7 +2772,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 238,
     "rangeLowUsd": 233,
     "rangeHighUsd": 242,
@@ -2756,7 +2784,7 @@
     "grade10": 2345,
     "grade9": 324,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2775,7 +2803,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2791,7 +2819,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 305,
     "rangeLowUsd": 192,
     "rangeHighUsd": 499,
@@ -2803,7 +2831,7 @@
     "grade10": 1503,
     "grade9": 117,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2822,7 +2850,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2838,7 +2866,7 @@
     ],
     "sampleSize": 7,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 300,
     "rangeLowUsd": 275,
     "rangeHighUsd": 320,
@@ -2850,7 +2878,7 @@
     "grade10": 4014,
     "grade9": 207,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2869,7 +2897,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2885,7 +2913,7 @@
     ],
     "sampleSize": 9,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 250,
     "rangeLowUsd": 210,
     "rangeHighUsd": 300,
@@ -2897,7 +2925,7 @@
     "grade10": 3426,
     "grade9": 208,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2916,7 +2944,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2932,7 +2960,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 230,
     "rangeLowUsd": 230,
     "rangeHighUsd": 263,
@@ -2944,7 +2972,7 @@
     "grade10": 4876,
     "grade9": 226,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -2963,7 +2991,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -2979,7 +3007,7 @@
     ],
     "sampleSize": 9,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 300,
     "rangeLowUsd": 297,
     "rangeHighUsd": 325,
@@ -2991,7 +3019,7 @@
     "grade10": 1961,
     "grade9": 103,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3010,7 +3038,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3026,7 +3054,7 @@
     ],
     "sampleSize": 11,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 300,
     "rangeLowUsd": 250,
     "rangeHighUsd": 349,
@@ -3038,7 +3066,7 @@
     "grade10": 1232,
     "grade9": 173,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3057,7 +3085,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3073,7 +3101,7 @@
     ],
     "sampleSize": 11,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 275,
     "rangeLowUsd": 250,
     "rangeHighUsd": 300,
@@ -3085,7 +3113,7 @@
     "grade10": 1005,
     "grade9": 48,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3104,7 +3132,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3120,7 +3148,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 199,
     "rangeLowUsd": 158,
     "rangeHighUsd": 240,
@@ -3132,7 +3160,7 @@
     "grade10": 1082,
     "grade9": 42,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3151,7 +3179,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3167,7 +3195,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 325,
     "rangeLowUsd": 300,
     "rangeHighUsd": 375,
@@ -3179,7 +3207,7 @@
     "grade10": 755,
     "grade9": 74,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3198,7 +3226,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3214,7 +3242,7 @@
     ],
     "sampleSize": 24,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 262,
     "rangeLowUsd": 199,
     "rangeHighUsd": 420,
@@ -3226,7 +3254,7 @@
     "grade10": 2060,
     "grade9": 185,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3245,7 +3273,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3261,7 +3289,7 @@
     ],
     "sampleSize": 7,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 260,
     "rangeLowUsd": 250,
     "rangeHighUsd": 337,
@@ -3273,7 +3301,7 @@
     "grade10": 2007,
     "grade9": 119,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3292,7 +3320,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3308,7 +3336,7 @@
     ],
     "sampleSize": 9,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 225,
     "rangeLowUsd": 180,
     "rangeHighUsd": 285,
@@ -3320,7 +3348,7 @@
     "grade10": 2604,
     "grade9": 78,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3339,7 +3367,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3355,7 +3383,7 @@
     ],
     "sampleSize": 6,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 195,
     "rangeLowUsd": 185,
     "rangeHighUsd": 210,
@@ -3367,7 +3395,7 @@
     "grade10": 2059,
     "grade9": 109,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3386,7 +3414,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3402,7 +3430,7 @@
     ],
     "sampleSize": 12,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 247,
     "rangeLowUsd": 233,
     "rangeHighUsd": 299,
@@ -3414,7 +3442,7 @@
     "grade10": 1331,
     "grade9": 335,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3433,7 +3461,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3449,7 +3477,7 @@
     ],
     "sampleSize": 10,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 243,
     "rangeLowUsd": 237,
     "rangeHighUsd": 250,
@@ -3461,7 +3489,7 @@
     "grade10": 1698,
     "grade9": 171,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3478,9 +3506,9 @@
     "usdEquivalent": 50.65,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
+    "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3496,7 +3524,7 @@
     ],
     "sampleSize": 12,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 631,
     "rangeLowUsd": 400,
     "rangeHighUsd": 699,
@@ -3508,7 +3536,7 @@
     "grade10": 2112,
     "grade9": 190,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3527,7 +3555,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3543,7 +3571,7 @@
     ],
     "sampleSize": 7,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 273,
     "rangeLowUsd": 245,
     "rangeHighUsd": 300,
@@ -3555,7 +3583,7 @@
     "grade10": 646,
     "grade9": 54,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3574,7 +3602,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3590,7 +3618,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 350,
     "rangeLowUsd": 324,
     "rangeHighUsd": 400,
@@ -3602,7 +3630,7 @@
     "grade10": 673,
     "grade9": 121,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3619,9 +3647,9 @@
     "usdEquivalent": 44.3,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
+    "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3637,7 +3665,7 @@
     ],
     "sampleSize": 9,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 140,
     "rangeLowUsd": 119,
     "rangeHighUsd": 150,
@@ -3649,7 +3677,7 @@
     "grade10": 322,
     "grade9": 24,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3668,7 +3696,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3684,7 +3712,7 @@
     ],
     "sampleSize": 13,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 120,
     "rangeLowUsd": 100,
     "rangeHighUsd": 130,
@@ -3696,7 +3724,7 @@
     "grade10": 1894,
     "grade9": 203,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3713,9 +3741,9 @@
     "usdEquivalent": 37.95,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
+    "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3731,7 +3759,7 @@
     ],
     "sampleSize": 9,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 158,
     "rangeLowUsd": 130,
     "rangeHighUsd": 160,
@@ -3743,7 +3771,54 @@
     "grade10": 1162,
     "grade9": 71,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
+   }
+  },
+  {
+   "cardNumber": "OP10-019",
+   "name": "Divine Departure Parallel",
+   "rarity": "R",
+   "containerSetCode": "OP-10",
+   "url": "https://opboxindex.com/cards/op10-019-divine-departure-parallel.html",
+   "exactVariantRequired": true,
+   "rawNmAsk": {
+    "basis": "japanese_retail_asking_price",
+    "currency": "JPY",
+    "priceJpy": 5980,
+    "usdEquivalent": 37.95,
+    "fxObservedOn": "2026-09-25",
+    "sourceName": "Japanese retailer",
+    "stockStatus": "in_stock",
+    "observedOn": "2026-09-27",
+    "ageDaysAtDatasetUpdate": 1
+   },
+   "psa10Sold": {
+    "basis": "completed_sales",
+    "grade": "PSA 10",
+    "market": "eBay",
+    "currency": "USD",
+    "median": 149,
+    "rangeLow": 120,
+    "rangeHigh": 170,
+    "rangePercentiles": [
+     15,
+     85
+    ],
+    "sampleSize": 19,
+    "sampleCollectedOn": "2026-09-14",
+    "ageDaysAtDatasetUpdate": 14,
+    "medianUsd": 149,
+    "rangeLowUsd": 120,
+    "rangeHighUsd": 170,
+    "fxObservedOn": "2026-09-25"
+   },
+   "psaPopulation": {
+    "printing": "japanese",
+    "total": 2658,
+    "grade10": 2459,
+    "grade9": 162,
+    "observedOn": "2026-09-22",
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3762,7 +3837,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3778,7 +3853,7 @@
     ],
     "sampleSize": 11,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 125,
     "rangeLowUsd": 102,
     "rangeHighUsd": 140,
@@ -3790,7 +3865,7 @@
     "grade10": 1272,
     "grade9": 81,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3809,7 +3884,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3825,7 +3900,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 461,
     "rangeLowUsd": 388,
     "rangeHighUsd": 699,
@@ -3849,7 +3924,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3865,7 +3940,7 @@
     ],
     "sampleSize": 15,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 299,
     "rangeLowUsd": 279,
     "rangeHighUsd": 322,
@@ -3877,7 +3952,7 @@
     "grade10": 4306,
     "grade9": 337,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3896,7 +3971,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3912,7 +3987,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 222,
     "rangeLowUsd": 222,
     "rangeHighUsd": 225,
@@ -3924,7 +3999,7 @@
     "grade10": 839,
     "grade9": 42,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -3941,9 +4016,9 @@
     "usdEquivalent": 31.61,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
+    "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -3959,7 +4034,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-06-29",
-    "ageDaysAtDatasetUpdate": 90,
+    "ageDaysAtDatasetUpdate": 91,
     "medianUsd": 69.04,
     "rangeLowUsd": 67.91,
     "rangeHighUsd": 99.41,
@@ -3971,54 +4046,7 @@
     "grade10": 472,
     "grade9": 27,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
-   }
-  },
-  {
-   "cardNumber": "OP10-019",
-   "name": "Divine Departure Parallel",
-   "rarity": "R",
-   "containerSetCode": "OP-10",
-   "url": "https://opboxindex.com/cards/op10-019-divine-departure-parallel.html",
-   "exactVariantRequired": true,
-   "rawNmAsk": {
-    "basis": "japanese_retail_asking_price",
-    "currency": "JPY",
-    "priceJpy": 4980,
-    "usdEquivalent": 31.61,
-    "fxObservedOn": "2026-09-25",
-    "sourceName": "Japanese retailer",
-    "stockStatus": "in_stock",
-    "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
-   },
-   "psa10Sold": {
-    "basis": "completed_sales",
-    "grade": "PSA 10",
-    "market": "eBay",
-    "currency": "USD",
-    "median": 149,
-    "rangeLow": 120,
-    "rangeHigh": 170,
-    "rangePercentiles": [
-     15,
-     85
-    ],
-    "sampleSize": 19,
-    "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
-    "medianUsd": 149,
-    "rangeLowUsd": 120,
-    "rangeHighUsd": 170,
-    "fxObservedOn": "2026-09-25"
-   },
-   "psaPopulation": {
-    "printing": "japanese",
-    "total": 2658,
-    "grade10": 2459,
-    "grade9": 162,
-    "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4037,7 +4065,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4053,7 +4081,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-06-29",
-    "ageDaysAtDatasetUpdate": 90,
+    "ageDaysAtDatasetUpdate": 91,
     "medianUsd": 96.3,
     "rangeLowUsd": 79.53,
     "rangeHighUsd": 130.27,
@@ -4065,7 +4093,7 @@
     "grade10": 591,
     "grade9": 124,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4084,7 +4112,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4100,7 +4128,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-08-31",
-    "ageDaysAtDatasetUpdate": 27,
+    "ageDaysAtDatasetUpdate": 28,
     "medianUsd": 120,
     "rangeLowUsd": 120,
     "rangeHighUsd": 197,
@@ -4112,7 +4140,7 @@
     "grade10": 824,
     "grade9": 140,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4131,7 +4159,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4147,7 +4175,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 250,
     "rangeLowUsd": 245,
     "rangeHighUsd": 250,
@@ -4159,7 +4187,7 @@
     "grade10": 719,
     "grade9": 45,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4176,9 +4204,9 @@
     "usdEquivalent": 25.26,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
+    "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4194,7 +4222,7 @@
     ],
     "sampleSize": 7,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 130,
     "rangeLowUsd": 110,
     "rangeHighUsd": 150,
@@ -4206,7 +4234,7 @@
     "grade10": 600,
     "grade9": 52,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4223,9 +4251,9 @@
     "usdEquivalent": 25.26,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
+    "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4241,7 +4269,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 100,
     "rangeLowUsd": 100,
     "rangeHighUsd": 150,
@@ -4253,7 +4281,7 @@
     "grade10": 1255,
     "grade9": 58,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4272,7 +4300,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4288,7 +4316,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 73,
     "rangeLowUsd": 58,
     "rangeHighUsd": 76,
@@ -4300,7 +4328,7 @@
     "grade10": 1240,
     "grade9": 22,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4319,7 +4347,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4335,7 +4363,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-08-31",
-    "ageDaysAtDatasetUpdate": 27,
+    "ageDaysAtDatasetUpdate": 28,
     "medianUsd": 244,
     "rangeLowUsd": 190,
     "rangeHighUsd": 298,
@@ -4347,7 +4375,7 @@
     "grade10": 517,
     "grade9": 61,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4366,7 +4394,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4382,7 +4410,7 @@
     ],
     "sampleSize": 4,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 108,
     "rangeLowUsd": 96,
     "rangeHighUsd": 120,
@@ -4394,7 +4422,7 @@
     "grade10": 466,
     "grade9": 62,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4413,7 +4441,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4429,7 +4457,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 250,
     "rangeLowUsd": 250,
     "rangeHighUsd": 290,
@@ -4441,7 +4469,7 @@
     "grade10": 859,
     "grade9": 71,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4460,7 +4488,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4476,7 +4504,7 @@
     ],
     "sampleSize": 8,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 236,
     "rangeLowUsd": 137,
     "rangeHighUsd": 280,
@@ -4488,7 +4516,7 @@
     "grade10": 2117,
     "grade9": 138,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4505,9 +4533,9 @@
     "usdEquivalent": 18.91,
     "fxObservedOn": "2026-09-25",
     "sourceName": "Japanese retailer",
-    "stockStatus": "out_of_stock",
+    "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4523,7 +4551,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 120,
     "rangeLowUsd": 120,
     "rangeHighUsd": 174,
@@ -4535,7 +4563,7 @@
     "grade10": 1360,
     "grade9": 77,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4554,7 +4582,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4570,7 +4598,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-08-31",
-    "ageDaysAtDatasetUpdate": 27,
+    "ageDaysAtDatasetUpdate": 28,
     "medianUsd": 145,
     "rangeLowUsd": 145,
     "rangeHighUsd": 160,
@@ -4582,7 +4610,7 @@
     "grade10": 586,
     "grade9": 47,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4601,7 +4629,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4617,7 +4645,7 @@
     ],
     "sampleSize": 5,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 220,
     "rangeLowUsd": 207,
     "rangeHighUsd": 250,
@@ -4629,7 +4657,7 @@
     "grade10": 224,
     "grade9": 14,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4648,7 +4676,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4664,7 +4692,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-08-31",
-    "ageDaysAtDatasetUpdate": 27,
+    "ageDaysAtDatasetUpdate": 28,
     "medianUsd": 320,
     "rangeLowUsd": 320,
     "rangeHighUsd": 411,
@@ -4676,7 +4704,7 @@
     "grade10": 391,
     "grade9": 21,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4695,7 +4723,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "in_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4711,7 +4739,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 55,
     "rangeLowUsd": 55,
     "rangeHighUsd": 60,
@@ -4723,7 +4751,7 @@
     "grade10": 332,
     "grade9": 14,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4742,7 +4770,7 @@
     "sourceName": "Japanese retailer",
     "stockStatus": "out_of_stock",
     "observedOn": "2026-09-27",
-    "ageDaysAtDatasetUpdate": 0
+    "ageDaysAtDatasetUpdate": 1
    },
    "psa10Sold": {
     "basis": "completed_sales",
@@ -4758,7 +4786,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-06-29",
-    "ageDaysAtDatasetUpdate": 90,
+    "ageDaysAtDatasetUpdate": 91,
     "medianUsd": 248.54,
     "rangeLowUsd": 153.71,
     "rangeHighUsd": 770.48,
@@ -4770,7 +4798,7 @@
     "grade10": 2008,
     "grade9": 205,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4795,7 +4823,7 @@
     ],
     "sampleSize": 3,
     "sampleCollectedOn": "2026-09-14",
-    "ageDaysAtDatasetUpdate": 13,
+    "ageDaysAtDatasetUpdate": 14,
     "medianUsd": 1158,
     "rangeLowUsd": 1158,
     "rangeHighUsd": 1379,
@@ -4807,7 +4835,7 @@
     "grade10": 82,
     "grade9": 12,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   },
   {
@@ -4825,7 +4853,7 @@
     "grade10": 565,
     "grade9": 62,
     "observedOn": "2026-09-22",
-    "ageDaysAtDatasetUpdate": 5
+    "ageDaysAtDatasetUpdate": 6
    }
   }
  ]
