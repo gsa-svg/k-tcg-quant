@@ -18,7 +18,7 @@
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <!-- 2026-09-17: 검색 제목 60자·설명 155자 이내로 축약(구글 잘림·재작성 방지) -->
     <title>How Many Packs in a One Piece Booster Box? Cards and MSRP</title>
-    <meta name="description" content="A Japanese One Piece booster box has 24 packs of 6 cards; English packs hold more at a higher MSRP. Official numbers, box math and market vs retail price." />
+    <meta name="description" content="A Japanese One Piece booster box has 24 packs of 6 cards; Premium Boosters have 10. Per-set table of Bandai MSRP per pack and per box against what sealed boxes actually sell for, updated daily." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:image" content="https://opboxindex.com/og/og-packs-msrp.png" />
     <meta property="og:image:width" content="1200" />
@@ -27,7 +27,7 @@
     <meta property="og:title" content="How Many Packs in a One Piece Booster Box? Packs, Cards & MSRP Explained" />
     <meta property="og:description" content="24 packs per box, 6 cards per Japanese pack. Official numbers, box math, and why market prices differ from retail." />
     <meta property="og:url" content="https://opboxindex.com/articles/how-many-packs-one-piece-booster-box.html" />
-    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How many packs are in a One Piece booster box?", "description": "A Japanese One Piece booster box has 24 packs of 6 cards; English packs hold more at a higher MSRP. Official numbers, box math and market vs retail price.", "image": "https://opboxindex.com/og/og-packs-msrp.png", "datePublished": "2026-07-16", "dateModified": "2026-08-10", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://opboxindex.com/articles/how-many-packs-one-piece-booster-box.html"}, "author": {"@type": "Organization", "name": "OP Box Index", "url": "https://opboxindex.com/"}, "publisher": {"@type": "Organization", "name": "OP Box Index", "url": "https://opboxindex.com/"}, "isAccessibleForFree": true}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "How many packs are in a One Piece booster box?", "description": "A Japanese One Piece booster box has 24 packs of 6 cards; English packs hold more at a higher MSRP. Official numbers, box math and market vs retail price.", "image": "https://opboxindex.com/og/og-packs-msrp.png", "datePublished": "2026-07-16", "dateModified": "2026-09-27", "inLanguage": "en-US", "mainEntityOfPage": {"@type": "WebPage", "@id": "https://opboxindex.com/articles/how-many-packs-one-piece-booster-box.html"}, "author": {"@type": "Organization", "name": "OP Box Index", "url": "https://opboxindex.com/"}, "publisher": {"@type": "Organization", "name": "OP Box Index", "url": "https://opboxindex.com/"}, "isAccessibleForFree": true}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How many packs are in a One Piece booster box?","acceptedAnswer":{"@type":"Answer","text":"A standard One Piece Card Game booster box contains 24 booster packs. This applies to Japanese and English main-set boxes (OP-01 onward)."}}]}</script>
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "OP Box Index", "item": "https://opboxindex.com/"}, {"@type": "ListItem", "position": 2, "name": "Articles", "item": "https://opboxindex.com/articles/"}, {"@type": "ListItem", "position": 3, "name": "How many packs in a One Piece booster box?", "item": "https://opboxindex.com/articles/how-many-packs-one-piece-booster-box.html"}]}</script>
     <link rel="stylesheet" href="../styles.css?v=20260924a" />
@@ -35,6 +35,14 @@
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      .dataTable { width: 100%; border-collapse: collapse; margin: 14px 0 6px; font-size: 14px; }
+      .dataTable th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-weight: 600; }
+      .dataTable th.num, .dataTable td.num { text-align: right; }
+      .dataTable td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
+      .tblWrap { overflow-x: auto; }
+      .srcNoteA { color: #7d8698; font-size: 12.5px; margin: 4px 0 18px; }
+    </style>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -57,11 +65,56 @@
       <p>Two boxes, same set, very different sticker prices: a Japanese box at retail costs roughly a third of an English box at retail. This gap at MSRP is the starting point for the much larger market-price gaps we track — see <a href="japanese-vs-english-box-price-data-2026.html">our six-month Japanese vs English price study</a>, where aged English boxes trade at up to 7.4x their Japanese versions.</p>
 
       <h2>What rarities come in a box?</h2>
-      <p>Bandai publishes each set's card list but does not publish official pull rates. Using OP-16 The Time of Battle as an example, the official set composition is 126+1 card types: Leaders, Commons, Uncommons, Rares, Super Rares, Secret Rares, Special cards, a Treasure Rare and a DON!! card. How many of the top rarities appear in any given box is randomized, and premium variants (manga art, special-art parallels) appear at low, unpublished odds. Community case-opening data suggests the rough frequency of those chase pulls, but treat any precise "1 in X packs" figure you see online as an estimate, not an official rate.</p>
+      <p>Bandai publishes how many <em>card types</em> each rarity has, but never the odds of pulling them. The newest Japanese main set, OP-17 The World's Strongest Warriors, breaks down like this on Bandai's own product page:</p>
+      <div class="tblWrap"><table class="dataTable">
+        <thead><tr><th>Rarity</th><th class="num">Card types in OP-17</th></tr></thead>
+        <tbody>
+          <tr><td>Common</td><td class="num">45</td></tr>
+          <tr><td>Uncommon</td><td class="num">30</td></tr>
+          <tr><td>Rare</td><td class="num">26</td></tr>
+          <tr><td>Super Rare</td><td class="num">10</td></tr>
+          <tr><td>Special Card</td><td class="num">10</td></tr>
+          <tr><td>Leader</td><td class="num">6</td></tr>
+          <tr><td>DON!! Card</td><td class="num">4</td></tr>
+          <tr><td>Secret Rare</td><td class="num">3</td></tr>
+          <tr><td>Treasure Rare</td><td class="num">1</td></tr>
+          <tr><td><strong>Total</strong></td><td class="num"><strong>131 + 4</strong></td></tr>
+        </tbody>
+      </table></div>
+      <p class="srcNoteA">Source: <a href="https://www.onepiece-cardgame.com/products/op17.html" rel="noopener noreferrer" target="_blank">Bandai's official OP-17 product page</a>, read September 28, 2026. These are counts of distinct cards in the set, not how many land in one box. A pack holds 6 cards and Bandai publishes no pull rates, so any precise "1 in X packs" figure is somebody's estimate.</p>
+      <p>How many of the top rarities land in any given box is randomized, and premium variants (manga art, special-art parallels) appear at low, unpublished odds. Community case-opening reports circulate, but the figures conflict widely between sources, so this site does not publish a pull rate until an auditable sealed-case sample supports it.</p>
       <p>Collectors often compare chase-card prices with sealed-box prices because rare premium variants are part of opening demand. The comparison is not expected value: Bandai does not publish the pull rates needed for that calculation. Our set pages list the <strong>top 10 tracked chase cards</strong> for each set — for example the <a href="../sets/op-13.html">OP-13 guide</a>.</p>
 
       <h2>Box math: MSRP vs market price</h2>
-      <p>MSRP only matters while a set is in print. Once supply dries up, sealed boxes trade at market price — which for Japanese sets we track moved between <strong>$73 and $313 per box</strong> as of mid-July 2026, against that ~$37-40 retail baseline. A Japanese OP-01 Romance Dawn box that sold at retail for around ¥5,000 in 2022 traded near <strong>$313</strong> (about ¥48,000) in July 2026. The same dynamic works in reverse for brand-new sets: boxes of the newest set often dip <em>below</em> hyped pre-order prices right after release, when supply is at its peak — OP-16's English box fell 53% from its April pre-release price to $188 by mid-July.</p>
+      <p data-pack-math-lead>Japanese retail is fixed per pack, so every box has a printed baseline you can measure the market against. The table below puts Bandai's Japanese MSRP next to what a sealed box actually sold for, per set and per pack. Across the 18 sets with a completed sale in the last 28 days, the widest gap is <strong>OP-01</strong> at 9.9× Japanese retail per pack ($12.50), and the narrowest is <strong>OP-08</strong> at 2.4× ($3.29). Sets with no completed sale in the last 28 days are left blank rather than carried forward.</p>
+      <div class="tblWrap" data-pack-math><table class="dataTable">
+        <thead><tr><th>Set</th><th class="num">Packs</th><th class="num">MSRP / pack</th><th class="num">MSRP / box</th><th class="num">Box sold</th><th class="num">Per pack</th><th class="num">vs MSRP</th></tr></thead>
+        <tbody>
+          <tr><td>OP-01</td><td class="num">24</td><td class="num">¥198</td><td class="num">¥4,752</td><td class="num">$300</td><td class="num">$12.50</td><td class="num">9.9×</td></tr>
+          <tr><td>OP-02</td><td class="num">24</td><td class="num">¥198</td><td class="num">¥4,752</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>OP-03</td><td class="num">24</td><td class="num">¥198</td><td class="num">¥4,752</td><td class="num">$126</td><td class="num">$5.25</td><td class="num">4.2×</td></tr>
+          <tr><td>OP-04</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$175</td><td class="num">$7.29</td><td class="num">5.2×</td></tr>
+          <tr><td>OP-05</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$174</td><td class="num">$7.25</td><td class="num">5.2×</td></tr>
+          <tr><td>OP-06</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>OP-07</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$80</td><td class="num">$3.33</td><td class="num">2.4×</td></tr>
+          <tr><td>OP-08</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$79</td><td class="num">$3.29</td><td class="num">2.4×</td></tr>
+          <tr><td>OP-09</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$133</td><td class="num">$5.54</td><td class="num">4.0×</td></tr>
+          <tr><td>OP-10</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$88</td><td class="num">$3.67</td><td class="num">2.6×</td></tr>
+          <tr><td>OP-11</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$120</td><td class="num">$5.00</td><td class="num">3.6×</td></tr>
+          <tr><td>OP-12</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$110</td><td class="num">$4.58</td><td class="num">3.3×</td></tr>
+          <tr><td>OP-13</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$129</td><td class="num">$5.38</td><td class="num">3.8×</td></tr>
+          <tr><td>OP-14</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$96</td><td class="num">$4.00</td><td class="num">2.9×</td></tr>
+          <tr><td>OP-15</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$98</td><td class="num">$4.08</td><td class="num">2.9×</td></tr>
+          <tr><td>OP-16</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$95</td><td class="num">$3.96</td><td class="num">2.8×</td></tr>
+          <tr><td>OP-17</td><td class="num">24</td><td class="num">¥240</td><td class="num">¥5,760</td><td class="num">$131</td><td class="num">$5.46</td><td class="num">3.6×</td></tr>
+          <tr><td>EB-01</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>EB-02</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+          <tr><td>EB-03</td><td class="num">24</td><td class="num">¥220</td><td class="num">¥5,280</td><td class="num">$115</td><td class="num">$4.79</td><td class="num">3.4×</td></tr>
+          <tr><td>PRB-01</td><td class="num">10</td><td class="num">¥550</td><td class="num">¥5,500</td><td class="num">$150</td><td class="num">$15.00</td><td class="num">4.3×</td></tr>
+          <tr><td>PRB-02</td><td class="num">10</td><td class="num">¥550</td><td class="num">¥5,500</td><td class="num">$99</td><td class="num">$9.90</td><td class="num">2.8×</td></tr>
+        </tbody>
+      </table></div>
+      <p class="srcNoteA" data-pack-math-note>MSRP is Bandai's Japanese manufacturer price, tax included. “Box sold” is the median of completed eBay sales for the sealed Japanese box, as of September 27, 2026; “per pack” divides that by the pack count in the same row. Yen converted at ¥1 = $0.00635 (September 25, 2026). A multiple above 1× is what an overseas buyer pays over Japanese shelf price, including the seller's shipping and margin — it is not a measure of card value.</p>
       <p>Practical takeaways:</p>
       <ul>
         <li><strong>Buying to open:</strong> compare the box price to MSRP first. Paying far above retail for an in-print set means the market expects chase cards to justify it — verify that on the set's top-10 card list before you pay the premium.</li>
