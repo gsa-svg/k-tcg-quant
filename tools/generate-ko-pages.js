@@ -188,12 +188,12 @@ const html = `<!doctype html>
     <link rel="alternate" hreflang="x-default" href="${SITE}/" />
     <link rel="alternate" type="application/rss+xml" title="OP Box Index 한국어" href="${SITE}/ko/feed.xml" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
-    <title>원피스 카드 시세 · 일판 부스터박스 시세 | opboxindex</title>
-    <meta name="description" content="원피스카드 일판 시세 — 부스터박스·낱장 원화 시세. 이베이 실낙찰 기준, 정발(한글판) 제외." />
+    <title>원피스 카드 시세 — 일판 부스터박스 ${rows.length}세트 원화 (${DATA_DATE} 기준) | opboxindex</title>
+    <meta name="description" content="일판 원피스 부스터박스 ${rows.length}세트의 원화 시세를 매일 갱신합니다. 박스 시세·재판 기록·급등락 세트, 인기 카드 낱장과 PSA 10 시세까지. 이베이 실제 낙찰가 기준 (${DATA_DATE}, 일판 전용)." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ko_KR" />
-    <meta property="og:title" content="원피스 부스터박스 시세 (일본판) — 전 세트 원화 시세" />
+    <meta property="og:title" content="원피스 부스터박스 시세 (일판) — ${rows.length}세트 원화, ${DATA_DATE} 기준" />
     <meta property="og:description" content="일본판 원피스 박스 전 세트 원화 시세·재판 기록. 실거래 및 검증된 매물 기반, 매일 갱신." />
     <meta property="og:url" content="${SITE}/ko/" />
     <meta property="og:image" content="${SITE}/og/og-set-list.png" />
