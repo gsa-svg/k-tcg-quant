@@ -116,6 +116,49 @@ function graderRows(card) {
   const order = { PSA: 0, CGC: 1, TAG: 2 };
   return out.sort((a, b) => order[a.grader] - order[b.grader] || (a.ed === "Japanese" ? -1 : 1));
 }
+// PSA 인구 관측 이력(일본판) — data/psa-card-pop.json 의 이 카드 변형 시계열.
+// 매칭은 tools/inject-card-grades.js 와 똑같이 한다(donRef 가 있으면 그 키, 없으면 `번호|tier`, 담고 있는 박스 코드) —
+// 그래야 이 표의 마지막 행이 위 헤드라인 PSA 인구(graderPop.psa.jp.total)와 같은 값이 된다.
+// 2026-09-29(감사 cards-weekly-pop-series-unrendered): 카드별 원장이 111장에 중앙값 10점씩 쌓여 있었는데
+// 색인된 어느 페이지에도 나오지 않았다. 카드마다 다른 값이라 형제 페이지와 겹치지 않는다.
+// 관측일은 불규칙하다(수집한 날 PSA 공개 보고를 기록) — 그래서 "by week" 가 아니라 "by observation date".
+// 음수 증감(재등급·정정)은 화면에 증감으로 띄우지 않는다(audit-grading-numbers.js 와 같은 규칙).
+// ourTier 는 파일 위쪽(37행)에서 이미 불러왔다.
+const { donRef } = require("./psa-card-pop-ingest.js");
+let PSA_CARD_POP = null;
+try { PSA_CARD_POP = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "psa-card-pop.json"), "utf8")); } catch {}
+function psaHistory(card, boxCode) {
+  if (!PSA_CARD_POP || !boxCode) return [];
+  const num = (card.number || "").toUpperCase();
+  const don = donRef(card.name);
+  if (!num && !don) return [];
+  const key = don ? don.key : `${num}|${ourTier(card.name || "")}`;
+  const arr = PSA_CARD_POP.sets?.[boxCode]?.jp?.[key];
+  if (!Array.isArray(arr)) return [];
+  return arr.filter((p) => Number.isInteger(p.total) && p.total > 0 && Number.isInteger(p.g10) && p.g10 <= p.total);
+}
+function psaHistorySection(card, boxCode) {
+  const pts = psaHistory(card, boxCode);
+  if (pts.length < 2) return "";
+  const rows = pts
+    .map((p, i) => {
+      const prev = i ? pts[i - 1] : null;
+      const diff = prev ? p.total - prev.total : null;
+      const chg = diff != null && diff > 0 ? `+${intl(diff)}` : "—";
+      return `<tr><td>${esc(p.d)}</td><td class="num">${intl(p.total)}</td><td class="num">${intl(p.g10)}</td><td class="num">${Number.isInteger(p.g9) ? intl(p.g9) : "—"}</td><td class="num">${chg}</td></tr>`;
+    })
+    .reverse() // 최신이 위
+    .join("\n        ");
+  const first = pts[0], last = pts[pts.length - 1];
+  const grew = last.total - first.total;
+  return `
+      <h2>${esc(card.name)} PSA population by observation date (Japanese)</h2>
+      <table class="dataTable"><thead><tr><th>Observed</th><th class="num">Graded</th><th class="num">PSA 10</th><th class="num">PSA 9</th><th class="num">New since previous</th></tr></thead><tbody>
+        ${rows}
+      </tbody></table>
+      <p class="srcNoteA">${intl(grew > 0 ? grew : 0)} copies added between ${esc(first.d)} and ${esc(last.d)} across ${pts.length} observations. Dates are when PSA's published report was recorded, so intervals are uneven; a smaller total than the previous row (regrade or correction) is shown without a change figure. Japanese ${esc(card.name)} ${esc(card.number || "")} only.</p>`;
+}
+
 function graderSection(card) {
   const rows = graderRows(card);
   if (!rows.length) return "";
@@ -406,6 +449,7 @@ ${BUY_CTA_CSS}
 
       ${gradeSection}
       ${graderSection(c)}
+      ${psaHistorySection(c, code)}
 
       ${(() => {
         // 이 카드번호가 경매에서 실제로 어떻게 팔렸나 — 우리가 종료 후 재조회해 쌓은 원장에서만 나온다.
