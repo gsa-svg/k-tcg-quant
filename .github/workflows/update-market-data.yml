@@ -201,6 +201,7 @@ jobs:
           node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
           node tools/inject-set-list-prices.js 2>&1 | tee logs/inject-set-list-prices.log
           node tools/inject-pack-math.js 2>&1 | tee logs/inject-pack-math.log
+          node tools/inject-box-price-guide.js 2>&1 | tee logs/inject-box-price-guide.log
           node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
           # 메뉴·언어 토글은 생성기가 덮어쓴다 → 반드시 생성기 뒤에. 빠지면 가드 N1 FAIL(2026-09-06 까지 매주 실패한 원인).
           node tools/inject-nav.js 2>&1 | tee logs/inject-nav.log
