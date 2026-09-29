@@ -82,14 +82,52 @@ const keptFromBefore = [...seen.values()]
   .sort((a, b) => b.card.nmJpy - a.card.nmJpy);
 const cands = [...top, ...strong, ...keptFromBefore];
 
-// PSA pop 매칭(세트 psa 표)
-function popOf(setObj, card) {
-  for (const r of setObj.psa || []) {
-    const numOk = (card.number || "").includes(r.number || "___");
-    const nameOk = norm(card.name).includes(norm(r.name).slice(0, 10));
-    if (numOk && nameOk) return r;
+// PSA 인구 — card.graderPop.psa.jp(번호|tier 변형 매칭, tools/inject-card-grades.js 산출)을 쓴다.
+// 2026-09-29: 종전엔 세트 psa 표에서 "번호 부분일치 + 이름 앞 10자"로 첫 행을 집었다. rarity 를 안 봐서
+// 인구를 보여 주던 88장이 전부 틀렸다(0/88 일치). 예: OP13-118 Super AA 와 Red Manga 가 둘 다 4,349(AA 행)였는데
+// sets/op-13.html 은 같은 두 카드를 2,574 와 744 로 보여 준다. 나머지 24장은 데이터가 있는데도 비어 있었다.
+// 젬률 정의는 세트 페이지(generate-set-pages.js)와 같다: PSA 10 ÷ 전체.
+function popOf(card) {
+  const g = card.graderPop && card.graderPop.psa && card.graderPop.psa.jp;
+  if (!g || !g.total) return null;
+  const psa10 = g.g10 || 0;
+  const psa9 = g.g9 || 0;
+  return { total: g.total, psa10, psa9, gem: Math.round((psa10 / g.total) * 100), d: g.d || null };
+}
+
+// 등급사 × 판 표 — PSA/CGC/TAG 를 일본판·영문판 따로. 등급사·판은 합산하지 않는다(inject-card-grades.js 규칙).
+// 최고 등급 정의는 세트 페이지와 같다: PSA 10 / CGC Pristine 10 + Gem Mint 10 / TAG 10 + 10P.
+// 이 카드의 변형 하나에만 해당하는 값이라, 형제 카드 페이지와 겹치지 않는 고유 데이터다.
+function graderRows(card) {
+  const gp = card.graderPop || {};
+  const out = [];
+  const add = (grader, ed, total, top, topLabel, d) => {
+    if (!total) return;
+    out.push({ grader, ed, total, top, topLabel, share: Math.round((top / total) * 100), d });
+  };
+  for (const [ed, label] of [["jp", "Japanese"], ["en", "English"]]) {
+    const p = gp.psa && gp.psa[ed];
+    if (p) add("PSA", label, p.total, p.g10 || 0, "PSA 10", p.d);
+    const c = gp.cgc && gp.cgc[ed];
+    if (c) add("CGC", label, c.total, (c.pristine10 || 0) + (c.gemMint10 || 0), "Pristine 10 + Gem Mint 10", c.d);
+    const t = gp.tag && gp.tag[ed];
+    if (t) add("TAG", label, t.total, (t.g10 || 0) + (t.g10p || 0), "TAG 10 + 10P", t.d);
   }
-  return null;
+  const order = { PSA: 0, CGC: 1, TAG: 2 };
+  return out.sort((a, b) => order[a.grader] - order[b.grader] || (a.ed === "Japanese" ? -1 : 1));
+}
+function graderSection(card) {
+  const rows = graderRows(card);
+  if (!rows.length) return "";
+  const body = rows
+    .map((r) => `<tr><td>${r.grader}</td><td>${r.ed}</td><td class="num">${intl(r.total)}</td><td>${r.topLabel}</td><td class="num">${intl(r.top)}</td><td class="num">${r.share}%</td><td>${esc(r.d || "—")}</td></tr>`)
+    .join("\n        ");
+  return `
+      <h2>${esc(card.name)} grading population by grader</h2>
+      <table class="dataTable"><thead><tr><th>Grader</th><th>Edition</th><th>Graded</th><th>Top grade</th><th>Top-grade copies</th><th>Share</th><th>As of</th></tr></thead><tbody>
+        ${body}
+      </tbody></table>
+      <p class="srcNoteA">Exact-printing counts for ${esc(card.name)} ${esc(card.number || "")} only; other printings of the same card number are not included. Each grader and edition is counted separately and never summed.</p>`;
 }
 // PSA10 표시가(세트 페이지와 동일 규칙: sold n>=3 우선, 아니면 최저 ask)
 function psa10Of(card) {
@@ -137,7 +175,7 @@ const written = [];
 for (const { code, set: s, card: c } of cands) {
   const nmUsd = jpyUsd(c.nmJpy);
   const p10 = psa10Of(c);
-  const pop = popOf(s, c);
+  const pop = popOf(c);
   const slug = slugify(c.number + "-" + c.name);
   const fname = slug + ".html";
   const canonical = `${SITE}/cards/${fname}`;
@@ -364,6 +402,7 @@ ${BUY_CTA_CSS}
       <p class="srcNoteA">${esc(c.name)} checkpoints use Japanese-retail NM observations and exact-variant eBay sold medians; missing cells remain unestimated.</p>` : ""}
 
       ${gradeSection}
+      ${graderSection(c)}
 
       ${(() => {
         // 이 카드번호가 경매에서 실제로 어떻게 팔렸나 — 우리가 종료 후 재조회해 쌓은 원장에서만 나온다.

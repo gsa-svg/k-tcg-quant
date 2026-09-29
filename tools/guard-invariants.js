@@ -1016,6 +1016,32 @@ if (exists("index.html") && exists("data/onepiece-packs.json")) {
     errors.push("H3: packs.js 가 정적 hreflang 태그를 지운다 — 렌더 뒤 hreflang 이 정적 HTML 과 달라짐");
 }
 
+// ── C4. 카드 페이지 PSA 인구 = 변형 정확 매칭 원천(graderPop.psa.jp.total) — 2026-09-29 발견:
+//    generate-card-pages.js 가 세트 psa 표에서 "번호 부분일치 + 이름 앞 10자"로 첫 행을 집어 rarity 를 무시했다.
+//    인구를 보여 주던 88장이 전부 틀렸고(OP13-118 Super AA·Red Manga 둘 다 4,349, 실제 2,574·744) 24장은 비어 있었다.
+//    세트 페이지는 같은 카드를 맞게 보여 줘서 두 페이지가 서로 다른 숫자를 냈다.
+{
+  const slugifyC4 = (s) => String(s).toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+  const setsC4 = data.sets || data;
+  let bad = 0;
+  for (const code of Object.keys(setsC4)) {
+    for (const c of setsC4[code].cards || []) {
+      const f = `cards/${slugifyC4(c.number + "-" + c.name)}.html`;
+      if (!exists(f)) continue;
+      const shown = (read(f).match(/PSA population<\/span><b>([^<]+)<\/b>/) || [])[1];
+      const src = c.graderPop && c.graderPop.psa && c.graderPop.psa.jp && c.graderPop.psa.jp.total;
+      if (src && shown && shown.trim() !== Number(src).toLocaleString("en-US")) {
+        if (bad++ < 5) errors.push(`C4: ${f} PSA 인구 표시 ${shown.trim()} ≠ 원천 ${Number(src).toLocaleString("en-US")} (변형 오매칭)`);
+      } else if (src && !shown) {
+        if (bad++ < 5) errors.push(`C4: ${f} PSA 인구 원천(${src})이 있는데 표시 안 됨`);
+      } else if (!src && shown) {
+        if (bad++ < 5) errors.push(`C4: ${f} 원천 없는 PSA 인구 ${shown.trim()} 표시`);
+      }
+    }
+  }
+  if (bad > 5) errors.push(`C4: 그 밖에 ${bad - 5}장 더 불일치`);
+}
+
 // ── L1. 구조화 데이터(JSON-LD) 파싱 유효성 — 깨진 스키마는 리치결과·AI 인용에서 통째로 무시됨
 for (const f of PUBLIC_HTML) {
   for (const m of read(f).matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
@@ -1533,4 +1559,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
