@@ -379,7 +379,8 @@ function englishPage(code, prev, next) {
   // 제목 = "<코드> <세트명> English Booster Box Price"(2026-09-17). 브랜드 꼬리는 60자 안에 들어맞을 때만, 그래도 넘치면 "Booster" 를 뺀다.
   // (2026-09-09 감사 때 60자 "안팎"으로 줄였지만 22장 중 20장이 여전히 60자를 넘어 검색결과에서 잘렸다.)
   const core = `${code} ${nameEn} English Booster Box Price`;
-  const title = uniqueTitle(fit([`${core} | OP Box Index`, core, `${code} ${nameEn} English Box Price`], TITLE_MAX, code));
+  // 2026-09-29: 'One Piece' 를 맨 앞 후보로. 다음 후보는 'Booster' 를 빼고 'One Piece' 를 지킨다(일본판 생성기와 같은 규칙).
+  const title = uniqueTitle(fit([`One Piece ${core}`, `One Piece ${code} ${nameEn} English Box Price`, `${core} | OP Box Index`, core, `${code} ${nameEn} English Box Price`], TITLE_MAX, code));
   // 설명은 155자 안에서 문장이 끝나야 한다 — 종전 slice(0,155) 는 단어 중간을 잘랐다. 값 없는 조각은 빠진다.
   // 넘치면 긴 꼬리를 떼고, 그래도 넘치면 같은 숫자를 짧은 말로 다시 쓴다(숫자는 그대로).
   const bitsOf = (short) => [
@@ -407,7 +408,7 @@ function englishPage(code, prev, next) {
       <p class="eyebrow">Set Guide · English edition</p>
       <div class="setHero">
         <div>
-          <h1>${code} ${esc(nameEn)} — English booster box price</h1>
+          <h1>One Piece ${code} ${esc(nameEn)} — English booster box price</h1>
           <p class="eyebrow">English edition${s.release ? ` · released ${esc(s.release)}` : ""} · <a href="${slug(code)}.html">Japanese box guide</a></p>
           ${summaryLine}
           <p class="pageUpdated">Data updated <time datetime="${DATA_DATE}">${DATA_DATE}</time> · refreshed daily</p>

@@ -464,7 +464,10 @@ function setPage(code, prev, next) {
   // 브랜드 꼬리는 들어맞을 때만 붙이고, 그래도 넘치면 "Booster" 를 뺀다. priority-set-seo.json 의 title(재판 랜딩)은 그 파일에서 60자 안으로 관리한다.
   const title = uniqueTitle(prioritySeo?.title
     ? fit([`${prioritySeo.title} | OP Box Index`, prioritySeo.title], TITLE_MAX, code)
-    : fit([`${code} ${nameEn} Japanese Booster Box Price | OP Box Index`, `${code} ${nameEn} Japanese Booster Box Price`, `${code} ${nameEn} Japanese Box Price`], TITLE_MAX, code));
+    // 2026-09-29: 'One Piece' 를 맨 앞 후보로(GSC 실검색어 5개 중 4개가 'one piece' 를 포함).
+    // 다음 후보는 'Booster' 를 빼고 'One Piece' 를 지킨다 — 빙 최고 성과 검색어가 'one piece box prices'(2.1위, CTR 44%)이고
+    // 'booster box' 는 H1 에 그대로 남는다. 그래도 60자를 넘으면 종전 제목.
+    : fit([`One Piece ${code} ${nameEn} Japanese Booster Box Price`, `One Piece ${code} ${nameEn} Japanese Box Price`, `${code} ${nameEn} Japanese Booster Box Price | OP Box Index`, `${code} ${nameEn} Japanese Booster Box Price`, `${code} ${nameEn} Japanese Box Price`], TITLE_MAX, code));
   // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
   // 그것부터 템플릿 신호다. 해설이 없는 세트만 기존 골격으로 떨어진다.
   const story = COMMENTARY.sets?.[code];
@@ -807,7 +810,7 @@ function setPage(code, prev, next) {
       <div class="setHero">
         ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" width="132" height="184" loading="eager" fetchpriority="high" decoding="async" />` : ""}
         <div>
-          <h1>${code} ${esc(nameEn)} — Japanese booster box price${prioritySeo ? ", reprints" : ""} &amp; chase cards</h1>
+          <h1>One Piece ${code} ${esc(nameEn)} — Japanese booster box price${prioritySeo ? ", reprints" : ""} &amp; chase cards</h1>
           ${release}
           ${summaryLine}
           ${/* 갱신일을 정적 HTML 로 — 기존 "Updated" 는 JS 로만 찍혀서 크롤러에겐 날짜 없는

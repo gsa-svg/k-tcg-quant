@@ -270,7 +270,10 @@ for (const { code, set: s, card: c } of cands) {
   // 타이틀 = "<이름> <번호> <짧은 변형> PSA 10 Price" (2026-09-16). 구글은 60자(약 580px) 넘는 제목을 잘라내거나
   // 다시 쓴다 — 전엔 112장 전부 60자 초과였다. 월 표기·"& Population"·브랜드 꼬리를 뺐다.
   const sn = seoName(c);
-  const title = sn.short + " PSA 10 Price";
+  // 2026-09-29: (1) 'One Piece' 를 앞에 — 60자에 들어갈 때만. (2) PSA 10 값이 없는 카드(5장)는 제목이 "PSA 10 Price" 인데
+  // 본문은 "No PSA 10 figure is shown" 이었다. 그런 카드는 실제로 있는 값(원본 시세·등급 인구)으로 이름 붙인다.
+  const tail = p10 ? " PSA 10 Price" : " Price & PSA Population";
+  const title = [`One Piece ${sn.short}${tail}`, `${sn.short}${tail}`, `${sn.short} Card Price`].find((t) => t.length <= 60) || `${sn.short}${tail}`;
   // PSA10 실거래 표본이 드문 카드는 값이 몇 달 묵기도 한다. 그때 페이지 빌드일(DATA_DATE)로 "Updated" 를 달면
   // 6월 가격이 오늘 값처럼 읽힌다(2026-09-22 실측 18장). 35일 넘으면 그 숫자 옆에 관측 월을 붙인다.
   // 설명은 155자 이하. 넘치면 같은 숫자를 압축 표현으로 다시 쓴다(숫자는 그대로, 말만 줄임).
