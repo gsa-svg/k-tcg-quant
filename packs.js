@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260924a";
+const DATA_VERSION = "20260929a";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -291,33 +291,10 @@ function updateUrl(replace = false) {
   );
 }
 
-function upsertHreflang(pack) {
-  document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((node) => node.remove());
-  if (!state.hasExplicitSet) {
-    [["en", `${SITE_BASE}/`], ["ko", `${SITE_BASE}/?hl=ko`], ["x-default", `${SITE_BASE}/`]].forEach(([lang, href]) => {
-      const link = document.createElement("link");
-      link.rel = "alternate";
-      link.hreflang = lang;
-      link.href = href;
-      link.dataset.ktcgHreflang = "true";
-      document.head.appendChild(link);
-    });
-    return;
-  }
-  const baseParams = new URLSearchParams();
-  if (state.hasExplicitSet) baseParams.set("set", pack.key);
-  if (state.lang !== "jp") baseParams.set("lang", state.lang);
-  [["en", "en"], ["ko", "ko"], ["x-default", "en"]].forEach(([lang, hl]) => {
-    const params = new URLSearchParams(baseParams);
-    if (hl) params.set("hl", hl);
-    const link = document.createElement("link");
-    link.rel = "alternate";
-    link.hreflang = lang;
-    link.href = SITE_BASE + "/packs.html?" + params;
-    link.dataset.ktcgHreflang = "true";
-    document.head.appendChild(link);
-  });
-}
+// hreflang 은 JS 로 바꾸지 않는다(2026-09-29). 정적 HTML 의 en=/ · ko=/ko/ · x-default=/ 를 그대로 둔다.
+// 종전 코드는 정적 태그를 지우고 ko 를 /?hl=ko 로, ?set= 일 때는 packs.html 의 set·hl 파라미터 변형으로 다시 만들었다 —
+// 7/19 커밋 1090e5da 가 정적 HTML 에서 고친 "?hl= 대상 금지"(가드 H1)를 런타임에서 되돌리고 있었다.
+function upsertHreflang() {}
 
 function ebayQueryFor(pack) {
   const parts = ["One Piece Card Game", pack.code, pack.nameEn, "Booster Box", "Japanese", "sealed"];
@@ -1907,20 +1884,17 @@ function updateSeo(pack) {
     document.querySelector('meta[property="og:title"]')?.setAttribute("content", title);
     document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
   }
+  // canonical 은 JS 로 바꾸지 않는다(2026-09-29). 정적 HTML 의 canonical(index.html·packs.html 둘 다 "/")을 그대로 둔다.
+  // 종전엔 ?set= 로 들어오면 canonical 을 packs.html 의 set 파라미터 변형(noindex)으로 바꿔 썼다. 세트 페이지 44곳의 주 CTA 가
+  // /?set=CODE 로 링크돼 있어 색인 불가 URL 88개가 생겼고, 7월 홈이 검색에서 사라진 사고와 같은 중복 클러스터였다.
+  // 구글 JS SEO 문서도 JS 로 기존 canonical 을 바꾸는 것을 잘못된 구현으로 적는다.
+  // (compare.html 은 load() 에서 updateSeo 전에 return 하므로 여기 오지 않는다.)
   let canonical = document.querySelector('link[rel="canonical"]');
   if (!canonical) {
     canonical = document.createElement("link");
     canonical.rel = "canonical";
-    document.head.appendChild(canonical);
-  }
-  const params = new URLSearchParams();
-  if (isSetPage) {
-    params.set("set", pack.key);
-    if (state.lang !== "jp") params.set("lang", state.lang);
-    params.set("hl", state.hl);
-    canonical.href = `${SITE_BASE}/packs.html?${params}`;
-  } else {
     canonical.href = `${SITE_BASE}/`;
+    document.head.appendChild(canonical);
   }
   document.querySelector('meta[property="og:url"]')?.setAttribute("content", canonical.href);
   document.documentElement.lang = state.hl === "en" ? "en" : "ko";

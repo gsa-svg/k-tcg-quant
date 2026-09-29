@@ -1000,6 +1000,22 @@ if (exists("index.html") && exists("data/onepiece-packs.json")) {
   }
 }
 
+// ── H3. 런타임 SEO 재작성 금지 — 2026-09-29 발견: H1 은 정적 HTML 만 봐서 통과했지만 packs.js 가 렌더 뒤
+//    (a) hreflang 을 지우고 ko=/?hl=ko 로 다시 만들어 7/19 수정을 되돌렸고,
+//    (b) ?set= 로 들어오면 canonical 을 packs.html?set=…(noindex) 로 바꿔 썼다.
+//    세트 페이지 44곳의 주 CTA 가 /?set=CODE 라 색인 불가 URL 88개가 생겼다(7월 홈 증발 사고와 같은 중복 클러스터).
+//    구글은 JS 렌더 뒤의 canonical·hreflang 을 읽으므로 정적 HTML 만 검사해서는 못 잡는다.
+{
+  const js = read("packs.js");
+  const code = js.replace(/\/\/[^\n]*/g, ""); // 주석 속 설명 문구는 검사하지 않는다
+  if (/canonical\.href\s*=\s*[`'"][^`'"]*packs\.html\?/.test(code) || /canonical\.href\s*=\s*`\$\{SITE_BASE\}\/packs\.html/.test(code))
+    errors.push("H3: packs.js 가 canonical 을 packs.html?… (noindex) 로 재작성한다 — 정적 canonical 을 그대로 둬야 함");
+  if (/hreflang[\s\S]{0,400}\?hl=/.test(code) && /createElement\(\s*["']link["']\s*\)[\s\S]{0,300}hreflang/.test(code))
+    errors.push("H3: packs.js 가 hreflang 을 ?hl= 파라미터 URL 로 만들어 넣는다 — 정적 hreflang(/ko/) 을 덮어씀");
+  if (/querySelectorAll\(\s*['"]link\[rel="alternate"\]\[hreflang\]['"]\s*\)\s*\.forEach\([\s\S]{0,60}?remove\(\)/.test(code))
+    errors.push("H3: packs.js 가 정적 hreflang 태그를 지운다 — 렌더 뒤 hreflang 이 정적 HTML 과 달라짐");
+}
+
 // ── L1. 구조화 데이터(JSON-LD) 파싱 유효성 — 깨진 스키마는 리치결과·AI 인용에서 통째로 무시됨
 for (const f of PUBLIC_HTML) {
   for (const m of read(f).matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
@@ -1517,4 +1533,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));

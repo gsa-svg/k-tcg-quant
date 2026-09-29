@@ -17,6 +17,25 @@ try { SET_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-auct
 // but the copy intentionally avoids a permanent "best-selling" claim.
 const SLEEVE_EBAY = `https://www.ebay.com/itm/136768331994?${EPN}`;
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+
+// 세트 허브의 "Upcoming sets" 목록 — data/upcoming-set-pages.json 에서 만든다.
+// 2026-09-29: 종전엔 EB-05 한 줄이 하드코딩돼 있어 OP-18 페이지로 들어오는 내부 링크가 사이트 전체 1개였다.
+// 그 줄의 "EB-03's +50% climb predicts" 문구는 EB-05 페이지 본문("선례 하나로 예측 못 한다")과 모순이라 뺐다.
+// 발매일은 facts 의 공식 행(일본판 우선, 없으면 영문판)에서 " · " 앞부분만 쓴다 — 값을 만들어내지 않는다.
+function upcomingItems() {
+  let pages = [];
+  try { pages = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "upcoming-set-pages.json"), "utf8")).pages || []; } catch { return ""; }
+  return pages
+    .map((p) => {
+      const name = String(p.title || "").slice(String(p.code).length + 1).split(/\s+(?:\(|—)/)[0].trim();
+      const row = (p.facts || []).find((f) => f[0] === "Japanese release") || (p.facts || []).find((f) => f[0] === "English release");
+      const when = row ? String(row[1]).split(" · ")[0].trim() : "";
+      if (!p.slug || !p.code) return "";
+      return `<li><a href="${esc(p.slug)}.html"><strong>${esc(p.code)}${name ? " " + esc(name) : ""}</strong></a>${when ? " — " + esc(when) : ""}</li>`;
+    })
+    .filter(Boolean)
+    .join("\n        ");
+}
 // 박스 실거래 시세 그래프 — 그림은 box-chart.js 한 곳에서만 그린다(홈 화면과 같은 파일).
 const BoxChart = require(path.join(ROOT, "box-chart.js"));
 let SOLD_SERIES = { sets: {} };
@@ -916,7 +935,7 @@ function hubPage() {
       </ul>` : ""}
       <h2>Upcoming sets</h2>
       <ul class="chaseList">
-        <li><a href="eb-05.html"><strong>EB-05 Heroines Edition vol.2</strong></a> — October 2026. What EB-03's tracked +50% climb predicts.</li>
+        ${upcomingItems()}
       </ul>
       <div class="setNavLinks">
         <a href="../">Open the live price tracker</a>

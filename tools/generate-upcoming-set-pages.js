@@ -70,7 +70,9 @@ function seoName(page) {
   return name;
 }
 function seoTitle(page) {
-  const core = `${page.code} ${seoName(page)} Booster Box Release Date`;
+  // 2026-09-29: 실검색어는 "one piece op 18 release date" 다(GSC). 종전 제목엔 'One Piece' 가 없고
+  // 'Release Date' 가 맨 뒤라 구글 75위였다. 검색어 순서대로 앞에 둔다.
+  const core = `One Piece ${page.code} Release Date — ${seoName(page)}`;
   const title = fit([`${core} | OP Box Index`, core], TITLE_MAX, page.slug);
   if (seenTitles.has(title)) throw new Error(`타이틀 중복: ${title}`);
   seenTitles.add(title);
