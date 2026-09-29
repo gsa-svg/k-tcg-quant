@@ -136,5 +136,12 @@ if (!wrote.length) {
   process.exit(0);
 }
 html = html.replace(/("dateModified": ")[^"]*(")/, (_m, a, b) => a + dataDate + b);
+// 화면 바이라인의 "Updated" 날짜도 dataDate 로 맞춘다 — JSON-LD dateModified 만 바꾸면 구글이 보는 두 날짜가 어긋난다(감사 SD2, 2026-09-29).
+// 바이라인에 Updated 가 아예 없으면 Published 뒤에 한 번 넣는다.
+if (/Updated <time datetime="/.test(html)) {
+  html = html.replace(/(Updated <time datetime=")[^"]*(">)[^<]*(<\/time>)/, (_m, a, b, c) => a + dataDate + b + longDate(dataDate) + c);
+} else {
+  html = html.replace(/(Published <time datetime="[^"]*">[^<]*<\/time>)/, (_m, a) => `${a} · Updated <time datetime="${dataDate}">${longDate(dataDate)}</time>`);
+}
 fs.writeFileSync(ART, html);
 console.log(JSON.stringify({ status: "ok", dataDate, rows: rows.length, live: liveCount, wrote }));

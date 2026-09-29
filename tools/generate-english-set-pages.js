@@ -117,7 +117,12 @@ function statGrid(code, m) {
     const cls = m.chg > 0 ? "statUp" : m.chg < 0 ? "statDown" : "statFlat";
     card("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `${baseLabel("chg")} ${BASE.chg.v > 0 ? "+" : ""}${BASE.chg.v}%`);
   }
-  if (m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3) card("Asking price (mid)", usd(m.ask.middle), `${m.ask.sampleSize} active listings · ${esc(m.ask.updated || DATA_DATE)}`, "Median asking price of verified active eBay listings — not a completed sale.");
+  // 2026-09-29(감사 SD4): Product 스키마의 AggregateOffer lowPrice·highPrice 가 화면에 없었다(highPrice 22/22 숨김).
+  // 구조화 데이터는 화면 내용을 반영해야 하므로, 일본판 세트 페이지처럼 호가 범위를 같은 칸에 보여 준다.
+  if (m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3) {
+    const rng = m.ask.low != null && m.ask.high != null && m.ask.high >= m.ask.low ? ` · Range ${usd(m.ask.low)} – ${usd(m.ask.high)}` : "";
+    card("Asking price (mid)", usd(m.ask.middle), `${m.ask.sampleSize} active listings${rng} · ${esc(m.ask.updated || DATA_DATE)}`, "Median asking price of verified active eBay listings — not a completed sale.");
+  }
   if (m.days != null) card("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${BASE.days.v}d ${cmp(m.days, BASE.days.v, false)}`, "How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing faster.");
   if (m.multiple != null) card("vs Japanese box", `${m.multiple}x`, `JP ${usd(m.jpPrice)} as of ${esc(m.jpPriceD)} · ${baseLabel("multiple")} ${BASE.multiple.v}x`, "English completed-sale median divided by the Japanese one. The ratio describes the gap; it does not explain it.");
   if (m.psa != null) card("PSA graded (EN)", intl(m.psa), `${baseLabel("psa")} ${intl(BASE.psa.v)} ${cmp(m.psa, BASE.psa.v)}`);
@@ -315,7 +320,8 @@ function jsonLd(code, nameEn, m, s, items, canonical) {
     ld.push({
       "@context": "https://schema.org", "@type": "Product",
       name: `One Piece Card Game ${code} ${nameEn} Booster Box (English)`,
-      image: [`${SITE}/og-image.png`],
+      // image 는 뺀다(감사 SD4): 사이트 배너(og-image.png)는 이 상품의 사진이 아니다. 영문판 박스 실물 이미지가
+      // 생기기 전까지 넣지 않는다 — product snippet 필수 속성이 아니고, 일본판 박스 사진을 대신 쓰지도 않는다.
       description: `English sealed ${code} ${nameEn} One Piece Card Game booster box — completed eBay sale median, active asking prices, weekly price history, English PSA population and settled auction results.`,
       brand: { "@type": "Brand", name: "Bandai" },
       category: "Trading Card Games",

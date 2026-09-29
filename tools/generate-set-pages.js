@@ -1046,7 +1046,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
     ],
   })}</script>`;
   // 랭킹 제목·설명(2026-09-17): 종전 73자 제목은 잘렸다. 브랜드 꼬리를 붙이면 60자를 넘어 뺀다. 설명은 표의 숫자로 쓴다.
-  const title = uniqueTitle(fit([`Most Valuable One Piece PSA 10 Cards (Sold Prices)`], TITLE_MAX, "psa10-ranking"));
+  const title = uniqueTitle(fit([`Top 10 Most Valuable One Piece Cards (PSA 10 Sold Prices)`, `Most Valuable One Piece PSA 10 Cards (Sold Prices)`], TITLE_MAX, "psa10-ranking"));
   const desc = fit([
     `${rows.length} Japanese One Piece cards ranked by PSA 10 median from completed eBay sales, 3+ sales each. Highest ${usd(t1.psa)}, ${over1k} cards above $1,000, as of ${asOf}.`,
     `${rows.length} Japanese One Piece cards ranked by PSA 10 eBay sold median, 3+ sales each. Highest ${usd(t1.psa)}, ${over1k} above $1,000, as of ${asOf}.`,
@@ -1172,7 +1172,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
     </header>
     <main id="main-content" class="rankWrap">
       <p class="eyebrow">PSA 10 · Japanese printing · as of ${esc(asOf)}</p>
-      <h1>Most valuable One Piece PSA 10 cards</h1>
+      <h1>Top 10 most valuable One Piece cards — PSA 10 sold prices</h1>
       <p class="lead">Median of completed eBay sales · at least 3 sales per card · USD</p>
 
       <div class="statRow">
@@ -1184,8 +1184,10 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       </div>
 
       <div class="chartCard">
-        <div class="chartHead"><h2>Top 20 by PSA 10 sold price</h2><p class="sub">Median sale · sales counted · ungraded price · PSA 10 ÷ ungraded · PSA graded copies (10s)</p></div>
-        ${rankTable(rows.slice(0, 20), 0)}
+        <div class="chartHead"><h2>Top 10 most valuable One Piece cards by PSA 10 sold price</h2><p class="sub">Median sale · sales counted · ungraded price · PSA 10 ÷ ungraded · PSA graded copies (10s)</p></div>
+        ${rankTable(rows.slice(0, 10), 0)}
+        ${rows.length > 10 ? `<h3>Ranks 11–${Math.min(20, rows.length)}</h3>
+        ${rankTable(rows.slice(10, 20), 10)}` : ""}
       </div>
 
       <div class="chartCard">
