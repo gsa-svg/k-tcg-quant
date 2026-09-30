@@ -67,10 +67,13 @@ macOS 는 옆자리 타인 기기다 — 절대 선택 금지, 되묻지도 않�
    삼켜 OP-13 일본판 주력 가격대가 통째로 비었다. 소유자가 지적해서 발각됐다.)
 7. `node tools/build-box-sold-series.js`
 
-## 3. 등급 인구 (PSA / CGC / TAG) — `todo` 에 `psa-pop`·`cgc-pop`·`tag-pop`·`graderpop-card` 가 있을 때
+## 3. 등급 인구 (PSA / TAG) — `todo` 에 `psa-pop`·`tag-pop`·`graderpop-card` 가 있을 때
 
-주 1회(보통 월요일). 절차 원문은 `C:\Users\kimtt\.claude\scheduled-tasks\opbox-tag-pop-weekly\SKILL.md`
-에 남아 있다 — **그걸 읽고 따른다**(CGC 박스총량 → CGC 카드별 → TAG 박스총량 → TAG 카드별 순서).
+주 1회(보통 월요일). 순서와 명령은 `tools/MONDAY-GRADING.md` 가 기준이다.
+CGC 는 세트(총량·Pristine/Gem Mint)·카드별 모두 워크플로 `collect-grading` 이 공개 API 로 자동 수집한다 —
+손으로 CGC 목록 페이지를 긁지 않는다(`cgc-pop.js` 는 2026-09-30 삭제). 옛 절차 파일
+`C:\Users\kimtt\.claude\scheduled-tasks\opbox-tag-pop-weekly\SKILL.md` 의 CGC 단계(A·B)는 따르지 않는다.
+TAG 세트는 `__tagAgg` → `tag-pop-ingest.js` 한 번에 10·10P 분리값까지 담긴다.
 
 PSA 카드별은 `node tools/collect-psa-card-pop.js --probe` 로 먼저 살핀다. GemRate 가 봇 차단
 페이지("잠시만 기다리십시오…")를 주면 실브라우저로 열어야 한다 — plain fetch 는 안 된다(2026-09-02 실증).

@@ -18,12 +18,14 @@ node tools/collect-psa-edition-weekly.js
 node tools/import-gemrate-en-totals.js
 node tools/inject-psa-wow.js
 
-# 2) CGC — 카드별(공개 API, 자동)
+# 2) CGC — 카드별 + 세트(총량·Pristine 10/Gem Mint 10). 공개 API 라 collect-grading 이 매주 월요일
+#    자동으로 돌린다. 그게 실패했을 때만 손으로 — 덤프 하나를 두 적재기가 같이 먹는다.
 node tools/collect-cgc-card-pop.js "$TMP/cgc-dump.json"
 node tools/cgc-card-pop-api-ingest.js "$TMP/cgc-dump.json"
+node tools/cgc-set-grades-ingest.js "$TMP/cgc-dump.json"   # 세트 합 → cgc-grading-history (2026-09-30 전엔 버렸다)
 
 # 3) 브라우저가 필요한 것 — 아래 "브라우저 수집" 참고
-#    CGC 세트 · TAG 세트 · TAG 카드 · PSA 카드
+#    TAG 세트 · TAG 카드 · PSA 카드
 
 # 4) 세트 누적을 화면에 반영 + 검증
 node tools/inject-grader-editions.js          # → packs.json 의 graders (세트 누적)
@@ -53,9 +55,6 @@ node tools/guard-invariants.js
  - 필드명은 `card_total_grades` 다. `total_graded` 는 없다 — 그걸 찾으면 감정 수가 전부 0 이 된다.
  - `card_number` 는 세트 접두어 없는 `"069"` 형식이다. `"OP05-069"` 와 직접 대조하면 하나도 안 맞는다.
 
-**CGC 세트** — `cgc-pop.js --collector <페이지>` 를 페이지마다 실행. 마지막 페이지가
-`hasNext=true` 면 ingest 가 적재를 거부한다(2페이지가 늘어난 걸 놓치지 않으려는 장치).
-
 **PSA10 등급 가격(실거래)** — eBay 가 sold 를 API 로 막아 브라우저로만 받는다.
   `node tools/psa10-sold-refresh.js --json` 으로 카드별 URL·추출기를 뽑고, 실브라우저에서
   같은 오리진 fetch 로 긁은 뒤 `node tools/psa10-sold-write.js <결과.json> --apply` 로 반영한다.
@@ -66,6 +65,9 @@ node tools/guard-invariants.js
 **TAG 세트·카드** — `tag-pop.js --setup` / `tag-card-pop.js --setup` 후 연도별로 훑는다.
 SPA 라 느리고 렌더러가 얼기도 한다. 결과 회수는 다운로드가 막히므로
 `document.body` 를 비우고 `<pre>` 에 렌더한 뒤 `get_page_text` 로 읽는다(40KB 까지 안전).
+세트는 `window.__tagAgg()` → `node tools/tag-pop-ingest.js <파일>` 한 번이면 10·10P 분리값까지 담긴다.
+분리값이 없는 옛 `__tagAgg` 출력은 적재기가 거부한다 — 그러면 `--setup` 을 새로 받아 다시 뽑는다
+(2026-09-30: 분리 적재기가 따로 있었는데 이 절차에 없어서 8/3 뒤로 한 번도 안 돌았다).
 
 ## 왜 두 층을 같이 하나
 

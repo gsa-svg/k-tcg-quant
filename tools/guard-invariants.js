@@ -1527,7 +1527,7 @@ for (const f of fs.readdirSync(path.join(ROOT, "tools")).filter((n) => /^(genera
 
 // ── G8. 그레이더 주간 커버리지 회귀 — "이번 주에 세트가 줄었다"는 대개 데이터가 아니라 수집기가 잘못된 것이다.
 //    2026-07-22·07-27 CGC 수집이 목록 2페이지 중 1페이지만 읽어 일본판 7세트를 통째로 빠뜨렸는데,
-//    값이 다 그럴듯해서 2주간 아무도 몰랐다(커버리지 36 vs 실제 43). 적재기(cgc/tag-pop-ingest)가 1차로 막지만,
+//    값이 다 그럴듯해서 2주간 아무도 몰랐다(커버리지 36 vs 실제 43). 적재기(cgc-set-grades-ingest·tag-pop-ingest)가 1차로 막지만,
 //    손으로 만든 파일이 들어올 수도 있으니 원장 자체에서도 본다. 마지막 수집일이 직전보다 적으면 FAIL.
 for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", "data/tag-grading-history.json"]]) {
   if (!exists(file)) continue;
@@ -1542,6 +1542,108 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   if (byDate[last].size < byDate[prev].size) {
     const missing = [...byDate[prev]].filter((k) => !byDate[last].has(k));
     errors.push(`G8: ${grader} ${last} 커버리지 ${byDate[last].size} < 직전 ${prev} ${byDate[prev].size} — 목록 페이지를 끝까지 읽었는지 확인할 것 (빠진 것: ${missing.slice(0, 6).join(", ")})`);
+  }
+}
+
+// ── G9. 만점 분리값(CGC Pristine 10 / Gem Mint 10 · TAG 10 / 10P)이 버려지지 않는가 — 2026-09-30 실사고.
+//    둘 다 8/3 뒤로 원장에 안 쌓여 화면 열이 전 세트 '—' 였다. CGC 는 자동 수집(collect-grading)이 매주 받은
+//    덤프의 세트 합을 적재하지 않고 버렸고, TAG 는 브라우저 집계(__tagAgg)가 10+10P 를 gem 하나로 합쳤다.
+//    분리값을 담는 적재기(cgc-set-grades·tag-pop-split)는 있었지만 어떤 절차에도 없었다 — 있어도 안 돌면 없는 것이다.
+{
+  // (1) CGC 카드 덤프를 받는 워크플로는 같은 덤프로 세트 합도 적재하고, 화면 블록을 다시 주입해야 한다.
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const y = read(`.github/workflows/${wf}`);
+    const dump = (y.match(/node tools\/collect-cgc-card-pop\.js ("[^"]+"|\S+)/) || [])[1];
+    if (!dump) continue;
+    const at = y.indexOf(`node tools/cgc-set-grades-ingest.js ${dump}`);
+    if (at < 0) errors.push(`G9: ${wf} 가 CGC 덤프(${dump})를 받고 세트 합(cgc-set-grades-ingest.js)을 적재하지 않는다 — 세트 분리값을 버린다`);
+    else if (y.indexOf("node tools/inject-grader-editions.js", at) < 0) errors.push(`G9: ${wf} 가 세트 원장에 점을 늘리고 화면 블록(inject-grader-editions.js)을 다시 주입하지 않는다 — 등급 감사 G7 이 막힌다`);
+  }
+
+  // (2) 적재 경로 자체 — 세트 합의 모양, 분리값 없는 입력·커버리지 축소 거부, 새 세트의 미끼 그룹 배제, __tagAgg 의 10/10P 분리.
+  const t = spawnSync(process.execPath, [path.join(__dirname, "test-pop-ingest-guards.js")], { cwd: ROOT, encoding: "utf8" });
+  if (t.error || t.status !== 0) errors.push(`G9: test-pop-ingest-guards.js 실패 — ${(t.stderr || t.error?.message || t.stdout || "unknown").trim().slice(0, 500)}`);
+
+  // (3) 원장 분리값이 말이 되는가, 그리고 화면은 **마지막 점(= 총량과 같은 관측)** 의 분리값만 싣는가.
+  //     옛 분리값을 끌어오면 날짜 칸 없는 표에서 8/3 값이 9/29 총량 옆에 '현재'처럼 붙는다 — 빈 칸이 낫다.
+  const led = {};
+  for (const [key, file] of [["cgc", "data/cgc-grading-history.json"], ["tag", "data/tag-grading-history.json"]]) {
+    if (!exists(file)) continue;
+    let h; try { h = JSON.parse(read(file)); } catch { continue; }   // 파싱 실패는 G8 이 알린다
+    led[key] = h;
+    for (const [code, eds] of Object.entries(h.sets || {})) {
+      for (const ed of ["jp", "en"]) {
+        for (const p of eds[ed] || []) {
+          if (key === "cgc" && p.grades) {
+            const top = ["Pristine 10", "Gem Mint 10", "Perfect 10"].reduce((a, g) => a + (p.grades[g] || 0), 0);
+            if (Object.values(p.grades).some((v) => !Number.isInteger(v) || v < 0) || top > p.total) errors.push(`G9: CGC ${code}.${ed} ${p.d} 분리값 이상 (만점 합 ${top} / 총량 ${p.total})`);
+          }
+          if (key === "tag" && (p.g10 != null || p.g10p != null) && p.gem !== p.g10 + p.g10p) errors.push(`G9: TAG ${code}.${ed} ${p.d} gem ${p.gem} ≠ 10(${p.g10}) + 10P(${p.g10p})`);
+        }
+      }
+    }
+  }
+  const packsNow = exists("data/onepiece-packs.json") ? JSON.parse(read("data/onepiece-packs.json")) : { sets: {} };
+  const FIELDS = { cgc: [["pristine10", (p) => p.grades?.["Pristine 10"]], ["gemMint10", (p) => p.grades?.["Gem Mint 10"]], ["perfect10", (p) => p.grades?.["Perfect 10"]]],
+    tag: [["g10", (p) => p.g10], ["g10p", (p) => p.g10p]] };
+  for (const [code, s] of Object.entries(packsNow.sets || {})) {
+    for (const key of ["cgc", "tag"]) {
+      for (const ed of ["jp", "en"]) {
+        const e = s.graders?.[key]?.[ed];
+        const last = (led[key]?.sets?.[code]?.[ed] || []).slice().sort((a, b) => a.d.localeCompare(b.d)).at(-1);
+        if (!e || !last) continue;
+        for (const [f, get] of FIELDS[key]) {
+          if ((e[f] ?? null) !== (get(last) ?? null)) errors.push(`G9: ${code} ${key}.${ed}.${f} 화면 ${e[f] ?? "—"} ≠ 원장 마지막 점(${last.d}) ${get(last) ?? "—"} — 분리값은 총량과 같은 관측만 싣는다`);
+        }
+      }
+    }
+  }
+
+  // (4) 구운 페이지도 같은 규칙 — 없는 분리값을 0 으로 적거나(한국어 세트 페이지 22장이 "프리스틴 10 0장과 젬 민트 10 0장"),
+  //     날짜 칸 없는 표에 옛 분리값을 붙이면(free-data 미리보기: 9/29 총량 옆 8/3 Pristine 10) 안 된다.
+  //     방향은 하나만 본다: 화면 블록에 분리값이 **없는데** 페이지가 말하면 FAIL. 새 분리값이 생긴 뒤 페이지가 하루 늦는 건 정상이다.
+  for (const f of fs.existsSync(path.join(ROOT, "ko")) ? fs.readdirSync(path.join(ROOT, "ko")).filter((n) => /^(op|eb|prb)-\d{2}\.html$/.test(n)) : []) {
+    const m = read(`ko/${f}`).match(/CGC (일본판|영문판) 표본은 [\d,]+장으로, 프리스틴 10/);
+    if (!m) continue;
+    const e = packsNow.sets?.[f.replace(/\.html$/, "").toUpperCase()]?.graders?.cgc?.[m[1] === "일본판" ? "jp" : "en"];
+    if (!e || e.pristine10 == null) errors.push(`G9: ko/${f} 가 화면 블록에 없는 CGC 만점 수를 적는다 — 분리값이 없는 관측은 말하지 않는다`);
+  }
+  if (exists("free-data.html") && exists("opbox-grading-population.csv")) {
+    const [head, ...rows] = read("opbox-grading-population.csv").trim().split("\n").map((l) => l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
+    const col = (r, n) => r[head.indexOf(n)];
+    const splitDate = {};
+    for (const r of rows) splitDate[`${col(r, "set_code")}|${col(r, "edition")}`] = [col(r, "cgc_grade_split_as_of"), col(r, "cgc_total_as_of")];
+    for (const m of read("free-data.html").matchAll(/<tr><td>([A-Z]+-\d{2})<\/td><td>(Japanese|English)<\/td>(?:<td class="num">[^<]*<\/td>){3}<td class="num">([^<]*)<\/td>/g)) {
+      const [split, total] = splitDate[`${m[1]}|${m[2].toLowerCase()}`] || [];
+      if (m[3] !== "—" && (!split || split !== total)) errors.push(`G9: free-data.html 미리보기 ${m[1]} ${m[2]} Pristine 10 ${m[3]} 이 CGC 총량(${total})과 다른 날(${split || "없음"}) 값이다 — 날짜 칸 없는 표에는 같은 관측만`);
+    }
+  }
+}
+
+// ── W4. 전역 신선도 감사는 커밋 뒤에 — 2026-09-30 실사고.
+//    collect-grading 이 'Collection health'(audit-collection-health, 전 수집원 신선도)를 커밋 앞에 두고 있었다.
+//    9/7·9/14·9/21·9/28 네 번, CGC 수집·적재·오늘 날짜 확인·가드를 다 통과하고도 CGC 와 무관한 항목
+//    (PSA 판본별 12일째 등)으로 실패해 결과를 버렸다 — 9/21분은 CGC 카드별 W39 영구 공백이 됐다.
+//    이 감사들은 알림용이다. 커밋 앞에 두면 남의 지연이 내 관측을 지운다.
+//    수집 결과 자체의 검사(오늘 날짜 확인·guard-invariants)는 여기 해당하지 않는다 — 커밋 앞이 맞다.
+{
+  const GLOBAL_AUDITS = /node tools\/(audit-collection-health|audit-series-gaps|collect-status)\.js/;
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const lines = read(`.github/workflows/${wf}`).split("\n");
+    // 파서 없이 스텝을 자른다: 스텝 머리("- name:"/"- uses:")의 들여쓰기는 파일 안에서 하나다(audit-workflows 가 본다).
+    const heads = lines.map((l, i) => [i, (l.match(/^(\s*)- (?:name|uses):/) || [])[1]]).filter(([, ind]) => ind != null);
+    if (!heads.length) continue;
+    const ind = heads[0][1].length;
+    const starts = heads.filter(([, s]) => s.length === ind).map(([i]) => i);
+    const steps = starts.map((s, k) => lines.slice(s, starts[k + 1] ?? lines.length).join("\n"));
+    const commitAt = steps.findIndex((t) => /^\s*git commit\b/m.test(t));
+    if (commitAt < 0) continue;                       // 커밋하지 않는 워크플로(collection-health 등)는 대상 아님
+    steps.slice(0, commitAt).forEach((t) => {
+      const m = t.match(GLOBAL_AUDITS);
+      if (m) errors.push(`W4: ${wf} 에서 전역 감사 ${m[1]} 가 커밋 단계보다 앞에 있다 — 무관한 지연이 이번 수집 결과를 버리게 한다(커밋 뒤로 옮길 것)`);
+    });
   }
 }
 
@@ -1636,4 +1738,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4"] }));
