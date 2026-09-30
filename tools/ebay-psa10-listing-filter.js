@@ -108,7 +108,16 @@ function isPsa10JapaneseCardListing(item, setCode, card) {
     && !hasConflictingCardNumber(title, number)
     && hasVariantSignal(title, card)
     && characterMatches(title, card)   // 캐릭터(성) 불일치 차단 (2026-07-22: Luffy 카드에 Perona 매물 등)
-    && !colorConflict(title, card);    // 금·은·레드 하위변형 충돌 차단
+    && !colorConflict(title, card)     // 금·은·레드 하위변형 충돌 차단
+    && !promoConflict(title, card);    // 기념 세트·프로모 판 차단
+}
+
+// 같은 번호의 기념 세트·프로모 판은 부스터 판과 다른 상품이다 — 2026-09-30 실측: OP-16 수록 에이스 SP(ST15-005_p1)의
+// PSA 10 매물로 "3rd Anniversary Set" 판(_p2, 다른 그림)이 잡혀 있었다. psa10-sold-refresh.js 의 판매완료 추출기에는
+// 이미 있던 배제 규칙이라 여기에도 맞춘다(두 곳은 같이 유지). 카드 이름 자체가 기념판·프로모면 막지 않는다.
+function promoConflict(title, card) {
+  const PROMO = /anniversary|promo|promotion|campaign|tournament|prize|winner/i;
+  return PROMO.test(title) && !PROMO.test(String(card?.name || ""));
 }
 
 // 문자열(제목·Set 속성 등)에서 세트 코드를 뽑는다. "ONE PIECE PRB01-PREMIUM BOOSTER..." → "PRB-01".
