@@ -37,6 +37,10 @@ const monthYear = (iso) => {
   return Number.isNaN(d.getTime()) ? iso : `${m[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 };
 
+// 영문판 값이 재판(White) 위주인가 — 그래프 배지(box-chart.js badgeFor)와 같은 기준(reprintPct.en ≥ 60).
+// 2026-09-30: OP-01 영문판 $1,487 은 재판만의 값인데 배지는 그래프에만 있고 지표칸·Key facts·FAQ·설명에는 없었다.
+const enIsReprint = (series) => (((series && series.reprintPct) || {}).en || 0) >= 60;
+
 // EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게" 있어야 한다.
 // 2026-08-10 EPN 위반 통지: 문구는 적절하나 푸터에 있어 잘 보이지 않는다. 그래서 본문 상단에도 넣는다.
 // 푸터의 affNote 는 그대로 두고 이걸 추가하는 것이다 — 둘 중 하나를 지우지 말 것(가드 E1 이 순서를 검사한다).
@@ -184,4 +188,4 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS };
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS };
