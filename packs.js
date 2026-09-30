@@ -674,10 +674,12 @@ function applyStaticI18n() {
   // 아마존 응모 페이지로 현재 표시 언어 전달
   const amazonLink = document.querySelector('.topbar .nav a[href^="amazon-lottery.html"]');
   if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";
+  // 홈 제목(2026-09-30 소유자 확정): 박스 시세 + TCG 이베이 경매 데이터. 한국어 화면에서도 제목이 영어로 남지 않게.
+  setHtml(".packHero h1", '원피스 박스 시세 <span>· TCG 이베이 경매 데이터</span>', 'One Piece Booster Box Prices <span>&amp; TCG eBay Auction Data</span>');
   setHtml(
     ".packHero .lead",
-    '<strong>원피스 카드게임</strong> 일본판·영문판 22세트의 미개봉 부스터 박스 시세와 PSA 10 카드 시세를 추적합니다. 이베이 실거래·현재 매물·등급 인구 데이터를 매일 갱신하며, 셋을 섞지 않습니다.',
-    'OP Box Index tracks sealed booster box and PSA 10 card prices for the <strong>One Piece Card Game</strong> across 22 Japanese and English sets, updated daily from completed eBay sales, active listings and grading population data — each kept separate, never blended.',
+    '추적 중인 원피스 부스터박스(일본판·영문판)의 이베이 실거래 중앙값과 13개 카드게임의 이베이 경매 결과를 직접 모아 매일 갱신합니다.',
+    'Median sold prices for every One Piece booster box we track (Japanese &amp; English) and settled eBay auction results across 13 trading card games — collected by us, updated daily.',
   );
   setHtml(
     ".introPanel",
