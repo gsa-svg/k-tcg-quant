@@ -433,7 +433,7 @@ if (exists("data/box-sold-series.json")) {
   }
 
   // 박스 sold 판정 회귀 — 2026-09-30. 실제 덤프 제목으로 단품 살림/케이스·불명·액세서리 버림,
-  // PRB-02 권 번호를 함께 검증한다(tools/test-box-sold-filters.js).
+  // PRB-02 권 번호, 팰월드 원장 id+판매일 중복 키를 함께 검증한다(tools/test-box-sold-filters.js).
   {
     const r = spawnSync(process.execPath, [path.join(__dirname, "test-box-sold-filters.js")], { cwd: ROOT, encoding: "utf8" });
     if (r.error || r.status !== 0) errors.push(`Q1: test-box-sold-filters.js 실패 — ${(r.stderr || r.error?.message || r.stdout || "unknown").trim().slice(0, 500)}`);

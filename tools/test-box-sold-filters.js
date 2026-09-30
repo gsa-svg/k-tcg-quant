@@ -3,6 +3,7 @@
 //
 // 1) "case" 가 붙은 단품 박스는 살리고, 진짜 케이스(12박스)·불명·액세서리는 계속 버린다(box-case-words.js).
 // 2) PRB-02 이름 속 권 번호("Vol. 2", "The Best 2")를 수량 2로 읽지 않는다(lot-quantity.js VOLUME_STRIP).
+// 3) 팰월드 원장 중복 키는 id + 판매일이다(palworld-sold-ingest.js mergeDump).
 //
 // 제목·가격·날짜는 C:/Users/kimtt/opbox-heartbeat/box-sold-cdp/box-2026-09-18~30.json 덤프 원문이다.
 // "(합성)" 표시가 붙은 것만 위험 경계를 막으려고 만든 제목이다.
@@ -12,6 +13,7 @@ const path = require("node:path");
 const { judgeItem } = require("./box-sold-ingest");
 const { boxQuantity } = require("./box-case-words");
 const { parseLotQuantity } = require("./lot-quantity");
+const { mergeDump } = require("./palworld-sold-ingest");
 
 const R = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "onepiece-packs.json"), "utf8")).fx.usdKrw;
 const item = (t, k, d) => ({ id: "1", t, k, cur: "KRW", d: d || "Sold  Sep 21, 2026" });
@@ -104,6 +106,20 @@ assert.equal(parseLotQuantity("3 Booster Boxes One Piece OP-08 Sealed", "box"), 
   const r = judgeItem(item(t, 144522, "Sold  Sep 16, 2026"), "PRB-02", R, null, "jp", "bin");
   assert.ok(r.rec, `PRB-02 일본판 낱박스가 버려짐(${r.drop})`);
   assert.equal(r.rec.qty, 1);
+}
+
+// ── 3. 팰월드: 같은 매물 id 의 다른 날 판매는 새 판매, 같은 날은 중복
+{
+  const old = { id: "336712363425", d: "2026-08-11", unit: 102.52, total: 102.52, qty: 1, title: "Palworld TCG Dawn of Palpagos Booster Box JP New Sealed" };
+  const ledger = { sets: { "BP-01": { jp: [{ ...old }], en: [] } } };
+  const dump = { pages: [{ query: "jp", items: [{ id: "336712363425", t: "Palworld TCG Dawn of Palpagos Booster Box JP New Sealed", d: "Sold  Sep 11, 2026", k: 118315.34, cur: "KRW" }] }] };
+  const a = mergeDump(ledger, dump, 1353.36);
+  assert.equal(a.added, 1, "다른 날 판매를 중복으로 버림");
+  assert.deepEqual(ledger.sets["BP-01"].jp[0], old, "기존 레코드가 바뀜");
+  assert.deepEqual(ledger.sets["BP-01"].jp.map((r) => r.d), ["2026-08-11", "2026-09-11"]);
+  const b = mergeDump(ledger, dump, 1353.36);
+  assert.equal(b.added, 0);
+  assert.equal(b.dup, 1, "같은 날 같은 매물은 한 건");
 }
 
 console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length }));
