@@ -512,7 +512,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 
 **다음 작업 — 카드 top10 시세 "변동" 그래프 (사용자 요청, 지금은 데이터 대기):**
 - **막힌 이유**: 카드 변동데이터는 `card.series.points`에 매일 밤 축적(`tools/update-card-series-history.js`)되나 **깨끗한 건 7/14부터라 카드당 아직 1점**. NM은 nmJpy 파생이라 매일 동일(2~3개월 갱신때만 변동), **PSA10(eBay sold)만 주간 변동** → 의미있는 선은 **3~4주 뒤**.
-- **배선 버그(그때 같이 고칠 것)**: SPA 카드차트 `historyChart`(packs.js ~1459)는 `card.japaneseNmEbay.history`를 읽는데 **그 필드는 0건** → 항상 빈상태. 축적되는 실데이터는 `card.series`이므로 **historyChart를 card.series로 연결**해야 개별카드 변동선이 뜸. 그 후 **top10 통합 변동 뷰**(psa10-ranking 확장 or 신규) 추가.
+- **배선 버그(그때 같이 고칠 것)**: SPA 카드차트 `historyChart`(packs.js ~1459)는 `card.japaneseNmEbay.history`를 읽는데 **그 필드는 0건** → 항상 빈상태. 축적되는 실데이터는 `card.series`이므로 **historyChart를 card.series로 연결**해야 개별카드 변동선이 뜸. 그 후 **top10 통합 변동 뷰**(psa10-ranking 확장 or 신규) 추가. (2026-09-30: historyChart·japaneseNmEbay 경로는 원천 Finding API 사망으로 삭제 — 변동선은 card.series 로 새로 그릴 것)
 - **지금 당장 가능한 대안**: "현재 top10 시세" 스냅샷은 정확함(psa10-ranking.html이 PSA10 실거래로 랭킹 중) → 막대/카드 시각화 보강은 오늘도 가능.
 - **한국어 확장 백로그**: `/ko/op-16` 등 세트별 한국어 페이지("op-16 시세" 롱테일 — 생성기 구조 이미 있음).
 

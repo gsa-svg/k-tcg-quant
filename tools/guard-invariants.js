@@ -1250,6 +1250,41 @@ for (const f of ["index.html", "packs.html"]) {
   if (/^\s+continue-on-error:/m.test(y)) errors.push("W2: collection-health.yml 에 continue-on-error — 실패가 성공으로 덮여 메일이 안 간다");
 }
 
+// ── W3. 러너에서 0건으로 끝나면서 성공으로 보이는 단계 금지 — 2026-09-30 발견.
+//    ① update-market-data 가 `update-ebay-japanese-nm-sold-prices.js --continue-on-error` 로 불렀는데
+//      스크립트가 process.argv.slice(2) 를 세트코드로 받아 플래그가 코드로 먹혔다 → 대상 0장.
+//      7/12~9/27 매주 rows:[] 로 "성공"했다(원천 Finding API 도 418/503 이라 그 경로는 통째로 삭제).
+//      그래서 워크플로가 --플래그를 넘기는 스크립트는 slice(2) 를 .filter 로 걸러서 써야 한다(옵션 파서인 run-with-retry 제외).
+//    ② 유유테이 NM 을 8/25 워크플로에 넣었지만 러너 IP 가 403 이라 봇 7회(8/28~9/27) 동안 nmUpdated 갱신 0.
+//      continue-on-error 라 성공으로 보였다. 이 PC 에서만 되는 수집기는 워크플로에 넣지 않는다.
+{
+  const RUNNER_BLOCKED = {
+    "update-yuyutei-nm-prices.js": "유유테이가 러너 IP 에 403 — 10일 주기 로컬 수동(collect-status nm)",
+  };
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const y = read(`.github/workflows/${wf}`);
+    for (const [script, why] of Object.entries(RUNNER_BLOCKED)) {
+      if (y.includes(`tools/${script}`)) errors.push(`W3: ${wf} 가 ${script} 를 돌린다 — ${why}`);
+    }
+    for (const line of y.split(/\r?\n/)) {
+      if (/^\s*#/.test(line)) continue;
+      const calls = [...line.matchAll(/node\s+tools\/([a-z0-9-]+\.js)/g)];
+      for (const [i, m] of calls.entries()) {
+        if (m[1] === "run-with-retry.js" || !exists(`tools/${m[1]}`)) continue;
+        const end = i + 1 < calls.length ? calls[i + 1].index : line.length;
+        const args = line.slice(m.index + m[0].length, end).split(/\s(?:2>|\||&&|;|>)/)[0];
+        const flags = args.split(/\s+/).filter((a) => /^-/.test(a));
+        if (!flags.length) continue;
+        const src = read(`tools/${m[1]}`);
+        if (/process\.argv\.slice\(2\)(?!\s*\.filter\()/.test(src)) {
+          errors.push(`W3: ${wf} 가 ${m[1]} 에 ${flags.join(" ")} 를 넘기는데 스크립트가 process.argv.slice(2) 를 거르지 않고 쓴다 — 플래그가 위치 인자(세트코드)로 먹혀 대상 0건`);
+        }
+      }
+    }
+  }
+}
+
 // ── X1. 외부로 fetch 하는 주소는 CSP connect-src 에 있어야 한다 — 2026-07-20 실사고.
 // 경매 중계기를 붙였는데 connect-src 에 안 넣어서 브라우저가 조용히 막았다. 서버는 200을 주고
 // 콘솔에도 CSP 위반은 우리 코드 에러로 안 잡히니, 위젯이 "그냥 안 보이는" 형태로 실패했다.
@@ -1600,4 +1635,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W2", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));

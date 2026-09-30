@@ -134,7 +134,7 @@ const SOURCES = [
     files: ["grading-series.json", "psa-edition-weekly.json", "gemrate-psa-en-totals.json"] },
   { key: "psa-weekly", name: "PSA 주간 등급량", mode: "auto", every: "매주 일요일", wf: "update-market-data",
     warn: 8, late: 12, get: pick.field("data/gemrate-psa-history.json", "collectedAt", "weeklyThrough", "updated"),
-    files: ["gemrate-psa-history.json", "psa-population-snapshots.json", "japanese-nm-sold-audit.json"] },
+    files: ["gemrate-psa-history.json", "psa-population-snapshots.json"] },
   { key: "social", name: "주간 소셜 카드 스냅샷", mode: "auto", every: "매주 일요일", wf: "generate-weekly-social-assets",
     warn: 8, late: 12, get: pick.tail("data/social-card-price-snapshots.json", (j) => j.snapshots),
     files: ["social-card-price-snapshots.json"] },

@@ -38,7 +38,6 @@ Purpose:
 
 - Refresh eBay pack prices.
 - Refresh English NM references.
-- Refresh Japanese NM sold references where possible.
 - Append box history.
 - Run price quality and active listing audits.
 - Upload logs as a workflow artifact.
@@ -47,7 +46,6 @@ Expected outputs:
 
 - `data/onepiece-packs.json`
 - `data/price-quality-audit.json`
-- `data/japanese-nm-sold-audit.json`
 - `data/active-listing-audit.json`
 - Workflow artifact: `market-data-update-logs`
 
@@ -78,7 +76,6 @@ For the deeper weekly flow:
 ```powershell
 node tools/update-ebay-pack-prices.js
 node tools/update-ebay-english-nm-prices.js
-node tools/update-ebay-japanese-nm-sold-prices.js --continue-on-error
 node tools/update-box-series-history.js
 node tools/audit-price-quality.js --hide-suspicious-nm
 node tools/audit-price-quality.js
