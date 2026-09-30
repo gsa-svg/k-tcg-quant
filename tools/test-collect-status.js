@@ -66,6 +66,22 @@ if (blind.length) {
   ok = false;
 }
 
+// ── 5) 자동 행은 그 워크플로가 실제로 커밋하는 파일로 본다 — 2026-09-30 ──
+// grading 행(wf collect-grading)이 그 워크플로가 건드리지도 않는 grading-series.json — 다른 워크플로가 매주 찍는
+// 빌드 날짜 — 을 읽어서, 자동 CGC 가 9/3 이후 한 번도 커밋 못 했는데 "정상"이었다. 워크플로의 git add 대상(data/)과
+// 행의 파일이 하나도 안 겹치면 그 행은 자기 워크플로를 보고 있지 않은 것이다. files 가 빈 행은 packs.json 안을 읽는다.
+for (const r of now.rows.filter((x) => x.mode === "auto")) {
+  const yml = path.join(ROOT, ".github", "workflows", `${r.wf}.yml`);
+  if (!fs.existsSync(yml)) { fail(`${r.key}: 워크플로 ${r.wf}.yml 이 없다`); ok = false; continue; }
+  const added = new Set([...fs.readFileSync(yml, "utf8").matchAll(/git add ([^\n]+)/g)]
+    .flatMap((m) => m[1].split(/\s+/)).filter((p) => p.startsWith("data/")).map((p) => p.slice(5).replace(/\/$/, "")));
+  const own = r.files.length ? r.files : ["onepiece-packs.json"];
+  if (!own.some((f) => added.has(f))) {
+    fail(`${r.key}: ${r.wf} 가 커밋하는 파일(${[...added].join(",")})과 이 행의 파일(${own.join(",")})이 안 겹친다 — 다른 수집의 날짜를 보고 있다`);
+    ok = false;
+  }
+}
+
 console.log(JSON.stringify({
   test: ok && !process.exitCode ? "OK" : "FAIL",
   sources: now.rows.length,
