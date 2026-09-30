@@ -12,7 +12,9 @@ name: Collect grading
 #   · TAG — 포털이 SPA 렌더 DOM 이라 아직 브라우저가 필요하다.
 #   · PSA — update-market-data.yml(일요일)이 이미 맡고 있다. 여기서 또 돌리면 이중 적재가 된다.
 #
-# data/cgc-card-pop.json 만 건드린다. 다른 원장은 손대지 않는다.
+# CGC 원장 둘을 쓴다: data/cgc-card-pop.json(카드별) · data/cgc-grading-history.json(세트 총량 + Pristine/Gem 분리).
+# 2026-09-30 전까지는 카드별만 담고 같은 덤프의 세트 합을 버렸다 — 세트 분리값이 8/3 에 멈춰 화면 열이 전부 '—' 였다.
+# 화면값(onepiece-packs.json)과 파생 시계열(grading-series.json)은 원장과 같은 실행에서 맞춘다.
 
 on:
   workflow_dispatch:
@@ -53,6 +55,13 @@ jobs:
           set -o pipefail
           node tools/cgc-card-pop-api-ingest.js "$RUNNER_TEMP/cgc-dump.json" 2>&1 | tee logs/cgc-card-pop-api-ingest.log
 
+      # 같은 덤프의 세트 합(총량 + Pristine 10 / Gem Mint 10)을 세트 원장에 담는다 — 2026-09-30.
+      # 직전 관측일의 (세트|판)이 하나라도 빠지면 아무것도 안 쓰고 멈춘다(반쪽 주를 남기지 않는다).
+      - name: Ingest CGC set totals and grade split
+        run: |
+          set -o pipefail
+          node tools/cgc-set-grades-ingest.js "$RUNNER_TEMP/cgc-dump.json" 2>&1 | tee logs/cgc-set-grades-ingest.log
+
       # 적재가 "성공"했는데 오늘 날짜가 안 들어간 경우를 잡는다.
       # 조용히 아무것도 안 쌓는 실패가 이 프로젝트에서 실제로 두 번 났다.
       - name: Verify today landed
@@ -67,33 +76,40 @@ jobs:
             }
             const dates = [...new Set(raw.match(/\d{4}-\d{2}-\d{2}/g) || [])].sort();
             console.log(`OK — 최신 ${dates[dates.length - 1]} (총 ${dates.length}일치)`);
+            const h = JSON.parse(fs.readFileSync("data/cgc-grading-history.json", "utf8"));
+            if (h.gradesThrough !== today) {
+              console.error(`::error::cgc-grading-history.json gradesThrough ${h.gradesThrough} ≠ 오늘(${today}) — 세트 분리값이 안 담겼다`);
+              process.exit(1);
+            }
+            console.log(`OK — 세트 분리값 ${h.gradesThrough}`);
           '
 
       # 원장만 갱신하고 화면값(onepiece-packs.json 의 graderPop)을 안 바꾸면 등급 감사가
       # "화면 총량 vs 원장" 불일치로 FAIL 난다(2026-09-03 16:57 UTC 실제 — 103건). 주간 update-market-data 만
       # 이 주입을 돌렸기 때문이다. 수집한 자리에서 바로 주입한다.
+      # 세트 원장에 점이 늘면 화면의 등급사 블록(set.graders)도 같이 바꿔야 한다 — 안 그러면 매일 도는
+      # update-active-listings 의 등급 감사(G7: 화면 총량 = 원장 마지막 점)가 막힌다. 파생 시계열도 같이 굽는다.
       - name: Inject grades into card view
         run: |
           node tools/inject-card-grades.js
+          node tools/inject-grader-editions.js
+          node tools/build-grading-series.js
           node tools/compact-series.js     # 주입기가 들여쓰기로 저장한다 — 가드 T2(방문자 전송량) 때문에 압축
 
       - name: Guard
         run: node tools/guard-invariants.js
 
-      - name: Collection health
-        run: node tools/audit-collection-health.js
-
       - name: Commit changes
         run: |
           # 감지 목록과 커밋 목록을 반드시 같게 둔다 — 어긋나면 변경이 남아 다음 rebase 가 죽는다.
-          if [ -z "$(git status --porcelain data/cgc-card-pop.json data/onepiece-packs.json)" ]; then
+          if [ -z "$(git status --porcelain data/cgc-card-pop.json data/cgc-grading-history.json data/grading-series.json data/onepiece-packs.json)" ]; then
             echo "No CGC changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/cgc-card-pop.json data/onepiece-packs.json
-          git commit -m "Collect CGC card population"
+          git add data/cgc-card-pop.json data/cgc-grading-history.json data/grading-series.json data/onepiece-packs.json
+          git commit -m "Collect CGC population (cards + sets)"
           for attempt in 1 2 3; do
             if git push; then
               exit 0
@@ -105,3 +121,11 @@ jobs:
             echo "Push raced; rebasing before retry $((attempt + 1))/3."
             git pull --rebase
           done
+
+      # 전역 신선도 감사는 **커밋 뒤에** 돈다 — 2026-09-30.
+      # 커밋 앞에 있을 때 9/7·9/14·9/21·9/28 네 번 연속, 수집·적재·오늘 날짜 확인·가드를 다 통과한 CGC 결과를
+      # 이 수집과 무관한 항목(PSA 판본별 12일째, TCG 감시목록 적체 등)으로 실패해 버렸다. 9/21분은 CGC 카드별
+      # W39 영구 공백이 됐다. 이 감사는 알림용(실패 = 빨간불 = 메일)이지 적재 차단용이 아니다.
+      # 수집 결과 자체의 검사(오늘 날짜 확인·가드)는 커밋 앞에 그대로 둔다. 가드 W4 가 이 순서를 지킨다.
+      - name: Collection health
+        run: node tools/audit-collection-health.js

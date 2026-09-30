@@ -8,6 +8,7 @@
 //  [2026-07-17 야간봇이 시세 시리즈 덮어씀] → D1
 //  [영구 규칙: 외부 소스명 공개 금지] → S1
 //  [검증파일 삭제 사고 예방] → F1
+//  [2026-09-30 known-gaps 가 관측 있는 주를 영구 공백으로 굳힘] → K1, K2
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
@@ -220,6 +221,43 @@ for (const [code, sset] of Object.entries(data.sets || {})) {
   }
 }
 
+// ── D13. 박스 진행매물 스냅샷은 그 수집일의 시계열 점이 돼 있어야 한다 — 2026-09-30 발견.
+//    9/22·9/23·9/26 에 로컬에서 매물 수집기(update-ebay-*-pack-prices)만 돌리고 update-box-series-history 를
+//    빼먹은 채 커밋해, 스냅샷(boxMarket.*.ebayActive)은 git 에 있는데 boxSeriesEbay/EnEbay 에 그날 점이 없었다.
+//    클라우드도 그 사이 실패해 박스 시계열이 9/21 다음 9/27 로 건너뛰었다. 그 스냅샷들은 조회 한도 50(로컬 .env)으로
+//    받은 것이라 시계열(한도 100)과 같은 측정이 아니어서 끼우지 않았다 — D14 참고. 빈 날은 빈 채로 둔다.
+//    점을 만드는 규칙은 update-box-series-history 의 editionPoint 를 그대로 쓴다 — 여기서 따로 베끼면 어긋난다.
+//    거꾸로 스냅샷 수집일보다 늦은 active 점도 막는다 — 옛 스크립트는 지난 스냅샷을 실행일 점으로 한 번 더 찍었다(8/3·8/28).
+{
+  const { editionPoint } = require("./update-box-series-history");
+  for (const code of [...(data.jp?.list || []), ...(data.extra?.list || [])]) {
+    for (const ed of ["jp", "en"]) {
+      const want = editionPoint(data.sets?.[code], ed, data.fx);
+      if (!want) continue;
+      const points = data.sets[code][want.key]?.points || [];
+      if (!points.some((p) => p.d === want.point.d)) {
+        errors.push(`D13: ${code}.${want.key} 에 ${ed} 진행매물 스냅샷(${want.point.d}) 점이 없다 — 매물 수집 뒤 node tools/update-box-series-history.js 를 빼먹었다`);
+      }
+      const later = points.filter((p) => p.basis === "active" && p.d > want.point.d).map((p) => p.d);
+      if (later.length) {
+        errors.push(`D13: ${code}.${want.key} 에 ${ed} 진행매물 스냅샷(${want.point.d})보다 늦은 active 점 ${later.join(",")} — 지난 스냅샷을 실행일 관측으로 다시 찍었다`);
+      }
+    }
+  }
+}
+
+// ── D14. 박스 진행매물 수집기의 조회 한도는 어디서 돌든 같아야 한다 — 2026-09-30 발견.
+//    클라우드 워크플로는 EBAY_SEARCH_LIMIT=100 을 줬고 로컬은 .env 의 EBAY_SEARCH_LIMIT=50 으로 돌았다. 로컬 보충분(8/27·9/18·9/22·9/23·9/26)은
+//    매물을 절반만 봐서 일판 조회 매물(채택+제외)이 ~740 → ~490, 채택 표본이 ~220 → ~150 으로 줄고 세트 중간값이
+//    20~50% 낮게 찍혔다(OP-05 일판 $300 → $195, 검색 전체 매물수 totalResults 는 그대로). 같은 시계열에 섞이면
+//    수집 방식 차이가 시세 급락으로 둔갑한다(D5 의 8/13 사고와 같은 종류). 한도는 코드에 고정하고 환경변수로 받지 않는다.
+for (const f of ["tools/update-ebay-pack-prices.js", "tools/update-ebay-english-pack-prices.js"]) {
+  const src = read(f).replace(/^\s*\/\/.*$/gm, "");
+  if (!/const searchLimit = "100";/.test(src) || /EBAY_SEARCH_LIMIT/.test(src)) {
+    errors.push(`D14: ${f} 의 조회 한도가 100 고정이 아니다 — 로컬과 클라우드가 다른 표본을 받아 박스 시계열에 가짜 급락이 생긴다`);
+  }
+}
+
 // ── D5. 박스 SOLD 시계열 무결성 — 2026-07-22 차트 데이터 레이어.
 //    이 파일은 실거래(sold) 기반이라 조작·역행이 곧 허위 데이터다. 내부 정합성만 검사(파일 없으면 스킵).
 //    2026-08-13: 시계열은 이제 append-only 축적본이 아니라 **원장에서 매번 다시 만드는 파생물**이다.
@@ -378,6 +416,9 @@ if (exists("data/box-sold-series.json")) {
     ["One Piece Booster Boxes OP-09 Sealed Japanese", "box", null],   // 개수 없는 복수형 — 모름
     ["One Piece OP-01 Booster Box Case Sealed", "box", null],         // 케이스 — 개수 불명
     ["One Piece OP-13 Sealed Case 12 boxes", "box", 12],              // 개수 명시된 케이스는 나눔
+    // 2026-09-30: PRB-02 이름 속 권 번호("Vol. 2"·"Premium Booster 2")가 2박스로 읽혀 원장 22건이 반값이 됐다.
+    ["Sealed Japanese The Best Vol. 2 PRB-02 Booster Box US SELLER One Piece Card Game", "box", 1],
+    ["One Piece TCG PRB-02 Premium Booster 2 Booster Box (FREE SHIPPING✔️)", "box", 1],
     ["10 Booster Packs One Piece OP-05 Japanese", "pack", 10],        // 팩 묶음 — 레드팀 확정 버그
     ["3 Packs One Piece Card Game OP-08 Sealed", "pack", 3],
     ["One Piece OP-09 Booster Packs Japanese", "pack", null],         // 개수 없는 팩 복수형 — 모름
@@ -410,6 +451,12 @@ if (exists("data/box-sold-series.json")) {
       [it("One Piece OP-13 Booster Box Sealed", 200000), "no-language"],                     // 언어 미표기
       [it("One Piece OP-13 Booster Box Japanese", 50000), "price-out-of-range"],             // 팩 가격대
       [it("One Piece OP-13 Booster Box Japanese", 200000, "KRW", "no date here"), "bad-date"],
+      // 2026-09-30: "case" 가 붙은 단품 박스는 살리고 12박스 케이스는 계속 버린다(box-case-words.js). 덤프 원문.
+      //   9/18~9/30 덤프에서 단품 109건이 bad-word 로 빠져 있었다(EB-01 영문은 9/12 뒤로 원장이 비었다).
+      [it("One Piece TCG OP13 Booster Box MINT English - New & Sealed CASE FRESH 🚀✅", 594499), 594499 / R, "en"],
+      [it("One Piece Card Game OP-13 Booster Box English Sealed + Acrylic Case", 666560), 666560 / R, "en"],
+      [it("One Piece TCG OP-13 Carrying On His Will Booster Box Case SEALED ENGLISH", 10015219), "bad-word"],
+      [it("One Piece OP-13 Carrying On His Will 12 BOX BOOSTER BOX CASE Factory Sealed", 9051726), "bad-word"],
     ];
     for (const [item, want, wantEd] of ingestCases) {
       const r = judgeItem(item, "OP-13", R);
@@ -421,6 +468,52 @@ if (exists("data/box-sold-series.json")) {
     }
   } catch (e) {
     errors.push(`Q1: ingest 판정 실행 실패 — ${e.message}`);
+  }
+
+  // 박스 sold 판정 회귀 — 2026-09-30. 실제 덤프 제목으로 단품 살림/케이스·불명·액세서리 버림,
+  // PRB-02 권 번호, 팰월드 원장 id+판매일 중복 키를 함께 검증한다(tools/test-box-sold-filters.js).
+  {
+    const r = spawnSync(process.execPath, [path.join(__dirname, "test-box-sold-filters.js")], { cwd: ROOT, encoding: "utf8" });
+    if (r.error || r.status !== 0) errors.push(`Q1: test-box-sold-filters.js 실패 — ${(r.stderr || r.error?.message || r.stdout || "unknown").trim().slice(0, 500)}`);
+  }
+}
+
+// ── Q5. 시리즈 이름 충돌 — 2026-09-30 신설.
+//    EB-03 "Heroine's Edition" 과 EB-05 "Heroines Edition vol.2" 처럼 한 이름이 다른 이름의 앞부분이면,
+//    종전 ingest 는 둘 다 걸어 EB-05 판매를 cross-set 으로 버리고, 코드 없는 2권 제목은 EB-03 에 섞었다.
+//    또 ingest 이름표가 packs.json 만 읽어 수집 목록(UPCOMING)의 세트 이름을 몰랐다.
+//    실제 덤프 제목(box-2026-09-29: "ONE PIECE Heroines Edition Vol.2 EB-05 Japanese Booster Box PRE-ORDER")으로 실행해 잠근다.
+//    상세 회귀 테스트: tools/test-box-sold-name-collision.js
+{
+  try {
+    const { judgeItem, buildNameMap, ingestNameMap } = require("./box-sold-ingest");
+    const { UPCOMING } = require("./box-sold-urls");
+    const R = data.fx.usdKrw;
+    const next = buildNameMap(data, [{ code: "EB-05", nameEn: "Heroines Edition vol.2" }]);
+    const now = buildNameMap(data);
+    const it = (t, k) => ({ id: "1", t, k, cur: "KRW", d: "Sold  Sep 28, 2026" });
+    const cases = [
+      // [제목, 원화, 대상, 언어, 이름표, 기대: "keep" 또는 drop 이유]
+      ["ONE PIECE Heroines Edition Vol.2 EB-05 Japanese Booster Box PRE-ORDER", 345287.85, "EB-05", "jp", next, "keep"],
+      ["ONE PIECE Heroines Edition Vol.2 EB-05 Japanese Booster Box PRE-ORDER", 345287.85, "EB-03", "jp", next, "code-missing"],
+      ["One Piece Heroines Edition Vol.2 Booster Box Japanese", 345000, "EB-03", "jp", now, "code-missing"],
+      ["One Piece Heroines Edition Vol.2 Booster Box Japanese", 345000, "EB-03", "jp", next, "code-missing"],
+      ["One Piece Heroines Edition 2 Booster Box Japanese", 345000, "EB-03", "jp", next, "name-ambiguous"],
+      ["One Piece Heroines Edition Booster Box Japanese Sealed", 200000, "EB-03", "jp", next, "keep"],
+    ];
+    for (const [t, k, code, ed, map, want] of cases) {
+      const r = judgeItem(it(t, k), code, R, map, ed, "bin");
+      const got = r.drop || (r.rec && r.rec.qty === 1 ? "keep" : "qty " + (r.rec && r.rec.qty));
+      if (got !== want) errors.push(`Q5: ${code} "${t}" → ${got} (기대 ${want})`);
+    }
+    // 수집하는 세트는 이름표에도 있어야 한다 — UPCOMING 에 넣고 이름표에서 빠지면 위 사고가 되살아난다.
+    const live = new Set(ingestNameMap(data).map(([, c]) => c));
+    for (const u of UPCOMING) {
+      if (data.sets[u.code] || String(u.nameEn || "").replace(/[^a-z0-9]/gi, "").length < 6) continue;
+      if (!live.has(u.code)) errors.push(`Q5: UPCOMING ${u.code}(${u.nameEn}) 가 ingest 이름표에 없다 — 같은 시리즈 앞 권 이름에 걸려 버려지거나 섞인다`);
+    }
+  } catch (e) {
+    errors.push(`Q5: 이름 충돌 검사 실행 실패 — ${e.message}`);
   }
 }
 
@@ -675,7 +768,13 @@ if (exists("data/auction-card-stats.json")) {
     const seenDesc = new Set();
     for (const code of order) {
       const c = cm.sets?.[code];
-      if (!c) { errors.push(`S3: ${code} 수기 해설 없음 — 템플릿 문구로 노출된다`); continue; }
+      // 해설이 "있어야 함"은 2026-08-28 이전 발매 세트까지만 — 그날 소유자가 "보고서식 설명 문단 금지, 표만"으로 정했다.
+      // 그 뒤 세트(OP-17~)에 새 문단을 요구하면 두 규칙이 부딪혀 top10 을 올릴 수 없다(2026-09-30, OP-17 이 여기서 막혔다).
+      // 해설이 있는 세트는 발매일과 무관하게 아래 길이·중복·주입 검사를 전부 받는다.
+      if (!c) {
+        if (String(packs.sets[code].release || "") < "2026-08-28") errors.push(`S3: ${code} 수기 해설 없음 — 템플릿 문구로 노출된다`);
+        continue;
+      }
       const body = (c.body || []).join(" ");
       if (body.length < 350) errors.push(`S3: ${code} 해설이 ${body.length}자 — 350자 미만은 껍데기다`);
       if (!c.desc || c.desc.length < 60) errors.push(`S3: ${code} desc 부실`);
@@ -1232,6 +1331,60 @@ for (const f of ["index.html", "packs.html"]) {
   }
 }
 
+// ── W2. 수집 건강검사는 앞 검사가 실패해도 전부 돈다 — 2026-09-30 발견.
+//    collection-health.yml 의 검사 단계가 기본값(success())이라 첫 단계 'Check data freshness' 가 실패하면
+//    뒤 7개(수집기·YAML·계약·공백·귀속·박스 그래프·가격)가 전부 skip 됐다(9/20·9/23·9/26 실행).
+//    그날 생긴 공백·가격 문제는 신선도가 고쳐질 때까지 안 보였다. 두 번째 run 단계부터 !cancelled() 필수.
+//    continue-on-error 는 금지 — 하나라도 실패하면 job 이 실패해야 메일이 간다.
+//    `if: !cancelled()` 맨몸은 안 된다 — YAML 에서 ! 는 태그라 워크플로가 통째로 거부된다(audit-workflows 도 못 잡음).
+{
+  const y = read(".github/workflows/collection-health.yml").replace(/\r\n/g, "\n");
+  const runSteps = y.split(/\n(?=      - )/).slice(1).filter((s) => /^\s+run:/m.test(s));
+  if (runSteps.length < 2) errors.push("W2: collection-health.yml 에서 검사 단계를 찾지 못함 — 구조를 바꿨으면 이 검사도 같이 고칠 것");
+  for (const s of runSteps.slice(1)) {
+    const name = ((s.match(/name:\s*(.+)/) || [])[1] || s.slice(0, 40)).trim();
+    if (!/^\s+if:\s*(\$\{\{\s*(!cancelled\(\)|always\(\))\s*\}\}|always\(\))\s*$/m.test(s)) {
+      errors.push(`W2: collection-health.yml '${name}' 에 if: \${{ !cancelled() }} 없음 — 앞 검사가 실패하면 이 검사가 skip 된다`);
+    }
+  }
+  if (/^\s+continue-on-error:/m.test(y)) errors.push("W2: collection-health.yml 에 continue-on-error — 실패가 성공으로 덮여 메일이 안 간다");
+}
+
+// ── W3. 러너에서 0건으로 끝나면서 성공으로 보이는 단계 금지 — 2026-09-30 발견.
+//    ① update-market-data 가 `update-ebay-japanese-nm-sold-prices.js --continue-on-error` 로 불렀는데
+//      스크립트가 process.argv.slice(2) 를 세트코드로 받아 플래그가 코드로 먹혔다 → 대상 0장.
+//      7/12~9/27 매주 rows:[] 로 "성공"했다(원천 Finding API 도 418/503 이라 그 경로는 통째로 삭제).
+//      그래서 워크플로가 --플래그를 넘기는 스크립트는 slice(2) 를 .filter 로 걸러서 써야 한다(옵션 파서인 run-with-retry 제외).
+//    ② 유유테이 NM 을 8/25 워크플로에 넣었지만 러너 IP 가 403 이라 봇 7회(8/28~9/27) 동안 nmUpdated 갱신 0.
+//      continue-on-error 라 성공으로 보였다. 이 PC 에서만 되는 수집기는 워크플로에 넣지 않는다.
+{
+  const RUNNER_BLOCKED = {
+    "update-yuyutei-nm-prices.js": "유유테이가 러너 IP 에 403 — 10일 주기 로컬 수동(collect-status nm)",
+  };
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const y = read(`.github/workflows/${wf}`);
+    for (const [script, why] of Object.entries(RUNNER_BLOCKED)) {
+      if (y.includes(`tools/${script}`)) errors.push(`W3: ${wf} 가 ${script} 를 돌린다 — ${why}`);
+    }
+    for (const line of y.split(/\r?\n/)) {
+      if (/^\s*#/.test(line)) continue;
+      const calls = [...line.matchAll(/node\s+tools\/([a-z0-9-]+\.js)/g)];
+      for (const [i, m] of calls.entries()) {
+        if (m[1] === "run-with-retry.js" || !exists(`tools/${m[1]}`)) continue;
+        const end = i + 1 < calls.length ? calls[i + 1].index : line.length;
+        const args = line.slice(m.index + m[0].length, end).split(/\s(?:2>|\||&&|;|>)/)[0];
+        const flags = args.split(/\s+/).filter((a) => /^-/.test(a));
+        if (!flags.length) continue;
+        const src = read(`tools/${m[1]}`);
+        if (/process\.argv\.slice\(2\)(?!\s*\.filter\()/.test(src)) {
+          errors.push(`W3: ${wf} 가 ${m[1]} 에 ${flags.join(" ")} 를 넘기는데 스크립트가 process.argv.slice(2) 를 거르지 않고 쓴다 — 플래그가 위치 인자(세트코드)로 먹혀 대상 0건`);
+        }
+      }
+    }
+  }
+}
+
 // ── X1. 외부로 fetch 하는 주소는 CSP connect-src 에 있어야 한다 — 2026-07-20 실사고.
 // 경매 중계기를 붙였는데 connect-src 에 안 넣어서 브라우저가 조용히 막았다. 서버는 200을 주고
 // 콘솔에도 CSP 위반은 우리 코드 에러로 안 잡히니, 위젯이 "그냥 안 보이는" 형태로 실패했다.
@@ -1408,6 +1561,25 @@ for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
   }
 }
 
+// ── Y1/Y2. 세트 카드 목록 — 2026-09-30. (K1/K2 는 known-gaps 검사가 먼저 쓰고 있어 Y 로 둔다)
+//   Y1: OP/EB/PRB 세트의 cardCount 는 있으면 50 이상. OP-16 에 5 가 들어가 세트 페이지에 "5 cards" 로 나갔다
+//       (공식 상품 페이지는 全126種). 수록 종류가 50 아래인 부스터·EB·PRB 는 없다 — 더 작으면 다른 숫자가 들어간 것이다.
+//   Y2: 영문 발매일(release)이 오늘 이전인 가장 최근 부스터(OP-xx) 세트의 cards 가 비면 실패.
+//       8/28 발매 OP-17 이 6주 동안 top10 없이 나갔다. 채우는 법: node tools/seed-set-top-cards.js <CODE>
+{
+  const today = new Date().toISOString().slice(0, 10);
+  let latest = null;
+  for (const [code, s] of Object.entries(data.sets || {})) {
+    if (/^(OP|EB|PRB)-\d+$/.test(code) && s.cardCount != null && !(Number(s.cardCount) >= 50)) {
+      errors.push(`Y1: ${code} cardCount=${s.cardCount} — 50 미만이면 세트 수록 종류 수가 아니다. 확인 전에는 비워 둘 것`);
+    }
+    if (/^OP-\d+$/.test(code) && s.release && s.release < today && (!latest || s.release > latest.s.release)) latest = { code, s };
+  }
+  if (latest && !(latest.s.cards || []).length) {
+    errors.push(`Y2: ${latest.code}(발매 ${latest.s.release}) cards 가 비어 있음 — 가장 최근 발매 부스터에 top10 이 없다. node tools/seed-set-top-cards.js ${latest.code}`);
+  }
+}
+
 // ── J1. packs.js 안에서 호출하는 render*/init* 함수가 실제로 선언돼 있는지 — 2026-07-27 실사고.
 //    죽은 차트 코드를 블록으로 잘라내다 그 사이에 있던 renderEditionTable 까지 함께 지웠다.
 //    문법은 통과하고(정의되지 않은 이름은 실행 시점에야 터진다) 가드도 통과했지만,
@@ -1473,7 +1645,7 @@ for (const f of fs.readdirSync(path.join(ROOT, "tools")).filter((n) => /^(genera
 
 // ── G8. 그레이더 주간 커버리지 회귀 — "이번 주에 세트가 줄었다"는 대개 데이터가 아니라 수집기가 잘못된 것이다.
 //    2026-07-22·07-27 CGC 수집이 목록 2페이지 중 1페이지만 읽어 일본판 7세트를 통째로 빠뜨렸는데,
-//    값이 다 그럴듯해서 2주간 아무도 몰랐다(커버리지 36 vs 실제 43). 적재기(cgc/tag-pop-ingest)가 1차로 막지만,
+//    값이 다 그럴듯해서 2주간 아무도 몰랐다(커버리지 36 vs 실제 43). 적재기(cgc-set-grades-ingest·tag-pop-ingest)가 1차로 막지만,
 //    손으로 만든 파일이 들어올 수도 있으니 원장 자체에서도 본다. 마지막 수집일이 직전보다 적으면 FAIL.
 for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", "data/tag-grading-history.json"]]) {
   if (!exists(file)) continue;
@@ -1488,6 +1660,108 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   if (byDate[last].size < byDate[prev].size) {
     const missing = [...byDate[prev]].filter((k) => !byDate[last].has(k));
     errors.push(`G8: ${grader} ${last} 커버리지 ${byDate[last].size} < 직전 ${prev} ${byDate[prev].size} — 목록 페이지를 끝까지 읽었는지 확인할 것 (빠진 것: ${missing.slice(0, 6).join(", ")})`);
+  }
+}
+
+// ── G9. 만점 분리값(CGC Pristine 10 / Gem Mint 10 · TAG 10 / 10P)이 버려지지 않는가 — 2026-09-30 실사고.
+//    둘 다 8/3 뒤로 원장에 안 쌓여 화면 열이 전 세트 '—' 였다. CGC 는 자동 수집(collect-grading)이 매주 받은
+//    덤프의 세트 합을 적재하지 않고 버렸고, TAG 는 브라우저 집계(__tagAgg)가 10+10P 를 gem 하나로 합쳤다.
+//    분리값을 담는 적재기(cgc-set-grades·tag-pop-split)는 있었지만 어떤 절차에도 없었다 — 있어도 안 돌면 없는 것이다.
+{
+  // (1) CGC 카드 덤프를 받는 워크플로는 같은 덤프로 세트 합도 적재하고, 화면 블록을 다시 주입해야 한다.
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const y = read(`.github/workflows/${wf}`);
+    const dump = (y.match(/node tools\/collect-cgc-card-pop\.js ("[^"]+"|\S+)/) || [])[1];
+    if (!dump) continue;
+    const at = y.indexOf(`node tools/cgc-set-grades-ingest.js ${dump}`);
+    if (at < 0) errors.push(`G9: ${wf} 가 CGC 덤프(${dump})를 받고 세트 합(cgc-set-grades-ingest.js)을 적재하지 않는다 — 세트 분리값을 버린다`);
+    else if (y.indexOf("node tools/inject-grader-editions.js", at) < 0) errors.push(`G9: ${wf} 가 세트 원장에 점을 늘리고 화면 블록(inject-grader-editions.js)을 다시 주입하지 않는다 — 등급 감사 G7 이 막힌다`);
+  }
+
+  // (2) 적재 경로 자체 — 세트 합의 모양, 분리값 없는 입력·커버리지 축소 거부, 새 세트의 미끼 그룹 배제, __tagAgg 의 10/10P 분리.
+  const t = spawnSync(process.execPath, [path.join(__dirname, "test-pop-ingest-guards.js")], { cwd: ROOT, encoding: "utf8" });
+  if (t.error || t.status !== 0) errors.push(`G9: test-pop-ingest-guards.js 실패 — ${(t.stderr || t.error?.message || t.stdout || "unknown").trim().slice(0, 500)}`);
+
+  // (3) 원장 분리값이 말이 되는가, 그리고 화면은 **마지막 점(= 총량과 같은 관측)** 의 분리값만 싣는가.
+  //     옛 분리값을 끌어오면 날짜 칸 없는 표에서 8/3 값이 9/29 총량 옆에 '현재'처럼 붙는다 — 빈 칸이 낫다.
+  const led = {};
+  for (const [key, file] of [["cgc", "data/cgc-grading-history.json"], ["tag", "data/tag-grading-history.json"]]) {
+    if (!exists(file)) continue;
+    let h; try { h = JSON.parse(read(file)); } catch { continue; }   // 파싱 실패는 G8 이 알린다
+    led[key] = h;
+    for (const [code, eds] of Object.entries(h.sets || {})) {
+      for (const ed of ["jp", "en"]) {
+        for (const p of eds[ed] || []) {
+          if (key === "cgc" && p.grades) {
+            const top = ["Pristine 10", "Gem Mint 10", "Perfect 10"].reduce((a, g) => a + (p.grades[g] || 0), 0);
+            if (Object.values(p.grades).some((v) => !Number.isInteger(v) || v < 0) || top > p.total) errors.push(`G9: CGC ${code}.${ed} ${p.d} 분리값 이상 (만점 합 ${top} / 총량 ${p.total})`);
+          }
+          if (key === "tag" && (p.g10 != null || p.g10p != null) && p.gem !== p.g10 + p.g10p) errors.push(`G9: TAG ${code}.${ed} ${p.d} gem ${p.gem} ≠ 10(${p.g10}) + 10P(${p.g10p})`);
+        }
+      }
+    }
+  }
+  const packsNow = exists("data/onepiece-packs.json") ? JSON.parse(read("data/onepiece-packs.json")) : { sets: {} };
+  const FIELDS = { cgc: [["pristine10", (p) => p.grades?.["Pristine 10"]], ["gemMint10", (p) => p.grades?.["Gem Mint 10"]], ["perfect10", (p) => p.grades?.["Perfect 10"]]],
+    tag: [["g10", (p) => p.g10], ["g10p", (p) => p.g10p]] };
+  for (const [code, s] of Object.entries(packsNow.sets || {})) {
+    for (const key of ["cgc", "tag"]) {
+      for (const ed of ["jp", "en"]) {
+        const e = s.graders?.[key]?.[ed];
+        const last = (led[key]?.sets?.[code]?.[ed] || []).slice().sort((a, b) => a.d.localeCompare(b.d)).at(-1);
+        if (!e || !last) continue;
+        for (const [f, get] of FIELDS[key]) {
+          if ((e[f] ?? null) !== (get(last) ?? null)) errors.push(`G9: ${code} ${key}.${ed}.${f} 화면 ${e[f] ?? "—"} ≠ 원장 마지막 점(${last.d}) ${get(last) ?? "—"} — 분리값은 총량과 같은 관측만 싣는다`);
+        }
+      }
+    }
+  }
+
+  // (4) 구운 페이지도 같은 규칙 — 없는 분리값을 0 으로 적거나(한국어 세트 페이지 22장이 "프리스틴 10 0장과 젬 민트 10 0장"),
+  //     날짜 칸 없는 표에 옛 분리값을 붙이면(free-data 미리보기: 9/29 총량 옆 8/3 Pristine 10) 안 된다.
+  //     방향은 하나만 본다: 화면 블록에 분리값이 **없는데** 페이지가 말하면 FAIL. 새 분리값이 생긴 뒤 페이지가 하루 늦는 건 정상이다.
+  for (const f of fs.existsSync(path.join(ROOT, "ko")) ? fs.readdirSync(path.join(ROOT, "ko")).filter((n) => /^(op|eb|prb)-\d{2}\.html$/.test(n)) : []) {
+    const m = read(`ko/${f}`).match(/CGC (일본판|영문판) 표본은 [\d,]+장으로, 프리스틴 10/);
+    if (!m) continue;
+    const e = packsNow.sets?.[f.replace(/\.html$/, "").toUpperCase()]?.graders?.cgc?.[m[1] === "일본판" ? "jp" : "en"];
+    if (!e || e.pristine10 == null) errors.push(`G9: ko/${f} 가 화면 블록에 없는 CGC 만점 수를 적는다 — 분리값이 없는 관측은 말하지 않는다`);
+  }
+  if (exists("free-data.html") && exists("opbox-grading-population.csv")) {
+    const [head, ...rows] = read("opbox-grading-population.csv").trim().split("\n").map((l) => l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
+    const col = (r, n) => r[head.indexOf(n)];
+    const splitDate = {};
+    for (const r of rows) splitDate[`${col(r, "set_code")}|${col(r, "edition")}`] = [col(r, "cgc_grade_split_as_of"), col(r, "cgc_total_as_of")];
+    for (const m of read("free-data.html").matchAll(/<tr><td>([A-Z]+-\d{2})<\/td><td>(Japanese|English)<\/td>(?:<td class="num">[^<]*<\/td>){3}<td class="num">([^<]*)<\/td>/g)) {
+      const [split, total] = splitDate[`${m[1]}|${m[2].toLowerCase()}`] || [];
+      if (m[3] !== "—" && (!split || split !== total)) errors.push(`G9: free-data.html 미리보기 ${m[1]} ${m[2]} Pristine 10 ${m[3]} 이 CGC 총량(${total})과 다른 날(${split || "없음"}) 값이다 — 날짜 칸 없는 표에는 같은 관측만`);
+    }
+  }
+}
+
+// ── W4. 전역 신선도 감사는 커밋 뒤에 — 2026-09-30 실사고.
+//    collect-grading 이 'Collection health'(audit-collection-health, 전 수집원 신선도)를 커밋 앞에 두고 있었다.
+//    9/7·9/14·9/21·9/28 네 번, CGC 수집·적재·오늘 날짜 확인·가드를 다 통과하고도 CGC 와 무관한 항목
+//    (PSA 판본별 12일째 등)으로 실패해 결과를 버렸다 — 9/21분은 CGC 카드별 W39 영구 공백이 됐다.
+//    이 감사들은 알림용이다. 커밋 앞에 두면 남의 지연이 내 관측을 지운다.
+//    수집 결과 자체의 검사(오늘 날짜 확인·guard-invariants)는 여기 해당하지 않는다 — 커밋 앞이 맞다.
+{
+  const GLOBAL_AUDITS = /node tools\/(audit-collection-health|audit-series-gaps|collect-status)\.js/;
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const lines = read(`.github/workflows/${wf}`).split("\n");
+    // 파서 없이 스텝을 자른다: 스텝 머리("- name:"/"- uses:")의 들여쓰기는 파일 안에서 하나다(audit-workflows 가 본다).
+    const heads = lines.map((l, i) => [i, (l.match(/^(\s*)- (?:name|uses):/) || [])[1]]).filter(([, ind]) => ind != null);
+    if (!heads.length) continue;
+    const ind = heads[0][1].length;
+    const starts = heads.filter(([, s]) => s.length === ind).map(([i]) => i);
+    const steps = starts.map((s, k) => lines.slice(s, starts[k + 1] ?? lines.length).join("\n"));
+    const commitAt = steps.findIndex((t) => /^\s*git commit\b/m.test(t));
+    if (commitAt < 0) continue;                       // 커밋하지 않는 워크플로(collection-health 등)는 대상 아님
+    steps.slice(0, commitAt).forEach((t) => {
+      const m = t.match(GLOBAL_AUDITS);
+      if (m) errors.push(`W4: ${wf} 에서 전역 감사 ${m[1]} 가 커밋 단계보다 앞에 있다 — 무관한 지연이 이번 수집 결과를 버리게 한다(커밋 뒤로 옮길 것)`);
+    });
   }
 }
 
@@ -1578,8 +1852,26 @@ for (const test of [
   }
 }
 
+// ── K1. known-gaps 기록부가 데이터와 맞는가 — 2026-09-30 신설.
+//    5c155cb3 이 PSA 카드별 W38 — 9/14 에 386점을 관측한(seen) 주 — 을 영구 공백으로 등록했다. 감사가 d(GemRate 변동일)만
+//    보던 오판을 기록부가 그대로 굳혀, 감사를 고쳐도 틀린 기록이 남는다. 등록된 날·주가 그 계열 기준으로 실제로 비어 있어야
+//    하고(관측이 있거나 아직 회수 중이면 FAIL), 계열 이름이 감사 이름과 맞아야 한다(오타면 아무것도 안 덮는다).
+//    판정은 audit-series-gaps.js D) 가 한다 — 감사와 같은 기준이어야 해서 여기서 다시 짜지 않는다.
+//    감사 자체는 소급 불가 공백으로 FAIL 할 수 있으므로 종료 코드가 아니라 knownWrong 만 본다.
+// ── K2. 공백 감사 회귀검사 — seen||d, 세트 누적·진행 매물 계열, known-gaps 검증이 되살아나지 않게.
+{
+  const result = spawnSync(process.execPath, [path.join(__dirname, "audit-series-gaps.js"), "--json"], { cwd: ROOT, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  let report = null;
+  try { report = JSON.parse(result.stdout); } catch {}
+  if (!report || !Array.isArray(report.knownWrong)) errors.push(`K1: 공백 감사가 결과를 못 냈다 — ${(result.stderr || result.stdout || "").trim().slice(0, 300)}`);
+  else for (const m of report.knownWrong) errors.push(`K1: data/known-gaps.json 오기재 — ${m}`);
+
+  const t = spawnSync(process.execPath, [path.join(__dirname, "test-series-gaps.js")], { cwd: ROOT, encoding: "utf8" });
+  if (t.error || t.status !== 0) errors.push(`K2: test-series-gaps.js 실패 — ${(t.stderr || t.error?.message || t.stdout || "unknown").trim().slice(0, 500)}`);
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2"] }));

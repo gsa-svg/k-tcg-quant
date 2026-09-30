@@ -433,14 +433,6 @@ function recentSoldBoxKrw(set) {
 }
 
 function cardComparableKrw(card) {
-  if (card.japaneseNmEbay?.sampleSize > 0 && card.japaneseNmEbay.middle != null) {
-    return {
-      value: marketKrw(card.japaneseNmEbay.middle, card.japaneseNmEbay.currency),
-      source: "일본판 NM eBay",
-      sampleSize: card.japaneseNmEbay.sampleSize || 0,
-      confidence: card.japaneseNmEbay.confidence || "C",
-    };
-  }
   if (card.nmJpy != null) {
     const fx = (state.data && state.data.fx) || {};
     return {
@@ -674,10 +666,12 @@ function applyStaticI18n() {
   // 아마존 응모 페이지로 현재 표시 언어 전달
   const amazonLink = document.querySelector('.topbar .nav a[href^="amazon-lottery.html"]');
   if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";
+  // 홈 제목(2026-09-30 소유자 확정): 박스 시세 + TCG 이베이 경매 데이터. 한국어 화면에서도 제목이 영어로 남지 않게.
+  setHtml(".packHero h1", '원피스 박스 시세 <span>· TCG 이베이 경매 데이터</span>', 'One Piece Booster Box Prices <span>&amp; TCG eBay Auction Data</span>');
   setHtml(
     ".packHero .lead",
-    '<strong>원피스 카드게임</strong> 일본판·영문판 22세트의 미개봉 부스터 박스 시세와 PSA 10 카드 시세를 추적합니다. 이베이 실거래·현재 매물·등급 인구 데이터를 매일 갱신하며, 셋을 섞지 않습니다.',
-    'OP Box Index tracks sealed booster box and PSA 10 card prices for the <strong>One Piece Card Game</strong> across 22 Japanese and English sets, updated daily from completed eBay sales, active listings and grading population data — each kept separate, never blended.',
+    '추적 중인 원피스 부스터박스(일본판·영문판)의 이베이 실거래 중앙값과 13개 카드게임의 이베이 경매 결과를 직접 모아 매일 갱신합니다.',
+    'Median sold prices for every One Piece booster box we track (Japanese &amp; English) and settled eBay auction results across 13 trading card games — collected by us, updated daily.',
   );
   setHtml(
     ".introPanel",
@@ -1639,18 +1633,10 @@ function cardPageHref(c) {
   return f ? "cards/" + f : null;
 }
 
-function historyChart(history, market) {
-  const points = Array.isArray(history) ? history.filter((row) => row.middle != null) : [];
-  if (points.length < 2) return `<div class="cardChartEmpty">${t("6개월 그래프는 eBay NM 업데이트가 2회 이상 쌓이면 표시됩니다.", "The 6-month chart appears after at least two eBay NM updates.")}</div>`;
-  const values = points.map((row) => marketKrw(row.middle, row.currency || market.currency)).filter((value) => value != null);
-  const min = Math.min(...values), max = Math.max(...values), span = max - min || 1;
-  const coords = values.map((value, index) => ({ x: (points.length === 1 ? 300 : 24 + (index * 552) / (points.length - 1)).toFixed(1), y: (150 - ((value - min) / span) * 112).toFixed(1) }));
-  return `<div class="cardChart"><div class="cardChartHead"><strong>${t("6개월 NM 추이", "6-month NM trend")}</strong><span>${points[0].date} ~ ${points[points.length - 1].date}</span></div><svg viewBox="0 0 600 180" role="img" aria-label="${t("6개월 NM 시세 추이", "6-month NM price trend")}"><path d="M24 150H576" class="chartAxis"></path><polyline points="${coords.map((p) => `${p.x},${p.y}`).join(" ")}" class="chartLine"></polyline>${coords.map((p) => `<circle cx="${p.x}" cy="${p.y}" r="4" class="chartDot"></circle>`).join("")}</svg><div class="cardChartRange"><span>${triMain(min, "KRW").main}</span><span>${triMain(max, "KRW").main}</span></div></div>`;
-}
-
 // 카드 확대창에 붙는 그 카드의 실측값. 예전엔 japaneseNmEbay 하나만 봤는데 그 매칭이 0건이라
 // 어떤 카드를 눌러도 "표본이 아직 없습니다"만 떴다(2026-08-03 발견). 가진 것을 전부 보여준다.
 // 원칙은 그대로 — 없는 항목은 줄 자체를 만들지 않고, 하나도 없을 때만 안내 한 줄.
+// 그 일본판 NM eBay 칸·6개월 그래프는 2026-09-30 삭제 — 원천(Finding API)이 막혀 한 번도 값이 없었다.
 function cardGradePanel(card) {
   const g = card.graderPop;
   if (!g) return "";
@@ -1690,14 +1676,10 @@ function cardGradePanel(card) {
 }
 
 function cardMarketPanel(card) {
-  const market = card.japaneseNmEbay;
   const grades = cardGradePanel(card);
   // 시세줄은 카드 카드(그리드)에 쓰는 것과 같은 함수다 — 확대창에서도 같은 값을 같은 라벨로 보여준다.
   const prices = card.number ? `<div class="cardLbPrices">${priceLines(card)}</div>` : "";
-  const nm = market?.sampleSize
-    ? `<div class="cardMarketPanel"><h3>${t("일본판 NM eBay", "Japanese NM eBay")}</h3><div class="bandRows cardMarketRows">${priceBandRows(market)}</div><p>eBay Active · ${t(`표본 ${market.sampleSize}건`, `${market.sampleSize} samples`)} · ${t("신뢰", "confidence")} ${market.confidence || "C"} · ${market.updated || ""}</p>${historyChart(market.history, market)}</div>`
-    : "";
-  const body = `${prices}${nm}${grades}`;
+  const body = `${prices}${grades}`;
   return body || `<div class="cardChartEmpty">${t("이 카드는 아직 실측값이 없습니다.", "No measured data for this card yet.")}</div>`;
 }
 

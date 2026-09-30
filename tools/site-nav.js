@@ -16,6 +16,9 @@
 //    가로 넘침이 났고(2026-08-30), styles.css 의 @media (max-width:1220px) 가
 //    가로 스크롤로 받아내고 있다.
 
+const fs = require("fs");
+const path = require("path");
+
 // [영문 라벨, 한국어 라벨, 경로(루트 기준), 루트상대인가]
 //   루트상대=false 면 사이트 절대경로(/cards/ 처럼)라 접두어를 붙이지 않는다.
 // 2026-09-01 소유자 지시로 메뉴에서 숨긴 항목이 아래 주석 처리돼 있다.
@@ -74,8 +77,18 @@ function navHtml(prefix = "", current = null, opts = {}) {
 // index.html 꼴로 걸면 서치콘솔에 "대체 페이지(표준 태그 있음)"가 쌓인다. inject-nav 가 전 페이지에 같은 줄을 넣는다.
 const GUIDE_STYLE = 'style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"';
 const GUIDE_LABEL_STYLE = 'style="color:#9aa4b6;font-weight:700;"';
+// 발매 예정 세트 링크 — 2026-09-30. data/upcoming-set-pages.json 의 페이지마다 "<코드> release date" 한 개씩.
+// 종전엔 sets/op-18.html·eb-05.html 로 들어오는 내부 링크가 세트 허브와 세트 목록 기사 2장뿐이었다.
+// 예정 세트가 바뀌면 그 JSON 만 고치면 전 페이지 푸터가 따라 바뀐다. 파일을 못 읽으면 이 링크만 빠진다.
+function upcomingGuideItems() {
+  let pages = [];
+  try { pages = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "upcoming-set-pages.json"), "utf8")).pages || []; } catch { return []; }
+  return pages.filter((p) => p.slug && p.code).map((p) => [`${p.code} release date`, `/sets/${p.slug}.html`]);
+}
 const GUIDE_ITEMS = [
-  ["Booster boxes", "/"], ["This week", "/weekly.html"], ["Set guides", "/sets/index.html"], ["All box prices", "/box-prices.html"], ["Card prices", "/cards/"], ["Top PSA 10", "/psa10-ranking.html"],
+  ["Booster boxes", "/"], ["This week", "/weekly.html"], ["Set guides", "/sets/index.html"],
+  ...upcomingGuideItems(), ["Release dates", "/articles/one-piece-set-list-release-dates.html"],
+  ["All box prices", "/box-prices.html"], ["Card prices", "/cards/"], ["Top PSA 10", "/psa10-ranking.html"],
   ["Grading population", "/psa-grading.html"], ["Compare sets", "/compare.html"], ["Free data", "/free-data.html"], ["한국어", "/ko/"],
 ];
 const GUIDE_ITEMS_KO = [
@@ -115,10 +128,11 @@ const KO_LABELS = ITEMS.map(([, ko]) => ko);
 // 착지 페이지 "다음 클릭" 줄 — 2026-09-14 신설. GA4 28일 실측: ChatGPT 가 보내는 속 페이지(세트 목록·PSA10 랭킹·OP-17)는
 // 1인당 1.1~1.3장 보고 나가고, 이베이 클릭 53건 중 47건이 홈에서 났다. 그래서 <h1> 바로 밑에 홈·응모·세트 가이드
 // 세 링크를 둬 두 장째로 끌어온다(inject-nav 가 전 페이지에 넣는다). OP-18 문구는 발매·응모 상황에 따라 여기 한 곳만 바꾼다.
-const NEXT_ITEMS = [["Live box prices", "/"], ["OP-18 Amazon invite", "/amazon-lottery.html"], ["All set guides", "/sets/index.html"]];
+// 2026-09-30: OP-18 발매일 페이지 링크 추가. 자기 자신을 가리키는 칸은 그 페이지에서 뺀다(current).
+const NEXT_ITEMS = [["Live box prices", "/"], ["OP-18 Amazon invite", "/amazon-lottery.html"], ["OP-18 release date", "/sets/op-18.html"], ["All set guides", "/sets/index.html"]];
 const NEXT_ITEMS_KO = [["실시간 박스 시세", "/ko/"], ["OP-18 아마존 응모", "/ko/amazon-lottery.html"], ["카드 시세", "/ko/cards.html"]];
-function nextLinksHtml(inKo = false) {
-  const items = inKo ? NEXT_ITEMS_KO : NEXT_ITEMS;
+function nextLinksHtml(inKo = false, current = null) {
+  const items = (inKo ? NEXT_ITEMS_KO : NEXT_ITEMS).filter(([, href]) => !current || href !== "/" + current);
   const label = inKo ? "다음 보기" : "Next";
   return `<nav class="nextLinks" aria-label="${label}">${items.map(([text, href]) => `<a href="${href}">${text} →</a>`).join("")}</nav>`;
 }

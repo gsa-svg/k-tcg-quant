@@ -12,6 +12,7 @@
 // 판정 규칙(정확도 최우선 — 빈 값이 틀린 숫자보다 낫다):
 //  - "booster box" 제목 + 대상 세트코드 일치, 다른 세트코드가 같이 있으면 버림(멀티세트 묶음).
 //  - pack/lot/case/display/sleeve/bundle 등 비단품 신호 버림. 중국어판 버림.
+//    단 "w/ Acrylic Case"·"Case Fresh" 처럼 박스 1개에 붙는 case 문구는 케이스가 아니다(box-case-words.js).
 //  - 다수량: lot-quantity.js 규칙 — "x3"/"3 boxes"는 총액÷개수=개당가, 개수 불명은 버림.
 //  - 언어: 제목에 english→en, japanese→jp, 표기 없으면 버림(추측 금지).
 //  - 개당가 문턱: 9만원(≈$58) 미만 버림(팩/오매칭), $5,000 초과 버림(이상치).
@@ -20,7 +21,9 @@
 // Run: node tools/box-sold-ingest.js <dump.json>
 const fs = require("fs");
 const path = require("path");
-const { parseLotQuantity, unitPrice } = require("./lot-quantity");
+const { unitPrice } = require("./lot-quantity");
+// "case" 가 붙은 단품 박스("w/ Acrylic Case", "Case Fresh")를 케이스(12박스)와 가른다 — 2026-09-30.
+const { stripSingleBoxCase, boxQuantity, ACCESSORY_ONLY } = require("./box-case-words");
 
 const ROOT = path.join(__dirname, "..");
 const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
@@ -35,6 +38,7 @@ const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 // (2026-08-24 실측: "Miracle Battle Carddass MBC Japanese OP 16 One Piece Booster Box" $1,118 이
 //  OP-16 일본판 원장에 들어와 있었다 — 그 세트 일본판 중앙값은 $120 이다).
 const { OTHER_GAME } = require("./other-game-words");   // 다른 게임 상품(건담 EB01 등) — 2026-09-24
+const { COMBINED } = require("./combined-set-codes");   // 영문 OP-14·OP-15 = OP14-EB04·OP15-EB04 합본 — 2026-09-30
 const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean|miracle\s*battle|carddass/i;
 const BOOSTER = /booster box/i;
 // "Booster Pack ... x1 -From Fresh booster box" 처럼 **낱팩**을 팔면서 설명에 booster box 를
@@ -51,11 +55,17 @@ const SET_CODE = /\b(OP|EB|PRB|ST)[-\s]?(\d{2})\b/gi;
 //    이름만으로는 어느 쪽인지 알 수 없다 — 그런 건 추측하지 않고 코드에만 의존한다.
 // 이름표는 onepiece-packs.json 을 그대로 읽는다(하드코딩하면 세트가 늘 때 조용히 어긋난다).
 const normName = (s) => String(s).toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-function buildNameMap(packs) {
+// extra — 수집 목록에는 있지만 packs.json 에 아직 없는 세트(box-sold-urls.js 의 UPCOMING).
+// 2026-09-30: 이름표가 packs.json 만 읽어서, 수집하는 세트(EB-05 "Heroines Edition vol.2")의 이름은 모르고
+// 앞 권(EB-03 "Heroine's Edition")의 이름만 알았다. 그러면 EB-05 제목이 EB-03 이름에도 걸려 cross-set 으로 버려지고,
+// 코드 없는 EB-05 제목은 EB-03 으로 들어간다. 수집하는 세트는 이름표에도 있어야 한다.
+function buildNameMap(packs, extra = []) {
   const byName = new Map();
   const codes = [...(packs.jp?.list || []), ...(packs.extra?.list || [])];
-  for (const code of codes) {
-    const n = normName(packs.sets[code]?.nameEn || "");
+  const entries = codes.map((code) => [code, packs.sets[code]?.nameEn]);
+  for (const u of extra) if (!packs.sets[u.code]) entries.push([u.code, u.nameEn]);   // packs 로 옮겨진 세트는 두 번 넣지 않는다(중복 이름 → 둘 다 지워진다)
+  for (const [code, nameEn] of entries) {
+    const n = normName(nameEn || "");
     if (n.length < 6) continue;             // 너무 짧은 이름은 오탐 위험 — 쓰지 않는다
     if (byName.has(n)) byName.set(n, null); // 중복 이름 → 판별 불가로 표시
     else byName.set(n, code);
@@ -63,11 +73,32 @@ function buildNameMap(packs) {
   // null(중복)은 버리고 유일한 이름만 남긴다
   return [...byName.entries()].filter(([, v]) => v).sort((a, b) => b[0].length - a[0].length);
 }
-// 제목에서 세트 이름을 찾아 코드를 돌려준다(긴 이름부터 — 짧은 이름이 긴 이름 안에 묻히지 않게).
+// 이름 바로 뒤의 권수 표기 — "Heroines Edition Vol.2" 의 "vol 2"(normName 뒤라 구두점은 공백이다).
+const VOL_NEXT = /^ (?:vol(?:ume)? ?(?:\d+|i{1,3}|iv)|v\d+)\b/;
+// 이름 바로 뒤의 맨 숫자 — "Heroines Edition 2". 권수인지 수량(2박스)인지 제목만으로는 모른다.
+const NUM_NEXT = /^ (?:\d{1,2}|i{2,3})\b/;
+// 제목에서 세트 이름을 찾아 코드를 돌려준다. 판별할 수 없으면 null — 추측하지 않는다.
+//  · 긴 이름부터 찾고, 찾은 자리는 지운다 — "heroines edition vol 2"(EB-05) 안의 "heroines edition"(EB-03)이
+//    다시 걸리지 않게. (종전엔 includes 로 둘 다 걸려 EB-05 가 cross-set 으로 버려졌다)
+//  · 이름 뒤에 권수(vol 2)가 붙어 있으면 그 이름으로는 세트를 정하지 않는다 — 같은 시리즈의 다른 권이다.
+//    코드(EB-05)가 제목에 있으면 그 코드로 판정되고, 없으면 code-missing 으로 버려진다.
+//  · 더 긴 이름의 앞부분인 이름(시리즈 첫 권 "heroines edition") 뒤에 맨 숫자가 붙으면 null.
+//    "Heroines Edition 2 Booster Box" 는 EB-05 한 박스인지 EB-03 두 박스인지 모른다.
+//  · 단어 경계로만 찾는다("royal blood" 가 "royal bloodline" 에 걸리지 않게).
 function codesFromName(title, nameMap) {
-  const t = normName(title);
+  let t = ` ${normName(title)} `;
   const out = [];
-  for (const [n, code] of nameMap) if (t.includes(n)) out.push(code);
+  for (const [n, code] of nameMap) {
+    const seriesHead = nameMap.some(([m]) => m.startsWith(n + " "));
+    let i;
+    while ((i = t.indexOf(` ${n} `)) >= 0) {
+      const rest = t.slice(i + n.length + 1);          // " vol 2 booster box " 처럼 공백으로 시작
+      t = t.slice(0, i) + " | " + rest;                  // 찾은 이름은 지운다(짧은 이름이 다시 못 걸게)
+      if (VOL_NEXT.test(rest)) continue;
+      if (seriesHead && NUM_NEXT.test(rest)) return null;
+      out.push(code);
+    }
+  }
   return out;
 }
 
@@ -110,13 +141,26 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const t = String(item.t || "");
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
   if (SINGLE_PACK.test(t)) return { drop: "single-pack" };
-  if (BAD.test(t)) return { drop: "bad-word" };
+  if (ACCESSORY_ONLY.test(t)) return { drop: "accessory-only" };
+  // BAD 의 case 는 12박스 케이스를 막으려는 것이다. 단품 박스에 붙는 case 문구만 지우고 검사한다
+  // (box-case-words.js — 9/18~9/30 덤프에서 이 이유로 단품 판매 109건이 빠져 있었다).
+  if (BAD.test(stripSingleBoxCase(t))) return { drop: "bad-word" };
   if (OTHER_GAME.test(t)) return { drop: "other-game" };
   const codes = new Set();
   for (const m of t.matchAll(SET_CODE)) codes.add(`${m[1].toUpperCase()}-${m[2]}`);
   // 코드가 없으면 세트 이름으로 찾아본다. 이름으로 찾은 코드도 같은 집합에 넣어야
   // 아래 cross-set 검사(다른 세트가 같이 적힌 제목 배제)가 그대로 적용된다.
-  if (nameMap) for (const c of codesFromName(t, nameMap)) codes.add(c);
+  if (nameMap) {
+    const byName = codesFromName(t, nameMap);
+    if (byName === null) return { drop: "name-ambiguous" };   // "Heroines Edition 2" — 권수인지 수량인지 모른다
+    for (const c of byName) codes.add(c);
+  }
+  // 합본 제품코드(OP14-EB04·OP15-EB04)의 짝 코드는 다른 세트가 아니다 — 짝을 지우고 합본 표시를 남긴다.
+  // 합본은 영문판에만 있으니 판별이 정해진 뒤 영문판이 아니면 버린다(아래 combined-code-not-en).
+  let combined = false;
+  for (const [ed0, partner] of Object.entries(COMBINED[targetCode] || {})) {
+    if (codes.has(targetCode) && codes.has(partner)) { codes.delete(partner); combined = ed0; }
+  }
   if (!codes.has(targetCode)) return { drop: "code-missing" };
   if ([...codes].some((c) => c !== targetCode)) return { drop: "cross-set" };
   const fromTitle = editionOf(t);
@@ -124,7 +168,8 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   if (declaredEd && fromTitle && fromTitle !== declaredEd) return { drop: "lang-conflict" };
   const ed = declaredEd || fromTitle;
   if (!ed) return { drop: "no-language" };
-  const qty = parseLotQuantity(t, "box");
+  if (combined && ed !== combined) return { drop: "combined-code-not-en" };
+  const qty = boxQuantity(t);
   if (qty == null) return { drop: "uncountable-lot" };
   const totalUsd = item.cur === "USD" ? item.k : item.cur === "KRW" ? item.k / fxUsdKrw : null;
   if (!Number.isFinite(totalUsd)) return { drop: "bad-currency" };
@@ -179,7 +224,7 @@ function main(dumpFile) {
   }
   const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
   const fx = data.fx.usdKrw;
-  const nameMap = buildNameMap(data);
+  const nameMap = ingestNameMap(data);
   const today = dump.collectedAt;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today || "")) throw new Error("dump.collectedAt 필요 (YYYY-MM-DD)");
 
@@ -229,8 +274,7 @@ function main(dumpFile) {
   // 종전엔 여기서 무음 스킵됐다: 수집 배치는 OP-17 페이지를 만드는데 ingest 가 통째로 버려서,
   // 발매 직후 데이터가 영영 사라질 뻔했다(240건 상한+최근순이라 소급 불가 — 팰월드 BP-01 전례).
   // 스냅샷(packs.json 반영)은 여전히 등재된 세트만 — 화면은 세트 등재 후에 열린다.
-  const { UPCOMING } = require("./box-sold-urls.js");
-  const upcomingCodes = new Set(UPCOMING.map((u) => u.code));
+  const upcomingCodes = new Set(require("./box-sold-urls.js").UPCOMING.map((u) => u.code));
   for (const page of dump.pages || []) {
     const code = page.code;
     if (!data.sets[code] && !upcomingCodes.has(code)) continue;
@@ -305,7 +349,12 @@ function main(dumpFile) {
   console.log(JSON.stringify({ pages: (dump.pages || []).length, summary, drops, backfilled, capped: cappedPages.length, cappedNote, ledgerTotal: totals }));
 }
 
-module.exports = { judgeItem, editionOf, soldDateOf, buildNameMap, codesFromName };
+// ingest 가 실제로 쓰는 이름표 — packs.json 세트 + 수집 목록의 UPCOMING 세트. 가드 Q5 가 이 함수를 그대로 검사한다.
+function ingestNameMap(packs) {
+  return buildNameMap(packs, require("./box-sold-urls.js").UPCOMING);
+}
+
+module.exports = { judgeItem, editionOf, soldDateOf, buildNameMap, codesFromName, ingestNameMap };
 if (require.main === module) {
   if (!process.argv[2]) { console.error("usage: node tools/box-sold-ingest.js <dump.json>"); process.exit(1); }
   main(process.argv[2]);

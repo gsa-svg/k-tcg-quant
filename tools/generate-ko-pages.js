@@ -426,7 +426,10 @@ ${cardRows}
     const comp = {};
     (s.cards || []).forEach((c) => { comp[kind(c)] = (comp[kind(c)] || 0) + 1; });
     const compTxt = Object.entries(comp).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${v}장`).join(", ");
-    const p1 = `이 박스의 가치를 끌고 가는 카드는 <strong>${esc(t0.name)}</strong>(${esc(t0.number)})로, 일본판 NM 시세가 약 <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>입니다. 추적 중인 상위 카드 구성은 ${compTxt} — 어떤 유형이 몇 장인지가 박스 기대값의 골격입니다.`;
+    const tieKo = t0 && t0.nmJpy != null ? topCards.filter((c) => c.nmJpy === t0.nmJpy) : [];
+    const p1 = (tieKo.length > 1
+      ? `이 박스의 가치를 끌고 가는 카드는 <strong>${tieKo.map((c) => esc(c.name)).join(" · ")}</strong>로, 일본판 NM 시세가 모두 약 <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>으로 같습니다.`
+      : `이 박스의 가치를 끌고 가는 카드는 <strong>${esc(t0.name)}</strong>(${esc(t0.number)})로, 일본판 NM 시세가 약 <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>입니다.`) + ` 추적 중인 상위 카드 구성은 ${compTxt} — 어떤 유형이 몇 장인지가 박스 기대값의 골격입니다.`;
     const sold = t0.psa10Ebay && t0.psa10Ebay.soldBased && t0.psa10Ebay.middle != null ? t0.psa10Ebay : null;
     const soldKrw = psa10Krw(sold);
     const nmKrw = t0.nmJpy != null && fx.jpyKrw ? t0.nmJpy * fx.jpyKrw : null;
@@ -456,7 +459,11 @@ ${cardRows}
     if (cg(s.graders && s.graders.cgc)) {
       const e = s.graders.cgc.jp || s.graders.cgc.en;
       const ed = s.graders.cgc.jp ? "일본판" : "영문판";
-      if (e.total) g.push(`${esc(nKo)}의 CGC ${ed} 표본은 ${e.total.toLocaleString("ko-KR")}장으로, 프리스틴 10 ${(e.pristine10 ?? 0).toLocaleString("ko-KR")}장과 젬 민트 10 ${(e.gemMint10 ?? 0).toLocaleString("ko-KR")}장입니다.`);
+      // 분리값이 없는 관측이면 만점 수를 말하지 않는다 — 2026-09-30. 없는 값을 0 으로 적어,
+      // 분리값이 원장에 안 쌓이던 8/14 이후 22개 세트 페이지가 전부 "프리스틴 10 0장과 젬 민트 10 0장"이었다.
+      const split = e.pristine10 != null && e.gemMint10 != null
+        ? `으로, 프리스틴 10 ${e.pristine10.toLocaleString("ko-KR")}장과 젬 민트 10 ${e.gemMint10.toLocaleString("ko-KR")}장` : "";
+      if (e.total) g.push(`${esc(nKo)}의 CGC ${ed} 표본은 ${e.total.toLocaleString("ko-KR")}장${split}입니다.`);
     }
     if (cg(s.graders && s.graders.tag)) {
       const e = s.graders.tag.jp || s.graders.tag.en;

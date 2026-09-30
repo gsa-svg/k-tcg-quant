@@ -12,19 +12,11 @@
    "confirmed": "2026-08-26"
   },
   {
-   "series": "PSA 카드별",
-   "weeks": [
-    "2026-W32"
-   ],
-   "reason": "GemRate 관측이 2026-08-02 다음 2026-08-10 으로 건너뛴다. 그 주 수집이 돌지 않았고 GemRate 는 과거 주차를 되돌려주지 않는다.",
-   "confirmed": "2026-08-26"
-  },
-  {
    "series": "TAG 카드별",
    "weeks": [
     "2026-W32"
    ],
-   "reason": "TAG 관측이 2026-07-27 다음 2026-08-10 이다. 같은 사유.",
+   "reason": "TAG 관측이 2026-07-27 다음 2026-08-10 이다. 그 주 수집이 돌지 않았고 TAG 팝리포트는 과거 주차를 되돌려주지 않는다.",
    "confirmed": "2026-08-26"
   },
   {
@@ -73,7 +65,7 @@
    "dates": [
     "2026-09-26"
    ],
-   "reason": "collect-tcg 가 2026-09-26 ~ 09-27 05:17Z 연속 실패했다(data/onepiece-packs.json 에 남은 시험용 키 __testFakeCollector — 2026-09-27 14:36 KST 커밋에서 제거). 스냅샷은 그 시점 진행 중 매물 수라 지나간 날은 eBay 에서 되돌려 받을 수 없다.",
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 그래서 09-26(UTC) 스냅샷이 한 번도 커밋되지 않았다. 스냅샷은 그 시점 진행 중 매물 수라 지나간 날은 eBay 에서 되돌려 받을 수 없다.",
    "confirmed": "2026-09-30"
   },
   {
@@ -81,15 +73,7 @@
    "dates": [
     "2026-09-26"
    ],
-   "reason": "collect-auction-market 이 같은 기간(2026-09-26 20:47Z ~ 09-27 05:17Z) 같은 원인으로 연속 실패. 진행 중 매물 관측이라 소급 불가.",
-   "confirmed": "2026-09-30"
-  },
-  {
-   "series": "PSA 카드별",
-   "weeks": [
-    "2026-W38"
-   ],
-   "reason": "관측 날짜가 2026-09-12 다음 2026-09-22 로 건너뛴다. 9/14 수집은 돌았지만 GemRate 원천 날짜가 9/12(W37)였고 9/15~21 추석 전후로 다음 수집이 없었다. GemRate 는 과거 주차를 되돌려주지 않는다.",
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 그래서 09-26(UTC) 팰월드 관측이 없다(09-25 다음 09-27). 진행 중 매물 관측이라 소급 불가.",
    "confirmed": "2026-09-30"
   },
   {
@@ -97,7 +81,96 @@
    "weeks": [
     "2026-W39"
    ],
-   "reason": "관측이 2026-09-16 다음 2026-09-28 이다. 추석 연휴(9/24~27) 주에 수집이 돌지 않았고 CGC 인구 보고서는 현재값만 보여준다.",
+   "reason": "관측이 2026-09-16 다음 2026-09-28 이다. 그 주(9/21~27)에 CGC 카드별을 커밋한 실행이 없다 — 9/21 월요일 자동 수집(collect-grading)의 커밋이 없고, 9/22 수동 수집(6f822a19·5f413a0c)은 PSA 카드별·TAG 만 돌렸다. CGC 인구 보고서는 현재값만 보여줘 지난 주를 되돌려 받을 수 없다.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "원피스 경매 시장 스캔",
+   "dates": [
+    "2026-09-26"
+   ],
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 그래서 09-26(UTC) 시장 스캔 점이 없다(09-25 다음 09-27). 스캔은 그 시점 진행 중 경매라 소급 불가.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "원피스 경매 일별",
+   "dates": [
+    "2026-09-26",
+    "2026-09-27"
+   ],
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 마지막 시장 스캔(09-25 07:49Z)이 감시목록(auction-watch)에 넣은 경매는 09-26 07시 종료분까지였고 다음 감시목록 갱신은 09-27 07:49Z 였다 — 그 사이 종료 경매는 ID 가 없다. 그래서 09-26 은 UTC 08시 이후 거의 0건(588건·14시간 공백), 09-27 은 UTC 01~07시 0건(829건·7시간 공백). eBay Browse 는 끝난 매물을 검색으로 찾을 수 없어 회수 불가.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-09-25",
+    "2026-09-26"
+   ],
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 09-25 는 digimon 38/62·gundam 13/23·palworld 14/18(확인/보수적 최소) — 정산 실행이 09-27 05:47Z 에야 재개돼 그 사이 30시간 시한을 넘긴 종료분을 못 읽었다. 09-26 은 스냅샷이 없어 그날 몫의 감시 표본이 안 들어갔다 — 확인 pokemonjp·pokemon·magic·yugioh·onepiece·lorcana·weiss·riftbound·dragonball 0, digimon 19, unionarena 38, gundam 46, palworld 28(감시 하한 기준 최소 62). tcg-watch 에 두 날 종료분이 남아 있지 않아 회수 불가.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-09-28"
+   ],
+   "reason": "큰 5종이 보수적 최소 62 에 못 미친다 — pokemonjp 54, pokemon 58, magic 52, yugioh 53, onepiece 55. 9/28 01:05Z 스냅샷이 게임당 125건(종료 임박 순)을 감시에 넣었는데 9/29 06:18Z 에도 67~73건이 미정산으로 남았고, 9/29 07:29Z 실행(563e7be1)이 30시간 시한으로 지웠다. 정산이 밀린 원인은 미확정. tcg-watch 에 9/28 종료분이 남아 있지 않아 회수 불가.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-09-09",
+    "2026-09-12",
+    "2026-09-19",
+    "2026-09-24"
+   ],
+   "reason": "게임 하나씩 보수적 최소에 못 미친다(확인/최소) — 09-09 lorcana 29/62, 09-12 gundam 50/51, 09-19 gundam 44/47, 09-24 gundam 55/60. 원인은 조사하지 않았다. tcg-watch 에 이 날들 종료분이 남아 있지 않아(30시간 시한 지남) 회수 불가.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "CGC 세트 누적",
+   "weeks": [
+    "2026-W38",
+    "2026-W39"
+   ],
+   "reason": "CGC 세트(박스) 누적이 2026-09-11 다음 2026-09-29 로 건너뛴다. 9/16 수집(4e2ab0cb)은 CGC 카드별만 적재했고 세트 누적은 적재하지 않았다. 9/21~27 주는 CGC 수집 커밋이 없다(9/22 수동 수집은 PSA 카드별·TAG 만). CGC 팝리포트는 현재값만 보여줘(원장 note) 지난 주를 되돌려 받을 수 없다.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "공급 시계열",
+   "dates": [
+    "2026-09-22",
+    "2026-09-23",
+    "2026-09-24",
+    "2026-09-25"
+   ],
+   "reason": "update-active-listings 커밋이 2026-09-21 20:14Z 다음 09-27 20:23Z 로 끊겼다(6fcce2ac 메시지: 클라우드 3일 실패). 그 사이 진행 매물 스냅샷은 로컬 커밋에만 있다 — JP·EN 9/22(cd0d53d8), JP 9/23(d18337f3), JP·EN 9/26(6fcce2ac). 9/24·9/25 는 JP·EN 어느 쪽도 진행 매물 관측이 없다. 공급은 그 시점 매물 목록이라 소급 불가. (복원 검토 결과는 아래) 2026-09-30 확인: 그 로컬 스냅샷은 조회 한도 50(.env EBAY_SEARCH_LIMIT)으로 받아 매물을 절반쯤만 봤다 — 클라우드(100)로 받은 앞뒤 점과 같은 잣대가 아니라 점으로 복원하지 않는다(수집기 한도는 100 으로 고정, 가드 D14). 9/22·9/23 도 소급 불가로 확정: 같은 한도 50 스냅샷이고, 9/23 은 EN 새 스냅샷이 없어 같은 함수로 만들면 EN 개수를 복사하고 신규/사라짐을 0/0 으로 지어내게 된다. 9/22 커밋(cd0d53d8)은 제목 필터도 바꿔 사라진 매물 수에 필터 효과가 섞인다.",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "박스 진행매물 시계열 JP",
+   "dates": [
+    "2026-09-22",
+    "2026-09-23",
+    "2026-09-24",
+    "2026-09-25",
+    "2026-09-26"
+   ],
+   "reason": "update-active-listings 커밋이 2026-09-21 20:14Z 다음 09-27 20:23Z 로 끊겼다(6fcce2ac 메시지: 클라우드 3일 실패). 그 사이 진행 매물 스냅샷은 로컬 커밋에만 있다 — JP·EN 9/22(cd0d53d8), JP 9/23(d18337f3), JP·EN 9/26(6fcce2ac). JP 9/24·9/25 는 진행 매물 관측이 아예 없다(복원 검토 결과는 아래). 진행 매물은 그 시점 목록이라 소급 불가. 2026-09-30 확인: 그 로컬 스냅샷은 조회 한도 50(.env EBAY_SEARCH_LIMIT)으로 받아 매물을 절반쯤만 봤다 — 클라우드(100)로 받은 앞뒤 점과 같은 잣대가 아니라 점으로 복원하지 않는다(수집기 한도는 100 으로 고정, 가드 D14).",
+   "confirmed": "2026-09-30"
+  },
+  {
+   "series": "박스 진행매물 시계열 EN",
+   "dates": [
+    "2026-09-22",
+    "2026-09-23",
+    "2026-09-24",
+    "2026-09-25",
+    "2026-09-26"
+   ],
+   "reason": "update-active-listings 커밋이 2026-09-21 20:14Z 다음 09-27 20:23Z 로 끊겼다(6fcce2ac 메시지: 클라우드 3일 실패). 그 사이 진행 매물 스냅샷은 로컬 커밋에만 있다 — JP·EN 9/22(cd0d53d8), JP 9/23(d18337f3), JP·EN 9/26(6fcce2ac). EN 9/23~9/25 는 진행 매물 관측이 아예 없다(복원 검토 결과는 아래). 진행 매물은 그 시점 목록이라 소급 불가. 2026-09-30 확인: 그 로컬 스냅샷은 조회 한도 50(.env EBAY_SEARCH_LIMIT)으로 받아 매물을 절반쯤만 봤다 — 클라우드(100)로 받은 앞뒤 점과 같은 잣대가 아니라 점으로 복원하지 않는다(수집기 한도는 100 으로 고정, 가드 D14).",
    "confirmed": "2026-09-30"
   }
  ]

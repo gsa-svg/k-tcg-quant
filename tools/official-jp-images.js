@@ -64,6 +64,26 @@ async function fetchLists() {
   return out;
 }
 
+// 공식 PNG 한 장 → 자체호스팅 webp 버퍼(480w, q80). 실패하면 던진다 — 쓰기 전에 모아서 받는 도구(seed-set-top-cards)가
+// 하나라도 실패하면 아무것도 안 쓰도록.
+async function officialWebp(file) {
+  const r = await fetch(`${CARD_BASE}${file}.png`, { headers: { "User-Agent": "Mozilla/5.0" } });
+  if (!r.ok) throw new Error(`${file}: PNG HTTP ${r.status}`);
+  const sharp = require("sharp");
+  return sharp(Buffer.from(await r.arrayBuffer())).resize({ width: 480 }).webp({ quality: 80 }).toBuffer();
+}
+
+// 카드 레코드의 일본판 이미지 필드(형식은 전 세트 공통). file = 카드번호+접미어(예: OP17-062_p2).
+function imageFields(num, suffix) {
+  const file = `${num}${suffix}`;
+  return {
+    image: `https://opboxindex.com/img/jp/${file}.webp`,
+    _imgSuffix: suffix,
+    imageJpSrc: `${CARD_BASE}${file}.png`,
+    _imgSource: "official-cardlist",   // 추측이 아니라 공식 목록에서 왔다는 표시
+  };
+}
+
 // 그 상품에서 이 카드의 이미지를 하나로 확정할 수 있으면 접미어를 돌려준다. 아니면 null + 이유.
 function resolve(list, num, name, rarity) {
   let hits = list.filter((x) => x === num || x.startsWith(num + "_p"));
@@ -111,26 +131,21 @@ async function main() {
     return;
   }
 
-  const sharp = require("sharp");
   fs.mkdirSync(IMG_DIR, { recursive: true });
   let made = 0;
   for (const f of fixes) {
     const file = `${f.num}${f.suffix}`;
     const webp = path.join(IMG_DIR, `${file}.webp`);
     if (!fs.existsSync(webp)) {
-      const r = await fetch(`${CARD_BASE}${file}.png`, { headers: { "User-Agent": "Mozilla/5.0" } });
-      if (!r.ok) { console.error(`  건너뜀 ${file}: PNG HTTP ${r.status}`); continue; }
-      const buf = Buffer.from(await r.arrayBuffer());
-      await sharp(buf).resize({ width: 480 }).webp({ quality: 80 }).toFile(webp);
+      try { fs.writeFileSync(webp, await officialWebp(file)); } catch (e) { console.error(`  건너뜀 ${e.message}`); continue; }
       made++;
     }
-    f.card.image = `https://opboxindex.com/img/jp/${file}.webp`;
-    f.card._imgSuffix = f.suffix;
-    f.card.imageJpSrc = `${CARD_BASE}${file}.png`;
-    f.card._imgSource = "official-cardlist";   // 추측이 아니라 공식 목록에서 왔다는 표시
+    Object.assign(f.card, imageFields(f.num, f.suffix));
   }
   fs.writeFileSync(DATA, JSON.stringify(data, null, 1) + "\n", "utf8");
   console.log(`\n반영 완료 — 카드 ${fixes.length}장, 새 webp ${made}개`);
 }
 
-main().catch((e) => { console.error(e.message); process.exit(1); });
+module.exports = { CARD_BASE, IMG_DIR, officialWebp, imageFields };
+
+if (require.main === module) main().catch((e) => { console.error(e.message); process.exit(1); });

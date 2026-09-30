@@ -22,7 +22,7 @@
 // Run: node tools/generate-english-set-pages.js   (generate-set-pages.js 보다 먼저 — 허브·일본판 페이지가 이 파일 존재를 보고 링크를 건다)
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
+const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
 
 const readJson = (rel, fallback) => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; }
@@ -77,6 +77,8 @@ function englishMetrics(code) {
     psa: s.psaFullEn?.total ?? null,
     gem: s.psaFullEn?.gemRate ?? null,
     psaD: s.psaFullEn?.updated || null,
+    // 영문판 선·중앙값이 재판(White)만일 때(OP-01) — 그래프 배지와 같은 기준. 값 옆에 그 사실을 적는다(2026-09-30).
+    reprint: enIsReprint(ser),
   };
 }
 
@@ -112,7 +114,7 @@ function statGrid(code, m) {
     if (hint) hints.push([label, hint]);
     cells.push(`<div class="statCard"${hint ? ` title="${esc(hint)}"` : ""}><div class="statLabel">${label}</div><div class="statValue">${value}</div>${base ? `<div class="statBase">${base}</div>` : ""}</div>`);
   };
-  if (m.price != null) card("Box price (EN)", usd(m.price), `${m.priceD ? `as of ${esc(m.priceD)} · ` : ""}${baseLabel("price")} ${usd(BASE.price.v)} ${cmp(m.price, BASE.price.v)}`);
+  if (m.price != null) card("Box price (EN)", usd(m.price), `${m.reprint ? "reprint (White) · " : ""}${m.priceD ? `as of ${esc(m.priceD)} · ` : ""}${baseLabel("price")} ${usd(BASE.price.v)} ${cmp(m.price, BASE.price.v)}`);
   if (m.chg != null) {
     const cls = m.chg > 0 ? "statUp" : m.chg < 0 ? "statDown" : "statFlat";
     card("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `${baseLabel("chg")} ${BASE.chg.v > 0 ? "+" : ""}${BASE.chg.v}%`);
@@ -124,7 +126,7 @@ function statGrid(code, m) {
     card("Asking price (mid)", usd(m.ask.middle), `${m.ask.sampleSize} active listings${rng} · ${esc(m.ask.updated || DATA_DATE)}`, "Median asking price of verified active eBay listings — not a completed sale.");
   }
   if (m.days != null) card("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${BASE.days.v}d ${cmp(m.days, BASE.days.v, false)}`, "How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing faster.");
-  if (m.multiple != null) card("vs Japanese box", `${m.multiple}x`, `JP ${usd(m.jpPrice)} as of ${esc(m.jpPriceD)} · ${baseLabel("multiple")} ${BASE.multiple.v}x`, "English completed-sale median divided by the Japanese one. The ratio describes the gap; it does not explain it.");
+  if (m.multiple != null) card("vs Japanese box", `${m.multiple}x`, `${m.reprint ? "EN reprint vs " : ""}JP ${usd(m.jpPrice)} as of ${esc(m.jpPriceD)} · ${baseLabel("multiple")} ${BASE.multiple.v}x`, "English completed-sale median divided by the Japanese one. The ratio describes the gap; it does not explain it.");
   if (m.psa != null) card("PSA graded (EN)", intl(m.psa), `${baseLabel("psa")} ${intl(BASE.psa.v)} ${cmp(m.psa, BASE.psa.v)}`);
   if (m.gem != null) card("PSA 10 rate (EN)", `${m.gem}%`, `${baseLabel("gem")} ${BASE.gem.v}% ${cmp(m.gem, BASE.gem.v)}`, "Share of PSA submissions from the English printing that came back a 10.");
   if (cells.length < 3) return "";
@@ -135,9 +137,10 @@ function statGrid(code, m) {
 // 날짜 박힌 사실문 — 답변 AI 가 그대로 인용할 수 있는 형태. 화면에서는 접어 둔다.
 function keyFacts(code, nameEn, m, s) {
   const facts = [];
-  if (m.sold && m.sold.median != null) facts.push(`As of ${esc(m.sold.updated)}, a sealed English ${code} ${esc(nameEn)} booster box has a completed-sale median of about <strong>${usd(m.sold.median)}</strong> (${m.sold.sampleSize} eBay sales in the trailing ${m.sold.windowDays || 28} days).`);
+  const rp = m.reprint ? " reprint (White)" : "";
+  if (m.sold && m.sold.median != null) facts.push(`As of ${esc(m.sold.updated)}, a sealed English ${code} ${esc(nameEn)}${rp} booster box has a completed-sale median of about <strong>${usd(m.sold.median)}</strong> (${m.sold.sampleSize} eBay sales in the trailing ${m.sold.windowDays || 28} days).`);
   if (m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3) facts.push(`Current eBay asking prices run around <strong>${usd(m.ask.middle)}</strong> (${m.ask.sampleSize} active listings, ${esc(m.ask.updated || DATA_DATE)}).`);
-  if (m.multiple != null) facts.push(`The English ${code} box trades at about <strong>${m.multiple}x</strong> the Japanese box (${usd(m.jpPrice)} as of ${esc(m.jpPriceD)}).`);
+  if (m.multiple != null) facts.push(`The English ${code}${rp} box trades at about <strong>${m.multiple}x</strong> the Japanese box (${usd(m.jpPrice)} as of ${esc(m.jpPriceD)}).`);
   if (m.psa != null && m.gem != null) facts.push(`PSA has graded <strong>${intl(m.psa)}</strong> English ${code} cards with a <strong>${m.gem}%</strong> PSA 10 rate (as of ${esc(m.psaD || DATA_DATE)}).`);
   if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);
   if (facts.length < 2) return "";
@@ -202,7 +205,7 @@ function weeklyTable(code) {
   if (pts.length < 3) return "";
   const rows = [...pts].reverse().map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${usd(p.median)}</td><td class="num">${usd(p.low)}</td><td class="num">${usd(p.high)}</td><td class="num">${intl(p.n)}</td><td class="num">${p.vol != null ? intl(p.vol) : "—"}</td></tr>`).join("\n            ");
   return `
-      <h2>English ${code} box — weekly completed-sale median</h2>
+      <h2>English ${code}${METRICS[code]?.reprint ? " reprint (White)" : ""} box — weekly completed-sale median</h2>
       <div class="chaseTableWrap">
         <table class="chaseTable">
           <thead><tr><th>Week ending</th><th>Median</th><th>Low (P25)</th><th>High (P75)</th><th>Sales in window</th><th>Sales that week</th></tr></thead>
@@ -220,7 +223,7 @@ function compareTable(code, m, s) {
   const jpRel = SET_FACTS.sets?.[code]?.jpRelease?.date || null;
   const row = (label, en, jp) => (en == null && jp == null ? "" : `<tr><td>${label}</td><td class="num">${en ?? "—"}</td><td class="num">${jp ?? "—"}</td></tr>`);
   const rows = [
-    row("Completed-sale median", m.sold?.median != null ? `${usd(m.sold.median)} <span class="psaKind">${esc(m.sold.updated)}</span>` : null, jpSold?.median != null ? `${usd(jpSold.median)} <span class="psaKind">${esc(jpSold.updated)}</span>` : null),
+    row("Completed-sale median", m.sold?.median != null ? `${usd(m.sold.median)} <span class="psaKind">${m.reprint ? "reprint · " : ""}${esc(m.sold.updated)}</span>` : null, jpSold?.median != null ? `${usd(jpSold.median)} <span class="psaKind">${esc(jpSold.updated)}</span>` : null),
     row("Sales in window", m.sold?.sampleSize ?? null, jpSold?.sampleSize ?? null),
     row("Asking median (active)", m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3 ? `${usd(m.ask.middle)} <span class="psaKind">${m.ask.sampleSize} listings</span>` : null, jpAsk?.middle != null && (jpAsk.sampleSize || 0) >= 3 ? `${usd(jpAsk.currency === "USD" ? jpAsk.middle : jpAsk.middle / (data.fx?.usdKrw || 1))} <span class="psaKind">${jpAsk.sampleSize} listings</span>` : null),
     row("Listings on sale now", sup?.en ?? null, sup?.jp ?? null),
@@ -268,16 +271,17 @@ function auctionSection(code) {
 // FAQ — 화면과 JSON-LD 가 같은 문답을 써야 한다(가드 L2). 값은 전부 원장에서, 판단 문장은 없다.
 function faqItems(code, nameEn, m) {
   const items = [];
+  const rp = m.reprint ? " reprint (White)" : "";
   if (m.sold && m.sold.median != null) {
     items.push({
       q: `How much is a sealed ${code} ${nameEn} English booster box?`,
-      a: `As of ${m.sold.updated}, completed eBay sales put the median at about $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales in the trailing ${m.sold.windowDays || 28} days, from $${Math.round(m.sold.low)} to $${Math.round(m.sold.high)}).${m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3 ? ` Active asking prices center near $${Math.round(m.ask.middle)} across ${m.ask.sampleSize} listings.` : ""}`,
+      a: `As of ${m.sold.updated}, completed eBay sales${m.reprint ? " of the reprint (White) box" : ""} put the median at about $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales in the trailing ${m.sold.windowDays || 28} days, from $${Math.round(m.sold.low)} to $${Math.round(m.sold.high)}).${m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3 ? ` Active asking prices center near $${Math.round(m.ask.middle)} across ${m.ask.sampleSize} listings.` : ""}`,
     });
   }
   if (m.multiple != null) {
     items.push({
       q: `How does the English ${code} box price compare with the Japanese box?`,
-      a: `English $${Math.round(m.price)} (as of ${m.priceD}) versus Japanese $${Math.round(m.jpPrice)} (as of ${m.jpPriceD}): the English box trades at about ${m.multiple}x the Japanese box.`,
+      a: `English${rp} $${Math.round(m.price)} (as of ${m.priceD}) versus Japanese $${Math.round(m.jpPrice)} (as of ${m.jpPriceD}): the English box trades at about ${m.multiple}x the Japanese box.`,
     });
   }
   if (m.psa != null && m.gem != null) {
@@ -390,7 +394,7 @@ function englishPage(code, prev, next) {
   // 설명은 155자 안에서 문장이 끝나야 한다 — 종전 slice(0,155) 는 단어 중간을 잘랐다. 값 없는 조각은 빠진다.
   // 넘치면 긴 꼬리를 떼고, 그래도 넘치면 같은 숫자를 짧은 말로 다시 쓴다(숫자는 그대로).
   const bitsOf = (short) => [
-    m.sold?.median != null ? (short ? `eBay sold median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales, ${m.sold.updated})` : `completed eBay sale median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales to ${m.sold.updated})`) : "",
+    m.sold?.median != null ? (m.reprint ? "reprint (White) " : "") + (short ? `eBay sold median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales, ${m.sold.updated})` : `completed eBay sale median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales to ${m.sold.updated})`) : "",
     m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3 ? (short ? `ask $${Math.round(m.ask.middle)}` : `asking mid $${Math.round(m.ask.middle)}`) : "",
     m.multiple != null ? (short ? `${m.multiple}x the JP box` : `${m.multiple}x the Japanese box`) : "",
     m.gem != null ? (short ? `PSA 10 rate ${m.gem}%` : `English PSA 10 rate ${m.gem}%`) : "",
@@ -405,7 +409,7 @@ function englishPage(code, prev, next) {
   const enBuy = cheapestBoxCta(code, m);
 
   const summaryBits = [];
-  if (m.sold?.median != null) summaryBits.push(`Sold median <b>${usd(m.sold.median)}</b> (${m.sold.sampleSize} sales · ${esc(m.sold.updated)})`);
+  if (m.sold?.median != null) summaryBits.push(`${m.reprint ? "Reprint (White) sold" : "Sold"} median <b>${usd(m.sold.median)}</b> (${m.sold.sampleSize} sales · ${esc(m.sold.updated)})`);
   if (m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3) summaryBits.push(`Asking <b>${usd(m.ask.middle)}</b> (${m.ask.sampleSize} listings)`);
   if (m.gem != null) summaryBits.push(`English PSA 10 rate <b>${m.gem}%</b>${m.psa != null ? ` (${intl(m.psa)} graded)` : ""}`);
   const summaryLine = summaryBits.length ? `<p class="dataSummary">${summaryBits.join(" · ")}</p>` : "";

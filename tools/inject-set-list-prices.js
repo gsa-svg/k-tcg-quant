@@ -63,7 +63,8 @@ html = html.replace(trRe, (whole, code, rest) => {
   return `<tr><td>${code}</td>${next}</tr>`;
 });
 
-// 본문 안의 최신 세트 박스값 (data-op17-box 표시 구간)
+// 본문 안의 최신 세트 박스값 (data-op17-box 표시 구간 — 상단 안내와 "Which sets" 목록 두 곳, 표와 같은 원천)
+// 2026-09-30: 목록 쪽은 손으로 쓴 "$144 on September 7" 이 표($130, 9/28)와 어긋나 있었다 → 같은 구간으로 묶었다.
 const newest = Object.keys(series)
   .filter((c) => /^OP-\d+$/.test(c) && (series[c].jp || []).length)
   .sort((a, b) => +a.slice(3) - +b.slice(3))
@@ -73,7 +74,7 @@ if (newest) {
   const last = jp[jp.length - 1];
   const txt = `$${Math.round(last.median).toLocaleString("en-US")} on ${longDate(last.d)}`;
   html = html.replace(
-    /(<span data-op17-box>)[^<]*(<\/span>)/,
+    /(<span data-op17-box>)[^<]*(<\/span>)/g,
     (_m, open, close) => open + txt + close
   );
 }
@@ -81,9 +82,10 @@ if (newest) {
 // 열 머리글 · 주석 · 갱신일
 const short = `${MON[+dataDate.slice(5, 7) - 1]} ${dataDate.slice(0, 4)}`;
 html = html.replace(/<th class="num">JP box \([^)]*\)<\/th>/g, `<th class="num">JP box (${short})</th>`);
+// 2026-09-30: 종전 정규식은 옛 문구("weekly market values as of")를 찾아, 문구가 바뀐 뒤 기준일이 9/27 에 멈춰 있었다.
 html = html.replace(
-  /Box prices are Japanese sealed box weekly market values as of [^—]*—/,
-  `Box prices are Japanese sealed box medians from completed eBay sales, as of ${longDate(dataDate)} —`
+  /Box prices are Japanese sealed box medians from completed eBay sales, as of [^—]*—/,
+  () => `Box prices are Japanese sealed box medians from completed eBay sales, as of ${longDate(dataDate)} —`
 );
 html = html.replace(/Reference · Updated [A-Z][a-z]+ \d{1,2}, \d{4}/, `Reference · Updated ${longDate(dataDate)}`);
 html = html.replace(/("dateModified": ")[^"]*(")/, `$1${dataDate}$2`);
