@@ -1,6 +1,6 @@
 ---
 name: 수집
-description: opboxindex 수집을 밀린 것만 골라 전부 돌린다 — 소유자가 "수집"이라고만 하면 이걸 쓴다. 박스 판매·등급 인구(PSA/CGC/TAG)·유유테이 NM·팰월드 등 브라우저가 필요한 수동 수집 8종을 상태 확인부터 적재·검증·배포까지 끝낸다.
+description: opboxindex 수집을 밀린 것만 골라 전부 돌린다 — 소유자가 "수집"이라고만 하면 이걸 쓴다. 박스 판매·등급 인구(PSA/CGC/TAG)·유유테이 NM·팰월드 등 브라우저가 필요한 수동 수집 10종을 상태 확인부터 적재·검증·배포까지 끝낸다.
 ---
 
 소유자가 "수집" 한마디만 해도 **밀린 것을 알아서 전부** 돌린다. 뭘 해야 하는지 되묻지 않는다.
@@ -67,7 +67,7 @@ macOS 는 옆자리 타인 기기다 — 절대 선택 금지, 되묻지도 않�
    삼켜 OP-13 일본판 주력 가격대가 통째로 비었다. 소유자가 지적해서 발각됐다.)
 7. `node tools/build-box-sold-series.js`
 
-## 3. 등급 인구 (PSA / TAG) — `todo` 에 `psa-pop`·`tag-pop`·`graderpop-card` 가 있을 때
+## 3. 등급 인구 (PSA / TAG) — `todo` 에 `psa-pop`·`psa-weekly`·`psa-full`·`tag-pop`·`graderpop-card` 가 있을 때
 
 주 1회(보통 월요일). 순서와 명령은 `tools/MONDAY-GRADING.md` 가 기준이다.
 CGC 는 세트(총량·Pristine/Gem Mint)·카드별 모두 워크플로 `collect-grading` 이 공개 API 로 자동 수집한다 —

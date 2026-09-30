@@ -8,6 +8,7 @@
 //  [2026-07-17 야간봇이 시세 시리즈 덮어씀] → D1
 //  [영구 규칙: 외부 소스명 공개 금지] → S1
 //  [검증파일 삭제 사고 예방] → F1
+//  [2026-09-30 known-gaps 가 관측 있는 주를 영구 공백으로 굳힘] → K1, K2
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
@@ -1734,8 +1735,26 @@ for (const test of [
   }
 }
 
+// ── K1. known-gaps 기록부가 데이터와 맞는가 — 2026-09-30 신설.
+//    5c155cb3 이 PSA 카드별 W38 — 9/14 에 386점을 관측한(seen) 주 — 을 영구 공백으로 등록했다. 감사가 d(GemRate 변동일)만
+//    보던 오판을 기록부가 그대로 굳혀, 감사를 고쳐도 틀린 기록이 남는다. 등록된 날·주가 그 계열 기준으로 실제로 비어 있어야
+//    하고(관측이 있거나 아직 회수 중이면 FAIL), 계열 이름이 감사 이름과 맞아야 한다(오타면 아무것도 안 덮는다).
+//    판정은 audit-series-gaps.js D) 가 한다 — 감사와 같은 기준이어야 해서 여기서 다시 짜지 않는다.
+//    감사 자체는 소급 불가 공백으로 FAIL 할 수 있으므로 종료 코드가 아니라 knownWrong 만 본다.
+// ── K2. 공백 감사 회귀검사 — seen||d, 세트 누적·진행 매물 계열, known-gaps 검증이 되살아나지 않게.
+{
+  const result = spawnSync(process.execPath, [path.join(__dirname, "audit-series-gaps.js"), "--json"], { cwd: ROOT, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 });
+  let report = null;
+  try { report = JSON.parse(result.stdout); } catch {}
+  if (!report || !Array.isArray(report.knownWrong)) errors.push(`K1: 공백 감사가 결과를 못 냈다 — ${(result.stderr || result.stdout || "").trim().slice(0, 300)}`);
+  else for (const m of report.knownWrong) errors.push(`K1: data/known-gaps.json 오기재 — ${m}`);
+
+  const t = spawnSync(process.execPath, [path.join(__dirname, "test-series-gaps.js")], { cwd: ROOT, encoding: "utf8" });
+  if (t.error || t.status !== 0) errors.push(`K2: test-series-gaps.js 실패 — ${(t.stderr || t.error?.message || t.stdout || "unknown").trim().slice(0, 500)}`);
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2"] }));
