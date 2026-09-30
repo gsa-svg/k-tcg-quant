@@ -29,16 +29,22 @@ function matchBox(tagName) {
   return null;
 }
 
-// byYear 덤프(원시 TAG 행들) → 박스별 {jp,en:{total,gem}} 집계. gem = 10 + 10P(TAG 최고등급).
+// byYear 덤프(원시 TAG 행들) → 박스별 {jp,en:{total,gem,g10,g10p}} 집계. gem = 10 + 10P(TAG 최고등급).
+// 10 과 10P 는 따로도 낸다 — 2026-09-30. 합친 gem 만 내던 탓에 분리값이 8/3 뒤로 원장에 안 쌓였고
+// 화면 TAG 10/10P 열이 전 세트 '—' 였다. 브라우저 __tagAgg 가 이 함수를 그대로 쓴다(tag-pop.js).
 function aggregateBoxes(byYear) {
   const res = {};
   for (const rows of Object.values(byYear || {})) {
     for (const r of rows || []) {
       const m = matchBox(r.name);
       if (!m) continue;
-      res[m.code] = res[m.code] || { jp: { total: 0, gem: 0 }, en: { total: 0, gem: 0 } };
-      res[m.code][m.ed].total += Number(r.total) || 0;
-      res[m.code][m.ed].gem += (Number(r.g10) || 0) + (Number(r.g10p) || 0);
+      res[m.code] = res[m.code] || { jp: { total: 0, gem: 0, g10: 0, g10p: 0 }, en: { total: 0, gem: 0, g10: 0, g10p: 0 } };
+      const b = res[m.code][m.ed];
+      const g10 = Number(r.g10) || 0, g10p = Number(r.g10p) || 0;
+      b.total += Number(r.total) || 0;
+      b.g10 += g10;
+      b.g10p += g10p;
+      b.gem += g10 + g10p;
     }
   }
   const boxes = {};

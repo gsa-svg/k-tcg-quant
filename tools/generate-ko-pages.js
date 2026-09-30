@@ -456,7 +456,11 @@ ${cardRows}
     if (cg(s.graders && s.graders.cgc)) {
       const e = s.graders.cgc.jp || s.graders.cgc.en;
       const ed = s.graders.cgc.jp ? "일본판" : "영문판";
-      if (e.total) g.push(`${esc(nKo)}의 CGC ${ed} 표본은 ${e.total.toLocaleString("ko-KR")}장으로, 프리스틴 10 ${(e.pristine10 ?? 0).toLocaleString("ko-KR")}장과 젬 민트 10 ${(e.gemMint10 ?? 0).toLocaleString("ko-KR")}장입니다.`);
+      // 분리값이 없는 관측이면 만점 수를 말하지 않는다 — 2026-09-30. 없는 값을 0 으로 적어,
+      // 분리값이 원장에 안 쌓이던 8/14 이후 22개 세트 페이지가 전부 "프리스틴 10 0장과 젬 민트 10 0장"이었다.
+      const split = e.pristine10 != null && e.gemMint10 != null
+        ? `으로, 프리스틴 10 ${e.pristine10.toLocaleString("ko-KR")}장과 젬 민트 10 ${e.gemMint10.toLocaleString("ko-KR")}장` : "";
+      if (e.total) g.push(`${esc(nKo)}의 CGC ${ed} 표본은 ${e.total.toLocaleString("ko-KR")}장${split}입니다.`);
     }
     if (cg(s.graders && s.graders.tag)) {
       const e = s.graders.tag.jp || s.graders.tag.en;
