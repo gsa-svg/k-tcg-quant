@@ -61,9 +61,12 @@ const nAuctions = writeCsv("opbox-auction-daily.csv", AUCTION_HEAD, auctionRecor
 
 // ---- 랜딩 페이지
 // 미리보기 — 등급 인구를 앞세운다. 이게 이 페이지에서 유일하게 다른 데 없는 표다.
+// 미리보기 표에는 날짜 칸이 없다 — Pristine 10 은 CGC 총량과 같은 관측일 때만 싣는다(2026-09-30:
+// 9/29 총량 옆에 8/3 Pristine 10 이 '현재'처럼 붙어 있었다). CSV 는 *_as_of 로 날짜를 따로 싣는다.
 const gradePreview = gradeRecords.slice(0, 8).map((record) => {
   const td = (v) => `<td class="num">${v === "" ? "—" : esc(v)}</td>`;
-  return `<tr><td>${esc(record.set_code)}</td><td>${record.edition === "japanese" ? "Japanese" : "English"}</td>${td(record.psa_total)}${td(record.psa10_rate_pct === "" ? "" : record.psa10_rate_pct + "%")}${td(record.cgc_total)}${td(record.cgc_pristine10)}${td(record.tag_total)}</tr>`;
+  const pristine = record.cgc_grade_split_as_of && record.cgc_grade_split_as_of === record.cgc_total_as_of ? record.cgc_pristine10 : "";
+  return `<tr><td>${esc(record.set_code)}</td><td>${record.edition === "japanese" ? "Japanese" : "English"}</td>${td(record.psa_total)}${td(record.psa10_rate_pct === "" ? "" : record.psa10_rate_pct + "%")}${td(record.cgc_total)}${td(pristine)}${td(record.tag_total)}</tr>`;
 }).join("\n");
 
 const publisher = { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` };

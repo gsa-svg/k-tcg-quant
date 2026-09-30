@@ -94,7 +94,9 @@ for (const [code, s] of Object.entries(sets)) {
 
 const out = {
   note: "Weekly cumulative grading population per booster-box set, per grading company. 'total' is the running cumulative count of cards from that set graded by that company; 'add' is the change from the previous observation (negative values are real — re-grades and corrections do reduce published populations). Japanese and English printings are kept separate. Gem counts are per company and are NOT summed across companies: CGC splits Pristine 10 from Gem Mint 10 and TAG scores 10 apart from 10P, so a combined 'number of 10s' would merge three different standards. latestTotal sums each company's most recent observation and records which date each figure came from, because the companies are not observed on the same day.",
-  builtFrom: { psa: PSA?.updated ?? null, cgc: CGC?.updated ?? null, tag: TAG?.updated ?? null },
+  // 각 원장의 마지막 점 날짜. 2026-09-30: PSA 원장엔 updated 가 없어(collectedAt·weeklyThrough 만 있다) psa 가 늘 null 이었다.
+  // 세 원장 모두 weeklyThrough(마지막 점)를 적재기가 찍으므로 그걸 쓴다.
+  builtFrom: { psa: PSA?.weeklyThrough ?? null, cgc: CGC?.weeklyThrough ?? null, tag: TAG?.weeklyThrough ?? null },
   updated: new Date().toISOString().slice(0, 10),
   sets,
 };

@@ -5,7 +5,8 @@
 // 절차(브라우저 javascript_tool, 각 <45초):
 //   node tools/tag-pop.js --setup 출력을 my.taggrading.com/pop-report/One Piece 탭에서 실행 → 'tag-ready'
 //   await window.__tagYear('2022')  … '2023' '2024' '2025' '2026'   (각 연도. 페이지가 여러 장이면 안에서 다 넘긴다)
-//   window.__tagAgg()  →  { grader,collectedAt,boxes } JSON 문자열(작음) 반환 → 파일로 저장 → tag-pop-ingest.js
+//   window.__tagAgg()  →  { grader,collectedAt,boxes:{코드:{jp,en:{total,gem,g10,g10p}}} } JSON 문자열(작음) 반환
+//                          → 파일로 저장 → tag-pop-ingest.js (10·10P 분리값까지 한 점에 담는다)
 //
 // ⚠️ 페이지네이션은 **연도마다 언제든 늘어난다**(한 페이지 200행). 2026-08-03 기준 2024=199행,
 //    2025=232행(2페이지). 예전 코드는 2025 만 2페이지로 보고 `__tagPage2()` 를 손으로 부르게 했는데,
@@ -14,11 +15,10 @@
 //    대조해 `complete` 로 보고한다. complete:false 면 그 연도는 반쪽이니 적재하지 말 것.
 // 검증: __tagYear 는 그 연도 총계를 함께 반환하니, taggrading 랜딩의 연도별 Total graded 와 대조할 것.
 //
-// ⚠️ 매핑(EB=Extra Booster, PRB=Premium Booster The Best[/Vol.2], 비-박스 제외)은 tools/tag-classify.js 와
-//    동일하게 유지한다(가드 Q3 가 노드쪽을 검증). 규칙 바꾸면 양쪽 다 고칠 것.
-const fs = require("fs");
-const path = require("path");
-const { ALIASES } = require("./tag-classify");
+// ⚠️ 매핑·집계는 tools/tag-classify.js 의 matchBox·aggregateBoxes 를 **소스째** 심는다 — 2026-09-30.
+//    예전엔 브라우저용 사본을 여기 따로 적어 뒀는데, 사본이 10+10P 를 gem 하나로 합쳐 내보내는 바람에
+//    분리값이 8/3 뒤로 원장에 안 쌓였다. 사본이 없으면 어긋날 일도 없다(가드 Q3·G9 가 노드쪽을 검증).
+const { ALIASES, matchBox, aggregateBoxes } = require("./tag-classify");
 
 function setupScript() {
   // ALIASES(정규식)를 브라우저로 넘기려고 소스 문자열로 직렬화
@@ -49,12 +49,10 @@ window.__tagYear=async(y)=>{const b=document.querySelector('table tr:nth-child(3
  // 표 파싱은 페이저 안내문 한 줄을 행으로 집기도 한다(total 0) — 대조는 그 여유를 두고 본다.
  const complete=expected==null?null:rows.length>=expected;
  return JSON.stringify({year:y,rows:rows.length,pages,expected,complete,graded:rows.reduce((a,x)=>a+x.total,0)});};
-window.__tagAgg=()=>{const AL=${aliasSrc};
- const match=name=>{const n=String(name).replace(/^one piece\\s+/i,'').replace(/[\\u2019']/g,"'").trim();for(const[c,re] of AL)if(re.test(n))return{code:c,ed:/japanese/i.test(name)?'jp':'en'};return null;};
- const rows=Object.values(window.__tagAll).flat();const res={};
- for(const r of rows){const m=match(r.name);if(!m)continue;res[m.code]=res[m.code]||{jp:{total:0,gem:0},en:{total:0,gem:0}};res[m.code][m.ed].total+=r.total;res[m.code][m.ed].gem+=r.g10+r.g10p;}
- const boxes={};for(const[c,v] of Object.entries(res))boxes[c]={jp:v.jp.total?v.jp:null,en:v.en.total?v.en:null};
- return JSON.stringify({grader:'tag',collectedAt:new Date().toISOString().slice(0,10),boxes});};
+const ALIASES=${aliasSrc};
+${matchBox.toString()}
+${aggregateBoxes.toString()}
+window.__tagAgg=()=>JSON.stringify({grader:'tag',collectedAt:new Date().toISOString().slice(0,10),boxes:aggregateBoxes(window.__tagAll)});
 return 'tag-ready';})()`;
 }
 

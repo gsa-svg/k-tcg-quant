@@ -59,6 +59,21 @@ const pick = {
     const last = arr[arr.length - 1];
     return String(last.d || last.date || last.week || "").slice(0, 10) || null;
   },
+  // 원장(sets 아래 관측점 배열)의 가장 늦은 관측일 — 2026-09-30 신설. 점에 seen(그 값을 마지막으로 본 수집일)이
+  // 있으면 그것, 없으면 d. 등급 행이 원장 대신 파생 파일의 빌드 날짜를 읽다가 수집이 죽은 걸 못 봤다(아래 grading).
+  observed: (file) => () => {
+    let best = null;
+    (function walk(o) {
+      if (Array.isArray(o)) { for (const p of o) { const d = p && (p.seen || p.d); if (d && (!best || d > best)) best = d; } }
+      else if (o && typeof o === "object") for (const v of Object.values(o)) walk(v);
+    })(readJSON(file).sets);
+    return best;
+  },
+  // 한 작업이 원장 여럿을 채우는 행 — 가장 늦게 멈춘 원장의 날짜가 그 행의 날짜다. 하나만 빠져도 보이게.
+  earliest: (...gets) => () => {
+    const ds = gets.map((g) => g());
+    return ds.some((d) => !d) ? null : ds.sort()[0];
+  },
   // 박스 원장은 판매일이 세트×판별로 흩어져 있다 — 전부 훑어 가장 최근 판매일을 찾는다.
   boxLedger: (file) => () => {
     const L = readJSON(file);
@@ -129,18 +144,20 @@ const SOURCES = [
     warn: 2, late: 3, get: pick.packsField("psa10active"), files: [] },
   { key: "fx", name: "환율", mode: "auto", every: "매일 09:10 KST", wf: "update-fx",
     warn: 2, late: 3, businessDays: true, get: pick.field("data/fx.json", "date", "updated"), files: ["fx.json", "fx-history.json"] },
-  { key: "grading", name: "그레이딩 시계열(PSA/CGC/TAG 통합)", mode: "auto", every: "매주 월요일", wf: "collect-grading",
-    warn: 8, late: 12, get: pick.field("data/grading-series.json", "updated"),
-    files: ["grading-series.json", "psa-edition-weekly.json", "gemrate-psa-en-totals.json"] },
-  { key: "psa-weekly", name: "PSA 주간 등급량", mode: "auto", every: "매주 일요일", wf: "update-market-data",
-    warn: 8, late: 12, get: pick.field("data/gemrate-psa-history.json", "collectedAt", "weeklyThrough", "updated"),
-    files: ["gemrate-psa-history.json", "psa-population-snapshots.json", "japanese-nm-sold-audit.json"] },
+  // collect-grading.yml(월 01:30 UTC)이 만드는 건 CGC 카드별 원장 하나다(공개 API). 2026-09-30 정정: 전엔 이 행이
+  // grading-series.json 의 updated — update-market-data 가 수집 성패와 무관하게 매주 찍는 빌드 날짜 — 를 읽어서,
+  // 자동 CGC 가 9/3 이후 한 번도 커밋하지 못했는데도 "정상"이었다. 원장의 실제 관측일을 본다.
+  { key: "grading", name: "CGC 카드별 등급 인구(공개 API)", mode: "auto", every: "매주 월요일", wf: "collect-grading",
+    warn: 8, late: 12, get: pick.observed("data/cgc-card-pop.json"), files: ["cgc-card-pop.json"] },
+  // CGC 는 세트·카드별 모두 공개 API 자동 수집이다(2026-09-30 이관 — 세트 총량 브라우저 수집은 없앴다). 카드별은 위 grading 행.
+  // 세트 최신일은 누적 관측일과 분리값(gradesThrough) 중 이른 쪽: 분리값은 8/3 에 멈춘 채 아무 목록에도 안 걸렸던 바로 그 값이다.
+  { key: "cgc-pop", name: "CGC 세트 누적+분리(박스별)", mode: "auto", every: "매주 월요일", wf: "collect-grading",
+    warn: 8, late: 12, get: pick.earliest(pick.observed("data/cgc-grading-history.json"), pick.field("data/cgc-grading-history.json", "gradesThrough")),
+    files: ["cgc-grading-history.json"] },
   { key: "social", name: "주간 소셜 카드 스냅샷", mode: "auto", every: "매주 일요일", wf: "generate-weekly-social-assets",
     warn: 8, late: 12, get: pick.tail("data/social-card-price-snapshots.json", (j) => j.snapshots),
     files: ["social-card-price-snapshots.json"] },
 
-  { key: "psa-full", name: "PSA 전체 인구(세트별)", mode: "auto", every: "매주 일요일", wf: "update-market-data",
-    warn: 8, late: 12, get: pick.packsField("psafull"), files: [] },
   { key: "card-series", name: "카드별 시세 시계열", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
     warn: 2, late: 3, get: pick.packsField("cardseries"), files: [] },
   { key: "box-series", name: "박스 시세 시계열(JP/EN×호가/실거래)", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
@@ -164,21 +181,29 @@ const SOURCES = [
   { key: "psa-pop", name: "PSA 카드별 등급 인구", mode: "manual", every: "주 1회(월)",
     warn: 8, late: 14, get: pick.field("data/psa-card-pop.json", "updated"), files: ["psa-card-pop.json"],
     how: "브라우저로 GemRate 카드별 수집 → node tools/collect-psa-card-pop.js" },
-  { key: "cgc-pop", name: "CGC 등급 인구(박스+카드별)", mode: "manual", every: "주 1회(월)",
-    warn: 8, late: 14, get: pick.field("data/cgc-card-pop.json", "updated"),
-    files: ["cgc-card-pop.json", "cgc-grading-history.json"],
-    how: "브라우저로 CGC 팝리포트 → node tools/cgc-pop-ingest.js + node tools/cgc-card-pop-ingest.js" },
+  // PSA 세트 주간 — 2026-09-30 수동으로 정정(전엔 auto·update-market-data). 그 워크플로의 GemRate 단계는 러너 IP 가
+  // 막혀 매주 실패한다(continue-on-error — 워크플로 주석: "PSA 는 어차피 매주 월요일에 사람이 로컬에서"). 아래 원장들을 Actions 가
+  // 커밋한 적이 한 번도 없고 전부 월요일 로컬 수집이었다. auto 로 두면 밀려도 "지금 할 일"에 안 뜬다.
+  { key: "psa-weekly", name: "PSA 세트 주간 등급량", mode: "manual", every: "주 1회(월)",
+    warn: 8, late: 14,
+    get: pick.earliest(pick.field("data/gemrate-psa-history.json", "collectedAt"), pick.field("data/gemrate-psa-en-totals.json", "collectedAt")),
+    files: ["gemrate-psa-history.json", "gemrate-psa-en-totals.json", "psa-edition-weekly.json", "psa-population-snapshots.json"],
+    how: "실브라우저 GemRate 탭에서 세트별 set-population-trend 의 RowData 를 {jp,en} 덤프로 받는다(수집 스킬 3절) → node tools/psa-trend-ingest.js <덤프> → node tools/psa-edition-weekly-ingest.js <덤프> → node tools/import-gemrate-psa-history.js → node tools/import-gemrate-en-totals.js → node tools/inject-psa-wow.js",
+    note: "psa-edition-weekly-ingest 는 덤프의 마지막 수요일 한 주만 넣는다 — 두 주 밀렸으면 판별 주간이 한 주 빈다(2026-09-28 복구 때 9/16 주가 빠졌다)." },
+  { key: "psa-full", name: "PSA 전체 인구(세트별)", mode: "manual", every: "주 1회(월)",
+    warn: 8, late: 14, get: pick.packsField("psafull"), files: [],
+    how: "psa-weekly 와 같은 작업 — import-gemrate-psa-history.js·import-gemrate-en-totals.js 가 packs.json 의 psaFull·psaFullEn 을 갱신한다" },
   { key: "tag-pop", name: "TAG 등급 인구(박스+카드별)", mode: "manual", every: "주 1회(월)",
-    warn: 8, late: 14, get: pick.field("data/tag-card-pop.json", "updated"),
+    warn: 8, late: 14, get: pick.earliest(pick.observed("data/tag-card-pop.json"), pick.observed("data/tag-grading-history.json")),
     files: ["tag-card-pop.json", "tag-grading-history.json"],
-    how: "브라우저로 TAG 팝리포트 → node tools/tag-pop-ingest.js + node tools/tag-card-pop-ingest.js" },
+    how: "브라우저로 TAG 팝리포트(node tools/tag-pop.js --setup → __tagYear 연도별 → __tagAgg) → node tools/tag-pop-ingest.js(10/10P 분리 포함) + node tools/tag-card-pop-ingest.js" },
   { key: "psa10-sold", name: "PSA10 실거래(sold) 시세", mode: "manual", every: "월 1회",
     warn: 35, late: 60, get: pick.packsField("psa10sold"), files: [],
     how: "node tools/psa10-sold-refresh.js → 브라우저 수집 → node tools/psa10-sold-write.js",
     note: "변형(레드망가↔망가 등) 분리 필수 — 번호만 매칭하면 값이 통째로 틀어진다." },
   { key: "graderpop-card", name: "카드별 등급인구(PSA/CGC/TAG)", mode: "manual", every: "주 1회(월)",
     warn: 8, late: 14, get: pick.packsField("graderpop"), files: [],
-    how: "psa-pop·cgc-pop·tag-pop 수집이 packs.json 의 card.graderPop 에 반영된다(위 3개와 같은 작업)" },
+    how: "psa-pop·tag-pop 수동 수집(과 CGC 자동 수집)이 packs.json 의 card.graderPop 에 반영된다(같은 작업)" },
   { key: "palworld-box", name: "팰월드 박스 판매", mode: "manual", every: "주 1회",
     warn: 8, late: 14, get: pick.boxLedger("data/palworld-sold-ledger.json"), files: ["palworld-sold-ledger.json"],
     how: "node tools/palworld-sold-urls.js --setup → 브라우저 수집 → ingest" },
@@ -191,6 +216,8 @@ const IGNORE = {
   "set-facts.json": "세트 발매일·구성 등 고정 사실(수동 편집)",
   "set-commentary.json": "세트 해설 문구(수동 편집)",
   "known-gaps.json": "수집 공백 기록부(audit-series-gaps.js 가 씀, 수집원 아님)",
+  // 2026-09-30: 이 파일의 updated 를 등급 수집의 신선도로 읽다가 CGC 자동 수집이 죽은 걸 못 봤다. 원장 행들이 관측일로 본다.
+  "grading-series.json": "파생 — build-grading-series.js 가 PSA·CGC·TAG 원장에서 다시 굽는다. updated 는 빌드 날짜라 수집 신선도가 아니다",
   "official-card-images.json": "공식 이미지 URL 목록(수동)",
   "jp-image-verdicts.json": "이미지 판정 결과(파생)",
   "priority-set-seo.json": "SEO 우선순위 설정(수동)",
