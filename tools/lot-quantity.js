@@ -14,6 +14,11 @@
 
 // 수량 탐지 전에 지우는 토큰: 세트·카드코드(OP-13 / OP 13 / OP13 / OP05-119 / ST 21 / EB-02 / PRB-01)
 const SET_CODE_STRIP = /\b(?:OP|EB|PRB|ST)[-\s]?\d{2}(?:[-\s]?\d{3})?\b/gi;
+// 세트 이름 속 권 번호도 지운다 — 2026-09-30. PRB-02 의 이름이 "Premium Booster The Best Vol.2" 라
+// 세트코드를 지우고 나면 "Vol 2 Booster Box"·"The Best 2 - Booster Box"·"Premium Booster 2 Booster Box" 의
+// 2 가 BOX_COUNT 에 "2박스"로 잡혔다. 원장에 PRB-02 22건이 qty=2(반값)로 들어갔고, 일본판 낱박스는
+// 반값이 9만원 하한에 걸려 버려졌다(예: "Japanese The Best Vol. 2 PRB-02 Booster Box US SELLER" 144,522원).
+const VOLUME_STRIP = /\b(?:vol(?:ume)?\.?|the\s*best|premium\s*booster)\s*-?\s*0?[12]\b/gi;
 
 const UNCOUNTABLE = /\bcase\b|\bcases\b|carton|\blots?\b|bundle|wholesale|\bbulk\b|playset/i;
 
@@ -35,7 +40,7 @@ const PLURAL_PACKS = /\bpacks\b/i;
 // 팰월드 BP-01 은 12팩/박스라 24 로 나누면 "12 packs" 짜리 정상 1박스가 통째로 버려진다.
 // 원피스 판정은 guard Q1 코퍼스가 지키고 있으므로 기본 동작은 건드리지 않고 옵션으로만 연다.
 function parseLotQuantity(title, kind, opts) {
-  const t = String(title || "").replace(SET_CODE_STRIP, " ");   // 세트/카드코드·연도 오인 방지
+  const t = String(title || "").replace(SET_CODE_STRIP, " ").replace(VOLUME_STRIP, " ");   // 세트/카드코드·연도·권 번호 오인 방지
   const counts = new Set();
   const pats = [...MULT_PATTERNS];
   if (kind === "box") pats.push(BOX_COUNT);
@@ -60,7 +65,8 @@ function parseLotQuantity(title, kind, opts) {
       // ⚠️ 박스당 팩 수가 제품군마다 다르다. 일반 부스터는 24팩, **프리미엄 부스터(PRB)는 20팩**이다.
       //    24 로만 나누면 "PRB-01 Premium Booster Box 20 Packs" 같은 정상 1박스가 통째로 버려진다
       //    (2026-08-13: 실제로 PRB 영문판 7건이 그렇게 빠질 뻔했다).
-      const perBox = (opts && opts.perBox) || (/premium\s*booster/i.test(t) ? 20 : 24);
+      // 원 제목에서 본다 — VOLUME_STRIP 이 "Premium Booster 2" 를 지우면 t 에는 이 말이 안 남는다.
+      const perBox = (opts && opts.perBox) || (/premium\s*booster/i.test(String(title || "")) ? 20 : 24);
       // 여럿 적혀 충돌하거나 박스 단위로 안 떨어지면 모름.
       // 안 떨어지는 수(17·16·18팩)는 박스가 아니라 낱팩 묶음이다 — 박스 시세에 넣으면 안 된다.
       if (packs.length > 1 || packs[0] % perBox !== 0) return null;

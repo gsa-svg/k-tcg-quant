@@ -8,7 +8,7 @@
 //   · "1st Edition" 표기가 존재한다. 초판/재판이 갈릴 수 있으므로 판정하지 않고 제목을 보존하고,
 //     firstPrint 플래그만 붙여 둔다. 지금 나누기엔 표본이 없다 — 나중에 나눌 수 있게만 해 둔다.
 //
-// 원장은 append-only 다(never modified). 같은 id 는 다시 넣지 않는다.
+// 원장은 append-only 다(never modified). 같은 (id, 판매일)은 다시 넣지 않는다.
 // Run: node tools/palworld-sold-ingest.js <dump.json>
 const fs = require("fs");
 const path = require("path");
@@ -68,6 +68,36 @@ function judge(item, fxUsdKrw, declaredEd) {
   return { rec, ed, code: hit[0].code };
 }
 
+// 중복 키는 **매물 id + 판매일**이다 — 2026-09-30. 원피스 적재(box-sold-ingest.js)는 2026-08-25 에 같은 수정을 했다.
+// eBay 의 sold 검색은 매물 하나를 한 줄로 보여주고 날짜는 **최근 판매일**만 싣는다. 재고가 여럿인 매물은
+// 같은 id 로 여러 번 팔리는데, id 만으로 거르면 두 번째 판매부터 전부 "이미 아는 건"으로 버려진다.
+// 실측(palworld-2026-09-17~09-30 덤프 9개): 판정을 통과한 고유 (id, 판매일) 1,115건 중 원장에 없는 165건이
+// 전부 원장에 이미 있는 id 의 **다른 날** 판매였다(새 id 는 0건).
+//   예) 336712363425 "Palworld TCG Dawn of Palpagos Booster Box JP New Sealed" — 원장 2026-08-11, 덤프 Sold Sep 11 118,315원
+// 같은 id + 같은 날은 여전히 한 건이다. 기존 레코드는 건드리지 않고 새 판매만 붙인다.
+const keyOf = (r) => `${r.id}|${r.d}`;
+function mergeDump(ledger, dump, fx) {
+  const seen = new Set();
+  for (const s of Object.values(ledger.sets)) for (const arr of Object.values(s)) if (Array.isArray(arr)) for (const r of arr) seen.add(keyOf(r));
+
+  const drops = {};
+  let added = 0, dup = 0;
+  for (const pg of dump.pages || []) {
+    const declaredEd = pg.query === "jp" ? "jp" : pg.query === "en" ? "en" : null;
+    for (const it of pg.items || []) {
+      const j = judge(it, fx, declaredEd);
+      if (j.drop) { drops[j.drop] = (drops[j.drop] || 0) + 1; continue; }
+      if (seen.has(keyOf(j.rec))) { dup++; continue; }
+      seen.add(keyOf(j.rec));
+      const s = (ledger.sets[j.code] = ledger.sets[j.code] || { jp: [], en: [] });
+      s[j.ed].push(j.rec);
+      added++;
+    }
+  }
+  for (const s of Object.values(ledger.sets)) for (const k of ["jp", "en"]) s[k].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+  return { added, dup, drops };
+}
+
 function main(dumpFile) {
   const dump = JSON.parse(fs.readFileSync(dumpFile, "utf8"));
   const fx = JSON.parse(fs.readFileSync(fxPath, "utf8")).usdKrw;
@@ -84,24 +114,7 @@ function main(dumpFile) {
     };
   }
 
-  const seen = new Set();
-  for (const s of Object.values(ledger.sets)) for (const arr of Object.values(s)) if (Array.isArray(arr)) for (const r of arr) seen.add(r.id);
-
-  const drops = {};
-  let added = 0, dup = 0;
-  for (const pg of dump.pages || []) {
-    const declaredEd = pg.query === "jp" ? "jp" : pg.query === "en" ? "en" : null;
-    for (const it of pg.items || []) {
-      const j = judge(it, fx, declaredEd);
-      if (j.drop) { drops[j.drop] = (drops[j.drop] || 0) + 1; continue; }
-      if (seen.has(j.rec.id)) { dup++; continue; }
-      seen.add(j.rec.id);
-      const s = (ledger.sets[j.code] = ledger.sets[j.code] || { jp: [], en: [] });
-      s[j.ed].push(j.rec);
-      added++;
-    }
-  }
-  for (const s of Object.values(ledger.sets)) for (const k of ["jp", "en"]) s[k].sort((a, b) => (a.d < b.d ? -1 : a.d > b.d ? 1 : 0));
+  const { added, dup, drops } = mergeDump(ledger, dump, fx);
   ledger.updated = today;
   // updated 는 실행 시각이라 수확 0 이어도 찍힌다 — 실제 적재일을 따로 남긴다(원피스와 동일).
   // 그것만 보면 수집 전멸이 감사에 안 잡힌다(2026-08-25 감사 지적).
@@ -117,4 +130,4 @@ function main(dumpFile) {
 }
 
 if (require.main === module) main(process.argv[2]);
-module.exports = { judge, SETS, PACKS_PER_BOX };
+module.exports = { judge, mergeDump, SETS, PACKS_PER_BOX };
