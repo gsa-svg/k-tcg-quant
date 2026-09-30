@@ -83,7 +83,8 @@ function appendPoint(store, code, ed, point, problems) {
 
   if (!store.weeks.includes(wed)) store.weeks.push(wed);
   store.weeks.sort();
-  store.updated = wed;
+  // updated 는 가장 최근 주다. --date 로 빠진 옛 주를 채울 때 updated 가 과거로 돌아가면 안 된다(2026-09-30, 9/16 주 소급).
+  store.updated = store.weeks.at(-1);
   if (problems.length) store.problems = [...(store.problems || []), ...problems.map((p) => ({ at: wed, note: p }))];
   fs.writeFileSync(LEDGER, `${JSON.stringify(store, null, 1)}\n`, "utf8");
   console.log(JSON.stringify({ status: "ok", wed, ...tally, weeks: store.weeks.length }));
