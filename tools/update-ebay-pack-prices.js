@@ -27,7 +27,7 @@ const env = { ...loadEnv(envPath), ...process.env };
 const clientId = env.EBAY_CLIENT_ID;
 const clientSecret = env.EBAY_CLIENT_SECRET;
 const marketplaceId = env.EBAY_MARKETPLACE_ID || "EBAY_US";
-// 조회 한도는 환경변수로 받지 않는다 — 2026-09-30. 클라우드 워크플로는 100 을 주고 로컬은 기본값 50 으로 돌아,
+// 조회 한도는 환경변수로 받지 않는다 — 2026-09-30. 클라우드 워크플로는 100 을 주고 로컬은 .env 의 50 으로 돌아,
 // 로컬 보충분(8/27·9/18·9/22·9/23·9/26)은 매물을 절반만 보고 표본이 2/3 로 줄며 세트 중간값이 20~50% 낮게 찍혔다
 // (OP-05 일판 $300 → $195). 같은 시계열에 섞이면 수집 방식 차이가 시세 급락으로 둔갑한다. 가드 D14.
 const searchLimit = "100";
