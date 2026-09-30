@@ -675,7 +675,13 @@ if (exists("data/auction-card-stats.json")) {
     const seenDesc = new Set();
     for (const code of order) {
       const c = cm.sets?.[code];
-      if (!c) { errors.push(`S3: ${code} 수기 해설 없음 — 템플릿 문구로 노출된다`); continue; }
+      // 해설이 "있어야 함"은 2026-08-28 이전 발매 세트까지만 — 그날 소유자가 "보고서식 설명 문단 금지, 표만"으로 정했다.
+      // 그 뒤 세트(OP-17~)에 새 문단을 요구하면 두 규칙이 부딪혀 top10 을 올릴 수 없다(2026-09-30, OP-17 이 여기서 막혔다).
+      // 해설이 있는 세트는 발매일과 무관하게 아래 길이·중복·주입 검사를 전부 받는다.
+      if (!c) {
+        if (String(packs.sets[code].release || "") < "2026-08-28") errors.push(`S3: ${code} 수기 해설 없음 — 템플릿 문구로 노출된다`);
+        continue;
+      }
       const body = (c.body || []).join(" ");
       if (body.length < 350) errors.push(`S3: ${code} 해설이 ${body.length}자 — 350자 미만은 껍데기다`);
       if (!c.desc || c.desc.length < 60) errors.push(`S3: ${code} desc 부실`);
@@ -1408,6 +1414,25 @@ for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
   }
 }
 
+// ── K1/K2. 세트 카드 목록 — 2026-09-30.
+//   K1: OP/EB/PRB 세트의 cardCount 는 있으면 50 이상. OP-16 에 5 가 들어가 세트 페이지에 "5 cards" 로 나갔다
+//       (공식 상품 페이지는 全126種). 수록 종류가 50 아래인 부스터·EB·PRB 는 없다 — 더 작으면 다른 숫자가 들어간 것이다.
+//   K2: 영문 발매일(release)이 오늘 이전인 가장 최근 부스터(OP-xx) 세트의 cards 가 비면 실패.
+//       8/28 발매 OP-17 이 6주 동안 top10 없이 나갔다. 채우는 법: node tools/seed-set-top-cards.js <CODE>
+{
+  const today = new Date().toISOString().slice(0, 10);
+  let latest = null;
+  for (const [code, s] of Object.entries(data.sets || {})) {
+    if (/^(OP|EB|PRB)-\d+$/.test(code) && s.cardCount != null && !(Number(s.cardCount) >= 50)) {
+      errors.push(`K1: ${code} cardCount=${s.cardCount} — 50 미만이면 세트 수록 종류 수가 아니다. 확인 전에는 비워 둘 것`);
+    }
+    if (/^OP-\d+$/.test(code) && s.release && s.release < today && (!latest || s.release > latest.s.release)) latest = { code, s };
+  }
+  if (latest && !(latest.s.cards || []).length) {
+    errors.push(`K2: ${latest.code}(발매 ${latest.s.release}) cards 가 비어 있음 — 가장 최근 발매 부스터에 top10 이 없다. node tools/seed-set-top-cards.js ${latest.code}`);
+  }
+}
+
 // ── J1. packs.js 안에서 호출하는 render*/init* 함수가 실제로 선언돼 있는지 — 2026-07-27 실사고.
 //    죽은 차트 코드를 블록으로 잘라내다 그 사이에 있던 renderEditionTable 까지 함께 지웠다.
 //    문법은 통과하고(정의되지 않은 이름은 실행 시점에야 터진다) 가드도 통과했지만,
@@ -1582,4 +1607,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "K1", "K2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));

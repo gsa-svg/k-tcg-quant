@@ -195,7 +195,12 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+// seed-set-top-cards.js 가 같은 파서·변형 판별을 쓴다(후보 목록을 따로 해석하면 두 도구의 변형 판단이 갈린다).
+module.exports = { fetchProducts, yuyuTier, cardTier };
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
