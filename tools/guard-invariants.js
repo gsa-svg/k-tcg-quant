@@ -1507,7 +1507,7 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
     else if (y.indexOf("node tools/inject-grader-editions.js", at) < 0) errors.push(`G9: ${wf} 가 세트 원장에 점을 늘리고 화면 블록(inject-grader-editions.js)을 다시 주입하지 않는다 — 등급 감사 G7 이 막힌다`);
   }
 
-  // (2) 적재 경로 자체 — 세트 합의 모양, 분리값 없는 입력·커버리지 축소 거부, __tagAgg 의 10/10P 분리.
+  // (2) 적재 경로 자체 — 세트 합의 모양, 분리값 없는 입력·커버리지 축소 거부, 새 세트의 미끼 그룹 배제, __tagAgg 의 10/10P 분리.
   const t = spawnSync(process.execPath, [path.join(__dirname, "test-pop-ingest-guards.js")], { cwd: ROOT, encoding: "utf8" });
   if (t.error || t.status !== 0) errors.push(`G9: test-pop-ingest-guards.js 실패 — ${(t.stderr || t.error?.message || t.stdout || "unknown").trim().slice(0, 500)}`);
 

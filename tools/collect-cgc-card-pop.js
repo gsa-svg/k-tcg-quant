@@ -16,6 +16,10 @@
 //   일본판에는 구형 제품군 "(OP05) One Piece Booster Pack Vol.5" 가 현행 TCG 와 같은 OP 번호를 쓴다.
 //   그래서 (1) 언어 일치 (2) 코드 일치("OP05"/"OP-05" 정규화) (3) 우리 세트 영문명 포함
 //   순으로 좁히고, 하나로 안 떨어지면 **추측하지 않고 예외로 끊는다**.
+//   영문명이 있는데 이름 맞는 그룹이 없으면 번호만 맞는 후보로 물러나지 않고 없는 것으로 둔다 — 2026-09-30.
+//   새 세트는 packs 에 먼저 오르고(OP-17: 8/26 승격, 8/28 발매) CGC 진짜 그룹은 나중에 생기는데, 미끼
+//   "(OP18) One Piece Booster Pack Vol.18 - Japanese"(14장)는 이미 있다. 세트 합을 원장에 담으면서(위)
+//   물러나기가 그 미끼를 OP-18 일본판 총량으로 적을 자리가 됐다. 번호로만 고르는 건 영문명 없는 원장 키(EB-04 일본판)뿐이다.
 //   그룹 목록 전수(11,137개)는 페이지네이션으로 받아 $TEMP 에 캐시한다(검색 파라미터가 전부 무시된다).
 //
 // Run: node tools/collect-cgc-card-pop.js <출력덤프.json> [--links <출력links.json>] [--refresh-groups]
@@ -58,9 +62,8 @@ function pickGroup(all, code, ed, nameEn) {
   const codeKey = norm(code);                       // "OP-05" -> "OP05"
   const byLang = all.filter((g) => g.collectibleLanguage?.languageName === lang);
   const byCode = byLang.filter((g) => norm(g.displayName).includes(codeKey));
-  if (!byCode.length) return null;                  // 그 판본이 CGC 에 아직 없음 — 조용히 건너뜀(수집 0 은 가드가 본다)
-  const byName = byCode.filter((g) => nameEn && norm(g.displayName).includes(norm(nameEn)));
-  const pool = byName.length ? byName : byCode;
+  const pool = nameEn ? byCode.filter((g) => norm(g.displayName).includes(norm(nameEn))) : byCode;
+  if (!pool.length) return null;                    // 그 판본이 CGC 에 아직 없음 — 조용히 건너뜀(원장에 있던 키면 세트 적재기가 커버리지 축소로 멈춘다)
   if (pool.length !== 1) {
     throw new Error(`${code}|${ed}: 그룹 후보 ${pool.length}개 — 추측하지 않음: ${pool.map((g) => g.displayName).join(" / ")}`);
   }

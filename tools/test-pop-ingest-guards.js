@@ -4,10 +4,12 @@
 // 빠뜨린 채 적재됐다. 값이 틀린 게 아니라 **없는 것과 안 읽은 것이 구분되지 않는 게** 문제였다.
 // 2026-09-30: 같은 부류가 또 났다 — CGC 세트 분리값(Pristine/Gem Mint)과 TAG 10/10P 가 8/3 뒤로 원장에
 // 안 쌓였다. CGC 는 자동 수집이 받은 덤프의 세트 합을 버렸고, TAG 는 브라우저 집계가 둘을 합쳐 버렸다.
-// 이 테스트는 (1) 세트 합이 옛 점과 같은 모양으로 담기는지 (2) 분리값 없는 입력·커버리지 축소를 막는지 본다.
+// 이 테스트는 (1) 세트 합이 옛 점과 같은 모양으로 담기는지 (2) 분리값 없는 입력·커버리지 축소를 막는지
+// (3) 새 세트에 구형 제품군 미끼 그룹을 집지 않는지 본다.
 // 실데이터는 건드리지 않는다(apply 는 원장 객체만 받는 순수 함수). 가드 G9 가 매번 돌린다.
 // Run: node tools/test-pop-ingest-guards.js
 const cgcSet = require("./cgc-set-grades-ingest.js");
+const { pickGroup } = require("./collect-cgc-card-pop.js");
 const tagPop = require("./tag-pop-ingest.js");
 const { setupScript } = require("./tag-pop.js");
 
@@ -70,6 +72,15 @@ ok("CGC 거부된 덤프는 원장을 한 글자도 안 바꾼다", () => {
   const before = JSON.stringify(h);
   try { cgcSet.apply(h, cgcDump("2026-10-05", { ...full, "OP-01|en": [row(1, 1, 1)] })); } catch { /* 기대한 거부 */ }
   eq(JSON.stringify(h), before, "원장");
+});
+
+// ── CGC: 그룹 매칭 — 새 세트는 진짜 그룹보다 구형 제품군 미끼가 먼저 있다(2026-09-30) ──
+ok("CGC 영문명이 안 맞는 미끼 그룹을 세트로 고르지 않는다", () => {
+  const grp = (displayName) => ({ displayName, collectibleLanguage: { languageName: "Japanese" } });
+  const decoy = grp("(OP18) One Piece Booster Pack Vol.18 - Japanese"), real = grp("Next Set (OP18) - Japanese");
+  eq(pickGroup([decoy], "OP-18", "jp", "Next Set"), null, "진짜 그룹 생기기 전");
+  eq(pickGroup([decoy, real], "OP-18", "jp", "Next Set"), real, "진짜 그룹 생긴 뒤");
+  eq(pickGroup([grp("Egghead Crisis (EB-04) - Japanese")], "EB-04", "jp", "").displayName, "Egghead Crisis (EB-04) - Japanese", "영문명 없는 원장 키");
 });
 
 // ── TAG: 브라우저 집계(__tagAgg) → 적재 ─────────────────────────
