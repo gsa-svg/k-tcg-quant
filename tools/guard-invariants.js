@@ -410,6 +410,12 @@ if (exists("data/box-sold-series.json")) {
       [it("One Piece OP-13 Booster Box Sealed", 200000), "no-language"],                     // 언어 미표기
       [it("One Piece OP-13 Booster Box Japanese", 50000), "price-out-of-range"],             // 팩 가격대
       [it("One Piece OP-13 Booster Box Japanese", 200000, "KRW", "no date here"), "bad-date"],
+      // 2026-09-30: "case" 가 붙은 단품 박스는 살리고 12박스 케이스는 계속 버린다(box-case-words.js). 덤프 원문.
+      //   9/18~9/30 덤프에서 단품 109건이 bad-word 로 빠져 있었다(EB-01 영문은 9/12 뒤로 원장이 비었다).
+      [it("One Piece TCG OP13 Booster Box MINT English - New & Sealed CASE FRESH 🚀✅", 594499), 594499 / R, "en"],
+      [it("One Piece Card Game OP-13 Booster Box English Sealed + Acrylic Case", 666560), 666560 / R, "en"],
+      [it("One Piece TCG OP-13 Carrying On His Will Booster Box Case SEALED ENGLISH", 10015219), "bad-word"],
+      [it("One Piece OP-13 Carrying On His Will 12 BOX BOOSTER BOX CASE Factory Sealed", 9051726), "bad-word"],
     ];
     for (const [item, want, wantEd] of ingestCases) {
       const r = judgeItem(item, "OP-13", R);
@@ -421,6 +427,13 @@ if (exists("data/box-sold-series.json")) {
     }
   } catch (e) {
     errors.push(`Q1: ingest 판정 실행 실패 — ${e.message}`);
+  }
+
+  // 박스 sold 판정 회귀 — 2026-09-30. 실제 덤프 제목으로 case 문구 단품은 살리고
+  // 케이스·불명·액세서리는 버리는지 검증한다(tools/test-box-sold-filters.js).
+  {
+    const r = spawnSync(process.execPath, [path.join(__dirname, "test-box-sold-filters.js")], { cwd: ROOT, encoding: "utf8" });
+    if (r.error || r.status !== 0) errors.push(`Q1: test-box-sold-filters.js 실패 — ${(r.stderr || r.error?.message || r.stdout || "unknown").trim().slice(0, 500)}`);
   }
 }
 

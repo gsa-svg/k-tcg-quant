@@ -23,7 +23,10 @@ const path = require("node:path");
 const ROOT = path.join(__dirname, "..");
 const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 
-const { parseLotQuantity, unitPrice } = require("./lot-quantity");
+const { unitPrice } = require("./lot-quantity");
+// 수량은 적재(box-sold-ingest)와 같은 함수로 센다 — 2026-09-30. parseLotQuantity 를 그대로 쓰면
+// "w/ Acrylic Case"·"Case Fresh" 단품이 case 때문에 모름(null)이 되어 excluded 로 옮겨진다.
+const { boxQuantity } = require("./box-case-words");
 
 const EN_ONLY_TRAIT = /\b(white|blue)\s*bottom\b|\bwave\s*[12]\b/i;
 const KOREAN = /korean/i;
@@ -72,7 +75,7 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   for (const ed of ["jp", "en"]) {
     const keep = [];
     for (const r of eds[ed]) {
-      const q = parseLotQuantity(r.title || "", "box");
+      const q = boxQuantity(r.title || "");
       if (q == null) { moved.toExcluded.push({ code, from: ed, ...r, reason: "uncountable-lot" }); continue; }
       if (q !== r.qty) {
         const u = unitPrice(r.total, q);

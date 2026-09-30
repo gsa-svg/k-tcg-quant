@@ -12,6 +12,7 @@
 // 판정 규칙(정확도 최우선 — 빈 값이 틀린 숫자보다 낫다):
 //  - "booster box" 제목 + 대상 세트코드 일치, 다른 세트코드가 같이 있으면 버림(멀티세트 묶음).
 //  - pack/lot/case/display/sleeve/bundle 등 비단품 신호 버림. 중국어판 버림.
+//    단 "w/ Acrylic Case"·"Case Fresh" 처럼 박스 1개에 붙는 case 문구는 케이스가 아니다(box-case-words.js).
 //  - 다수량: lot-quantity.js 규칙 — "x3"/"3 boxes"는 총액÷개수=개당가, 개수 불명은 버림.
 //  - 언어: 제목에 english→en, japanese→jp, 표기 없으면 버림(추측 금지).
 //  - 개당가 문턱: 9만원(≈$58) 미만 버림(팩/오매칭), $5,000 초과 버림(이상치).
@@ -20,7 +21,9 @@
 // Run: node tools/box-sold-ingest.js <dump.json>
 const fs = require("fs");
 const path = require("path");
-const { parseLotQuantity, unitPrice } = require("./lot-quantity");
+const { unitPrice } = require("./lot-quantity");
+// "case" 가 붙은 단품 박스("w/ Acrylic Case", "Case Fresh")를 케이스(12박스)와 가른다 — 2026-09-30.
+const { stripSingleBoxCase, boxQuantity, ACCESSORY_ONLY } = require("./box-case-words");
 
 const ROOT = path.join(__dirname, "..");
 const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
@@ -110,7 +113,10 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   const t = String(item.t || "");
   if (!BOOSTER.test(t)) return { drop: "not-booster-box" };
   if (SINGLE_PACK.test(t)) return { drop: "single-pack" };
-  if (BAD.test(t)) return { drop: "bad-word" };
+  if (ACCESSORY_ONLY.test(t)) return { drop: "accessory-only" };
+  // BAD 의 case 는 12박스 케이스를 막으려는 것이다. 단품 박스에 붙는 case 문구만 지우고 검사한다
+  // (box-case-words.js — 9/18~9/30 덤프에서 이 이유로 단품 판매 109건이 빠져 있었다).
+  if (BAD.test(stripSingleBoxCase(t))) return { drop: "bad-word" };
   if (OTHER_GAME.test(t)) return { drop: "other-game" };
   const codes = new Set();
   for (const m of t.matchAll(SET_CODE)) codes.add(`${m[1].toUpperCase()}-${m[2]}`);
@@ -124,7 +130,7 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   if (declaredEd && fromTitle && fromTitle !== declaredEd) return { drop: "lang-conflict" };
   const ed = declaredEd || fromTitle;
   if (!ed) return { drop: "no-language" };
-  const qty = parseLotQuantity(t, "box");
+  const qty = boxQuantity(t);
   if (qty == null) return { drop: "uncountable-lot" };
   const totalUsd = item.cur === "USD" ? item.k : item.cur === "KRW" ? item.k / fxUsdKrw : null;
   if (!Number.isFinite(totalUsd)) return { drop: "bad-currency" };
