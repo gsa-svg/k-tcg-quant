@@ -5,6 +5,7 @@
 //   ① PSA 카드별을 d(GemRate 인구 변동일)로만 세서 9/14 에 관측한 주(seen)를 공백으로 오판 → 그게 known-gaps 에 굳었다.
 //   ② 세트 누적 원장(CGC·TAG·PSA 판별)과 진행 매물·시장 스캔 계열의 중간 빈칸을 아무 감사도 안 봤다.
 //   ③ known-gaps 에 관측이 있는 주나 틀린 계열 이름을 넣어도 아무도 몰랐다.
+//      반대로 보존 기간이 지나 잘린 날을 오기재로 치면 날짜가 지나는 것만으로 가드가 FAIL 한다(같은 날 반박 검토에서 발견).
 // Run: node tools/test-series-gaps.js
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -75,12 +76,16 @@ try {
     { series: "PSA 카드별", weeks: ["2026-W38"], reason: "테스트 — seen 이 있는 주", confirmed: "2026-09-30" },
     { series: "원피스 경매 시장 스캔", dates: ["2026-09-10"], reason: "테스트 — 점이 있는 날", confirmed: "2026-09-30" },
     { series: "없는 계열", dates: ["2026-09-10"], reason: "테스트 — 이름 오타", confirmed: "2026-09-30" },
+    // 남은 첫 점보다 앞(보존 기간이 지나 잘린 구간)은 반박할 근거가 없다 — 오기재로 치면 날짜만 지나도 가드가 FAIL 한다.
+    { series: "원피스 경매 시장 스캔", dates: ["2026-08-20"], reason: "테스트 — 잘린 앞부분", confirmed: "2026-09-30" },
+    { series: "CGC 세트 누적", weeks: ["2026-W30"], reason: "테스트 — 잘린 앞부분", confirmed: "2026-09-30" },
   ] });
   out = run("2026-09-30");
   assert.ok(has(out.report.notes, /박스 진행매물 시계열 JP — 확인된 영구 공백 1일\(2026-09-20\)/), out.result.stdout);
   assert.ok(has(out.report.knownWrong, /^PSA 카드별 2026-W38 — 이 계열 기준으로 비어 있지 않다/), out.result.stdout);
   assert.ok(has(out.report.knownWrong, /^원피스 경매 시장 스캔 2026-09-10 — /), out.result.stdout);
   assert.ok(has(out.report.knownWrong, /^없는 계열 — 날 단위로 감사하는 계열 이름이 아니다/), out.result.stdout);
+  assert.ok(!has(out.report.knownWrong, /2026-08-20|2026-W30/), `잘린 앞부분 등록을 오기재로 잡으면 안 된다: ${out.result.stdout}`);
   assert.equal(out.report.knownWrong.length, 3, out.result.stdout);
   assert.ok(has(out.report.problems, /^known-gaps 오기재 — PSA 카드별 2026-W38/), out.result.stdout);
 

@@ -63,6 +63,9 @@ const knownWeek = (label, w) => KNOWN.byWeek.has(`${label}|${w}`);
 
 // 계열별 "그날·그 주가 비었나" 판정 — 감사와 D) 검증이 같은 기준을 쓴다. 한 계열에 규칙이 여럿이면(빠진 날 +
 // 부분수집) 하나라도 비었다고 하면 빈 것이다.
+// 남아 있는 첫 점보다 앞은 반박할 근거가 없으니 빈 것으로 본다 — 2026-09-30. 시장 스캔·팰월드 관측은 180점,
+// 공급은 180일, 스냅샷은 730일만 남기고 앞을 잘라낸다. 잘린 날을 "비어 있지 않다"고 하면 날짜가 지나는 것만으로
+// 가드 K1 이 FAIL 해 가드를 도는 수집 워크플로 7개가 멈춘다(9/26 R4 사고와 같은 모양, 팰월드 8/27 등록은 2027-02 말).
 const dayRules = new Map(), weekRules = new Map();
 const addRule = (rules, label, fn) => rules.set(label, [...(rules.get(label) || []), fn]);
 
@@ -81,7 +84,7 @@ function checkDaily(label, dates) {
   const u = [...new Set(dates.filter(Boolean).map((d) => String(d).slice(0, 10)))].sort();
   if (!u.length) { problems.push(`${label} — 데이터가 아예 없다`); return; }
   const have = new Set(u);
-  addRule(dayRules, label, (d) => d >= u[0] && !have.has(d));
+  addRule(dayRules, label, (d) => d < u[0] || !have.has(d));
   const start = u[0] > WINDOW_START ? u[0] : WINDOW_START;
   const all = missingDays(u, start, LAST_FULL);
   const known = all.filter((d) => knownDay(label, d));
@@ -228,7 +231,7 @@ function checkWeekly(label, dates, { due = 0 } = {}) {
   const u = [...new Set(dates.filter(Boolean).map((d) => String(d).slice(0, 10)))].sort();
   if (!u.length) { problems.push(`${label} — 관측이 하나도 없다`); return; }
   const weeks = new Set(u.map((d) => isoWeek(d)));
-  addRule(weekRules, label, (w) => w >= isoWeek(u[0]) && !weeks.has(w));
+  addRule(weekRules, label, (w) => w < isoWeek(u[0]) || !weeks.has(w));
   const end = Date.parse(LAST_FULL) - due * DAY;
   const missed = [];
   for (let t = end - (WINDOW - 1) * DAY; t <= end; t += 7 * DAY) {
