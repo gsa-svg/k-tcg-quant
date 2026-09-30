@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
-const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
+const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
 const { fxAt } = require("./market-data-normalizers");   // 관측일 환율(PSA10 실거래 KRW 되돌리기)
 
 const ROOT = path.join(__dirname, "..");
@@ -22,10 +22,11 @@ const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.
 // 2026-09-29: 종전엔 EB-05 한 줄이 하드코딩돼 있어 OP-18 페이지로 들어오는 내부 링크가 사이트 전체 1개였다.
 // 그 줄의 "EB-03's +50% climb predicts" 문구는 EB-05 페이지 본문("선례 하나로 예측 못 한다")과 모순이라 뺐다.
 // 발매일은 facts 의 공식 행(일본판 우선, 없으면 영문판)에서 " · " 앞부분만 쓴다 — 값을 만들어내지 않는다.
+const UPCOMING_PAGES = (() => {
+  try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", "upcoming-set-pages.json"), "utf8")).pages || []; } catch { return []; }
+})();
 function upcomingItems() {
-  let pages = [];
-  try { pages = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "upcoming-set-pages.json"), "utf8")).pages || []; } catch { return ""; }
-  return pages
+  return UPCOMING_PAGES
     .map((p) => {
       const name = String(p.title || "").slice(String(p.code).length + 1).split(/\s+(?:\(|—)/)[0].trim();
       const row = (p.facts || []).find((f) => f[0] === "Japanese release") || (p.facts || []).find((f) => f[0] === "English release");
@@ -59,6 +60,20 @@ const hasBoxSold = (c) => {
 const ORDER = [...data.jp.list, ...data.extra.list]
   .filter((c) => (data.sets[c]?.cards || []).length > 0 || hasBoxSold(c));
 const slug = (code) => code.toLowerCase();
+// 예정 세트 페이지로 가는 '다음' 링크 — 2026-09-30. OP-17 의 다음 링크가 EB-01 뿐이라 OP-18 페이지로 가는 길이 없었다.
+// ORDER 에 예정 세트를 넣으면 아래 쓰기 루프가 sets/op-18.html 을 가격 템플릿으로 덮으므로 ORDER 는 두고,
+// 같은 시리즈(OP·EB·PRB)에서 ORDER 의 마지막 세트 페이지에 링크 하나를 더 붙인다(OP-17 → OP-18, EB-03 → EB-05).
+const UPCOMING_NEXT = (() => {
+  const out = {};
+  const pages = UPCOMING_PAGES.filter((p) => p.code && p.slug && !ORDER.includes(p.code))
+    .sort((a, b) => a.code.localeCompare(b.code, "en", { numeric: true }));
+  for (const p of pages) {
+    const series = p.code.split("-")[0];
+    const last = [...ORDER].reverse().find((c) => c.split("-")[0] === series);
+    if (last && !out[last]) out[last] = p;
+  }
+  return out;
+})();
 
 // 개별 카드 페이지 슬러그 맵(있을 때만 링크) — tools/generate-card-pages.js 산출물
 let CARD_MAP = {};
@@ -277,18 +292,22 @@ function faqItems(code, nameEn) {
   const s = data.sets[code] || {};
   const story = COMMENTARY.sets?.[code];
   const jp = s.boxMarket?.jp?.ebaySold, en = s.boxMarket?.en?.ebaySold;
+  // 통화 기호를 붙인다 — 2026-09-30: Math.round 만 써서 22장 전부 "median at about 95" 처럼 $ 없이 나갔다(FAQPage JSON-LD 도 같은 문장).
+  const jpU = jp && jp.median != null ? toUsd(jp.median, jp.currency) : null;
+  const enU = en && en.median != null ? toUsd(en.median, en.currency) : null;
+  const enTag = enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : "";   // 영문판 값이 재판만일 때(OP-01) — 그래프 배지와 같은 기준
   const items = [];
   if (story) items.push({ q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`, a: story.desc });
-  if (jp && jp.median != null) {
+  if (jpU != null) {
     items.push({
       q: `How much is a sealed ${code} ${nameEn} Japanese booster box?`,
-      a: `As of ${jp.updated}, completed eBay sales of the Japanese ${nameEn} box put the median at about ${Math.round(jp.median)} (${jp.sampleSize} sales in the trailing ${jp.windowDays || 28} days).${en && en.median != null ? ` The English ${nameEn} box runs about ${Math.round(en.median)}.` : ""}`,
+      a: `As of ${jp.updated}, completed eBay sales of the Japanese ${nameEn} box put the median at about ${usd(jpU)} (${jp.sampleSize} sales in the trailing ${jp.windowDays || 28} days).${enU != null ? ` The English ${nameEn}${enTag} box runs about ${usd(enU)}.` : ""}`,
     });
   }
-  if (jp && jp.median != null && en && en.median != null && jp.median > 0) {
+  if (jpU != null && enU != null && jpU > 0) {
     items.push({
       q: `How does the English ${code} ${nameEn} box compare with the Japanese box?`,
-      a: `English ${nameEn} ${Math.round(en.median)} (as of ${en.updated}) versus Japanese ${nameEn} ${Math.round(jp.median)} (as of ${jp.updated}): the English box trades at about ${(en.median / jp.median).toFixed(1)}x the Japanese box.`,
+      a: `English ${nameEn}${enTag} ${usd(enU)} (as of ${en.updated}) versus Japanese ${nameEn} ${usd(jpU)} (as of ${jp.updated}): the English box trades at about ${(enU / jpU).toFixed(1)}x the Japanese box.`,
     });
   }
   return items;
@@ -339,6 +358,9 @@ function productLd(code, nameEn, s) {
   const mid = bm.middle != null ? toUsd(bm.middle, bm.currency) : null;
   if (mid == null) return "";
   const img = s.box ? (String(s.box).startsWith("http") ? s.box : SITE + s.box) : `${SITE}/og-image.png`;
+  // 이 Product 는 일본판 박스다 — 발매일도 일본판(set-facts.json, 반다이 공식 출처). 없으면 싣지 않는다.
+  // 2026-09-30: 종전엔 s.release(영문판 날짜)가 들어가 op-16 이 2026-06-12(일본판 05-30)로 나갔다.
+  const jpRelease = SET_FACTS.sets?.[code]?.jpRelease?.date || null;
   const offers =
     lo != null && hi != null && hi >= lo
       ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(lo), highPrice: Math.round(hi), offerCount: bm.sampleSize || 1, availability: "https://schema.org/InStock", url: `${SITE}/sets/${slug(code)}.html` }
@@ -351,7 +373,7 @@ function productLd(code, nameEn, s) {
     description: `Japanese sealed ${code} ${nameEn} One Piece Card Game booster box — live market price from eBay listings and sold history, top chase cards and PSA 10 population data.`,
     brand: { "@type": "Brand", name: "Bandai" },
     category: "Trading Card Games",
-    ...(s.release ? { releaseDate: s.release } : {}),
+    ...(jpRelease ? { releaseDate: jpRelease } : {}),
     offers,
   };
   return `<script type="application/ld+json">${JSON.stringify(prod)}</script>`;
@@ -485,7 +507,10 @@ function setPage(code, prev, next) {
     label: `sealed ${code} Japanese box`,
   }) : "";
   // s.release = 영문(NA)판 발매일. "일본판 페이지인데 Released=EN날짜"로 읽히던 오표기 수정
-  const release = s.release ? `<p class="eyebrow">Japanese edition · EN release ${esc(s.release)}</p>` : `<p class="eyebrow">Japanese edition</p>`;
+  // 일본판 발매일(set-facts.json, 반다이 공식 출처)이 있으면 앞에 함께 적는다 — 2026-09-30. 종전엔 접힌 재판 이력 안에만 있었다.
+  const jpRelDate = SET_FACTS.sets?.[code]?.jpRelease?.date || null;
+  const relBits = [jpRelDate ? `JP release ${esc(jpRelDate)}` : "", s.release ? `EN release ${esc(s.release)}` : ""].filter(Boolean);
+  const release = `<p class="eyebrow">Japanese edition${relBits.length ? " · " + relBits.join(" · ") : ""}</p>`;
 
   const enc = encodeURIComponent(code);
 
@@ -508,6 +533,7 @@ function setPage(code, prev, next) {
 
   // 세트 요약 라인 (안정 데이터)
   const summaryBits = [];
+  if (jpRelDate) summaryBits.push(`JP release <b>${esc(monthYear(jpRelDate))}</b>`);
   if (s.release) summaryBits.push(`EN release <b>${esc(monthYear(s.release))}</b>`);
   if (s.cardCount) summaryBits.push(`<b>${esc(String(s.cardCount))}</b> cards`);
   if (fullPsaRate != null) summaryBits.push(`Full-set PSA 10 gem rate <b>${esc(String(fullPsaRate))}%</b>${fullPsaTotal ? ` (${intl(fullPsaTotal)} graded)` : ""}`);
@@ -536,7 +562,7 @@ function setPage(code, prev, next) {
       // 같은 날 값을 나눈 것처럼 읽힌다 — 관측일이 어긋나면 두 날짜를 함께 밝힌다(2026-08-26 감사).
       const enD = enLast.d, jpD = last.d;
       const ratioNote = enD === jpD ? "" : ` (JP as of ${esc(jpD)}, EN as of ${esc(enD)})`;
-      enBit = ` The English-language ${esc(s.nameEn || code)} box trades near <strong>${usd(toU(enLast.p))}</strong> as of ${esc(enD)} (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window) — about <strong>${ratio}x</strong> the Japanese box${ratioNote}. This ratio does not explain why.`;
+      enBit = ` The English-language ${esc(s.nameEn || code)}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box trades near <strong>${usd(toU(enLast.p))}</strong> as of ${esc(enD)} (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window) — about <strong>${ratio}x</strong> the Japanese box${ratioNote}. This ratio does not explain why.`;
     }
     trajectory = `
       <h2>${code} box price: the tracked trajectory</h2>
@@ -786,13 +812,13 @@ function setPage(code, prev, next) {
     if (midA != null && (bmA.sampleSize || 0) >= 5) facts.push(`Current eBay asking prices run around <strong>${usd(midA)}</strong> (${bmA.sampleSize} active listings).`);
     const enPts = soldPts(code, "en");
     const enLastP = enPts.length ? enPts[enPts.length - 1].p : null;
-    if (enLastP != null && jpVal != null) facts.push(`The English ${code} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box${englishHref ? ` (<a href="${englishHref}">English box guide</a>)` : ""}.`);
+    if (enLastP != null && jpVal != null) facts.push(`The English ${code}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box${englishHref ? ` (<a href="${englishHref}">English box guide</a>)` : ""}.`);
     if (cards.length) {
       const tf = cardPrices(cards[0]);
       if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? (tf.psaKind === "sold" && tf.psaStale ? `, with PSA 10 copies last selling near ${usd(tf.psa)} (${monShort(tf.psaDate)}, n=${tf.psaN || "?"})` : `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}`) : ""}.`);
     }
     if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
-    if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);
+    if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}${jpRelDate ? ` (Japanese edition ${esc(monthYear(jpRelDate))})` : ""}.`);
     // 이 문단은 바로 위 지표 격자의 숫자를 문장으로 되풀이한다(AI 인용용 요약이라 문장 형태가 필요).
     // 화면에서는 접어 두고, 본문은 DOM 에 그대로 둔다.
     if (facts.length >= 2) keyFacts = `
@@ -869,7 +895,8 @@ function setPage(code, prev, next) {
       ${faqHtml(code, nameEn)}
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
-        <a href="index.html">All set guides</a>
+        <a href="index.html">All set guides</a>${UPCOMING_NEXT[code] ? `
+        <a href="${esc(UPCOMING_NEXT[code].slug)}.html">${esc(UPCOMING_NEXT[code].code)} guide →</a>` : ""}
         ${next ? `<a href="${slug(next)}.html">${next} guide →</a>` : ""}
       </div>${FOOT}`;
 }
@@ -981,9 +1008,12 @@ function rankingRows() {
       const rawUsd = jpyUsd(c.nmJpy);
       const mult = rawUsd > 0 ? psa / rawUsd : null;
       const pop = c.graderPop && c.graderPop.psa && c.graderPop.psa.jp ? c.graderPop.psa.jp : null;
+      // 관측일이 35일 넘은 sold 중앙값은 "지금 값"이 아니다 — 세트·카드 페이지(psaStale)·홈(PSA10_STALE_DAYS)과 같은 기준. 2026-09-30.
+      const age = sold.updated ? (Date.parse(DATA_DATE) - Date.parse(sold.updated)) / 864e5 : null;
       rows.push({
         code, setName: set.nameEn || code, name: c.name, number: c.number, rarity: c.rarity, psa, n,
         low: toUsdAt(sold.low, sold.currency, sold.updated), high: toUsdAt(sold.high, sold.currency, sold.updated), updated: sold.updated,
+        stale: Number.isFinite(age) && age > 35,
         rawUsd, mult: mult && mult <= 40 ? mult : null, pop, img: ownImage(c), slug: CARD_MAP[cardKey(c.number, c.name)] || null,
       });
     }
@@ -1020,8 +1050,10 @@ function rankingPage() {
   };
   const rangeCell = (r) => (r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—");
   const popCell = (total, g10) => (total ? `${intl(total)} <small>${intl(g10)} × 10</small>` : "—");
-  const tableHead = `<thead><tr><th class="rkH">#</th><th class="l">Card</th><th class="psaH">PSA 10</th><th class="hideM">Sales</th><th class="hideM">Low–high</th><th class="hideM">Ungraded</th><th class="mulH">× ungraded</th><th class="hideM">PSA graded (10s)</th></tr></thead>`;
-  const rowHtml = (r, i) => `<tr><td class="rk">${i + 1}</td>${cardCell(r)}<td class="psa">${usd(r.psa)}</td><td class="hideM">${r.n}</td><td class="rng hideM">${rangeCell(r)}</td><td class="hideM">${r.rawUsd != null ? usd(r.rawUsd) : "—"}</td><td class="mul">${r.mult ? r.mult.toFixed(1) + "×" : "—"}</td><td class="pop hideM">${r.pop ? popCell(r.pop.total, r.pop.g10) : "—"}</td></tr>`;
+  // 관측일 칸 — 행마다 그 sold 중앙값을 본 날. 35일 넘은 행은 흐리게, 날짜는 노랗게(세트 허브 표와 같은 표시).
+  const obsCell = (r) => `<td class="obs"${r.stale ? ` title="Observed ${esc(r.updated)} — older than 35 days"` : ""}>${r.updated ? `<time datetime="${esc(r.updated)}">${esc(r.updated.slice(5))}</time>` : "—"}</td>`;
+  const tableHead = `<thead><tr><th class="rkH">#</th><th class="l">Card</th><th class="psaH">PSA 10</th><th class="obsH">Sold as of</th><th class="hideM">Sales</th><th class="hideM">Low–high</th><th class="hideM">Ungraded</th><th class="mulH">× ungraded</th><th class="hideM">PSA graded (10s)</th></tr></thead>`;
+  const rowHtml = (r, i) => `<tr${r.stale ? ' class="stale"' : ""}><td class="rk">${i + 1}</td>${cardCell(r)}<td class="psa">${usd(r.psa)}</td>${obsCell(r)}<td class="hideM">${r.n}</td><td class="rng hideM">${rangeCell(r)}</td><td class="hideM">${r.rawUsd != null ? usd(r.rawUsd) : "—"}</td><td class="mul">${r.mult ? r.mult.toFixed(1) + "×" : "—"}</td><td class="pop hideM">${r.pop ? popCell(r.pop.total, r.pop.g10) : "—"}</td></tr>`;
   const rankTable = (list, offset) => `<div class="tblWrap"><table class="aTable">
           ${tableHead}
           <tbody>
@@ -1031,8 +1063,9 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
   const barRows = topMult.map((r) => `<div class="kindRow"><span class="kName">${esc(r.name)} <small>${esc(r.number || "")}</small></span><span class="kTrack"><span class="kFill" style="width:${Math.max(6, Math.round((r.mult / maxMult) * 100))}%"></span><span class="kVal">${r.mult.toFixed(1)}×</span></span><span class="kMed"><small>ungraded</small> ${usd(r.rawUsd)} → <small>PSA 10</small> ${usd(r.psa)}</span></div>`).join("\n");
   const setTrs = setRows.map((s, i) => `<tr><td class="rk">${i + 1}</td><td class="l"><a href="sets/${esc(slug(s.code))}.html"><b>${esc(s.code)}</b> <small>${esc(s.name)}</small></a></td><td class="psa">${usd(s.median)}</td><td class="hideM">${s.cards}</td><td class="l hideM">${esc(s.top.name)} <small>${usd(s.top.psa)}</small></td><td class="pop hideM">${popCell(s.pop, s.g10)}</td></tr>`).join("\n");
 
-  const faqQ1 = "What is the most expensive One Piece card in PSA 10 right now?";
-  const faqA1 = `${t1.name} (${t1.code}${t1.number ? ` ${t1.number}` : ""}) — median ${usd(t1.psa)} across ${t1.n} recent completed eBay sales as of ${asOf}.`;
+  const faqQ1 = `What is the most expensive One Piece card in PSA 10${t1.stale ? "" : " right now"}?`;
+  // 날짜는 1위 카드 자신의 관측일(asOf 는 표 전체의 최신일이라 1위 값의 날짜가 아닐 수 있다). 35일 넘으면 "recent" 를 쓰지 않는다.
+  const faqA1 = `${t1.name} (${t1.code}${t1.number ? ` ${t1.number}` : ""}) — median ${usd(t1.psa)} across ${t1.n} ${t1.stale ? "" : "recent "}completed eBay sales as of ${t1.updated || asOf}.`;
   const faqQ2 = "Are these asking prices?";
   const faqA2 = "No. Every figure is a median of completed eBay sales of the PSA 10 graded card, with a minimum of three sales per card.";
   const faqQ3 = "Why Japanese cards only?";
@@ -1047,9 +1080,11 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
   })}</script>`;
   // 랭킹 제목·설명(2026-09-17): 종전 73자 제목은 잘렸다. 브랜드 꼬리를 붙이면 60자를 넘어 뺀다. 설명은 표의 숫자로 쓴다.
   const title = uniqueTitle(fit([`Top 10 Most Valuable One Piece Cards (PSA 10 Sold Prices)`, `Most Valuable One Piece PSA 10 Cards (Sold Prices)`], TITLE_MAX, "psa10-ranking"));
+  // 1위 값에는 그 값의 관측일을 붙인다 — 끝의 asOf 는 표 전체의 최신일이라 1위가 묵은 표본이면 그 날짜의 값처럼 읽혔다(2026-09-30).
+  const t1When = t1.updated && t1.updated !== asOf ? ` (${t1.updated})` : "";
   const desc = fit([
-    `${rows.length} Japanese One Piece cards ranked by PSA 10 median from completed eBay sales, 3+ sales each. Highest ${usd(t1.psa)}, ${over1k} cards above $1,000, as of ${asOf}.`,
-    `${rows.length} Japanese One Piece cards ranked by PSA 10 eBay sold median, 3+ sales each. Highest ${usd(t1.psa)}, ${over1k} above $1,000, as of ${asOf}.`,
+    `${rows.length} Japanese One Piece cards ranked by PSA 10 median from completed eBay sales, 3+ sales each. Highest ${usd(t1.psa)}${t1When}, ${over1k} cards above $1,000, as of ${asOf}.`,
+    `${rows.length} Japanese One Piece cards ranked by PSA 10 eBay sold median, 3+ sales each. Highest ${usd(t1.psa)}${t1When}, ${over1k} above $1,000, as of ${asOf}.`,
   ], DESC_MAX, "psa10-ranking");
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "ItemList",
@@ -1112,6 +1147,8 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       .aTable td.rk { color: var(--muted); width: 28px; }
       .aTable td.psa { color: var(--accent); font-weight: 800; font-size: 14.5px; }
       .aTable td.rng { color: var(--muted); }
+      .aTable td.obs { color: var(--muted); }
+      .aTable tr.stale td { opacity: .62; } .aTable tr.stale td.obs { opacity: 1; color: #f5c842; }
       .aTable td.mul { font-weight: 700; }
       .aTable td.pop small, .aTable td.l small { color: var(--muted); margin-left: 4px; }
       .aTable td.l a { color: inherit; text-decoration: none; }
@@ -1148,6 +1185,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
         .aTable .hideM { display: none; }
         .aTable th.rkH { width: 20px; }
         .aTable th.psaH { width: 72px; }
+        .aTable th.obsH { width: 46px; }
         .aTable th.mulH { width: 64px; }
         .aTable td.rk { width: auto; padding-left: 0; }
         .aTable td.l { white-space: normal; overflow-wrap: anywhere; }
@@ -1176,7 +1214,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       <p class="lead">Median of completed eBay sales · at least 3 sales per card · USD</p>
 
       <div class="statRow">
-        <div class="stat hi"><b>${usd(t1.psa)}</b><span>highest PSA 10 · ${esc(t1.name)}</span></div>
+        <div class="stat hi"><b>${usd(t1.psa)}</b><span>highest PSA 10 · ${esc(t1.name)}${t1.updated ? ` · sold as of ${esc(t1.updated)}` : ""}</span></div>
         <div class="stat"><b>${rows.length}</b><span>cards ranked</span></div>
         <div class="stat"><b>${over1k}</b><span>sold above $1,000</span></div>
         <div class="stat"><b>${medMult ? medMult.toFixed(1) + "×" : "—"}</b><span>PSA 10 vs ungraded (median)</span></div>
@@ -1184,7 +1222,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       </div>
 
       <div class="chartCard">
-        <div class="chartHead"><h2>Top 10 most valuable One Piece cards by PSA 10 sold price</h2><p class="sub">Median sale · sales counted · ungraded price · PSA 10 ÷ ungraded · PSA graded copies (10s)</p></div>
+        <div class="chartHead"><h2>Top 10 most valuable One Piece cards by PSA 10 sold price</h2><p class="sub">Median sale · date observed (dimmed = older than 35 days) · sales counted · ungraded price · PSA 10 ÷ ungraded · PSA graded copies (10s)</p></div>
         ${rankTable(rows.slice(0, 10), 0)}
         ${rows.length > 10 ? `<h3>Ranks 11–${Math.min(20, rows.length)}</h3>
         ${rankTable(rows.slice(10, 20), 10)}` : ""}
