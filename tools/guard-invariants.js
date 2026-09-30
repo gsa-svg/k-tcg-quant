@@ -378,6 +378,9 @@ if (exists("data/box-sold-series.json")) {
     ["One Piece Booster Boxes OP-09 Sealed Japanese", "box", null],   // 개수 없는 복수형 — 모름
     ["One Piece OP-01 Booster Box Case Sealed", "box", null],         // 케이스 — 개수 불명
     ["One Piece OP-13 Sealed Case 12 boxes", "box", 12],              // 개수 명시된 케이스는 나눔
+    // 2026-09-30: PRB-02 이름 속 권 번호("Vol. 2"·"Premium Booster 2")가 2박스로 읽혀 원장 22건이 반값이 됐다.
+    ["Sealed Japanese The Best Vol. 2 PRB-02 Booster Box US SELLER One Piece Card Game", "box", 1],
+    ["One Piece TCG PRB-02 Premium Booster 2 Booster Box (FREE SHIPPING✔️)", "box", 1],
     ["10 Booster Packs One Piece OP-05 Japanese", "pack", 10],        // 팩 묶음 — 레드팀 확정 버그
     ["3 Packs One Piece Card Game OP-08 Sealed", "pack", 3],
     ["One Piece OP-09 Booster Packs Japanese", "pack", null],         // 개수 없는 팩 복수형 — 모름
@@ -429,8 +432,8 @@ if (exists("data/box-sold-series.json")) {
     errors.push(`Q1: ingest 판정 실행 실패 — ${e.message}`);
   }
 
-  // 박스 sold 판정 회귀 — 2026-09-30. 실제 덤프 제목으로 case 문구 단품은 살리고
-  // 케이스·불명·액세서리는 버리는지 검증한다(tools/test-box-sold-filters.js).
+  // 박스 sold 판정 회귀 — 2026-09-30. 실제 덤프 제목으로 단품 살림/케이스·불명·액세서리 버림,
+  // PRB-02 권 번호를 함께 검증한다(tools/test-box-sold-filters.js).
   {
     const r = spawnSync(process.execPath, [path.join(__dirname, "test-box-sold-filters.js")], { cwd: ROOT, encoding: "utf8" });
     if (r.error || r.status !== 0) errors.push(`Q1: test-box-sold-filters.js 실패 — ${(r.stderr || r.error?.message || r.stdout || "unknown").trim().slice(0, 500)}`);

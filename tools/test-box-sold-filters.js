@@ -2,6 +2,7 @@
 // 박스 sold 적재 판정 회귀 테스트 — 2026-09-30. 가드(guard-invariants.js Q1)가 이 파일을 실행한다.
 //
 // 1) "case" 가 붙은 단품 박스는 살리고, 진짜 케이스(12박스)·불명·액세서리는 계속 버린다(box-case-words.js).
+// 2) PRB-02 이름 속 권 번호("Vol. 2", "The Best 2")를 수량 2로 읽지 않는다(lot-quantity.js VOLUME_STRIP).
 //
 // 제목·가격·날짜는 C:/Users/kimtt/opbox-heartbeat/box-sold-cdp/box-2026-09-18~30.json 덤프 원문이다.
 // "(합성)" 표시가 붙은 것만 위험 경계를 막으려고 만든 제목이다.
@@ -10,6 +11,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { judgeItem } = require("./box-sold-ingest");
 const { boxQuantity } = require("./box-case-words");
+const { parseLotQuantity } = require("./lot-quantity");
 
 const R = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "onepiece-packs.json"), "utf8")).fx.usdKrw;
 const item = (t, k, d) => ({ id: "1", t, k, cur: "KRW", d: d || "Sold  Sep 21, 2026" });
@@ -83,5 +85,25 @@ for (const [t, want] of [
 ]) assert.equal(judgeItem(item(t, 3000000), "OP-13", R, null, "en", "bin").drop, want, t);
 assert.equal(boxQuantity("One Piece Memorial Collection Booster Box EB-01 English w/ Acrylic Case"), 1); // 수리 도구도 같은 판정
 assert.equal(boxQuantity("One Piece OP-13 Booster Box Japanese Sealed"), 1);
+
+// ── 2. PRB-02 권 번호는 수량이 아니다
+for (const t of [
+  "Sealed Japanese The Best Vol. 2 PRB-02 Booster Box US SELLER One Piece Card Game",
+  "One Piece Card Game - PRB-02 Premium Booster The Best 2 - Booster Box (English)",
+  "One Piece TCG PRB-02 Premium Booster 2 Booster Box (FREE SHIPPING✔️)",
+  "Sealed Premium Booster Vol 2 Booster Box PRB-02 One Piece Card Game",
+  "One Piece The Best Vol 2 PRB-02 Booster Box Japanese",
+  "One Piece TCG: The Best 2 Premium Booster Box [PRB-02] - 20 Packs (FACTORY SEAL)",
+]) assert.equal(parseLotQuantity(t, "box"), 1, t);
+assert.equal(parseLotQuantity("PRB-02 Premium Booster 2 Booster Box 20 Packs English", "box"), 1);          // (합성) 20팩=프리미엄 1박스
+assert.equal(parseLotQuantity("One Piece TCG - PRB-02 The Best Vol. 2 - Booster Box Packs - Lots Of 5 - English", "box"), null);
+assert.equal(parseLotQuantity("3 Booster Boxes One Piece OP-08 Sealed", "box"), 3);                      // 진짜 수량은 그대로
+// 반값이 9만원 하한에 걸려 버려지던 일본판 낱박스(168561495720, Sold Sep 16, 2026, 144,522원)
+{
+  const t = "Japanese The Best Vol. 2 PRB-02 Booster Box US SELLER One Piece Card Game";
+  const r = judgeItem(item(t, 144522, "Sold  Sep 16, 2026"), "PRB-02", R, null, "jp", "bin");
+  assert.ok(r.rec, `PRB-02 일본판 낱박스가 버려짐(${r.drop})`);
+  assert.equal(r.rec.qty, 1);
+}
 
 console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length }));
