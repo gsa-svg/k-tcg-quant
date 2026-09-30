@@ -7,6 +7,11 @@ const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
 const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
+
+// 1위 카드와 일본판 NM 이 같은 카드들(동가). 2026-09-30: OP-16 망가 3장이 모두 ¥148,000 인데
+// 소유자 순서상 1위인 한 장을 "가장 비싸다"고 써서 데이터보다 센 문장이 나갔다.
+const tieOf = (cards) => (cards && cards[0] && cards[0].nmJpy != null ? cards.filter((c) => c.nmJpy === cards[0].nmJpy) : []);
+const joinNames = (cs) => { const n = cs.map((c) => esc(c.name)); return n.length <= 2 ? n.join(" and ") : `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}`; };
 const { fxAt } = require("./market-data-normalizers");   // 관측일 환율(PSA10 실거래 KRW 되돌리기)
 
 const ROOT = path.join(__dirname, "..");
@@ -542,7 +547,7 @@ function setPage(code, prev, next) {
   // 데이터 기반 분석 문단 (세트마다 고유)
   const top = cards[0], tp = top ? cardPrices(top) : {};
   const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
-  const analysis = top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? (tp.psaStale ? `whose PSA 10 examples last sold near ${usd(tp.psa)} (${monShort(tp.psaDate)}, n=${tp.psaN || "?"})` : `whose PSA 10 examples have sold near ${usd(tp.psa)}`) : `whose PSA 10 copies list near ${usd(tp.psa)}`}` : ""}.` : "";
+  const analysis = top && tp.nm != null && tieOf(cards).length > 1 ? `The chase in ${code} is led by <strong>${joinNames(tieOf(cards))}</strong>, tied at about ${usd(tp.nm)} raw Japanese NM each.` : top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? (tp.psaStale ? `whose PSA 10 examples last sold near ${usd(tp.psa)} (${monShort(tp.psaDate)}, n=${tp.psaN || "?"})` : `whose PSA 10 examples have sold near ${usd(tp.psa)}`) : `whose PSA 10 copies list near ${usd(tp.psa)}`}` : ""}.` : "";
 
   // 박스 시세 궤적 (세트별 고유 수치 — 차트와 같은 sold 시리즈 기반)
   let trajectory = "";
@@ -632,7 +637,10 @@ function setPage(code, prev, next) {
       if (dd >= 20) priceRead = `The current value is about <strong>${dd}% below the tracked peak</strong> (${usd(vPeak)} → ${usd(vLast)}). Past peaks do not set future floors.`;
       else if (chg >= 15 && dd < 10) priceRead = `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`;
       else priceRead = `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`;
-      const chaseRead = mult != null
+      const tieN = tieOf(cards).length;
+      const chaseRead = mult != null && tieN > 1
+        ? ` The top ${tieN} cards (${joinNames(tieOf(cards))}) are each worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>. Official pull rates are unpublished. It is not opening expected value.`
+        : mult != null
         ? (mult >= 3
           ? ` The top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.`
           : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price. Check the full top-10 distribution. This ratio is not opening EV.`)
@@ -815,7 +823,8 @@ function setPage(code, prev, next) {
     if (enLastP != null && jpVal != null) facts.push(`The English ${code}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box${englishHref ? ` (<a href="${englishHref}">English box guide</a>)` : ""}.`);
     if (cards.length) {
       const tf = cardPrices(cards[0]);
-      if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? (tf.psaKind === "sold" && tf.psaStale ? `, with PSA 10 copies last selling near ${usd(tf.psa)} (${monShort(tf.psaDate)}, n=${tf.psaN || "?"})` : `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}`) : ""}.`);
+      if (tf.nm != null && tieOf(cards).length > 1) facts.push(`The most valuable ${code} cards are <strong>${joinNames(tieOf(cards))}</strong>, tied at about <strong>${usd(tf.nm)}</strong> raw NM each.`);
+      else if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? (tf.psaKind === "sold" && tf.psaStale ? `, with PSA 10 copies last selling near ${usd(tf.psa)} (${monShort(tf.psaDate)}, n=${tf.psaN || "?"})` : `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}`) : ""}.`);
     }
     if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
     if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}${jpRelDate ? ` (Japanese edition ${esc(monthYear(jpRelDate))})` : ""}.`);

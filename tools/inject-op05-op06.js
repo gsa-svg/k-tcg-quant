@@ -133,7 +133,7 @@ let p1;
       const [H, L] = a.v >= b.v ? [[A, a], [B, b]] : [[B, b], [A, a]];
       p1 = `<strong>${H[0]} is roughly ${r}&times; the price of ${L[0]} on the Japanese side</strong> (${usd(H[1].v)} vs ${usd(L[1].v)} sold).`;
     }
-  } else p1 = `There is no current Japanese price ratio: ${who([A, B].filter(noMedian("jp")))} no current Japanese sold median.`;
+  } else p1 = "";   // 2026-09-30: 값이 없으면 "없다"고 쓰지 않고 문장을 뺀다(소유자 규칙: 방어 문장 금지). 표의 — 로 충분하다.
 }
 {
   const a = V[A].enSold, b = V[B].enSold;
@@ -141,8 +141,9 @@ let p1;
     const r = ratioOf(a.v, b.v);
     if (r !== "1.0") gap = true;
     p1 += ` In the English sample, ${A} is <strong>${usd(a.v)} against ${B}'s ${usd(b.v)}, ${r === "1.0" ? "about the same price" : `a ${r}&times; difference`}</strong>.`;
-  } else p1 += ` There is no current English price ratio: ${who([A, B].filter(noMedian("en")))} no current English sold median.`;
+  }
 }
+p1 = p1.trim();
 if (gap) p1 += " The table establishes the gap, but public data does not isolate print volume, reprint timing or buyer demand as its cause.";
 
 // 문단 2 — 일본판 최저 매물 vs 판매 중앙값
@@ -159,9 +160,8 @@ let p2;
     const off = cmp(l, s.v);
     if (off) mismatch = true;
     p2 = `${A}'s cheapest verified Japanese listing is <strong>${usdL(l)} &mdash; ${off ? `about ${off.pct}% ${off.dir}` : "in line with"} its ${usd(s.v)} sold median</strong>`;
-  } else if (l != null) p2 = `${A}'s cheapest verified Japanese listing is <strong>${usdL(l)}</strong>, with no current sold median to compare against`;
-  else if (s) p2 = `${A} has no current verified Japanese listing`;
-  else p2 = `${A} has neither a current verified Japanese listing nor a sold median`;
+  } else if (l != null) p2 = `${A}'s cheapest verified Japanese listing is <strong>${usdL(l)}</strong>`;
+  else p2 = "";
 }
 {
   const l = V[B].jpList, s = V[B].jpSold;
@@ -169,9 +169,8 @@ let p2;
     const off = cmp(l, s.v);
     if (off) mismatch = true;
     p2 += `, while ${B}'s cheapest listing at ${usdL(l)} sits <strong>${off ? `${off.pct}% ${off.dir}` : "in line with"}</strong> its ${usd(s.v)} sold median.`;
-  } else if (l != null) p2 += `, while ${B}'s cheapest listing at ${usdL(l)} has no current sold median to compare against.`;
-  else if (s) p2 += `, while ${B} has no current verified Japanese listing.`;
-  else p2 += `, while ${B} has neither a current verified Japanese listing nor a sold median.`;
+  } else if (l != null) p2 += p2 ? `, while ${B}'s cheapest verified Japanese listing is ${usdL(l)}.` : `${B}'s cheapest verified Japanese listing is <strong>${usdL(l)}</strong>.`;
+  else if (p2) p2 += ".";
 }
 if (mismatch) p2 += " That mismatch is a reason to inspect listing condition, seller location, shipping and sale dates rather than assume either figure is automatically the current transaction price.";
 
@@ -184,8 +183,8 @@ let p3;
   if (ta && tb) parts.push(`PSA records <strong>${int(ta)} ${A} grades versus ${int(tb)} ${B} grades</strong>. The difference can reflect time in market, submission selection and collector demand. It does not reveal how many boxes were opened.`);
   else if (ta || tb) {
     const [F, t, M] = ta ? [A, ta, B] : [B, tb, A];
-    parts.push(`PSA records <strong>${int(t)} ${F} grades</strong>; ${M} has no current population figure. The count does not reveal how many boxes were opened.`);
-  } else parts.push("Neither set has a current PSA population figure.");
+    parts.push(`PSA records <strong>${int(t)} ${F} grades</strong>. The count does not reveal how many boxes were opened.`);
+  }
   const gems = [A, B].filter((c) => V[c].psa && V[c].psa.gem != null).map((c) => `${V[c].psa.gem.toFixed(1)}% for ${c}`);
   if (gems.length) parts.push(`Gem rate is also sample-specific: ${gems.join(" and ")} among the recorded submissions.`);
   parts.push(METHOD);
@@ -204,8 +203,8 @@ let p4 = "<strong>Sample-size caveat:</strong> ";
     }
   } else if ((a && a.n) || (b && b.n)) {
     const [F, x, M] = a && a.n ? [A, a, B] : [B, b, A];
-    p4 += `${F}'s Japanese sold median rests on <strong>${x.n} completed ${x.n === 1 ? "sale" : "sales"}</strong>, and ${M} has no current Japanese sold median.`;
-  } else p4 += "neither set has a current Japanese sold median.";
+    p4 += `${F}'s Japanese sold median rests on <strong>${x.n} completed ${x.n === 1 ? "sale" : "sales"}</strong>.`;
+  }
   const ea = V[A].enSold, eb = V[B].enSold;
   if (ea && eb && ea.n && eb.n) p4 += ` The English samples contain ${ea.n} and ${eb.n} sales.`;
   else if ((ea && ea.n) || (eb && eb.n)) {
@@ -217,7 +216,7 @@ let p4 = "<strong>Sample-size caveat:</strong> ";
 const before = html;
 html = html.replace(RE.table, () => TABLE);
 html = html.replace(RE.section, (_m, h, end) =>
-  h + nl(`\n      <p>${p1}</p>\n      <p>${p2}</p>\n      <p>${p3}</p>\n      <p>${p4}</p>\n\n      `) + end
+  h + nl(`\n${[p1, p2, p3, p4].filter((p) => p && !/^<strong>Sample-size caveat:<\/strong>\s*$/.test(p)).map((p) => `      <p>${p}</p>\n`).join("")}\n      `) + end
 );
 // 도입 문단의 발매일도 표와 같은 값으로
 for (const c of [A, B]) {

@@ -1562,9 +1562,9 @@ for (const f of PUBLIC_HTML.filter((p) => p.startsWith("cards/"))) {
 }
 
 // ── Y1/Y2. 세트 카드 목록 — 2026-09-30. (K1/K2 는 known-gaps 검사가 먼저 쓰고 있어 Y 로 둔다)
-//   K1: OP/EB/PRB 세트의 cardCount 는 있으면 50 이상. OP-16 에 5 가 들어가 세트 페이지에 "5 cards" 로 나갔다
+//   Y1: OP/EB/PRB 세트의 cardCount 는 있으면 50 이상. OP-16 에 5 가 들어가 세트 페이지에 "5 cards" 로 나갔다
 //       (공식 상품 페이지는 全126種). 수록 종류가 50 아래인 부스터·EB·PRB 는 없다 — 더 작으면 다른 숫자가 들어간 것이다.
-//   K2: 영문 발매일(release)이 오늘 이전인 가장 최근 부스터(OP-xx) 세트의 cards 가 비면 실패.
+//   Y2: 영문 발매일(release)이 오늘 이전인 가장 최근 부스터(OP-xx) 세트의 cards 가 비면 실패.
 //       8/28 발매 OP-17 이 6주 동안 top10 없이 나갔다. 채우는 법: node tools/seed-set-top-cards.js <CODE>
 {
   const today = new Date().toISOString().slice(0, 10);
@@ -1875,4 +1875,3 @@ if (errors.length) {
   process.exit(1);
 }
 console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2"] }));
-

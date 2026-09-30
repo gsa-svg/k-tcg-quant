@@ -91,7 +91,9 @@ const rows = pairs.map(({ code, j, e, pct }) => {
   const label = esc(en ? `${code} ${en}` : code);
   const file = `sets/${code.toLowerCase()}.html`;
   const cell = fs.existsSync(path.join(ROOT, file)) ? `<a href="../${file}">${label}</a>` : label;
-  return `          <tr><td ${TD}>${cell}</td><td ${TDR}>${usd(j)}</td><td ${TDR}>${usd(e)}</td><td ${TDR}>${pctTxt(pct)}</td></tr>`;
+  // 영문 값이 재판(White) 박스면 라벨을 붙인다 — 세트 페이지와 같은 판정(set-page-shared enIsReprint, 2026-09-30).
+  const rp = require("./set-page-shared").enIsReprint(S[code]) ? " <small>reprint (White)</small>" : "";
+  return `          <tr><td ${TD}>${cell}</td><td ${TDR}>${usd(j)}</td><td ${TDR}>${usd(e)}${rp}</td><td ${TDR}>${pctTxt(pct)}</td></tr>`;
 });
 
 const byPct = pairs.slice().sort((a, b) => a.pct - b.pct);
