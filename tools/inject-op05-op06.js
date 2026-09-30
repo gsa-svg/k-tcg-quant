@@ -14,6 +14,10 @@
 //    기준일 = 시계열 전체의 마지막 관측일과 위 출처 날짜들 중 가장 늦은 날(캡션·dateModified·바이라인에도 쓴다).
 //  · 배수·퍼센트는 양쪽 다 신선할 때만. 값이 비면 그 문장은 숫자 없이 짧게 쓴다. 지어내지 않는다.
 //  · 세트 이름은 packs.json nameEn, 없으면 코드만.
+//  · 최저 매물과 판매 중앙값의 차이가 MISMATCH_PCT(10%) 이상일 때만 "about N% above/below" 와 "mismatch" 문장을 쓴다.
+//    그보다 작으면 "in line with".
+//  · 필수 자리(비교표·해설 구간·dateModified) 중 하나라도 없으면 글 구조가 바뀐 것이다 —
+//    반쯤 고친 글을 쓰지 않고 {status:"error"} 로 exit 1.
 "use strict";
 const fs = require("fs");
 const path = require("path");
@@ -23,6 +27,7 @@ const ART = path.join(ROOT, "articles/op-05-vs-op-06.html");
 const SERIES = path.join(ROOT, "data/box-sold-series.json");
 const PACKS_FILE = path.join(ROOT, "data/onepiece-packs.json");
 const STALE_DAYS = 28;
+const MISMATCH_PCT = 10;
 const [A, B] = ["OP-05", "OP-06"];
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
@@ -42,6 +47,18 @@ if (!P[A] || !P[B]) skip("packs.json 에 세트 없음");
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
+
+// 필수 자리 — 하나라도 없으면 쓰지 않고 실패로 끝낸다.
+const RE = {
+  table: /<table>[\s\S]*?<\/table>/,
+  section: /(<h2>What the dated snapshot shows<\/h2>)[\s\S]*?(<h2>How to compare them properly<\/h2>)/,
+  dateModified: /("dateModified": ")[^"]*(")/,
+};
+const missing = Object.keys(RE).filter((k) => !RE[k].test(html));
+if (missing.length) {
+  console.log(JSON.stringify({ status: "error", reason: "필수 자리 못 찾음", missing }));
+  process.exit(1);
+}
 
 // 기준일
 const lastObs = (c, ed) => { const a = (S[c] && S[c][ed]) || []; return a.length ? a[a.length - 1] : null; };
@@ -129,18 +146,19 @@ let p1;
 if (gap) p1 += " The table establishes the gap, but public data does not isolate print volume, reprint timing or buyer demand as its cause.";
 
 // 문단 2 — 일본판 최저 매물 vs 판매 중앙값
+// 차이가 MISMATCH_PCT 이상이면 { pct, dir }, 그보다 작으면 null — 문장은 "in line with".
 const cmp = (list, s) => {
-  const pct = Math.round(Math.abs(list / s - 1) * 100);
-  return { pct, dir: list < s ? "below" : "above" };
+  const diff = Math.abs(list / s - 1) * 100;
+  return diff >= MISMATCH_PCT ? { pct: Math.round(diff), dir: list < s ? "below" : "above" } : null;
 };
 let mismatch = false;
 let p2;
 {
   const l = V[A].jpList, s = V[A].jpSold;
   if (l != null && s) {
-    const { pct, dir } = cmp(l, s.v);
-    if (pct) mismatch = true;
-    p2 = `${A}'s cheapest verified Japanese listing is <strong>${usdL(l)} &mdash; ${pct ? `about ${pct}% ${dir}` : "in line with"} its ${usd(s.v)} sold median</strong>`;
+    const off = cmp(l, s.v);
+    if (off) mismatch = true;
+    p2 = `${A}'s cheapest verified Japanese listing is <strong>${usdL(l)} &mdash; ${off ? `about ${off.pct}% ${off.dir}` : "in line with"} its ${usd(s.v)} sold median</strong>`;
   } else if (l != null) p2 = `${A}'s cheapest verified Japanese listing is <strong>${usdL(l)}</strong>, with no current sold median to compare against`;
   else if (s) p2 = `${A} has no current verified Japanese listing`;
   else p2 = `${A} has neither a current verified Japanese listing nor a sold median`;
@@ -148,9 +166,9 @@ let p2;
 {
   const l = V[B].jpList, s = V[B].jpSold;
   if (l != null && s) {
-    const { pct, dir } = cmp(l, s.v);
-    if (pct) mismatch = true;
-    p2 += `, while ${B}'s cheapest listing at ${usdL(l)} sits <strong>${pct ? `${pct}% ${dir}` : "in line with"}</strong> its ${usd(s.v)} sold median.`;
+    const off = cmp(l, s.v);
+    if (off) mismatch = true;
+    p2 += `, while ${B}'s cheapest listing at ${usdL(l)} sits <strong>${off ? `${off.pct}% ${off.dir}` : "in line with"}</strong> its ${usd(s.v)} sold median.`;
   } else if (l != null) p2 += `, while ${B}'s cheapest listing at ${usdL(l)} has no current sold median to compare against.`;
   else if (s) p2 += `, while ${B} has no current verified Japanese listing.`;
   else p2 += `, while ${B} has neither a current verified Japanese listing nor a sold median.`;
@@ -197,11 +215,8 @@ let p4 = "<strong>Sample-size caveat:</strong> ";
 }
 
 const before = html;
-if (!/<table>[\s\S]*?<\/table>/.test(html)) skip("표를 못 찾음");
-html = html.replace(/<table>[\s\S]*?<\/table>/, () => TABLE);
-const SEC = /(<h2>What the dated snapshot shows<\/h2>)[\s\S]*?(<h2>How to compare them properly<\/h2>)/;
-if (!SEC.test(html)) skip("해설 구간을 못 찾음");
-html = html.replace(SEC, (_m, h, end) =>
+html = html.replace(RE.table, () => TABLE);
+html = html.replace(RE.section, (_m, h, end) =>
   h + nl(`\n      <p>${p1}</p>\n      <p>${p2}</p>\n      <p>${p3}</p>\n      <p>${p4}</p>\n\n      `) + end
 );
 // 도입 문단의 발매일도 표와 같은 값으로
@@ -210,7 +225,7 @@ for (const c of [A, B]) {
   const re = new RegExp(`(<strong>${c} [^<]*<\\/strong> \\(released )\\d{4}-\\d{2}-\\d{2}(\\))`);
   html = html.replace(re, (_m, a, b) => a + V[c].release + b);
 }
-html = html.replace(/("dateModified": ")[^"]*(")/, (_m, a, b) => a + dataDate + b);
+html = html.replace(RE.dateModified, (_m, a, b) => a + dataDate + b);
 if (/Updated <time datetime="/.test(html)) {
   html = html.replace(/(Updated <time datetime=")[^"]*(">)[^<]*(<\/time>)/, (_m, a, b, c) => a + dataDate + b + longDate(dataDate) + c);
 } else {
@@ -224,5 +239,5 @@ console.log(JSON.stringify({
   status: "ok", dataDate,
   jpSold: [brief(V[A].jpSold), brief(V[B].jpSold)], enSold: [brief(V[A].enSold), brief(V[B].enSold)],
   jpList: [V[A].jpList, V[B].jpList], enList: [V[A].enList, V[B].enList],
-  psa: [V[A].psa && V[A].psa.total, V[B].psa && V[B].psa.total],
+  psa: [V[A].psa && V[A].psa.total, V[B].psa && V[B].psa.total], mismatch,
 }));
