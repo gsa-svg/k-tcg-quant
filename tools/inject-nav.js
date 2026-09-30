@@ -20,7 +20,7 @@ const GUIDE_RE = /<nav class="guideLinks"[^>]*>[\s\S]*?<\/nav>/;
 const FOOTER_OPEN_RE = /<footer\b[^>]*>/;
 function withGuideLinks(html, inKo) {
   const want = guideLinksHtml(inKo);
-  if (GUIDE_RE.test(html)) return html.replace(GUIDE_RE, want);
+  if (GUIDE_RE.test(html)) return html.replace(GUIDE_RE, () => want);
   const m = html.match(FOOTER_OPEN_RE);
   if (!m) return html;
   const at = m.index + m[0].length;
@@ -32,8 +32,8 @@ const NEXT_RE = /<nav class="nextLinks"[^>]*>[\s\S]*?<\/nav>/;
 const NEXT_SKIP = new Set(["index.html", "404.html", "packs.html", "sets/index.html", "amazon-lottery.html", "privacy.html", "disclaimer.html", "changelog.html", "ko/index.html", "ko/amazon-lottery.html"]);
 function withNextLinks(html, rel, inKo) {
   if (NEXT_SKIP.has(rel)) return html;
-  const want = nextLinksHtml(inKo);
-  if (NEXT_RE.test(html)) return html.replace(NEXT_RE, want);
+  const want = nextLinksHtml(inKo, rel);
+  if (NEXT_RE.test(html)) return html.replace(NEXT_RE, () => want);
   const at = html.indexOf("</h1>");
   if (at < 0) return html;
   const end = at + "</h1>".length;
