@@ -478,6 +478,45 @@ if (exists("data/box-sold-series.json")) {
   }
 }
 
+// ── Q5. 시리즈 이름 충돌 — 2026-09-30 신설.
+//    EB-03 "Heroine's Edition" 과 EB-05 "Heroines Edition vol.2" 처럼 한 이름이 다른 이름의 앞부분이면,
+//    종전 ingest 는 둘 다 걸어 EB-05 판매를 cross-set 으로 버리고, 코드 없는 2권 제목은 EB-03 에 섞었다.
+//    또 ingest 이름표가 packs.json 만 읽어 수집 목록(UPCOMING)의 세트 이름을 몰랐다.
+//    실제 덤프 제목(box-2026-09-29: "ONE PIECE Heroines Edition Vol.2 EB-05 Japanese Booster Box PRE-ORDER")으로 실행해 잠근다.
+//    상세 회귀 테스트: tools/test-box-sold-name-collision.js
+{
+  try {
+    const { judgeItem, buildNameMap, ingestNameMap } = require("./box-sold-ingest");
+    const { UPCOMING } = require("./box-sold-urls");
+    const R = data.fx.usdKrw;
+    const next = buildNameMap(data, [{ code: "EB-05", nameEn: "Heroines Edition vol.2" }]);
+    const now = buildNameMap(data);
+    const it = (t, k) => ({ id: "1", t, k, cur: "KRW", d: "Sold  Sep 28, 2026" });
+    const cases = [
+      // [제목, 원화, 대상, 언어, 이름표, 기대: "keep" 또는 drop 이유]
+      ["ONE PIECE Heroines Edition Vol.2 EB-05 Japanese Booster Box PRE-ORDER", 345287.85, "EB-05", "jp", next, "keep"],
+      ["ONE PIECE Heroines Edition Vol.2 EB-05 Japanese Booster Box PRE-ORDER", 345287.85, "EB-03", "jp", next, "code-missing"],
+      ["One Piece Heroines Edition Vol.2 Booster Box Japanese", 345000, "EB-03", "jp", now, "code-missing"],
+      ["One Piece Heroines Edition Vol.2 Booster Box Japanese", 345000, "EB-03", "jp", next, "code-missing"],
+      ["One Piece Heroines Edition 2 Booster Box Japanese", 345000, "EB-03", "jp", next, "name-ambiguous"],
+      ["One Piece Heroines Edition Booster Box Japanese Sealed", 200000, "EB-03", "jp", next, "keep"],
+    ];
+    for (const [t, k, code, ed, map, want] of cases) {
+      const r = judgeItem(it(t, k), code, R, map, ed, "bin");
+      const got = r.drop || (r.rec && r.rec.qty === 1 ? "keep" : "qty " + (r.rec && r.rec.qty));
+      if (got !== want) errors.push(`Q5: ${code} "${t}" → ${got} (기대 ${want})`);
+    }
+    // 수집하는 세트는 이름표에도 있어야 한다 — UPCOMING 에 넣고 이름표에서 빠지면 위 사고가 되살아난다.
+    const live = new Set(ingestNameMap(data).map(([, c]) => c));
+    for (const u of UPCOMING) {
+      if (data.sets[u.code] || String(u.nameEn || "").replace(/[^a-z0-9]/gi, "").length < 6) continue;
+      if (!live.has(u.code)) errors.push(`Q5: UPCOMING ${u.code}(${u.nameEn}) 가 ingest 이름표에 없다 — 같은 시리즈 앞 권 이름에 걸려 버려지거나 섞인다`);
+    }
+  } catch (e) {
+    errors.push(`Q5: 이름 충돌 검사 실행 실패 — ${e.message}`);
+  }
+}
+
 // ── Q2. 경매 매물 분류 — "박스 통계는 무조건 부스터박스만". 팩·더블팩이 box 로 새거나
 //    카톤(박스 여러개)이 box 로 잡히면 거래량 왜곡. 함정 제목으로 실제 실행해 검증.
 {
@@ -1810,4 +1849,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2"] }));
