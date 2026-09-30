@@ -49,7 +49,6 @@ jobs:
       EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
       EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
       EBAY_MARKETPLACE_ID: EBAY_US
-      EBAY_SEARCH_LIMIT: "100"
       EBAY_PSA_ACTIVE_SEARCH_LIMIT: "100"
 
     steps:
