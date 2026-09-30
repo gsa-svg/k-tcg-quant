@@ -47,6 +47,11 @@ const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "onep
 // 데이터가 쌓이고 화면에 올릴 때 packs.json 으로 옮기고 여기서는 지운다.
 const UPCOMING = [
   { code: "OP-17", nameEn: "The World's Strongest Warriors", release: "2026-08-22" },
+  // 2026-09-30 추가: 예약 판매가 이미 팔리는데(EB-05 9/15·9/28, OP-18 9/26) 다른 세트 페이지에 섞였다가 전부 버려지고 있었다.
+  // 발매 뒤엔 구간이 240건 상한에 걸려 오래된 예약 판매가 밀려나므로 발매 전에 넣는다(OP-17 은 영문 발매 11주 전부터 쌓였다).
+  // 이름 충돌(EB-03 Heroine's Edition ⊂ EB-05 Heroines Edition vol.2)은 ingestNameMap·가드 Q5 가 막는다.
+  { code: "EB-05", nameEn: "Heroines Edition vol.2", release: "2026-10-31" },
+  { code: "OP-18", nameEn: "The Dominance of God", release: "2026-11-21" },
 ];
 const ORDER = [...data.jp.list, ...data.extra.list].filter((c) => data.sets[c]);
 for (const u of UPCOMING) {
