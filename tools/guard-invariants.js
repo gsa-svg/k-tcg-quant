@@ -221,6 +221,43 @@ for (const [code, sset] of Object.entries(data.sets || {})) {
   }
 }
 
+// ── D13. 박스 진행매물 스냅샷은 그 수집일의 시계열 점이 돼 있어야 한다 — 2026-09-30 발견.
+//    9/22·9/23·9/26 에 로컬에서 매물 수집기(update-ebay-*-pack-prices)만 돌리고 update-box-series-history 를
+//    빼먹은 채 커밋해, 스냅샷(boxMarket.*.ebayActive)은 git 에 있는데 boxSeriesEbay/EnEbay 에 그날 점이 없었다.
+//    클라우드도 그 사이 실패해 박스 시계열이 9/21 다음 9/27 로 건너뛰었다. 그 스냅샷들은 조회 한도 50(로컬 .env)으로
+//    받은 것이라 시계열(한도 100)과 같은 측정이 아니어서 끼우지 않았다 — D14 참고. 빈 날은 빈 채로 둔다.
+//    점을 만드는 규칙은 update-box-series-history 의 editionPoint 를 그대로 쓴다 — 여기서 따로 베끼면 어긋난다.
+//    거꾸로 스냅샷 수집일보다 늦은 active 점도 막는다 — 옛 스크립트는 지난 스냅샷을 실행일 점으로 한 번 더 찍었다(8/3·8/28).
+{
+  const { editionPoint } = require("./update-box-series-history");
+  for (const code of [...(data.jp?.list || []), ...(data.extra?.list || [])]) {
+    for (const ed of ["jp", "en"]) {
+      const want = editionPoint(data.sets?.[code], ed, data.fx);
+      if (!want) continue;
+      const points = data.sets[code][want.key]?.points || [];
+      if (!points.some((p) => p.d === want.point.d)) {
+        errors.push(`D13: ${code}.${want.key} 에 ${ed} 진행매물 스냅샷(${want.point.d}) 점이 없다 — 매물 수집 뒤 node tools/update-box-series-history.js 를 빼먹었다`);
+      }
+      const later = points.filter((p) => p.basis === "active" && p.d > want.point.d).map((p) => p.d);
+      if (later.length) {
+        errors.push(`D13: ${code}.${want.key} 에 ${ed} 진행매물 스냅샷(${want.point.d})보다 늦은 active 점 ${later.join(",")} — 지난 스냅샷을 실행일 관측으로 다시 찍었다`);
+      }
+    }
+  }
+}
+
+// ── D14. 박스 진행매물 수집기의 조회 한도는 어디서 돌든 같아야 한다 — 2026-09-30 발견.
+//    클라우드 워크플로는 EBAY_SEARCH_LIMIT=100 을 줬고 로컬은 .env 의 EBAY_SEARCH_LIMIT=50 으로 돌았다. 로컬 보충분(8/27·9/18·9/22·9/23·9/26)은
+//    매물을 절반만 봐서 일판 조회 매물(채택+제외)이 ~740 → ~490, 채택 표본이 ~220 → ~150 으로 줄고 세트 중간값이
+//    20~50% 낮게 찍혔다(OP-05 일판 $300 → $195, 검색 전체 매물수 totalResults 는 그대로). 같은 시계열에 섞이면
+//    수집 방식 차이가 시세 급락으로 둔갑한다(D5 의 8/13 사고와 같은 종류). 한도는 코드에 고정하고 환경변수로 받지 않는다.
+for (const f of ["tools/update-ebay-pack-prices.js", "tools/update-ebay-english-pack-prices.js"]) {
+  const src = read(f).replace(/^\s*\/\/.*$/gm, "");
+  if (!/const searchLimit = "100";/.test(src) || /EBAY_SEARCH_LIMIT/.test(src)) {
+    errors.push(`D14: ${f} 의 조회 한도가 100 고정이 아니다 — 로컬과 클라우드가 다른 표본을 받아 박스 시계열에 가짜 급락이 생긴다`);
+  }
+}
+
 // ── D5. 박스 SOLD 시계열 무결성 — 2026-07-22 차트 데이터 레이어.
 //    이 파일은 실거래(sold) 기반이라 조작·역행이 곧 허위 데이터다. 내부 정합성만 검사(파일 없으면 스킵).
 //    2026-08-13: 시계열은 이제 append-only 축적본이 아니라 **원장에서 매번 다시 만드는 파생물**이다.
@@ -1757,4 +1794,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2"] }));
