@@ -256,7 +256,13 @@ for (const { code, set: s, card: c } of cands) {
   // 시리즈(가격 이력) 표 — 체크포인트가 2개 이상 쌓인 카드만 표시(1점짜리 무의미한 표 방지).
   // ※ 2026-07-14 이전 초기 수집은 변형매칭 미성숙으로 오염되어 폐기됨(그 이후부터 신뢰 축적).
   const ser = (c.series && c.series.points || []).filter((p) => p.nm != null || p.psa != null);
-  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(toUsdAt(p.nm, "KRW", p.d)) : "—"}</td><td class="num">${p.psa != null ? usd(toUsdAt(p.psa, "KRW", p.d)) : "—"}</td></tr>`).join("") : "";   // 각 시점의 환율(fx-history) — 헤드라인과 같은 방식(2026-09-24)
+  // PSA10 칸: 이력 점은 KRW 로만 저장된다(update-card-series-history.js). 현재 관측일(psa10Ebay.updated) 뒤의 점은
+  // 같은 관측을 매일 다시 적은 것이라 점 날짜 환율로 되돌리면 KRW 저장 카드가 헤드라인보다 부푼다
+  // (2026-09-30 실측: OP09-119 이력 $2,027 / 헤드라인 $1,822). 그 점들은 헤드라인과 같은 관측일 환산값을 쓴다.
+  const g10 = c.psa10Ebay && c.psa10Ebay.soldBased && c.psa10Ebay.middle != null ? c.psa10Ebay : null;
+  const g10Usd = g10 ? toUsdAt(g10.middle, g10.currency, g10.updated) : null;
+  const serPsaUsd = (p) => (g10Usd != null && g10.updated && p.d > g10.updated ? g10Usd : toUsdAt(p.psa, "KRW", p.d));
+  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(toUsdAt(p.nm, "KRW", p.d)) : "—"}</td><td class="num">${p.psa != null ? usd(serPsaUsd(p)) : "—"}</td></tr>`).join("") : "";   // NM 은 각 시점의 환율(fx-history)
 
   // PSA10 sold 값의 나이. 홈(packs.js PSA10_STALE_DAYS=35)과 같은 기준 — 35일 넘은 sold 중앙값으로는 프리미엄을 계산하지 않는다.
   const p10Age = p10 && p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : null;
@@ -529,40 +535,44 @@ fs.writeFileSync(path.join(CARDS_DIR, "card-map.json"), JSON.stringify(cardMap, 
 // 클릭 2), 그 답이 되는 표가 색인된 페이지에 없었다. 카드 상세에는 있지만 그 28장은
 // 애드센스 심사 기간 동안 noindex 라 검색에 안 나온다. 그래서 색인되는 허브에 싣는다.
 // 값은 카드 상세와 같은 원본을 쓴다 — 여기서 따로 계산하지 않는다.
+// PSA 10 은 psa10Of(관측일 환율)를 그대로 쓴다. 2026-09-30 전에는 KRW 저장값을 오늘 환율로 되돌려
+// 같은 거래가 허브 $15,717 / 카드 상세·랭킹 $14,134 로 갈렸다(KRW 저장 카드 7행).
 const gradedRows = (() => {
-  const fx = d.fx || {};
-  const jpyKrw = fx.jpyKrw || 8.7;
-  const usdKrw = fx.usdKrw || 1374;
   const rows = [];
   for (const [code, set] of Object.entries(d.sets || {})) {
     for (const c of set.cards || []) {
-      const g = c.psa10Ebay;
-      if (c.nmJpy == null || !g || g.middle == null || (g.sampleSize || 0) < 3) continue;
-      const rawKrw = c.nmJpy * jpyKrw;
-      const psaKrw = g.currency === "USD" ? g.middle * usdKrw : g.middle;
-      if (!(rawKrw > 0) || !(psaKrw > 0)) continue;
-      const mult = psaKrw / rawKrw;
+      const p10 = c.nmJpy == null ? null : psa10Of(c);
+      if (!p10 || p10.kind !== "sold") continue;
+      const rawUsd = jpyUsd(c.nmJpy);
+      if (!(rawUsd > 0) || !(p10.v > 0)) continue;
+      const mult = p10.v / rawUsd;
       // 배수가 비현실적으로 크면 raw 쪽이 잘못 잡힌 것이다(2026-09-01 실측: OP02-059 박스토퍼가
       // raw 가 거의 0 으로 잡혀 557배가 나왔다). 값을 고쳐 쓰지 말고 표에서 뺀다.
       if (mult > 40) continue;
-      rows.push({ code, number: c.number, name: c.name, rawUsd: rawKrw / usdKrw, psaUsd: psaKrw / usdKrw, mult, n: g.sampleSize });
+      const setFile = code.toLowerCase() + ".html";
+      rows.push({
+        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult, n: p10.n, psaDate: p10.date,
+        slug: cardMap[c.number + "|" + norm(c.name)] || null,
+        setHref: fs.existsSync(path.join(ROOT, "sets", setFile)) ? `../sets/${setFile}` : null,
+      });
     }
   }
   rows.sort((a, b) => b.psaUsd - a.psaUsd);
   return rows;
 })();
+const psaDates = gradedRows.map((r) => r.psaDate).filter(Boolean).sort();
 const money = (v) => "$" + Math.round(v).toLocaleString("en-US");
 const gradedTable = gradedRows.length ? `
       <h2 id="psa10-vs-raw">PSA 10 vs raw NM price</h2>
       <div class="tableWrap" style="overflow-x:auto">
       <table class="dataTable">
-        <thead><tr><th>Card</th><th>Set</th><th>Raw NM</th><th>PSA 10</th><th>Premium</th><th>Sales</th></tr></thead>
+        <thead><tr><th>Card</th><th>Set</th><th>Raw NM</th><th>PSA 10</th><th>Premium</th><th>Sales</th><th>PSA 10 data</th></tr></thead>
         <tbody>
-          ${gradedRows.map((r) => `<tr><td>${esc(r.name)} <small style="color:#7d8698">${esc(r.number)}</small></td><td>${esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult.toFixed(1)}x</td><td>${r.n}</td></tr>`).join("\n          ")}
+          ${gradedRows.map((r) => `<tr><td>${r.slug ? `<a href="${esc(r.slug)}">${esc(r.name)}</a>` : esc(r.name)} <small style="color:#7d8698">${esc(r.number)}</small></td><td>${r.setHref ? `<a href="${esc(r.setHref)}">${esc(r.code)}</a>` : esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult.toFixed(1)}x</td><td>${r.n}</td><td>${esc(r.psaDate || "—")}</td></tr>`).join("\n          ")}
         </tbody>
       </table>
       </div>
-      <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single price. PSA 10 = median of verified eBay completed sales, minimum three matched sales per card. Premium is PSA 10 divided by raw. ${gradedRows.length} cards have both figures as of ${DATA_DATE}.</p>` : "";
+      <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single price. PSA 10 = median of verified eBay completed sales, minimum three matched sales per card. Premium is PSA 10 divided by raw. ${gradedRows.length} cards have both figures. Raw NM as of ${DATA_DATE}; PSA 10 sales dated per row (${psaDates[0]} to ${psaDates[psaDates.length - 1]}).</p>` : "";
 
 const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
 const ebayCardHub = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("One Piece Card Game Japanese")}&_sop=15&${EPN}`;
@@ -619,10 +629,11 @@ const hub = `<!doctype html>
       <h1>PSA 10 vs raw price: One Piece card value list</h1>
       <p>${gradedRows.length} Japanese One Piece cards where we have both prices: the raw near-mint single at Japanese retail, and the PSA 10 median from completed eBay sales. Variant-specific — a manga rare and its plain parallel are separate rows. As of ${DATA_DATE}.</p>
       ${AFF_TOP}
+      ${gradedTable}
+      <h2 id="tracked-cards">Raw NM price by card</h2>
       <div class="cardGrid">
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" width="716" height="1000" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
-      ${gradedTable}
       <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>
       ${/* 설명 3문단은 2026-08-28 소유자 지시로 삭제 — TCG 퀀트처럼 표·그리드만 */ ""}
