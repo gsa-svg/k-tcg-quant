@@ -10,9 +10,10 @@
 //    그것도 없으면 코드만 — 지어내지 않는다.
 //  · USD 는 JP 시계열의 마지막 관측 중앙값. 마지막 판매가 STALE_DAYS 를 넘으면 그 행은 USD·현지 통화 모두 "—".
 //  · 현지 통화 = USD × data/fx.json 의 sea 환율(1 USD 당 현지 통화, ECB 기준환율).
-//  · 정가 행은 USD 칸("~$36")을 그대로 두고, 현지 통화만 각주의 "N packs × ¥M" 을 사이트 공통 방식
-//    (jpyKrw / usdKrw, inject-pack-math.js 와 같다)으로 USD 로 바꾼 뒤 환산한다.
+//  · 정가 행은 USD 칸("~$36")을 그대로 두고, 현지 통화 = 그 칸의 숫자(36) × 새 환율 — 같은 행의 USD 와 어긋나지 않게.
 //  · 표기는 기존 표 형식 그대로: ₱·฿ 10단위, S$·RM 1단위, Rp 는 100만 이상 x.xxM / 미만 xxxK.
+//  · 필수 자리(tbody·표의 세트 행·환율 문장·기준일 두 곳·제목 줄·dateModified) 중 하나라도 없으면 글 구조가 바뀐 것이다 —
+//    반쯤 고친 글을 쓰지 않고 {status:"error"} 로 exit 1.
 "use strict";
 const fs = require("fs");
 const path = require("path");
@@ -37,7 +38,25 @@ const CUR = [
 ];
 
 const skip = (reason) => { console.log(JSON.stringify({ status: "skip", reason })); process.exit(0); };
+const fail = (reason, extra) => { console.log(JSON.stringify({ status: "error", reason, ...extra })); process.exit(1); };
 if (!fs.existsSync(ART)) skip("article missing");
+
+let html = fs.readFileSync(ART, "utf8");
+const crlf = html.includes("\r\n");
+const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
+
+// 고칠 자리가 하나라도 없으면 글 구조가 바뀐 것이다 — 반쯤 고친 글을 쓰지 않고 실패로 끝낸다.
+const RE = {
+  tbody: /(<tbody>)[\s\S]*?(<\/tbody>)/,
+  rates: /converted from USD at [A-Z][a-z]+ \d{1,2}, \d{4} exchange rates \([^)]*\)/,
+  market: /Market values as of [A-Z][a-z]+ \d{1,2}, \d{4}/,
+  fx: /FX as of [A-Z][a-z]+ \d{1,2}, \d{4}/,
+  heading: /(What Japanese boxes cost in your currency \()[A-Z][a-z]+ \d{4}(\))/,
+  dateModified: /("dateModified": ")[^"]*(")/,
+};
+const missing = Object.keys(RE).filter((k) => !RE[k].test(html));
+if (missing.length) fail("필수 자리 못 찾음", { missing });
+
 let S, FX, PACKS = {};
 try {
   S = JSON.parse(fs.readFileSync(path.join(ROOT, "data/box-sold-series.json"), "utf8")).sets || {};
@@ -47,21 +66,6 @@ try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.
 const SEA = FX.sea || {};
 if (!FX.date || !CUR.every((c) => Number.isFinite(SEA[c.code]))) skip("fx.json sea 환율 없음");
 
-let html = fs.readFileSync(ART, "utf8");
-const crlf = html.includes("\r\n");
-const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
-
-// 고칠 자리가 하나라도 없으면 글 구조가 바뀐 것이다 — 반쯤 고친 글을 내보내지 않는다.
-const RE = {
-  tbody: /(<tbody>)[\s\S]*?(<\/tbody>)/,
-  rates: /converted from USD at [A-Z][a-z]+ \d{1,2}, \d{4} exchange rates \([^)]*\)/,
-  market: /Market values as of [A-Z][a-z]+ \d{1,2}, \d{4}/,
-  fx: /FX as of [A-Z][a-z]+ \d{1,2}, \d{4}/,
-  heading: /(What Japanese boxes cost in your currency \()[A-Z][a-z]+ \d{4}(\))/,
-};
-const missing = Object.keys(RE).filter((k) => !RE[k].test(html));
-if (missing.length) skip("자리 못 찾음: " + missing.join(","));
-
 const tbody = html.match(RE.tbody)[0];
 const names = {};
 const order = [];
@@ -70,9 +74,8 @@ for (const m of tbody.matchAll(/<tr><td>((?:OP|EB|PRB)-\d{2})([^<]*)<\/td>/g)) {
   names[m[1]] = m[2].trim() ? m[1] + " " + m[2].trim() : en ? `${m[1]} ${en}` : m[1];
   order.push(m[1]);
 }
-if (!order.length) skip("표 행을 못 찾음");
+if (!order.length) fail("필수 자리 못 찾음", { missing: ["rows"] });
 const msrp = tbody.match(/<tr><td>(<em>[^<]*MSRP[^<]*<\/em>)<\/td><td>([^<]*)<\/td>/);
-const msrpYen = html.match(/(\d+) packs (?:×|&times;) ¥([\d,]+)/);
 
 let dataDate = "";
 for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) {
@@ -96,9 +99,11 @@ for (const code of order) {
   rows.push(`          <tr><td>${names[code]}</td><td>${j ? usd(j.median) : "—"}</td>${local(j ? j.median : null)}</tr>`);
 }
 if (!freshRows) skip("신선한 JP 관측이 없다");
+// 정가 행 — USD 칸은 그대로, 현지 통화는 그 칸의 숫자 × 새 환율. 숫자를 못 읽으면 "—".
 let msrpUsd = null;
 if (msrp) {
-  if (msrpYen && FX.jpyKrw && FX.usdKrw) msrpUsd = (Number(msrpYen[1]) * Number(msrpYen[2].replace(/,/g, "")) * FX.jpyKrw) / FX.usdKrw;
+  const m = msrp[2].match(/\$([\d,]+(?:\.\d+)?)/);
+  if (m) msrpUsd = Number(m[1].replace(/,/g, ""));
   rows.push(`          <tr><td>${msrp[1]}</td><td>${msrp[2]}</td>${local(msrpUsd)}</tr>`);
 }
 
@@ -115,7 +120,7 @@ html = html.replace(/(Use the )[A-Z][a-z]+ \d{4}( table above)/, (_m, a, b) => a
 
 // 수정일은 이 글이 쓰는 두 데이터(시세·환율) 중 늦은 날짜. JSON-LD 와 화면 바이라인을 같이 맞춘다.
 const modDate = FX.date > dataDate ? FX.date : dataDate;
-html = html.replace(/("dateModified": ")[^"]*(")/, (_m, a, b) => a + modDate + b);
+html = html.replace(RE.dateModified, (_m, a, b) => a + modDate + b);
 if (/Updated <time datetime="/.test(html)) {
   html = html.replace(/(Updated <time datetime=")[^"]*(">)[^<]*(<\/time>)/, (_m, a, b, c) => a + modDate + b + longDate(modDate) + c);
 } else {
