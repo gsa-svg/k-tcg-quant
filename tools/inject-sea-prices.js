@@ -10,7 +10,10 @@
 //    그것도 없으면 코드만 — 지어내지 않는다.
 //  · USD 는 JP 시계열의 마지막 관측 중앙값. 마지막 판매가 STALE_DAYS 를 넘으면 그 행은 USD·현지 통화 모두 "—".
 //  · 현지 통화 = USD × data/fx.json 의 sea 환율(1 USD 당 현지 통화, ECB 기준환율).
-//  · 정가 행은 USD 칸("~$36")을 그대로 두고, 현지 통화 = 그 칸의 숫자(36) × 새 환율 — 같은 행의 USD 와 어긋나지 않게.
+//  · 정가 행은 각주("MSRP row = 24 packs × ¥240 (OP-17 …)")대로 set-facts.json 의 OP-17 packsPerBox × jpMsrpYenPerPack 을
+//    data/fx.json 의 jpyKrw / usdKrw 로 USD 환산한다(inject-pack-math 와 같은 식). USD 칸은 "~$37", 현지 통화는 반올림 전 USD × sea 환율.
+//    각주의 팩 수·팩당 엔과 FAQ 의 "about $N at MSRP" 도 같은 값으로 다시 쓴다. 정가나 환율을 못 읽으면 "—".
+//    (전에는 USD 칸의 손으로 쓴 "~$36"(7월 환율)을 읽어 곱했다 — 9/29 환율로 정의대로 계산한 값보다 1.8% 낮았다.)
 //  · 표기는 기존 표 형식 그대로: ₱·฿ 10단위, S$·RM 1단위, Rp 는 100만 이상 x.xxM / 미만 xxxK.
 //  · 필수 자리(tbody·표의 세트 행·환율 문장·기준일 두 곳·제목 줄·dateModified) 중 하나라도 없으면 글 구조가 바뀐 것이다 —
 //    반쯤 고친 글을 쓰지 않고 {status:"error"} 로 exit 1.
@@ -63,6 +66,8 @@ try {
   FX = JSON.parse(fs.readFileSync(path.join(ROOT, "data/fx.json"), "utf8"));
 } catch (e) { skip("data missing: " + e.message); }
 try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")); PACKS = p.sets || p; } catch {}
+let FACTS = {};
+try { const f = JSON.parse(fs.readFileSync(path.join(ROOT, "data/set-facts.json"), "utf8")); FACTS = f.sets || f; } catch {}
 const SEA = FX.sea || {};
 if (!FX.date || !CUR.every((c) => Number.isFinite(SEA[c.code]))) skip("fx.json sea 환율 없음");
 
@@ -75,7 +80,7 @@ for (const m of tbody.matchAll(/<tr><td>((?:OP|EB|PRB)-\d{2})([^<]*)<\/td>/g)) {
   order.push(m[1]);
 }
 if (!order.length) fail("필수 자리 못 찾음", { missing: ["rows"] });
-const msrp = tbody.match(/<tr><td>(<em>[^<]*MSRP[^<]*<\/em>)<\/td><td>([^<]*)<\/td>/);
+const msrp = tbody.match(/<tr><td>(<em>[^<]*MSRP[^<]*<\/em>)<\/td>/);
 
 let dataDate = "";
 for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) {
@@ -99,13 +104,13 @@ for (const code of order) {
   rows.push(`          <tr><td>${names[code]}</td><td>${j ? usd(j.median) : "—"}</td>${local(j ? j.median : null)}</tr>`);
 }
 if (!freshRows) skip("신선한 JP 관측이 없다");
-// 정가 행 — USD 칸은 그대로, 현지 통화는 그 칸의 숫자 × 새 환율. 숫자를 못 읽으면 "—".
-let msrpUsd = null;
-if (msrp) {
-  const m = msrp[2].match(/\$([\d,]+(?:\.\d+)?)/);
-  if (m) msrpUsd = Number(m[1].replace(/,/g, ""));
-  rows.push(`          <tr><td>${msrp[1]}</td><td>${msrp[2]}</td>${local(msrpUsd)}</tr>`);
-}
+// 정가 행 — OP-17 packsPerBox × jpMsrpYenPerPack(엔) → USD(jpyKrw / usdKrw). 현지 통화는 반올림 전 USD 에서. 못 읽으면 "—".
+const MSRP_SET = "OP-17";
+const mf = FACTS[MSRP_SET] || {};
+const msrpUsd = mf.packsPerBox && mf.jpMsrpYenPerPack && FX.jpyKrw && FX.usdKrw
+  ? (mf.packsPerBox * mf.jpMsrpYenPerPack * FX.jpyKrw) / FX.usdKrw
+  : null;
+if (msrp) rows.push(`          <tr><td>${msrp[1]}</td><td>${msrpUsd == null ? "—" : "~" + usd(msrpUsd)}</td>${local(msrpUsd)}</tr>`);
 
 const before = html;
 html = html.replace(RE.tbody, () => nl(`<tbody>\n${rows.join("\n")}\n        </tbody>`));
@@ -117,6 +122,12 @@ html = html.replace(RE.fx, () => `FX as of ${longDate(FX.date)}`);
 html = html.replace(RE.heading, (_m, a, b) => a + monthYear(dataDate) + b);
 // FAQ 가 가리키는 "the <월> table above" 도 제목 줄과 같은 달로 — 제목만 바뀌면 둘이 어긋난다.
 html = html.replace(/(Use the )[A-Z][a-z]+ \d{4}( table above)/, (_m, a, b) => a + monthYear(dataDate) + b);
+// 정가 각주의 팩 수·팩당 엔, FAQ 의 "about $N at MSRP" 도 정가 행과 같은 값으로.
+if (mf.packsPerBox && mf.jpMsrpYenPerPack) {
+  html = html.replace(/(MSRP row = )\d+( packs × ¥)[\d,]+( \(OP-17 )/, (_m, a, b, c) =>
+    a + mf.packsPerBox + b + mf.jpMsrpYenPerPack.toLocaleString("en-US") + c);
+}
+html = html.replace(/(Japanese retail \(about )(?:\$[\d,]+|—)( at MSRP\))/, (_m, a, b) => a + (msrpUsd == null ? "—" : usd(msrpUsd)) + b);
 
 // 수정일은 이 글이 쓰는 두 데이터(시세·환율) 중 늦은 날짜. JSON-LD 와 화면 바이라인을 같이 맞춘다.
 const modDate = FX.date > dataDate ? FX.date : dataDate;
