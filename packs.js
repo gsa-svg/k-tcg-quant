@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260929a";
+const DATA_VERSION = "20260930ui";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1168,13 +1168,36 @@ function wirePinBtn(el) {
   }));
 }
 function selectPack(code) {
+  if (!state.data.sets[code]) return;
   state.lang = (state.data.extra?.list || []).includes(code) ? "extra" : "jp";
   state.selected = code;
   state.hasExplicitSet = true;
+  bindLangTabs();
   renderPackGrid();
   renderDetail();
   updateUrl();
-  document.querySelector("#detail")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const detail = document.querySelector("#detail");
+  detail?.setAttribute("tabindex", "-1");
+  detail?.focus({ preventScroll: true });
+  detail?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+
+/** Native quick lookup shares the grid's selection, URL and language state. */
+function renderQuickSet() {
+  const wrap = document.querySelector("#quickSet");
+  if (!wrap) return;
+  const codes = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])];
+  const options = codes.map((code) => {
+    const set = state.data.sets[code] || {};
+    const name = t(set.nameKo || set.nameEn || code, set.nameEn || code);
+    const disabled = !(set.cards || []).length && !hasBoxData(set);
+    return `<option value="${escapeHtml(code)}" ${disabled ? "disabled" : ""}>${escapeHtml(code + " · " + name)}</option>`;
+  }).join("");
+  wrap.innerHTML = `<label for="quickSetSelect"><span>${t("찾고 싶은 박스 세트", "Find a booster box")}</span><select id="quickSetSelect" name="set">${options}</select></label><button type="button">${t("시세 · 차트 보기", "View price & chart")}</button>`;
+  const select = wrap.querySelector("select");
+  select.value = state.selected;
+  wrap.querySelector("button").onclick = () => selectPack(select.value);
+  wrap.hidden = false;
 }
 function renderSinceLastVisit() {
   const anchor = document.querySelector("#todayDeals") || document.querySelector("#packList");
@@ -1540,6 +1563,7 @@ function boxThumbnail(src) {
 
 function renderPackGrid() {
   const wrap = document.querySelector("#packList");
+  renderQuickSet();
   const cacheKey = `${state.lang}:${state.hl}:${watchList().join(",")}`;
   if (state.renderedLang === cacheKey && wrap.children.length) {
     wrap.querySelectorAll(".packChip").forEach((btn) => btn.classList.toggle("active", btn.dataset.key === state.selected));
@@ -1560,14 +1584,8 @@ function renderPackGrid() {
   fillPackSparks();
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
     btn.addEventListener("click", () => {
-      if (state.selected === btn.dataset.key) return;
-      state.selected = btn.dataset.key;
-      state.hasExplicitSet = true;
-      renderPackGrid();
-      renderDetail();
-      updateUrl();
+      selectPack(btn.dataset.key);
       trackEvent("select_pack", { pack_code: state.selected, language: state.lang });
-      document.querySelector("#detail").scrollIntoView({ behavior: "smooth", block: "start" });
     });
   });
 }

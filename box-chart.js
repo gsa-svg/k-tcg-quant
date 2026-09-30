@@ -23,7 +23,7 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  const W = 680, H = 360, L = 62, R = 18, T = 26, B = 42;
+  const W = 680, H = 360, L = 90, R = 18, T = 26, B = 42;
   // 가격 아래에 거래량 막대를 깐다. 주식·TCGplayer 차트의 기본 배치이고,
   // "이 가격이 몇 건에서 나온 값인지"를 선 옆이 아니라 같은 그림에서 바로 보게 하려는 것이다.
   const VOL_H = 46;                    // 막대가 쓰는 세로. 이 아래는 x축 라벨.
@@ -98,7 +98,7 @@
     // 2026-08-27 시각 개편(소유자 확정안): 가격축을 오른쪽으로 옮기고 현재가 플래그를 축에 꽂는다
     // (증권 차트 문법). 왼쪽 여백은 라벨이 사라지므로 좁힌다. 전역 L/R 은 공급 패널이 계속 쓰므로
     // 여기서만 지역 상수를 쓴다.
-    const PL = 16, PR = 84;   // PR: 폰에서 라벨을 키워도 "$1,800"·플래그가 들어가게 84(64 였을 땐 잘렸다, 2026-09-24)
+    const PL = 16, PR = 140;   // Reserve enough room for screen-readable labels on narrow panels.
 
     // y축은 중앙값 선 기준으로 잡는다 — low~high 전체로 잡으면 선이 축의 5% 만 쓰고 납작해진다.
     // 다만 **최소 축 폭**을 둔다. 즉시구매만 남기고 나니 OP-01 일본판이 3개월 내내 1% 안에서
@@ -138,7 +138,7 @@
     const lastY = py(pts[pts.length - 1].median);
     const grid = ticks.map((v) =>
       '<line class="opbcGrid" x1="' + PL + '" y1="' + py(v).toFixed(1) + '" x2="' + (W - PR) + '" y2="' + py(v).toFixed(1) + '"/>' +
-      (Math.abs(py(v) - lastY) < 16 ? "" :
+      (Math.abs(py(v) - lastY) < 36 ? "" :
         '<text class="opbcAx" x="' + (W - PR + 8) + '" y="' + (py(v) + 4).toFixed(1) + '">' + money(v) + "</text>")).join("");
 
     // x 라벨은 처음·중간·끝 3개만 — 더 넣으면 축이 데이터보다 시끄러워진다.
@@ -263,7 +263,7 @@
     const flag =
       '<line x1="' + PL + '" y1="' + flagY.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + flagY.toFixed(1) +
       '" stroke="' + color + '" stroke-dasharray="2 4" opacity=".45"/>' +
-      '<g><rect x="' + (W - PR + 3) + '" y="' + (flagY - 11).toFixed(1) + '" width="' + (PR - 8) + '" height="22" rx="5" fill="' + color + '"/>' +
+      '<g class="opbcFlag"><rect x="' + (W - PR + 3) + '" y="' + (flagY - 11).toFixed(1) + '" width="' + (PR - 8) + '" height="22" rx="5" fill="' + color + '"/>' +
       '<text class="opbcFlagTx" x="' + (W - PR + 3 + (PR - 8) / 2) + '" y="' + (flagY + 4).toFixed(1) +
       '" text-anchor="middle" fill="#0a0f14">' + flagTx + "</text></g>";
     const hiWord = lang === "ko" ? "고점 " : "High ";
@@ -302,7 +302,7 @@
       staleLayer + grid + volAxis + bars + evLayer +
       '<path class="opbcArea" d="' + area + '" fill="url(#' + gid + ')"/>' +
       '<path class="opbcLine opbcDraw" pathLength="1" d="' + line + '" stroke="' + color + '"/>' +
-      hlLabels + flag + dots +
+      '<g class="opbcExtrema">' + hlLabels + '</g>' + flag + dots +
       '<circle cx="' + XY[XY.length - 1].x.toFixed(1) + '" cy="' + XY[XY.length - 1].y.toFixed(1) +
       '" r="11" class="opbcPulse" fill="' + color + '" opacity=".18"/>' +
       hits +
@@ -635,7 +635,7 @@
     "@media (min-width:1240px){.opbcGridWrap[data-grain]{max-width:none;grid-template-columns:repeat(2,minmax(0,1fr))}}",
     // display:grid 가 브라우저 기본 [hidden]{display:none} 을 이겨서, 숨겼는데 그대로 보였다(2026-08-13).
     ".opbcGridWrap[hidden]{display:none}",
-    ".opbcPane{margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",
+    ".opbcPane{container:boxplot / inline-size;margin:0;border:1px solid var(--line,#242936);border-radius:14px;background:var(--paper,#11141c);padding:14px 16px 8px;min-width:0}",
     ".opbcHead{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}",
     ".opbcLabel{font-size:12px;font-weight:700;color:var(--muted,#8d95a7)}",
     ".opbcNow{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink,#eef2ff)}",
@@ -648,6 +648,8 @@
     ".opbcLeg{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--ink,#eef2ff);font-variant-numeric:tabular-nums}",
     ".opbcLeg i{width:9px;height:9px;border-radius:2px;display:inline-block}",
     ".opbcPane svg{width:100%;height:auto;display:block;margin-top:4px;touch-action:pan-y}",
+    ".opbcPane svg:focus-visible{outline:2px solid #50dad9;outline-offset:3px;border-radius:4px}",
+    ".opbcReadout{min-height:3.4em;margin:8px 0 0;color:var(--muted,#8d95a7);font-size:13px;line-height:1.7;font-variant-numeric:tabular-nums}",
     ".opbcGrid{stroke:rgba(255,255,255,.055);stroke-width:1}",
     ".opbcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcFlagTx{font-size:12px;font-weight:800}",
@@ -691,26 +693,49 @@
     ".opbcEmpty{margin:6px 0 0;font-size:12px;color:var(--muted,#8d95a7)}",
     ".opbcNote{font-size:12px;color:var(--muted,#8d95a7);line-height:1.7;margin:10px 0 0}",
     ".opbcNote b{color:var(--ink,#eef2ff);font-weight:700}",
-    // ── 모바일 — 2026-08-26 UI/UX 감사 확정 2건.
-    // 1) SVG 가 viewBox 680 고정이라 375px 폰에서 ~0.47배로 축소돼 축 라벨 11px 이 ~5px 로
-    //    렌더됐다(읽기 불가). SVG 안 글자는 CSS font-size 도 viewBox 단위로 먹으므로 값 자체를
-    //    키운다. 툴팁 배경은 고정 rect(168×46)라 글자만 키우면 넘친다 — 상자도 같이 키운다
-    //    (SVG2 기하 속성이라 CSS width/height 가 rect 에 적용된다).
-    // 2) 일/주/월 탭이 높이 ~25px 라 오터치가 잦았다 — 패딩을 키워 ~40px 로.
+    // SVG text scales with its panel, not the viewport. Container breakpoints keep
+    // axes >=12 CSS px across phone, tablet and the desktop two-column layout.
+    "@container boxplot (max-width:760px){.opbcAx,.opbcFlagTx{font-size:16px}}",
+    "@container boxplot (max-width:560px){.opbcAx,.opbcFlagTx{font-size:20px}}",
+    "@container boxplot (max-width:440px){.opbcAx,.opbcFlagTx{font-size:24px}.opbcExtrema,.opbcStaleTx,.opbcStaleSub,.opbcEvtTx,.opbcTip,.opbcDateTag{display:none}.opbcFlag rect{height:36px;transform:translateY(-7px)}}",
+    "@container boxplot (max-width:360px){.opbcAx,.opbcFlagTx{font-size:30px}}",
+    "@container boxplot (max-width:280px){.opbcAx,.opbcFlagTx{font-size:38px}.opbcFlag rect{height:44px;transform:translateY(-11px)}}",
     "@media (max-width:600px){",
-    // viewBox 680 이 폰에서 0.45 배로 줄어든다 — 여기 숫자는 화면 픽셀이 아니라 viewBox 단위다(2026-09-24: 15px 가 6.8px 로 보였다).
-    ".opbcAx{font-size:22px}",
-    ".opbcStaleTx{font-size:22px}",
-    ".opbcStaleSub{font-size:18px}",
-    ".opbcFlagTx{font-size:22px}",
-    ".opbcTipD{font-size:16px}",
-    ".opbcTipV{font-size:22px}",
-    ".opbcTipR{font-size:14px}",
-    ".opbcTipBg{width:216px;height:74px}",
-    ".opbcTab{padding:11px 14px;font-size:13px}",
+    ".opbcTab{min-height:44px;padding:11px 14px;font-size:13px}",
     ".opbcTabs{gap:4px}",
     "}",
   ].join("");
+
+  /** Add a screen-sized readout and keyboard access without changing plotted values. */
+  function bindChartReadout(pane, svg, dots, at) {
+    const ko = document.documentElement.lang === "ko";
+    const readout = document.createElement("p");
+    readout.className = "opbcReadout";
+    readout.textContent = ko ? "그래프를 누르거나 방향키 ← → 로 날짜별 값을 확인하세요." : "Touch the chart or use ← → keys to inspect each date.";
+    pane.appendChild(readout);
+    svg.setAttribute("tabindex", "0");
+    svg.setAttribute("aria-label", (svg.getAttribute("aria-label") || "") + (ko ? ". 방향키로 날짜 이동" : ". Arrow keys move between dates"));
+    let selected = dots.length - 1;
+    const show = () => {
+      const rect = svg.getBoundingClientRect();
+      at(rect.left + Number(dots[selected].getAttribute("cx")) / W * rect.width);
+    };
+    svg.addEventListener("focus", show);
+    svg.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      event.preventDefault();
+      selected = event.key === "Home" ? 0 : event.key === "End" ? dots.length - 1
+        : Math.max(0, Math.min(dots.length - 1, selected + (event.key === "ArrowLeft" ? -1 : 1)));
+      readout.setAttribute("aria-live", "polite");
+      show();
+    });
+    return (index, text) => {
+      selected = index;
+      // Pointer movement must not flood screen-reader announcements.
+      if (document.activeElement !== svg) readout.removeAttribute("aria-live");
+      readout.textContent = text;
+    };
+  }
 
   // 마우스/터치로 훑을 때 값을 띄우는 향상 기능. 정적 세트 페이지도 이 파일을 <script> 로 불러
   // 같은 코드를 쓴다 — 페이지마다 문자열로 박아 넣으면 두 벌이 되어 언젠가 갈라진다.
@@ -727,6 +752,7 @@
     const dots = [].slice.call(svg.querySelectorAll(".opbcDot"));
     const hitDots = [].slice.call(svg.querySelectorAll(".opbcHitDot"));
     if (!hit || !dots.length) return;
+    const updateReadout = bindChartReadout(pane, svg, dots, at);
 
     function at(clientX) {
       const r = svg.getBoundingClientRect();
@@ -738,6 +764,7 @@
       hl.setAttribute("cx", cx); hl.setAttribute("cy", cy); hl.setAttribute("opacity", "1");
       // 헤드라인(현재가)은 건드리지 않는다 — 훑을 때마다 바뀌면 "지금 얼마"를 잃는다.
       const hd = hitDots[best] ? hitDots[best].dataset : {};
+      updateReadout(best, [hd.d, hd.v, hd.n, hd.r].filter(Boolean).join(" · "));
       // 툴팁 폭은 CSS 가 정한다(폰에서 216) — 186 고정이면 폰에서 상자가 오른쪽으로 삐져나갔다(2026-09-24)
       const tw = parseFloat(getComputedStyle(svg.querySelector(".opbcTipBg")).width) || 186, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
       const ty = cy - 74 < T ? cy + 14 : cy - 74;
@@ -776,6 +803,7 @@
     const dots = [].slice.call(svg.querySelectorAll(".opbcSupDot"));
     if (!hit || !dots.length) return;
     const jpWord = pane.dataset.jpword || "JP", enWord = pane.dataset.enword || "EN";
+    const updateReadout = bindChartReadout(pane, svg, dots, at);
 
     function at(clientX) {
       const r = svg.getBoundingClientRect();
@@ -792,6 +820,7 @@
       tipD.textContent = d.dataset.d;
       tipJp.textContent = d.dataset.jp === "" ? jpWord + " -" : jpWord + " " + d.dataset.jp;
       tipEn.textContent = d.dataset.en === "" ? enWord + " -" : enWord + " " + d.dataset.en;
+      updateReadout(best, [d.dataset.d, tipJp.textContent, tipEn.textContent].join(" · "));
       const tw = 150, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
       tip.setAttribute("opacity", "1");
       tip.setAttribute("transform", "translate(" + tx + "," + (SUP_T + 4) + ")");

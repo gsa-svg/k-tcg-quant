@@ -15,6 +15,8 @@
 import puppeteer from "puppeteer-core";
 import { spawn } from "node:child_process";
 import http from "node:http";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -22,6 +24,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PORT = 4321;
 const BASE = `http://127.0.0.1:${PORT}`;
 const CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe";
+const job = new Date().toISOString().replace(/[:.]/g, "-");
+const output = path.join(ROOT, ".planning", "2026-09-30-uiux", "smoke", job);
+fs.mkdirSync(output, { recursive: true });
+const profile = fs.mkdtempSync(path.join(os.tmpdir(), "opbox-smoke-"));
 
 const PAGES = [
   "/",                       // 홈(가운데 정렬 — 잘림 사고가 났던 레이아웃)
@@ -34,8 +40,10 @@ const PAGES = [
   "/ko/amazon-lottery.html",
   "/compare.html",
   "/changelog.html",
+  "/tcg-auction.html",
+  "/auction.html",
 ];
-const WIDTHS = [375, 768, 1024, 1240, 1440, 1972, 2560];
+const WIDTHS = [320, 375, 768, 1024, 1240, 1440, 1972, 2560];
 
 const ping = () => new Promise((res) => {
   http.get(BASE + "/robots.txt", (r) => { r.resume(); res(r.statusCode === 200); }).on("error", () => res(false));
@@ -43,11 +51,11 @@ const ping = () => new Promise((res) => {
 
 let serverProc = null;
 if (!(await ping())) {
-  serverProc = spawn("python", ["-m", "http.server", String(PORT), "--bind", "127.0.0.1", "--directory", ROOT], { stdio: "ignore" });
+  serverProc = spawn("python", ["-m", "http.server", String(PORT), "--bind", "127.0.0.1", "--directory", ROOT], { windowsHide: true, stdio: "ignore" });
   for (let i = 0; i < 20 && !(await ping()); i++) await new Promise((r) => setTimeout(r, 250));
 }
 
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: "new", args: ["--no-sandbox", "--disable-gpu"] });
+const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, userDataDir: profile, downloadBehavior: { policy: "deny", downloadPath: output } });
 const problems = [];
 let checked = 0;
 
@@ -56,7 +64,8 @@ try {
   // 광고 스크립트는 로컬 CSP 밑에서 자체 폴백이 SyntaxError 를 내며 오탐을 만든다
   // (실서버 pageerror 0건 확인, 2026-08-28). 검사 대상은 우리 코드다 — 광고는 끊는다.
   await page.setRequestInterception(true);
-  page.on("request", (r) => (/googlesyndication|adtrafficquality|doubleclick|googletagmanager|google-analytics/.test(r.url()) ? r.abort() : r.continue()));
+  // Geometry tests need no ads, analytics, live relay or eBay API calls.
+  page.on("request", (r) => (r.url().startsWith(BASE) || r.url().startsWith("data:") ? r.continue() : r.abort()));
   const consoleErrs = [];
   page.on("pageerror", (e) => consoleErrs.push(String(e).slice(0, 160)));
 
@@ -95,6 +104,7 @@ try {
       if (res.detailEmpty) problems.push(`${tag}: 상세 패널이 렌더되지 않음`);
       for (const e of consoleErrs) problems.push(`${tag}: JS 에러 — ${e}`);
     }
+    console.log(JSON.stringify({ checked, page: p, problems: problems.length }));
   }
 } finally {
   await browser.close();
@@ -102,5 +112,6 @@ try {
 }
 
 const out = { smoke: problems.length ? "FAIL" : "OK", combos: checked, problems };
+fs.writeFileSync(path.join(output, "results.json"), JSON.stringify(out, null, 2));
 console.log(JSON.stringify(out, null, 1));
 if (problems.length) process.exit(1);

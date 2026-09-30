@@ -229,7 +229,7 @@ const chartJson = JSON.stringify(chartRows);
 
 
 const tableRows = rows.map((r) => `          <tr>
-            <td class="tgName">${esc(r.name)}</td>
+            <th scope="row" class="tgName">${esc(r.name)}</th>
             <td>${num(r.live)}</td>
             <td>${num(r.endingToday)}</td>
             <td>${num(r.ended)}</td>
@@ -272,11 +272,16 @@ const html = `<!doctype html>
     <script defer src="lang-toggle.js?v=${CACHE}"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
-      .tgTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+      .tgTableScroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; scrollbar-width: thin; }
+      .tgTableScroll:focus-visible { outline: 2px solid #50dad9; outline-offset: 3px; }
+      .tgTable { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
       .tgTable th, .tgTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: right; white-space: nowrap; }
       .tgTable th { color: #8d95a7; font-weight: 700; font-size: 12px; text-align: right; }
-      .tgTable th:first-child, .tgTable td:first-child { text-align: left; }
-      .tgName { color: #eef2ff; font-weight: 700; }
+      .tgTable th:first-child, .tgTable td:first-child { text-align: left; position: sticky; left: 0; z-index: 1; background: #14171c; border-right: 1px solid var(--line); }
+      .tgTable .tgName { color: #eef2ff; font-weight: 700; font-size: 13.5px; }
+      .tgScope, .tgTableHint { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 10px 0; }
+      .tgStat .tgWhen { display: block; margin-top: 5px; font-size: 11px; }
+      @media (max-width: 560px) { .tgTable th:first-child { max-width: 112px; white-space: normal; } }
       .tgStats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 6px; }
       .tgStat { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
       .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
@@ -365,12 +370,13 @@ const html = `<!doctype html>
       <h1 data-ko="카드게임 경매 — 무엇이 팔리고 무엇이 유찰되는가">Card game auctions: what sells and what passes</h1>
 
       <div class="tgStats">
-        <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">auctions live now</small></div>
-        <div class="tgStat"><b>${num(totEndingToday)}</b><small data-ko="오늘 종료">ending today</small></div>
-        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="확인 수">checked</small></div>
-        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="낙찰률">sold</small></div>
-        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="거래액">total spent</small></div>
+        <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">live auctions</small><small class="tgWhen" data-ko="최근 관측">Latest snapshot</small></div>
+        <div class="tgStat"><b>${num(totEndingToday)}</b><small data-ko="관측일 종료 예정">ending on snapshot day</small><small class="tgWhen" data-ko="최근 관측">Latest snapshot</small></div>
+        <div class="tgStat"><b>${num(totEnded)}</b><small data-ko="종료 결과 확인 수">outcomes checked</small><small class="tgWhen" data-ko="기간 누적">Period total</small></div>
+        <div class="tgStat"><b>${totEnded ? Math.round((totSold / totEnded) * 1000) / 10 : "—"}%</b><small data-ko="확인된 경매의 낙찰률">sold among checked</small><small class="tgWhen" data-ko="기간 전체">Across this period</small></div>
+        <div class="tgStat"><b>${usd(totAmount)}</b><small data-ko="관측된 낙찰 거래액">observed sales value</small><small class="tgWhen" data-ko="기간 누적">Period total</small></div>
       </div>
+      <p class="tgScope"><span data-ko="집계 기간">Reporting period</span>: ${esc(from)}–${esc(to)}. <span data-ko="게임별 표본 비율이 다릅니다. 낙찰률과 거래액은 확인한 경매 기준이며 전체 시장 규모가 아닙니다.">Coverage differs by game. Sold rates and sales values describe checked auctions, not the whole market.</span></p>
 
       <div class="chartCard">
         <div class="chartHead">
@@ -422,8 +428,9 @@ const html = `<!doctype html>
         <div class="opChart" id="trendChart"></div>
       </div>
 
-      <h2 data-ko="게임별 한눈에 보기">Every game side by side</h2>
-      <div style="overflow-x:auto">
+      <h2 id="tgTableTitle" data-ko="게임별 한눈에 보기">Every game side by side</h2>
+      <p class="tgTableHint" id="tgTableHint" data-ko="옆으로 넘겨 모든 지표를 확인하세요. 게임명은 고정됩니다. 진행중·종료 예정은 최근 관측, 나머지는 위 집계 기간 기준입니다.">Scroll sideways for all metrics; game names stay visible. Live and ending counts are snapshots; other metrics cover the reporting period above.</p>
+      <div class="tgTableScroll" role="region" tabindex="0" aria-labelledby="tgTableTitle" aria-describedby="tgTableHint">
         <table class="tgTable">
           <thead>
             <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th></tr>
@@ -550,6 +557,8 @@ ${tableRows}
             help: ["Middle winning price of the checked sample.", "확인한 표본의 낙찰가 중앙값"] }
         };
         var bars = document.createElement("div"); bars.className = "opBars";
+        bars.tabIndex = 0;
+        bars.setAttribute("role", "group");
         var guide = document.createElement("div"); guide.className = "opGuide";
         var axis = document.createElement("div"); axis.className = "opAxis";
         host.appendChild(bars); bars.appendChild(guide); host.appendChild(axis);
@@ -569,6 +578,7 @@ ${tableRows}
           return visibleTrendRows(DATA.games[game][period] || [], metric);
         }
         function buildBars() {
+          bars.setAttribute("aria-label", KO() ? "날짜별 경매 그래프. 방향키로 날짜 이동" : "Auction chart. Arrow keys move between dates");
           rows = visibleRows();
           bars.querySelectorAll(".opCol").forEach(function (c) { c.remove(); });
           cols = rows.map(function (r) {
@@ -702,6 +712,14 @@ ${tableRows}
           select(Math.max(0, Math.min(rows.length - 1, i)));
         });
         bars.addEventListener("pointerleave", clear);
+        bars.addEventListener("focus", function () { select(rows.length - 1); });
+        bars.addEventListener("keydown", function (ev) {
+          if (!rows.length || ["ArrowLeft", "ArrowRight", "Home", "End"].indexOf(ev.key) < 0) return;
+          ev.preventDefault();
+          var next = ev.key === "Home" ? 0 : ev.key === "End" ? rows.length - 1
+            : (picked < 0 ? rows.length - 1 : picked) + (ev.key === "ArrowLeft" ? -1 : 1);
+          select(Math.max(0, Math.min(rows.length - 1, next)));
+        });
         sel.addEventListener("change", function () { game = sel.value; picked = -1; buildBars(); draw(); });
         Array.prototype.forEach.call(document.querySelectorAll("button[data-tm]"), function (b) {
           b.addEventListener("click", function () {

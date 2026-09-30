@@ -1349,6 +1349,10 @@ small { font-size: 12px; }
 /* 언어 버튼 자리: 데스크톱은 메뉴 오른쪽 끝, 모바일은 브랜드 줄 오른쪽(메뉴 스크롤 띠 밖). 2026-09-16 */
 .topbar .nav { margin-left: auto; }
 .topbar .langBtn { flex: 0 0 auto; order: 3; margin-left: 12px; }
+@media (min-width: 881px) {
+  .topbar .nav { gap: 4px; font-size: 14px; }
+  .topbar .nav a { padding: 0 8px; min-height: 44px; }
+}
 @media (max-width: 880px) {
   .topbar { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .topbar .brand { order: 1; }
