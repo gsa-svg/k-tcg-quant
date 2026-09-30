@@ -1237,13 +1237,14 @@ for (const f of ["index.html", "packs.html"]) {
 //    뒤 7개(수집기·YAML·계약·공백·귀속·박스 그래프·가격)가 전부 skip 됐다(9/20·9/23·9/26 실행).
 //    그날 생긴 공백·가격 문제는 신선도가 고쳐질 때까지 안 보였다. 두 번째 run 단계부터 !cancelled() 필수.
 //    continue-on-error 는 금지 — 하나라도 실패하면 job 이 실패해야 메일이 간다.
+//    `if: !cancelled()` 맨몸은 안 된다 — YAML 에서 ! 는 태그라 워크플로가 통째로 거부된다(audit-workflows 도 못 잡음).
 {
   const y = read(".github/workflows/collection-health.yml").replace(/\r\n/g, "\n");
   const runSteps = y.split(/\n(?=      - )/).slice(1).filter((s) => /^\s+run:/m.test(s));
   if (runSteps.length < 2) errors.push("W2: collection-health.yml 에서 검사 단계를 찾지 못함 — 구조를 바꿨으면 이 검사도 같이 고칠 것");
   for (const s of runSteps.slice(1)) {
     const name = ((s.match(/name:\s*(.+)/) || [])[1] || s.slice(0, 40)).trim();
-    if (!/^\s+if:\s*(\$\{\{\s*)?(!cancelled\(\)|always\(\))(\s*\}\})?\s*$/m.test(s)) {
+    if (!/^\s+if:\s*(\$\{\{\s*(!cancelled\(\)|always\(\))\s*\}\}|always\(\))\s*$/m.test(s)) {
       errors.push(`W2: collection-health.yml '${name}' 에 if: \${{ !cancelled() }} 없음 — 앞 검사가 실패하면 이 검사가 skip 된다`);
     }
   }
