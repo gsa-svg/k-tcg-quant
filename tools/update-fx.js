@@ -26,8 +26,13 @@ const get = async (url) => {
   return r.json();
 };
 
+// 동남아 5개 통화(1 USD 당 현지 통화) — 2026-09-30 추가. articles/one-piece-booster-box-prices-sea.html
+//   표(tools/inject-sea-prices.js)가 읽는다. 같은 호출·같은 고시일이라 날짜는 최상위 date 를 쓴다.
+//   화면(packs.js)은 쓰지 않으므로 onepiece-packs.json 의 fx 복사본에는 넣지 않는다.
+const SEA = ["PHP", "SGD", "MYR", "IDR", "THB"];
+
 (async () => {
-  const latest = await get(API + "/latest?base=USD&symbols=KRW,JPY");
+  const latest = await get(API + "/latest?base=USD&symbols=KRW,JPY," + SEA.join(","));
   const date = latest.date;
   const usdKrw = latest.rates.KRW;
   const jpyKrw = usdKrw / latest.rates.JPY;
@@ -39,6 +44,10 @@ const get = async (url) => {
     usdKrw: Number(usdKrw.toFixed(2)),
     source: "api.frankfurter.dev (ECB reference rates), USD base",
   };
+  // 한 통화라도 빠지면 sea 를 통째로 뺀다 — 원화 환율 갱신은 막지 않고, 표는 주입기가 건너뛴다.
+  const sea = SEA.every((c) => Number.isFinite(latest.rates[c]))
+    ? Object.fromEntries(SEA.map((c) => [c, Number(latest.rates[c].toFixed(4))]))
+    : null;
 
   // 이력: 최근 90일을 받아 빠진 날만 채운다(append-only, 기존 값은 덮지 않는다).
   const hist = fs.existsSync(HIST)
@@ -55,7 +64,7 @@ const get = async (url) => {
   hist.updated = date;
   hist.days = Object.keys(hist.rates).length;
 
-  fs.writeFileSync(FX, JSON.stringify(next, null, 2) + "\n", "utf8");
+  fs.writeFileSync(FX, JSON.stringify(sea ? { ...next, sea } : next, null, 2) + "\n", "utf8");
   fs.writeFileSync(HIST, JSON.stringify(hist, null, 1) + "\n", "utf8");
 
   // 화면이 실제로 읽는 환율은 여기다 — 2026-08-17.
@@ -81,5 +90,6 @@ const get = async (url) => {
     historyAdded: added,
     historyDays: hist.days,
     packsWas,
+    sea: !!sea,
   }));
 })().catch((e) => { console.error(String(e)); process.exit(1); });
