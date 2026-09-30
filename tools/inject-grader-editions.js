@@ -28,7 +28,7 @@ const SRC = [
 // "OP-14 영문판"이라고만 적으면 EB-04 가 섞인 줄 모른다 — 그래서 화면에 합본이라고 밝힌다.
 // 카드 각인(OP14-xxx)으로 쪼갤 수는 있으나 그러면 그 세트만 다른 잣대가 된다:
 // 다른 세트 값은 전부 "그 박스에서 나온 카드 전부"(재록 각인 포함)이기 때문이다. 쪼개지 않는다.
-const CGC_COMBINED = { "OP-14": { en: "EB-04" }, "OP-15": { en: "EB-04" } };
+const { COMBINED: CGC_COMBINED } = require("./combined-set-codes");   // 박스 sold 적재와 같은 표
 
 const loaded = {};
 for (const [key, file, hasGem] of SRC) {

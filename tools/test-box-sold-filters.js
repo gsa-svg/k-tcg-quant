@@ -122,4 +122,25 @@ assert.equal(parseLotQuantity("3 Booster Boxes One Piece OP-08 Sealed", "box"), 
   assert.equal(b.dup, 1, "같은 날 같은 매물은 한 건");
 }
 
-console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length }));
+// ── 4. 합본 제품코드 OP14-EB04·OP15-EB04 — 영문 OP-14·OP-15 박스다. 짝 코드(EB-04) 때문에 cross-set 으로 버리지 않는다(2026-09-30, 141건 누락).
+// [세트, 신고 판본, 제목, 원화, 기대: "en" 이면 통과·그 판본, 아니면 drop 이유]
+const COMBINED_CASES = [
+  ["OP-14", "en", "One Piece TCG - OP14-EB04 OP14 The Azure Sea's Seven Booster Box English SEALED", 344106, "en"],
+  ["OP-14", "en", "One Piece - Azure Sea's Seven Booster Box English OP14-EB04", 380555, "en"],
+  ["OP-15", "en", "One Piece: Adventure on Kami's Island (OP15-EB04) Booster Box", 344092, "en"],
+  ["OP-15", "en", "One Piece OP15/EB04 Adventure on KAMI'S Island Booster Box ENGLISH Sealed", 344106, "en"],
+  ["OP-15", "en", "One Piece TCG OP-15 EB-04 Adventure On Kami's Island Booster Box - NEW - SEALED", 387294, "en"],
+  // (합성) 합본은 영문판에만 있다 — 일본판 칸으로 들어오면 버린다.
+  ["OP-15", "jp", "One Piece OP15-EB04 Adventure on Kami's Island Booster Box Japanese", 150000, "combined-code-not-en"],
+  // (합성) 짝이 아닌 다른 세트가 같이 적히면 종전대로 cross-set.
+  ["OP-15", "en", "One Piece OP14 OP15 EB04 Booster Box English Sealed", 700000, "cross-set"],
+  // (합성) EB-04 는 합본 짝이지 추적 세트가 아니다 — OP-13 페이지에 EB04 가 붙으면 cross-set.
+  ["OP-13", "en", "One Piece OP13 EB04 Booster Box English", 600000, "cross-set"],
+];
+for (const [code, ed, t, k, want] of COMBINED_CASES) {
+  const r = judgeItem(item(t, k), code, R, null, ed, "bin");
+  if (want === "en") { assert.ok(r.rec, `합본 영문 박스가 버려짐(${r.drop}): ${t}`); assert.equal(r.ed, "en", t); }
+  else assert.equal(r.drop, want, t);
+}
+
+console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length, combined: COMBINED_CASES.length }));

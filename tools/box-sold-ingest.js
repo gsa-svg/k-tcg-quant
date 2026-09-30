@@ -38,6 +38,7 @@ const ledgerPath = path.join(ROOT, "data", "box-sold-ledger.json");
 // (2026-08-24 실측: "Miracle Battle Carddass MBC Japanese OP 16 One Piece Booster Box" $1,118 이
 //  OP-16 일본판 원장에 들어와 있었다 — 그 세트 일본판 중앙값은 $120 이다).
 const { OTHER_GAME } = require("./other-game-words");   // 다른 게임 상품(건담 EB01 등) — 2026-09-24
+const { COMBINED } = require("./combined-set-codes");   // 영문 OP-14·OP-15 = OP14-EB04·OP15-EB04 합본 — 2026-09-30
 const BAD = /\blots?\b|\bcases?\b|carton|display|sleeved?|bundle|wholesale|\bbulk\b|choose|\bpick\b|blister|proxy|\bempty\b|chinese|simplified|korean|miracle\s*battle|carddass/i;
 const BOOSTER = /booster box/i;
 // "Booster Pack ... x1 -From Fresh booster box" 처럼 **낱팩**을 팔면서 설명에 booster box 를
@@ -154,6 +155,12 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
     if (byName === null) return { drop: "name-ambiguous" };   // "Heroines Edition 2" — 권수인지 수량인지 모른다
     for (const c of byName) codes.add(c);
   }
+  // 합본 제품코드(OP14-EB04·OP15-EB04)의 짝 코드는 다른 세트가 아니다 — 짝을 지우고 합본 표시를 남긴다.
+  // 합본은 영문판에만 있으니 판별이 정해진 뒤 영문판이 아니면 버린다(아래 combined-code-not-en).
+  let combined = false;
+  for (const [ed0, partner] of Object.entries(COMBINED[targetCode] || {})) {
+    if (codes.has(targetCode) && codes.has(partner)) { codes.delete(partner); combined = ed0; }
+  }
   if (!codes.has(targetCode)) return { drop: "code-missing" };
   if ([...codes].some((c) => c !== targetCode)) return { drop: "cross-set" };
   const fromTitle = editionOf(t);
@@ -161,6 +168,7 @@ function judgeItem(item, targetCode, fxUsdKrw, nameMap, declaredEd, fmt) {
   if (declaredEd && fromTitle && fromTitle !== declaredEd) return { drop: "lang-conflict" };
   const ed = declaredEd || fromTitle;
   if (!ed) return { drop: "no-language" };
+  if (combined && ed !== combined) return { drop: "combined-code-not-en" };
   const qty = boxQuantity(t);
   if (qty == null) return { drop: "uncountable-lot" };
   const totalUsd = item.cur === "USD" ? item.k : item.cur === "KRW" ? item.k / fxUsdKrw : null;
