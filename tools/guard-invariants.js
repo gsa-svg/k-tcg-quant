@@ -1491,6 +1491,32 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   }
 }
 
+// ── W4. 전역 신선도 감사는 커밋 뒤에 — 2026-09-30 실사고.
+//    collect-grading 이 'Collection health'(audit-collection-health, 전 수집원 신선도)를 커밋 앞에 두고 있었다.
+//    9/7·9/14·9/21·9/28 네 번, CGC 수집·적재·오늘 날짜 확인·가드를 다 통과하고도 CGC 와 무관한 항목
+//    (PSA 판본별 12일째 등)으로 실패해 결과를 버렸다 — 9/21분은 CGC 카드별 W39 영구 공백이 됐다.
+//    이 감사들은 알림용이다. 커밋 앞에 두면 남의 지연이 내 관측을 지운다.
+//    수집 결과 자체의 검사(오늘 날짜 확인·guard-invariants)는 여기 해당하지 않는다 — 커밋 앞이 맞다.
+{
+  const GLOBAL_AUDITS = /node tools\/(audit-collection-health|audit-series-gaps|collect-status)\.js/;
+  const wfDir = path.join(ROOT, ".github", "workflows");
+  for (const wf of fs.existsSync(wfDir) ? fs.readdirSync(wfDir).filter((n) => /\.ya?ml$/.test(n)) : []) {
+    const lines = read(`.github/workflows/${wf}`).split("\n");
+    // 파서 없이 스텝을 자른다: 스텝 머리("- name:"/"- uses:")의 들여쓰기는 파일 안에서 하나다(audit-workflows 가 본다).
+    const heads = lines.map((l, i) => [i, (l.match(/^(\s*)- (?:name|uses):/) || [])[1]]).filter(([, ind]) => ind != null);
+    if (!heads.length) continue;
+    const ind = heads[0][1].length;
+    const starts = heads.filter(([, s]) => s.length === ind).map(([i]) => i);
+    const steps = starts.map((s, k) => lines.slice(s, starts[k + 1] ?? lines.length).join("\n"));
+    const commitAt = steps.findIndex((t) => /^\s*git commit\b/m.test(t));
+    if (commitAt < 0) continue;                       // 커밋하지 않는 워크플로(collection-health 등)는 대상 아님
+    steps.slice(0, commitAt).forEach((t) => {
+      const m = t.match(GLOBAL_AUDITS);
+      if (m) errors.push(`W4: ${wf} 에서 전역 감사 ${m[1]} 가 커밋 단계보다 앞에 있다 — 무관한 지연이 이번 수집 결과를 버리게 한다(커밋 뒤로 옮길 것)`);
+    });
+  }
+}
+
 // ── A4. AdSense 승인 준비도 — 최종 생성 HTML을 별도 SRP 감사로 검사한다.
 //    noindex+광고, 자동생성/내비 페이지 광고, 박문서 광고, 세트 문장 반복,
 //    packs 홈 별칭과 EPN campid 보존을 한 번에 확인한다.
@@ -1582,4 +1608,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
