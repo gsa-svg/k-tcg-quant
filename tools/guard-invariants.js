@@ -1016,6 +1016,29 @@ if (exists("index.html") && exists("data/onepiece-packs.json")) {
     errors.push("H3: packs.js 가 정적 hreflang 태그를 지운다 — 렌더 뒤 hreflang 이 정적 HTML 과 달라짐");
 }
 
+// ── U1. 글의 수정일 ≥ 본문에 적힌 "As of" 날짜 — 2026-09-30 발견: best-one-piece-booster-box 의 표는
+//    inject-set-comparison 이 매일 "As of 2026-09-28" 로 다시 쓰는데 JSON-LD dateModified·화면 Updated 는
+//    2026-08-10 에 멈춰 있었다. 구글은 수정일로 신선도를 읽는다. 과거 시점 문장("As of July 14, 2026")은
+//    수정일보다 이르므로 걸리지 않는다 — 본문이 수정일보다 새로울 때만 실패.
+{
+  const MON = { january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7, august: 8, september: 9, october: 10, november: 11, december: 12 };
+  const pad = (n) => String(n).padStart(2, "0");
+  const files = ["compare.html", ...fs.readdirSync(path.join(ROOT, "articles")).filter((f) => f.endsWith(".html")).map((f) => "articles/" + f)];
+  for (const f of files) {
+    const html = read(f);
+    const dm = (html.match(/"dateModified":\s*"(\d{4}-\d{2}-\d{2})/) || [])[1];
+    if (!dm) continue;
+    const body = html.replace(/<script[\s\S]*?<\/script>/g, " ");
+    let latest = "";
+    for (const m of body.matchAll(/\bas of (\d{4}-\d{2}-\d{2})/gi)) if (m[1] > latest) latest = m[1];
+    for (const m of body.matchAll(/\bas of ([A-Z][a-z]+) (\d{1,2}), (\d{4})/gi)) {
+      const mo = MON[m[1].toLowerCase()];
+      if (mo) { const d = `${m[3]}-${pad(mo)}-${pad(m[2])}`; if (d > latest) latest = d; }
+    }
+    if (latest && latest > dm) errors.push(`U1: ${f} 본문은 "as of ${latest}" 인데 dateModified 가 ${dm} — 주입기가 수정일·Updated 도 같이 갱신해야 함`);
+  }
+}
+
 // ── C4. 카드 페이지 PSA 인구 = 변형 정확 매칭 원천(graderPop.psa.jp.total) — 2026-09-29 발견:
 //    generate-card-pages.js 가 세트 psa 표에서 "번호 부분일치 + 이름 앞 10자"로 첫 행을 집어 rarity 를 무시했다.
 //    인구를 보여 주던 88장이 전부 틀렸고(OP13-118 Super AA·Red Manga 둘 다 4,349, 실제 2,574·744) 24장은 비어 있었다.
@@ -1559,4 +1582,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "Q1", "Q2", "Q3", "Q4", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "R2", "R3", "R4"] }));

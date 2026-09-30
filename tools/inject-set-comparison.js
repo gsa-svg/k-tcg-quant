@@ -35,14 +35,22 @@ const jpyKrw = fx.jpyKrw || 8.7;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const money = (v) => (v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"));
 
+// 마지막 판매가 이보다 오래되면 그 칸은 "—" — inject-box-price-guide.js 와 같은 기준.
+// 2026-09-30 발견: OP-02 일본판이 84일 전(7/8) 값을 표시 없이 현재가처럼 보여주고 있었다.
+const STALE_DAYS = 28;
+const asOfMs = Date.parse(series.updated || packs.updated || "") || Date.now();
+const isFresh = (p) => p && Date.parse(p.d) >= asOfMs - STALE_DAYS * 86400000;
+
 function buildRows() {
   const rows = [];
   for (const [code, eds] of Object.entries(series.sets || {})) {
     const jp = (eds.jp || []).filter((x) => Number.isFinite(x.median));
-    const en = (eds.en || []).filter((x) => Number.isFinite(x.median));
+    const enAll = (eds.en || []).filter((x) => Number.isFinite(x.median));
     if (!jp.length) continue;
-    const now = jp[jp.length - 1];
-    const prev = jp[Math.max(0, jp.length - 5)];   // 약 4주 전 점
+    const jpLast = jp[jp.length - 1];
+    const now = isFresh(jpLast) ? jpLast : { median: null, n: null };
+    const en = isFresh(enAll[enAll.length - 1]) ? enAll : [];
+    const prev = now.median ? jp[Math.max(0, jp.length - 5)] : null;   // 약 4주 전 점
     const set = packs.sets?.[code] || {};
 
     // 그 세트에서 raw 가 가장 비싼 카드. 없으면 비운다 — 지어내지 않는다.
@@ -77,7 +85,7 @@ function tableHtml(rows, updated) {
     const chgColor = r.chg == null ? "#7d8698" : r.chg >= 0 ? "#26d07c" : "#ff6b6b";
     return `            <tr>` +
       `<td class="ctSet"><b>${esc(r.code)}</b><span>${esc(r.name)}</span></td>` +
-      `<td>${money(r.jp)}<small style="color:#7d8698"> n${r.jpN}</small></td>` +
+      `<td>${money(r.jp)}${r.jpN ? `<small style="color:#7d8698"> n${r.jpN}</small>` : ""}</td>` +
       `<td>${money(r.en)}${r.enN ? `<small style="color:#7d8698"> n${r.enN}</small>` : ""}</td>` +
       `<td style="color:${chgColor}">${chgTxt}</td>` +
       `<td>${r.ratio ? r.ratio.toFixed(1) + "x" : "—"}</td>` +
@@ -113,4 +121,18 @@ const rows = buildRows();
 if (rows.length < 10) throw new Error(`세트가 ${rows.length}개뿐 — 시계열 로딩 실패 의심`);
 const html = tableHtml(rows, series.updated || packs.updated || "");
 const out = ["compare.html", "articles/best-one-piece-booster-box.html"].map((f) => inject(f, html));
-console.log(JSON.stringify({ sets: rows.length, targets: out }, null, 1));
+
+// 글의 수정일(JSON-LD dateModified·화면 Updated)을 표의 "As of" 날짜에 맞춘다.
+// 2026-09-30 발견: 표는 매일 바뀌는데 수정일이 2026-08-10 에 멈춰 있었다(가드 U1).
+const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
+const asOf = series.updated || packs.updated || "";
+if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
+  const p = path.join(ROOT, "articles/best-one-piece-booster-box.html");
+  let s = fs.readFileSync(p, "utf8");
+  const before = s;
+  s = s.replace(/("dateModified": ")[^"]*(")/, (_m, a, b) => a + asOf + b);
+  s = s.replace(/(Updated <time datetime=")[^"]*(">)[^<]*(<\/time>)/, (_m, a, b, c) => a + asOf + b + longDate(asOf) + c);
+  if (s !== before) fs.writeFileSync(p, s, "utf8");
+}
+console.log(JSON.stringify({ sets: rows.length, asOf, targets: out }, null, 1));
