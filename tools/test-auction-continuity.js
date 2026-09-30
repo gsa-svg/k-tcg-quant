@@ -26,8 +26,8 @@ const tcgSeriesDay = (d, thinKey = null) => ({
   games: Object.fromEntries(activeGames.map((key) => [key, { ended: key === thinKey ? 1 : 100 }])),
 });
 
-function runAudit() {
-  const result = spawnSync(process.execPath, [audit, "--root", root, "--today", "2026-09-03", "--days", "2", "--daily-only", "--json"], {
+function runAudit(days = "2") {
+  const result = spawnSync(process.execPath, [audit, "--root", root, "--today", "2026-09-03", "--days", days, "--daily-only", "--json"], {
     encoding: "utf8",
   });
   return { result, report: JSON.parse(result.stdout) };
@@ -35,6 +35,8 @@ function runAudit() {
 
 try {
   write("known-gaps.json", { gaps: [] });
+  write("auction-watch.json", { pending: [] });
+  write("tcg-watch.json", { pending: [] });
   write("auction-series.json", { daily: [
     { d: "2026-09-01", partial: false, hourGapHours: 0, ended: 900 },
     { d: "2026-09-02", partial: true, hourGapHours: 6, ended: 979 },
@@ -101,6 +103,42 @@ try {
   out = runAudit();
   assert.equal(out.result.status, 0, out.result.stdout);
   assert.deepEqual(out.report.problems, []);
+
+  // 지난 날(직전 완료일보다 앞) — 2026-09-30. 직전 하루만 보면 부분일이 하루 지나 보고에서 사라졌다(점검 비평 C3).
+  // 창 3일이면 9/01 이 지난 날이다. 그날 부분수집·정산 부족은 감시목록에서 빠진 뒤라면 확정 손실로 FAIL.
+  write("auction-series.json", { daily: [
+    { d: "2026-09-01", partial: true, hourGapHours: 5, ended: 400 },
+    { d: "2026-09-02", partial: false, hourGapHours: 0, ended: 950 },
+  ] });
+  write("tcg-series.json", { daily: [tcgSeriesDay("2026-09-01", "magic"), tcgSeriesDay("2026-09-02")] });
+  out = runAudit("3");
+  assert.equal(out.result.status, 1, "a past partial day must stay visible after it stops being the previous day");
+  assert.ok(out.report.problems.some((p) => /원피스 경매 일별 — 지난 날 2026-09-01 부분수집 \(5시간/.test(p)), out.result.stdout);
+  assert.ok(out.report.problems.some((p) => /TCG 정산 일별 — 지난 날 2026-09-01 .*magic 1\/10/.test(p)), out.result.stdout);
+
+  // 그날 종료분이 감시목록에 남아 있으면 아직 회수 중이다 — 손실로 치지 않는다(오탐 금지).
+  write("auction-watch.json", { pending: [{ id: "a", endsAt: "2026-09-01T23:00:00.000Z" }] });
+  write("tcg-watch.json", { pending: [{ g: "magic", id: "t", end: "2026-09-01T23:00:00.000Z" }] });
+  out = runAudit("3");
+  assert.equal(out.result.status, 0, `a day still being settled is not a loss yet: ${out.result.stdout}`);
+
+  // 스냅샷이 없는 지난 날은 감시 하한(125)의 절반으로 본다 — 스냅샷 실행이 감시 표본을 넣으므로 그날 표본이 안 들어갔다(9/26 실제).
+  write("auction-watch.json", { pending: [] });
+  write("tcg-watch.json", { pending: [] });
+  write("auction-series.json", { daily: [
+    { d: "2026-09-01", partial: false, hourGapHours: 0, ended: 900 },
+    { d: "2026-09-02", partial: false, hourGapHours: 0, ended: 950 },
+  ] });
+  write("tcg-snapshot.json", { points: [tcgDay("2026-09-02")] });
+  write("tcg-series.json", { daily: [tcgSeriesDay("2026-09-01", "onepiece"), tcgSeriesDay("2026-09-02")] });
+  out = runAudit("3");
+  assert.ok(out.report.problems.some((p) => /TCG 정산 일별 — 지난 날 2026-09-01 .*스냅샷 없어 감시 하한 기준.*onepiece 1\/62/.test(p)), out.result.stdout);
+
+  // 조사가 끝나 등록된 지난 날은 메모다.
+  write("known-gaps.json", { gaps: [{ series: "TCG 정산 일별", dates: ["2026-09-01"], reason: "테스트용 영구 공백", confirmed: "2026-09-03" }] });
+  out = runAudit("3");
+  assert.equal(out.result.status, 0, out.result.stdout);
+  assert.ok(out.report.notes.some((n) => /TCG 정산 일별 — 지난 날 2026-09-01 .*known-gaps/.test(n)), out.result.stdout);
   console.log("auction continuity tests passed");
 } finally {
   fs.rmSync(root, { recursive: true, force: true });
