@@ -10,6 +10,9 @@
 // 규칙
 //  · 박스 시세는 JP 시계열의 마지막 관측 중앙값(USD). 마지막 판매가 28일을 넘으면 시장 열은 "—".
 //  · 정가는 set-facts.json 의 jpMsrpYen / packsPerBox. 둘 중 하나라도 없으면 그 행의 정가 열은 "—".
+//    단 팩당 정가(jpMsrpYenPerPack)가 공식 페이지로 확인된 세트는 박스 구성이 미공개여도 팩당 칸만 채운다
+//    (OP-18·EB-05: 반다이 JP 페이지에 240円·6장은 있고 박스당 팩 수는 없다 — 2026-09-30).
+//  · 세트 코드는 sets/<code>.html 이 있을 때만 링크한다.
 //  · 엔 → USD 는 data/fx.json 의 jpyKrw / usdKrw (사이트 공통 방식), 환율과 날짜를 표에 적는다.
 //  · 값을 만들어내지 않는다. 데이터가 없으면 비운다.
 "use strict";
@@ -76,7 +79,7 @@ for (const code of Object.keys(FACTS).sort((a, b) => ord(a) - ord(b))) {
   const last = jp.length ? jp[jp.length - 1] : null;
   const fresh = last && Date.parse(last.d) >= now - STALE_DAYS * 86400000;
 
-  const msrpPack = msrpBox && packs ? msrpBox / packs : null;
+  const msrpPack = f.jpMsrpYenPerPack || (msrpBox && packs ? msrpBox / packs : null);
   const boxUsd = fresh ? last.median : null;
   const packUsd = boxUsd && packs ? boxUsd / packs : null;
   const mult = packUsd && msrpPack ? packUsd / jpyUsd(msrpPack) : null;
@@ -87,8 +90,12 @@ for (const code of Object.keys(FACTS).sort((a, b) => ord(a) - ord(b))) {
     if (!dearest || mult > dearest.mult) dearest = { code, mult, packUsd };
   }
 
+  const slug = code.toLowerCase();
+  const setCell = fs.existsSync(path.join(ROOT, "sets", slug + ".html"))
+    ? `<a href="/sets/${slug}.html">${esc(code)}</a>`
+    : esc(code);
   rows.push(
-    `          <tr><td>${esc(code)}</td>` +
+    `          <tr><td>${setCell}</td>` +
       `<td class="num">${packs || "—"}</td>` +
       `<td class="num">${msrpPack ? "¥" + Math.round(msrpPack) : "—"}</td>` +
       `<td class="num">${msrpBox ? "¥" + msrpBox.toLocaleString("en-US") : "—"}</td>` +
