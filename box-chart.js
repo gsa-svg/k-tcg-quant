@@ -687,7 +687,9 @@
     ".opbcTipD{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
     ".opbcTipV{fill:var(--ink,#eef2ff);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}",
     ".opbcTipR{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
-    ".opbcPaneEmpty{display:flex;flex-direction:column;justify-content:center;min-height:96px;padding:14px 16px}",
+    // 2열 격자에서 빈 칸이 옆 차트 높이까지 늘어나면 거대한 빈 상자가 된다(2026-10-01 OP-13 일간 소유자 지적) —
+    // 안내 카드는 제 높이만 차지한다.
+    ".opbcPaneEmpty{display:flex;flex-direction:column;justify-content:center;min-height:96px;padding:14px 16px;align-self:start}",
     ".opbcPaneSpot{padding:14px 16px}",
     ".opbcPaneSpot .opbcEmpty{margin-top:8px}",
     ".opbcEmpty{margin:6px 0 0;font-size:12px;color:var(--muted,#8d95a7)}",
