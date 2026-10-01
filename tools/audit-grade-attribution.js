@@ -19,7 +19,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const ROOT = path.resolve(__dirname, "..");
-const { ourTier } = require("./cgc-card-pop-ingest.js");
+const { ourTier, graderTier } = require("./cgc-card-pop-ingest.js");
 const { PARALLEL, donRef } = require("./psa-card-pop-ingest.js");
 
 const read = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
@@ -109,6 +109,8 @@ for (const [code, set] of Object.entries(data.sets)) {
     const don = donRef(card.name);
     const tier = don ? "gold" : ourTier(card.name || "");
     const key = don ? don.key : `${num}|${tier}`;
+    // 라벨이 가리켜야 할 변형 — 이름에 TR 표기가 빠진 TR 카드는 tr(적재기와 같은 graderTier). 키는 위 tier 그대로.
+    const labelTier = don ? "gold" : graderTier(card);
     const where = `${code} ${card.name}`;
 
     // ── PSA : 원장은 카드 각인 세트 밑에 쌓인다 ──────────────────────────
@@ -176,8 +178,8 @@ for (const [code, set] of Object.entries(data.sets)) {
           if (tier === "wanted" && /sp\s*ver/i.test(v)) continue;
           // DON!! 카드는 CGC 가 변형을 "Gold" 한 단어로만 적는다(캐릭터는 이름 칸에 있다).
           if (don && /^gold$/i.test(v)) continue;
-          if (cgcTierOf(v) !== tier) {
-            problems.push(`CGC ${where} [${ed}] — variant "${v}" 는 tier "${cgcTierOf(v)}" 인데 카드는 "${tier}"`);
+          if (cgcTierOf(v) !== labelTier) {
+            problems.push(`CGC ${where} [${ed}] — variant "${v}" 는 tier "${cgcTierOf(v)}" 인데 카드는 "${labelTier}"`);
           }
         }
       }
@@ -201,8 +203,8 @@ for (const [code, set] of Object.entries(data.sets)) {
         const stampCode = (() => { const m = num.match(/^([A-Z]+\d{2})/); return m ? `${m[1].slice(0, -2)}-${m[1].slice(-2)}` : null; })();
         const spReprint = tier === "sp" && stampCode && stampCode !== code && tagTierOf(lbl) === "base";
         if (spReprint) { notes.push(`TAG ${where} [${ed}] — 무표기 세트의 SP 재수록본(라벨에 변형 없음)`); continue; }
-        if (tagTierOf(lbl) !== tier) {
-          problems.push(`TAG ${where} [${ed}] — 라벨 "${lbl}" 은 tier "${tagTierOf(lbl)}" 인데 카드는 "${tier}"`);
+        if (tagTierOf(lbl) !== labelTier) {
+          problems.push(`TAG ${where} [${ed}] — 라벨 "${lbl}" 은 tier "${tagTierOf(lbl)}" 인데 카드는 "${labelTier}"`);
         }
         const lblEd = /japanese/i.test(lbl) ? "jp" : "en";
         if (lblEd !== ed) problems.push(`TAG ${where} — 라벨 "${lbl}" 은 ${lblEd} 인데 ${ed} 밑에 쌓였다`);

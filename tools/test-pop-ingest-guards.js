@@ -12,6 +12,7 @@ const cgcSet = require("./cgc-set-grades-ingest.js");
 const { pickGroup } = require("./collect-cgc-card-pop.js");
 const tagPop = require("./tag-pop-ingest.js");
 const { setupScript } = require("./tag-pop.js");
+const { ourTier, graderTier } = require("./cgc-card-pop-ingest.js");
 
 const fails = [];
 let cases = 0;
@@ -127,6 +128,15 @@ throws("TAG 커버리지 축소 거부", /커버리지 축소/, () => {
   const s = tagStore();
   s.sets["OP-02"] = { jp: [{ d: "2026-09-29", total: 10, gem: 5 }], en: [] };
   tagPop.apply(s, tagSnap({ total: 280, gem: 201, g10: 196, g10p: 5 }));
+});
+
+// ── 이름에 TR 표기가 빠진 TR 카드 — 원장 키는 base, 라벨 비교는 tr (2026-10-01: 감사가 이 규칙을 몰라 9/22 부터 FAIL)
+ok("graderTier: rarity=TR 인데 이름에 TR 이 없으면 tr, 키(ourTier)는 base 그대로", () => {
+  const zoro = { name: "Roronoa Zoro OP13 037", rarity: "TR" };
+  eq([ourTier(zoro.name), graderTier(zoro)], ["base", "tr"], "OP-15 OP13-037");
+  eq([ourTier("Monkey D. Luffy TR"), graderTier({ name: "Monkey D. Luffy TR", rarity: "TR" })], ["tr", "tr"], "이름에 TR 있음");
+  eq([ourTier("Nami"), graderTier({ name: "Nami", rarity: "R" })], ["base", "base"], "평범한 카드");
+  eq(graderTier({ name: "Boa Hancock SP", rarity: "TR" }), "sp", "이름의 변형이 우선");
 });
 
 if (fails.length) { console.error(JSON.stringify({ test: "FAIL", fails }, null, 2)); process.exit(1); }

@@ -9,7 +9,7 @@
 // Run: node tools/tag-card-pop-ingest.js <dump.json>
 const fs = require("fs");
 const path = require("path");
-const { ourTier } = require("./cgc-card-pop-ingest");
+const { ourTier, graderTier } = require("./cgc-card-pop-ingest");
 const ROOT = path.join(__dirname, "..");
 const dataPath = path.join(ROOT, "data", "onepiece-packs.json");
 const histPath = path.join(ROOT, "data", "tag-card-pop.json");
@@ -128,10 +128,8 @@ function ingest(dump) {
       const num = donChar ? "DON!!" : (card.number || "").replace(/^#/, "").toUpperCase();
       if (!num) continue;
       const tier = donChar ? "gold" : ourTier(card.name);
-      // 행 조회용 tier — 우리 이름에 TR 표기가 빠진 카드(OP-15 OP13-037 "Roronoa Zoro OP13 037", rarity=TR)는
-      // 이름 기준 base 인데 TAG 행("Roronoa ZoroTreasure Rare")은 rowTier 로 tr 이 됐다. 원장 키·화면(inject)은
-      // 이름 기준 |base 를 그대로 읽으므로 키는 두고 조회만 보정한다(2026-09-16) — 안 그러면 5점 쌓인 그 시리즈가 멈춘다.
-      const findTier = tier === "base" && card.rarity === "TR" ? "tr" : tier;
+      // 행 조회용 tier — 이름에 TR 표기가 빠진 TR 카드는 tr 로 찾는다(graderTier). 원장 키·화면은 이름 기준 |base 그대로.
+      const findTier = donChar ? "gold" : graderTier(card);
       const ledgerKey = donChar ? `DON-${donKey(donChar)}|gold` : null;
       for (const ed of ["jp", "en"]) {
       let rows = byKey.get(`${code}|${num}|${findTier}|${ed}`) || [];

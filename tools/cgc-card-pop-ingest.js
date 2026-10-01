@@ -39,6 +39,13 @@ function ourTier(name) {
   if (/parallel|alternate|\balt\b/.test(s)) return "alt";
   return "base";
 }
+// 등급사 라벨이 가리켜야 할 변형. ourTier(이름)와 같되, 이름에 TR 표기가 빠진 TR 카드만 tr 로 본다
+// (OP-15 OP13-037 "Roronoa Zoro OP13 037", rarity=TR). 원장 키는 ourTier(이름)|base 그대로다 — 적재(tag-card-pop-ingest)와
+// 귀속 감사(audit-grade-attribution)가 같은 함수를 써야 한다. 2026-09-16 적재에만 넣고 감사엔 안 넣어 9/22 부터 감사가 FAIL 했다.
+function graderTier(card) {
+  const tier = ourTier(card && card.name || "");
+  return tier === "base" && card && card.rarity === "TR" ? "tr" : tier;
+}
 function cgcTier(label) {
   const s = String(label || "").toLowerCase();
   if (/red\s*(manga|alt)/.test(s)) return "red";
@@ -111,7 +118,7 @@ function ingest(dump) {
   return { appended, skippedDate, unmatched: unmatched.slice(0, 12), cards: Object.values(hist.sets).reduce((a, s) => a + Object.keys(s).length, 0) };
 }
 
-module.exports = { ingest, ourTier, cgcTier };
+module.exports = { ingest, ourTier, graderTier, cgcTier };
 if (require.main === module) {
   const f = process.argv[2];
   if (!f) { console.error("usage: node tools/cgc-card-pop-ingest.js <dump.json>"); process.exit(1); }
