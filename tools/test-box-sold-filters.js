@@ -4,6 +4,8 @@
 // 1) "case" 가 붙은 단품 박스는 살리고, 진짜 케이스(12박스)·불명·액세서리는 계속 버린다(box-case-words.js).
 // 2) PRB-02 이름 속 권 번호("Vol. 2", "The Best 2")를 수량 2로 읽지 않는다(lot-quantity.js VOLUME_STRIP).
 // 3) 팰월드 원장 중복 키는 id + 판매일이다(palworld-sold-ingest.js mergeDump).
+// 4) 합본 제품코드 OP14-EB04·OP15-EB04 는 영문 OP-14·OP-15 박스다(combined-set-codes.js).
+// 5) 판매일은 eBay 표시일 그대로, 실행 머신 TZ 와 무관(box-sold-ingest.js soldDateOf, 2026-10-01).
 //
 // 제목·가격·날짜는 C:/Users/kimtt/opbox-heartbeat/box-sold-cdp/box-2026-09-18~30.json 덤프 원문이다.
 // "(합성)" 표시가 붙은 것만 위험 경계를 막으려고 만든 제목이다.
@@ -143,4 +145,34 @@ for (const [code, ed, t, k, want] of COMBINED_CASES) {
   else assert.equal(r.drop, want, t);
 }
 
-console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length, combined: COMBINED_CASES.length }));
+// ── 5. 판매일은 eBay 표시일 그대로 — 2026-10-01 교정(하루 이른 날짜 사고). 실행 머신의 TZ 를 바꿔도 같아야 한다.
+//    종전 Date.parse→toISOString 은 이 PC(KST)에서 "Sold  Sep 29, 2026" 을 2026-09-28 로 적었다(9/30 덤프 255,760건 전부 -1일).
+//    원장은 tools/migrate-box-sold-dates-20261001.js 로 +1일 이관됐고 가드 D15 가 그 마커(dateBasis)를 요구한다.
+{
+  const { soldDateOf } = require("./box-sold-ingest");
+  const DATE_CASES = [
+    ["Sold  Sep 29, 2026", "2026-09-29"],     // 덤프 원문(공백 둘)
+    ["Sold Sep 29, 2026", "2026-09-29"],
+    ["Sold  Dec 31, 2025", "2025-12-31"],     // 연말 경계 — 종전엔 2025-12-30
+    ["Sold  Jan 1, 2026", "2026-01-01"],      // 연초 — 종전엔 2025-12-31
+    ["Sold  Oct 1, 2026", "2026-10-01"],      // 월초(box-2026-10-01 덤프 원문) — 종전엔 2026-09-30
+    ["Sold  Feb 28, 2026", "2026-02-28"],
+    ["Sold  Feb 30, 2026", null],             // (합성) 없는 날은 버린다
+    ["Sold  Sep 29", null],                   // (합성) 연도 없음
+    ["no date here", null],
+  ];
+  // TZ 별 getTimezoneOffset(2026-09-29 정오) — TZ 가 실제로 바뀌었는지 확인한다. 안 바뀌면 이 검사는 아무것도 증명하지 못한다.
+  const ZONES = { "Asia/Seoul": -540, UTC: 0, "America/Los_Angeles": 420, "Pacific/Kiritimati": -840 };
+  const origTZ = process.env.TZ;
+  for (const [tz, offset] of Object.entries(ZONES)) {
+    process.env.TZ = tz;
+    assert.equal(new Date(2026, 8, 29, 12).getTimezoneOffset(), offset, `TZ=${tz} 가 적용되지 않았다`);
+    for (const [cap, want] of DATE_CASES) assert.equal(soldDateOf(cap), want, `TZ=${tz}: ${cap}`);
+  }
+  // 사고의 원인 자체도 박제 — KST 에서 Date.parse→toISOString 은 하루 이르다. 파서가 이 방식으로 되돌아가면 위 단언이 깨진다.
+  process.env.TZ = "Asia/Seoul";
+  assert.equal(new Date(Date.parse("Sep 29, 2026")).toISOString().slice(0, 10), "2026-09-28");
+  if (origTZ === undefined) delete process.env.TZ; else process.env.TZ = origTZ;
+}
+
+console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length, combined: COMBINED_CASES.length, dates: 9 }));

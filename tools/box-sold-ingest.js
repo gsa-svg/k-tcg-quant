@@ -116,12 +116,21 @@ function editionOf(title) {
   return null;   // 언어 표기 없음 — 추측하지 않는다
 }
 
+// eBay 표시일("Sold  Sep 29, 2026")을 **글자 그대로** 판매일로 쓴다 — 2026-10-01 교정(하루 이른 날짜 사고).
+// 종전엔 Date.parse(실행 머신 로컬 자정, 이 PC 는 KST 00:00) → toISOString(UTC, 전날 15:00) 으로 바꿔
+// 하루 이른 날짜(9/28)를 적었다. 2026-07-22 신설 때부터 그랬고, 9/30 덤프 255,760건 전부 -1일이었다
+// (같은 날 0건). eBay 가 보여주는 날짜는 브라우저 로컬(KST) 기준 날짜라 그 글자가 곧 판매일이다 —
+// 타임존 변환이 끼어들 자리가 없다. 월 이름을 직접 조립하므로 실행 머신의 TZ 와 무관하다
+// (팰월드 palworld-sold-ingest.js 와 같은 방식 — 그쪽은 처음부터 이렇게 해서 사고가 없었다).
+// 원장(data/box-sold-ledger.json)은 같은 날 tools/migrate-box-sold-dates-20261001.js 로 전 행 +1일 이관했다
+// (dateBasis:"ebay-display-date"). 중복 키가 id|판매일이라 파서만 고치면 지난 판매가 전부 새 키로 다시 들어온다.
+const MONTH = { jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06", jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12" };
 function soldDateOf(caption) {
-  const m = String(caption || "").match(/sold\s+(.+)$/i);
+  const m = String(caption || "").match(/sold\s+([A-Za-z]{3})\s+(\d{1,2}),\s*(\d{4})\s*$/i);
   if (!m) return null;
-  const ts = Date.parse(m[1].trim());
-  if (!Number.isFinite(ts)) return null;
-  const iso = new Date(ts).toISOString().slice(0, 10);
+  const mo = MONTH[m[1].toLowerCase()], day = Number(m[2]), y = Number(m[3]);
+  if (!mo || new Date(Date.UTC(y, Number(mo) - 1, day)).getUTCDate() !== day) return null;   // "Feb 30" 같은 없는 날
+  const iso = `${y}-${mo}-${String(day).padStart(2, "0")}`;
   if (iso > new Date(Date.now() + 86400000).toISOString().slice(0, 10)) return null;  // 미래 날짜 — 파싱 오류
   return iso;
 }

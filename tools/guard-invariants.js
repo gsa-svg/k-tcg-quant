@@ -464,6 +464,9 @@ if (exists("data/box-sold-series.json")) {
         if (r.drop !== want) errors.push(`Q1: ingest "${item.t}" → ${r.drop || "통과"} (기대 drop ${want})`);
       } else if (!r.rec || Math.abs(r.rec.unit - want) > 0.01 || r.ed !== wantEd) {
         errors.push(`Q1: ingest "${item.t}" → ${JSON.stringify(r.rec ? { unit: r.rec.unit, ed: r.ed } : r)} (기대 unit ${want.toFixed(2)} ed ${wantEd})`);
+      } else if (r.rec.d !== "2026-07-20") {
+        // 판매일은 eBay 표시일("Sold  Jul 20, 2026") 그대로다 — 2026-10-01. 종전 파서는 KST 에서 하루 이른 2026-07-19 를 적었다.
+        errors.push(`Q1: ingest "${item.t}" → d ${r.rec.d} (기대 2026-07-20 — 표시일 그대로, 타임존 변환 금지)`);
       }
     }
   } catch (e) {
@@ -971,6 +974,25 @@ if (exists("data/box-sold-ledger.json")) {
         if (!(Number.isFinite(r.unit) && r.unit > 0 && r.unit <= 8000)) { errors.push(`D6: ${code}.${ed} ${r.id} unit 이상 (${r.unit})`); break; }
         if (!(Number.isInteger(r.qty) && r.qty >= 1 && r.qty <= 24)) { errors.push(`D6: ${code}.${ed} ${r.id} qty 이상 (${r.qty})`); break; }
       }
+    }
+  }
+}
+
+// ── D15. 박스 SOLD 원장의 판매일은 eBay 표시일 기준(dateBasis) — 2026-10-01 신설.
+//    box-sold-ingest.soldDateOf 가 2026-07-22 신설 때부터 Date.parse(KST 로컬 자정)→toISOString 으로 하루 이른 날짜를
+//    적었다(9/30 덤프 255,760건 전부 -1일, 같은 날 0건). 원장 5,890행 + excluded 145행을 +1일 이관하고
+//    (tools/migrate-box-sold-dates-20261001.js) 파서를 표시일 그대로 쓰게 고쳤다. 둘은 한 몸이다 — 중복 키가
+//    id|판매일이라 이관 안 된 원장에 새 파서가 돌면 지난 90일 판매가 전부 새 키로 다시 들어온다(이중 적재).
+//    이관 전 원장(마커 없음)으로 되돌아가면 여기서 막는다. 파서 쪽은 Q1 이 soldDateOf 값을 단언한다.
+//    판매일이 수집일(seen·updated)보다 늦을 수는 없다 — 두 번 이관(+2일)되면 여기서 걸린다.
+if (exists("data/box-sold-ledger.json")) {
+  const lg = JSON.parse(read("data/box-sold-ledger.json"));
+  if (lg.dateBasis !== "ebay-display-date") errors.push(`D15: box-sold-ledger.json dateBasis 가 "ebay-display-date" 가 아니다 (${JSON.stringify(lg.dateBasis)}) — 이관 전 원장. node tools/migrate-box-sold-dates-20261001.js`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(lg.migratedAt || "")) errors.push(`D15: box-sold-ledger.json migratedAt 누락 (${JSON.stringify(lg.migratedAt)})`);
+  for (const [code, eds] of Object.entries(lg.sets || {})) {
+    for (const ed of ["jp", "en"]) {
+      const late = ((eds || {})[ed] || []).find((r) => r.d > (r.seen || lg.updated || "9999-99-99"));
+      if (late) { errors.push(`D15: ${code}.${ed} ${late.id} 판매일 ${late.d} 이 수집일 ${late.seen || lg.updated} 보다 늦다 — 날짜가 두 번 이관됐나`); break; }
     }
   }
 }
@@ -1874,4 +1896,4 @@ if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2"] }));
