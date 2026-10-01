@@ -206,8 +206,8 @@ const html = `<!doctype html>
       .ixHero { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 6px 0 2px; }
       .ixHero .big { font-size: 46px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
       .ixChg { font-size: 14px; font-weight: 800; padding: 3px 11px; border-radius: 8px; }
-      .up { color: #10d7a0; } .down { color: #ff7d7d; }
-      .ixChg.up { background: rgba(16,215,160,.12); } .ixChg.down { background: rgba(255,125,125,.12); }
+      .up { color: var(--accent); } .down { color: var(--red); }
+      .ixChg.up { background: rgba(var(--accent-rgb), .12); } .ixChg.down { background: rgba(255,125,125,.12); }
       .koBoard { width: 100%; max-width: 760px; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
       .koBoard th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; }
       .koBoard th.l, .koBoard td.nm, .koBoard td.code, .koBoard td.rp { text-align: left; }
@@ -219,16 +219,16 @@ const html = `<!doctype html>
       .rpNone { color: #6a7182; font-size: 12px; }
       .koProse { color: #9aa4b6; font-size: 14px; max-width: 760px; line-height: 1.75; margin: 8px 0; }
       .koProse strong { color: #cfd6e4; }
-      .fromDate { display: block; font-size: 10px; color: #7d8698; font-weight: 400; }
-      .koBoard td.code a { color: #50dad9; text-decoration: none; font-weight: 700; }
+      .fromDate { display: block; font-size: 11.5px; color: var(--muted); font-weight: 400; }
+      .koBoard td.code a { color: var(--accent); text-decoration: none; font-weight: 700; }
       .owMeter { display: flex; gap: 8px; align-items: flex-end; height: 120px; max-width: 520px; margin: 12px 0; }
       .owBar { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 4px; }
       .owBar span { width: 100%; background: #ff7d3c; opacity: .6; border-radius: 4px 4px 0 0; min-height: 6px; }
       .owBar:last-child span { opacity: 1; }
-      .owBar small { font-size: 10px; color: #7d8698; }
-      .koFacts { margin: 14px 0; padding: 12px 16px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 760px; font-size: 14px; line-height: 1.7; }
-      .koFacts strong { color: #50dad9; }
-      .koNote { color: #7d8698; font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
+      .owBar small { font-size: 11.5px; color: var(--muted); }
+      .koFacts { margin: 14px 0; padding: 12px 16px; border: 1px solid rgba(var(--accent-rgb), .28); background: rgba(var(--accent-rgb), .05); border-radius: 12px; max-width: 760px; font-size: 14px; line-height: 1.7; }
+      .koFacts strong { color: var(--accent); }
+      .koNote { color: var(--muted); font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
       .koProse { color: #9aa4b6; font-size: 14px; max-width: 760px; line-height: 1.75; margin: 8px 0; }
       .koProse strong { color: #cfd6e4; }
       main h2 { font-size: 18px; margin: 24px 0 6px; }
@@ -242,7 +242,7 @@ const html = `<!doctype html>
       .faqItem p { color: #9aa4b6; font-size: 13.5px; line-height: 1.65; margin: 4px 0 10px; }
       .koCta { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
       .koCta a { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; }
-      .koCta .primary { background: #50dad9; color: #08131a; }
+      .koCta .primary { background: var(--accent); color: #08131a; }
       .koCta .ghost { border: 1px solid #2a3140; color: #cfd6e4; }
     </style>
   </head>
@@ -545,8 +545,8 @@ ${cardRows}
       .ixHero { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 6px 0 2px; }
       .ixHero .big { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
       .ixChg { font-size: 14px; font-weight: 800; padding: 3px 11px; border-radius: 8px; }
-      .up { color: #10d7a0; } .down { color: #ff7d7d; }
-      .ixChg.up { background: rgba(16,215,160,.12); } .ixChg.down { background: rgba(255,125,125,.12); }
+      .up { color: var(--accent); } .down { color: var(--red); }
+      .ixChg.up { background: rgba(var(--accent-rgb), .12); } .ixChg.down { background: rgba(255,125,125,.12); }
       .koBoard { width: 100%; max-width: 760px; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
       .koBoard th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; }
       .koBoard th.l, .koBoard td.nm, .koBoard td.code { text-align: left; }
@@ -555,15 +555,15 @@ ${cardRows}
       .koBoard td.code { color: #9aa4b6; font-size: 12.5px; }
       .koBoard td.thumb { width: 52px; padding: 6px 8px; }
       .koBoard td.thumb img { width: 40px; height: 56px; object-fit: cover; border-radius: 4px; display: block; background: #12161d; }
-      .koFacts { margin: 14px 0; padding: 12px 16px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 760px; font-size: 14px; line-height: 1.8; }
-      .koFacts strong { color: #50dad9; }
-      .koNote { color: #7d8698; font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
+      .koFacts { margin: 14px 0; padding: 12px 16px; border: 1px solid rgba(var(--accent-rgb), .28); background: rgba(var(--accent-rgb), .05); border-radius: 12px; max-width: 760px; font-size: 14px; line-height: 1.8; }
+      .koFacts strong { color: var(--accent); }
+      .koNote { color: var(--muted); font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
       .faqItem { max-width: 760px; border-bottom: 1px solid rgba(255,255,255,.08); padding: 4px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14.5px; }
       .faqItem p { color: #9aa4b6; font-size: 13.5px; line-height: 1.65; margin: 4px 0 10px; }
       .koCta { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
       .koCta a { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; }
-      .koCta .primary { background: #50dad9; color: #08131a; }
+      .koCta .primary { background: var(--accent); color: #08131a; }
       .koCta .ghost { border: 1px solid #2a3140; color: #cfd6e4; }
     </style>
   </head>
@@ -574,7 +574,7 @@ ${cardRows}
       ${NAV_KO}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · 일본판</p>
+      <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 일본판</p>
       <h1>${esc(code)} ${esc(nKo)} 부스터박스 시세 (일본판)</h1>
       <div class="ixHero">
         <span class="big">${won(krw)}</span>

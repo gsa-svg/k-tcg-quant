@@ -127,16 +127,16 @@ const html = `<!doctype html>
     <style>
       .dlRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
       .dlRow a { display: inline-block; padding: 12px 20px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; }
-      .dlRow .primary { background: #50dad9; color: #08131a; }
+      .dlRow .primary { background: var(--accent); color: #08131a; }
       .dlRow .ghost { border: 1px solid #2a3140; color: #cfd6e4; }
       .dTable { width: 100%; max-width: 760px; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
-      .dTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; }
+      .dTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 12.5px; font-weight: 600; }
       .dTable th:nth-child(1), .dTable th:nth-child(2) { text-align: left; }
       .dTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
       .dTable td.num { text-align: right; }
       .fields { font-size: 13.5px; color: #9aa4b6; line-height: 1.9; max-width: 760px; }
-      .fields code { color: #50dad9; background: rgba(80,218,217,.08); padding: 1px 6px; border-radius: 5px; }
-      .attrBox { margin: 16px 0; padding: 12px 16px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 760px; font-size: 13.5px; line-height: 1.7; }
+      .fields code { color: var(--accent); background: rgba(var(--accent-rgb), .08); padding: 1px 6px; border-radius: 5px; }
+      .attrBox { margin: 16px 0; padding: 12px 16px; border: 1px solid rgba(var(--accent-rgb), .28); background: rgba(var(--accent-rgb), .05); border-radius: 12px; max-width: 760px; font-size: 13.5px; line-height: 1.7; }
       .attrBox code { display: block; margin-top: 6px; color: #cfd6e4; background: rgba(255,255,255,.04); padding: 8px 10px; border-radius: 8px; font-size: 12.5px; }
     </style>
   </head>

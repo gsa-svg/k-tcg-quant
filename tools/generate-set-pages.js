@@ -185,24 +185,24 @@ const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스
       .setHero img { width: 132px; flex: 0 0 auto; border-radius: 10px; border: 1px solid var(--line); }
       /* 모바일 첫 화면: 박스 그림 184px 가 제목·헤더와 함께 첫 숫자를 폴드 밖(y≈858px)으로 밀었다(2026-09-09 실측). 작게 줄인다. */
       @media (max-width: 560px) { .setHero img { width: 72px; height: auto; } }
-      .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,215,160,.05); }
+      .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(var(--accent-rgb), .05); }
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
       .chaseList li { margin: 6px 0; }
       .hubTable { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0; }
-      .hubTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; }
+      .hubTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: var(--muted); font-size: 12.5px; font-weight: 600; }
       .hubTable th:nth-child(1), .hubTable th:nth-child(2), .hubTable th:nth-child(6) { text-align: left; }
       .hubTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; vertical-align: top; }
       .hubTable td.num { text-align: right; white-space: nowrap; }
-      .hubTable td.up { color: #10d7a0; } .hubTable td.down { color: #e5484d; } .hubTable td.flat, .hubTable td.when { color: #9aa4b6; }
-      .hubTable td.when small { font-size: 10.5px; color: #6f7688; }
+      .hubTable td.up { color: var(--green); } .hubTable td.down { color: var(--red); } .hubTable td.flat, .hubTable td.when { color: #9aa4b6; }
+      .hubTable td.when small { font-size: 11.5px; color: var(--muted); }
       .hubTable tr.stale td { opacity: .62; } .hubTable tr.stale td.when { opacity: 1; color: #f5c842; }
       .hubTable .hubTail { display: block; color: #8d95a7; font-size: 12px; margin-top: 2px; }
       .hubTable td.links { font-size: 12.5px; white-space: nowrap; }
       @media (max-width: 640px) { .hubTable .hubTail { display: none; } .hubTable td.links { white-space: normal; } }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
-      .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
+      .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
 ${BUY_CTA_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
@@ -234,9 +234,9 @@ ${BUY_CTA_CSS}
       .gradeTrio { font-size: 12px; white-space: nowrap; }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
-      .statLabel { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
+      .statLabel { font-size: 12.5px; color: var(--muted, #9aa4b6); font-weight: 600; }
       .statLabel a.statDef { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(154,164,182,.6); }
-      .statLabel a.statDef:hover { color: var(--accent, #10d7a0); border-bottom-color: currentColor; }
+      .statLabel a.statDef:hover { color: var(--accent); border-bottom-color: currentColor; }
       /* 숫자가 주인공이다 — 28px/700. 라벨은 10.5px 대문자로 물러난다(TCG 퀀트 실측 규칙).
          tabular-nums 로 자릿수를 고정해야 카드끼리 세로로 줄이 맞는다. */
       .statValue { margin-top: 5px; font-size: 28px; font-weight: 700; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
@@ -244,20 +244,20 @@ ${BUY_CTA_CSS}
       .statUp { color: #00e5a0; font-weight: 700; }
       .statDown { color: #ff5f6e; font-weight: 700; }
       .statFlat { color: #8090b0; font-weight: 700; }
-      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 14px; line-height: 1.65; }
+      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(var(--accent-rgb), .28); background: rgba(var(--accent-rgb), .05); border-radius: 12px; max-width: 680px; font-size: 14px; line-height: 1.65; }
       .keyFacts li { margin: 3px 0; }
       .keyFacts strong { color: var(--accent); }
       .chaseTableWrap { overflow-x: auto; margin: 14px 0 6px; }
       .chaseTable { width: 100%; border-collapse: collapse; font-size: 14px; }
-      .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .chaseTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
       .chaseTable td:first-child { color: var(--muted); font-variant-numeric: tabular-nums; }
       .chaseTable .cNum { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
-      .chaseTable .psaKind { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+      .chaseTable .psaKind { color: var(--muted); font-size: 11px; }
       .chaseTable td.psaStale { opacity: .62; }   /* 35일 넘은 PSA10 sold — 값은 두되 흐리게(2026-09-24) */
       .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
-      .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(16,215,160,.05); font-size: 14px; line-height: 1.55; color: var(--muted); }
+      .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(var(--accent-rgb), .05); font-size: 14px; line-height: 1.55; color: var(--muted); }
       .gearRec strong { color: #eef2ff; }
       .gearRec a { color: var(--accent); font-weight: 800; white-space: nowrap; }`;
 const head = (opts) => pageHead({ ...opts, extraCss: SET_PAGE_CSS });
@@ -1150,7 +1150,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       .chartHead .sub { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
       .tblWrap { overflow-x: auto; }
       .aTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0; }
-      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 12.5px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable td { padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; vertical-align: middle; }
       .aTable td.rk { color: var(--muted); width: 28px; }
@@ -1168,14 +1168,14 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       .cardCell small { display: block; color: var(--muted); font-size: 11px; margin: 2px 0 0; }
       .kindList { margin: 6px 0 2px; }
       .kindRow { display: grid; grid-template-columns: minmax(150px, 1.3fr) 2fr minmax(160px, 0.9fr); gap: 10px; align-items: center; font-size: 13px; padding: 5px 0; }
-      .kindHead { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; margin-bottom: 4px; }
+      .kindHead { color: var(--muted); font-size: 12.5px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; margin-bottom: 4px; }
       .kindRow .kName { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .kindRow .kName small { color: var(--muted); font-weight: 400; }
       .kindRow .kTrack { position: relative; height: 22px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
       .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); opacity: .85; }
       .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 22px; font-size: 12px; color: #061014; font-weight: 800; }
       .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-      .kindRow .kMed small { font-size: 10.5px; text-transform: uppercase; letter-spacing: .04em; }
+      .kindRow .kMed small { font-size: 11px; }
       .rankFaq { max-width: 760px; margin: 22px 0 0; }
       .rankFaq h2 { font-size: 18px; margin: 0 0 6px; }
       .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
@@ -1190,7 +1190,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
         .chartCard { padding: 12px 12px 8px; border-radius: 12px; }
         .aTable { font-size: 12.5px; table-layout: fixed; }
         .aTable th, .aTable td { padding: 6px 4px; }
-        .aTable th { font-size: 10.5px; letter-spacing: 0; white-space: normal; overflow-wrap: anywhere; }
+        .aTable th { font-size: 11.5px; letter-spacing: 0; white-space: normal; overflow-wrap: anywhere; }
         .aTable .hideM { display: none; }
         .aTable th.rkH { width: 20px; }
         .aTable th.psaH { width: 72px; }

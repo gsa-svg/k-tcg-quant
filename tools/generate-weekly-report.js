@@ -83,7 +83,7 @@ const html = `<!doctype html>
       .dataTable td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
       .dataTable td.num { text-align: right; white-space: nowrap; }
       .tblWrap { overflow-x: auto; }
-      .srcNoteA { color: #7d8698; font-size: 12.5px; margin: 4px 0 18px; }
+      .srcNoteA { color: var(--muted); font-size: 12.5px; margin: 4px 0 18px; }
     </style>
   </head>
   <body>

@@ -50,7 +50,7 @@ const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
 
 // 필수 자리 — 하나라도 없으면 쓰지 않고 실패로 끝낸다.
 const RE = {
-  table: /<table>[\s\S]*?<\/table>/,
+  table: /<table(?: class="text")?>[\s\S]*?<\/table>/,   // class="text": 글·숫자 섞인 2열 표라 숫자 오른쪽 정렬 예외(styles.css, 2026-10-01)
   section: /(<h2>What the dated snapshot shows<\/h2>)[\s\S]*?(<h2>How to compare them properly<\/h2>)/,
   dateModified: /("dateModified": ")[^"]*(")/,
 };
@@ -112,7 +112,7 @@ const rows = [
   row("PSA gem rate", (x) => (x.psa && x.psa.gem != null ? `${x.psa.gem.toFixed(1)}%` : DASH)),
 ];
 const TABLE = nl(
-  `<table>\n        <caption>${A} vs ${B} booster box, tracked market data (${dataDate})</caption>\n` +
+  `<table class="text">\n        <caption>${A} vs ${B} booster box, tracked market data (${dataDate})</caption>\n` +
   `        <thead><tr><th>Metric</th><th>${V[A].name}</th><th>${V[B].name}</th></tr></thead>\n` +
   `        <tbody>\n${rows.join("\n")}\n        </tbody>\n      </table>`
 );

@@ -106,7 +106,7 @@ function packSubName(pack) {
 const rarityColor = {
   L: "#7db7ff",
   SEC: "#ff6683",
-  SR: "#10d7a0",
+  SR: "#3bc8df",
   R: "#f3c74f",
   P: "#bb86fc",
   UC: "#9aa3b2",
@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20260930ui";
+const DATA_VERSION = "20261001ui";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1243,8 +1243,13 @@ function renderTickerBoard() {
   // 여기 있는 건 전부 세트별 실판매 원장 수치라 각자 세트 페이지에서 검증된다.
   const f = (p) => `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
   const cls = (p) => (p > 0 ? "up" : p < 0 ? "down" : "flat");
-  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")} <a class="tbWeekly" href="weekly.html">${t("이번 주 →", "This week →")}</a></span><div class="tbScroll">${rows.map((b) =>
-    `<button class="tbChip${isStale(b) ? " stale" : ""}" data-key="${b.code}" title="${t(`일본판 박스 실거래 중앙값 ${b.nowDate || ""} 주${b.n != null ? ` · ${b.n}건` : ""}${isStale(b) ? " · 28일 넘게 거래 없음" : ""}`, `JP box sold median, week of ${b.nowDate || ""}${b.n != null ? ` · n=${b.n}` : ""}${isStale(b) ? " · no sales in 28+ days" : ""}`)}"><span class="tbCode">${b.code}</span><span class="tbPrice">$${b.nowUsd}</span>${isStale(b) ? "" : `<b class="${cls(b.changePct)}">${f(b.changePct)}</b>`}<small class="tbDate">${b.nowDate ? b.nowDate.slice(5) : ""}</small></button>`).join("")}</div>`;
+  const chips = rows.map((b) =>
+    `<button class="tbChip${isStale(b) ? " stale" : ""}" data-key="${b.code}" title="${t(`일본판 박스 실거래 중앙값 ${b.nowDate || ""} 주${b.n != null ? ` · ${b.n}건` : ""}${isStale(b) ? " · 28일 넘게 거래 없음" : ""}`, `JP box sold median, week of ${b.nowDate || ""}${b.n != null ? ` · n=${b.n}` : ""}${isStale(b) ? " · no sales in 28+ days" : ""}`)}"><span class="tbCode">${b.code}</span><span class="tbPrice">$${b.nowUsd}</span>${isStale(b) ? "" : `<b class="${cls(b.changePct)}">${f(b.changePct)}</b>`}<small class="tbDate">${b.nowDate ? b.nowDate.slice(5) : ""}</small></button>`).join("");
+  // 전광판 흐름(2026-10-01). 마우스 환경 + 모션 허용일 때만 같은 줄을 두 벌 이어 붙여 천천히 흐른다(styles.css .tbMarquee —
+  // hover/focus 에 멈춤, 두 번째 벌은 보조기술·탭 순서에서 제외). 터치·모션 줄임 설정은 손으로 미는 기존 스크롤 그대로.
+  const marquee = matchMedia("(hover: hover) and (prefers-reduced-motion: no-preference)").matches;
+  const dup = marquee ? `<div class="tbTrack" aria-hidden="true">${chips.replace(/<button /g, '<button tabindex="-1" ')}</div>` : "";
+  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")} <a class="tbWeekly" href="weekly.html">${t("이번 주 →", "This week →")}</a></span><div class="tbScroll${marquee ? " tbMarquee" : ""}" style="--tb-n:${rows.length}"><div class="tbTrack">${chips}</div>${dup}</div>`;
   el.hidden = false;
   el.querySelectorAll(".tbChip").forEach((btn) => btn.addEventListener("click", () => {
     trackEvent("ticker_click", { pack_code: btn.dataset.key });
@@ -1600,7 +1605,7 @@ function fillPackSparks() {
     const hasNow = b && b.nowUsd != null;
     if (pts.length < 3 && !hasNow) { el.dataset.done = "1"; return; }
     const sign = b && b.changePct != null ? Math.sign(b.changePct) : 0;
-    const color = sign > 0 ? "#10d7a0" : sign < 0 ? "#e5484d" : "#8d95a7";
+    const color = sign > 0 ? "#00e5a0" : sign < 0 ? "#ff5f6e" : "#8d95a7";   // --green / --red / --muted (styles.css 와 같은 값)
     let svg = "";
     if (pts.length >= 3) {
       const vs = pts.map((p) => p.median);
@@ -1623,6 +1628,11 @@ function fillPackSparks() {
     el.innerHTML = svg + now + chg;
     el.dataset.done = "1";
   });
+  // 추세선 그려지는 효과(index.html .packSpark 규칙)는 선이 실제로 들어간 첫 번째 때만. 시계열은 그리드보다 늦게 오므로
+  // 여기서 표식을 붙인다 — 그 뒤 필터·언어 전환 재렌더는 완성 상태로 바로 보인다. (2026-10-01)
+  if (!document.body.classList.contains("sparkDone") && document.querySelector(".packSpark")) {
+    setTimeout(() => document.body.classList.add("sparkDone"), 1500);
+  }
 }
 
 // 카드 페이지 링크. cards/card-map.json(번호|정규화이름 → 파일명)은 load() 에서 한 번 받는다.

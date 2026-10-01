@@ -339,12 +339,12 @@ function jsonLd(code, nameEn, m, s, items, canonical) {
 // 이 페이지들에만 쓰는 스타일(일본판 페이지와 같은 클래스 이름을 쓴다 — 보는 사람에게 같은 화면이어야 한다).
 const PAGE_CSS = `      .setHero { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
       .setHero > div { flex: 1 1 320px; min-width: 0; }
-      .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(16,215,160,.05); }
+      .liveBox { margin: 18px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: rgba(var(--accent-rgb), .05); }
       .liveBox b { font-size: 20px; color: var(--accent); }
       .liveBox small { color: var(--muted); display: block; margin-top: 4px; }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
-      .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: var(--accent); }
+      .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
 ${BUY_CTA_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
@@ -362,20 +362,20 @@ ${BUY_CTA_CSS}
       @media (max-width: 640px) { .statGloss dl { grid-template-columns: 1fr; } .statGloss dd { margin-bottom: 4px; } }
       .statGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 10px; margin: 16px 0 6px; max-width: 760px; }
       .statCard { padding: 12px 14px; border: 1px solid rgba(255,255,255,.10); border-radius: 12px; background: rgba(255,255,255,.02); }
-      .statLabel { font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted, #9aa4b6); font-weight: 700; }
+      .statLabel { font-size: 12.5px; color: var(--muted, #9aa4b6); font-weight: 600; }
       .statValue { margin-top: 5px; font-size: 28px; font-weight: 700; line-height: 1.12; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
       .statBase { margin-top: 5px; font-size: 12px; color: var(--muted, #9aa4b6); line-height: 1.45; }
       .statUp { color: #00e5a0; font-weight: 700; }
       .statDown { color: #ff5f6e; font-weight: 700; }
       .statFlat { color: #8090b0; font-weight: 700; }
-      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(80,218,217,.28); background: rgba(80,218,217,.05); border-radius: 12px; max-width: 680px; font-size: 14px; line-height: 1.65; }
+      .keyFacts { margin: 14px 0 4px; padding: 12px 16px 12px 32px; border: 1px solid rgba(var(--accent-rgb), .28); background: rgba(var(--accent-rgb), .05); border-radius: 12px; max-width: 680px; font-size: 14px; line-height: 1.65; }
       .keyFacts li { margin: 3px 0; }
       .keyFacts strong { color: var(--accent); }
       .chaseTableWrap { overflow-x: auto; margin: 14px 0 6px; }
       .chaseTable { width: 100%; border-collapse: collapse; font-size: 14px; }
-      .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .chaseTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
-      .chaseTable .psaKind { color: var(--muted); font-size: 10px; text-transform: uppercase; }
+      .chaseTable .psaKind { color: var(--muted); font-size: 11px; }
       .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }`;
 

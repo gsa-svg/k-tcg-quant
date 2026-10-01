@@ -116,19 +116,19 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
       .koBoard th.l, .koBoard td.l { text-align: left; }
       .koBoard td { padding: 8px 9px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
       .koBoard td.l { color: #cfd6e4; }
-      .koBoard td.l small { color: #7d8698; display: block; font-size: 11px; }
+      .koBoard td.l small { color: var(--muted); display: block; font-size: 11px; }
       .koProse { color: #9aa4b6; font-size: 14px; max-width: 760px; line-height: 1.78; margin: 8px 0; }
       .koProse strong { color: #cfd6e4; }
       main h2 { font-size: 18.5px; margin: 26px 0 6px; }
-      .koNote { color: #7d8698; font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
+      .koNote { color: var(--muted); font-size: 12.5px; max-width: 760px; margin: 8px 0 14px; line-height: 1.6; }
       .faqItem { max-width: 760px; border-bottom: 1px solid rgba(255,255,255,.08); padding: 4px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14.5px; }
       .faqItem p { color: #9aa4b6; font-size: 13.5px; line-height: 1.65; margin: 4px 0 10px; }
       .koCta { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .koCta a { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; }
-      .koCta .primary { background: #50dad9; color: #08131a; }
+      .koCta .primary { background: var(--accent); color: #08131a; }
       .koCta .ghost { border: 1px solid #2a3140; color: #cfd6e4; }
-      .up { color: #10d7a0; } .down { color: #ff7d7d; }
+      .up { color: var(--accent); } .down { color: var(--red); }
       .koBoard td.l .cardCell { display: flex; align-items: center; gap: 9px; }
       .koBoard img.cardThumb { flex: 0 0 auto; width: 40px; height: 56px; object-fit: cover; border-radius: 3px; background: #12151b; }
       /* 모바일(<=640px): 카드명 칸이 폭을 다 먹어 가격 열이 화면 밖으로 밀렸다(2026-09-16 실측 375px).
@@ -139,15 +139,15 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
         .koBoard { font-size: 12.5px; }
         .koBoard th.l, .koBoard td.l { width: 100%; }
         .koBoard th, .koBoard td { padding: 6px 4px; }
-        .koBoard th { font-size: 10.5px; white-space: normal; overflow-wrap: anywhere; }
+        .koBoard th { font-size: 11.5px; white-space: normal; overflow-wrap: anywhere; }
         .koBoard .hideM { display: none; }
         .koBoard td.l { white-space: normal; overflow-wrap: anywhere; }
-        .koBoard td.l small { font-size: 10.5px; }
+        .koBoard td.l small { font-size: 11.5px; }
         .koBoard img.cardThumb { width: 30px; height: 42px; }
         .koBoard td.l .cardCell { gap: 7px; min-width: 0; }
       }
       .koBoard th.w, .koBoard td.w { white-space: normal; }
-      .koBoard td.l a { color: #50dad9; }
+      .koBoard td.l a { color: var(--accent); }
       .koSteps { color: #cfd6e4; font-size: 13.5px; line-height: 1.8; max-width: 760px; padding-left: 20px; margin: 8px 0 14px; }
     </style>
   </head>
@@ -158,7 +158,7 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
       ${navHtmlKo()}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow"><a href="./" style="color:#7d8698;text-decoration:none">한국어 시세</a> · ${esc(eyebrow)}</p>
+      <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · ${esc(eyebrow)}</p>
       <h1>${esc(h1)}</h1>
 ${body}
       ${/* FAQ 섹션은 2026-08-28 소유자 지시로 삭제 — 표만 남긴다 */ ""}

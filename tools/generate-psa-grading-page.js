@@ -136,10 +136,10 @@ const html = `<!doctype html>
       .pgWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
       .pgWrap .lead { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 6px 0 0; }
       .pgWrap h2 { font-size: 19px; margin: 0 0 2px; }
-      .psa { --g: #55d8ea; } .cgc { --g: #f5c451; } .tag { --g: #4ad9a4; }
+      .psa { --g: var(--blue); } .cgc { --g: var(--gold); } .tag { --g: #a98bff; }
       .statRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 18px 0 6px; }
       .stat { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; background: rgba(255,255,255,.02); }
-      .stat .k { display: block; font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--g); }
+      .stat .k { display: block; font-size: 12.5px; font-weight: 600; color: var(--g); }
       .stat b { display: block; font-size: clamp(22px,4vw,30px); font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-top: 4px; }
       .stat span.s { display: block; font-size: 11.5px; color: var(--muted); margin-top: 4px; line-height: 1.45; font-variant-numeric: tabular-nums; }
       .stat span.s em { font-style: normal; color: var(--g); font-weight: 700; }
@@ -155,14 +155,14 @@ const html = `<!doctype html>
       .tName b { font-weight: 700; } .tName small { color: var(--muted); display: block; font-size: 11px; }
       .sBars { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
       .sLine { display: flex; align-items: center; gap: 8px; min-width: 0; }
-      .edTag { font-style: normal; font-size: 10px; font-weight: 800; letter-spacing: .04em; color: var(--muted); width: 22px; flex: 0 0 22px; }
+      .edTag { font-style: normal; font-size: 11px; font-weight: 800; letter-spacing: .04em; color: var(--muted); width: 22px; flex: 0 0 22px; }
       .sTrack { flex: 1 1 auto; position: relative; height: 16px; border-radius: 4px; background: rgba(255,255,255,.05); overflow: hidden; display: flex; }
       .seg { display: block; height: 100%; background: var(--g); }
       .sNa { position: absolute; left: 6px; top: 0; line-height: 16px; font-size: 11px; color: var(--muted); }
       .sVal { flex: 0 0 auto; min-width: 64px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12.5px; }
       .tblWrap { overflow-x: auto; }
       .aTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 6px 0; }
-      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 600; font-size: 12.5px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable th.psa, .aTable th.cgc, .aTable th.tag { color: var(--g); }
       .aTable th.en, .aTable td.en { border-left: 1px solid rgba(255,255,255,.06); }
@@ -180,17 +180,17 @@ const html = `<!doctype html>
       .setCell small { display: block; color: var(--muted); font-size: 11px; margin: 2px 0 0; white-space: normal; }
       @media (max-width: 640px) {
         .statRow { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-        .stat { padding: 10px 8px; } .stat b { font-size: 17px; } .stat .k { font-size: 10px; } .stat span.s { font-size: 10.5px; }
+        .stat { padding: 10px 8px; } .stat b { font-size: 17px; } .stat .k { font-size: 12px; } .stat span.s { font-size: 11.5px; }
         .chartCard { padding: 12px 12px 8px; border-radius: 12px; }
         .sRow { grid-template-columns: 1fr; gap: 4px; padding: 8px 0; }
         .sVal { min-width: 56px; }
         .aTable { font-size: 12.5px; table-layout: fixed; }
         .aTable th, .aTable td { padding: 6px 4px; }
-        .aTable th { font-size: 10.5px; letter-spacing: 0; white-space: normal; overflow-wrap: anywhere; }
+        .aTable th { font-size: 11.5px; letter-spacing: 0; white-space: normal; overflow-wrap: anywhere; }
         .aTable .hideM { display: none; }
         .aTable th.numH { width: 66px; }
         .aTable td.num { font-size: 12.5px; white-space: normal; }
-        .aTable td .mOnly { display: block; color: var(--muted); font-weight: 400; font-size: 10.5px; }
+        .aTable td .mOnly { display: block; color: var(--muted); font-weight: 400; font-size: 11.5px; }
         .aTable td small.gem { display: none; }
         .aTable td.l { white-space: normal; overflow-wrap: anywhere; }
         .setCell a { min-width: 0; gap: 8px; }

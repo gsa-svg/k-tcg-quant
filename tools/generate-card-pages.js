@@ -402,10 +402,10 @@ for (const { code, set: s, card: c } of cands) {
       .cardHero img { width: 200px; height: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,.1); }
       .priceCards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 12px 0; max-width: 560px; }
       .pc { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
-      .pc span { display: block; color: #7d8698; font-size: 12px; margin-bottom: 3px; }
-      .pc b { font-size: 21px; color: #eef2ff; font-family: "JetBrains Mono", monospace; }
-      .pc small { display: block; color: #7d8698; font-size: 11.5px; margin-top: 3px; }
-      .pc.hl b { color: #50dad9; }
+      .pc span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+      .pc b { font-size: 21px; color: #eef2ff; font-variant-numeric: tabular-nums; }
+      .pc small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 3px; }
+      .pc.hl b { color: var(--accent); }
       .dataTable { width: 100%; max-width: 560px; border-collapse: collapse; margin: 10px 0 6px; font-size: 14px; }
       .dataTable th { text-align: right; padding: 6px 8px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-weight: 600; }
       .dataTable th:first-child, .dataTable td:first-child { text-align: left; }
@@ -413,9 +413,9 @@ for (const { code, set: s, card: c } of cands) {
       .dataTable td.num { text-align: right; font-variant-numeric: tabular-nums; }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14); font-weight: 800; }
-      .ctaRow a.primary { background: rgba(16,215,160,.14); border-color: rgba(16,215,160,.5); color: #10d7a0; }
+      .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
 ${BUY_CTA_CSS}
-      .srcNoteA { color: #7d8698; font-size: 12.5px; margin: 4px 0 16px; }
+      .srcNoteA { color: var(--muted); font-size: 12.5px; margin: 4px 0 16px; }
       .factList { max-width: 680px; color: #9aa4b6; line-height: 1.7; }
     </style>
   </head>
@@ -428,7 +428,7 @@ ${BUY_CTA_CSS}
     <main id="main-content" class="bodyPage">
       <!-- 허브 링크는 정식 주소(/cards/)로 — index.html 형태는 서치콘솔에 "대체 페이지(표준 태그 있음)"로 쌓인다(2026-09-07) -->
       <p class="eyebrow"><a href="./" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
-      <h1>${esc(c.name)} <small style="color:#7d8698;font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
+      <h1>${esc(c.name)} <small style="color:var(--muted);font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
       ${AFF_TOP}
       <div class="cardHero">
         ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="716" height="1000" loading="eager" decoding="async" fetchpriority="high" />` : ""}
@@ -568,11 +568,11 @@ const gradedTable = gradedRows.length ? `
       <table class="dataTable">
         <thead><tr><th>Card</th><th>Set</th><th>Raw NM</th><th>PSA 10</th><th>Premium</th><th>Sales</th><th>PSA 10 data</th></tr></thead>
         <tbody>
-          ${gradedRows.map((r) => `<tr><td>${r.slug ? `<a href="${esc(r.slug)}">${esc(r.name)}</a>` : esc(r.name)} <small style="color:#7d8698">${esc(r.number)}</small></td><td>${r.setHref ? `<a href="${esc(r.setHref)}">${esc(r.code)}</a>` : esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult.toFixed(1)}x</td><td>${r.n}</td><td>${esc(r.psaDate || "—")}</td></tr>`).join("\n          ")}
+          ${gradedRows.map((r) => `<tr><td>${r.slug ? `<a href="${esc(r.slug)}">${esc(r.name)}</a>` : esc(r.name)} <small style="color:var(--muted)">${esc(r.number)}</small></td><td>${r.setHref ? `<a href="${esc(r.setHref)}">${esc(r.code)}</a>` : esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult.toFixed(1)}x</td><td>${r.n}</td><td>${esc(r.psaDate || "—")}</td></tr>`).join("\n          ")}
         </tbody>
       </table>
       </div>
-      <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single price. PSA 10 = median of verified eBay completed sales, minimum three matched sales per card. Premium is PSA 10 divided by raw. ${gradedRows.length} cards have both figures. Raw NM as of ${DATA_DATE}; PSA 10 sales dated per row (${psaDates[0]} to ${psaDates[psaDates.length - 1]}).</p>` : "";
+      <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single price. PSA 10 = median of verified eBay completed sales, minimum three matched sales per card. Premium is PSA 10 divided by raw. ${gradedRows.length} cards have both figures. Raw NM as of ${DATA_DATE}; PSA 10 sales dated per row (${psaDates[0]} to ${psaDates[psaDates.length - 1]}).</p>` : "";
 
 const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
 const ebayCardHub = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("One Piece Card Game Japanese")}&_sop=15&${EPN}`;
@@ -611,11 +611,11 @@ const hub = `<!doctype html>
     <style>
       .cardGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-top: 18px; }
       .cardGrid a { display: block; border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 10px; background: rgba(20,23,28,.6); text-align: center; }
-      .cardGrid a:hover { border-color: #10d7a0; }
+      .cardGrid a:hover { border-color: var(--accent); }
       .cardGrid img { display: block; width: 100%; height: auto; border-radius: 8px; }
       .cardGrid b { display: block; font-size: 13px; margin-top: 7px; color: #eef2ff; line-height: 1.3; }
-      .cardGrid small { color: #7d8698; font-size: 11.5px; }
-      .cardGrid .pr { display: block; color: #50dad9; font-family: "JetBrains Mono", monospace; font-weight: 800; margin-top: 3px; }
+      .cardGrid small { color: var(--muted); font-size: 11.5px; }
+      .cardGrid .pr { display: block; color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 800; margin-top: 3px; }
     </style>
   </head>
   <body>
@@ -634,7 +634,7 @@ const hub = `<!doctype html>
       <div class="cardGrid">
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" width="716" height="1000" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
-      <p class="srcNoteA" style="color:#7d8698;font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
+      <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>
       ${/* 설명 3문단은 2026-08-28 소유자 지시로 삭제 — TCG 퀀트처럼 표·그리드만 */ ""}
     </main>

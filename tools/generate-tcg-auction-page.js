@@ -273,7 +273,7 @@ const html = `<!doctype html>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .tgTableScroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; scrollbar-width: thin; }
-      .tgTableScroll:focus-visible { outline: 2px solid #50dad9; outline-offset: 3px; }
+      .tgTableScroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
       .tgTable { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13.5px; font-variant-numeric: tabular-nums; }
       .tgTable th, .tgTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.07); text-align: right; white-space: nowrap; }
       .tgTable th { color: #8d95a7; font-weight: 700; font-size: 12px; text-align: right; }
@@ -284,41 +284,41 @@ const html = `<!doctype html>
       @media (max-width: 560px) { .tgTable th:first-child { max-width: 112px; white-space: normal; } }
       .tgStats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 6px; }
       .tgStat { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 14px; background: rgba(20,23,28,.6); }
-      .tgStat b { display: block; font-size: 21px; color: #50dad9; font-family: "JetBrains Mono", monospace; }
+      .tgStat b { display: block; font-size: 21px; color: var(--accent); font-variant-numeric: tabular-nums; }
       .tgStat small { color: #8d95a7; font-size: 12px; }
       .trendHead { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
       /* 게임 고르는 곳이라는 걸 놓치지 않게 눈에 띄게 만든다 — 2026-09-02 소유자 지적
          ("모르고 지나갈 수도 있어"). 강조색 테두리 + 살짝 빛나는 배경 + 큰 글씨.
          라벨도 위에 붙여 "무엇을 고르는 것인지"를 글로 말한다. */
       .trendPick { display: flex; flex-direction: column; gap: 4px; }
-      .trendPick > span { font-size: 12.5px; color: #50dad9; font-weight: 600; letter-spacing: .02em; }
+      .trendPick > span { font-size: 12.5px; color: var(--accent); font-weight: 600; letter-spacing: .02em; }
       .trendHead select { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 34px 10px 13px;
         border-radius: 10px; cursor: pointer; appearance: none; -webkit-appearance: none;
-        background-color: rgba(80,218,217,.10); color: #eef2ff;
+        background-color: rgba(var(--accent-rgb), .10); color: #eef2ff;
         background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2350dad9' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
         background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
-        border: 2px solid #50dad9; box-shadow: 0 0 0 3px rgba(80,218,217,.14); }
-      .trendHead select:hover { background-color: rgba(80,218,217,.18); }
-      .trendHead select:focus-visible { outline: 3px solid #8af3f2; outline-offset: 2px; }
+        border: 2px solid var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb), .14); }
+      .trendHead select:hover { background-color: rgba(var(--accent-rgb), .18); }
+      .trendHead select:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 70%, #fff); outline-offset: 2px; }
       /* ⚠️ select 배경을 바꾸면 펼친 목록(option)도 그 배경을 물려받는다. 글자색을 같이 지정하지 않으면
          밝은 바탕에 밝은 글씨가 되어 아무것도 안 보인다(2026-09-03 실제로 그렇게 나갔다).
          option 은 브라우저가 따로 그리므로 배경·글자색을 명시한다. */
       .trendHead select option { background-color: #14171c; color: #eef2ff; font-weight: 500; }
-      .trendHead select option:checked { background-color: #1d3b3b; color: #8af3f2; }
+      .trendHead select option:checked { background-color: #1d3b3b; color: color-mix(in srgb, var(--accent) 70%, #fff); }
       /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다(2026-09-02 소유자 지시). */
       .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
-      .opPlain strong { color: #8af3f2; font-weight: 650; }
+      .opPlain strong { color: color-mix(in srgb, var(--accent) 70%, #fff); font-weight: 650; }
       .opPlain .opHelp { display: block; margin-top: 4px; font-size: 13.5px; color: #8d95a7; }
       @media (max-width: 560px) { .opPlain { font-size: 15.5px; } .opPlain .opHelp { font-size: 12.5px; } }
       .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 12px 0 8px; font-size: 12.5px; color: #8d95a7; }
       .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
-      .opReadout .hi b { color: #50dad9; }
+      .opReadout .hi b { color: var(--accent); }
       .opChart { position: relative; margin-top: 6px; }
       .opBars { position: relative; display: flex; align-items: flex-end; gap: 2px; height: 180px; padding: 0 0 2px; }
       .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-      .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; }
+      .opCol i { display: block; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
-      .opCol:hover i, .opCol.on i { background: #8af3f2; }
+      .opCol:hover i, .opCol.on i { background: color-mix(in srgb, var(--accent) 70%, #fff); }
       .opAxis { position: relative; height: 16px; margin-top: 6px; color: #8d95a7; font-size: 11px; }
  /* 눈금선 3줄(0·절반·최고) — 막대 높이를 값으로 읽으려면 기준선이 있어야 한다. */
       .opGuide { position: absolute; inset: 0; pointer-events: none; }

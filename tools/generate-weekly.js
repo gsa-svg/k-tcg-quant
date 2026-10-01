@@ -148,12 +148,12 @@ const html = `<!doctype html>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .wkTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 10px 0 4px; }
-      .wkTable th { text-align: right; padding: 8px 9px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+      .wkTable th { text-align: right; padding: 8px 9px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .wkTable th:nth-child(1), .wkTable th:nth-child(2) { text-align: left; }
       .wkTable td { padding: 7px 9px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
       .wkTable td.num { text-align: right; white-space: nowrap; }
-      .wkTable td.up, .wkTable small.up { color: #10d7a0; } .wkTable td.down, .wkTable small.down { color: #e5484d; } .wkTable td.flat { color: #9aa4b6; }
-      .wkTable small { font-size: 10.5px; color: #6f7688; }
+      .wkTable td.up, .wkTable small.up { color: var(--accent); } .wkTable td.down, .wkTable small.down { color: var(--red); } .wkTable td.flat { color: #9aa4b6; }
+      .wkTable small { font-size: 11.5px; color: var(--muted); }
       .wkTable tr.stale td { opacity: .6; } .wkTable tr.stale td .when { opacity: 1; color: #f5c842; }
       .wkSummary { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 6px; }
       .wkSummary span { padding: 5px 11px; border: 1px solid #2a3140; border-radius: 999px; font-size: 12.5px; color: #cfd6e4; font-variant-numeric: tabular-nums; }

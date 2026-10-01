@@ -36,7 +36,7 @@
   // [주간|월간] 탭까지 사라진다 — 다른 세트엔 있는 탭이 여기만 없으면 고장으로 읽힌다.
   const MIN_POINTS_MONTH = 2;
 
-  const JP_COLOR = "#10d7a0";
+  const JP_COLOR = "#3bc8df";   // --accent
   const EN_COLOR = "#5a9bf6";
   // 초판(Blue Bottom)은 재판과 다른 상품이라 선 색도 나눈다. 파랑끼리 두면 구분이 안 된다.
   const BLUE_COLOR = "#c9a227";
@@ -179,7 +179,7 @@
       if (!v) return "";
       const h = Math.max(2, (v / volMax) * (VOL_H - 8));
       const dir = i === 0 ? 0 : p.median - pts[i - 1].median;
-      const bc = dir > 0 ? "#10d7a0" : dir < 0 ? "#e5484d" : "#3a4152";
+      const bc = dir > 0 ? "#00e5a0" : dir < 0 ? "#ff5f6e" : "#3a4152";   // --green / --red
       return '<rect class="opbcBar" x="' + (XY[i].x - bw / 2).toFixed(1) + '" y="' + (H - B - h).toFixed(1) +
         '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5" fill="' + bc +
         '" opacity="' + (dir === 0 ? ".3" : ".55") + '"/>';
@@ -232,7 +232,7 @@
     const kVol = lang === "ko" ? "거래량 (상승·하락)" : "Sales (up · down)";
     const keyRow = '<div class="opbcKey">' +
       '<span><i class="kLine" style="background:' + color + '"></i>' + kPrice + "</span>" +
-      '<span><i class="kBar" style="background:#10d7a0"></i><i class="kBar" style="background:#e5484d"></i>' + kVol + "</span>" +
+      '<span><i class="kBar" style="background:#00e5a0"></i><i class="kBar" style="background:#ff5f6e"></i>' + kVol + "</span>" +
       "</div>";
 
     // 점은 마지막 것만 보인다 — 선 위 점들이 시각 소음이라는 확정안. 좌표는 스크럽 JS 가
@@ -611,8 +611,8 @@
     ".opbcTabs{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--line,#242936);border-radius:9px;background:var(--paper,#11141c)}",
     ".opbcTab{appearance:none;border:0;background:transparent;color:var(--muted,#8d95a7);font:inherit;font-size:12px;font-weight:700;padding:5px 12px;border-radius:7px;cursor:pointer}",
     ".opbcTab:hover{color:var(--ink,#eef2ff)}",
-    ".opbcTab.on{background:rgba(16,215,160,.14);color:#10d7a0}",
-    ".opbcTab:focus-visible{outline:2px solid #10d7a0;outline-offset:1px}",
+    ".opbcTab.on{background:rgba(59,200,223,.14);color:#3bc8df}",
+    ".opbcTab:focus-visible{outline:2px solid #3bc8df;outline-offset:1px}",
     // 두 칸으로 나누지 않는다. 본문 폭이 800px 남짓이라 반으로 쪼개면 차트가 눌려
     // 세로 움직임이 안 보인다(2026-08-13 실측). 세로로 쌓으면 각 차트가 본문 폭을 다 쓴다.
     // 폭 상한을 두는 이유: SVG 가 viewBox 비율을 지키느라 폭이 넓어질수록 세로도 같이 커진다.
@@ -640,7 +640,7 @@
     ".opbcLabel{font-size:12px;font-weight:700;color:var(--muted,#8d95a7)}",
     ".opbcNow{font-size:28px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink,#eef2ff)}",
     ".opbcChg{font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}",
-    ".opbcChg.up{color:#10d7a0}.opbcChg.dn{color:#e5484d}.opbcChg.flat{color:var(--muted,#8d95a7)}",
+    ".opbcChg.up{color:#00e5a0}.opbcChg.dn{color:#ff5f6e}.opbcChg.flat{color:var(--muted,#8d95a7)}",
     ".opbcChgTag{font-size:10px;font-weight:700;color:var(--muted,#8d95a7);margin-left:2px}",
     ".opbcSpan{margin-left:auto;font-size:11px;color:var(--muted,#8d95a7);font-variant-numeric:tabular-nums}",
     ".opbcSupWrap{margin-top:16px}",
@@ -648,7 +648,7 @@
     ".opbcLeg{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--ink,#eef2ff);font-variant-numeric:tabular-nums}",
     ".opbcLeg i{width:9px;height:9px;border-radius:2px;display:inline-block}",
     ".opbcPane svg{width:100%;height:auto;display:block;margin-top:4px;touch-action:pan-y}",
-    ".opbcPane svg:focus-visible{outline:2px solid #50dad9;outline-offset:3px;border-radius:4px}",
+    ".opbcPane svg:focus-visible{outline:2px solid #3bc8df;outline-offset:3px;border-radius:4px}",
     ".opbcReadout{min-height:3.4em;margin:8px 0 0;color:var(--muted,#8d95a7);font-size:13px;line-height:1.7;font-variant-numeric:tabular-nums}",
     ".opbcGrid{stroke:rgba(255,255,255,.055);stroke-width:1}",
     ".opbcAx{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",

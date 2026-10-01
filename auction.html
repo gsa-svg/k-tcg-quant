@@ -28,14 +28,14 @@
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Card Game completed eBay auction results","description":"Daily completed-auction outcomes for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. 65,915 auctions tracked in the latest 57 full-day window (14 partial days excluded).","url":"https://opboxindex.com/auction.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-09-30","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-auction-daily.csv"}]}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Auction Data","item":"https://opboxindex.com/auction.html"}]}</script>
-    <link rel="stylesheet" href="styles.css?v=20260930ui" />
-    <script defer src="lang-toggle.js?v=20260930ui"></script>
+    <link rel="stylesheet" href="styles.css?v=20261001ui" />
+    <script defer src="lang-toggle.js?v=20261001ui"></script>
     <style>
       /* 수집이 중단된 날은 눈에 띄게 둔다 — 정상일과 같아 보이면 반쪽 하루를 그대로 읽는다. */
       .partialRow { opacity: .62; }
       /* 신선도·불완전 경고는 사이트 전체가 #f5c842 하나를 쓴다(박스차트 stale 배지, 가격 관측일).
          여기만 #f0b84b 였다 — 같은 뜻엔 같은 색(2026-08-26 감사). */
-      .pFlag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      .pFlag { font-size: 11.5px; font-weight: 700;
         color: #f5c842; border: 1px solid rgba(245,200,66,.45); border-radius: 5px; padding: 1px 5px; margin-left: 6px; }
       .aucWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .aucWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
@@ -44,7 +44,7 @@
       .aucWrap p { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 720px; margin: 8px 0; }
       .aucWrap p strong { color: var(--ink); }
       .aTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
-      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .aTable td.l small { color: var(--muted); display: block; font-size: 11px; }
@@ -69,19 +69,19 @@
       .metricTabs { display: flex; flex-wrap: wrap; gap: 4px; }
       .metricTabs button { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
         border: 1px solid var(--line); background: transparent; color: var(--muted); }
-      .metricTabs button[aria-pressed="true"] { background: rgba(80,218,217,.14); border-color: rgba(80,218,217,.5); color: #bff3f2; }
-      .metricTabs button:focus-visible { outline: 2px solid #50dad9; outline-offset: 2px; }
+      .metricTabs button[aria-pressed="true"] { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: #bff3f2; }
+      .metricTabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       /* 일별 막대 — 한 번에 한 지표만 그린다. 축이 둘인 그래프는 만들지 않는다. */
       /* 그래프 위 한 줄 — 눈금 없이 막대만 보면 높이가 얼마인지 알 수 없다. */
       /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다.
          본문보다 크게 잡는다(17px). 2026-09-02 소유자 지시로 가독성이 이 페이지의 1순위다. */
       .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
-      .opPlain strong { color: #8af3f2; font-weight: 650; }
+      .opPlain strong { color: color-mix(in srgb, var(--accent) 70%, #fff); font-weight: 650; }
       .opPlain .opHelp { display: block; margin-top: 4px; font-size: 13.5px; color: var(--muted); }
       @media (max-width: 560px) { .opPlain { font-size: 15.5px; } .opPlain .opHelp { font-size: 12.5px; } }
       .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0 8px; font-size: 12.5px; color: var(--muted); }
       .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
-      .opReadout .hi b { color: #50dad9; }
+      .opReadout .hi b { color: var(--accent); }
       .opChart { position: relative; margin-top: 6px; }
       /* 최고값 기준선 — 막대가 어디까지 차면 최고인지 눈으로 잡아준다. */
       .opBars { position: relative; }
@@ -92,10 +92,10 @@
         background: #0a0c10; padding: 0 4px; font-variant-numeric: tabular-nums; }
       .opBars { display: flex; align-items: flex-end; gap: 2px; height: 190px; padding: 0 0 2px; }
       .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-      .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
-      .opCol.pt i { background: rgba(80,218,217,.34); }
+      .opCol i { display: block; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
+      .opCol.pt i { background: rgba(var(--accent-rgb), .34); }
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
-      .opCol:hover i, .opCol:focus-visible i, .opCol.on i { background: #8af3f2; }
+      .opCol:hover i, .opCol:focus-visible i, .opCol.on i { background: color-mix(in srgb, var(--accent) 70%, #fff); }
       .opAxis { position: relative; height: 16px; margin-top: 6px; color: #8d95a7; font-size: 11px; }
       .opTip { position: absolute; z-index: 5; pointer-events: none; background: #10141b; border: 1px solid rgba(255,255,255,.16);
         border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; max-width: min(240px, 88vw); }
@@ -106,13 +106,13 @@
       .kindRow { display: grid; grid-template-columns: 116px 1fr 104px; gap: 10px; align-items: center; font-size: 13px; }
       .kindRow .kName { color: #eef2ff; font-weight: 600; }
       .kindRow .kTrack { position: relative; height: 20px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
-      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #50dad9; }
+      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); }
       .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 20px; font-size: 11.5px; color: #04222a; font-weight: 700; }
       .kindRow .kVal.out { color: var(--muted); }
       .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
       .kindRow .kMed b { color: #eef2ff; }
       .kindRow .kEd { display: block; font-size: 12px; line-height: 1.45; }
-      .kindRow .kEdTag { color: #7d8698; font-size: 10px; letter-spacing: .06em; margin-right: 5px; }
+      .kindRow .kEdTag { color: var(--muted); font-size: 11.5px; margin-right: 5px; }
       @media (max-width: 560px) { .kindRow { grid-template-columns: 88px 1fr 92px; font-size: 12px; } .opBars { height: 150px; } }
       /* narrow screens: 툴팁이 차트를 덮으므로 숨기고, 위 읽는 줄이 그 역할을 한다. */
       @media (max-width: 560px) { .opTip { display: none; } .opReadout { font-size: 12px; gap: 4px 12px; min-height: 34px; } }
@@ -244,12 +244,12 @@
 <tr><td>3</td><td class="l">OP01-015<small>OP01-015 · OP-01</small></td><td>$443</td><td>$351–$534</td><td>33.3%</td><td>4</td></tr>
 <tr><td>4</td><td class="l">OP01-017<small>OP01-017 · OP-01</small></td><td>$307</td><td>$49–$562</td><td>73.5%</td><td>25</td></tr>
 <tr><td>5</td><td class="l">OP12-039<small>OP12-039 · OP-12</small></td><td>$278</td><td>$149–$407</td><td>36.4%</td><td>4</td></tr>
-<tr><td>6</td><td class="l">Gear Two Alternate Art<small>OP11-080 · OP-11</small></td><td>$278</td><td>$233–$335</td><td>48.4%</td><td>14</td></tr>
+<tr><td>6</td><td class="l">Gear Two Alternate Art<small>OP11-080 · OP-11</small></td><td>$278</td><td>$233–$335</td><td>46.9%</td><td>14</td></tr>
 <tr><td>7</td><td class="l">OP05-022<small>OP05-022 · OP-05</small></td><td>$263</td><td>$21–$473</td><td>25%</td><td>6</td></tr>
 <tr><td>8</td><td class="l">OP13-031<small>OP13-031 · OP-13</small></td><td>$236</td><td>$195–$285</td><td>43.5%</td><td>10</td></tr>
 <tr><td>9</td><td class="l">OP17-084<small>OP17-084 · OP-17</small></td><td>$232</td><td>$214–$280</td><td>35.7%</td><td>5</td></tr>
 <tr><td>10</td><td class="l">OP01-004<small>OP01-004 · OP-01</small></td><td>$231</td><td>$118–$455</td><td>46.7%</td><td>7</td></tr>
-<tr><td>11</td><td class="l">OP09-078<small>OP09-078 · OP-09</small></td><td>$225</td><td>$3–$1,075</td><td>38.2%</td><td>13</td></tr>
+<tr><td>11</td><td class="l">OP09-078<small>OP09-078 · OP-09</small></td><td>$225</td><td>$3–$1,075</td><td>37.1%</td><td>13</td></tr>
 <tr><td>12</td><td class="l">OP12-014<small>OP12-014 · OP-12</small></td><td>$220</td><td>$14–$460</td><td>34.4%</td><td>31</td></tr>
         </tbody>
       </table>
@@ -568,7 +568,7 @@
       // 카드 순위 정렬 전환. 초기 표는 서버가 중앙가순으로 렌더해 두고(JS 없이도 보임),
       // 버튼을 누르면 같은 데이터로 tbody 만 다시 그린다.
       (function () {
-        var DATA = {"med":[{"id":"EB02-010","set":"EB-02","name":"Monkey D. Luffy 010 Alternate Art","med":910,"low":691,"high":1199,"st":52.1,"sold":49},{"id":"ST31-004","set":"ST-31","name":"ST31-004","med":790,"low":395,"high":880,"st":45.1,"sold":23},{"id":"OP01-015","set":"OP-01","name":"OP01-015","med":442.5,"low":351,"high":534,"st":33.3,"sold":4},{"id":"OP01-017","set":"OP-01","name":"OP01-017","med":307,"low":49,"high":562.02,"st":73.5,"sold":25},{"id":"OP12-039","set":"OP-12","name":"OP12-039","med":277.86,"low":148.5,"high":407.22,"st":36.4,"sold":4},{"id":"OP11-080","set":"OP-11","name":"Gear Two Alternate Art","med":277.5,"low":232.5,"high":335,"st":48.4,"sold":14},{"id":"OP05-022","set":"OP-05","name":"OP05-022","med":262.8,"low":20.5,"high":473.15,"st":25,"sold":6},{"id":"OP13-031","set":"OP-13","name":"OP13-031","med":236.25,"low":194.5,"high":285,"st":43.5,"sold":10},{"id":"OP17-084","set":"OP-17","name":"OP17-084","med":231.55,"low":214,"high":280,"st":35.7,"sold":5},{"id":"OP01-004","set":"OP-01","name":"OP01-004","med":230.5,"low":117.5,"high":455,"st":46.7,"sold":7},{"id":"OP09-078","set":"OP-09","name":"OP09-078","med":225,"low":2.5,"high":1075,"st":38.2,"sold":13},{"id":"OP12-014","set":"OP-12","name":"OP12-014","med":220,"low":13.5,"high":460,"st":34.4,"sold":31}],"sales":[{"id":"OP14-020","set":"OP-14","name":"OP14-020","med":84.75,"low":73.76,"high":92,"st":78.5,"sold":168},{"id":"OP17-119","set":"OP-17","name":"OP17-119","med":26,"low":21.5,"high":38,"st":89.5,"sold":162},{"id":"OP17-118","set":"OP-17","name":"Rocks D. Xebec (Super Alternate Art)","med":16.5,"low":13.5,"high":22,"st":70.4,"sold":157},{"id":"OP17-093","set":"OP-17","name":"OP17-093","med":7,"low":4,"high":14,"st":70.1,"sold":121},{"id":"OP01-016","set":"OP-01","name":"Nami Parallel","med":43.5,"low":17.75,"high":167.5,"st":63.7,"sold":120},{"id":"EB02-003","set":"EB-02","name":"EB02-003","med":18.02,"low":13.83,"high":35.59,"st":85.5,"sold":100},{"id":"EB03-053","set":"EB-03","name":"Nami 053 SP","med":15.25,"low":7.5,"high":51,"st":61,"sold":100},{"id":"OP05-119","set":"OP-05","name":"Monkey D. Luffy","med":81.9,"low":21.5,"high":195,"st":51.1,"sold":95},{"id":"ST01-012","set":"ST-01","name":"ST01-012","med":53.11,"low":31,"high":147.5,"st":59.4,"sold":92},{"id":"OP07-109","set":"OP-07","name":"Monkey D. Luffy 109 Parallel","med":15.5,"low":4.25,"high":66.08,"st":51.4,"sold":92},{"id":"OP17-022","set":"OP-17","name":"Shanks (Manga)","med":6.8,"low":2.25,"high":27.52,"st":58,"sold":91},{"id":"OP17-079","set":"OP-17","name":"Monkey D. Luffy 079 (Super Alternate Art)","med":66,"low":48,"high":1475,"st":69,"sold":89}]};
+        var DATA = {"med":[{"id":"EB02-010","set":"EB-02","name":"Monkey D. Luffy 010 Alternate Art","med":910,"low":691,"high":1199,"st":52.1,"sold":49},{"id":"ST31-004","set":"ST-31","name":"ST31-004","med":790,"low":395,"high":880,"st":45.1,"sold":23},{"id":"OP01-015","set":"OP-01","name":"OP01-015","med":442.5,"low":351,"high":534,"st":33.3,"sold":4},{"id":"OP01-017","set":"OP-01","name":"OP01-017","med":307,"low":49,"high":562.02,"st":73.5,"sold":25},{"id":"OP12-039","set":"OP-12","name":"OP12-039","med":277.86,"low":148.5,"high":407.22,"st":36.4,"sold":4},{"id":"OP11-080","set":"OP-11","name":"Gear Two Alternate Art","med":277.5,"low":232.5,"high":335,"st":46.9,"sold":14},{"id":"OP05-022","set":"OP-05","name":"OP05-022","med":262.8,"low":20.5,"high":473.15,"st":25,"sold":6},{"id":"OP13-031","set":"OP-13","name":"OP13-031","med":236.25,"low":194.5,"high":285,"st":43.5,"sold":10},{"id":"OP17-084","set":"OP-17","name":"OP17-084","med":231.55,"low":214,"high":280,"st":35.7,"sold":5},{"id":"OP01-004","set":"OP-01","name":"OP01-004","med":230.5,"low":117.5,"high":455,"st":46.7,"sold":7},{"id":"OP09-078","set":"OP-09","name":"OP09-078","med":225,"low":2.5,"high":1075,"st":37.1,"sold":13},{"id":"OP12-014","set":"OP-12","name":"OP12-014","med":220,"low":13.5,"high":460,"st":34.4,"sold":31}],"sales":[{"id":"OP14-020","set":"OP-14","name":"OP14-020","med":84.75,"low":73.76,"high":92,"st":78.5,"sold":168},{"id":"OP17-119","set":"OP-17","name":"OP17-119","med":26,"low":21.5,"high":38,"st":89.5,"sold":162},{"id":"OP17-118","set":"OP-17","name":"Rocks D. Xebec (Super Alternate Art)","med":16.5,"low":13.5,"high":22,"st":70.4,"sold":157},{"id":"OP17-093","set":"OP-17","name":"OP17-093","med":7,"low":4,"high":14,"st":70.1,"sold":121},{"id":"OP01-016","set":"OP-01","name":"Nami Parallel","med":43.5,"low":17.75,"high":167.5,"st":63.7,"sold":120},{"id":"EB02-003","set":"EB-02","name":"EB02-003","med":18.02,"low":13.5,"high":35.59,"st":86,"sold":104},{"id":"EB03-053","set":"EB-03","name":"Nami 053 SP","med":15,"low":7.49,"high":51,"st":61.2,"sold":101},{"id":"OP05-119","set":"OP-05","name":"Monkey D. Luffy","med":83.45,"low":21.5,"high":192.5,"st":51.3,"sold":96},{"id":"OP07-109","set":"OP-07","name":"Monkey D. Luffy 109 Parallel","med":15.5,"low":4.25,"high":66.08,"st":51.7,"sold":93},{"id":"ST01-012","set":"ST-01","name":"ST01-012","med":53.11,"low":31,"high":147.5,"st":59.4,"sold":92},{"id":"OP17-022","set":"OP-17","name":"Shanks (Manga)","med":6.8,"low":2.25,"high":27.52,"st":57.6,"sold":91},{"id":"OP17-079","set":"OP-17","name":"Monkey D. Luffy 079 (Super Alternate Art)","med":66,"low":48,"high":1475,"st":69,"sold":89}]};
         var body = document.getElementById("cardRankBody");
         if (!body) return;
         var KO = function () { return document.documentElement.lang === "ko"; };

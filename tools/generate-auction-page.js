@@ -253,7 +253,7 @@ const html = `<!doctype html>
       .partialRow { opacity: .62; }
       /* 신선도·불완전 경고는 사이트 전체가 #f5c842 하나를 쓴다(박스차트 stale 배지, 가격 관측일).
          여기만 #f0b84b 였다 — 같은 뜻엔 같은 색(2026-08-26 감사). */
-      .pFlag { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+      .pFlag { font-size: 11.5px; font-weight: 700;
         color: #f5c842; border: 1px solid rgba(245,200,66,.45); border-radius: 5px; padding: 1px 5px; margin-left: 6px; }
       .aucWrap { max-width: 900px; margin: 0 auto; padding: 20px clamp(16px,3vw,28px) 44px; }
       .aucWrap h1 { margin: 6px 0; font-size: clamp(23px,4vw,32px); line-height: 1.2; }
@@ -262,7 +262,7 @@ const html = `<!doctype html>
       .aucWrap p { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 720px; margin: 8px 0; }
       .aucWrap p strong { color: var(--ink); }
       .aTable { width: 100%; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
-      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .3px; white-space: nowrap; }
+      .aTable th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .aTable td.l small { color: var(--muted); display: block; font-size: 11px; }
@@ -287,19 +287,19 @@ const html = `<!doctype html>
       .metricTabs { display: flex; flex-wrap: wrap; gap: 4px; }
       .metricTabs button { font: inherit; font-size: 12px; padding: 5px 10px; border-radius: 999px; cursor: pointer;
         border: 1px solid var(--line); background: transparent; color: var(--muted); }
-      .metricTabs button[aria-pressed="true"] { background: rgba(80,218,217,.14); border-color: rgba(80,218,217,.5); color: #bff3f2; }
-      .metricTabs button:focus-visible { outline: 2px solid #50dad9; outline-offset: 2px; }
+      .metricTabs button[aria-pressed="true"] { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: #bff3f2; }
+      .metricTabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
       /* 일별 막대 — 한 번에 한 지표만 그린다. 축이 둘인 그래프는 만들지 않는다. */
       /* 그래프 위 한 줄 — 눈금 없이 막대만 보면 높이가 얼마인지 알 수 없다. */
       /* 한 문장 요약 — 그래프를 못 읽어도 이것만 읽으면 뜻이 통해야 한다.
          본문보다 크게 잡는다(17px). 2026-09-02 소유자 지시로 가독성이 이 페이지의 1순위다. */
       .opPlain { margin: 14px 0 2px; font-size: 17px; line-height: 1.55; color: #eef2ff; }
-      .opPlain strong { color: #8af3f2; font-weight: 650; }
+      .opPlain strong { color: color-mix(in srgb, var(--accent) 70%, #fff); font-weight: 650; }
       .opPlain .opHelp { display: block; margin-top: 4px; font-size: 13.5px; color: var(--muted); }
       @media (max-width: 560px) { .opPlain { font-size: 15.5px; } .opPlain .opHelp { font-size: 12.5px; } }
       .opReadout { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 14px 0 8px; font-size: 12.5px; color: var(--muted); }
       .opReadout b { color: #eef2ff; font-variant-numeric: tabular-nums; }
-      .opReadout .hi b { color: #50dad9; }
+      .opReadout .hi b { color: var(--accent); }
       .opChart { position: relative; margin-top: 6px; }
       /* 최고값 기준선 — 막대가 어디까지 차면 최고인지 눈으로 잡아준다. */
       .opBars { position: relative; }
@@ -310,10 +310,10 @@ const html = `<!doctype html>
         background: #0a0c10; padding: 0 4px; font-variant-numeric: tabular-nums; }
       .opBars { display: flex; align-items: flex-end; gap: 2px; height: 190px; padding: 0 0 2px; }
       .opCol { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; }
-      .opCol i { display: block; background: #50dad9; border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
-      .opCol.pt i { background: rgba(80,218,217,.34); }
+      .opCol i { display: block; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; transition: background .12s; }
+      .opCol.pt i { background: rgba(var(--accent-rgb), .34); }
       .opCol.nul i { background: repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 3px, transparent 3px 6px); border-radius: 4px; }
-      .opCol:hover i, .opCol:focus-visible i, .opCol.on i { background: #8af3f2; }
+      .opCol:hover i, .opCol:focus-visible i, .opCol.on i { background: color-mix(in srgb, var(--accent) 70%, #fff); }
       .opAxis { position: relative; height: 16px; margin-top: 6px; color: #8d95a7; font-size: 11px; }
       .opTip { position: absolute; z-index: 5; pointer-events: none; background: #10141b; border: 1px solid rgba(255,255,255,.16);
         border-radius: 9px; padding: 7px 10px; font-size: 12px; line-height: 1.5; box-shadow: 0 6px 20px rgba(0,0,0,.5); opacity: 0; transition: opacity .1s; max-width: min(240px, 88vw); }
@@ -324,13 +324,13 @@ const html = `<!doctype html>
       .kindRow { display: grid; grid-template-columns: 116px 1fr 104px; gap: 10px; align-items: center; font-size: 13px; }
       .kindRow .kName { color: #eef2ff; font-weight: 600; }
       .kindRow .kTrack { position: relative; height: 20px; border-radius: 5px; background: rgba(255,255,255,.05); overflow: hidden; }
-      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: #50dad9; }
+      .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); }
       .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 20px; font-size: 11.5px; color: #04222a; font-weight: 700; }
       .kindRow .kVal.out { color: var(--muted); }
       .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
       .kindRow .kMed b { color: #eef2ff; }
       .kindRow .kEd { display: block; font-size: 12px; line-height: 1.45; }
-      .kindRow .kEdTag { color: #7d8698; font-size: 10px; letter-spacing: .06em; margin-right: 5px; }
+      .kindRow .kEdTag { color: var(--muted); font-size: 11.5px; margin-right: 5px; }
       @media (max-width: 560px) { .kindRow { grid-template-columns: 88px 1fr 92px; font-size: 12px; } .opBars { height: 150px; } }
       /* narrow screens: 툴팁이 차트를 덮으므로 숨기고, 위 읽는 줄이 그 역할을 한다. */
       @media (max-width: 560px) { .opTip { display: none; } .opReadout { font-size: 12px; gap: 4px 12px; min-height: 34px; } }
