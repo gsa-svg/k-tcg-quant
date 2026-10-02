@@ -5,6 +5,7 @@
  */
 const fs = require("fs");
 const { navHtml } = require("./site-nav");
+const { AFF_TOP, epnUrl } = require("./set-page-shared");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
@@ -43,6 +44,40 @@ function validatePage(page) {
   if (!page.sourceHtml.includes("en.onepiece-cardgame.com/products/")) {
     throw new Error(`${page.slug}: official Bandai product source is required`);
   }
+  // 상단 발매일 상자의 ISO 날짜는 공식 사실 표와 반드시 같아야 한다 — 한쪽만 고치면 같은 페이지에 날짜가 둘이 된다.
+  for (const [key, label] of [["releaseEn", "English release"], ["releaseJp", "Japanese release"]]) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(page[key] || "")) throw new Error(`${page.slug}: ${key} (YYYY-MM-DD) is required`);
+    const row = page.facts.find(([l]) => l === label);
+    if (!row || !row[1].startsWith(displayDate(page[key]))) throw new Error(`${page.slug}: ${key} ${page[key]} ≠ facts "${label}"`);
+  }
+}
+
+// 발매일 검색(2026-10-02): "one piece op 18 release date" 는 노출 1위인데 순위 7~9위·클릭 0 이었다(Bing 70일).
+// 답(날짜)을 제목·첫 화면에 바로 보이게 한다 — 경쟁 상위 페이지는 전부 제목에 날짜나 카운트다운이 있다.
+const shortDate = (iso) => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+function releaseRange(page) {
+  const [a, b] = [page.releaseEn, page.releaseJp].sort();
+  const year = b.slice(0, 4);
+  if (a === b) return `${shortDate(a)}, ${year}`;
+  if (a.slice(0, 7) === b.slice(0, 7)) return `${shortDate(a)}–${b.slice(8).replace(/^0/, "")}, ${year}`;
+  return `${shortDate(a)}–${shortDate(b)}, ${year}`;
+}
+const weekday = (iso) => new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+const TODAY = new Date().toISOString().slice(0, 10);
+function daysLeftText(iso) {
+  const d = Math.round((Date.parse(`${iso}T00:00:00Z`) - Date.parse(`${TODAY}T00:00:00Z`)) / 86400000);
+  return d > 1 ? `in ${d} days` : d === 1 ? "tomorrow" : d === 0 ? "today" : "released";
+}
+// 상단 발매일 상자: 이른 날짜가 위. 남은 날수는 생성 시각 기준으로 굽고, 방문자 날짜로 스크립트가 다시 센다.
+function releaseBox(page) {
+  const rows = [["English", page.releaseEn], ["Japan", page.releaseJp]].sort((x, y) => x[1].localeCompare(y[1]));
+  const rowHtml = rows.map(([where, iso]) => `<div class="relRow"><span class="relWhere">${where}</span><b><time datetime="${iso}">${displayDate(iso)}</time> <small>${weekday(iso)}</small></b><span class="relLeft" data-release="${iso}">${daysLeftText(iso)}</span></div>`).join("\n        ");
+  const ebay = epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${page.code} booster box`)}&_sop=10&customid=rel-${page.slug}`);
+  return `<section class="relBox" aria-label="${escapeHtml(page.code)} release dates">
+        ${rowHtml}
+        ${AFF_TOP}
+        <p class="relBuy"><a class="relBtn" href="${escapeHtml(ebay)}" target="_blank" rel="noopener noreferrer sponsored">${escapeHtml(page.code)} pre-orders on eBay</a></p>
+      </section>`;
 }
 
 function renderSections(sections) {
@@ -72,8 +107,9 @@ function seoName(page) {
 function seoTitle(page) {
   // 2026-09-29: 실검색어는 "one piece op 18 release date" 다(GSC). 종전 제목엔 'One Piece' 가 없고
   // 'Release Date' 가 맨 뒤라 구글 75위였다. 검색어 순서대로 앞에 둔다.
-  const core = `One Piece ${page.code} Release Date — ${seoName(page)}`;
-  const title = fit([`${core} | OP Box Index`, core], TITLE_MAX, page.slug);
+  // 2026-10-02: 날짜를 제목에 넣는다(답이 제목에 보여야 클릭·인용이 붙는다). 60자를 넘으면 세트명부터 뺀다.
+  const dated = `One Piece ${page.code} Release Date: ${releaseRange(page)}`;
+  const title = fit([`${dated} — ${seoName(page)}`, dated], TITLE_MAX, page.slug);
   if (seenTitles.has(title)) throw new Error(`타이틀 중복: ${title}`);
   seenTitles.add(title);
   return title;
@@ -161,6 +197,17 @@ function renderPage(page) {
     <meta name="theme-color" content="#0a0c10" />
     <style>
       .factTable{width:100%;max-width:720px;border-collapse:collapse;margin:16px 0}.factTable th,.factTable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.factTable th{width:36%;color:#9aa4b6;font-weight:600}.sourceNoteA{max-width:760px;color:#9aa4b6;font-size:13px;line-height:1.65}.setFaq{max-width:760px}.setFaq details{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 0}.setFaq summary{cursor:pointer;font-weight:700}
+      .relBox{max-width:720px;margin:14px 0 18px;padding:12px 16px 14px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-dim)}
+      .relRow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+      .relWhere{flex:0 0 64px;color:var(--muted);font-size:13px;font-weight:600}
+      .relRow b{flex:1 1 auto;font-family:var(--font-display);font-size:19px;line-height:1.25;color:var(--ink)}
+      .relRow b small{font-family:inherit;font-size:13px;font-weight:600;color:var(--muted);margin-left:4px}
+      .relLeft{color:var(--accent);font-size:14px;font-weight:700;white-space:nowrap}
+      .relBox .affTop{margin:10px 0 0}
+      .relBuy{margin:10px 0 0}
+      .relBtn{display:inline-block;padding:9px 14px;border-radius:9px;background:var(--accent);color:#06222a;font-weight:700;font-size:14px;text-decoration:none}
+      .relBtn:hover,.relBtn:focus-visible{filter:brightness(1.08);text-decoration:underline}
+      @media (max-width:420px){.relWhere{flex-basis:100%}.relRow b{font-size:18px}}
     </style>
   </head>
   <body>
@@ -172,6 +219,7 @@ function renderPage(page) {
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
       <h1>${escapeHtml(page.headline)}</h1>
+      ${releaseBox(page)}
       <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Published <time datetime="${page.published}">${displayDate(page.published)}</time> · Updated <time datetime="${page.modified}">${displayDate(page.modified)}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>
       <p>${page.introHtml}</p>
       <h2>Product facts</h2>
@@ -193,6 +241,16 @@ ${renderSections(page.sections)}
       </nav>
       <p class="affNote">OP Box Index is a data research site, not investment advice. Prices are references, not offers.</p>
     </footer>
+    <script>
+      // 남은 날수를 방문자 날짜로 다시 센다(생성 시각 기준 값이 구워져 있다).
+      (function () {
+        var now = new Date(), today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        document.querySelectorAll(".relLeft[data-release]").forEach(function (el) {
+          var p = el.getAttribute("data-release").split("-"), d = Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - today) / 86400000);
+          el.textContent = d > 1 ? "in " + d + " days" : d === 1 ? "tomorrow" : d === 0 ? "today" : "released";
+        });
+      })();
+    </script>
   </body>
 </html>
 `;
