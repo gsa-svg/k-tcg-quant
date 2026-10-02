@@ -22,7 +22,8 @@ const OUT = path.join(ROOT, "tcg-auction.html");
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
 const { navHtml } = require("./site-nav");
-const { EXCLUDED_TCG_KEYS } = require("./tcg-config");
+const { EXCLUDED_TCG_KEYS, TCGS } = require("./tcg-config");
+const { AFF_TOP, epnUrl } = require("./set-page-shared");
 const { visibleTrendRows } = require("./tcg-trend-model");
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -228,6 +229,13 @@ const chartRows = rows.map((r) => ({
 const chartJson = JSON.stringify(chartRows);
 
 
+// 게임별 진행 중 eBay 경매(종료 임박순) — 수집기와 같은 검색어(tcg-config q)를 쓴다(2026-10-02, EPN 수익).
+const TCG_QUERY = new Map(TCGS.map((g) => [g.k, g.q]));
+const liveLink = (key) => {
+  const q = TCG_QUERY.get(key);
+  const url = q && epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Auction=1&_sop=1&customid=tcg-${key}`);
+  return url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a>` : "—";
+};
 const tableRows = rows.map((r) => `          <tr>
             <th scope="row" class="tgName">${esc(r.name)}</th>
             <td>${num(r.live)}</td>
@@ -238,6 +246,7 @@ const tableRows = rows.map((r) => `          <tr>
             <td class="cov">${r.coveragePct == null ? "—" : (r.covApprox ? "≈100%" : r.coveragePct + "%")}</td>
             <td>${usd(r.amount)}</td>
             <td>${r.medPrice == null ? "—" : usd(r.medPrice)}</td>
+            <td>${liveLink(r.key)}</td>
           </tr>`).join("\n");
 
 const ld = JSON.stringify({
@@ -279,6 +288,8 @@ const html = `<!doctype html>
       .tgTable th { color: #8d95a7; font-weight: 700; font-size: 12px; text-align: right; }
       .tgTable th:first-child, .tgTable td:first-child { text-align: left; position: sticky; left: 0; z-index: 1; background: #14171c; border-right: 1px solid var(--line); }
       .tgTable .tgName { color: #eef2ff; font-weight: 700; font-size: 13.5px; }
+      .tgTable td a { color: var(--accent); font-weight: 600; text-decoration: none; }
+      .tgTable td a:hover, .tgTable td a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .tgScope, .tgTableHint { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 10px 0; }
       .tgStat .tgWhen { display: block; margin-top: 5px; font-size: 11px; }
       @media (max-width: 560px) { .tgTable th:first-child { max-width: 112px; white-space: normal; } }
@@ -368,6 +379,7 @@ const html = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow" data-ko="TCG 경매 데이터">TCG Auction Data</p>
       <h1 data-ko="카드게임 경매 — 무엇이 팔리고 무엇이 유찰되는가">Card game auctions: what sells and what passes</h1>
+      ${AFF_TOP}
 
       <div class="tgStats">
         <div class="tgStat"><b>${num(totLive)}</b><small data-ko="진행 중인 경매">live auctions</small><small class="tgWhen" data-ko="최근 관측">Latest snapshot</small></div>
@@ -433,7 +445,7 @@ const html = `<!doctype html>
       <div class="tgTableScroll" role="region" tabindex="0" aria-labelledby="tgTableTitle" aria-describedby="tgTableHint">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th></tr>
+            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th><th data-ko="이베이">eBay</th></tr>
           </thead>
           <tbody>
 ${tableRows}

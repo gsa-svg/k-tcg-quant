@@ -8,6 +8,7 @@ const fs = require("fs");
 const { navHtml } = require("./site-nav");
 const { readRecent } = require("./auction-archive");
 const { summarizeKinds } = require("./auction-aggregate");
+const { AFF_TOP, epnUrl } = require("./set-page-shared");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -163,12 +164,18 @@ const allCards = Object.entries(cardStats.cards || {})
   .map(([id, c]) => ({ id, ...c, name: nameOf(c.set, id) }));
 const topCards = allCards.slice().sort((a, b) => b.medPrice - a.medPrice).slice(0, 12);
 const cardsBySales = allCards.slice().sort((a, b) => b.sold - a.sold || b.medPrice - a.medPrice).slice(0, 12);
-const cardRow = (c) => ({ id: c.id, set: c.set, name: c.name || c.id, med: c.medPrice ?? null, low: c.low ?? null, high: c.high ?? null, st: c.sellThrough ?? null, sold: c.sold });
+// 진행 중 eBay 경매(종료 임박순) — 경매 결과를 보러 온 사람을 지금 끝나는 매물로 바로 잇는다(2026-10-02, EPN 수익).
+// customid 는 EPN 보고서에서 자리별 클릭·수익을 가르는 꼬리표다.
+const liveAuctionUrl = (q, spot) => epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Auction=1&_sop=1&customid=${spot}`);
+const liveLink = (url) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a>` : "—");
+const KIND_QUERY = { card: "One Piece Card Game card", box: "One Piece Card Game booster box sealed", pack: "One Piece Card Game booster pack sealed" };
+const cardEbay = (c) => liveAuctionUrl(`One Piece ${c.id}`, "auc-card");
+const cardRow = (c) => ({ id: c.id, set: c.set, name: c.name || c.id, med: c.medPrice ?? null, low: c.low ?? null, high: c.high ?? null, st: c.sellThrough ?? null, sold: c.sold, ebay: cardEbay(c) });
 const cardRankJson = JSON.stringify({ med: topCards.map(cardRow), sales: cardsBySales.map(cardRow) });
 
 const dTr = daily.map((x) => `<tr${PARTIAL_DAYS.has(x.d) ? ' class="partialRow"' : ""}><td class="l">${esc(x.d)}${PARTIAL_DAYS.has(x.d) ? ' <span class="pFlag" data-ko="부분수집" title="Collection was interrupted that day — treat this row as incomplete">partial</span>' : ""}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? usd(x.medPrice) : "—"}</td><td>${x.medBids != null ? num(x.medBids) : "—"}</td></tr>`).join("\n");
-const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
-const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l" data-ko="${k.k === "card" ? "싱글 카드" : k.k === "box" ? "밀봉 부스터 박스" : "밀봉 부스터 팩"}">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td></tr>`).join("\n");
+const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td><td>${liveLink(cardEbay(c))}</td></tr>`).join("\n");
+const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l" data-ko="${k.k === "card" ? "싱글 카드" : k.k === "box" ? "밀봉 부스터 박스" : "밀봉 부스터 팩"}">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td><td>${liveLink(liveAuctionUrl(KIND_QUERY[k.k], "auc-kind"))}</td></tr>`).join("\n");
 
 // ── 다른 TCG 교차 비교 ─────────────────────────────────────────────────────
 // 원피스 낙찰률만 보면 그게 높은지 낮은지 알 수 없다. 같은 방식·같은 기간으로 모은
@@ -265,6 +272,8 @@ const html = `<!doctype html>
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .aTable td.l small { color: var(--muted); display: block; font-size: 11px; }
+      .aTable td a { color: var(--accent); font-weight: 600; text-decoration: none; }
+      .aTable td a:hover, .aTable td a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .faqItem { max-width: 720px; border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
       .faqItem p { font-size: 13.5px; margin: 4px 0 10px; }
@@ -371,6 +380,7 @@ const html = `<!doctype html>
     <main id="main-content" class="aucWrap">
       <p class="eyebrow" data-ko="경매 데이터">Auction Data</p>
       <h1 data-ko="원피스 카드 경매 결과 — 실제 낙찰가">One Piece card auction results — real winning bids</h1>
+      ${AFF_TOP}
       <div class="statRow">
         <div class="stat hi"><b>${totN ? Math.round((totSold / totN) * 100) : "—"}%</b><span data-ko="낙찰${aggNoteKo}">sold${aggNote}</span></div>
         <div class="stat"><b>${num(totN)}</b><span data-ko="확인한 경매">auctions checked</span></div>
@@ -425,7 +435,7 @@ ${dTr}
       <h2 data-ko="밀봉 박스는 팔린다. 싱글은 대개 안 팔린다.">Sealed boxes sell. Singles mostly don't.</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th></tr></thead>
+        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th><th data-ko="이베이">eBay</th></tr></thead>
         <tbody>
 ${kTr}
         </tbody>
@@ -442,15 +452,14 @@ ${tcgGameCount >= 5 ? `
       </div>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th></tr></thead>
+        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th><th data-ko="이베이">eBay</th></tr></thead>
         <tbody id="cardRankBody">
 ${cTr}
         </tbody>
       </table>
       </div>
       <!-- 설명 문단은 전부 뺐다 — 2026-09-02 소유자 지시("글자도 걍 날려, 기간 정도만 냅두고").
-           이베이 파트너 고지도 뺐다: 이 페이지에는 이베이 링크가 0개라 고지 의무가 없다(실측 확인).
-           ⚠️ 나중에 이 페이지에 제휴 링크를 넣으면 고지를 반드시 되살려야 한다. -->
+           2026-10-02 진행 경매 eBay 링크(카드 순위·상품 종류 표)를 넣으며 상단 제휴 고지(AFF_TOP)를 되살렸다 — 가드 E1. -->
       <p style="margin-top:16px;font-size:12.5px;color:var(--muted)"><a href="free-data.html">Free CSV</a> · <a href="methodology.html">How we count</a> · <a href="cards/">Card prices</a> · <a href="sets/index.html">Set guides</a></p>
     </main>
     <script>
@@ -789,6 +798,13 @@ ${cTr}
             add(c.low != null && c.high != null ? usd(c.low) + "\u2013" + usd(c.high) : "\u2014");
             add(c.st != null ? c.st + "%" : "\u2014");
             add(c.sold.toLocaleString("en-US"));
+            if (c.ebay) {
+              var a = document.createElement("a");
+              a.href = c.ebay; a.target = "_blank"; a.rel = "noopener noreferrer sponsored";
+              a.dataset.en = "Live auctions"; a.dataset.ko = "진행 경매";
+              a.textContent = KO() ? a.dataset.ko : a.dataset.en;
+              add(a);
+            } else add("—");
             body.appendChild(tr);
           });
         }
