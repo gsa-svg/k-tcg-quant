@@ -234,10 +234,10 @@ const TCG_QUERY = new Map(TCGS.map((g) => [g.k, g.q]));
 const liveLink = (key) => {
   const q = TCG_QUERY.get(key);
   const url = q && epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Auction=1&_sop=1&customid=tcg-${key}`);
-  return url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a>` : "—";
+  return url ? `<a class="live" href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a>` : "";
 };
 const tableRows = rows.map((r) => `          <tr>
-            <th scope="row" class="tgName">${esc(r.name)}</th>
+            <th scope="row" class="tgName">${esc(r.name)}${liveLink(r.key)}</th>
             <td>${num(r.live)}</td>
             <td>${num(r.endingToday)}</td>
             <td>${num(r.ended)}</td>
@@ -246,7 +246,6 @@ const tableRows = rows.map((r) => `          <tr>
             <td class="cov">${r.coveragePct == null ? "—" : (r.covApprox ? "≈100%" : r.coveragePct + "%")}</td>
             <td>${usd(r.amount)}</td>
             <td>${r.medPrice == null ? "—" : usd(r.medPrice)}</td>
-            <td>${liveLink(r.key)}</td>
           </tr>`).join("\n");
 
 const ld = JSON.stringify({
@@ -288,8 +287,9 @@ const html = `<!doctype html>
       .tgTable th { color: #8d95a7; font-weight: 700; font-size: 12px; text-align: right; }
       .tgTable th:first-child, .tgTable td:first-child { text-align: left; position: sticky; left: 0; z-index: 1; background: #14171c; border-right: 1px solid var(--line); }
       .tgTable .tgName { color: #eef2ff; font-weight: 700; font-size: 13.5px; }
-      .tgTable td a { color: var(--accent); font-weight: 600; text-decoration: none; }
-      .tgTable td a:hover, .tgTable td a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+      /* 진행 경매 링크는 고정된 게임명 칸 안 — 모바일 가로 스크롤에서도 늘 보인다. */
+      .tgTable a.live { display: block; width: fit-content; margin-top: 2px; padding: 4px 0; color: var(--accent); font-size: 12.5px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+      .tgTable a.live:hover, .tgTable a.live:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .tgScope, .tgTableHint { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 10px 0; }
       .tgStat .tgWhen { display: block; margin-top: 5px; font-size: 11px; }
       @media (max-width: 560px) { .tgTable th:first-child { max-width: 112px; white-space: normal; } }
@@ -445,7 +445,7 @@ const html = `<!doctype html>
       <div class="tgTableScroll" role="region" tabindex="0" aria-labelledby="tgTableTitle" aria-describedby="tgTableHint">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th><th data-ko="이베이">eBay</th></tr>
+            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th></tr>
           </thead>
           <tbody>
 ${tableRows}

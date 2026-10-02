@@ -25,8 +25,9 @@
       .tgTable th { color: #8d95a7; font-weight: 700; font-size: 12px; text-align: right; }
       .tgTable th:first-child, .tgTable td:first-child { text-align: left; position: sticky; left: 0; z-index: 1; background: #14171c; border-right: 1px solid var(--line); }
       .tgTable .tgName { color: #eef2ff; font-weight: 700; font-size: 13.5px; }
-      .tgTable td a { color: var(--accent); font-weight: 600; text-decoration: none; }
-      .tgTable td a:hover, .tgTable td a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+      /* 진행 경매 링크는 고정된 게임명 칸 안 — 모바일 가로 스크롤에서도 늘 보인다. */
+      .tgTable a.live { display: block; width: fit-content; margin-top: 2px; padding: 4px 0; color: var(--accent); font-size: 12.5px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+      .tgTable a.live:hover, .tgTable a.live:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .tgScope, .tgTableHint { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 10px 0; }
       .tgStat .tgWhen { display: block; margin-top: 5px; font-size: 11px; }
       @media (max-width: 560px) { .tgTable th:first-child { max-width: 112px; white-space: normal; } }
@@ -183,11 +184,11 @@
       <div class="tgTableScroll" role="region" tabindex="0" aria-labelledby="tgTableTitle" aria-describedby="tgTableHint">
         <table class="tgTable">
           <thead>
-            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th><th data-ko="이베이">eBay</th></tr>
+            <tr><th data-ko="게임">Game</th><th data-ko="진행중">Live</th><th data-ko="오늘 종료">Ending today</th><th data-ko="확인 수">Checked</th><th data-ko="낙찰률">Sold %</th><th data-ko="유찰률">Unsold %</th><th data-ko="표본 비율">Coverage</th><th data-ko="거래액">Total spent</th><th data-ko="낙찰가">Price</th></tr>
           </thead>
           <tbody>
           <tr>
-            <th scope="row" class="tgName">Pokemon</th>
+            <th scope="row" class="tgName">Pokemon<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>281,482</td>
             <td>36,698</td>
             <td>10,782</td>
@@ -196,10 +197,9 @@
             <td class="cov">0.4%</td>
             <td>$480,501</td>
             <td>$12</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Pokemon (Japanese)</th>
+            <th scope="row" class="tgName">Pokemon (Japanese)<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+Card+Japanese&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemonjp&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>40,206</td>
             <td>5,486</td>
             <td>10,134</td>
@@ -208,10 +208,9 @@
             <td class="cov">2.8%</td>
             <td>$379,372</td>
             <td>$10</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+Card+Japanese&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemonjp&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Magic: The Gathering</th>
+            <th scope="row" class="tgName">Magic: The Gathering<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Magic+The+Gathering&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-magic&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>27,882</td>
             <td>3,451</td>
             <td>8,445</td>
@@ -220,10 +219,9 @@
             <td class="cov">3.6%</td>
             <td>$176,821</td>
             <td>$18</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Magic+The+Gathering&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-magic&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">One Piece</th>
+            <th scope="row" class="tgName">One Piece<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-onepiece&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>13,521</td>
             <td>1,949</td>
             <td>8,413</td>
@@ -232,10 +230,9 @@
             <td class="cov">6.7%</td>
             <td>$546,457</td>
             <td>$25</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-onepiece&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Yu-Gi-Oh!</th>
+            <th scope="row" class="tgName">Yu-Gi-Oh!<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Yu-Gi-Oh&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-yugioh&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>18,643</td>
             <td>2,168</td>
             <td>8,373</td>
@@ -244,10 +241,9 @@
             <td class="cov">5.5%</td>
             <td>$355,279</td>
             <td>$26</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Yu-Gi-Oh&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-yugioh&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Disney Lorcana</th>
+            <th scope="row" class="tgName">Disney Lorcana<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Disney+Lorcana&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-lorcana&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>4,027</td>
             <td>452</td>
             <td>7,911</td>
@@ -256,10 +252,9 @@
             <td class="cov">22.1%</td>
             <td>$1,392,294</td>
             <td>$92</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Disney+Lorcana&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-lorcana&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Weiss Schwarz</th>
+            <th scope="row" class="tgName">Weiss Schwarz<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Weiss+Schwarz&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-weiss&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>2,627</td>
             <td>271</td>
             <td>7,730</td>
@@ -268,10 +263,9 @@
             <td class="cov">41.2%</td>
             <td>$154,638</td>
             <td>$20</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Weiss+Schwarz&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-weiss&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Digimon</th>
+            <th scope="row" class="tgName">Digimon<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Digimon+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-digimon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>1,973</td>
             <td>412</td>
             <td>7,229</td>
@@ -280,10 +274,9 @@
             <td class="cov">44.1%</td>
             <td>$39,307</td>
             <td>$9</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Digimon+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-digimon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Dragon Ball Fusion World</th>
+            <th scope="row" class="tgName">Dragon Ball Fusion World<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Dragon+Ball+Fusion+World&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-dragonball&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>1,309</td>
             <td>180</td>
             <td>6,749</td>
@@ -292,10 +285,9 @@
             <td class="cov">56.7%</td>
             <td>$774,478</td>
             <td>$51</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Dragon+Ball+Fusion+World&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-dragonball&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Union Arena</th>
+            <th scope="row" class="tgName">Union Arena<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Union+Arena&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-unionarena&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>1,009</td>
             <td>151</td>
             <td>5,813</td>
@@ -304,10 +296,9 @@
             <td class="cov">72.6%</td>
             <td>$423,795</td>
             <td>$25</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Union+Arena&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-unionarena&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Riftbound (LoL)</th>
+            <th scope="row" class="tgName">Riftbound (LoL)<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Riftbound+League+of+Legends&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-riftbound&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>1,173</td>
             <td>159</td>
             <td>5,803</td>
@@ -316,10 +307,9 @@
             <td class="cov">64%</td>
             <td>$3,035,348</td>
             <td>$169</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Riftbound+League+of+Legends&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-riftbound&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Gundam Card Game</th>
+            <th scope="row" class="tgName">Gundam Card Game<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Gundam+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-gundam&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>768</td>
             <td>111</td>
             <td>3,677</td>
@@ -328,10 +318,9 @@
             <td class="cov">58.2%</td>
             <td>$243,990</td>
             <td>$25</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Gundam+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-gundam&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           <tr>
-            <th scope="row" class="tgName">Palworld TCG</th>
+            <th scope="row" class="tgName">Palworld TCG<a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Palworld+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-palworld&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></th>
             <td>220</td>
             <td>37</td>
             <td>2,391</td>
@@ -340,7 +329,6 @@
             <td class="cov">77%</td>
             <td>$169,262</td>
             <td>$11</td>
-            <td><a href="https://www.ebay.com/sch/i.html?_nkw=Palworld+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-palworld&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td>
           </tr>
           </tbody>
         </table>

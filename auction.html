@@ -47,8 +47,9 @@
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .aTable td.l small { color: var(--muted); display: block; font-size: 11px; }
-      .aTable td a { color: var(--accent); font-weight: 600; text-decoration: none; }
-      .aTable td a:hover, .aTable td a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+      /* 진행 경매 링크는 첫 칸 안 한 줄 — 가로 스크롤 표의 끝 열은 모바일에서 화면 밖이다. 위아래 여백은 탭 영역. */
+      .aTable a.live { display: block; width: fit-content; margin-top: 2px; padding: 4px 0; color: var(--accent); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+      .aTable a.live:hover, .aTable a.live:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .faqItem { max-width: 720px; border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
       .faqItem p { font-size: 13.5px; margin: 4px 0 10px; }
@@ -220,11 +221,11 @@
       <h2 data-ko="밀봉 박스는 팔린다. 싱글은 대개 안 팔린다.">Sealed boxes sell. Singles mostly don't.</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th><th data-ko="이베이">eBay</th></tr></thead>
+        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th></tr></thead>
         <tbody>
-<tr><td class="l" data-ko="싱글 카드">Single cards</td><td>62,866</td><td>19,544</td><td>31%</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+Card+Game+card&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-kind&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td class="l" data-ko="밀봉 부스터 박스">Sealed booster boxes</td><td>537</td><td>436</td><td>81%</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+Card+Game+booster+box+sealed&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-kind&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td class="l" data-ko="밀봉 부스터 팩">Sealed packs</td><td>3,612</td><td>2,477</td><td>69%</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+Card+Game+booster+pack+sealed&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-kind&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
+<tr><td class="l"><span data-ko="싱글 카드">Single cards</span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+Card+Game+card&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-kind&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>62,866</td><td>19,544</td><td>31%</td></tr>
+<tr><td class="l"><span data-ko="밀봉 부스터 박스">Sealed booster boxes</span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+Card+Game+booster+box+sealed&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-kind&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>537</td><td>436</td><td>81%</td></tr>
+<tr><td class="l"><span data-ko="밀봉 부스터 팩">Sealed packs</span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+Card+Game+booster+pack+sealed&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-kind&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>3,612</td><td>2,477</td><td>69%</td></tr>
         </tbody>
       </table>
       </div>
@@ -239,20 +240,20 @@
       </div>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th><th data-ko="이베이">eBay</th></tr></thead>
+        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th></tr></thead>
         <tbody id="cardRankBody">
-<tr><td>1</td><td class="l">Monkey D. Luffy 010 Alternate Art<small>EB02-010 · EB-02</small></td><td>$910</td><td>$710–$1,199</td><td>52.2%</td><td>47</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB02-010&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>2</td><td class="l">ST31-004<small>ST31-004 · ST-31</small></td><td>$790</td><td>$395–$880</td><td>45.1%</td><td>23</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+ST31-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>3</td><td class="l">OP14-064<small>OP14-064 · OP-14</small></td><td>$690</td><td>$690–$1,100</td><td>60%</td><td>3</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP14-064&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>4</td><td class="l">OP01-015<small>OP01-015 · OP-01</small></td><td>$443</td><td>$351–$534</td><td>33.3%</td><td>4</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP01-015&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>5</td><td class="l">OP01-017<small>OP01-017 · OP-01</small></td><td>$294</td><td>$21–$562</td><td>74.3%</td><td>26</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP01-017&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>6</td><td class="l">OP12-039<small>OP12-039 · OP-12</small></td><td>$278</td><td>$149–$407</td><td>36.4%</td><td>4</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP12-039&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>7</td><td class="l">Gear Two Alternate Art<small>OP11-080 · OP-11</small></td><td>$278</td><td>$233–$335</td><td>46.9%</td><td>14</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP11-080&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>8</td><td class="l">OP05-022<small>OP05-022 · OP-05</small></td><td>$263</td><td>$21–$473</td><td>25%</td><td>6</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP05-022&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>9</td><td class="l">OP13-031<small>OP13-031 · OP-13</small></td><td>$255</td><td>$210–$305</td><td>45.8%</td><td>11</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP13-031&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>10</td><td class="l">OP03-008<small>OP03-008 · OP-03</small></td><td>$237</td><td>$150–$325</td><td>44.4%</td><td>4</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP03-008&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>11</td><td class="l">OP17-084<small>OP17-084 · OP-17</small></td><td>$232</td><td>$214–$280</td><td>35.7%</td><td>5</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-084&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
-<tr><td>12</td><td class="l">OP01-004<small>OP01-004 · OP-01</small></td><td>$231</td><td>$118–$455</td><td>50%</td><td>7</td><td><a href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP01-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td></tr>
+<tr><td>1</td><td class="l">Monkey D. Luffy 010 Alternate Art<small>EB02-010 · EB-02</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB02-010&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$910</td><td>$710–$1,199</td><td>52.2%</td><td>47</td></tr>
+<tr><td>2</td><td class="l">ST31-004<small>ST31-004 · ST-31</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+ST31-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$790</td><td>$395–$880</td><td>45.1%</td><td>23</td></tr>
+<tr><td>3</td><td class="l">OP14-064<small>OP14-064 · OP-14</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP14-064&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$690</td><td>$690–$1,100</td><td>60%</td><td>3</td></tr>
+<tr><td>4</td><td class="l">OP01-015<small>OP01-015 · OP-01</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP01-015&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$443</td><td>$351–$534</td><td>33.3%</td><td>4</td></tr>
+<tr><td>5</td><td class="l">OP01-017<small>OP01-017 · OP-01</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP01-017&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$294</td><td>$21–$562</td><td>74.3%</td><td>26</td></tr>
+<tr><td>6</td><td class="l">OP12-039<small>OP12-039 · OP-12</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP12-039&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$278</td><td>$149–$407</td><td>36.4%</td><td>4</td></tr>
+<tr><td>7</td><td class="l">Gear Two Alternate Art<small>OP11-080 · OP-11</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP11-080&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$278</td><td>$233–$335</td><td>46.9%</td><td>14</td></tr>
+<tr><td>8</td><td class="l">OP05-022<small>OP05-022 · OP-05</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP05-022&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$263</td><td>$21–$473</td><td>25%</td><td>6</td></tr>
+<tr><td>9</td><td class="l">OP13-031<small>OP13-031 · OP-13</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP13-031&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$255</td><td>$210–$305</td><td>45.8%</td><td>11</td></tr>
+<tr><td>10</td><td class="l">OP03-008<small>OP03-008 · OP-03</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP03-008&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$237</td><td>$150–$325</td><td>44.4%</td><td>4</td></tr>
+<tr><td>11</td><td class="l">OP17-084<small>OP17-084 · OP-17</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-084&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$232</td><td>$214–$280</td><td>35.7%</td><td>5</td></tr>
+<tr><td>12</td><td class="l">OP01-004<small>OP01-004 · OP-01</small><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP01-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a></td><td>$231</td><td>$118–$455</td><td>50%</td><td>7</td></tr>
         </tbody>
       </table>
       </div>
@@ -591,18 +592,18 @@
             var small = document.createElement("small");
             small.textContent = c.id + " · " + c.set;
             nameWrap.appendChild(small);
+            if (c.ebay) {
+              var a = document.createElement("a");
+              a.className = "live"; a.href = c.ebay; a.target = "_blank"; a.rel = "noopener noreferrer sponsored";
+              a.dataset.en = "Live auctions"; a.dataset.ko = "진행 경매";
+              a.textContent = KO() ? a.dataset.ko : a.dataset.en;
+              nameWrap.appendChild(a);
+            }
             add(nameWrap, "l");
             add(usd(c.med));
             add(c.low != null && c.high != null ? usd(c.low) + "–" + usd(c.high) : "—");
             add(c.st != null ? c.st + "%" : "—");
             add(c.sold.toLocaleString("en-US"));
-            if (c.ebay) {
-              var a = document.createElement("a");
-              a.href = c.ebay; a.target = "_blank"; a.rel = "noopener noreferrer sponsored";
-              a.dataset.en = "Live auctions"; a.dataset.ko = "진행 경매";
-              a.textContent = KO() ? a.dataset.ko : a.dataset.en;
-              add(a);
-            } else add("—");
             body.appendChild(tr);
           });
         }

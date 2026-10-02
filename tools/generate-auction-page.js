@@ -167,15 +167,15 @@ const cardsBySales = allCards.slice().sort((a, b) => b.sold - a.sold || b.medPri
 // 진행 중 eBay 경매(종료 임박순) — 경매 결과를 보러 온 사람을 지금 끝나는 매물로 바로 잇는다(2026-10-02, EPN 수익).
 // customid 는 EPN 보고서에서 자리별 클릭·수익을 가르는 꼬리표다.
 const liveAuctionUrl = (q, spot) => epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(q)}&LH_Auction=1&_sop=1&customid=${spot}`);
-const liveLink = (url) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a>` : "—");
+const liveLink = (url) => (url ? `<a class="live" href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매">Live auctions</a>` : "—");
 const KIND_QUERY = { card: "One Piece Card Game card", box: "One Piece Card Game booster box sealed", pack: "One Piece Card Game booster pack sealed" };
 const cardEbay = (c) => liveAuctionUrl(`One Piece ${c.id}`, "auc-card");
 const cardRow = (c) => ({ id: c.id, set: c.set, name: c.name || c.id, med: c.medPrice ?? null, low: c.low ?? null, high: c.high ?? null, st: c.sellThrough ?? null, sold: c.sold, ebay: cardEbay(c) });
 const cardRankJson = JSON.stringify({ med: topCards.map(cardRow), sales: cardsBySales.map(cardRow) });
 
 const dTr = daily.map((x) => `<tr${PARTIAL_DAYS.has(x.d) ? ' class="partialRow"' : ""}><td class="l">${esc(x.d)}${PARTIAL_DAYS.has(x.d) ? ' <span class="pFlag" data-ko="부분수집" title="Collection was interrupted that day — treat this row as incomplete">partial</span>' : ""}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? usd(x.medPrice) : "—"}</td><td>${x.medBids != null ? num(x.medBids) : "—"}</td></tr>`).join("\n");
-const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td><td>${liveLink(cardEbay(c))}</td></tr>`).join("\n");
-const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l" data-ko="${k.k === "card" ? "싱글 카드" : k.k === "box" ? "밀봉 부스터 박스" : "밀봉 부스터 팩"}">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td><td>${liveLink(liveAuctionUrl(KIND_QUERY[k.k], "auc-kind"))}</td></tr>`).join("\n");
+const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small>${liveLink(cardEbay(c))}</td><td>${usd(c.medPrice)}</td><td>${c.low != null && c.high != null ? `${usd(c.low)}–${usd(c.high)}` : "—"}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
+const kTr = kinds.filter((k) => k.n).map((k) => `<tr><td class="l"><span data-ko="${k.k === "card" ? "싱글 카드" : k.k === "box" ? "밀봉 부스터 박스" : "밀봉 부스터 팩"}">${k.k === "card" ? "Single cards" : k.k === "box" ? "Sealed booster boxes" : "Sealed packs"}</span>${liveLink(liveAuctionUrl(KIND_QUERY[k.k], "auc-kind"))}</td><td>${num(k.n)}</td><td>${num(k.sold)}</td><td>${k.st}%</td></tr>`).join("\n");
 
 // ── 다른 TCG 교차 비교 ─────────────────────────────────────────────────────
 // 원피스 낙찰률만 보면 그게 높은지 낮은지 알 수 없다. 같은 방식·같은 기간으로 모은
@@ -272,8 +272,9 @@ const html = `<!doctype html>
       .aTable th.l, .aTable td.l { text-align: left; }
       .aTable td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .aTable td.l small { color: var(--muted); display: block; font-size: 11px; }
-      .aTable td a { color: var(--accent); font-weight: 600; text-decoration: none; }
-      .aTable td a:hover, .aTable td a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+      /* 진행 경매 링크는 첫 칸 안 한 줄 — 가로 스크롤 표의 끝 열은 모바일에서 화면 밖이다. 위아래 여백은 탭 영역. */
+      .aTable a.live { display: block; width: fit-content; margin-top: 2px; padding: 4px 0; color: var(--accent); font-size: 12.5px; font-weight: 600; text-decoration: none; }
+      .aTable a.live:hover, .aTable a.live:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
       .faqItem { max-width: 720px; border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
       .faqItem p { font-size: 13.5px; margin: 4px 0 10px; }
@@ -435,7 +436,7 @@ ${dTr}
       <h2 data-ko="밀봉 박스는 팔린다. 싱글은 대개 안 팔린다.">Sealed boxes sell. Singles mostly don't.</h2>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th><th data-ko="이베이">eBay</th></tr></thead>
+        <thead><tr><th class="l" data-ko="상품종류">Type</th><th data-ko="경매 수">Auctions</th><th data-ko="낙찰 수">Sold</th><th data-ko="낙찰률">Sold %</th></tr></thead>
         <tbody>
 ${kTr}
         </tbody>
@@ -452,7 +453,7 @@ ${tcgGameCount >= 5 ? `
       </div>
       <div style="overflow-x:auto">
       <table class="aTable">
-        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th><th data-ko="이베이">eBay</th></tr></thead>
+        <thead><tr><th>#</th><th class="l" data-ko="카드">Card</th><th data-ko="낙찰가">Price</th><th data-ko="가격 범위">Range</th><th data-ko="낙찰률">Sold %</th><th data-ko="낙찰 수">Sold</th></tr></thead>
         <tbody id="cardRankBody">
 ${cTr}
         </tbody>
@@ -793,18 +794,18 @@ ${cTr}
             var small = document.createElement("small");
             small.textContent = c.id + " \u00b7 " + c.set;
             nameWrap.appendChild(small);
+            if (c.ebay) {
+              var a = document.createElement("a");
+              a.className = "live"; a.href = c.ebay; a.target = "_blank"; a.rel = "noopener noreferrer sponsored";
+              a.dataset.en = "Live auctions"; a.dataset.ko = "진행 경매";
+              a.textContent = KO() ? a.dataset.ko : a.dataset.en;
+              nameWrap.appendChild(a);
+            }
             add(nameWrap, "l");
             add(usd(c.med));
             add(c.low != null && c.high != null ? usd(c.low) + "\u2013" + usd(c.high) : "\u2014");
             add(c.st != null ? c.st + "%" : "\u2014");
             add(c.sold.toLocaleString("en-US"));
-            if (c.ebay) {
-              var a = document.createElement("a");
-              a.href = c.ebay; a.target = "_blank"; a.rel = "noopener noreferrer sponsored";
-              a.dataset.en = "Live auctions"; a.dataset.ko = "진행 경매";
-              a.textContent = KO() ? a.dataset.ko : a.dataset.en;
-              add(a);
-            } else add("—");
             body.appendChild(tr);
           });
         }
