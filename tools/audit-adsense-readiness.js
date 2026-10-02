@@ -10,6 +10,9 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
+// 2026-10-02 3차 반려 뒤 소유자 결정으로 애드센스를 당분간 멈췄다 — 광고 로더·리소스 힌트·CSP 광고 도메인을 전부 뺐다.
+// 멈춘 동안에는 로더가 어디에도 없어야 한다(생성기가 몰래 되살리면 FAIL). 다시 켤 때: 제거 커밋을 되돌리고 이 값을 false 로.
+const ADS_PAUSED = true;
 const ADSENSE_PUBLISHER_ID = "1520891018658006";
 const ADSENSE_RE = /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/i;
 const NOINDEX_RE = /<meta\s+name=["']robots["'][^>]*content=["'][^"']*noindex/i;
@@ -298,11 +301,17 @@ if (upcomingPagesWithSpeculation.length) {
 }
 
 const monetizedPages = pages.filter((page) => page.hasAdsense);
-if (!pages.find((page) => page.file === "index.html" && page.hasAdsense)) {
-  errors.push("index.html: approval page must retain the AdSense loader");
-}
-if (monetizedPages.length < 5) {
-  errors.push(`only ${monetizedPages.length} substantial pages retain AdSense; expected at least 5`);
+if (ADS_PAUSED) {
+  if (monetizedPages.length) {
+    errors.push(`AdSense is paused but ${monetizedPages.length} pages still load it: ${monetizedPages.map((p) => p.file).slice(0, 5).join(", ")}`);
+  }
+} else {
+  if (!pages.find((page) => page.file === "index.html" && page.hasAdsense)) {
+    errors.push("index.html: approval page must retain the AdSense loader");
+  }
+  if (monetizedPages.length < 5) {
+    errors.push(`only ${monetizedPages.length} substantial pages retain AdSense; expected at least 5`);
+  }
 }
 
 const adsensePublisherIds = new Set();
@@ -329,7 +338,7 @@ for (const page of monetizedPages) {
 if (adsenseTagConfigurationFailures.length) {
   errors.push(`${new Set(adsenseTagConfigurationFailures).size} monetized pages have a missing, mismatched, or incomplete AdSense tag`);
 }
-if (adsensePublisherIds.size !== 1 || !adsensePublisherIds.has(ADSENSE_PUBLISHER_ID)) {
+if (!ADS_PAUSED && (adsensePublisherIds.size !== 1 || !adsensePublisherIds.has(ADSENSE_PUBLISHER_ID))) {
   errors.push(`AdSense tags must use only ca-pub-${ADSENSE_PUBLISHER_ID}`);
 }
 if (cmpBlockingReferrerPages.length) {
