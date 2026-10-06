@@ -77,6 +77,23 @@ try {
         await page.screenshot({ path: path.join(output, "desktop-cards.png") });
       }
       if (route.startsWith("/?") && width === 375) {
+        // Native image dialog: keyboard trigger, modal containment, Escape and focus return.
+        await page.focus(".hitThumb");
+        await page.keyboard.press("Enter");
+        assert.equal(await page.$eval("#lightbox", (el) => el.matches(":modal")), true);
+        assert.equal(await page.$eval("#lightbox", (el) => el.contains(document.activeElement)), true);
+        for (let i = 0; i < 5; i++) await page.keyboard.press("Tab");
+        // Native Tab may reach browser chrome (document.activeElement becomes BODY).
+        // It must never focus a background page control, even via programmatic focus.
+        await page.$eval("#quickSetSelect", (el) => el.focus());
+        assert.equal(await page.$eval("#lightbox", (el) => el.contains(document.activeElement) || document.activeElement === document.body), true);
+        await page.focus("#lbClose");
+        await page.keyboard.press("Escape");
+        assert.equal(await page.$eval("#lightbox", (el) => el.open), false);
+        assert.equal(await page.$eval(".hitThumb", (el) => el === document.activeElement), true);
+        await page.keyboard.press("Space");
+        await page.click("#lbClose");
+        assert.equal(await page.$eval("#lightbox", (el) => el.open), false);
         await page.select("#quickSetSelect", "EB-03");
         await page.click("#quickSet button");
         assert.match(page.url(), /set=EB-03/);

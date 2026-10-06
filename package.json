@@ -2,9 +2,11 @@
   "dependencies": {
     "jpeg-js": "^0.4.4",
     "pngjs": "^7.0.0",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
+    "axe-core": "4.14.0",
+    "lighthouse": "13.5.0",
     "puppeteer-core": "^25.9.0"
   }
 }

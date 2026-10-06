@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261001ui2";
+const DATA_VERSION = "20261006quality";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -630,11 +630,11 @@ function renderHitList(cards) {
       const zoomFallback = c.imageEn || c.img || "";
       return `
         <figure class="hitCard" data-card-index="${index}" data-img="${zoomImg}" data-img-fallback="${zoomFallback}" data-name="${(c.name || "").replace(/"/g, "&quot;")}">
-          <div class="hitThumb">
+          <button type="button" class="hitThumb" aria-label="${escapeHtml(t(`${c.name} 크게 보기 및 등급 통계`, `Enlarge ${c.name} and view grades`))}" aria-haspopup="dialog">
             <span class="hitRank">${c.rank}</span>
             ${c.rarity ? `<span class="hitRar" style="--c:${color}">${c.rarity}</span>` : ""}
             <img src="${img}" alt="${c.name}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" />
-          </div>
+          </button>
           <figcaption>
             <span class="hitName">${cardPageHref(c) ? `<a href="${cardPageHref(c)}" title="${t("카드 페이지", "Card page")}">${c.name}</a>` : c.name}</span>
             <span class="hitNo">${c.number || ""}</span>
@@ -932,7 +932,7 @@ function renderEditionTable(set) {
     ? `<td class="edNum edAdd">+${num(d.wowAdd)}${spark(d.wowSpark, cls)}</td><td class="edGem">${d.wowPct >= 0 ? "+" : ""}${d.wowPct}%</td>`
     : `<td class="edNum">&mdash;</td><td class="edGem">&mdash;</td>`);
   const row = (label, d, note, cls) => `<tr><td class="edName">${label}</td><td class="edNum">${d ? num(d.total) : "&mdash;"}</td><td class="edNum">${d ? num(d.gems != null ? d.gems : d.gem10) : "&mdash;"}</td><td class="edGem">${d ? d.gemRate + "%" : `<span class="edNone">${note}</span>`}</td>${wk(d, cls)}</tr>`;
-  return `<div class="edWrap"><table class="edTable"><thead><tr><th class="gHead gPsa">${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
+  return `<div class="edWrap" role="region" tabindex="0" aria-label="${t("판본별 그레이딩 비교", "Grading by edition")}"><table class="edTable"><thead><tr><th class="gHead gPsa">${t("PSA 그레이딩", "PSA grading")}</th><th>${t("누적 등급", "Total graded")}</th><th>PSA 10</th><th>${t("젬률", "Gem rate")}</th><th>${t("주간", "This week")}</th><th>%</th></tr></thead><tbody>
     ${row(t("일본판", "Japanese"), jp, "", "edJp")}
     ${row(t("영문판", "English"), en, t("집계중", "collecting"), "edEn")}
   </tbody></table>${w ? `<p class="edFoot">${t(`주간 = ${w.from} 대비 ${w.to} 증가분`, `This week = change from ${w.from} to ${w.to}`)}</p>` : ""}${renderGraderTable(set)}</div>`;
@@ -1020,7 +1020,7 @@ function renderPsaDestruction(set) {
     <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
     ${renderEditionTable(set)}
     <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10.`)}</p>
-    ${rows.length ? `<div class="pdTableWrap"><table class="pdTable"><thead><tr><th>${t("카드", "Card")} <em class="pdEd">${t("일본판", "JP")}</em></th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
+    ${rows.length ? `<div class="pdTableWrap" role="region" tabindex="0" aria-label="${t("카드별 PSA 등급 수", "PSA population by card")}"><table class="pdTable"><thead><tr><th>${t("카드", "Card")} <em class="pdEd">${t("일본판", "JP")}</em></th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
     <!-- ⚠️ "등급이 늘면 박스가 개봉된 것"이라고 쓰지 말 것. 2026-08-12 에 지웠다.
          제출은 몇 년 전에 뽑아둔 생카드로도 이뤄지고, 무엇을 보낼지도 제출자가 고른다.
          사이트의 기사·방법론은 전부 "개봉량을 알 수 없다"고 쓰는데 여기만 반대로 말하고 있었다.
@@ -1079,20 +1079,19 @@ function renderSourceLegend(set) {
 async function load() {
   initDisplayLanguage();
   bindDisplayLanguage();
-  const isCompareOnly = !document.querySelector("#packList") && document.querySelector("#compareTable");
   // 카드 페이지 링크 지도(8KB). 데이터(926KB)와 나란히 받아 첫 렌더 전에 갖춘다 — 없어도 화면은 멀쩡하다(이름이 링크가 아닐 뿐).
   const cardMapP = fetch(withVersion("cards/card-map.json"), { cache: "default" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   try {
     state.data = await fetchPackData();
     state.cardMap = await cardMapP;
   } catch (err) {
-    const target = document.querySelector("#packList") || document.querySelector("#compareTable");
-    if (target) target.innerHTML = `<p class="note">${t("데이터를 불러오지 못했습니다.", "Could not load data.")} (${err.message})</p>`;
-    return;
-  }
-  // 비교 전용 페이지(compare.html): 비교표만 렌더하고 종료
-  if (isCompareOnly) {
-    renderCompareTable();
+    const target = document.querySelector("#packList");
+    if (target) {
+      target.hidden = false;
+      target.innerHTML = `<div class="loadError" role="alert"><p>${t("시세 데이터를 불러오지 못했습니다. 기존 자료는 아래 표와 세트 가이드에서 확인할 수 있습니다.", "Price data could not be loaded. The dated tables and set guides are still available.")}</p><button type="button">${t("다시 시도", "Try again")}</button></div>`;
+      target.querySelector("button").onclick = () => location.reload();
+    }
+    document.querySelector("#quickSet")?.removeAttribute("aria-busy");
     return;
   }
   applyRouteState();
@@ -1105,10 +1104,33 @@ async function load() {
   renderLiveAuctions();
   renderSinceLastVisit();
   renderPackGrid();
-  renderDetail();
   updateUrl(true);
-  // 세트 페이지의 "Open live tracker" 로 들어오면 그 세트의 패널이 폰에서 4화면 아래에 있었다 — 바로 거기로.
-  if (state.hasExplicitSet) document.querySelector("#detail")?.scrollIntoView({ block: "start" });
+  if (state.hasExplicitSet) {
+    // Deep links must be positioned after the chart exists, not before a late insertion.
+    await loadSoldSeries();
+    renderDetail();
+    document.querySelector("#detail")?.scrollIntoView({ block: "start", behavior: "instant" });
+  } else {
+    observeBelowFold();
+  }
+}
+
+/** Render charts/cards only as their section approaches the viewport. No price is synthesized. */
+function observeBelowFold() {
+  const detail = document.querySelector("#detail");
+  if (!detail) return;
+  detail.innerHTML = `<p class="detailLoading">${t("세트 상세 정보를 준비 중입니다…", "Set details will load as you scroll…")}</p>`;
+  const observer = new IntersectionObserver((entries) => {
+    entries.filter((entry) => entry.isIntersecting).forEach((entry) => {
+      observer.unobserve(entry.target);
+      loadSoldSeries().then(() => {
+        fillPackSparks();
+        if (entry.target === detail && detail.querySelector(".detailLoading")) renderDetail();
+      });
+    });
+  }, { rootMargin: "600px 0px" });
+  observer.observe(document.querySelector("#packList"));
+  observer.observe(detail);
 }
 
 function applyRouteState() {
@@ -1192,6 +1214,7 @@ function renderQuickSet() {
   select.value = state.selected;
   wrap.querySelector("button").onclick = () => selectPack(select.value);
   wrap.hidden = false;
+  wrap.removeAttribute("aria-busy");
 }
 function renderSinceLastVisit() {
   const anchor = document.querySelector("#todayDeals") || document.querySelector("#packList");
@@ -1231,14 +1254,15 @@ function renderSinceLastVisit() {
 function renderTickerBoard() {
   const el = document.querySelector("#tickerBoard");
   const board = state.data?.marketIndex?.board;
-  if (!el || !Array.isArray(board)) return;
+  if (!el) return;
+  if (!Array.isArray(board)) { el.hidden = true; return; }
   // 28일 넘게 거래 없는 세트는 "4주 등락"의 기준점이 없다 — 값은 보이되 날짜를 붙이고 흐리게, 뒤로 보낸다(2026-09-24).
   const STALE = 28 * 864e5;
   const dataT = Date.parse(state.data.updated || "") || Date.now();
   const isStale = (b) => b.nowDate && dataT - Date.parse(b.nowDate) > STALE;
   const rows = board.filter((b) => b.changePct != null && b.nowUsd != null)
     .sort((x, y) => (isStale(x) ? 1 : 0) - (isStale(y) ? 1 : 0) || y.changePct - x.changePct);
-  if (rows.length < 5) return;
+  if (rows.length < 5) { el.hidden = true; return; }
   // 합성 지수(중앙값·평균)는 싣지 않는다 — 지수 화면을 신뢰 문제로 없앤 소유자 결정(2026-08-27).
   // 여기 있는 건 전부 세트별 실판매 원장 수치라 각자 세트 페이지에서 검증된다.
   const f = (p) => `${p >= 0 ? "+" : ""}${p.toFixed(1)}%`;
@@ -1249,8 +1273,14 @@ function renderTickerBoard() {
   // hover/focus 에 멈춤, 두 번째 벌은 보조기술·탭 순서에서 제외). 터치·모션 줄임 설정은 손으로 미는 기존 스크롤 그대로.
   const marquee = matchMedia("(hover: hover) and (prefers-reduced-motion: no-preference)").matches;
   const dup = marquee ? `<div class="tbTrack" aria-hidden="true">${chips.replace(/<button /g, '<button tabindex="-1" ')}</div>` : "";
-  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")} <a class="tbWeekly" href="weekly.html">${t("이번 주 →", "This week →")}</a></span><div class="tbScroll${marquee ? " tbMarquee" : ""}" style="--tb-n:${rows.length}"><div class="tbTrack">${chips}</div>${dup}</div>`;
+  el.innerHTML = `<span class="tbHead">${t("4주 등락", "4-week movers")} <a class="tbWeekly" href="weekly.html">${t("이번 주 →", "This week →")}</a></span><div class="tbScroll${marquee ? " tbMarquee" : ""}" style="--tb-n:${rows.length}"><div class="tbTrack">${chips}</div>${dup}</div>${marquee ? `<button class="tbMotion" type="button" aria-pressed="false">${t("일시정지", "Pause")}</button>` : ""}`;
   el.hidden = false;
+  const motion = el.querySelector(".tbMotion");
+  if (motion) motion.onclick = () => {
+    const paused = el.querySelector(".tbMarquee").classList.toggle("isPaused");
+    motion.setAttribute("aria-pressed", String(paused));
+    motion.textContent = paused ? t("재생", "Play") : t("일시정지", "Pause");
+  };
   el.querySelectorAll(".tbChip").forEach((btn) => btn.addEventListener("click", () => {
     trackEvent("ticker_click", { pack_code: btn.dataset.key });
     selectPack(btn.dataset.key);
@@ -1265,109 +1295,6 @@ function renderMarketStatus() {
   const setCount = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])].length;
   const updated = state.data.updated || t("확인중", "checking");
   el.innerHTML = `<span><i></i>${t("이베이 실거래", "eBay completed sales")}</span><span>${t("매일 갱신", "updated daily")}</span><span>${t("데이터", "data")} ${updated}</span><span>${setCount} ${t("세트", "sets")} · USD</span>`;
-}
-
-// 전 세트 비교 랭킹: 20개 박스를 한 표로. 지표는 setAnalytics 실측 계산 재사용(추정 없음).
-// 투자 매력도 내림차순. 박스가 없는 세트는 하단으로. 행 클릭 시 해당 세트 상세로 이동.
-function renderCompareTable() {
-  const el = document.querySelector("#compareTable");
-  if (!el || !state.data) return;
-  const packs = [...(state.data.jp?.list || []), ...(state.data.extra?.list || [])]
-    .map((code) => ({ code, set: state.data.sets?.[code] }))
-    .filter((p) => p.set && (p.set.cards || []).length > 0);
-  if (packs.length < 3) { el.hidden = true; return; }
-
-  const rows = packs.map((p) => {
-    const a = setAnalytics(p.set);
-    // top1 쏠림: 상위 카드 1장이 TOP10 시세 합의 몇 %인지 (50%+ 이면 경고)
-    const vals = a.pricedCards.map((r) => r.market.value);
-    const valSum = vals.reduce((s, v) => s + v, 0);
-    const topShare = valSum > 0 ? vals[0] / valSum : 0;
-    // 최고가 카드의 eBay 실거래(PSA10 sold, 표본 3+) — 모두가 납득하는 sold 기준 값
-    let topSold = null;
-    for (const c of (p.set.cards || []).slice(0, 10)) {
-      if (c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3) {
-        const v = marketKrw(c.psa10Ebay.middle, c.psa10Ebay.currency || "KRW");
-        if (v != null && (!topSold || v > topSold.v)) topSold = { v, num: c.number || "", n: c.psa10Ebay.sampleSize };
-      }
-    }
-    return {
-      code: p.code,
-      name: p.set.nameEn || p.set.nameKo || p.code,
-      boxKrw: a.box?.value ?? null,
-      boxSold: !!a.box?.soldBased,
-      support: a.supportRatio,
-      topShare,
-      topSold,
-      invest: a.investmentScore,
-      demand: a.demand,
-      supply: a.supply,
-      samples: a.box?.sampleSize || 0,
-    };
-  }).sort((x, y) => (y.invest - x.invest) || ((y.boxKrw || 0) - (x.boxKrw || 0)));
-
-  const scoreClassLocal = (s) => (s >= 66 ? "sHigh" : s >= 40 ? "sMid" : "sLow");
-  const head = `<div class="ctHead"><span class="bmLabel">${t("전 세트 비교 · 투자 매력도 순", "All sets compared · by investment appeal")}</span><small>${t("모든 점수는 실거래·매물 데이터 기반 참고 지표", "All scores are reference signals from live sold/listing data")}</small></div>`;
-  // 정의는 한 번 읽으면 되는 참고 자료다. 펼쳐 두면 표에 닿기 전에 600자를 막고 선다.
-  // 접어 두고, 각 정의도 한 줄로 줄인다 — 열 제목이 이미 이름을 말하고 있다. (2026-08-12)
-  const legend = `<details class="ctLegendBox"><summary>${t("점수 읽는 법", "What the columns mean")}</summary><dl class="ctLegend">
-    <div><dt>${t("박스가", "Box price")}</dt><dd>${t("일본판 미개봉 박스 중간값. 'ask'는 호가.", "Japanese sealed box median. 'ask' = listing price.")}</dd></div>
-    <div><dt>${t("투자 매력도", "Invest")} <em>0–100</em></dt><dd>${t("카드값·수요·희소성 종합. 매수 추천 아님.", "Card value, demand and scarcity combined. Not buying advice.")}</dd></div>
-    <div><dt>${t("최고 카드 실거래", "Top card sold")}</dt><dd>${t("히트카드 최고 실판매가(PSA10, 3건 이상).", "Highest chase card by actual sold price (PSA 10, 3+ sales).")}</dd></div>
-    <div><dt>${t("카드 지지력", "Card support")} <em>×</em></dt><dd>${t("TOP10 카드 가중값(1위 40%·상위3 평균 30%·상위10 평균 30%) ÷ 박스가. 참고치이며 개봉 이득 보장 아님.", "Weighted top-10 card value (top card 40%, top-3 avg 30%, top-10 avg 30%) ÷ box price. Reference only — no guaranteed open value.")}</dd></div>
-    <div><dt>${t("수요", "Demand")} <em>0–100</em></dt><dd>${t("최근 4주 실판매 표본과 추세.", "Recent 4-week sold samples and trend.")}</dd></div>
-    <div><dt>${t("희소성", "Scarcity")} <em>0–100</em></dt><dd>${t("지금 매물이 얼마나 적은지.", "How few boxes are listed right now.")}</dd></div>
-  </dl></details>`;
-  const thead = `<tr>
-    <th>#</th><th class="ctSet">${t("세트", "Set")}</th>
-    <th>${t("박스가", "Box price")}</th>
-    <th>${t("투자 매력도", "Invest")}</th>
-    <th>${t("최고 카드 실거래", "Top card sold")}</th>
-    <th>${t("카드 지지력", "Card support")}</th>
-    <th>${t("수요", "Demand")}</th>
-    <th>${t("희소성", "Scarcity")}</th></tr>`;
-  const body = rows.map((r, i) => {
-    const box = r.boxKrw != null ? triMain(r.boxKrw, "KRW").main : "–";
-    const boxTag = r.boxKrw != null ? (r.boxSold ? "" : ` <em class="ctListing">${t("호가", "ask")}</em>`) : "";
-    const topHeavy = r.support != null && r.topShare > 0.5 ? ` <em class="ctWarn" title="${t("상위 1장이 TOP10 시세 합의 절반 이상 — 한 장 의존 큼", "One card makes up over half of the top-10 value — highly top-heavy")}">${t("1장 쏠림", "top-heavy")}</em>` : "";
-    const support = r.support == null ? "–" : `×${r.support.toFixed(1)}${topHeavy}`;
-    const topSold = r.topSold ? `${triMain(r.topSold.v, "KRW").main} <small class="ctSoldMeta">${r.topSold.num} · PSA10 · ${t(`판매 ${r.topSold.n}건`, `${r.topSold.n} solds`)}</small>` : "–";
-    return `<tr data-code="${r.code}" tabindex="0" role="button">
-      <td class="ctRank">${i + 1}</td>
-      <td class="ctSet"><b>${r.code}</b> <span>${r.name}</span></td>
-      <td class="ctBox">${box}${boxTag}</td>
-      <td><span class="ctScore ${scoreClassLocal(r.invest)}">${r.invest}</span></td>
-      <td class="ctTopSold">${topSold}</td>
-      <td class="ctSupport">${support}</td>
-       <td>${r.demand.available ? `<span class="ctScore ${scoreClassLocal(r.demand.score)}">${r.demand.score}</span>` : `<span class="ctScore sMid" title="${t("판매완료 표본 부족 또는 오래됨", "Sold samples are thin or stale")}">–</span>`}</td>
-      <td><span class="ctScore ${scoreClassLocal(r.supply.score)}">${r.supply.score}</span></td>
-    </tr>`;
-  }).join("");
-
-  el.hidden = false;
-  el.innerHTML = `${head}${legend}<div class="ctScroll"><table class="ctTable"><thead>${thead}</thead><tbody>${body}</tbody></table></div><p class="note">${t("클릭하면 해당 박스 상세로 이동합니다. 매수 추천이 아니라 리서치용 참고 지표입니다.", "Click a row to open that box. These are research reference signals, not buying advice.")}</p>`;
-
-  el.querySelectorAll("tr[data-code]").forEach((tr) => {
-    const go = () => {
-      const code = tr.dataset.code;
-      // 비교 전용 페이지(홈 상세 요소 없음)에서는 홈으로 이동
-      if (!document.querySelector("#detail")) {
-        location.href = `./?set=${code}${state.hl === "ko" ? "&hl=ko" : ""}`;
-        return;
-      }
-      const lang = (state.data.extra?.list || []).includes(code) ? "extra" : "jp";
-      if (state.lang !== lang) { state.lang = lang; document.querySelectorAll(".langTab").forEach((b) => b.classList.toggle("active", b.dataset.lang === lang)); }
-      state.selected = code;
-      state.hasExplicitSet = true;
-      renderPackGrid();
-      renderDetail();
-      updateUrl();
-      trackEvent("compare_select", { pack_code: code });
-      document.querySelector("#detail").scrollIntoView({ behavior: "smooth", block: "start" });
-    };
-    tr.addEventListener("click", go);
-    tr.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
-  });
 }
 
 // 오늘의 박스 딜: 검수된 최저 매물(배송 포함)이 최근 실거래 중앙값보다 싼 박스만(일본판·영문판), 절약액 큰 순 4개.
@@ -1395,6 +1322,7 @@ function renderTodayDeals() {
     deals.push({ code, ed, name: set.nameEn || set.nameKo || code, total: b.total, sold: so.median, soldN: so.sampleSize, soldTo: String(so.updated).slice(5, 10), mid: m.middle, asks: m.sampleSize || 0, currency: so.currency || m.currency || "USD", url: b.url, image: b.image || "", country: b.country || "", shipping: Number(b.shipping) || 0, save: so.median - b.total });
   }
   renderSuppliesStrip();
+  el.classList.toggle("isEmpty", !deals.length);
   if (!deals.length) {
     el.hidden = false;
     el.innerHTML = `<p class="dealsLoading">${t("오늘은 최근 실거래가보다 싼 검수 매물이 없습니다.", "No verified listing is priced under recent sold today.")}</p>`;
@@ -1409,8 +1337,8 @@ function renderTodayDeals() {
       const pct = Math.round((d.save / d.sold) * 100);
       const vsMid = d.mid ? Math.round((1 - d.total / d.mid) * 100) : 0;
       const art = d.image
-        ? `<span class="dealPhoto"><img src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.parentNode.remove()"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
-        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.parentNode.parentNode.remove()"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
+        ? `<span class="dealPhoto"><img src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
+        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
       const ship = d.shipping > 0 ? t(`배송 ${fmt(d.shipping, d.currency)} 포함`, `incl. ${fmt(d.shipping, d.currency)} shipping`) : t("무료배송", "free shipping");
       const asks = d.mid ? ` · ${t(`호가 중간 ${fmt(d.mid, d.currency)}, ${d.asks}건`, `asks mid ${fmt(d.mid, d.currency)}, ${d.asks} listings`)}${vsMid > 0 ? ` (−${vsMid}%)` : ""}` : "";
       return `
@@ -1696,12 +1624,13 @@ function cardMarketPanel(card) {
 function openLightbox(src, name, card, fallback) {
   let lb = document.querySelector("#lightbox");
   if (!lb) {
-    lb = document.createElement("div");
+    lb = document.createElement("dialog");
     lb.id = "lightbox";
-    lb.innerHTML = `<div class="lbInner"><button id="lbClose" aria-label="${t("닫기", "Close")}">x</button><div class="lbGrid"><img id="lbImg" alt=""/><div><p id="lbCap"></p><div id="lbMarket"></div></div></div></div>`;
+    lb.setAttribute("aria-labelledby", "lbCap");
+    lb.innerHTML = `<div class="lbInner"><button type="button" id="lbClose" autofocus>×</button><div class="lbGrid"><img id="lbImg" alt=""/><div><p id="lbCap"></p><div id="lbMarket"></div></div></div></div>`;
     document.body.appendChild(lb);
-    lb.addEventListener("click", (e) => { if (e.target === lb || e.target.id === "lbClose") lb.classList.remove("open"); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") lb.classList.remove("open"); });
+    // Native modal owns Escape, focus containment, background inertness and focus return.
+    lb.addEventListener("click", (e) => { if (e.target === lb || e.target.id === "lbClose") lb.close(); });
   }
   const big = src.replace(/_(\d+)w\.jpg/, "_1000x1000.jpg");
   const imgEl = lb.querySelector("#lbImg");
@@ -1716,9 +1645,11 @@ function openLightbox(src, name, card, fallback) {
     imgEl.hidden = true;
   };
   imgEl.src = big;
+  imgEl.alt = name || "";
+  lb.querySelector("#lbClose").setAttribute("aria-label", t("닫기", "Close"));
   lb.querySelector("#lbCap").textContent = name || "";
   lb.querySelector("#lbMarket").innerHTML = cardMarketPanel(card || {});
-  lb.classList.add("open");
+  if (!lb.open) lb.showModal();
 }
 
 function renderPsaTable(psa, updated) {
@@ -1728,7 +1659,7 @@ function renderPsaTable(psa, updated) {
     const gemClass = c.gem >= 90 ? "gemHi" : c.gem >= 80 ? "gemMid" : "gemLo";
     return `<tr><td class="pCard"><span class="pName">${c.name}</span><span class="pNo">#${c.number}</span></td><td class="pRar"><span class="pBadge" style="--c:${b.c}">${b.s}</span></td><td class="pNumv">${num(c.psa10)}</td><td class="pNumv dim">${num(c.psa9)}</td><td class="pNumv">${num(c.total)}</td><td class="pNumv ${gemClass}">${gem}</td></tr>`;
   }).join("");
-  return `<div class="psaWrap"><table class="psaTable"><thead><tr><th class="pCard">${t("카드", "Card")}</th><th class="pRar">${t("등급", "Rarity")}</th><th>PSA 10</th><th>PSA 9</th><th>${t("총계", "Total")}</th><th>${t("PSA10 비율", "PSA10 rate")}</th></tr></thead><tbody>${rows}</tbody></table><p class="note">${t("PSA 등급 인구 데이터입니다. PSA10 비율은 감정 카드 중 PSA10 비율입니다.", "PSA population data. PSA10 rate is the share of PSA 10 among graded copies.")}${updated ? ` · ${t("인구 기준일", "population as of")} ${updated} (GemRate)` : ""}</p></div>`;
+  return `<div class="psaWrap" role="region" tabindex="0" aria-label="${t("PSA 통계", "PSA statistics")}"><table class="psaTable"><thead><tr><th class="pCard">${t("카드", "Card")}</th><th class="pRar">${t("등급", "Rarity")}</th><th>PSA 10</th><th>PSA 9</th><th>${t("총계", "Total")}</th><th>${t("PSA10 비율", "PSA10 rate")}</th></tr></thead><tbody>${rows}</tbody></table><p class="note">${t("PSA 등급 인구 데이터입니다. PSA10 비율은 감정 카드 중 PSA10 비율입니다.", "PSA population data. PSA10 rate is the share of PSA 10 among graded copies.")}${updated ? ` · ${t("인구 기준일", "population as of")} ${updated} (GemRate)` : ""}</p></div>`;
 }
 
 function renderDataNotice() {
@@ -1823,7 +1754,7 @@ function renderDetail() {
     trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
   }));
   el.querySelectorAll(".hitName a").forEach((a) => a.addEventListener("click", (ev) => ev.stopPropagation()));
-  el.querySelectorAll(".hitCard").forEach((f) => f.addEventListener("click", () => { const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
+  el.querySelectorAll(".hitThumb").forEach((button) => button.addEventListener("click", () => { const f = button.closest(".hitCard"); const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
   wirePinBtn(el);  fillBoxMounts();
 }
 

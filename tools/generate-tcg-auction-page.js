@@ -596,6 +596,7 @@ ${tableRows}
           cols = rows.map(function (r) {
             var c = document.createElement("div");
             c.className = "opCol";
+            c.setAttribute("role", "img");
             c.appendChild(document.createElement("i"));
             bars.appendChild(c);
             return c;

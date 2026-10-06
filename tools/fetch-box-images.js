@@ -3,6 +3,7 @@
 // Run: node tools/fetch-box-images.js
 const fs = require("fs");
 const path = require("path");
+const { ensureBoxThumbnail } = require("./generate-box-thumbnails");
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "card-img", "box");
 const BASE = "https://www.onepiece-cardgame.com/renewal/images/products/boosters";
@@ -27,6 +28,7 @@ fs.mkdirSync(OUT, { recursive: true });
       // 기존 파일과 동일하면 스킵(야간 재실행 시 불필요한 커밋 방지)
       if (fs.existsSync(dest) && fs.readFileSync(dest).equals(buf)) { skipped++; done.push(code); continue; }
       fs.writeFileSync(dest, buf);
+      await ensureBoxThumbnail(code, true);
       fetched++; done.push(code);
       // 출처를 데이터에 기록(정확도/추적)
       if (d.sets[code]) d.sets[code].boxSource = "Bandai official (Japanese product image)";
@@ -35,6 +37,7 @@ fs.mkdirSync(OUT, { recursive: true });
       console.error(`FAIL ${code}: ${e.message}`);
     }
   }
+  for (const code of codes) await ensureBoxThumbnail(code);
   if (fetched) fs.writeFileSync(path.join(ROOT, "data", "onepiece-packs.json"), JSON.stringify(d, null, 1) + "\n", "utf8");
   console.log(JSON.stringify({ fetched, skipped, failed, total: codes.length }));
 })();

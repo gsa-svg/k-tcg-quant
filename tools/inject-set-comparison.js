@@ -84,7 +84,7 @@ function tableHtml(rows, updated) {
     const chgTxt = r.chg == null ? "—" : `${r.chg >= 0 ? "+" : ""}${r.chg.toFixed(0)}%`;
     const chgColor = r.chg == null ? "#7d8698" : r.chg >= 0 ? "#26d07c" : "#ff6b6b";
     return `            <tr>` +
-      `<td class="ctSet"><b>${esc(r.code)}</b><span>${esc(r.name)}</span></td>` +
+      `<th scope="row" class="ctSet"><a href="/sets/${esc(r.code.toLowerCase())}.html"><b>${esc(r.code)}</b><span>${esc(r.name)}</span></a></th>` +
       `<td>${money(r.jp)}${r.jpN ? `<small style="color:#7d8698"> n${r.jpN}</small>` : ""}</td>` +
       `<td>${money(r.en)}${r.enN ? `<small style="color:#7d8698"> n${r.enN}</small>` : ""}</td>` +
       `<td style="color:${chgColor}">${chgTxt}</td>` +
@@ -95,7 +95,7 @@ function tableHtml(rows, updated) {
   }).join("\n");
 
   return `${MARK_START}
-        <div style="overflow-x:auto;"><table class="ctTable" style="width:100%; border-collapse:collapse;">
+        <div class="setComparisonScroll" role="region" tabindex="0" aria-label="Japanese and English booster box price comparison" style="overflow-x:auto;"><table class="ctTable" style="width:100%; border-collapse:collapse;">
           <thead><tr><th class="ctSet">Set</th><th>JP box</th><th>EN box</th><th>4-wk</th><th>EN/JP</th><th>Priciest card (raw)</th><th>PSA 10 rate</th></tr></thead>
           <tbody>
 ${body}

@@ -36,13 +36,40 @@
   font-family: "Bricolage Grotesque";
   font-style: normal;
   font-weight: 600 800;
-  font-display: swap;
+  font-display: optional;
   src: url("fonts/bricolage-grotesque-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 html {
   color-scheme: dark;
+  scrollbar-gutter: stable;
+}
+
+/* Image zoom is a native modal: no duplicate focus trap or Escape implementation. */
+html:has(#lightbox[open]) { overflow: hidden; }
+dialog#lightbox {
+  width: 100%; max-width: none; height: 100%; max-height: none;
+  margin: 0; border: 0; color: var(--ink); overflow-y: auto;
+  overscroll-behavior: contain;
+}
+dialog#lightbox[open] { display: flex; }
+dialog#lightbox::backdrop { background: rgba(4, 6, 10, .7); }
+dialog#lightbox .lbInner { padding: 48px 8px 8px; }
+dialog#lightbox #lbClose { top: 0; right: 0; width: 44px; height: 44px; z-index: 1; }
+dialog#lightbox #lbImg[hidden] { display: none; }
+button.hitThumb { display: block; width: 100%; padding: 0; color: inherit; font: inherit; cursor: zoom-in; }
+button.hitThumb:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.detailLoading { min-height: 680px; padding: 20px; color: var(--muted); }
+.loadError { padding: 20px; border: 1px solid var(--gold); border-radius: 10px; }
+.loadError button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 8px; cursor: pointer; }
+.setComparisonScroll { scrollbar-width: thin; }
+.comparisonHelp summary { min-height: 44px; padding: 10px 0; cursor: pointer; color: var(--accent); font-weight: 700; }
+.setComparisonScroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.setComparisonScroll .ctTable tbody th { font-size: 13px; font-weight: 500; text-transform: none; letter-spacing: 0; text-align: left; }
+.setComparisonScroll .ctSet a { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 44px; }
+@media (max-width: 640px) {
+  .setComparisonScroll .ctSet { position: sticky; left: 0; z-index: 1; background: var(--paper); min-width: 124px; max-width: 152px; white-space: normal; }
 }
 
 * {
@@ -1312,6 +1339,11 @@ h2 {
 /* 등락 시세판 — 한 줄 가로 스크롤, 주식 시세판 문법(종목·현재가·등락률) */
 .tickerBoard { display: flex; align-items: center; gap: 10px; margin: 10px clamp(16px,4vw,52px) 0; padding: 8px 12px; border: 1px solid var(--terminal-line, rgba(255,255,255,.12)); border-radius: 10px; background: rgba(20,23,28,.5); font-variant-numeric: tabular-nums; }
 .tickerBoard .tbHead { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.tickerBoard { min-height: 56px; }
+.tickerBoard[hidden] { display: none; }
+.todayDeals.isEmpty { min-height: 0; }
+.tbMotion { flex: 0 0 auto; min-height: 32px; padding: 4px 8px; border: 1px solid var(--accent-line); border-radius: 6px; color: var(--ink); background: var(--paper); font: inherit; font-size: 12px; cursor: pointer; }
+.todayDeals .dealPhoto img[hidden], .todayDeals .dealBox3d img[hidden] { display: none; }
 .tickerBoard .tbScroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; }
 .tickerBoard .tbTrack { display: flex; flex: 0 0 auto; gap: 6px; }
 /* 전광판 흐름 — 2026-10-01. packs.js 가 마우스 환경 + 모션 허용일 때만 .tbMarquee 와 두 번째 .tbTrack 을 붙인다.
@@ -1319,6 +1351,7 @@ h2 {
 .tickerBoard .tbMarquee { overflow: hidden; scrollbar-width: none; }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .tickerBoard .tbMarquee .tbTrack { padding-right: 6px; animation: tbRun calc(var(--tb-n, 20) * 2.6s) linear infinite; }
+  .tickerBoard .tbMarquee.isPaused .tbTrack,
   .tickerBoard .tbMarquee:hover .tbTrack,
   .tickerBoard .tbMarquee:focus-within .tbTrack { animation-play-state: paused; }
   @keyframes tbRun { to { transform: translateX(-100%); } }
@@ -1346,7 +1379,7 @@ h2 {
 
 /* 상세 헤더 배지: 정가 대비 + 재판 기록 */
 .setBadges { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; flex-wrap: wrap; }
-.setBadge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 7px; text-decoration: none; white-space: nowrap; }
+.setBadge { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 7px; text-decoration: none; white-space: nowrap; }
 .setBadge b { font-weight: 800; }
 .setBadge.msrp { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(var(--accent-rgb),.3); cursor: help; }
 .setBadge.reprint { background: rgba(255,125,60,.13); color: #ff9d6c; border: 1px solid rgba(255,125,60,.35); }
