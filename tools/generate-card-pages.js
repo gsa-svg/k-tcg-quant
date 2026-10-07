@@ -486,6 +486,20 @@ ${BUY_CTA_CSS}
         <li><a href="../articles/one-piece-card-price-guide.html">Variant-matching method</a> · <a href="../articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM method</a></li>
       </ul>
 
+      ${/* 같은 세트의 다른 추적 카드 — 2026-10-07. 카드 페이지 116장이 서로 전혀 링크하지 않아(자기 canonical 1개뿐)
+            구글이 7/11 발견 뒤 한 번도 크롤링하지 않은 채 "발견됨 - 색인 안 됨" 145장으로 남았다. 세트 안에서 서로 걸어
+            크롤 경로를 만든다. 값은 같은 산식(NM=jpyUsd, PSA 10=psa10Of)이라 세트 페이지 TOP10 과 어긋나지 않는다. */ ""}
+      ${(() => {
+        const sib = cands.filter((x) => x.code === code && x.card !== c)
+          .map((x) => ({ card: x.card, nm: jpyUsd(x.card.nmJpy), p10: psa10Of(x.card) }))
+          .sort((a, b) => (b.nm || 0) - (a.nm || 0));
+        if (!sib.length) return "";
+        const rows = sib.map((x) => `<tr><td><a href="${slugify(x.card.number + "-" + x.card.name)}.html">${esc(seoName(x.card).short)}</a></td><td class="num">${x.nm != null ? usd(x.nm) : "—"}</td><td class="num">${x.p10 ? `${usd(x.p10.v)}${x.p10.kind === "ask" ? " ask" : ""}` : "—"}</td></tr>`).join("");
+        return `<h2>More ${esc(code)} cards tracked here</h2>
+      <div class="tableWrap" style="overflow-x:auto"><table class="dataTable"><thead><tr><th>Card</th><th class="num">Japanese NM</th><th class="num">PSA 10</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="srcNoteA">NM is the Japanese retail price for a raw copy; PSA 10 is the eBay sold median, or the cheapest listing where marked "ask". Same figures as the <a href="../sets/${setSlug}.html">${esc(code)} set guide</a>.</p>`;
+      })()}
+
       <h2>FAQ</h2>
       ${faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("\n      ")}
     </main>
