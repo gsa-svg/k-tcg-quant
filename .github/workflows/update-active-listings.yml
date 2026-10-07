@@ -57,6 +57,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+      # 2026-10-06 d37527b8 부터 tools/generate-box-thumbnails.js 가 sharp 를 쓴다(package.json 에 선언돼 있음).
+      # 이 러너에는 node_modules 가 없어서 재생성 단계가 'Cannot find module sharp' 로 죽었다(10/6 18:00·21:54 UTC 두 번).
+      # 생성기엔 dev 의존성(lighthouse·puppeteer-core)이 필요 없으니 --omit=dev. lockfile 기준으로 npm ci.
+      - name: Install dependencies
+        run: npm ci --omit=dev --no-audit --no-fund
 
       - name: Verify scripts
         run: |
