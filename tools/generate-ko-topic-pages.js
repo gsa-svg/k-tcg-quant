@@ -209,6 +209,24 @@ ${sTr}
       </table>
       </div>` : "";
 
+  // 세트별 전체 카드 시세 — 2026-10-07. 네이버 "원피스 카드 시세"에서 우리가 1페이지 밖인 이유는 한국어 카드 시세가
+  // 이 한 장(30행)뿐이라서다(경쟁 3곳은 한국어 카드명으로 카드별 문서 수천 장). 보유 카드를 세트별로 전부 싣는다 —
+  // 한 페이지 안의 표라 "틀만 찍은 대량 페이지" 판정 위험이 없다. 세트 제목은 한국어 세트명으로, ko 세트 페이지에 건다.
+  const cellShort = (r) => `<td class="l"><span class="cardCell">${r.thumb}<span>${r.ko ? `${esc(r.ko)}<small>${esc(r.name)}</small>` : esc(r.name)}<small>${esc(r.number)}</small></span></span></td>`;
+  const bySet = codes.map((code) => ({ code, list: rows.filter((r) => r.code === code) })).filter((g) => g.list.length);
+  const allBlock = `
+      <h2 id="all">세트별 전체 카드 시세 — ${rows.length}장 (일판 NM · 원화)</h2>
+      <p class="koNote">세트마다 추적 중인 카드 전부입니다. 일판 NM 시세 높은 순. 세트 이름을 누르면 그 세트의 박스 시세·재판 이력으로 갑니다.</p>
+${bySet.map((g) => `      <h3 id="set-${g.code.toLowerCase()}"><a href="${g.code.toLowerCase()}.html">${esc(g.code)} ${esc(nameKo(g.code))}</a> 카드 시세 (${g.list.length}장)</h3>
+      <div style="overflow-x:auto">
+      <table class="koBoard">
+        <thead><tr><th>#</th><th class="l">카드 (번호)</th><th>일판 NM 시세</th><th class="hideM">PSA 10 실낙찰</th></tr></thead>
+        <tbody>
+${g.list.map((r, i) => `<tr><td>${i + 1}</td>${cellShort(r)}<td>${won(r.nmKrw)}</td><td class="hideM">${r.p10Krw != null ? won(r.p10Krw) : "—"}</td></tr>`).join("\n")}
+        </tbody>
+      </table>
+      </div>`).join("\n")}`;
+
   const body = `
       <div style="overflow-x:auto">
       <table class="koBoard">
@@ -218,7 +236,7 @@ ${tr}
         </tbody>
       </table>
       </div>
-      <p class="koNote">일판 NM = 일본 리테일 무등급 재고가. PSA 10 실낙찰 = 이베이 낙찰 중앙값. "집계중"은 검증된 낙찰 표본(3건 이상)이 아직 없다는 뜻이며 추정치로 채우지 않습니다. 정발(한글판)은 집계하지 않습니다.</p>${soldBlock}
+      <p class="koNote">일판 NM = 일본 리테일 무등급 재고가. PSA 10 실낙찰 = 이베이 낙찰 중앙값. "집계중"은 검증된 낙찰 표본(3건 이상)이 아직 없다는 뜻이며 추정치로 채우지 않습니다. 정발(한글판)은 집계하지 않습니다.</p>${soldBlock}${allBlock}
       <h2>표기 — 일판 · 정발 · 패러렐 · 망가 아트</h2>
       <div style="overflow-x:auto">
       <table class="koBoard">
@@ -244,7 +262,7 @@ ${tr}
     file: "cards.html",
     enHref: "cards/",   // 정규 URL — cards/index.html 을 가리키면 구글이 hreflang 을 무시한다(2026-09-16)
     title: "원피스 카드 시세 — 일판 NM·PSA10 실낙찰 | opboxindex",
-    desc: `원피스카드 일판 낱장 시세 — 인기 ${top.length}장의 NM·PSA 10 실낙찰가를 원화로. 정발(한글판) 제외.`,
+    desc: `원피스카드 일판 낱장 시세 — 인기 ${top.length}장 순위와 22세트 전체 ${rows.length}장의 NM·PSA 10 실낙찰가를 원화로. 정발(한글판) 제외.`,
     h1: "원피스 카드 시세 — 일판 낱장 NM·PSA 10 실낙찰 (원화)",
     eyebrow: "원피스카드 일판 시세",
     breadcrumbName: "원피스 카드 시세 (일판)",
