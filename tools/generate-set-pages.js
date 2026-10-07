@@ -855,15 +855,18 @@ function setPage(code, prev, next) {
       </div>
       ${AFF_TOP}
       ${statGrid}
+      ${/* 구매 버튼은 박스 시세 바로 아래 — 2026-10-07. 종전엔 차트(약 100KB 인라인 SVG)·라이브 위젯 뒤에 있어
+            첫 eBay 링크가 문서 13만 자 지점이었다. ChatGPT 착지 1위(op-16)가 13초 만에 나가는데 가격 옆에 살 길이 없었다.
+            순서: 최저 실매물 → 전체 매물 → 트래커 → 영문판. 검색 링크는 실매물 버튼이 없을 때만 강조(영문판 생성기와 같은 규칙). */ ""}
+      <div class="ctaRow">
+        ${jpBuy}
+        <a class="${jpBuy ? "" : "primary"}" href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${jpBuy ? `All ${code} box listings` : `Browse ${code} boxes on eBay`}</a>
+        <a href="../?set=${enc}" data-ko="${code} 라이브 트래커 — 카드 이미지 · PSA 10 매물 · PSA 표 →">Live ${code} tracker — card images · PSA 10 listings · PSA table →</a>
+        ${englishHref ? `<a href="${englishHref}">English ${code} box price</a>` : ""}
+      </div>
       ${keyFacts}
       ${boxChartBlock(code)}
       ${liveWidget(code)}
-      <div class="ctaRow">
-        <a class="primary" href="../?set=${enc}" data-ko="${code} 라이브 트래커 — 카드 이미지 · PSA 10 매물 · PSA 표 →">Live ${code} tracker — card images · PSA 10 listings · PSA table →</a>
-        ${jpBuy}
-        <a href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${jpBuy ? `All ${code} box listings` : `Browse ${code} boxes on eBay`}</a>
-        ${englishHref ? `<a href="${englishHref}">English ${code} box price</a>` : ""}
-      </div>
       ${/* 갓 나온 세트는 박스 시세만 있고 체이스 카드 목록이 아직 없다. 헤더만 있는 빈 표를
             내보내면 "데이터가 있는데 비어 있다"로 읽힌다 — 섹션을 아예 그리지 않고,
             왜 없는지 한 줄로 밝힌다. 카드 목록이 생기면 자동으로 다시 나타난다. */""}

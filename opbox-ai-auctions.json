@@ -1798,11 +1798,11 @@
    {
     "date": "2026-10-07",
     "partialDay": true,
-    "ended": 40,
-    "sold": 25,
-    "unsold": 15,
-    "sellThroughPct": 62.5,
-    "amountUsd": 1717.96,
+    "ended": 134,
+    "sold": 77,
+    "unsold": 57,
+    "sellThroughPct": null,
+    "amountUsd": 8517.57,
     "byCategory": {
      "box": {
       "ended": 0,
@@ -1811,48 +1811,48 @@
       "amountUsd": 0
      },
      "graded": {
-      "ended": 4,
-      "sold": 3,
-      "sellThroughPct": null,
-      "amountUsd": 154
+      "ended": 27,
+      "sold": 22,
+      "sellThroughPct": 81.5,
+      "amountUsd": 2435.18
      },
      "raw": {
-      "ended": 30,
-      "sold": 19,
-      "sellThroughPct": 63.3,
-      "amountUsd": 1446.95
+      "ended": 95,
+      "sold": 48,
+      "sellThroughPct": 50.5,
+      "amountUsd": 5391.86
      },
      "pack": {
-      "ended": 3,
-      "sold": 2,
+      "ended": 5,
+      "sold": 4,
       "sellThroughPct": null,
-      "amountUsd": 75.01
+      "amountUsd": 333.51
      },
      "lot": {
-      "ended": 3,
-      "sold": 1,
+      "ended": 7,
+      "sold": 3,
       "sellThroughPct": null,
-      "amountUsd": 42
+      "amountUsd": 357.02
      }
     },
     "byPrinting": {
      "jp": {
-      "ended": 3,
-      "sold": 1,
-      "sellThroughPct": null,
-      "amountUsd": 56
+      "ended": 21,
+      "sold": 3,
+      "sellThroughPct": 14.3,
+      "amountUsd": 137
      },
      "en": {
-      "ended": 26,
-      "sold": 14,
-      "sellThroughPct": 53.8,
-      "amountUsd": 399.16
+      "ended": 63,
+      "sold": 29,
+      "sellThroughPct": 46,
+      "amountUsd": 3355.41
      },
      "other": {
-      "ended": 11,
-      "sold": 10,
-      "sellThroughPct": null,
-      "amountUsd": 1262.8
+      "ended": 50,
+      "sold": 45,
+      "sellThroughPct": 90,
+      "amountUsd": 5025.16
      }
     }
    }
@@ -2149,10 +2149,10 @@
     "weekStart": "2026-10-05",
     "days": 3,
     "partialDays": 1,
-    "ended": 2716,
-    "sold": 930,
-    "sellThroughPct": 34.24,
-    "amountUsd": 127798.83,
+    "ended": 2810,
+    "sold": 982,
+    "sellThroughPct": 34.95,
+    "amountUsd": 134598.44,
     "byCategory": {
      "box": {
       "ended": 29,
@@ -2161,28 +2161,28 @@
       "amountUsd": 47909.99
      },
      "graded": {
-      "ended": 346,
-      "sold": 207,
-      "sellThroughPct": 59.8,
-      "amountUsd": 51450.28
+      "ended": 369,
+      "sold": 226,
+      "sellThroughPct": 61.2,
+      "amountUsd": 53731.46
      },
      "raw": {
-      "ended": 2103,
-      "sold": 610,
-      "sellThroughPct": 29,
-      "amountUsd": 26127.71
+      "ended": 2168,
+      "sold": 639,
+      "sellThroughPct": 29.5,
+      "amountUsd": 30072.62
      },
      "pack": {
-      "ended": 106,
-      "sold": 64,
-      "sellThroughPct": 60.4,
-      "amountUsd": 1391.05
+      "ended": 108,
+      "sold": 66,
+      "sellThroughPct": 61.1,
+      "amountUsd": 1649.55
      },
      "lot": {
-      "ended": 132,
-      "sold": 23,
-      "sellThroughPct": 17.4,
-      "amountUsd": 919.8
+      "ended": 136,
+      "sold": 25,
+      "sellThroughPct": 18.4,
+      "amountUsd": 1234.82
      }
     }
    }
@@ -5534,154 +5534,6 @@
   ],
   "daily": [
    {
-    "date": "2026-09-23",
-    "games": {
-     "pokemonjp": {
-      "ended": 166,
-      "sold": 38,
-      "sellThroughPct": 22.89,
-      "medianWinningBidUsd": 5.5,
-      "priceSample": 38,
-      "amountUsd": 1820.18,
-      "liveAuctions": 38770,
-      "endingWithin24h": 6424,
-      "bidRatePct": 33
-     },
-     "pokemon": {
-      "ended": 166,
-      "sold": 35,
-      "sellThroughPct": 21.08,
-      "medianWinningBidUsd": 5.5,
-      "priceSample": 35,
-      "amountUsd": 724.92,
-      "liveAuctions": 297411,
-      "endingWithin24h": 43216,
-      "bidRatePct": 13
-     },
-     "magic": {
-      "ended": 166,
-      "sold": 44,
-      "sellThroughPct": 26.51,
-      "medianWinningBidUsd": 15,
-      "priceSample": 44,
-      "amountUsd": 1237.38,
-      "liveAuctions": 28355,
-      "endingWithin24h": 4142,
-      "bidRatePct": 24
-     },
-     "yugioh": {
-      "ended": 166,
-      "sold": 21,
-      "sellThroughPct": 12.65,
-      "medianWinningBidUsd": 5.55,
-      "priceSample": 21,
-      "amountUsd": 529.59,
-      "liveAuctions": 18836,
-      "endingWithin24h": 2875,
-      "bidRatePct": 15
-     },
-     "onepiece": {
-      "ended": 166,
-      "sold": 76,
-      "sellThroughPct": 45.78,
-      "medianWinningBidUsd": 24.5,
-      "priceSample": 76,
-      "amountUsd": 8473.17,
-      "liveAuctions": 14858,
-      "endingWithin24h": 1932,
-      "bidRatePct": 47
-     },
-     "lorcana": {
-      "ended": 166,
-      "sold": 100,
-      "sellThroughPct": 60.24,
-      "medianWinningBidUsd": 35.69,
-      "priceSample": 100,
-      "amountUsd": 22956.79,
-      "liveAuctions": 4569,
-      "endingWithin24h": 807,
-      "bidRatePct": 30
-     },
-     "weiss": {
-      "ended": 166,
-      "sold": 76,
-      "sellThroughPct": 45.78,
-      "medianWinningBidUsd": 23.5,
-      "priceSample": 76,
-      "amountUsd": 2775.27,
-      "liveAuctions": 2497,
-      "endingWithin24h": 254,
-      "bidRatePct": 17
-     },
-     "digimon": {
-      "ended": 164,
-      "sold": 16,
-      "sellThroughPct": 9.76,
-      "medianWinningBidUsd": 12.5,
-      "priceSample": 16,
-      "amountUsd": 1123.51,
-      "liveAuctions": 1954,
-      "endingWithin24h": 567,
-      "bidRatePct": 4
-     },
-     "riftbound": {
-      "ended": 138,
-      "sold": 96,
-      "sellThroughPct": 69.57,
-      "medianWinningBidUsd": 300,
-      "priceSample": 96,
-      "amountUsd": 96825.17,
-      "liveAuctions": 1193,
-      "endingWithin24h": 162,
-      "bidRatePct": 52
-     },
-     "unionarena": {
-      "ended": 138,
-      "sold": 32,
-      "sellThroughPct": 23.19,
-      "medianWinningBidUsd": 102.5,
-      "priceSample": 32,
-      "amountUsd": 33927.01,
-      "liveAuctions": 937,
-      "endingWithin24h": 140,
-      "bidRatePct": 22
-     },
-     "gundam": {
-      "ended": 130,
-      "sold": 13,
-      "sellThroughPct": 10,
-      "medianWinningBidUsd": 25.61,
-      "priceSample": 13,
-      "amountUsd": 1913.14,
-      "liveAuctions": 795,
-      "endingWithin24h": 157,
-      "bidRatePct": 14
-     },
-     "dragonball": {
-      "ended": 166,
-      "sold": 81,
-      "sellThroughPct": 48.8,
-      "medianWinningBidUsd": 93,
-      "priceSample": 81,
-      "amountUsd": 29188.7,
-      "liveAuctions": 1523,
-      "endingWithin24h": 233,
-      "bidRatePct": 39
-     },
-     "palworld": {
-      "ended": 32,
-      "sold": 7,
-      "sellThroughPct": 21.88,
-      "medianWinningBidUsd": 115,
-      "priceSample": 7,
-      "amountUsd": 1554.77,
-      "liveAuctions": 466,
-      "endingWithin24h": 29,
-      "bidRatePct": 11
-     }
-    }
-   },
-   {
     "date": "2026-09-24",
     "games": {
      "pokemonjp": {
@@ -7149,7 +7001,7 @@
       "bidRatePct": 35
      },
      "palworld": {
-      "ended": 20,
+      "ended": 21,
       "sold": 0,
       "sellThroughPct": 0,
       "medianWinningBidUsd": null,
@@ -7538,9 +7390,9 @@
       "bidRatePct": 18
      },
      "digimon": {
-      "ended": 103,
+      "ended": 146,
       "sold": 2,
-      "sellThroughPct": 1.94,
+      "sellThroughPct": 1.37,
       "medianWinningBidUsd": null,
       "priceSample": 2,
       "amountUsd": 358,
@@ -7549,9 +7401,9 @@
       "bidRatePct": 1
      },
      "riftbound": {
-      "ended": 99,
+      "ended": 116,
       "sold": 73,
-      "sellThroughPct": 73.74,
+      "sellThroughPct": 62.93,
       "medianWinningBidUsd": 192.5,
       "priceSample": 73,
       "amountUsd": 47302.59,
@@ -7560,48 +7412,196 @@
       "bidRatePct": 60
      },
      "unionarena": {
-      "ended": 86,
-      "sold": 32,
-      "sellThroughPct": 37.21,
-      "medianWinningBidUsd": 40.99,
-      "priceSample": 32,
-      "amountUsd": 2143.88,
+      "ended": 129,
+      "sold": 37,
+      "sellThroughPct": 28.68,
+      "medianWinningBidUsd": 35,
+      "priceSample": 37,
+      "amountUsd": 2303.05,
       "liveAuctions": 966,
       "endingWithin24h": 127,
       "bidRatePct": 20
      },
      "gundam": {
-      "ended": 38,
-      "sold": 11,
-      "sellThroughPct": 28.95,
-      "medianWinningBidUsd": 35,
-      "priceSample": 11,
-      "amountUsd": 2045.38,
+      "ended": 59,
+      "sold": 15,
+      "sellThroughPct": 25.42,
+      "medianWinningBidUsd": 37.4,
+      "priceSample": 15,
+      "amountUsd": 3348.28,
       "liveAuctions": 712,
       "endingWithin24h": 85,
       "bidRatePct": 17
      },
      "dragonball": {
-      "ended": 85,
-      "sold": 54,
-      "sellThroughPct": 63.53,
-      "medianWinningBidUsd": 107.49,
-      "priceSample": 54,
-      "amountUsd": 12993,
+      "ended": 118,
+      "sold": 69,
+      "sellThroughPct": 58.47,
+      "medianWinningBidUsd": 91,
+      "priceSample": 69,
+      "amountUsd": 14781.65,
       "liveAuctions": 1138,
       "endingWithin24h": 139,
       "bidRatePct": 35
      },
      "palworld": {
-      "ended": 9,
+      "ended": 18,
+      "sold": 8,
+      "sellThroughPct": null,
+      "medianWinningBidUsd": 0.99,
+      "priceSample": 8,
+      "amountUsd": 2236.94,
+      "liveAuctions": 201,
+      "endingWithin24h": 46,
+      "bidRatePct": 21
+     }
+    }
+   },
+   {
+    "date": "2026-10-07",
+    "games": {
+     "pokemonjp": {
+      "ended": 80,
+      "sold": 27,
+      "sellThroughPct": 33.75,
+      "medianWinningBidUsd": 18.01,
+      "priceSample": 27,
+      "amountUsd": 5280.63,
+      "liveAuctions": 37090,
+      "endingWithin24h": 4882,
+      "bidRatePct": 35
+     },
+     "pokemon": {
+      "ended": 80,
+      "sold": 30,
+      "sellThroughPct": 37.5,
+      "medianWinningBidUsd": 16.5,
+      "priceSample": 30,
+      "amountUsd": 2490.17,
+      "liveAuctions": 297477,
+      "endingWithin24h": 40908,
+      "bidRatePct": 31
+     },
+     "magic": {
+      "ended": 80,
+      "sold": 20,
+      "sellThroughPct": 25,
+      "medianWinningBidUsd": 38,
+      "priceSample": 20,
+      "amountUsd": 5566.92,
+      "liveAuctions": 31891,
+      "endingWithin24h": 3660,
+      "bidRatePct": 18
+     },
+     "yugioh": {
+      "ended": 80,
+      "sold": 35,
+      "sellThroughPct": 43.75,
+      "medianWinningBidUsd": 48,
+      "priceSample": 35,
+      "amountUsd": 3390.59,
+      "liveAuctions": 18061,
+      "endingWithin24h": 2673,
+      "bidRatePct": 13
+     },
+     "onepiece": {
+      "ended": 80,
+      "sold": 43,
+      "sellThroughPct": 53.75,
+      "medianWinningBidUsd": 20.5,
+      "priceSample": 43,
+      "amountUsd": 2823.91,
+      "liveAuctions": 12912,
+      "endingWithin24h": 1654,
+      "bidRatePct": 28
+     },
+     "lorcana": {
+      "ended": 80,
+      "sold": 27,
+      "sellThroughPct": 33.75,
+      "medianWinningBidUsd": 108.5,
+      "priceSample": 27,
+      "amountUsd": 17915.89,
+      "liveAuctions": 4156,
+      "endingWithin24h": 519,
+      "bidRatePct": 29
+     },
+     "weiss": {
+      "ended": 80,
+      "sold": 23,
+      "sellThroughPct": 28.75,
+      "medianWinningBidUsd": 60,
+      "priceSample": 23,
+      "amountUsd": 8071.61,
+      "liveAuctions": 2955,
+      "endingWithin24h": 375,
+      "bidRatePct": 24
+     },
+     "digimon": {
+      "ended": 15,
       "sold": 2,
       "sellThroughPct": null,
       "medianWinningBidUsd": null,
       "priceSample": 2,
-      "amountUsd": 2231,
-      "liveAuctions": 201,
-      "endingWithin24h": 46,
-      "bidRatePct": 21
+      "amountUsd": 4543.4,
+      "liveAuctions": 1818,
+      "endingWithin24h": 517,
+      "bidRatePct": 2
+     },
+     "riftbound": {
+      "ended": 63,
+      "sold": 30,
+      "sellThroughPct": 47.62,
+      "medianWinningBidUsd": 676.66,
+      "priceSample": 30,
+      "amountUsd": 21852.7,
+      "liveAuctions": 1010,
+      "endingWithin24h": 194,
+      "bidRatePct": 57
+     },
+     "unionarena": {
+      "ended": 37,
+      "sold": 23,
+      "sellThroughPct": 62.16,
+      "medianWinningBidUsd": 192.5,
+      "priceSample": 23,
+      "amountUsd": 24065.34,
+      "liveAuctions": 1023,
+      "endingWithin24h": 127,
+      "bidRatePct": 17
+     },
+     "gundam": {
+      "ended": 17,
+      "sold": 13,
+      "sellThroughPct": null,
+      "medianWinningBidUsd": 41,
+      "priceSample": 13,
+      "amountUsd": 4649.55,
+      "liveAuctions": 765,
+      "endingWithin24h": 99,
+      "bidRatePct": 17
+     },
+     "dragonball": {
+      "ended": 47,
+      "sold": 34,
+      "sellThroughPct": 72.34,
+      "medianWinningBidUsd": 44,
+      "priceSample": 34,
+      "amountUsd": 6797.86,
+      "liveAuctions": 1319,
+      "endingWithin24h": 128,
+      "bidRatePct": 35
+     },
+     "palworld": {
+      "ended": 10,
+      "sold": 7,
+      "sellThroughPct": null,
+      "medianWinningBidUsd": 0.99,
+      "priceSample": 7,
+      "amountUsd": 816.96,
+      "liveAuctions": 186,
+      "endingWithin24h": 17,
+      "bidRatePct": 15
      }
     }
    }

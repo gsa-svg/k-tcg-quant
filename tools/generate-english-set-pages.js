@@ -426,15 +426,16 @@ function englishPage(code, prev, next) {
       </div>
       ${AFF_TOP}
       ${statGrid(code, m)}
-      ${keyFacts(code, nameEn, m, s)}
-      ${chartBlock(code)}
-      ${cheapestBox(code, m)}
+      ${/* 구매 버튼은 박스 시세 바로 아래 — 2026-10-07(일본판 생성기와 같은 이유: 차트 뒤에 두면 첫 화면에 살 길이 없다). */ ""}
       <div class="ctaRow">
         ${enBuy}
         <a class="${enBuy ? "" : "primary"}" href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${enBuy ? `All English ${code} box listings` : `Browse English ${code} boxes on eBay`}</a>
         <a href="../?set=${encodeURIComponent(code)}&amp;hl=en">Open live ${code} tracker</a>
         <a href="${slug(code)}.html">Japanese ${code} box guide</a>
       </div>
+      ${keyFacts(code, nameEn, m, s)}
+      ${chartBlock(code)}
+      ${cheapestBox(code, m)}
       ${weeklyTable(code)}
       ${compareTable(code, m, s)}
       ${auctionSection(code)}
