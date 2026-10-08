@@ -1,0 +1,74 @@
+{
+ "note": "Asking prices for sealed booster boxes of sets that have not been released yet (pre-orders), from eBay fixed-price listings: one point per day per edition, shipping included, 15/50/85 percentiles over listings that pass the same title/seller filters as the main active-listing collector. 'best' is the cheapest new-condition listing at or above half the median. These are asking prices, not sales; completed pre-order sales live in box-sold-series.json. After release the set moves into onepiece-packs.json and this series becomes the early part of its active-listing history.",
+ "updated": "2026-10-08",
+ "sets": {
+  "EB-05": {
+   "nameEn": "Heroines Edition vol.2",
+   "release": "2026-10-31",
+   "jp": [
+    {
+     "d": "2026-10-08",
+     "currency": "USD",
+     "n": 11,
+     "excluded": 1,
+     "low": 141.92,
+     "median": 164.99,
+     "high": 271.8,
+     "best": {
+      "total": 138,
+      "url": "https://www.ebay.com/itm/318941719127?_skw=One+Piece+Card+Game+EB-05+Heroines+Edition+vol.2+Extra+Booster+Box+Japanese+sealed&hash=item4a42686a57:g:VfEAAeSwPGRqvho0",
+      "title": "[PreOrder]ONE PIECE Card Game Booster Box EB-05 Heroines Edition Vol.2 japanese"
+     }
+    }
+   ],
+   "en": [
+    {
+     "d": "2026-10-08",
+     "currency": "USD",
+     "n": 1,
+     "excluded": 0,
+     "low": 388.81,
+     "median": 388.81,
+     "high": 388.81,
+     "best": {
+      "total": 388.81,
+      "url": "https://www.ebay.com/itm/237063703693?_skw=One+Piece+Card+Game+EB-05+Heroines+Edition+vol.2+Extra+Booster+Box+English+sealed&hash=item3732190c8d:g:5zoAAeSw6wNqkGZ7",
+      "title": "One Piece : EB-05: Heroines Edition Vol.2 | EB-05 BOOSTER BOX ENG *PRESALE Ebay*"
+     }
+    }
+   ]
+  },
+  "OP-18": {
+   "nameEn": "The Dominance of God",
+   "release": "2026-11-21",
+   "jp": [
+    {
+     "d": "2026-10-08",
+     "currency": "USD",
+     "n": 0,
+     "excluded": 0,
+     "low": null,
+     "median": null,
+     "high": null,
+     "best": null
+    }
+   ],
+   "en": [
+    {
+     "d": "2026-10-08",
+     "currency": "USD",
+     "n": 5,
+     "excluded": 0,
+     "low": 310,
+     "median": 350,
+     "high": 375,
+     "best": {
+      "total": 299.99,
+      "url": "https://www.ebay.com/itm/117453058879?_skw=One+Piece+Card+Game+OP-18+The+Dominance+of+God+Booster+Box+English+sealed&hash=item1b58bf733f:g:nvkAAeSwUbVqxkz0",
+      "title": "One Piece TCG OP-18 The Dominance of God - English Sealed Booster Box PRESALE"
+     }
+    }
+   ]
+  }
+ }
+}

@@ -164,6 +164,11 @@ const supply = read("data/supply-series.json");
 if (supply) checkDaily("공급 시계열", Object.values(supply.sets || {}).flatMap((s) => (s.points || []).map((p) => p.d)));
 else problems.push("공급 시계열 파일을 못 읽었다");
 
+// 예약판매 박스 호가(발매 전 세트, collect-preorder-prices.js) — 2026-10-08 신설. 발매 전 세트가 없는 기간엔 파일이
+// 갱신되지 않는 게 정상이고, 테스트 픽스처엔 파일이 없으므로 못 읽어도 problems 에 넣지 않는다.
+const preorder = read("data/preorder-series.json");
+if (preorder) checkDaily("예약판매 박스 호가", Object.values(preorder.sets || {}).flatMap((s) => ["jp", "en"].flatMap((k) => (s[k] || []).map((p) => p.d))));
+
 // 박스 진행매물 점은 WM 원본이 있는 세트는 boxSeries(En)Ebay, 없는 세트(OP-16·17 등)는 boxSeries(En) 에 들어간다
 // (update-box-series-history). 판별마다 두 키를 합친다. 진행매물 점(basis active)만 센다 — 7/14 이전 옛 점은 기준이 다르다.
 const packs = read("data/onepiece-packs.json");

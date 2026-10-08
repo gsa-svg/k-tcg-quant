@@ -80,6 +80,35 @@ function releaseBox(page) {
       </section>`;
 }
 
+// 예약판매 가격 표 — 2026-10-08. 발매 전에 실제로 검색되는 질문("EB-05 box pre-order price")에 우리 데이터로 답한다.
+// 호가는 collect-preorder-prices.js(일별, 배송비 포함 매물 백분위), 실거래는 box-sold 러너(주별 중앙값). 둘 다 없으면 표를 그리지 않는다.
+// 라벨만 두고 설명문은 한 줄 — 추정·예측 문구 금지(공개 문구 규칙).
+const PREORDER = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", "preorder-series.json"), "utf8")); } catch { return null; } })();
+const SOLD_SERIES = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch { return null; } })();
+const usd = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
+function preorderTable(page) {
+  const ask = PREORDER?.sets?.[page.code];
+  const sold = SOLD_SERIES?.sets?.[page.code];
+  const rows = [["Japanese", "jp"], ["English", "en"]].map(([label, ed]) => {
+    const a = (ask?.[ed] || []).slice(-1)[0] || null;
+    const s = (sold?.[ed] || []).filter((p) => p && p.median != null).slice(-1)[0] || null;
+    if (!a && !s) return null;
+    // 모바일 390px 에서 4열은 마지막 열이 잘린다(실측) — 3열로 두고 보조 수치는 셀 안 둘째 줄(small)에.
+    const bestHtml = a?.best ? `<a href="${escapeHtml(epnUrl(a.best.url + (a.best.url.includes("?") ? "&" : "?") + `customid=preorder-${page.slug}-${ed}`))}" target="_blank" rel="noopener noreferrer sponsored">${usd(a.best.total)}</a>` : "—";
+    const askHtml = a && a.n ? `${bestHtml}<small>median ${usd(a.median)} · ${a.n} listing${a.n === 1 ? "" : "s"}</small>` : "—";
+    const soldHtml = s ? `${usd(s.median)}<small>${s.n} sold · wk of ${escapeHtml(s.d.slice(5))}</small>` : "—";
+    return `<tr><td>${label} box</td><td>${askHtml}</td><td>${soldHtml}</td></tr>`;
+  }).filter(Boolean);
+  if (!rows.length) return "";
+  const asOf = ask?.jp?.slice(-1)[0]?.d || ask?.en?.slice(-1)[0]?.d || PREORDER?.updated || "";
+  return `
+      <h2>${escapeHtml(page.code)} pre-order box prices on eBay</h2>
+      <table class="factTable preTbl"><thead><tr><th>Edition</th><th>Cheapest ask</th><th>Sold median</th></tr></thead><tbody>
+          ${rows.join("\n          ")}
+      </tbody></table>
+      <p class="sourceNoteA">Asking prices: eBay fixed-price listings for sealed boxes, shipping included${asOf ? `, as of ${escapeHtml(asOf)}` : ""}; collected daily before release. Sold median: completed eBay sales we track weekly. Same filters as the <a href="index.html">released-set guides</a>.</p>`;
+}
+
 function renderSections(sections) {
   return sections.map((section) => `
       <section${section.searchIntent ? ' class="searchIntent"' : ""}>
@@ -196,7 +225,7 @@ function renderPage(page) {
     <script defer src="../lang-toggle.js?v=${CSS_VERSION}"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
-      .factTable{width:100%;max-width:720px;border-collapse:collapse;margin:16px 0}.factTable th,.factTable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.factTable th{width:36%;color:#9aa4b6;font-weight:600}.sourceNoteA{max-width:760px;color:#9aa4b6;font-size:13px;line-height:1.65}.setFaq{max-width:760px}.setFaq details{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 0}.setFaq summary{cursor:pointer;font-weight:700}
+      .factTable{width:100%;max-width:720px;border-collapse:collapse;margin:16px 0}.preTbl td small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}.preTbl td:first-child{white-space:nowrap}.factTable th,.factTable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.factTable th{width:36%;color:#9aa4b6;font-weight:600}.sourceNoteA{max-width:760px;color:#9aa4b6;font-size:13px;line-height:1.65}.setFaq{max-width:760px}.setFaq details{border-bottom:1px solid rgba(255,255,255,.08);padding:8px 0}.setFaq summary{cursor:pointer;font-weight:700}
       .relBox{max-width:720px;margin:14px 0 18px;padding:12px 16px 14px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-dim)}
       .relRow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)}
       .relWhere{flex:0 0 64px;color:var(--muted);font-size:13px;font-weight:600}
@@ -220,6 +249,7 @@ function renderPage(page) {
       <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
       <h1>${escapeHtml(page.headline)}</h1>
       ${releaseBox(page)}
+      ${preorderTable(page)}
       <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Published <time datetime="${page.published}">${displayDate(page.published)}</time> · Updated <time datetime="${page.modified}">${displayDate(page.modified)}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>
       <p>${page.introHtml}</p>
       <h2>Product facts</h2>
