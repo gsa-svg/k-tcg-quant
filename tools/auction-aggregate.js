@@ -46,12 +46,10 @@ function buildDaily(window) {
   const days = [...new Set(rowsAll.map((s) => s.d))];
   return days.map((d) => {
     const rows = rowsAll.filter((s) => s.d === d);
-    const bySet = {};
-    for (const s of new Set(rows.filter((r) => r.set).map((r) => r.set))) {
-      const rs = rows.filter((r) => r.set === s);
-      if (rs.length < 2) continue; // 표본 1건은 잡음
-      bySet[s] = agg(rs);
-    }
+    // bySet(일별 세트 축)은 2026-10-08 에 뺐다. 가드 T3 상한(400KB)에 걸린 auction-sold.json 400KB 중 291KB 가 이 축이었는데
+    // 읽는 곳이 없었다 — 세트별 경매 통계는 build-set-auction-stats.js 가 원장(auction-archive)에서 직접 만든다.
+    // 10/7 14:17Z~22:47Z 정산 7회가 가드 T3 로 버려져(결과·쿼터 모두 소실) 원피스 경매 10/7 에 22시간 공백이 났다.
+    // 필요해지면 원장에서 다시 구울 수 있다(reaggregate-auctions.js) — 핫 파일엔 화면이 쓰는 축만 둔다(T3 주석 2번).
     return {
       d,
       ...agg(rows),
@@ -75,7 +73,6 @@ function buildDaily(window) {
         }
         return out;
       })(),
-      bySet,
     };
   });
 }
