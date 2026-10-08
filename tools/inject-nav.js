@@ -63,11 +63,29 @@ function listHtml() {
   return out;
 }
 
+// 제목 글꼴 preload — 2026-10-08. styles.css 의 @font-face 는 font-display: optional 이라 첫 그리기 전에 글꼴이
+// 안 와 있으면 그 방문 내내 시스템 글꼴로 남는다(홈만 preload 가 있어 홈과 내부 페이지의 제목 글꼴이 달랐다).
+// 스타일시트 링크 바로 앞에 한 줄 넣는다. 이미 있으면 건드리지 않는다. 경로 접두어는 메뉴와 같은 규칙.
+const FONT_FILE = "fonts/bricolage-grotesque-latin.woff2";
+function withFontPreload(html, prefix) {
+  if (html.includes(FONT_FILE) && /rel="preload"[^>]*bricolage/.test(html)) return html;
+  const re = new RegExp(`[ \\t]*<link rel="stylesheet" href="${prefix.replace(/\./g, "\\.")}styles\\.css[^"]*"[^>]*>`);
+  const m = html.match(re);
+  if (!m) return html;
+  const indent = (m[0].match(/^[ \t]*/) || [""])[0];
+  return html.replace(re, () => `${indent}<link rel="preload" href="${prefix}${FONT_FILE}" as="font" type="font/woff2" crossorigin />\n${m[0]}`);
+}
+
 const changed = [], skipped = [], mismatch = [];
 for (const rel of listHtml()) {
   const abs = path.join(ROOT, rel);
   let html = fs.readFileSync(abs, "utf8");
   const inKo = rel.startsWith("ko/");
+  const withFont = withFontPreload(html, rel.includes("/") ? "../" : "");
+  if (withFont !== html) {
+    if (checkOnly) mismatch.push(rel + " (fontPreload)");
+    else { fs.writeFileSync(abs, withFont, "utf8"); html = withFont; if (!changed.includes(rel)) changed.push(rel); }
+  }
   // 가격 가이드 줄은 상단 메뉴가 없는 페이지에도 넣는다(푸터만 있으면 된다).
   const withGuide = withGuideLinks(html, inKo);
   if (withGuide !== html) {

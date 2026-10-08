@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261006quality";
+const DATA_VERSION = "20261008mobile";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1337,8 +1337,8 @@ function renderTodayDeals() {
       const pct = Math.round((d.save / d.sold) * 100);
       const vsMid = d.mid ? Math.round((1 - d.total / d.mid) * 100) : 0;
       const art = d.image
-        ? `<span class="dealPhoto"><img src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
-        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
+        ? `<span class="dealPhoto"><img width="150" height="104" src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
+        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img width="150" height="104" src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
       const ship = d.shipping > 0 ? t(`배송 ${fmt(d.shipping, d.currency)} 포함`, `incl. ${fmt(d.shipping, d.currency)} shipping`) : t("무료배송", "free shipping");
       const asks = d.mid ? ` · ${t(`호가 중간 ${fmt(d.mid, d.currency)}, ${d.asks}건`, `asks mid ${fmt(d.mid, d.currency)}, ${d.asks} listings`)}${vsMid > 0 ? ` (−${vsMid}%)` : ""}` : "";
       return `
@@ -1412,7 +1412,7 @@ function renderLiveAuctions() {
       <ul class="aucList">${items.map((it) => `
         <li class="aucRow${it.mins <= 90 ? " aucSoon" : ""}">
           <a href="${epnUrl(it.url)}" target="_blank" rel="noopener noreferrer sponsored">
-            ${it.image ? `<img class="aucThumb" src="${escapeHtml(aucThumbUrl(it.image))}" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">` : `<span class="aucThumb"></span>`}
+            ${it.image ? `<img class="aucThumb" width="64" height="64" src="${escapeHtml(aucThumbUrl(it.image))}" alt="" loading="lazy" decoding="async" onerror="this.style.visibility='hidden'">` : `<span class="aucThumb"></span>`}
             <span class="aucKind ${escapeHtml(String(it.kind || ""))}">${kindLabel[it.kind] || it.kind}</span>
             <span class="aucMain">
               <span class="aucTitle">${escapeHtml(it.title)}</span>
@@ -1506,7 +1506,7 @@ function renderPackGrid() {
     const box = p.set.box || FALLBACK;
     const thumbnail = boxThumbnail(box);
     const tag = has ? "TOP 10" : boxOnly ? t("박스 시세", "Box price") : t("준비중", "Coming soon");
-    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" src="${thumbnail}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${box}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTrend" data-code="${p.code}"></span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
+    return `<button class="packChip${active}${clickable ? "" : " pending"}${boxOnly ? " boxOnly" : ""}" data-key="${p.key}" ${clickable ? "" : "disabled"}>${watchHas(p.key) ? `<span class="pinMark" title="${t("관심 박스", "Watching")}">📌</span>` : ""}<img class="packBox" width="46" height="62" src="${thumbnail}" alt="${p.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='${box}'" /><span class="packMeta"><span class="packCode">${p.code}</span><span class="packName">${packName(p)}</span><span class="packEn">${packSubName(p)}</span><span class="packTrend" data-code="${p.code}"></span><span class="packTag${clickable ? " ready" : ""}${boxOnly ? " boxonly" : ""}">${tag}</span></span></button>`;
   }).join("");
   fillPackSparks();
   wrap.querySelectorAll(".packChip:not(.pending)").forEach((btn) => {
@@ -1727,7 +1727,7 @@ function renderDetail() {
     const soon = hasBox
       ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
       : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
-    el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
+    el.innerHTML = `<div class="detailHead"><img class="detailBox" width="82" height="112" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
     el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
       event.stopPropagation();
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
@@ -1747,7 +1747,7 @@ function renderDetail() {
       + renderHitList(cards);
   const fullPsaRate = set.psaFull?.gemRate ?? set.psaGem ?? "-";
   const fullPsaTotal = set.psaFull?.total ?? set.psaTotal;
-  el.innerHTML = `<div class="detailHead"><img class="detailBox" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${ebayLinks(pack)}${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
+  el.innerHTML = `<div class="detailHead"><img class="detailBox" width="82" height="112" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><div class="viewTabs"><button class="viewTab ${state.view === "hits" ? "active" : ""}" data-view="hits">${t("시세 TOP 10", "Top 10 prices")}</button><button class="viewTab ${state.view === "psa" ? "active" : ""}" data-view="psa" ${hasPsa ? "" : "disabled"}>${t("PSA 통계", "PSA stats")}</button></div><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${ebayLinks(pack)}${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}${renderPsaDestruction(set)}${renderDataNotice()}${hasPsa && state.view === "psa" ? `<p class="note">${t(`전체 세트 PSA10 비율 ${fullPsaRate}% · 누적 ${num(fullPsaTotal)}장`, `Full-set PSA10 rate ${fullPsaRate}% · ${num(fullPsaTotal)} total grades`)}</p>` : ""}</div></div>${body}`;
   el.querySelectorAll(".viewTab:not([disabled])").forEach((b) => b.addEventListener("click", () => { if (state.view === b.dataset.view) return; state.view = b.dataset.view; renderDetail(); updateUrl(); trackEvent("select_view", { pack_code: state.selected, view: state.view }); }));
   el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
     event.stopPropagation();
