@@ -1302,6 +1302,9 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20261008font" defer></script>
+    <!-- 2026-10-08: 화면 JS(box-chart·packs)는 load 뒤에 끼운다. 첫 화면은 정적 선렌더라 JS 가 그리기 전에 필요 없는데,
+         defer 로 두면 첫 그리기 전에 받자마자 실행돼(느린 폰 CPU 4배 기준 1초+) 첫 글자가 그만큼 늦게 떴다(라이트하우스 실측).
+         ?v= 는 packs.js 의 DATA_VERSION 과 같아야 한다(가드 V1). -->
+    <script data-home-js>(function(){function go(){["packs.js?v=20261008font"].forEach(function(src){var e=document.createElement("script");e.src=src;e.async=false;document.body.appendChild(e);});}if(document.readyState==="complete")setTimeout(go,0);else window.addEventListener("load",function(){setTimeout(go,0);});})();</script>
   </body>
 </html>
