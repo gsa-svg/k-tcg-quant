@@ -31,13 +31,15 @@
 }
 
 /* 제목 글꼴 — Bricolage Grotesque(OFL, fonts/OFL-bricolage-grotesque.txt). CSP 가 font-src 'self' 라 저장소에 둔다(2026-10-01).
-   라틴 부분집합 가변 폰트 1개(600~800, 77KB). 한글 제목은 fallback(시스템 글꼴)으로 그대로 간다. */
+   2026-10-08: 가변 폰트(600~800, 77KB) 대신 wght 750 고정 인스턴스(22KB, fontTools instancer)를 쓴다 — Chrome 은 font-display: optional
+   글꼴이 도착(또는 실패)할 때까지 글자를 그리지 않아, 느린 폰에서 77KB 다운로드가 첫 글자 표시를 0.5초 이상 늦췄다(라이트하우스 실측).
+   600~800 전 구간이 이 한 벌(750)로 그려진다. 원본 가변 폰트 파일은 참고용으로 남긴다. 한글 제목은 fallback(시스템 글꼴). */
 @font-face {
   font-family: "Bricolage Grotesque";
   font-style: normal;
   font-weight: 600 800;
   font-display: optional;
-  src: url("fonts/bricolage-grotesque-latin.woff2") format("woff2");
+  src: url("fonts/bricolage-grotesque-latin-750.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 

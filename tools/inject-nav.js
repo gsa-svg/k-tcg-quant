@@ -66,10 +66,9 @@ function listHtml() {
 // 제목 글꼴 preload — 2026-10-08. styles.css 의 @font-face 는 font-display: optional 이라 첫 그리기 전에 글꼴이
 // 안 와 있으면 그 방문 내내 시스템 글꼴로 남는다(홈만 preload 가 있어 홈과 내부 페이지의 제목 글꼴이 달랐다).
 // 스타일시트 링크 바로 앞에 한 줄 넣는다. 이미 있으면 건드리지 않는다. 경로 접두어는 메뉴와 같은 규칙.
-const FONT_FILE = "fonts/bricolage-grotesque-latin.woff2";
-// media 로 데스크톱만 미리 받는다 — 2026-10-08 라이트하우스 실측: 모바일(느린 4G 시뮬)에서 75KB 글꼴이 CSS·LCP 이미지와
-// 대역폭을 다퉈 카드 페이지 FCP 가 1.2s → 3.0s 로 늘었다. 모바일은 font-display: optional 이 알아서 처리한다.
-const FONT_PRELOAD = (prefix) => `<link rel="preload" href="${prefix}${FONT_FILE}" as="font" type="font/woff2" crossorigin media="(min-width: 768px)" />`;
+const FONT_FILE = "fonts/bricolage-grotesque-latin-750.woff2";   // 2026-10-08: 22KB 고정 인스턴스(styles.css @font-face 와 같은 파일)
+// 22KB 라 모바일도 미리 받는다(77KB 때는 CSS·LCP 이미지와 대역폭을 다퉈 media 로 데스크톱만 받게 했었다).
+const FONT_PRELOAD = (prefix) => `<link rel="preload" href="${prefix}${FONT_FILE}" as="font" type="font/woff2" crossorigin />`;
 function withFontPreload(html, prefix) {
   const existing = html.match(/[ \t]*<link rel="preload" href="[^"]*bricolage-grotesque-latin\.woff2"[^>]*>/);
   if (existing) {

@@ -9,9 +9,9 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://www.onepiece-cardgame.com https://i.ebayimg.com https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://opbox-deals.gsa-834.workers.dev https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com; frame-src https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="preload" href="fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin media="(min-width: 768px)" />
-    <link rel="stylesheet" href="styles.css?v=20261008mobile" />
-    <script defer src="lang-toggle.js?v=20261008mobile"></script>
+    <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="styles.css?v=20261008font" />
+    <script defer src="lang-toggle.js?v=20261008font"></script>
     <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
          그때 요청하면 스크립트 받는 시간만큼 첫 표가 늦게 뜬다(로컬 실측 222ms → 125ms).
          rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
@@ -21,7 +21,7 @@
       // 느린 폰에서 그만큼 그리기가 늦어진다(라이트하우스 실측). load 뒤에 받고, 받으면 packs.js 가 같은 화면을 다시 그린다.
       window.__opPackData = new Promise(function (resolve) {
         var go = function () {
-          resolve(fetch("data/onepiece-packs.json?v=20261008mobile", { cache: "default", priority: "low" })
+          resolve(fetch("data/onepiece-packs.json?v=20261008font", { cache: "default", priority: "low" })
             .then(function (r) { return r.ok ? r.json() : null; })
             .catch(function () { return null; }));
         };
@@ -1302,6 +1302,6 @@
       </nav>
     </footer>
 
-    <script src="packs.js?v=20261008mobile" defer></script>
+    <script src="packs.js?v=20261008font" defer></script>
   </body>
 </html>
