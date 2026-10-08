@@ -233,6 +233,7 @@ jobs:
           node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
           node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
           node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
+          node tools/prerender-home.js 2>&1 | tee logs/prerender-home.log
           node tools/inject-set-list-prices.js 2>&1 | tee logs/inject-set-list-prices.log
           node tools/inject-pack-math.js 2>&1 | tee logs/inject-pack-math.log
           node tools/inject-box-price-guide.js 2>&1 | tee logs/inject-box-price-guide.log
@@ -337,6 +338,7 @@ jobs:
             node tools/test-ai-data.js
             node tools/audit-ai-discovery.js
             node tools/inject-home-summary.js
+            node tools/prerender-home.js
             node tools/inject-set-list-prices.js
             node tools/inject-pack-math.js
             node tools/inject-box-price-guide.js

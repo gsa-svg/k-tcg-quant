@@ -186,6 +186,7 @@ jobs:
           node tools/generate-llms.js 2>&1 | tee logs/generate-llms.log
           # board 가 바뀌면 홈 요약표(index/packs/box-prices)도 같이 — 빠지면 표와 티커가 다른 값을 보인다(2026-09-23 감사).
           node tools/inject-home-summary.js 2>&1 | tee logs/inject-home-summary.log
+          node tools/prerender-home.js 2>&1 | tee logs/prerender-home.log
           node tools/inject-set-list-prices.js 2>&1 | tee logs/inject-set-list-prices.log
           node tools/inject-pack-math.js 2>&1 | tee logs/inject-pack-math.log
           node tools/inject-box-price-guide.js 2>&1 | tee logs/inject-box-price-guide.log
