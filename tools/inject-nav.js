@@ -67,13 +67,30 @@ function listHtml() {
 // 안 와 있으면 그 방문 내내 시스템 글꼴로 남는다(홈만 preload 가 있어 홈과 내부 페이지의 제목 글꼴이 달랐다).
 // 스타일시트 링크 바로 앞에 한 줄 넣는다. 이미 있으면 건드리지 않는다. 경로 접두어는 메뉴와 같은 규칙.
 const FONT_FILE = "fonts/bricolage-grotesque-latin.woff2";
+// media 로 데스크톱만 미리 받는다 — 2026-10-08 라이트하우스 실측: 모바일(느린 4G 시뮬)에서 75KB 글꼴이 CSS·LCP 이미지와
+// 대역폭을 다퉈 카드 페이지 FCP 가 1.2s → 3.0s 로 늘었다. 모바일은 font-display: optional 이 알아서 처리한다.
+const FONT_PRELOAD = (prefix) => `<link rel="preload" href="${prefix}${FONT_FILE}" as="font" type="font/woff2" crossorigin media="(min-width: 768px)" />`;
 function withFontPreload(html, prefix) {
-  if (html.includes(FONT_FILE) && /rel="preload"[^>]*bricolage/.test(html)) return html;
+  const existing = html.match(/[ \t]*<link rel="preload" href="[^"]*bricolage-grotesque-latin\.woff2"[^>]*>/);
+  if (existing) {
+    const indent = (existing[0].match(/^[ \t]*/) || [""])[0];
+    return existing[0].trim() === FONT_PRELOAD(prefix) ? html : html.replace(existing[0], `${indent}${FONT_PRELOAD(prefix)}`);
+  }
   const re = new RegExp(`[ \\t]*<link rel="stylesheet" href="${prefix.replace(/\./g, "\\.")}styles\\.css[^"]*"[^>]*>`);
   const m = html.match(re);
   if (!m) return html;
   const indent = (m[0].match(/^[ \t]*/) || [""])[0];
-  return html.replace(re, () => `${indent}<link rel="preload" href="${prefix}${FONT_FILE}" as="font" type="font/woff2" crossorigin />\n${m[0]}`);
+  return html.replace(re, () => `${indent}${FONT_PRELOAD(prefix)}\n${m[0]}`);
+}
+
+// GA(gtag.js 175KB)는 첫 그리기 뒤에 받는다 — 2026-10-08. async 라도 모바일에선 CSS·이미지와 대역폭을 나눠 썼다
+// (라이트하우스 '사용하지 않는 JS' 1위). load 뒤 1.5초에 끼워 넣는다; dataLayer 큐는 그대로라 page_view 는 그때 전송된다.
+const GTAG_ASYNC = /<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=([A-Z0-9-]+)"><\/script>/;
+function withDeferredGtag(html) {
+  const m = html.match(GTAG_ASYNC);
+  if (!m) return html;
+  const loader = `<script data-gtag-deferred="${m[1]}">window.addEventListener("load",function(){setTimeout(function(){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=${m[1]}";document.head.appendChild(s);},1500);});</script>`;
+  return html.replace(GTAG_ASYNC, () => loader);
 }
 
 const changed = [], skipped = [], mismatch = [];
@@ -81,9 +98,9 @@ for (const rel of listHtml()) {
   const abs = path.join(ROOT, rel);
   let html = fs.readFileSync(abs, "utf8");
   const inKo = rel.startsWith("ko/");
-  const withFont = withFontPreload(html, rel.includes("/") ? "../" : "");
+  const withFont = withDeferredGtag(withFontPreload(html, rel.includes("/") ? "../" : ""));
   if (withFont !== html) {
-    if (checkOnly) mismatch.push(rel + " (fontPreload)");
+    if (checkOnly) mismatch.push(rel + " (head: fontPreload/gtag)");
     else { fs.writeFileSync(abs, withFont, "utf8"); html = withFont; if (!changed.includes(rel)) changed.push(rel); }
   }
   // 가격 가이드 줄은 상단 메뉴가 없는 페이지에도 넣는다(푸터만 있으면 된다).

@@ -1303,7 +1303,8 @@ function renderMarketStatus() {
 const DEAL_COUNTRY = { US: ["미국", "US"], JP: ["일본", "Japan"], GB: ["영국", "UK"], CA: ["캐나다", "Canada"], AU: ["호주", "Australia"], SG: ["싱가포르", "Singapore"], DE: ["독일", "Germany"], FR: ["프랑스", "France"], HK: ["홍콩", "Hong Kong"], KR: ["한국", "Korea"] };
 function countryLabel(c) { return DEAL_COUNTRY[c] ? t(DEAL_COUNTRY[c][0], DEAL_COUNTRY[c][1]) : (c || ""); }
 function dealPhotoUrl(u) {
-  return String(u || "").replace(/^http:/, "https:").replace(/\/s-l\d+/, "/s-l400");
+  // 딜 사진 칸은 150×104 CSS px → 2배 해상도 300px 이면 충분하다. s-l400 은 44~109KB 였고 홈 모바일 LCP 였다(2026-10-08 실측).
+  return String(u || "").replace(/^http:/, "https:").replace(/\/s-l\d+/, "/s-l300");
 }
 function renderTodayDeals() {
   const el = document.querySelector("#todayDeals");
@@ -1333,12 +1334,14 @@ function renderTodayDeals() {
   el.hidden = false;
   el.innerHTML = `
     <div class="dealsHead"><span>${t("오늘의 박스 딜", "Today's box deals")}</span><small>${t("최근 실거래가보다 싼 검수 매물 · 배송 포함 · 일본판·영문판", "Verified listings under recent sold · incl. shipping · Japanese & English")}</small></div>
-    <div class="dealsRow">${deals.slice(0, 4).map((d) => {
+    <div class="dealsRow">${deals.slice(0, 4).map((d, i) => {
       const pct = Math.round((d.save / d.sold) * 100);
       const vsMid = d.mid ? Math.round((1 - d.total / d.mid) * 100) : 0;
+      // 앞 두 장은 첫 화면(LCP 후보)이라 lazy 로 두면 뒤늦게 받는다 — 즉시·우선 로드(2026-10-08 라이트하우스).
+      const imgLoad = i < 2 ? `loading="eager" fetchpriority="high"` : `loading="lazy"`;
       const art = d.image
-        ? `<span class="dealPhoto"><img width="150" height="104" src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
-        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img width="150" height="104" src="card-img/box/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
+        ? `<span class="dealPhoto"><img width="150" height="104" src="${escapeHtml(dealPhotoUrl(d.image))}" alt="" ${imgLoad} decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span>`
+        : `<span class="dealBox3d" aria-hidden="true"><span class="top"></span><span class="side"></span><span class="front"><img width="150" height="104" src="card-img/box/hero/${d.code}.webp" alt="" loading="lazy" decoding="async" onerror="this.hidden=true"><span class="dealLbl">${d.code}${d.ed === "en" ? " EN" : ""}</span></span></span>`;
       const ship = d.shipping > 0 ? t(`배송 ${fmt(d.shipping, d.currency)} 포함`, `incl. ${fmt(d.shipping, d.currency)} shipping`) : t("무료배송", "free shipping");
       const asks = d.mid ? ` · ${t(`호가 중간 ${fmt(d.mid, d.currency)}, ${d.asks}건`, `asks mid ${fmt(d.mid, d.currency)}, ${d.asks} listings`)}${vsMid > 0 ? ` (−${vsMid}%)` : ""}` : "";
       return `

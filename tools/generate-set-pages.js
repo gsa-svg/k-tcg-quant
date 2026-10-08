@@ -7,6 +7,8 @@ const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
 const { SITE, EPN, CSS_VER, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
+// 화면 크기에 맞는 이미지 파생본(2026-10-08): 머리 박스 사진 670px→264px, 랭킹 썸네일 100KB→5KB. 없으면 원본.
+const { variant } = require("./image-variants");
 
 // 1위 카드와 일본판 NM 이 같은 카드들(동가). 2026-09-30: OP-16 망가 3장이 모두 ¥148,000 인데
 // 소유자 순서상 1위인 한 장을 "가장 비싸다"고 써서 데이터보다 센 문장이 나갔다.
@@ -843,7 +845,7 @@ function setPage(code, prev, next) {
   return `${head({ title, desc, canonical, koHref, extraLd: faqLd(code, nameEn) + cardsLd + productLd(code, nameEn, s) })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
-        ${s.box ? `<img src="${esc(s.box)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" width="132" height="184" loading="eager" fetchpriority="high" decoding="async" />` : ""}
+        ${s.box ? `<img src="${esc((variant(s.box, "hero") || { src: s.box }).src)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" width="132" height="132" loading="eager" fetchpriority="high" decoding="async" />` : ""}
         <div>
           <h1>One Piece ${code} ${esc(nameEn)} — Japanese booster box price${prioritySeo ? ", reprints" : ""} &amp; chase cards</h1>
           ${release}
@@ -1057,7 +1059,7 @@ function rankingPage() {
   const maxMult = topMult.length ? topMult[0].mult : 1;
 
   const cardCell = (r) => {
-    const inner = `${r.img ? `<img src="${esc(r.img)}" alt="" width="40" height="56" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.name)}</b><small>${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</small></span>`;
+    const inner = `${r.img ? `<img src="${esc((variant(r.img, "thumb") || { src: r.img }).src)}" alt="" width="40" height="56" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.name)}</b><small>${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</small></span>`;
     return `<td class="l cardCell">${r.slug ? `<a href="cards/${esc(r.slug)}">${inner}</a>` : `<span class="cardLink">${inner}</span>`}</td>`;
   };
   const rangeCell = (r) => (r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—");

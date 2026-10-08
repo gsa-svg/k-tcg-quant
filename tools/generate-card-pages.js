@@ -3,6 +3,8 @@
 // Run: node tools/generate-card-pages.js
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩하면 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
+// 화면 크기에 맞는 이미지 파생본(2026-10-08): 머리 카드 사진 100~200KB → 400px(≈40KB), 허브 썸네일 → 96px(≈4KB). 없으면 원본.
+const { variant } = require("./image-variants");
 const { navHtml } = require("./site-nav");
 const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
@@ -431,7 +433,7 @@ ${BUY_CTA_CSS}
       <h1>${esc(c.name)} <small style="color:var(--muted);font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
       ${AFF_TOP}
       <div class="cardHero">
-        ${imgRel ? `<img src="${esc(imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="716" height="1000" loading="eager" decoding="async" fetchpriority="high" />` : ""}
+        ${imgRel ? (() => { const v = variant(imgRel, "hero"); return `<img src="${esc(v ? v.src : imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="${v ? v.w : 716}" height="${v ? v.h : 1000}" loading="eager" decoding="async" fetchpriority="high" />`; })() : ""}
         <div style="flex:1;min-width:260px;">
           <div class="priceCards">
             <!-- 표기는 달러 하나로 통일한다(2026-08-17). 엔화 원본은 화면에서 빼고 데이터(CSV/JSON)에 남긴다 —
@@ -646,7 +648,7 @@ const hub = `<!doctype html>
       ${gradedTable}
       <h2 id="tracked-cards">Raw NM price by card</h2>
       <div class="cardGrid">
-        ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? `<img src="${esc(it.img)}" alt="${esc(it.name)}" width="716" height="1000" loading="lazy" decoding="async" />` : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
+        ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? (() => { const v = variant(it.img, "thumb"); return `<img src="${esc(v ? v.src : it.img)}" alt="${esc(it.name)}" width="${v ? v.w : 716}" height="${v ? v.h : 1000}" loading="lazy" decoding="async" />`; })() : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">$${it.usd.toLocaleString("en-US")}</span></a>`).join("\n        ")}
       </div>
       <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>

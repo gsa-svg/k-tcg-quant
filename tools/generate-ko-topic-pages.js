@@ -37,8 +37,10 @@ function thumbRel(c) {
   if (img && !/^https?:/.test(img)) return "../" + img.replace(/^\.?\//, "");
   return null;   // c.img(외부 CDN)는 쓰지 않는다 — 빈 칸이 핫링크보다 낫다.
 }
+const { variant } = require("./image-variants");
 const thumbHtml = (c) => {
-  const src = thumbRel(c);
+  const raw = thumbRel(c);
+  const src = raw ? (variant(raw, "thumb") || { src: raw }).src : raw;   // 40px 칸엔 96px 썸네일(2026-10-08)
   return src ? `<img class="cardThumb" src="${esc(src)}" alt="${esc(c.name)} 일판 카드" width="40" height="56" loading="lazy" decoding="async" />` : "";
 };
 

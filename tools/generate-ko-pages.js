@@ -3,6 +3,7 @@
 // Run: node tools/generate-ko-pages.js
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩 금지 — 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
+const { variant } = require("./image-variants");
 const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
@@ -331,7 +332,7 @@ function setPageKo(b) {
   const cardThumbs = topCards.map((c) => ownCardImage(c));
   const hasThumb = cardThumbs.some(Boolean);
   const thumbCell = (i, c) => (hasThumb
-    ? `<td class="thumb">${cardThumbs[i] ? `<img src="../${cardThumbs[i]}" alt="${esc(c.number)} ${esc(c.name)}" width="40" height="56" loading="lazy" decoding="async" />` : ""}</td>`
+    ? `<td class="thumb">${cardThumbs[i] ? `<img src="${esc((variant("../" + cardThumbs[i], "thumb") || { src: "../" + cardThumbs[i] }).src)}" alt="${esc(c.number)} ${esc(c.name)}" width="40" height="56" loading="lazy" decoding="async" />` : ""}</td>`
     : "");
   const cardRows = topCards.map((c, i) => `<tr>${thumbCell(i, c)}<td class="nm">${esc(c.name)}</td><td class="code">${esc(c.number)}</td><td>${esc(c.rarity || "—")}</td><td class="num">${won(c.nmJpy * fx.jpyKrw)}</td></tr>`).join("\n");
   // 경매 실적 — 우리가 종료 후 재조회해 쌓은 원장에서만 나오는 축이다.

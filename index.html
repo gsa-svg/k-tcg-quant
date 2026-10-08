@@ -9,7 +9,7 @@
       content="default-src 'self'; base-uri 'self'; object-src 'none'; form-action 'none'; img-src 'self' data: https://www.onepiece-cardgame.com https://i.ebayimg.com https://tcgplayer-cdn.tcgplayer.com https://card.yuyu-tei.jp https://product-images.tcgplayer.com https://www.googletagmanager.com; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self' https://opbox-deals.gsa-834.workers.dev https://gsa-svg.github.io https://www.google-analytics.com https://region1.google-analytics.com https://www.google.com; frame-src https://www.google.com"
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <link rel="preload" href="fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin media="(min-width: 768px)" />
     <link rel="stylesheet" href="styles.css?v=20261008mobile" />
     <script defer src="lang-toggle.js?v=20261008mobile"></script>
     <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
@@ -17,12 +17,12 @@
          rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
          ?v= 는 packs.js 의 DATA_VERSION 과 반드시 같아야 한다(가드 V1 이 검사). 실패하면 packs.js 가 알아서 다시 받는다. -->
     <script>
-      window.__opPackData = fetch("data/onepiece-packs.json?v=20261008mobile", { cache: "default" })
+      window.__opPackData = fetch("data/onepiece-packs.json?v=20261008mobile", { cache: "default", priority: "low" })
         .then(function (r) { return r.ok ? r.json() : null; })
         .catch(function () { return null; });
     </script>
     <!-- Google Analytics 4 (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script data-gtag-deferred="G-P73SE1WVD0">window.addEventListener("load",function(){setTimeout(function(){var s=document.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0";document.head.appendChild(s);},1500);});</script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}

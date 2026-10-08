@@ -78,7 +78,9 @@ const stack = (r, e) => {
   const segs = GR.map((k) => { const v = (r[e][k] && r[e][k].total) || 0; return v ? `<span class="seg ${k}" style="width:${(v / maxTot * 100).toFixed(2)}%" title="${GRN[k]} ${n(v)}"></span>` : ""; }).join("");
   return `<span class="sLine"><i class="edTag">${e.toUpperCase()}</i><span class="sTrack">${segs}</span><span class="sVal">${n(T)}</span></span>`;
 };
-const setName = (r) => `<span class="tName">${r.box ? `<img src="${esc(r.box)}" alt="" width="36" height="36" loading="lazy" decoding="async" />` : ""}<span><b>${esc(r.code)}</b> <small>${esc(r.name)}</small></span></span>`;
+const { variant } = require("./image-variants");
+const boxThumb = (b) => (variant(b, "thumb") || { src: b }).src;   // 36~44px 칸에 670px 원본(50KB)을 쓰던 것 → 220px 썸네일(2026-10-08)
+const setName = (r) => `<span class="tName">${r.box ? `<img src="${esc(boxThumb(r.box))}" alt="" width="36" height="36" loading="lazy" decoding="async" />` : ""}<span><b>${esc(r.code)}</b> <small>${esc(r.name)}</small></span></span>`;
 const stackRows = rows.slice(0, 12).map((r) => `<div class="sRow">${setName(r)}<span class="sBars">${stack(r, "jp")}${stack(r, "en")}</span></div>`).join("\n");
 
 // ── 표: 세트 × (PSA·CGC·TAG) × (JP·EN). 모바일은 EN 열을 숨기고 JP 셀 밑에 EN 값을 작게 둔다.
@@ -88,7 +90,7 @@ const cellG = (r, k) => {
   return `<td class="num ${k}">${j ? n(j.total) : "—"}${j && j.add != null ? `<small>${sn(j.add)}</small>` : ""}${gemLine(j)}<small class="mOnly">EN ${e ? n(e.total) : "—"}</small></td>` +
     `<td class="num ${k} hideM en">${e ? n(e.total) : "—"}${e && e.add != null ? `<small>${sn(e.add)}</small>` : ""}${gemLine(e)}</td>`;
 };
-const setCell = (r, size) => `<td class="l setCell"><a href="sets/${r.code.toLowerCase()}.html">${r.box ? `<img src="${esc(r.box)}" alt="" width="${size}" height="${size}" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.code)}</b><small>${esc(r.name)}</small></span></a></td>`;
+const setCell = (r, size) => `<td class="l setCell"><a href="sets/${r.code.toLowerCase()}.html">${r.box ? `<img src="${esc(boxThumb(r.box))}" alt="" width="${size}" height="${size}" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.code)}</b><small>${esc(r.name)}</small></span></a></td>`;
 const tr = (r) => `<tr>${setCell(r, 44)}${GR.map((k) => cellG(r, k)).join("")}</tr>`;
 const foot = `<tr><td class="l"><b>All ${rows.length} sets</b></td>${GR.map((k) => `<td class="num ${k}">${n(K["jp" + k].total)}<small>${sn(K["jp" + k].add)}</small>${K["jp" + k].gem ? `<small class="gem">${pct(K["jp" + k].gem, K["jp" + k].total)} top</small>` : ""}<small class="mOnly">EN ${n(K["en" + k].total)}</small></td><td class="num ${k} hideM en">${n(K["en" + k].total)}<small>${sn(K["en" + k].add)}</small>${K["en" + k].gem ? `<small class="gem">${pct(K["en" + k].gem, K["en" + k].total)} top</small>` : ""}</td>`).join("")}</tr>`;
 
