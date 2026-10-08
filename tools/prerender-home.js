@@ -75,6 +75,9 @@ function replaceBetween(html, id, inner) {
     });
     const leftover = (parts.todayDeals.match(/<img[^>]*src="https?:/g) || []).length;
     if (leftover) throw new Error(`todayDeals 에 외부 이미지 ${leftover}개가 남았다 — 가드 I1`);
+    // 정적 추세선은 완성된 상태로 둔다(data-static — CSS 가 그리기 애니메이션을 끈다). 느린 폰에서 첫 그리기 전 17개 선이
+    // 매 프레임 다시 칠해지는 것을 막는다. JS 가 다시 그리면 그때 한 번 움직인다.
+    parts.packList = parts.packList.replace(/<svg\b([^>]*class="packSpark[^"]*")/g, '<svg$1 data-static');
     for (const f of PAGES) {
       const p = path.join(ROOT, f);
       if (!fs.existsSync(p)) continue;
