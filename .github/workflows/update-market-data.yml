@@ -170,7 +170,7 @@ jobs:
           # 지수 화면은 삭제됐지만 board/reprints 는 홈 요약표·ko·CSV 가 쓴다 — 갱신 필수.
           node tools/build-market-index.js 2>&1 | tee logs/build-market-index.log
           node tools/generate-psa-grading-page.js 2>&1 | tee logs/generate-psa-grading-page.log
-          node tools/generate-image-variants.js 2>&1 | tee logs/generate-card-pages.log
+          node tools/generate-image-variants.js 2>&1 | tee logs/generate-image-variants.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-english-set-pages.js 2>&1 | tee logs/generate-english-set-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
@@ -217,13 +217,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
+          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+          git add data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -266,7 +266,7 @@ jobs:
             node tools/guard-invariants.js
             node tools/audit-seo.js
             node tools/audit-ai-discovery.js
-            git add data/grading-series.json data/onepiece-packs.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
+            git add data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short

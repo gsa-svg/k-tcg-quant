@@ -215,7 +215,7 @@ jobs:
           node tools/build-market-index.js 2>&1 | tee logs/build-market-index.log
           node tools/fetch-box-images.js 2>&1 | tee logs/fetch-box-images.log
           node tools/fetch-card-images.js 2>&1 | tee logs/fetch-card-images.log
-          node tools/generate-image-variants.js 2>&1 | tee logs/generate-card-pages.log
+          node tools/generate-image-variants.js 2>&1 | tee logs/generate-image-variants.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
           node tools/generate-english-set-pages.js 2>&1 | tee logs/generate-english-set-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
