@@ -2,7 +2,7 @@
  "schemaVersion": "1.0.0",
  "datasetId": "opbox-ai-auctions",
  "name": "OP Box Index — settled eBay auction results: One Piece daily/weekly/by set, and 13 trading card games",
- "datasetUpdatedOn": "2026-10-07",
+ "datasetUpdatedOn": "2026-10-10",
  "publisher": {
   "name": "OP Box Index",
   "url": "https://opboxindex.com/"
@@ -26,67 +26,6 @@
   },
   "canonicalPage": "https://opboxindex.com/auction.html",
   "daily": [
-   {
-    "date": "2026-09-10",
-    "partialDay": false,
-    "ended": 1370,
-    "sold": 453,
-    "unsold": 917,
-    "sellThroughPct": 33.07,
-    "amountUsd": 75772.27,
-    "byCategory": {
-     "box": {
-      "ended": 11,
-      "sold": 11,
-      "sellThroughPct": null,
-      "amountUsd": 19122
-     },
-     "graded": {
-      "ended": 156,
-      "sold": 85,
-      "sellThroughPct": 54.5,
-      "amountUsd": 26900.81
-     },
-     "raw": {
-      "ended": 1051,
-      "sold": 270,
-      "sellThroughPct": 25.7,
-      "amountUsd": 21779.94
-     },
-     "pack": {
-      "ended": 95,
-      "sold": 65,
-      "sellThroughPct": 68.4,
-      "amountUsd": 3954.29
-     },
-     "lot": {
-      "ended": 57,
-      "sold": 22,
-      "sellThroughPct": 38.6,
-      "amountUsd": 4015.23
-     }
-    },
-    "byPrinting": {
-     "jp": {
-      "ended": 401,
-      "sold": 108,
-      "sellThroughPct": 26.9,
-      "amountUsd": 7810.72
-     },
-     "en": {
-      "ended": 750,
-      "sold": 205,
-      "sellThroughPct": 27.3,
-      "amountUsd": 38054.76
-     },
-     "other": {
-      "ended": 219,
-      "sold": 140,
-      "sellThroughPct": 63.9,
-      "amountUsd": 29906.79
-     }
-    }
-   },
    {
     "date": "2026-09-11",
     "partialDay": false,
@@ -1797,12 +1736,12 @@
    },
    {
     "date": "2026-10-09",
-    "partialDay": true,
-    "ended": 1339,
-    "sold": 421,
-    "unsold": 918,
-    "sellThroughPct": 31.44,
-    "amountUsd": 104451.54,
+    "partialDay": false,
+    "ended": 1365,
+    "sold": 426,
+    "unsold": 939,
+    "sellThroughPct": 31.21,
+    "amountUsd": 105306.53,
     "byCategory": {
      "box": {
       "ended": 22,
@@ -1811,48 +1750,109 @@
       "amountUsd": 43671.5
      },
      "graded": {
-      "ended": 148,
-      "sold": 64,
-      "sellThroughPct": 43.2,
-      "amountUsd": 39129.94
+      "ended": 149,
+      "sold": 65,
+      "sellThroughPct": 43.6,
+      "amountUsd": 39453.94
      },
      "raw": {
-      "ended": 1070,
-      "sold": 283,
-      "sellThroughPct": 26.4,
-      "amountUsd": 18698.64
+      "ended": 1090,
+      "sold": 284,
+      "sellThroughPct": 26.1,
+      "amountUsd": 19108.64
      },
      "pack": {
-      "ended": 44,
+      "ended": 45,
       "sold": 36,
-      "sellThroughPct": 81.8,
+      "sellThroughPct": 80,
       "amountUsd": 1053.45
      },
      "lot": {
-      "ended": 55,
-      "sold": 19,
-      "sellThroughPct": 34.5,
-      "amountUsd": 1898.01
+      "ended": 59,
+      "sold": 22,
+      "sellThroughPct": 37.3,
+      "amountUsd": 2019
      }
     },
     "byPrinting": {
      "jp": {
-      "ended": 226,
+      "ended": 233,
       "sold": 67,
-      "sellThroughPct": 29.6,
+      "sellThroughPct": 28.8,
       "amountUsd": 6783.57
      },
      "en": {
-      "ended": 921,
-      "sold": 211,
+      "ended": 936,
+      "sold": 214,
       "sellThroughPct": 22.9,
-      "amountUsd": 56043.59
+      "amountUsd": 56539.58
      },
      "other": {
-      "ended": 192,
-      "sold": 143,
-      "sellThroughPct": 74.5,
-      "amountUsd": 41624.38
+      "ended": 196,
+      "sold": 145,
+      "sellThroughPct": 74,
+      "amountUsd": 41983.38
+     }
+    }
+   },
+   {
+    "date": "2026-10-10",
+    "partialDay": true,
+    "ended": 73,
+    "sold": 16,
+    "unsold": 57,
+    "sellThroughPct": null,
+    "amountUsd": 15300.25,
+    "byCategory": {
+     "box": {
+      "ended": 0,
+      "sold": 0,
+      "sellThroughPct": null,
+      "amountUsd": 0
+     },
+     "graded": {
+      "ended": 15,
+      "sold": 7,
+      "sellThroughPct": null,
+      "amountUsd": 15166.1
+     },
+     "raw": {
+      "ended": 50,
+      "sold": 9,
+      "sellThroughPct": 18,
+      "amountUsd": 134.15
+     },
+     "pack": {
+      "ended": 2,
+      "sold": 0,
+      "sellThroughPct": null,
+      "amountUsd": 0
+     },
+     "lot": {
+      "ended": 6,
+      "sold": 0,
+      "sellThroughPct": null,
+      "amountUsd": 0
+     }
+    },
+    "byPrinting": {
+     "jp": {
+      "ended": 6,
+      "sold": 0,
+      "sellThroughPct": null,
+      "amountUsd": 0
+     },
+     "en": {
+      "ended": 56,
+      "sold": 11,
+      "sellThroughPct": 19.6,
+      "amountUsd": 15034.15
+     },
+     "other": {
+      "ended": 11,
+      "sold": 5,
+      "sellThroughPct": null,
+      "amountUsd": 266.1
      }
     }
    }
@@ -2147,12 +2147,12 @@
    },
    {
     "weekStart": "2026-10-05",
-    "days": 5,
-    "partialDays": 0,
-    "ended": 6121,
-    "sold": 1927,
-    "sellThroughPct": 31.48,
-    "amountUsd": 320244.18,
+    "days": 6,
+    "partialDays": 1,
+    "ended": 6220,
+    "sold": 1948,
+    "sellThroughPct": 31.32,
+    "amountUsd": 336399.42,
     "byCategory": {
      "box": {
       "ended": 82,
@@ -2161,28 +2161,28 @@
       "amountUsd": 117188
      },
      "graded": {
-      "ended": 731,
-      "sold": 416,
-      "sellThroughPct": 56.9,
-      "amountUsd": 111575.69
+      "ended": 747,
+      "sold": 424,
+      "sellThroughPct": 56.8,
+      "amountUsd": 127065.79
      },
      "raw": {
-      "ended": 4785,
-      "sold": 1241,
-      "sellThroughPct": 25.9,
-      "amountUsd": 82105.77
+      "ended": 4855,
+      "sold": 1251,
+      "sellThroughPct": 25.8,
+      "amountUsd": 82649.92
      },
      "pack": {
-      "ended": 227,
+      "ended": 230,
       "sold": 137,
-      "sellThroughPct": 60.4,
+      "sellThroughPct": 59.6,
       "amountUsd": 3437.95
      },
      "lot": {
-      "ended": 296,
-      "sold": 63,
-      "sellThroughPct": 21.3,
-      "amountUsd": 5936.77
+      "ended": 306,
+      "sold": 66,
+      "sellThroughPct": 21.6,
+      "amountUsd": 6057.76
      }
     }
    }
