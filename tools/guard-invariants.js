@@ -1307,6 +1307,13 @@ for (const f of ["index.html", "packs.html"]) {
 
     // 이 워크플로가 돌리는 도구가 기록하는 data/*.json 은 전부 커밋 목록에 있어야 한다.
     const tools = [...y.matchAll(/node tools\/([a-z0-9-]+\.js)/g)].map((m) => m[1]);
+    // Navigation regeneration also writes informational root pages (2026-10-10).
+    // Missing these blocked publication of the entire collected dataset.
+    if (tools.includes("inject-nav.js")) {
+      for (const output of ["about.html", "amazon-lottery.html", "changelog.html", "disclaimer.html", "methodology.html", "privacy.html", "psa-grading.html"]) {
+        if (!addLine.split(/\s+/).includes(output)) errors.push(`W1: ${wf} navigation output missing from commit scope: ${output}`);
+      }
+    }
     // generate-set-pages.js 는 sets/ 밖의 루트 페이지도 함께 굽는다. 이 파일을 빼면
     // PSA 호가가 바뀐 날에만 미스테이징 변경이 남아 push 경합 후 rebase 가 실패한다.
     if (tools.includes("generate-set-pages.js")) {
