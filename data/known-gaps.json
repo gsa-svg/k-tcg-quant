@@ -1,6 +1,6 @@
 {
  "note": "조사가 끝난 영구 공백. 소급 수집이 불가능하다고 확인된 것만 넣는다. audit-series-gaps.js 가 여기 적힌 것은 problems 대신 notes 로 낸다 — 매번 FAIL 이 나면 사람이 감사를 무시하게 되고, 그러면 진짜 새 공백도 같이 묻힌다. 새 공백을 여기 넣어 조용히 덮는 데 쓰지 말 것: 반드시 사유와 확인일을 적는다.",
- "updated": "2026-10-08",
+ "updated": "2026-10-11",
  "gaps": [
   {
    "series": "TCG 시장 스냅샷",
@@ -204,6 +204,73 @@
    ],
    "reason": "팰월드 18/23 — PC 하트비트가 배터리 설정으로 10/6 11:17~10/7 09:37 KST 정지(자가치유 미발동)해 그 사이 스냅샷·정산이 끊겼다. 끝난 뒤 10/7 eBay 종료 목록(LH_Complete)으로 전수 대조해 감시 밖 1건을 보충했지만(3e1afb18) 그 이상은 eBay 에도 없었다. 대기분 8건은 정산 완료, 최종 18건. 건담은 대기분 정산으로 기준(42) 통과.",
    "confirmed": "2026-10-08"
+  },
+  {
+   "series": "공급 시계열",
+   "dates": [
+    "2026-10-08",
+    "2026-10-09"
+   ],
+   "reason": "update-active-listings 워크플로가 10/8·10/9 네 번 모두 커밋 단계에서 실패(\"Tracked generated files remain unstaged\"): 10/8 inject-nav 가 모든 페이지 head(글꼴 preload·GA 지연)를 고치게 되면서 커밋 범위 밖의 루트 정적 페이지들이 변경돼 게시가 막혔다. 10/10 11:04 커밋 범위 확장(7faec9f0)으로 복구. 수집 자체는 돌았지만 푸시되지 않아 그 시각의 매물 목록은 소급 불가.",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "박스 진행매물 시계열 JP",
+   "dates": [
+    "2026-10-08",
+    "2026-10-09"
+   ],
+   "reason": "update-active-listings 워크플로가 10/8·10/9 네 번 모두 커밋 단계에서 실패(\"Tracked generated files remain unstaged\"): 10/8 inject-nav 가 모든 페이지 head(글꼴 preload·GA 지연)를 고치게 되면서 커밋 범위 밖의 루트 정적 페이지들이 변경돼 게시가 막혔다. 10/10 11:04 커밋 범위 확장(7faec9f0)으로 복구. 수집 자체는 돌았지만 푸시되지 않아 그 시각의 매물 목록은 소급 불가.",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "박스 진행매물 시계열 EN",
+   "dates": [
+    "2026-10-08",
+    "2026-10-09"
+   ],
+   "reason": "update-active-listings 워크플로가 10/8·10/9 네 번 모두 커밋 단계에서 실패(\"Tracked generated files remain unstaged\"): 10/8 inject-nav 가 모든 페이지 head(글꼴 preload·GA 지연)를 고치게 되면서 커밋 범위 밖의 루트 정적 페이지들이 변경돼 게시가 막혔다. 10/10 11:04 커밋 범위 확장(7faec9f0)으로 복구. 수집 자체는 돌았지만 푸시되지 않아 그 시각의 매물 목록은 소급 불가.",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "예약판매 박스 호가",
+   "dates": [
+    "2026-10-09"
+   ],
+   "reason": "같은 워크플로(update-active-listings) 10/9 실패로 미게시. 10/8 점은 10/8 수동 실행분이 남아 있음.",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-10-07"
+   ],
+   "reason": "digimon 51/62 — 10/8·10/9 update-active-listings 가 두 번씩 끝까지 돌고 커밋만 실패해 eBay 쿼터를 하루 두 몫 소모 → TCG 정산 몫이 줄어 표본 하한에 미달(30시간 시한 지나 확정). 웹 종료 목록으로는 못 메운다(opbox-tcg-gap-recovery).",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-10-08"
+   ],
+   "reason": "riftbound 37/62 · unionarena 58/62 · gundam 40/62 — 10/8·10/9 update-active-listings 가 두 번씩 끝까지 돌고 커밋만 실패해 eBay 쿼터를 하루 두 몫 소모 → TCG 정산 몫이 줄어 표본 하한에 미달(30시간 시한 지나 확정). 웹 종료 목록으로는 못 메운다(opbox-tcg-gap-recovery).",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-10-09"
+   ],
+   "reason": "dragonball 58/62 · palworld 12/15 — 10/8·10/9 update-active-listings 가 두 번씩 끝까지 돌고 커밋만 실패해 eBay 쿼터를 하루 두 몫 소모 → TCG 정산 몫이 줄어 표본 하한에 미달(30시간 시한 지나 확정). 웹 종료 목록으로는 못 메운다(opbox-tcg-gap-recovery).",
+   "confirmed": "2026-10-11"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-10-10"
+   ],
+   "reason": "gundam 52/58 — 10/8·10/9 쿼터 이중 소모의 여파로 10/10 표본이 얇았고 10/10 종료분 대기 0건(더 올 수 없음). 웹 종료 목록으로는 못 메운다.",
+   "confirmed": "2026-10-11"
   }
  ]
 }

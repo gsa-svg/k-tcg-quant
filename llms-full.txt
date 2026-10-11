@@ -1,4 +1,4 @@
-# OP Box Index — full facts file (data as of 2026-10-10)
+# OP Box Index — full facts file (data as of 2026-10-11)
 
 Source: https://opboxindex.com/ · Licence CC BY 4.0 · Attribution "OP Box Index (opboxindex.com)" · Machine-readable twin: https://opboxindex.com/opbox-ai-data.json
 All prices USD unless marked. "sold" = median of verified completed eBay sales (n = sample size, date = sample collection). "ask" = median active asking price. Japanese (JP) and English (EN) printings are separate products. null/n/a = not verified, never zero.
@@ -79,9 +79,8 @@ PRB-02 | 24,808 (87.6% gem, 2026-10-04) | 6,304 (2026-10-05) | 35 (54.3% gem, 20
 EB-04 | n/a | 2,330 (2026-10-05) | n/a | n/a | n/a | n/a
 
 ## One Piece eBay auctions (settled after close) — https://opboxindex.com/auction.html
-Last 7 days (2026-10-04 to 2026-10-10): 8,808 auctions ended, 2,734 sold, sell-through 31%.
+Last 7 days (2026-10-05 to 2026-10-11): 8,069 auctions ended, 2,504 sold, sell-through 31%.
 Format: date | ended | sold | sell-through | winning-bid total | partial-day flag
-2026-09-27 | 829 | 196 | 23.64% | $32,498 | partial (reading gap)
 2026-09-28 | 1,958 | 840 | 42.9% | $129,685 | complete
 2026-09-29 | 1,134 | 350 | 30.86% | $86,294 | complete
 2026-09-30 | 1,311 | 519 | 39.59% | $56,840 | complete
@@ -94,7 +93,8 @@ Format: date | ended | sold | sell-through | winning-bid total | partial-day fla
 2026-10-07 | 958 | 317 | 33.09% | $44,519 | complete
 2026-10-08 | 1,148 | 284 | 24.74% | $45,193 | complete
 2026-10-09 | 1,365 | 426 | 31.21% | $105,307 | complete
-2026-10-10 | 1,319 | 293 | 22.21% | $49,871 | partial (reading gap)
+2026-10-10 | 1,338 | 302 | 22.57% | $50,441 | complete
+2026-10-11 | 584 | 270 | n/a | $44,925 | partial (reading gap)
 
 Per set, last 30 days (2026-09-10 to 2026-10-10): SET | ended | sold | sell-through | median winning bid | box sell-through
 OP-17 | 4,774 | 2,418 | 50.6% | $10 | 67.7%
@@ -171,20 +171,20 @@ OP-47 | 1 | 1 | n/a | n/a | n/a | thin sample
 OP-42 | 1 | 1 | n/a | n/a | n/a | thin sample
 
 ## Trading card game auctions (13 games) — https://opboxindex.com/tcg-auction.html
-Last 7 days (2026-10-04 to 2026-10-10), per game: GAME | ended (sample) | sold | sell-through | median winning bid | live auctions on eBay (latest snapshot)
-Pokemon (Japanese) | 896 | 276 | 30.8% | $18 | 40,874
-Pokemon | 906 | 248 | 27.4% | $18 | 310,543
-Magic: The Gathering | 893 | 287 | 32.1% | $12 | 31,556
-Yu-Gi-Oh! | 875 | 232 | 26.5% | $40 | 19,928
-One Piece | 883 | 337 | 38.2% | $29 | 12,944
-Disney Lorcana | 875 | 304 | 34.7% | $66 | 4,182
-Weiss Schwarz | 888 | 140 | 15.8% | $19 | 3,144
-Digimon | 785 | 65 | 8.3% | $11 | 1,295
-Riftbound (LoL) | 821 | 521 | 63.5% | $251 | 1,018
-Union Arena | 806 | 230 | 28.5% | $37 | 990
-Gundam Card Game | 455 | 110 | 24.2% | $36 | 837
-Dragon Ball Fusion World | 825 | 389 | 47.2% | $84 | 1,385
-Palworld TCG | 140 | 43 | 30.7% | $20 | 209
+Last 7 days (2026-10-05 to 2026-10-11), per game: GAME | ended (sample) | sold | sell-through | median winning bid | live auctions on eBay (latest snapshot)
+Pokemon (Japanese) | 801 | 221 | 27.6% | $10 | 40,305
+Pokemon | 803 | 213 | 26.5% | $18 | 309,165
+Magic: The Gathering | 802 | 248 | 30.9% | $12 | 31,225
+Yu-Gi-Oh! | 794 | 197 | 24.8% | $40 | 20,182
+One Piece | 798 | 276 | 34.6% | $34 | 12,881
+Disney Lorcana | 794 | 246 | 31% | $87 | 4,074
+Weiss Schwarz | 799 | 100 | 12.5% | $19 | 2,961
+Digimon | 703 | 36 | 5.1% | $7 | 1,274
+Riftbound (LoL) | 683 | 417 | 61.1% | $251 | 1,015
+Union Arena | 747 | 216 | 28.9% | $35 | 974
+Gundam Card Game | 405 | 103 | 25.4% | $36 | 835
+Dragon Ball Fusion World | 721 | 340 | 47.2% | $89 | 1,354
+Palworld TCG | 135 | 41 | 30.4% | $20 | 203
 
 ## Card prices (115 tracked card variants) — https://opboxindex.com/cards/
 Format: CARD# | name | set | raw NM (JPY, USD equiv., date) | PSA 10 sold median (n, date) | PSA population total / PSA 10 | page
@@ -243,18 +243,18 @@ OP06-101 | O Nami SP | OP-07 | ¥34,800 ≈ $220 (2026-10-10) | $509 (n=8, 2026-
 OP08-106 | Nami SP | OP-09 | ¥34,800 ≈ $220 (2026-10-10) | $515 (n=18, 2026-09-14) | 5,394 / 5,045 | https://opboxindex.com/cards/op08-106-nami-sp.html
 OP14-118 | Youll Frighten Me Alternate Art | OP-14 | ¥34,800 ≈ $220 (2026-10-10) | $500 (n=11, 2026-09-14) | 2,334 / 2,107 | https://opboxindex.com/cards/op14-118-youll-frighten-me-alternate-art.html
 OP05-067 | Zoro Juurou SP | OP-09 | ¥29,800 ≈ $188 (2026-10-10) | $577 (n=10, 2026-09-14) | 3,380 / 3,016 | https://opboxindex.com/cards/op05-067-zoro-juurou-sp.html
-ST18-005 | Luffy Tarou SP | OP-11 | ¥29,800 ≈ $188 (2026-10-10) | $550 (n=15, 2026-09-14) | 2,722 / 2,021 | https://opboxindex.com/cards/st18-005-luffy-tarou-sp.html
 EB02-061 | Monkey D. Luffy EB02 061 SP | PRB-02 | ¥29,800 ≈ $188 (2026-10-10) | $618 (n=12, 2026-09-14) | 1,730 / 1,573 | https://opboxindex.com/cards/eb02-061-monkey-d-luffy-eb02-061-sp.html
 ST26-005 | Monkey D. Luffy SP | OP-15 | ¥29,800 ≈ $188 (2026-10-10) | $679 (n=8, 2026-09-14) | 1,987 / 1,872 | https://opboxindex.com/cards/st26-005-monkey-d-luffy-sp.html
 OP01-001 | Roronoa Zoro 001 Parallel | OP-01 | ¥24,800 ≈ $157 (2026-10-10) | $543 (n=19, 2026-09-14) | 3,594 / 3,220 | https://opboxindex.com/cards/op01-001-roronoa-zoro-001-parallel.html
+ST18-005 | Luffy Tarou SP | OP-11 | ¥24,800 ≈ $157 (2026-10-10) | $550 (n=15, 2026-09-14) | 2,722 / 2,021 | https://opboxindex.com/cards/st18-005-luffy-tarou-sp.html
 OP09-020 | Come On Well Fight You Alternate Art | PRB-02 | ¥24,800 ≈ $157 (2026-10-10) | $400 (n=11, 2026-09-14) | 1,724 / 1,586 | https://opboxindex.com/cards/op09-020-come-on-well-fight-you-alternate-art.html
 OP13-031 | Trafalgar Law SP | OP-15 | ¥24,800 ≈ $157 (2026-10-10) | $475 (n=4, 2026-09-14) | 664 / 632 | https://opboxindex.com/cards/op13-031-trafalgar-law-sp.html
-ST15-002 | EdwardNewgate SP | OP-10 | ¥19,800 ≈ $125 (2026-10-10) | $480 (n=13, 2026-09-14) | 1,422 / 1,259 | https://opboxindex.com/cards/st15-002-edwardnewgate-sp.html
 ST16-004 | Shanks SP | OP-11 | ¥19,800 ≈ $125 (2026-10-10) | $325 (n=10, 2026-09-14) | 1,680 / 1,434 | https://opboxindex.com/cards/st16-004-shanks-sp.html
 EB03-031 | Vinsmoke Reiju SP | EB-03 | ¥19,800 ≈ $125 (2026-10-10) | $440 (n=8, 2026-09-14) | 1,097 / 989 | https://opboxindex.com/cards/eb03-031-vinsmoke-reiju-sp.html
 ST18-004 | Zoro Juurou SP | OP-12 | ¥17,800 ≈ $113 (2026-10-10) | $409 (n=21, 2026-09-14) | 1,168 / 1,045 | https://opboxindex.com/cards/st18-004-zoro-juurou-sp.html
 ST15-005 | Portgas D. Ace SP | OP-16 | ¥17,800 ≈ $113 (2026-10-10) | $296 (n=3, 2026-09-30) | 1,003 / 956 | https://opboxindex.com/cards/st15-005-portgas-d-ace-sp.html
 OP01-016 | Nami Parallel | OP-01 | ¥14,800 ≈ $94 (2026-10-10) | $245 (n=14, 2026-09-14) | 9,508 / 8,773 | https://opboxindex.com/cards/op01-016-nami-parallel.html
+ST15-002 | EdwardNewgate SP | OP-10 | ¥14,800 ≈ $94 (2026-10-10) | $480 (n=13, 2026-09-14) | 1,422 / 1,259 | https://opboxindex.com/cards/st15-002-edwardnewgate-sp.html
 OP14-096 | Ground Death Alternate Art | OP-14 | ¥14,800 ≈ $94 (2026-10-10) | $160 (n=16, 2026-09-14) | 538 / 509 | https://opboxindex.com/cards/op14-096-ground-death-alternate-art.html
 OP01-002 | Trafalgar Law 002 Parallel | OP-01 | ¥12,800 ≈ $81 (2026-10-10) | $270 (n=10, 2026-09-14) | 2,781 / 2,514 | https://opboxindex.com/cards/op01-002-trafalgar-law-002-parallel.html
 OP03-040 | Nami 040 Alternate Art | OP-03 | ¥12,800 ≈ $81 (2026-10-10) | $238 (n=4, 2026-09-14) | 2,723 / 2,354 | https://opboxindex.com/cards/op03-040-nami-040-alternate-art.html
