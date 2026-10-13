@@ -626,6 +626,21 @@ if (exists("data/auction-card-stats.json")) {
     if (c.medPrice != null && !(c.medPrice > 0)) { errors.push(`D9: ${id} medPrice 이상 (${c.medPrice})`); break; }
     if (c.sellThrough != null && !(c.sellThrough >= 0 && c.sellThrough <= 100)) { errors.push(`D9: ${id} sellThrough 이상 (${c.sellThrough})`); break; }
     if (c.low != null && c.high != null && c.low > c.high) { errors.push(`D9: ${id} low>high`); break; }
+    if (!(c.name === null || typeof c.name === "string")) { errors.push(`D9: ${id} name 이 문자열|null 아님`); break; }
+  }
+  // 변형(판×티어) 집계 — 2026-10-13 확장. 이름표·이상치 표식이 붙었으니 형식까지 본다.
+  // suspect 가 boolean 이 아니면 화면이 "의심 아님"으로 읽어 오분류 값이 1위로 올라간다.
+  const NAME_SOURCES = new Set(["override", "catalog", "title"]);
+  for (const [key, v] of Object.entries(cs.variants || {})) {
+    if (!(Number.isInteger(v.sold) && v.sold >= 3)) { errors.push(`D9: variant ${key} sold(${v.sold}) 표본 기준 미달 노출`); break; }
+    if (!(v.medPrice > 0)) { errors.push(`D9: variant ${key} medPrice 이상 (${v.medPrice})`); break; }
+    if (v.sellThrough != null && !(v.sellThrough >= 0 && v.sellThrough <= 100)) { errors.push(`D9: variant ${key} sellThrough 이상 (${v.sellThrough})`); break; }
+    if (v.low != null && v.high != null && v.low > v.high) { errors.push(`D9: variant ${key} low>high`); break; }
+    if (typeof v.suspect !== "boolean") { errors.push(`D9: variant ${key} suspect 가 boolean 아님`); break; }
+    if (!(v.name === null || typeof v.name === "string")) { errors.push(`D9: variant ${key} name 이 문자열|null 아님`); break; }
+    if (!(v.nameSource === null || NAME_SOURCES.has(v.nameSource))) { errors.push(`D9: variant ${key} nameSource 이상 (${v.nameSource})`); break; }
+    if (!(Number.isInteger(v.contestedSold) && v.contestedSold >= 0 && v.contestedSold <= v.sold)) { errors.push(`D9: variant ${key} contestedSold 이상 (${v.contestedSold})`); break; }
+    if (v.psa10Med != null && !(v.psa10Med > 0)) { errors.push(`D9: variant ${key} psa10Med 이상 (${v.psa10Med})`); break; }
   }
 }
 

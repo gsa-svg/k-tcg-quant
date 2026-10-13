@@ -14,8 +14,7 @@ for (const period of TREND_PERIODS) {
   }
 }
 
+// 2026-10-13: 지표·기간 토글을 없앤 재설계(경매 페이지 단순화)로 button[data-tm]/[data-tp] 계약은 사라졌다 — visibleTrendRows 만 검사한다.
 const generator = fs.readFileSync(path.join(__dirname, "generate-tcg-auction-page.js"), "utf8");
 assert.match(generator, /visibleTrendRows\(/, "generated UI must use the tested trend visibility seam");
-assert.match(generator, /querySelectorAll\("button\[data-tm\]"\)/, "trend metric buttons must stay scoped");
-assert.match(generator, /querySelectorAll\("button\[data-tp\]"\)/, "trend period buttons must stay scoped");
 console.log("TCG trend model tests passed (18 combinations)");

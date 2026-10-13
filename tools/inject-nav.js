@@ -70,10 +70,15 @@ const FONT_FILE = "fonts/bricolage-grotesque-latin-750.woff2";   // 2026-10-08: 
 // 22KB 라 모바일도 미리 받는다(77KB 때는 CSS·LCP 이미지와 대역폭을 다퉈 media 로 데스크톱만 받게 했었다).
 const FONT_PRELOAD = (prefix) => `<link rel="preload" href="${prefix}${FONT_FILE}" as="font" type="font/woff2" crossorigin />`;
 function withFontPreload(html, prefix) {
-  const existing = html.match(/[ \t]*<link rel="preload" href="[^"]*bricolage-grotesque-latin\.woff2"[^>]*>/);
-  if (existing) {
-    const indent = (existing[0].match(/^[ \t]*/) || [""])[0];
-    return existing[0].trim() === FONT_PRELOAD(prefix) ? html : html.replace(existing[0], `${indent}${FONT_PRELOAD(prefix)}`);
+  // 2026-10-13: 파일명이 -750 으로 바뀐 뒤 옛 정규식(latin\.woff2)이 못 찾아 돌 때마다 preload 줄을 또 넣었다(index.html 18줄).
+  // 어떤 bricolage preload 든 전부 지우고 한 줄만 남긴다(중복 제거 포함).
+  const anyPreload = /[ \t]*<link rel="preload" href="[^"]*bricolage-grotesque-latin[^"]*\.woff2"[^>]*>\r?\n?/g;
+  const found = html.match(anyPreload);
+  if (found) {
+    const indent = (found[0].match(/^[ \t]*/) || [""])[0];
+    const nl = found[0].includes("\r\n") ? "\r\n" : "\n";
+    let first = true;
+    return html.replace(anyPreload, () => { if (first) { first = false; return `${indent}${FONT_PRELOAD(prefix)}${nl}`; } return ""; });
   }
   const re = new RegExp(`[ \\t]*<link rel="stylesheet" href="${prefix.replace(/\./g, "\\.")}styles\\.css[^"]*"[^>]*>`);
   const m = html.match(re);

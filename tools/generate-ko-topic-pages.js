@@ -55,39 +55,19 @@ function psa10Krw(c) {
   return krw == null ? null : { krw, n: p.sampleSize };   // 통화 불명이면 빈칸
 }
 
-// ── 카드명 한글 병기 — 캐릭터명만 매핑한다(Parallel·Manga 같은 변형 접미사는 영문 원문 그대로).
-//    확신이 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
-const KO_CHAR = {
-  "Monkey D. Luffy": "몽키 D. 루피", "Roronoa Zoro": "롤로노아 조로", "Nami": "나미", "Sanji": "상디",
-  "Shanks": "샹크스", "Portgas D. Ace": "포트거스 D. 에이스", "Sabo": "사보", "Boa Hancock": "보아 행콕",
-  "Trafalgar Law": "트라팔가 로", "Nico Robin": "니코 로빈", "Tony Tony.Chopper": "토니토니 쵸파",
-  "Yamato": "야마토", "Uta": "우타", "Gol D. Roger": "골 D. 로저", "Marshall D. Teach": "마샬 D. 티치",
-  "Charlotte Katakuri": "샬롯 카타쿠리", "Dracule Mihawk": "쥬라큘 미호크", "Silvers Rayleigh": "실버즈 레일리",
-  "Jewelry Bonney": "쥬얼리 보니", "Buggy": "버기", "Brook": "브룩", "Kuzan": "쿠잔", "Sakazuki": "사카즈키",
-  "Borsalino": "볼사리노", "Perona": "페로나", "Tashigi": "타시기", "Rebecca": "레베카", "Enel": "에넬",
-  "Smoker": "스모커", "Koala": "코알라", "Laboon": "라분", "Hannyabal": "한냐발", "Shirahoshi": "시라호시",
-  "Charlotte Pudding": "샬롯 푸딩", "Sogeking": "저격왕", "Vinsmoke Reiju": "빈스모크 레이쥬",
-  "Gecko Moria": "겟코 모리아", "Stussy": "스투시", "Edward.Newgate": "에드워드 뉴게이트",
-  "Monkey D. Garp": "몽키 D. 가프", "Koby": "코비", "Zoro-Juurou": "조로주로", "Luffy-Tarou": "루피타로",
-  "O-Nami": "오나미", "Kaido": "카이도", 'Eustass"Captain"Kid': "유스타스 캡틴 키드", "Vegapunk": "베가펑크",
-};
-// 표기 흔들림(공백·점·따옴표)을 없애고 앞부분 일치로 찾는다. 긴 키부터 봐야 "Monkey D. Garp"가 "Monkey D."에 먹히지 않는다.
-const flat = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-const KO_CHAR_KEYS = Object.entries(KO_CHAR).map(([k, v]) => [flat(k), v]).sort((a, b) => b[0].length - a[0].length);
-const koCharOf = (name) => { const n = flat(name); const hit = KO_CHAR_KEYS.find(([k]) => n.startsWith(k)); return hit ? hit[1] : null; };
+// ── 카드명 한글 병기 — 사전은 tools/ko-labels.js 한 곳(영문 auction.html 의 토글 data-ko 와 같은 사전). 2026-10-13 분리.
+//    캐릭터명만 매핑하고(변형 접미사는 영문 그대로), 확신 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
+const { koCharOf, tierKo } = require("./ko-labels");
 
-// 공용 페이지 틀 — ko 세트 페이지와 같은 look(스타일 재사용)
-function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHref, note }) {
+// <head> 공통 태그 — 네 장이 같은 노출 상태(robots·canonical·hreflang·og·빵부스러기)를 공유한다. 페이지별 <style> 은 호출 쪽에서 붙인다.
+function koHeadTags({ file, title, desc, breadcrumbName, enHref }) {
   const canonical = `${SITE}/ko/${file}`;
-  const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
   const crumbLd = JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
     { "@type": "ListItem", position: 1, name: "OP Box Index", item: `${SITE}/` },
     { "@type": "ListItem", position: 2, name: "한국어 시세", item: `${SITE}/ko/` },
     { "@type": "ListItem", position: 3, name: breadcrumbName, item: canonical },
-  ] });  return `<!doctype html>
-<html lang="ko">
-  <head>
-    <meta charset="utf-8" />
+  ] });
+  return `    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
     <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
@@ -111,7 +91,15 @@ function page({ file, title, desc, h1, eyebrow, body, faqs, breadcrumbName, enHr
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${crumbLd}</script>
     <link rel="stylesheet" href="../styles.css?v=${CACHE}" />
-    <meta name="theme-color" content="#0a0c10" />
+    <meta name="theme-color" content="#0a0c10" />`;
+}
+
+// 공용 페이지 틀 — ko 세트 페이지와 같은 look(스타일 재사용)
+function page({ file, title, desc, h1, eyebrow, body, breadcrumbName, enHref, note }) {
+  return `<!doctype html>
+<html lang="ko">
+  <head>
+${koHeadTags({ file, title, desc, breadcrumbName, enHref })}
     <style>
       .koBoard { width: 100%; max-width: 860px; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
       .koBoard th { text-align: right; padding: 8px 9px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; white-space: nowrap; }
@@ -337,70 +325,495 @@ ${tr}
 }
 
 // ── ③ ko/auction.html — 원피스 이베이 경매 ─────────────────────────────────
+// 2026-10-13: 영문 auction.html(tools/generate-auction-page.js, 승인 목업 "가격판 우선")과 같은 구조·같은 데이터의 한국어판.
+// 구조: ① h1 + 제휴 고지 ② 시장 온도 3칸(최근 7일 vs 직전 7일) ③ 카드 가격판(생카드 변형 단위, PSA 10 별도 열)
+//       ④ 주별 낙찰률 막대 ⑤ 종류별 표 ⑥ 세트별 표(최근 30일) ⑦ 하단 링크. 우리가 쓴 문장(요약·해설·FAQ)은 넣지 않는다.
+// 숫자는 영문판과 같은 원본(auction-sold·auction-series·auction-archive 원장·auction-card-stats·set-auction-stats)에서
+// 같은 규칙으로 낸다 — 진행 중인 오늘 제외, 합산은 완전 수집일만, 중앙값은 원장의 낙찰 건을 한 줄로 세워 자른다.
+// 영문 생성기는 함수를 export 하지 않고 실행 즉시 파일을 쓰므로 계산을 여기 최소한으로 복제한다. 규칙을 바꾸면 두 곳을 같이 고친다.
+// 값은 달러 그대로(이베이 낙찰가의 원본 통화) — 환율 환산값을 섞지 않는다. 표는 전부 서버에서 그린다(JS 는 탭·더보기·스와이프 힌트만).
+const { readRecent } = require("./auction-archive");
+const { summarizeKinds, med, perUnit } = require("./auction-aggregate");
+const { epnUrl } = require("./set-page-shared");
+const { ourTier } = require("./cgc-card-pop-ingest");   // 썸네일 변형 판별 — 집계기(auction-card-stats)와 같은 함수
+
 function auctionPage() {
-  const daily = (auc.daily || []).slice(-10);
-  const totN = daily.reduce((t, x) => t + x.n, 0);
-  const totSold = daily.reduce((t, x) => t + x.sold, 0);
-  const box = daily.map((x) => x.byKind && x.byKind.box).filter(Boolean);
-  const boxN = box.reduce((t, b) => t + b.n, 0), boxSold = box.reduce((t, b) => t + b.sold, 0);
-  const last = daily[daily.length - 1];
+  const readJson = (f, fallback) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", f), "utf8")); } catch { return fallback; } };
+  // partial 판정은 auction-series.json 만 들고 있다.
+  const PARTIAL_DAYS = new Set((readJson("auction-series.json", { daily: [] }).daily || []).filter((r) => r.partial).map((r) => r.d));
+  const setStats = readJson("set-auction-stats.json", { window: {}, sets: {} });
 
-  // 카드별 낙찰 top — 표본 3건 이상만(집계 파일 자체가 그 기준), 이름은 우리 카드목록에서 찾되 없으면 번호만
-  const nameOf = (set, id) => {
-    const cs = (d.sets[set] || {}).cards || [];
-    const hit = cs.find((c) => String(c.number || "").toUpperCase() === id.toUpperCase());
-    return hit ? hit.name : null;
-  };
-  const topCards = Object.entries(cardStats.cards || {})
-    .map(([id, c]) => ({ id, ...c, name: nameOf(c.set, id) }))
-    .sort((a, b) => b.medPrice - a.medPrice).slice(0, 12);
+  const cnt = (n) => (n == null || !isFinite(n) ? "—" : Number(n).toLocaleString("ko-KR"));
+  const pct = (v) => (v == null || !isFinite(v) ? "—" : `${v}%`);
+  // 돈: 정수면 $9,989, 아니면 $16.26 — 소수 두 자리를 자르지 않는다(낙찰가는 센트 단위다).
+  const money = (v) => (v == null || !isFinite(v) ? "—" : "$" + (Number.isInteger(v) ? v.toLocaleString("en-US") : v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })));
+  const bare = (v) => money(v).replace(/^\$/, "");
+  const md = (iso) => { if (!iso) return "—"; const [, m, dd] = iso.split("-").map(Number); return `${m}/${dd}`; };
+  const tenth = (x) => Math.round(x * 10) / 10;
 
-  const dTr = daily.map((x) => `<tr><td class="l">${esc(x.d)}</td><td>${num(x.n)}</td><td>${num(x.sold)}</td><td>${x.sellThrough != null ? x.sellThrough + "%" : "—"}</td><td>${x.medPrice != null ? won(x.medPrice * fx.usdKrw) : "—"}</td></tr>`).join("\n");
-  const cTr = topCards.map((c, i) => `<tr><td>${i + 1}</td><td class="l">${esc(c.name || c.id)}<small>${esc(c.id)} · ${esc(c.set)}</small></td><td>${won(c.medPrice * fx.usdKrw)}</td><td>${c.sellThrough != null ? c.sellThrough + "%" : "—"}</td><td>${num(c.sold)}</td></tr>`).join("\n");
+  // ── 날짜 창: 진행 중인 오늘은 여기서 잘라낸다. 합산은 완전 수집일만(완전일이 3일 미만이면 전체로 폴백).
+  const TODAY_ISO = new Date().toISOString().slice(0, 10);
+  const allDays = (auc.daily || []).filter((x) => x.d < TODAY_ISO);
+  if (allDays.length < 3) { console.error("ko/auction 실패: 일별 집계가 3일 미만 — 페이지 미생성"); process.exitCode = 1; return null; }
+  const fullAll = allDays.filter((x) => !PARTIAL_DAYS.has(x.d));
+  const aggDays = fullAll.length >= 3 ? fullAll : allDays;
+  const skippedDays = allDays.length - aggDays.length;
+  const aggFrom = aggDays[0].d;
+  const DATA_THROUGH = aggDays[aggDays.length - 1].d;   // 마지막 완전 수집일 — 화면의 "기준일"
+  const totN = aggDays.reduce((t, x) => t + x.n, 0);
 
-  const body = `
-      <h2>일별 낙찰 현황</h2>
-      <div style="overflow-x:auto">
-      <table class="koBoard">
-        <thead><tr><th class="l">날짜</th><th>종료 경매</th><th>낙찰</th><th>낙찰률</th><th>낙찰가 중앙값</th></tr></thead>
-        <tbody>
-${dTr}
-        </tbody>
-      </table>
-      </div>
-      <p class="koNote">우리가 추적한 경매 기준(전체 시장 전수가 아닌 표본). 낙찰률 분모는 팔림/유찰이 확정된 건만 씁니다.</p>
-      <h2>카드별 경매 낙찰가 상위</h2>
-      <div style="overflow-x:auto">
-      <table class="koBoard">
-        <thead><tr><th>#</th><th class="l">카드</th><th>낙찰 중앙값</th><th>낙찰률</th><th>낙찰 수</th></tr></thead>
-        <tbody>
-${cTr}
-        </tbody>
-      </table>
-      </div>
-      <h2>경매 데이터 읽는 법</h2>
-      <div class="koCta">
-        <a class="primary" href="cards.html">카드 시세 →</a>
-        <a class="ghost" href="grading.html">그레이딩 인구 →</a>
-        <a class="ghost" href="../free-data.html">경매 일별 CSV 무료 다운로드 →</a>
-      </div>`;
+  // 원장 — 7일 창·주별 막대·종류별 전부 여기서 직접 낸다(일별 값을 다시 평균/중앙값 내지 않는다).
+  const ledger = readRecent(400).filter((r) => r && r.d && r.d < TODAY_ISO);
 
-  return page({
-    file: "auction.html",
-    enHref: "auction.html",
-    title: "원피스 이베이 경매 낙찰가·낙찰률 | opboxindex",
-    desc: `원피스 이베이 경매 실제 낙찰가와 낙찰률. 최근 ${daily.length}일 ${num(totN)}건, 호가 아닌 낙찰 기준 (${DATA_DATE}).`,
-    h1: "원피스 카드 이베이 경매 — 실제 낙찰 데이터",
-    eyebrow: "이베이 경매",
-    breadcrumbName: "원피스 이베이 경매 데이터",
-    body,
-    faqs: [
-      { q: "이 낙찰가는 어떻게 수집한 건가요?", a: "끝난 경매를 종료 후 다시 조회해 최종 낙찰가와 낙찰 여부를 기록합니다. 진행 중 현재가는 스나이핑 때문에 최종가와 다르므로 쓰지 않고, 유찰된 경매도 낙찰률 분모로 함께 셉니다." },
-      { q: "원피스 카드 경매 낙찰률은 얼마나 되나요?", a: `최근 ${daily.length}일 기준 우리가 추적한 경매 ${num(totN)}건 중 ${num(totSold)}건이 낙찰돼 약 ${totN ? Math.round((totSold / totN) * 100) : 0}%였습니다. 싱글 카드는 유찰이 흔하고, 밀봉 박스는 표본은 적지만 낙찰률이 훨씬 높습니다.` },
-      { q: "경매 낙찰가와 일반 시세는 뭐가 다른가요?", a: "낙찰가는 실제 구매자가 지불한 가격이라 즉시구매 호가보다 낮게 형성되는 경우가 많습니다. 시장의 바닥 가격을 읽는 지표로 쓰되, 배송비·관세는 별도입니다." },
-      { q: "이 데이터를 받아볼 수 있나요?", a: "일별 집계(종료 수·낙찰 수·낙찰률·중앙값)를 무료 CSV로 공개하고 있습니다. free-data 페이지에서 내려받을 수 있으며 출처 표기 조건(CC BY 4.0)만 지키면 됩니다." },
-    ],
-  });
+  // ── ② 시장 온도: 최근 7일 vs 직전 7일(완전 수집일만). 낙찰률 분모는 결과가 확정된 건(sold !== null)만.
+  function windowStats(days) {
+    const set = new Set(days.map((x) => x.d));
+    const rows = ledger.filter((r) => set.has(r.d));
+    const decided = rows.filter((r) => r.sold !== null);
+    const sold = rows.filter((r) => r.sold === true);
+    const prices = sold.map(perUnit).filter(Number.isFinite);
+    return {
+      days: days.length, from: days.length ? days[0].d : null, to: days.length ? days[days.length - 1].d : null,
+      closed: rows.length,
+      rate: decided.length ? Number(((sold.length / decided.length) * 100).toFixed(1)) : null,
+      med: med(prices),
+    };
+  }
+  const last7 = windowStats(aggDays.slice(-7));
+  const prev7 = windowStats(aggDays.slice(-14, -7));
+  const spanDays = (a, b) => (a && b ? Math.round((Date.parse(b) - Date.parse(a)) / 864e5) + 1 : 0);
+  const tempGap = prev7.from && last7.to ? spanDays(prev7.from, last7.to) - (last7.days + prev7.days) : 0;
+
+  // ── ④ 주별 낙찰률 — 원장에서 직접, 월요일 시작
+  const weekKey = (iso) => { const t = new Date(iso + "T00:00:00Z"); const dow = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - dow); return t.toISOString().slice(0, 10); };
+  const weekEnd = (k) => { const t = new Date(k + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 6); return t.toISOString().slice(0, 10); };
+  const weekly = (() => {
+    const buckets = new Map();
+    for (const r of ledger) {
+      const k = weekKey(r.d);
+      if (!buckets.has(k)) buckets.set(k, { rows: [], missing: false });
+      const b = buckets.get(k);
+      b.rows.push(r);
+      if (PARTIAL_DAYS.has(r.d)) b.missing = true;
+    }
+    return [...buckets.entries()].sort((x, y) => x[0].localeCompare(y[0])).map(([k, b]) => {
+      const decided = b.rows.filter((r) => r.sold !== null);
+      const sold = b.rows.filter((r) => r.sold === true);
+      return {
+        week: k, closed: b.rows.length, sold: sold.length,
+        rate: decided.length ? Number(((sold.length / decided.length) * 100).toFixed(1)) : null,
+        missing: b.missing,
+        now: weekEnd(k) > DATA_THROUGH,   // 아직 다 차지 않은 주 — 흐리게 + "진행 중"
+      };
+    }).filter((w) => w.rate != null);
+  })();
+
+  // ── ⑤ 종류별(전 기간 완전 수집일)
+  const kindSummary = summarizeKinds(ledger, aggDays.map((x) => x.d));
+  const KIND_MIN = 25;        // 낙찰률을 말하려면 이만큼은 확인했어야 한다
+  const KIND_PRICE_MIN = 12;  // 중앙 낙찰가를 말하려면 낙찰 건수가 이만큼
+  const KIND_KO = { card: "싱글 카드", pack: "부스터 팩", box: "밀봉 박스", carton: "밀봉 케이스" };
+  const KIND_QUERY = { card: "One Piece Card Game card", pack: "One Piece Card Game booster pack sealed", box: "One Piece Card Game booster box sealed", carton: "One Piece Card Game booster case sealed" };
+  const kindRows = Object.entries(kindSummary)
+    .map(([k, v]) => ({
+      key: k, ko: KIND_KO[k] || k, n: v.n, sold: v.sold,
+      rate: v.n >= KIND_MIN ? v.sellThrough : null,
+      // 판별 중앙가 — 박스는 일본판과 영문판이 4배 가까이 차이나서 하나로 합치면 어느 쪽도 아닌 수가 된다.
+      jp: v.byEd.jp.priceN >= KIND_PRICE_MIN ? v.byEd.jp.med : null,
+      en_: v.byEd.en.priceN >= KIND_PRICE_MIN ? v.byEd.en.med : null,
+    }))
+    .filter((r) => r.n > 0)
+    .sort((a, b) => b.n - a.n);
+
+  // ── ⑥ 세트별(최근 30일, build-set-auction-stats)
+  const SET_MIN = Number(setStats.window && setStats.window.minDecided) || 30;
+  const SET_DAYS = (setStats.window && setStats.window.days) || 30;
+  const setRows = Object.entries(setStats.sets || {})
+    .map(([code, s]) => ({ code, name: (d.sets[code] || {}).nameKo || (d.sets[code] || {}).nameEn || null, closed: s.ended, rate: s.thin ? null : s.sellThrough, med: s.medPrice }))
+    .filter((s) => s.closed >= SET_MIN)
+    .sort((a, b) => b.closed - a.closed);
+  const SET_SHOW = 15;
+
+  // ── ③ 카드 가격판 — 생카드 변형(번호|판|변형) 단위, suspect(미확인 가격) 제외
+  const CARD_WINDOW_DAYS = (String(cardStats.window || "").match(/(\d+)\s*d/) || [])[1] || null;
+  let IMG_FILES = [];
+  try { IMG_FILES = fs.readdirSync(path.join(ROOT, "img", "cards")).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort(); } catch (e) {}
+  // 썸네일은 번호 + 변형이 같은 파일만 쓴다. 번호만 맞추면 일반 행에 SP 금박 그림이 붙는다. ko/ 는 한 단계 아래라 ../ 를 붙인다.
+  function cardImg(id, tier) {
+    const pre = id.toLowerCase() + "-";
+    const hit = IMG_FILES.find((f) => f.startsWith(pre) && ourTier(f.slice(pre.length).replace(/\.[^.]+$/, "").replace(/-/g, " ")) === tier);
+    if (!hit) return null;
+    const v = variant("../img/cards/" + hit, "thumb");
+    return v ? v.src : "../img/cards/" + hit;
+  }
+  const setCodeOf = (id, c) => (c && c.set) || id.replace(/^([A-Z]+)(\d+)-.*$/i, "$1-$2").toUpperCase();
+  // 진행 중 eBay 경매(종료 임박순). customid 는 EPN 보고서에서 자리별 클릭·수익을 가르는 꼬리표(영문판과 같은 꼬리표).
+  const liveAuctionUrl = (query, spot) => epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Auction=1&_sop=1&customid=${spot}`);
+  const variants = Object.entries(cardStats.variants || {})
+    .map(([key, v]) => {
+      const [id, ed, tier] = key.split("|");
+      const c = (cardStats.cards || {})[id];
+      return {
+        id, ed, tier, tierLabel: tierKo(tier),
+        set: setCodeOf(id, c),
+        name: v.name || id,
+        price: v.medPriceContested != null ? v.medPriceContested : v.medPrice,
+        low: v.low, high: v.high, rate: v.sellThrough, sold: v.sold, n: v.n,
+        psa10Med: v.psa10Med, psa10Sold: v.psa10Sold,
+        suspect: !!v.suspect,
+        img: cardImg(id, tier),
+        ebay: liveAuctionUrl(`One Piece ${id}`, "auc-card"),
+      };
+    })
+    .filter((v) => !v.suspect && (v.ed === "jp" || v.ed === "en") && v.price != null);
+  const CARD_TOP = 20, CARD_SHOW = 10;
+  const byPrice = variants.slice().sort((a, b) => b.price - a.price || b.sold - a.sold).slice(0, CARD_TOP);
+  const bySales = variants.slice().sort((a, b) => b.sold - a.sold || b.price - a.price).slice(0, CARD_TOP);
+  // PSA 10 열은 가격판 행 가운데 한 줄이라도 값이 있을 때만 그린다(2026-10-13 QA: 40행 전부 '—' 인 죽은 열이 폭만 차지했다).
+  // 값이 생기면(같은 변형 PSA 10 낙찰 3건 이상) 열·정의 토막·스와이프 힌트가 저절로 돌아온다.
+  const HAS_PSA = [...byPrice, ...bySales].some((v) => v.psa10Med != null);
+  // 세트 코드 → 세트 가이드 링크(있는 페이지만). ko/ 는 한 단계 아래라 ../ 를 붙인다.
+  const setHref = (code) => (fs.existsSync(path.join(ROOT, "sets", code.toLowerCase() + ".html")) ? `../sets/${code.toLowerCase()}.html` : null);
+
+  // ── HTML 조각
+  const live = (url) => (url ? `<a class="live" href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>` : "");
+  const thumb = (v, i) => (v.img
+    ? `<img class="thumb" src="${esc(v.img)}" alt="" width="36" height="50"${i >= 3 ? ' loading="lazy"' : ""} />`
+    : `<span class="thumb ph" aria-hidden="true">${v.set.split("-").map((p) => `<span>${esc(p)}</span>`).join("")}</span>`);
+  function boardRow(v, i) {
+    const ed = v.ed === "jp" ? "JP" : "EN";
+    const range = v.low != null && v.high != null ? `${money(v.low)}–${bare(v.high)}` : "—";
+    const psa = v.psa10Med == null ? "—" : `<span class="pv psa">${money(v.psa10Med)}</span><span class="sub2">${cnt(v.psa10Sold)}건</span>`;
+    const ko = koCharOf(v.name);   // 한글 캐릭터명이 잡히면 영문 옆에 병기(ko/cards.html 과 같은 사전)
+    return `<tr${i >= CARD_SHOW ? " hidden" : ""}>
+  <td class="l"><div class="cardCell"><span class="rank">${i + 1}</span>${thumb(v, i)}<div class="info">
+    <div class="nameLine"><span class="name">${esc(v.name)}</span>${ko ? `<span class="nameKo">${esc(ko)}</span>` : ""}<span class="chip var">${esc(v.id)} · ${esc(v.tierLabel)}</span><span class="chip ed dOnly">${ed}</span></div>
+    <div class="meta mOnly">${ed} · ${cnt(v.n)}건 중 ${cnt(v.sold)}건 낙찰 · ${pct(v.rate)}</div>
+    ${live(v.ebay)}
+  </div></div></td>
+  <td><span class="pv">${money(v.price)}</span><span class="sub2 mOnly">${range}</span>${v.psa10Med != null ? `<span class="sub2 mOnly psaM">PSA 10 <b>${money(v.psa10Med)}</b></span>` : ""}</td>
+  <td class="dOnly"><span class="range">${range}</span></td>
+  <td class="dOnly">${pct(v.rate)}</td>
+  <td class="dOnly">${cnt(v.sold)}<span class="sub2">${cnt(v.n)}건 중</span></td>${HAS_PSA ? `
+  <td class="dOnly">${psa}</td>` : ""}
+</tr>`;
+  }
+  const boardBody = (rows, id, hidden) => `<tbody id="${id}"${hidden ? " hidden" : ""}>\n${rows.map(boardRow).join("\n")}\n</tbody>`;
+
+  const kindTr = kindRows.map((k) => `<tr>
+  <td class="l"><span class="kind">${esc(k.ko)}</span><br />${live(liveAuctionUrl(KIND_QUERY[k.key] || `One Piece Card Game ${k.key}`, "auc-kind"))}</td>
+  <td>${pct(k.rate)}${k.rate != null ? `<div class="bar" aria-hidden="true"><i style="width:${k.rate}%"></i></div>` : ""}</td>
+  <td>${money(k.jp)}</td>
+  <td>${money(k.en_)}</td>
+</tr>`).join("\n");
+
+  const setTr = setRows.map((s, i) => `<tr${i >= SET_SHOW ? " hidden" : ""}>
+  <td class="l">${setHref(s.code) ? `<a class="setCode" href="${setHref(s.code)}">${esc(s.code)}</a>` : `<span class="setCode">${esc(s.code)}</span>`}${s.name && s.name !== s.code ? `<span class="setName">${esc(s.name)}</span>` : ""}</td>
+  <td>${cnt(s.closed)}</td>
+  <td>${pct(s.rate)}</td>
+  <td>${money(s.med)}</td>
+</tr>`).join("\n");
+
+  // 시장 온도 칸 — 화살표·차이·직전값. 종료 건수의 증감은 좋고 나쁨이 없어 색을 입히지 않는다.
+  function kpi(label, cur, prev, fmt, deltaFmt, colored) {
+    const has = cur != null && prev != null;
+    const diff = has ? cur - prev : null;
+    const arrow = diff == null ? "" : diff > 0 ? "▲" : diff < 0 ? "▼" : "•";
+    const cls = colored && diff != null ? (diff > 0 ? " up" : diff < 0 ? " down" : "") : "";
+    const delta = diff == null ? "—" : `${arrow} ${deltaFmt(Math.abs(diff))}`;
+    return `<div class="kpi"><span class="lbl">${esc(label)}</span><b>${fmt(cur)}</b><span class="delta${cls}">${delta}</span><span class="was">직전 ${fmt(prev)}</span></div>`;
+  }
+  const strip = [
+    kpi("낙찰률", last7.rate, prev7.rate, pct, (x) => `${tenth(x)}%p`, true),
+    kpi("중앙 낙찰가", last7.med, prev7.med, money, (x) => money(Math.round(x * 100) / 100), true),
+    kpi("종료 경매", last7.closed, prev7.closed, cnt, cnt, false),
+  ].join("\n        ");
+  const tempRange = last7.from && prev7.from ? `${md(last7.from)}–${md(last7.to)} vs ${md(prev7.from)}–${md(prev7.to)}` : "";
+
+  // 주별 막대 — 축 하나, 눈금은 최고값을 10 단위로 올린 값과 그 절반. 값 라벨은 데스크톱 전부, 모바일은 처음·끝·최고·최저만.
+  const WK_TOP = Math.max(10, Math.ceil(Math.max(...weekly.map((w) => w.rate)) / 10) * 10);
+  const wkRates = weekly.map((w) => w.rate);
+  const wkHi = Math.max(...wkRates), wkLo = Math.min(...wkRates);
+  const wkCols = weekly.map((w, i) => {
+    const key = i === 0 || i === weekly.length - 1 || w.rate === wkHi || w.rate === wkLo;
+    const title = `${md(w.week)} 주: 낙찰률 ${pct(w.rate)} (${cnt(w.closed)}건 중 ${cnt(w.sold)}건)${w.now ? " — 진행 중" : ""}${w.missing ? " — 빠진 날 있음" : ""}`;
+    return `<div class="col${key ? " key" : ""}${w.now ? " now" : ""}" style="--h:${tenth((w.rate / WK_TOP) * 100)}%" title="${esc(title)}"><span class="v">${w.rate}</span><i></i></div>`;
+  }).join("");
+  const wkMid = weekly[Math.floor(weekly.length / 2)];
+  const wkLast = weekly[weekly.length - 1];
+  const wkAxis = weekly.length ? `<span>${md(weekly[0].week)}</span><span>${md(wkMid.week)}</span><span>${md(wkLast.week)}${wkLast.now ? " · 진행 중" : ""}</span>` : "";
+  const wkRange = weekly.length ? `${weekly.length}주 · ${md(weekly[0].week)}–${md(DATA_THROUGH)}` : "";
+
+  // ── <head> 는 다른 ko 주제 페이지와 같은 노출 상태(canonical ko·hreflang en↔ko·robots·og·빵부스러기)를 그대로 쓴다.
+  const title = "원피스 이베이 경매 낙찰가·낙찰률 | opboxindex";
+  const desc = `원피스 이베이 경매 실제 낙찰가와 낙찰률 — 카드별·주별·세트별. ${aggDays.length}일 ${cnt(totN)}건, 호가 아닌 낙찰 기준 (${DATA_DATE}).`;
+
+  return `<!doctype html>
+<html lang="ko">
+  <head>
+${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이베이 경매 데이터", enHref: "auction.html" })}
+    <style>
+      /* 영문 auction.html 과 같은 가격판 우선 레이아웃(2026-10-13 승인 목업). 색은 styles.css 토큰만, 모션 없음, 글자 최소 11.5px. */
+      .wrap { max-width: 1040px; margin: 0 auto; padding: 22px 16px 60px; }
+      .wrap h1 { max-width: none; margin: 0 0 6px; font-size: clamp(30px, 5vw, 46px); line-height: 1.1; }
+      .sub { margin: 0 0 6px; color: var(--muted); font-size: 14px; }
+      .wrap .affTop { margin: 0 0 20px; }
+      .wrap section { margin: 0 0 38px; }
+      .secHead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin: 0 0 6px; }
+      .secHead h2 { margin: 0; font-size: 18px; }
+      .nt { color: var(--muted); font-size: 12.5px; }
+      .line { margin: 0 0 12px; color: var(--muted); font-size: 13.5px; line-height: 1.6; max-width: 760px; }
+      .line b { color: var(--ink); font-weight: 600; }
+
+      /* ② 시장 온도 — 숫자 3칸 */
+      .strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 760px; margin: 0 0 8px; }
+      .kpi { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+      .kpi .lbl { display: block; color: var(--muted); font-size: 12.5px; }
+      .kpi b { display: block; margin: 4px 0 2px; font-family: var(--font-display); font-size: clamp(22px, 5.5vw, 30px); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+      .kpi .delta { display: block; color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+      .kpi .delta.up { color: var(--green); }
+      .kpi .delta.down { color: var(--red); }
+      .kpi .was { display: block; color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+      /* 탭·버튼 */
+      .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 12px; }
+      .btn { font: inherit; font-size: 13.5px; font-weight: 700; min-height: 40px; padding: 0 14px; border-radius: 8px;
+        border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+      .btn[aria-pressed="true"] { border-color: var(--accent-line); background: var(--accent-dim); color: var(--accent); }
+      .btn:hover { color: var(--ink); border-color: var(--muted); }
+      .btn[aria-pressed="true"]:hover { color: var(--accent); border-color: var(--accent-line); }
+      .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .swipe { margin-left: auto; color: var(--muted); font-size: 12.5px; }
+      .more { margin-top: 10px; color: var(--accent); }
+      .more[hidden] { display: none; }
+
+      /* 표 공통 */
+      .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+      table.t { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+      .t th { text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; vertical-align: bottom; }
+      .t th.l, .t td.l { text-align: left; }
+      .t th.c { text-align: center; }
+      .t td { text-align: right; padding: 10px; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: top; }
+      .t tbody tr:hover td { background: var(--paper); }
+      .t tr[hidden], .t tbody[hidden] { display: none; }
+      .t .sub2 { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; font-weight: 400; }
+      /* 터치 대상: 링크 높이를 32px 이상으로(2026-10-13 QA) — 색·모션 없이 크기만 */
+      a.live { display: inline-block; margin-top: 4px; padding: 7px 0; color: var(--accent); font-size: 12.5px; font-weight: 600; }
+      a.live:hover, a.live:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+      .narrow { max-width: 760px; }
+
+      /* ③ 가격판 — 데스크톱 6열, 모바일(≤640)은 2열(카드·낙찰가)로 접어 가로 스크롤 없음 */
+      .cardCell { display: flex; gap: 10px; align-items: flex-start; }
+      .rank { flex: 0 0 auto; min-width: 18px; padding-top: 2px; color: var(--muted); font-size: 12.5px; }
+      .thumb { flex: 0 0 auto; width: 36px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: var(--paper); box-sizing: border-box; }
+      .thumb.ph { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: var(--muted); font-size: 11.5px; font-weight: 700; line-height: 1.1; }
+      .info { min-width: 0; }
+      .nameLine { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+      .name { color: var(--ink); font-size: 15px; font-weight: 700; line-height: 1.3; }
+      .nameKo { color: var(--muted); font-size: 12.5px; }
+      .chip { display: inline-block; padding: 0 6px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); font-size: 12px; line-height: 18px; white-space: nowrap; }
+      .chip.var { font-weight: 700; }
+      .chip.ed { color: var(--muted); }
+      .meta { margin-top: 4px; color: var(--muted); font-size: 12.5px; }
+      .pv { color: var(--ink); font-size: 16px; font-weight: 700; }
+      .pv.psa { font-size: 15px; }
+      .range { color: var(--muted); font-size: 13px; }
+      .psaM b { color: var(--ink); font-weight: 700; font-size: 12.5px; }
+      @media (min-width: 641px) {
+        .board { min-width: 680px; table-layout: fixed; }
+        .board th.l { width: 300px; }
+        .board th:nth-child(2) { width: 100px; }
+        .board th:nth-child(3) { width: 126px; }
+        .board th:nth-child(4) { width: 76px; }
+        .board th:nth-child(5) { width: 68px; }
+        .board th:nth-child(6) { width: 98px; }
+        .board th.l, .board td.l { position: sticky; left: 0; z-index: 1; background: var(--bg); white-space: normal; box-shadow: 1px 0 0 var(--line); }
+        .board tbody tr:hover td.l { background: var(--paper); }
+        .mOnly { display: none !important; }
+      }
+      @media (max-width: 640px) {
+        .board .dOnly { display: none; }
+        .board th, .board td { padding-left: 6px; padding-right: 6px; }
+        .board td.l { white-space: normal; }
+        .board td:nth-child(2) { width: 1%; }
+        .cardCell { gap: 8px; }
+        .thumb { width: 32px; height: 44px; }
+        .nameLine { gap: 3px 5px; }
+      }
+
+      /* ④ 주별 낙찰률 — CSS 막대, 축 하나 */
+      .wk { padding: 12px 14px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); max-width: 760px; }
+      .wkHead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-bottom: 22px; font-size: 13.5px; font-weight: 600; }
+      .wkHead .nt { font-weight: 400; }
+      .wkPlot { position: relative; height: 170px; margin-left: 34px; border-bottom: 1px solid var(--line); }
+      .guide { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); }
+      .guide span, .zero { position: absolute; left: -34px; width: 30px; text-align: right; color: var(--muted); font-size: 11.5px; line-height: 1; }
+      .guide span { top: -6px; }
+      .zero { bottom: -6px; }
+      .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
+      .col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
+      .col i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
+      .col.now i { background: rgba(var(--accent-rgb), .38); }
+      .col:hover i { background: var(--ink); }
+      .col .v { position: absolute; left: -8px; right: -8px; bottom: calc(var(--h) + 3px); text-align: center; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+      .wkAxis { display: flex; justify-content: space-between; margin: 6px 0 0 34px; color: var(--muted); font-size: 12px; }
+      @media (max-width: 640px) {
+        .wkPlot { height: 150px; }
+        .col:not(.key) .v { display: none; }
+        .strip { gap: 6px; }
+        .kpi { padding: 10px 8px; }
+      }
+
+      /* ⑤ 종류별 · ⑥ 세트별 */
+      .bar { height: 6px; margin-top: 5px; border-radius: 3px; background: var(--line); }
+      .bar i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+      .kind { color: var(--ink); font-weight: 700; }
+      .setCode { color: var(--ink); font-weight: 700; }
+      a.setCode { display: inline-block; padding: 5px 0; text-decoration: underline; text-decoration-color: rgba(var(--accent-rgb), .55); text-underline-offset: 3px; }
+      a.setCode:hover, a.setCode:focus-visible { color: var(--accent); text-decoration-color: currentColor; }
+      .setName { display: block; margin-top: 0; color: var(--muted); font-size: 12.5px; white-space: normal; }
+      .foot { margin-top: 16px; font-size: 12.5px; color: var(--muted); }
+      .foot a { display: inline-block; padding: 7px 0; color: var(--accent); }
+      @media (max-width: 480px) { .t td, .t th { padding-left: 8px; padding-right: 8px; } }
+    </style>
+  </head>
+  <body>
+    <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
+    <header class="topbar">
+      <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
+      ${navHtmlKo()}
+    </header>
+    <main id="main-content" class="wrap">
+      <h1>원피스 카드 이베이 경매 시세</h1>
+      <p class="sub">이베이 실제 낙찰가 · 기준일 ${esc(DATA_THROUGH)}</p>
+      <p class="affTop"><b>Paid Link:</b> eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다.</p>
+
+      <section id="week" aria-label="최근 7일">
+        <div class="strip">
+        ${strip}
+        </div>
+        <p class="nt">최근 7일 vs 직전 7일${tempRange ? ` · ${esc(tempRange)}` : ""}${tempGap > 0 ? ` · 빠진 날 ${tempGap}일` : ""}</p>
+      </section>
+
+      <section id="prices">
+        <div class="secHead"><h2>카드 경매 시세</h2><span class="nt">${CARD_WINDOW_DAYS ? `최근 ${CARD_WINDOW_DAYS}일 · ` : ""}생카드 · 낙찰 3건 이상</span></div>
+        <p class="line"><b>낙찰가</b> = 생카드 낙찰가 중앙값 · ${HAS_PSA ? "<b>PSA 10</b> = 같은 카드 PSA 10 낙찰가 중앙값 · " : ""}<b>범위</b> = 낙찰가 가운데 절반 구간</p>
+        <div class="tabs" role="group" aria-label="정렬">
+          <button class="btn" type="button" data-tab="price" aria-pressed="true">최고가 순</button>
+          <button class="btn" type="button" data-tab="sales" aria-pressed="false">많이 팔린 순</button>
+          <span class="swipe" id="swipe" hidden>옆으로 밀기 → 범위 · 낙찰률${HAS_PSA ? " · PSA 10" : ""}</span>
+        </div>
+        <div class="scroll" id="boardScroll">
+          <table class="t board" id="boardTable">
+            <thead><tr>
+              <th class="l">카드</th><th>낙찰가</th><th class="dOnly">범위</th><th class="dOnly">낙찰률</th><th class="dOnly">낙찰</th>${HAS_PSA ? '<th class="dOnly">PSA 10</th>' : ""}
+            </tr></thead>
+            ${boardBody(byPrice, "boardPrice", false)}
+            ${boardBody(bySales, "boardSales", true)}
+          </table>
+        </div>
+        <button class="btn more" type="button" id="moreCards" aria-expanded="false"${byPrice.length <= CARD_SHOW ? " hidden" : ""}>${byPrice.length}장 모두 보기</button>
+      </section>
+
+      <section id="trend">
+        <div class="secHead"><h2>주별 낙찰률</h2><span class="nt">${esc(wkRange)}</span></div>
+        <div class="wk">
+          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt">연한 막대 = 이번 주(진행 중)</span></div>
+          <div class="wkPlot">
+            <div class="guide" style="bottom:100%"><span>${WK_TOP}%</span></div>
+            <div class="guide" style="bottom:50%"><span>${WK_TOP / 2}%</span></div>
+            <span class="zero">0</span>
+            <div class="cols">${wkCols}</div>
+          </div>
+          <div class="wkAxis">${wkAxis}</div>
+        </div>
+      </section>
+
+      <section id="kinds">
+        <div class="secHead"><h2>무엇이 팔리나</h2><span class="nt">${esc(aggFrom)} ~ ${esc(DATA_THROUGH)}${skippedDays ? ` · 미완 수집 ${skippedDays}일 제외` : ""}</span></div>
+        <div class="scroll narrow">
+          <table class="t">
+            <thead>
+              <tr><th class="l" rowspan="2">종류</th><th rowspan="2">낙찰률</th><th class="c" colspan="2">중앙 낙찰가</th></tr>
+              <tr><th>일본판</th><th>영문판</th></tr>
+            </thead>
+            <tbody>
+${kindTr}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="sets">
+        <div class="secHead"><h2>세트별, 최근 ${SET_DAYS}일</h2><span class="nt">${setStats.window && setStats.window.from ? `${esc(md(setStats.window.from))}–${esc(md(setStats.window.to))}` : ""}</span></div>
+        <div class="scroll narrow">
+          <table class="t">
+            <thead><tr><th class="l">세트</th><th>종료</th><th>낙찰률</th><th>중앙 낙찰가</th></tr></thead>
+            <tbody id="setBody">
+${setTr}
+            </tbody>
+          </table>
+        </div>
+        <button class="btn more" type="button" id="moreSets" aria-expanded="false"${setRows.length <= SET_SHOW ? " hidden" : ""}>${setRows.length}개 세트 모두 보기</button>
+      </section>
+
+      <p class="foot"><a href="../free-data.html">무료 CSV</a> · <a href="../methodology.html">집계 방법</a> · <a href="cards.html">카드 시세</a> · <a href="grading.html">그레이딩 통계</a> · <a href="../sets/index.html">세트 가이드</a></p>
+    </main>
+    <script>
+      // 탭·더보기·스와이프 힌트만 — 표는 서버가 그려 두었다(JS 없이도 보인다).
+      (function () {
+        var SHOW_CARDS = ${CARD_SHOW}, SHOW_SETS = ${SET_SHOW};
+        var sc = document.getElementById("boardScroll"), swipe = document.getElementById("swipe"), moreCards = document.getElementById("moreCards");
+        var bodies = { price: document.getElementById("boardPrice"), sales: document.getElementById("boardSales") };
+        var tab = "price", cardsOpen = false;
+        function rowsOf() { return bodies[tab] ? bodies[tab].querySelectorAll("tr") : []; }
+        function applyCards() {
+          var rows = rowsOf();
+          for (var i = 0; i < rows.length; i++) rows[i].hidden = !cardsOpen && i >= SHOW_CARDS;
+          if (moreCards) {
+            moreCards.hidden = rows.length <= SHOW_CARDS;
+            moreCards.setAttribute("aria-expanded", String(cardsOpen));
+            moreCards.textContent = cardsOpen ? "상위 " + SHOW_CARDS + "장만" : rows.length + "장 모두 보기";
+          }
+        }
+        function hint() {
+          if (!sc || !swipe) return;
+          swipe.hidden = !(sc.scrollWidth > sc.clientWidth + 2);
+        }
+        var tabs = document.querySelectorAll(".tabs .btn[data-tab]");
+        Array.prototype.forEach.call(tabs, function (b) {
+          b.addEventListener("click", function () {
+            tab = b.getAttribute("data-tab"); cardsOpen = false;
+            Array.prototype.forEach.call(tabs, function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+            for (var k in bodies) if (bodies[k]) bodies[k].hidden = k !== tab;
+            applyCards(); hint();
+          });
+        });
+        if (moreCards) moreCards.addEventListener("click", function () { cardsOpen = !cardsOpen; applyCards(); });
+        if (sc) sc.addEventListener("scroll", hint, { passive: true });
+        window.addEventListener("resize", hint);
+
+        var moreSets = document.getElementById("moreSets"), setBody = document.getElementById("setBody");
+        var setsOpen = false;
+        function applySets() {
+          if (!moreSets || !setBody) return;
+          var rows = setBody.querySelectorAll("tr");
+          for (var i = 0; i < rows.length; i++) rows[i].hidden = !setsOpen && i >= SHOW_SETS;
+          moreSets.hidden = rows.length <= SHOW_SETS;
+          moreSets.setAttribute("aria-expanded", String(setsOpen));
+          moreSets.textContent = setsOpen ? "상위 " + SHOW_SETS + "개만" : rows.length + "개 세트 모두 보기";
+        }
+        if (moreSets) moreSets.addEventListener("click", function () { setsOpen = !setsOpen; applySets(); });
+        applyCards(); applySets(); hint();
+      })();
+    </script>
+    <footer class="footer">
+      <p>OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
+      <nav aria-label="정책 안내"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
+    </footer>
+  </body>
+</html>
+`;
 }
 
 // ── ④ ko/amazon-lottery.html — 아마존 재팬 초대판매(추첨) 응모 목록 ──────────
@@ -533,8 +946,8 @@ ${src.brands.map((b) => `          <tr><td class="l w">${b.label}</td><td class=
 const out = [
   ["cards.html", cardsPage()],
   ["grading.html", gradingPage()],
-  ["auction.html", auctionPage()],
-];
+  ["auction.html", auctionPage()],   // 일별 집계가 3일 미만이면 null — 그 한 장만 건너뛴다(exitCode 1)
+].filter(([, html]) => html);
 {
   // 원본 파싱이 실패하면(항목 0건·data-game 누락) 이 한 장만 건너뛴다 — 나머지 세 장은 그대로 굽는다.
   const lottery = lotteryPage();

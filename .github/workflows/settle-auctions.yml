@@ -65,6 +65,10 @@ jobs:
         run: |
           node tools/settle-auctions.js --game=palworld || [ $? -eq 2 ]
 
+      # 카드 이름표(번호→이름). 카드 집계가 참조하므로 그보다 먼저 돈다. 수동 > 카탈로그 > 원장 제목 추정.
+      - name: Build card names
+        run: node tools/build-card-names.js
+
       - name: Card auction stats
         run: node tools/auction-card-stats.js
 
@@ -80,13 +84,13 @@ jobs:
           # 원장은 data/auction-archive/ 의 새 파일로 생긴다(추적되지 않는 파일).
           # git diff 는 추적 안 된 파일을 못 보므로 status 로 판단해야 한다 —
           # diff 로만 보면 "Nothing settled" 로 빠져나가 원장이 영영 커밋되지 않는다.
-          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive data/palworld-auction-sold.json data/palworld-auction-watch.json data/palworld-auction-archive)" ]; then
+          if [ -z "$(git status --porcelain -- data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/card-names.json data/auction-series.json data/auction-archive data/palworld-auction-sold.json data/palworld-auction-watch.json data/palworld-auction-archive)" ]; then
             echo "Nothing settled."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/auction-series.json data/auction-archive data/palworld-auction-sold.json data/palworld-auction-watch.json data/palworld-auction-archive
+          git add data/auction-sold.json data/auction-watch.json data/auction-card-stats.json data/card-names.json data/auction-series.json data/auction-archive data/palworld-auction-sold.json data/palworld-auction-watch.json data/palworld-auction-archive
           git commit -m "Settle completed auctions"
           for attempt in 1 2 3; do
             if git push; then
