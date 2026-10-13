@@ -44,6 +44,7 @@ const { navHtml } = require("./site-nav");
 const { EXCLUDED_TCG_KEYS, TCGS } = require("./tcg-config");
 const { AFF_TOP, epnUrl } = require("./set-page-shared");
 const { visibleTrendRows } = require("./tcg-trend-model");
+const { weekExplorer } = require("./auction-dashboard-view");
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const num = (n) => (n == null || !isFinite(n) ? "—" : Math.round(n).toLocaleString("en-US"));
@@ -251,9 +252,9 @@ const tableRows = rows.map((r) => {
   const meta = thin
     ? `<span class="sub2 tiny" data-ko="표본 적음">small sample</span>`
     : `<span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> ${ptsSpan(r.delta, "d")} · <span data-ko="중앙가 ${esc(money(r.med))}">median ${esc(money(r.med))}</span> · <span data-ko="하루 ${esc(num(r.closing))}건 종료">${esc(num(r.closing))} closing/day</span></span>`;
-  return `          <tr>
+  return `          <tr data-rate="${r.rate ?? ""}" data-delta="${r.delta ?? ""}" data-price="${r.med ?? ""}" data-closing="${r.closing ?? ""}">
             <td class="l"><span class="nm">${esc(r.name)}</span>${meta}${liveLink(r.key)}</td>
-            <td><span class="pv">${esc(pct(r.rate))}</span>${r.ci != null ? `<span class="sub2">±${r.ci.toFixed(1)}</span>` : ""}</td>
+            <td><span class="pv">${esc(pct(r.rate))}</span>${r.ci != null ? `<span class="sub2">±${r.ci.toFixed(1)}</span>` : ""}<span class="sub2" data-ko="표본 ${esc(num(r.ended))}건">n=${esc(num(r.ended))}</span></td>
             <td class="dOnly">${ptsSpan(r.delta, "d")}</td>
             <td class="dOnly">${esc(money(r.med))}</td>
             <td class="dOnly">${esc(num(r.closing))}</td>
@@ -280,6 +281,11 @@ const axisDate = (iso) => `<span data-ko="${mdKo(iso)}">${md(iso)}</span>`;
 const wkAxis = weeklyTotal.length
   ? `<span>${axisDate(wkFirst.d)}</span>${weeklyTotal.length > 2 ? `<span>${axisDate(wkMid.d)}</span>` : ""}<span>${axisDate(wkLast.d)}${wkLast.p ? ` · <span data-ko="진행 중">so far</span>` : ""}</span>`
   : "";
+const weekAccess = weekExplorer(weeklyTotal.map(w => ({
+  date: w.d, rate: w.rate, sold: w.sold,
+  statusEn: [w.p ? "So far" : "", w.miss ? "Days missing" : "", w.off ? `${w.off} days excluded` : ""].filter(Boolean).join(" · "),
+  statusKo: [w.p ? "진행 중" : "", w.miss ? "빠진 날 있음" : "", w.off ? `${w.off}일 제외` : ""].filter(Boolean).join(" · "),
+})));
 
 // ── ⑤ 게임별 중앙 낙찰가 가로 막대(큰 순, 표본 미달은 맨 아래 "—")
 const priced = rows.slice().sort((a, b) => (b.med ?? -1) - (a.med ?? -1) || b.priceN - a.priceN);
@@ -432,6 +438,8 @@ const html = `<!doctype html>
       .foot { margin: 8px 0 0; font-size: 14px; }
       .foot a { display: inline-block; padding: 7px 0; color: var(--accent); }
     </style>
+    <link rel="stylesheet" href="auction-dashboard.css?v=${CACHE}" />
+    <script defer src="auction-dashboard.js?v=${CACHE}"></script>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -441,29 +449,36 @@ const html = `<!doctype html>
     </header>
     <main id="main-content" class="wrap">
       <h1 data-ko="카드게임별 경매 시장">TCG auction market by game</h1>
-      <p class="sub"><span data-ko="eBay 경매 · ${GAME_COUNT}개 게임 · 데이터 기준일 ${esc(to)}">eBay auctions · ${GAME_COUNT} games · data through ${esc(mdy(to))}</span></p>
+      <p class="sub"><span data-ko="eBay 경매 · ${GAME_COUNT}개 게임 · 데이터 기준일 ${esc(to)}">eBay auctions · ${GAME_COUNT} games · data through ${esc(mdy(to))}</span> · USD · UTC</p>
       ${affTop}
 
       <section id="week" aria-labelledby="weekTitle">
-        <div class="secHead"><h2 id="weekTitle" data-ko="이번 주">This week</h2><span class="nt"><span data-ko="최근 7일 vs 직전 7일">Last 7 days vs the 7 before</span> · ${rangeSpan(W7)}${someMissing ? ` · <span data-ko="빠진 날 있음">Some days missing</span>` : ""}${exclLabel(offLast7, offPrev7)}</span></div>
+        <div class="secHead"><h2 id="weekTitle" data-ko="최근 7일">Last 7 days</h2><span class="nt">${rangeSpan(W7)} · <span data-ko="직전 7일 대비">vs the 7 before</span>${someMissing ? ` · <span data-ko="빠진 날 있음">Some days missing</span>` : ""}${exclLabel(offLast7, offPrev7)}</span></div>
         <div class="strip">
           <div class="kpi"><span class="lbl" data-ko="낙찰률">Sell rate</span><b>${esc(pct(L.rate))}</b>${ptsSpan(dRate, "delta")}<span class="was"><span data-ko="직전">was</span> ${esc(pct(P.rate))}</span></div>
           <div class="kpi"><span class="lbl" data-ko="중앙 낙찰가">Median sold price</span><b>${esc(money(L.med))}</b><span class="delta${cls(dMed)}">${esc(moneyDelta(dMed))}</span><span class="was"><span data-ko="직전">was</span> ${esc(money(P.med))}</span></div>
           <div class="kpi"><span class="lbl" data-ko="하루 종료 경매">Auctions closing per day</span><b>${esc(num(L.closing))}</b><span class="delta">${esc(numDelta(dClosing))}</span><span class="was"><span data-ko="직전">was</span> ${esc(num(P.closing))}</span></div>
         </div>
-        <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span>${EXCL_DEF}</p>
+        <p class="sampleNote" data-ko="낙찰률·낙찰가 = 수집 표본 · ${esc(num(L.ended))}건 중 ${esc(num(L.sold))}건 낙찰">Sell rate &amp; price = observed sample · ${esc(num(L.sold))} sold / ${esc(num(L.ended))} sampled</p>
+        <details class="marketDetails"><summary data-ko="지표·표본 기준">Metrics &amp; sample rules</summary>
+          <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span>${EXCL_DEF}</p>
+          <p class="def" data-ko="서로 다른 상품·등급의 낙찰 표본. 같은 상품의 가격 변동률이 아닙니다.">Mixed items and grades; not a same-item price index.</p>
+        </details>
       </section>
 
       <section id="games" aria-labelledby="gamesTitle">
-        <div class="secHead"><h2 id="gamesTitle" data-ko="게임별">By game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · ${rangeSpan(W7)} · <span data-ko="낙찰률 높은 순">sorted by sell rate</span>${exclLabel(offLast7, offPrev7)}</span></div>
+        <div class="secHead"><h2 id="gamesTitle" data-ko="게임별">By game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · ${rangeSpan(W7)}${exclLabel(offLast7, offPrev7)}</span></div>
         <p class="def"><b data-ko="추이">Trend</b> = <span data-ko="주별 낙찰률">sell rate by week</span>, <span data-ko="${weeks.length}주">${weeks.length} weeks</span>${exclLabel(offWeeks)} · ± = <span data-ko="95% 구간">95% interval</span></p>
-        <table class="t">
+        <div class="marketToolbar" hidden><label for="gameSort" data-ko="높은 순">Highest first</label><select id="gameSort" name="sort" aria-controls="gameTable">
+          <option value="rate" data-ko="낙찰률">Sell rate</option><option value="delta" data-ko="낙찰률 변화">Sell-rate change</option><option value="price" data-ko="중앙 낙찰가">Median sold price</option><option value="closing" data-ko="하루 종료 경매">Auctions closing per day</option>
+        </select></div>
+        <table class="t" id="gameTable" aria-labelledby="gamesTitle">
           <thead><tr>
             <th class="l" data-ko="게임">Game</th>
-            <th data-ko="낙찰률">Sell rate</th>
-            <th class="dOnly" data-ko="지난주 대비">vs last week</th>
-            <th class="dOnly" data-ko="중앙 낙찰가">Median sold price</th>
-            <th class="dOnly" data-ko="하루 종료">Closing per day</th>
+            <th data-sort="rate" aria-sort="descending" data-ko="낙찰률">Sell rate</th>
+            <th class="dOnly" data-sort="delta" data-ko="지난주 대비">vs last week</th>
+            <th class="dOnly" data-sort="price" data-ko="중앙 낙찰가">Median sold price</th>
+            <th class="dOnly" data-sort="closing" data-ko="하루 종료">Closing per day</th>
             <th class="trend" data-ko="추이">Trend</th>
           </tr></thead>
           <tbody>
@@ -475,7 +490,7 @@ ${tableRows}
       <section id="weekly" aria-labelledby="weeklyTitle">
         <div class="secHead"><h2 id="weeklyTitle" data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt"><span data-ko="${weeklyTotal.length}주">${weeklyTotal.length} weeks</span> · <span data-ko="${GAME_COUNT}개 게임 합산">${GAME_COUNT} games combined</span>${weeklyTotal.length ? ` · <span data-ko="${esc(mdKo(wkFirst.d))}–${esc(mdKo(to))}">${esc(md(wkFirst.d))} – ${esc(mdy(to))}</span>` : ""}${exclLabel(offWeeklyTotal)}</span></div>
         <div class="wk">
-          <div class="wkHead"><span data-ko="종료 경매 중 팔린 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="흐린 막대 = 7일을 다 세지 못한 주">Faded bar = week not fully counted</span></span></div>
+          <div class="wkHead"><span data-ko="종료 경매 중 팔린 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="사선 = 집계가 불완전한 주">Striped bar = incomplete week</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>${wkTop}%</span></div>
             <div class="guide" style="bottom:50%"><span>${wkTop / 2}%</span></div>
@@ -483,6 +498,7 @@ ${tableRows}
             <div class="cols">${wkCols}</div>
           </div>
           <div class="wkAxis">${wkAxis}</div>
+          ${weekAccess}
         </div>
       </section>
 

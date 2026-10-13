@@ -27,6 +27,8 @@
     <link rel="preload" href="../fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="../styles.css?v=20261013qa" />
     <meta name="theme-color" content="#0a0c10" />
+    <link rel="stylesheet" href="../auction-dashboard.css?v=20261013qa" />
+    <script defer src="../auction-dashboard.js?v=20261013qa"></script>
     <style>
       /* 영문 auction.html 과 같은 가격판 우선 레이아웃(2026-10-13 승인 목업). 색은 styles.css 토큰만, 모션 없음, 글자 최소 11.5px. */
       .wrap { max-width: 1040px; margin: 0 auto; padding: 22px 16px 60px; }
@@ -162,8 +164,8 @@
     </header>
     <main id="main-content" class="wrap">
       <h1>원피스 카드 이베이 경매 시세</h1>
-      <nav class="nextLinks" aria-label="다음 보기"><a href="/ko/">실시간 박스 시세 →</a><a href="/ko/amazon-lottery.html">OP-18 아마존 응모 →</a><a href="/ko/cards.html">카드 시세 →</a></nav>
-      <p class="sub">이베이 실제 낙찰가 · 기준일 2026-10-12</p>
+      <nav class="nextLinks" aria-label="이 페이지에서"><a href="#prices">카드 시세</a><a href="#trend">주별 흐름</a><a href="#kinds">종류별</a><a href="#sets">세트별</a></nav>
+      <p class="sub">이베이 실제 낙찰가 · 기준일 2026-10-12 · USD · UTC</p>
       <p class="affTop"><b>Paid Link:</b> eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다.</p>
 
       <section id="week" aria-label="최근 7일">
@@ -177,7 +179,7 @@
 
       <section id="prices">
         <div class="secHead"><h2>카드 경매 시세</h2><span class="nt">최근 45일 · 생카드 · 낙찰 3건 이상</span></div>
-        <p class="line"><b>낙찰가</b> = 생카드 낙찰가 중앙값 · <b>범위</b> = 낙찰가 가운데 절반 구간</p>
+        <details class="marketDetails"><summary>낙찰가·범위 기준</summary><p class="line"><b>낙찰가</b> = 생카드 낙찰가 중앙값 · <b>범위</b> = 낙찰가 가운데 절반 구간</p></details>
         <div class="tabs" role="group" aria-label="정렬">
           <button class="btn" type="button" data-tab="price" aria-pressed="true">최고가 순</button>
           <button class="btn" type="button" data-tab="sales" aria-pressed="false">많이 팔린 순</button>
@@ -346,13 +348,13 @@
 <tr hidden>
   <td class="l"><div class="cardCell"><span class="rank">15</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>14</span></span><div class="info">
     <div class="nameLine"><span class="name">Ms All Sunday</span><span class="nameKo">미스 올 선데이</span><span class="chip var">OP14-084 · SP</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly">EN · 10건 중 6건 낙찰 · 60%</div>
+    <div class="meta mOnly">EN · 11건 중 6건 낙찰 · 54.5%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP14-084&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>
   </div></div></td>
   <td><span class="pv">$510</span><span class="sub2 mOnly">$501.99–540</span></td>
   <td class="dOnly"><span class="range">$501.99–540</span></td>
-  <td class="dOnly">60%</td>
-  <td class="dOnly">6<span class="sub2">10건 중</span></td>
+  <td class="dOnly">54.5%</td>
+  <td class="dOnly">6<span class="sub2">11건 중</span></td>
 </tr>
 <tr hidden>
   <td class="l"><div class="cardCell"><span class="rank">16</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>04</span></span><div class="info">
@@ -425,13 +427,13 @@
 <tr>
   <td class="l"><div class="cardCell"><span class="rank">2</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
     <div class="nameLine"><span class="name">Loki</span><span class="nameKo">로키</span><span class="chip var">OP17-119 · 일반</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly">EN · 107건 중 90건 낙찰 · 85%</div>
+    <div class="meta mOnly">EN · 108건 중 91건 낙찰 · 85.2%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>
   </div></div></td>
   <td><span class="pv">$24</span><span class="sub2 mOnly">$20.50–27</span></td>
   <td class="dOnly"><span class="range">$20.50–27</span></td>
-  <td class="dOnly">85%</td>
-  <td class="dOnly">90<span class="sub2">107건 중</span></td>
+  <td class="dOnly">85.2%</td>
+  <td class="dOnly">91<span class="sub2">108건 중</span></td>
 </tr>
 <tr>
   <td class="l"><div class="cardCell"><span class="rank">3</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>14</span></span><div class="info">
@@ -489,7 +491,18 @@
   <td class="dOnly">46<span class="sub2">69건 중</span></td>
 </tr>
 <tr>
-  <td class="l"><div class="cardCell"><span class="rank">8</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">8</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>16</span></span><div class="info">
+    <div class="nameLine"><span class="name">Marshall D. Teach</span><span class="nameKo">마샬 D. 티치</span><span class="chip var">OP16-119 · 일반</span><span class="chip ed dOnly">EN</span></div>
+    <div class="meta mOnly">EN · 71건 중 45건 낙찰 · 63.4%</div>
+    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP16-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>
+  </div></div></td>
+  <td><span class="pv">$21</span><span class="sub2 mOnly">$18–23.50</span></td>
+  <td class="dOnly"><span class="range">$18–23.50</span></td>
+  <td class="dOnly">63.4%</td>
+  <td class="dOnly">45<span class="sub2">71건 중</span></td>
+</tr>
+<tr>
+  <td class="l"><div class="cardCell"><span class="rank">9</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
     <div class="nameLine"><span class="name">Shanks</span><span class="nameKo">샹크스</span><span class="chip var">OP17-022 · 일반</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly">EN · 107건 중 45건 낙찰 · 42.1%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-022&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>
@@ -498,17 +511,6 @@
   <td class="dOnly"><span class="range">$1–4</span></td>
   <td class="dOnly">42.1%</td>
   <td class="dOnly">45<span class="sub2">107건 중</span></td>
-</tr>
-<tr>
-  <td class="l"><div class="cardCell"><span class="rank">9</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>16</span></span><div class="info">
-    <div class="nameLine"><span class="name">Marshall D. Teach</span><span class="nameKo">마샬 D. 티치</span><span class="chip var">OP16-119 · 일반</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly">EN · 69건 중 44건 낙찰 · 63.8%</div>
-    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP16-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>
-  </div></div></td>
-  <td><span class="pv">$21</span><span class="sub2 mOnly">$18–23.50</span></td>
-  <td class="dOnly"><span class="range">$18–23.50</span></td>
-  <td class="dOnly">63.8%</td>
-  <td class="dOnly">44<span class="sub2">69건 중</span></td>
 </tr>
 <tr>
   <td class="l"><div class="cardCell"><span class="rank">10</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
@@ -640,7 +642,7 @@
       <section id="trend">
         <div class="secHead"><h2>주별 낙찰률</h2><span class="nt">13주 · 7/20–10/12</span></div>
         <div class="wk">
-          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span>흐린 막대 = 7일을 다 세지 못한 주</span></span></div>
+          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span>사선 = 집계가 불완전한 주</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>40%</span></div>
             <div class="guide" style="bottom:50%"><span>20%</span></div>
@@ -648,6 +650,18 @@
             <div class="cols"><div class="col key part" style="--h:88.5%" title="7/20 주: 낙찰률 35.4% (3,303건 중 1,169건) — 빠진 날 있음"><span class="v">35.4</span><i></i></div><div class="col part" style="--h:75.8%" title="7/27 주: 낙찰률 30.3% (5,100건 중 1,547건) — 빠진 날 있음"><span class="v">30.3</span><i></i></div><div class="col part" style="--h:82.5%" title="8/3 주: 낙찰률 33% (6,492건 중 2,141건) — 빠진 날 있음"><span class="v">33</span><i></i></div><div class="col" style="--h:78.5%" title="8/10 주: 낙찰률 31.4% (7,540건 중 2,364건)"><span class="v">31.4</span><i></i></div><div class="col key part" style="--h:73.3%" title="8/17 주: 낙찰률 29.3% (6,991건 중 2,046건) — 빠진 날 있음"><span class="v">29.3</span><i></i></div><div class="col part" style="--h:89%" title="8/24 주: 낙찰률 35.6% (6,011건 중 2,139건) — 빠진 날 있음"><span class="v">35.6</span><i></i></div><div class="col key part" style="--h:94.5%" title="8/31 주: 낙찰률 37.8% (8,835건 중 3,337건) — 빠진 날 있음"><span class="v">37.8</span><i></i></div><div class="col" style="--h:91%" title="9/7 주: 낙찰률 36.4% (10,024건 중 3,652건)"><span class="v">36.4</span><i></i></div><div class="col" style="--h:83.5%" title="9/14 주: 낙찰률 33.4% (9,264건 중 3,095건)"><span class="v">33.4</span><i></i></div><div class="col part" style="--h:80.7%" title="9/21 주: 낙찰률 32.3% (7,822건 중 2,530건) — 빠진 날 있음"><span class="v">32.3</span><i></i></div><div class="col" style="--h:89.5%" title="9/28 주: 낙찰률 35.8% (9,633건 중 3,452건)"><span class="v">35.8</span><i></i></div><div class="col" style="--h:75.8%" title="10/5 주: 낙찰률 30.3% (9,065건 중 2,748건)"><span class="v">30.3</span><i></i></div><div class="col key part" style="--h:79.3%" title="10/12 주: 낙찰률 31.7% (1,413건 중 448건) — 진행 중"><span class="v">31.7</span><i></i></div></div>
           </div>
           <div class="wkAxis"><span>7/20</span><span>8/31</span><span>10/12 · 진행 중</span></div>
+          <div class="weekExplorer" data-week-explorer>
+    <div class="weekPicker" hidden><label for="chartWeek"><span data-ko="주 시작일">주 시작일</span></label>
+      <select id="chartWeek" name="week" aria-controls="weekReading"><option value="2026-07-20">2026-07-20</option><option value="2026-07-27">2026-07-27</option><option value="2026-08-03">2026-08-03</option><option value="2026-08-10">2026-08-10</option><option value="2026-08-17">2026-08-17</option><option value="2026-08-24">2026-08-24</option><option value="2026-08-31">2026-08-31</option><option value="2026-09-07">2026-09-07</option><option value="2026-09-14">2026-09-14</option><option value="2026-09-21">2026-09-21</option><option value="2026-09-28">2026-09-28</option><option value="2026-10-05">2026-10-05</option><option value="2026-10-12" selected>2026-10-12</option></select>
+    </div>
+    <p id="weekReading" class="weekReading" role="status" aria-live="polite" data-en="2026-10-12 · 31.7% sold · 448 sales · So far" data-ko="2026-10-12 · 낙찰률 31.7% · 448건 낙찰 · 진행 중">2026-10-12 · 낙찰률 31.7% · 448건 낙찰 · 진행 중</p>
+    <details class="marketDetails"><summary><span data-ko="주별 수치 보기">주별 수치 보기</span></summary>
+      <table class="weekData"><caption><span data-ko="주 시작일 · UTC · 수집 표본">주 시작일 · UTC · 수집 표본</span></caption>
+        <thead><tr><th scope="col"><span data-ko="주">주</span></th><th scope="col"><span data-ko="낙찰률">낙찰률</span></th><th scope="col"><span data-ko="낙찰">낙찰</span></th><th scope="col"><span data-ko="기간">기간</span></th></tr></thead>
+        <tbody><tr data-week="2026-07-20" data-reading-en="2026-07-20 · 35.4% sold · 1,169 sales · Days missing" data-reading-ko="2026-07-20 · 낙찰률 35.4% · 1,169건 낙찰 · 빠진 날 있음"><th scope="row">2026-07-20</th><td>35.4%</td><td>1,169</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-07-27" data-reading-en="2026-07-27 · 30.3% sold · 1,547 sales · Days missing" data-reading-ko="2026-07-27 · 낙찰률 30.3% · 1,547건 낙찰 · 빠진 날 있음"><th scope="row">2026-07-27</th><td>30.3%</td><td>1,547</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-08-03" data-reading-en="2026-08-03 · 33% sold · 2,141 sales · Days missing" data-reading-ko="2026-08-03 · 낙찰률 33% · 2,141건 낙찰 · 빠진 날 있음"><th scope="row">2026-08-03</th><td>33%</td><td>2,141</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-08-10" data-reading-en="2026-08-10 · 31.4% sold · 2,364 sales" data-reading-ko="2026-08-10 · 낙찰률 31.4% · 2,364건 낙찰"><th scope="row">2026-08-10</th><td>31.4%</td><td>2,364</td><td><span data-ko="—">—</span></td></tr><tr data-week="2026-08-17" data-reading-en="2026-08-17 · 29.3% sold · 2,046 sales · Days missing" data-reading-ko="2026-08-17 · 낙찰률 29.3% · 2,046건 낙찰 · 빠진 날 있음"><th scope="row">2026-08-17</th><td>29.3%</td><td>2,046</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-08-24" data-reading-en="2026-08-24 · 35.6% sold · 2,139 sales · Days missing" data-reading-ko="2026-08-24 · 낙찰률 35.6% · 2,139건 낙찰 · 빠진 날 있음"><th scope="row">2026-08-24</th><td>35.6%</td><td>2,139</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-08-31" data-reading-en="2026-08-31 · 37.8% sold · 3,337 sales · Days missing" data-reading-ko="2026-08-31 · 낙찰률 37.8% · 3,337건 낙찰 · 빠진 날 있음"><th scope="row">2026-08-31</th><td>37.8%</td><td>3,337</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-09-07" data-reading-en="2026-09-07 · 36.4% sold · 3,652 sales" data-reading-ko="2026-09-07 · 낙찰률 36.4% · 3,652건 낙찰"><th scope="row">2026-09-07</th><td>36.4%</td><td>3,652</td><td><span data-ko="—">—</span></td></tr><tr data-week="2026-09-14" data-reading-en="2026-09-14 · 33.4% sold · 3,095 sales" data-reading-ko="2026-09-14 · 낙찰률 33.4% · 3,095건 낙찰"><th scope="row">2026-09-14</th><td>33.4%</td><td>3,095</td><td><span data-ko="—">—</span></td></tr><tr data-week="2026-09-21" data-reading-en="2026-09-21 · 32.3% sold · 2,530 sales · Days missing" data-reading-ko="2026-09-21 · 낙찰률 32.3% · 2,530건 낙찰 · 빠진 날 있음"><th scope="row">2026-09-21</th><td>32.3%</td><td>2,530</td><td><span data-ko="빠진 날 있음">빠진 날 있음</span></td></tr><tr data-week="2026-09-28" data-reading-en="2026-09-28 · 35.8% sold · 3,452 sales" data-reading-ko="2026-09-28 · 낙찰률 35.8% · 3,452건 낙찰"><th scope="row">2026-09-28</th><td>35.8%</td><td>3,452</td><td><span data-ko="—">—</span></td></tr><tr data-week="2026-10-05" data-reading-en="2026-10-05 · 30.3% sold · 2,748 sales" data-reading-ko="2026-10-05 · 낙찰률 30.3% · 2,748건 낙찰"><th scope="row">2026-10-05</th><td>30.3%</td><td>2,748</td><td><span data-ko="—">—</span></td></tr><tr data-week="2026-10-12" data-reading-en="2026-10-12 · 31.7% sold · 448 sales · So far" data-reading-ko="2026-10-12 · 낙찰률 31.7% · 448건 낙찰 · 진행 중"><th scope="row">2026-10-12</th><td>31.7%</td><td>448</td><td><span data-ko="진행 중">진행 중</span></td></tr></tbody>
+      </table>
+    </details>
+  </div>
         </div>
       </section>
 

@@ -1,0 +1,43 @@
+/* Auction pages only. Existing brand tokens and static data remain authoritative. */
+.topbar .langBtn { min-height: 44px; }
+.wrap section { scroll-margin-top: 140px; }
+.wrap section { margin-bottom: 28px; }
+.wrap .nextLinks a, .wrap .btn, .wrap a.live, .wrap a.setCode { min-height: 44px; }
+.wrap a.live, .wrap a.setCode { display: inline-flex; align-items: center; }
+.wrap .nextLinks { margin: 14px 0; }
+.wrap .nextLinks a { border-radius: 8px; }
+.wrap .marketDetails { max-width: 760px; margin: 8px 0 14px; color: var(--muted); font-size: 13px; }
+.wrap .marketDetails summary { min-height: 44px; padding: 11px 0; cursor: pointer; color: var(--accent); font-weight: 600; }
+.wrap .marketDetails[open] summary { margin-bottom: 6px; }
+.wrap .marketDetails .def, .wrap .marketDetails .line { margin: 0 0 12px; }
+.wrap .marketToolbar, .wrap .weekPicker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 12px 0; font-size: 13px; color: var(--muted); }
+.wrap [hidden] { display: none !important; }
+.wrap select { min-height: 44px; max-width: 100%; padding: 8px 34px 8px 12px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 16px; color: var(--ink); background: var(--paper); cursor: pointer; }
+.wrap :is(select, summary, .nextLinks a, a.live, a.setCode):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.wrap :is(select, summary, .nextLinks a):hover { color: var(--ink); }
+.wrap :is(select, summary, button, a) { touch-action: manipulation; }
+.wrap .weekReading { margin: 8px 0; min-height: 3.1em; color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.wrap .weekData { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.wrap .weekData caption { padding: 0 0 8px; text-align: left; color: var(--muted); }
+.wrap .weekData th, .wrap .weekData td { padding: 8px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+.wrap .weekData th:first-child { text-align: left; white-space: nowrap; }
+.wrap .weekData td:last-child { text-align: left; white-space: normal; }
+.wrap .weekData .selectedWeek { background: var(--accent-dim); color: var(--ink); }
+.wrap .cols .selectedWeek { box-shadow: 0 2px 0 var(--ink); }
+/* Hatch + text status: incomplete weeks must not depend on faded color alone. */
+.wrap .col.part i, .wrap .lg .sw { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--accent) 5px 7px), var(--accent-dim); }
+.wrap .sampleNote { font-size: 12.5px; color: var(--muted); margin: 8px 0; }
+.wrap #gameTable th[aria-sort] { color: var(--accent); }
+@media (max-width: 640px) {
+  .wrap .t .nm, .wrap .name { font-size: 14px; }
+  .wrap .t .sub2 { line-height: 1.6; }
+  .wrap .board { table-layout: fixed; }
+  .wrap .board th.l { width: 68%; }
+  .wrap .board .chip.var, .wrap .board .sub2 { white-space: normal; overflow-wrap: anywhere; }
+  .wrap .strip { grid-template-columns: repeat(auto-fit, minmax(min(100%, 6em), 1fr)); }
+  .wrap .kpi { overflow-wrap: anywhere; }
+  .wrap .weekData { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wrap * { scroll-behavior: auto; }
+}

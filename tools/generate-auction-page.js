@@ -16,6 +16,7 @@ const fs = require("fs");
 const path = require("path");
 const { navHtml } = require("./site-nav");
 const { AFF_TOP } = require("./set-page-shared");
+const { weekExplorer } = require("./auction-dashboard-view");
 const { buildAuctionModel, CARD_SHOW, SET_SHOW, pct, money, bare, tenth, mdKo } = require("./auction-page-model");
 
 const ROOT = path.join(__dirname, "..");
@@ -109,6 +110,11 @@ function main() {
   const wkAxis = weekly.length ? `<span>${axisDate(weekly[0].week)}</span><span>${axisDate(wkMid.week)}</span><span>${axisDate(wkLast.week)}${wkLast.now ? ` · <span data-ko="진행 중">so far</span>` : ""}</span>` : "";
   const wkRange = weekly.length ? `${weekly.length} weeks · ${md(weekly[0].week)} – ${md(DATA_THROUGH)}` : "";
   const wkRangeKo = weekly.length ? `${weekly.length}주 · ${mdKo(weekly[0].week)}–${mdKo(DATA_THROUGH)}` : "";
+  const weekAccess = weekExplorer(weekly.map(w => ({
+    date: w.week, rate: w.rate, sold: w.sold,
+    statusEn: [w.now ? "So far" : "", w.missing ? "Days missing" : ""].filter(Boolean).join(" · "),
+    statusKo: [w.now ? "진행 중" : "", w.missing ? "빠진 날 있음" : ""].filter(Boolean).join(" · "),
+  })));
 
   // ── <head> — 노출 상태 불가침(title/canonical/hreflang/robots/JSON-LD). 문구만 새 구조에 맞춘다.
   const dsLd = JSON.stringify({
@@ -286,6 +292,8 @@ function main() {
       .foot a { display: inline-block; padding: 7px 0; color: var(--accent); }
       @media (max-width: 480px) { .t td, .t th { padding-left: 8px; padding-right: 8px; } }
     </style>
+    <link rel="stylesheet" href="auction-dashboard.css?v=${CACHE}" />
+    <script defer src="auction-dashboard.js?v=${CACHE}"></script>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -295,7 +303,7 @@ function main() {
     </header>
     <main id="main-content" class="wrap">
       <h1 data-ko="원피스 카드 경매 시세">One Piece card auction prices</h1>
-      <p class="sub"><span data-ko="eBay 실제 낙찰가 · 기준일">Real winning bids on eBay · Data through</span> <span data-ko="${esc(DATA_THROUGH)}">${esc(mdy(DATA_THROUGH))}</span></p>
+      <p class="sub"><span data-ko="eBay 실제 낙찰가 · 기준일">Real winning bids on eBay · Data through</span> <span data-ko="${esc(DATA_THROUGH)}">${esc(mdy(DATA_THROUGH))}</span> · USD · UTC</p>
       ${affTop}
 
       <section id="week" aria-label="Last 7 days">
@@ -307,7 +315,9 @@ function main() {
 
       <section id="prices">
         <div class="secHead"><h2 data-ko="카드 경매 시세">Card auction prices</h2><span class="nt" data-ko="${CARD_WINDOW_DAYS ? `최근 ${CARD_WINDOW_DAYS}일 · ` : ""}생카드 · 낙찰 3건 이상">${CARD_WINDOW_DAYS ? `Last ${CARD_WINDOW_DAYS} days · ` : ""}ungraded cards with 3 or more sold</span></div>
-        <p class="line"><b data-ko="낙찰가">Sold price</b> <span data-ko="= 생카드 낙찰가 중앙값 ·">= middle winning bid, ungraded ·</span> ${HAS_PSA ? `<b>PSA 10</b> <span data-ko="= 같은 카드 PSA 10 낙찰가 중앙값 ·">= same card graded PSA 10 ·</span> ` : ""}<b data-ko="범위">Range</b> <span data-ko="= 낙찰가 가운데 절반 구간">= middle half of sales</span></p>
+        <details class="marketDetails"><summary data-ko="낙찰가·범위 기준">Price &amp; range definitions</summary>
+          <p class="line"><b data-ko="낙찰가">Sold price</b> <span data-ko="= 생카드 낙찰가 중앙값 ·">= middle winning bid, ungraded ·</span> ${HAS_PSA ? `<b>PSA 10</b> <span data-ko="= 같은 카드 PSA 10 낙찰가 중앙값 ·">= same card graded PSA 10 ·</span> ` : ""}<b data-ko="범위">Range</b> <span data-ko="= 낙찰가 가운데 절반 구간">= middle half of sales</span></p>
+        </details>
         <div class="tabs" role="group" aria-label="Rank by">
           <button class="btn" type="button" data-tab="price" aria-pressed="true" data-ko="최고가">Highest prices</button>
           <button class="btn" type="button" data-tab="sales" aria-pressed="false" data-ko="많이 팔린">Most sold</button>
@@ -328,7 +338,7 @@ function main() {
       <section id="trend">
         <div class="secHead"><h2 data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt" data-ko="${esc(wkRangeKo)}">${esc(wkRange)}</span></div>
         <div class="wk">
-          <div class="wkHead"><span data-ko="종료 경매 중 낙찰 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="흐린 막대 = 7일을 다 세지 못한 주">Faded bar = week not fully counted</span></span></div>
+          <div class="wkHead"><span data-ko="종료 경매 중 낙찰 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="사선 = 집계가 불완전한 주">Striped bar = incomplete week</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>${WK_TOP}%</span></div>
             <div class="guide" style="bottom:50%"><span>${WK_TOP / 2}%</span></div>
@@ -336,6 +346,7 @@ function main() {
             <div class="cols">${wkCols}</div>
           </div>
           <div class="wkAxis">${wkAxis}</div>
+          ${weekAccess}
         </div>
       </section>
 

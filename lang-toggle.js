@@ -80,7 +80,8 @@
     var btn = document.querySelector("#langToggle");
     if (btn) {
       btn.textContent = lang === "ko" ? "English" : "한국어";
-      btn.setAttribute("aria-label", lang === "ko" ? "Switch to English" : "한국어로 보기");
+      // The visible language name is also the accessible name (WCAG 2.5.3).
+      btn.removeAttribute("aria-label");
     }
   }
 

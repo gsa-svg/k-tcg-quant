@@ -329,6 +329,7 @@ ${tr}
 // 숫자는 영문판과 같은 tools/auction-page-model.js 에서 받는다(계산 한 벌 — 규칙은 그 파일 머리말). 여기서는 한국어 글자와 배치만.
 // 값은 달러 그대로(이베이 낙찰가의 원본 통화) — 환율 환산값을 섞지 않는다. 표는 전부 서버에서 그린다(JS 는 탭·더보기·스와이프 힌트만).
 const { buildAuctionModel, CARD_SHOW, SET_SHOW, pct, money, bare, tenth, mdKo: md } = require("./auction-page-model");
+const { weekExplorer } = require("./auction-dashboard-view");
 
 function auctionPage() {
   const m = buildAuctionModel();
@@ -404,6 +405,11 @@ function auctionPage() {
   const wkLast = weekly[weekly.length - 1];
   const wkAxis = weekly.length ? `<span>${md(weekly[0].week)}</span><span>${md(wkMid.week)}</span><span>${md(wkLast.week)}${wkLast.now ? " · 진행 중" : ""}</span>` : "";
   const wkRange = weekly.length ? `${weekly.length}주 · ${md(weekly[0].week)}–${md(DATA_THROUGH)}` : "";
+  const weekAccess = weekExplorer(weekly.map(w => ({
+    date: w.week, rate: w.rate, sold: w.sold,
+    statusEn: [w.now ? "So far" : "", w.missing ? "Days missing" : ""].filter(Boolean).join(" · "),
+    statusKo: [w.now ? "진행 중" : "", w.missing ? "빠진 날 있음" : ""].filter(Boolean).join(" · "),
+  })), true);
 
   // ── <head> 는 다른 ko 주제 페이지와 같은 노출 상태(canonical ko·hreflang en↔ko·robots·og·빵부스러기)를 그대로 쓴다.
   const title = "원피스 이베이 경매 낙찰가·낙찰률 | opboxindex";
@@ -413,6 +419,8 @@ function auctionPage() {
 <html lang="ko">
   <head>
 ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이베이 경매 데이터", enHref: "auction.html" })}
+    <link rel="stylesheet" href="../auction-dashboard.css?v=${CACHE}" />
+    <script defer src="../auction-dashboard.js?v=${CACHE}"></script>
     <style>
       /* 영문 auction.html 과 같은 가격판 우선 레이아웃(2026-10-13 승인 목업). 색은 styles.css 토큰만, 모션 없음, 글자 최소 11.5px. */
       .wrap { max-width: 1040px; margin: 0 auto; padding: 22px 16px 60px; }
@@ -548,7 +556,7 @@ ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이
     </header>
     <main id="main-content" class="wrap">
       <h1>원피스 카드 이베이 경매 시세</h1>
-      <p class="sub">이베이 실제 낙찰가 · 기준일 ${esc(DATA_THROUGH)}</p>
+      <p class="sub">이베이 실제 낙찰가 · 기준일 ${esc(DATA_THROUGH)} · USD · UTC</p>
       <p class="affTop"><b>Paid Link:</b> eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다.</p>
 
       <section id="week" aria-label="최근 7일">
@@ -560,7 +568,7 @@ ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이
 
       <section id="prices">
         <div class="secHead"><h2>카드 경매 시세</h2><span class="nt">${CARD_WINDOW_DAYS ? `최근 ${CARD_WINDOW_DAYS}일 · ` : ""}생카드 · 낙찰 3건 이상</span></div>
-        <p class="line"><b>낙찰가</b> = 생카드 낙찰가 중앙값 · ${HAS_PSA ? "<b>PSA 10</b> = 같은 카드 PSA 10 낙찰가 중앙값 · " : ""}<b>범위</b> = 낙찰가 가운데 절반 구간</p>
+        <details class="marketDetails"><summary>낙찰가·범위 기준</summary><p class="line"><b>낙찰가</b> = 생카드 낙찰가 중앙값 · ${HAS_PSA ? "<b>PSA 10</b> = 같은 카드 PSA 10 낙찰가 중앙값 · " : ""}<b>범위</b> = 낙찰가 가운데 절반 구간</p></details>
         <div class="tabs" role="group" aria-label="정렬">
           <button class="btn" type="button" data-tab="price" aria-pressed="true">최고가 순</button>
           <button class="btn" type="button" data-tab="sales" aria-pressed="false">많이 팔린 순</button>
@@ -581,7 +589,7 @@ ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이
       <section id="trend">
         <div class="secHead"><h2>주별 낙찰률</h2><span class="nt">${esc(wkRange)}</span></div>
         <div class="wk">
-          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span>흐린 막대 = 7일을 다 세지 못한 주</span></span></div>
+          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span>사선 = 집계가 불완전한 주</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>${WK_TOP}%</span></div>
             <div class="guide" style="bottom:50%"><span>${WK_TOP / 2}%</span></div>
@@ -589,6 +597,7 @@ ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이
             <div class="cols">${wkCols}</div>
           </div>
           <div class="wkAxis">${wkAxis}</div>
+          ${weekAccess}
         </div>
       </section>
 

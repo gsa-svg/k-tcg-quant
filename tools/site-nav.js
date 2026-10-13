@@ -163,6 +163,13 @@ const KO_LABELS = ITEMS.map(([, ko]) => ko);
 const NEXT_ITEMS = [["Live box prices", "/", "실시간 박스 시세"], ["OP-18 Amazon invite", "/amazon-lottery.html", "OP-18 아마존 응모"], ["OP-18 release date", "/sets/op-18.html", "OP-18 발매일"], ["All set guides", "/sets/index.html", "전체 세트 가이드"]];
 const NEXT_ITEMS_KO = [["실시간 박스 시세", "/ko/"], ["OP-18 아마존 응모", "/ko/amazon-lottery.html"], ["카드 시세", "/ko/cards.html"]];
 function nextLinksHtml(inKo = false, current = null) {
+  // Data dashboards lead to their own comparisons, not unrelated release promotions.
+  const auctionSections = {
+    "tcg-auction.html": [["By game", "games", "게임별 비교"], ["Weekly trend", "weekly", "주별 흐름"], ["Sold prices", "prices", "낙찰가 비교"]],
+    "auction.html": [["Card prices", "prices", "카드 시세"], ["Weekly trend", "trend", "주별 흐름"], ["Item types", "kinds", "종류별"], ["By set", "sets", "세트별"]],
+  };
+  const sections = auctionSections[current === "ko/auction.html" ? "auction.html" : current];
+  if (sections) return `<nav class="nextLinks" aria-label="${inKo ? "이 페이지에서" : "On this page"}">${sections.map(([en, id, ko]) => `<a href="#${id}"${inKo ? "" : ` data-ko="${ko}"`}>${inKo ? ko : en}</a>`).join("")}</nav>`;
   const items = (inKo ? NEXT_ITEMS_KO : NEXT_ITEMS).filter(([, href]) => !current || href !== "/" + current);
   const label = inKo ? "다음 보기" : "Next";
   return `<nav class="nextLinks" aria-label="${label}">${items.map(([text, href, ko]) => `<a href="${href}"${ko ? ` data-ko="${ko} →"` : ""}>${text} →</a>`).join("")}</nav>`;
