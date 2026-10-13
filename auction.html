@@ -28,8 +28,8 @@
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece Card Game completed eBay auction results","description":"Daily completed-auction results for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. 81,623 auctions tracked over 69 full days (14 incomplete days excluded).","url":"https://opboxindex.com/auction.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-10-12","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"text/csv","contentUrl":"https://opboxindex.com/opbox-auction-daily.csv"}]}</script>
     <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"OP Box Index","item":"https://opboxindex.com/"},{"@type":"ListItem","position":2,"name":"Auction Data","item":"https://opboxindex.com/auction.html"}]}</script>
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261008font" />
-    <script defer src="lang-toggle.js?v=20261008font"></script>
+    <link rel="stylesheet" href="styles.css?v=20261013qa" />
+    <script defer src="lang-toggle.js?v=20261013qa"></script>
     <style>
       /* 가격판 우선 레이아웃(2026-10-13 승인 목업). 색은 styles.css 토큰만, 모션 없음, 글자 최소 11.5px. */
       .wrap { max-width: 1040px; margin: 0 auto; padding: 22px 16px 60px; }
@@ -130,7 +130,9 @@
       .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
       .col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
       .col i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
-      .col.now i { background: rgba(var(--accent-rgb), .38); }
+      .col.part i { background: rgba(var(--accent-rgb), .38); }   /* 7일을 다 세지 못한 주(진행 중·빠진 날) — TCG 페이지와 같은 규칙 */
+      .lg { display: inline-flex; align-items: center; gap: 6px; }
+      .lg .sw { display: inline-block; width: 10px; height: 12px; border-radius: 2px 2px 0 0; background: rgba(var(--accent-rgb), .38); }
       .col:hover i { background: var(--ink); }
       .col .v { position: absolute; left: -8px; right: -8px; bottom: calc(var(--h) + 3px); text-align: center; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
       .wkAxis { display: flex; justify-content: space-between; margin: 6px 0 0 34px; color: var(--muted); font-size: 12px; }
@@ -157,14 +159,14 @@
     </style>
   </head>
   <body>
-    <a class="skipLink" href="#main-content">Skip to main content</a>
+    <a class="skipLink" href="#main-content" data-ko="본문 바로가기">Skip to main content</a>
     <header class="topbar">
-      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="원피스 부스터 박스">One Piece Booster Boxes</a><a href="auction.html" aria-current="page" data-ko="원피스 이베이 경매">One Piece eBay Auctions</a><a href="tcg-auction.html" data-ko="TCG 경매">TCG Auctions</a><a href="psa-grading.html" data-ko="원피스 그레이딩 통계">One Piece Grading</a><a href="amazon-lottery.html" data-ko="일본 아마존 응모">Amazon Japan Raffle</a></nav>
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small data-ko="부스터박스 리서치">Booster box research</small></span></a>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="원피스 부스터 박스">One Piece Booster Boxes</a><a href="auction.html" aria-current="page" data-ko="원피스 이베이 경매">One Piece eBay Auctions</a><a href="tcg-auction.html" data-ko="TCG 경매">TCG Auctions</a><a href="psa-grading.html" data-ko="원피스 그레이딩 통계">One Piece Grading</a><a href="amazon-lottery.html" data-ko="일본 아마존 응모">Amazon Japan Raffle</a><script>(function(n){function f(){var a=n.querySelector('[aria-current="page"]');if(!a||n.scrollWidth<=n.clientWidth)return;var r=n.getBoundingClientRect(),b=a.getBoundingClientRect();if(b.left<r.left||b.right>r.right-36)n.scrollLeft+=b.left+b.width/2-r.left-r.width/2;}f();document.addEventListener("DOMContentLoaded",f);})(document.currentScript.parentNode)</script></nav>
     </header>
     <main id="main-content" class="wrap">
       <h1 data-ko="원피스 카드 경매 시세">One Piece card auction prices</h1>
-      <nav class="nextLinks" aria-label="Next"><a href="/">Live box prices →</a><a href="/amazon-lottery.html">OP-18 Amazon invite →</a><a href="/sets/op-18.html">OP-18 release date →</a><a href="/sets/index.html">All set guides →</a></nav>
+      <nav class="nextLinks" aria-label="Next"><a href="/" data-ko="실시간 박스 시세 →">Live box prices →</a><a href="/amazon-lottery.html" data-ko="OP-18 아마존 응모 →">OP-18 Amazon invite →</a><a href="/sets/op-18.html" data-ko="OP-18 발매일 →">OP-18 release date →</a><a href="/sets/index.html" data-ko="전체 세트 가이드 →">All set guides →</a></nav>
       <p class="sub"><span data-ko="eBay 실제 낙찰가 · 기준일">Real winning bids on eBay · Data through</span> <span data-ko="2026-10-12">Oct 12, 2026</span></p>
       <p class="affTop" data-ko-html="&lt;b&gt;Paid Link:&lt;/b&gt; eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다."><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>
 
@@ -197,7 +199,7 @@
     <div class="meta mOnly" data-ko="EN · 4건 중 4건 낙찰 · 100%">EN · 4 of 4 sold · 100%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP13-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$3,615</span><span class="sub2 mOnly">$3,300–3,930</span></td>
+  <td><span class="pv">$3,300</span><span class="sub2 mOnly">$3,300–3,930</span></td>
   <td class="dOnly"><span class="range">$3,300–3,930</span></td>
   <td class="dOnly">100%</td>
   <td class="dOnly">4<span class="sub2" data-ko="4건 중">of 4</span></td>
@@ -225,18 +227,7 @@
   <td class="dOnly">23<span class="sub2" data-ko="29건 중">of 29</span></td>
 </tr>
 <tr>
-  <td class="l"><div class="cardCell"><span class="rank">4</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>15</span></span><div class="info">
-    <div class="nameLine"><span class="name" data-ko="나미">Nami</span><span class="chip var" data-ko="OP15-108 · 일반">OP15-108 · Base</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly" data-ko="EN · 35건 중 4건 낙찰 · 20%">EN · 4 of 35 sold · 20%</div>
-    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP15-108&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
-  </div></div></td>
-  <td><span class="pv">$1,150</span><span class="sub2 mOnly">$1.73–1,150</span></td>
-  <td class="dOnly"><span class="range">$1.73–1,150</span></td>
-  <td class="dOnly">20%</td>
-  <td class="dOnly">4<span class="sub2" data-ko="35건 중">of 35</span></td>
-</tr>
-<tr>
-  <td class="l"><div class="cardCell"><span class="rank">5</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">4</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="에드워드 뉴게이트">Edward Newgate</span><span class="chip var" data-ko="OP17-005 · 슈퍼 패러렐">OP17-005 · Super alt</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 9건 중 3건 낙찰 · 33.3%">EN · 3 of 9 sold · 33.3%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-005&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -247,7 +238,7 @@
   <td class="dOnly">3<span class="sub2" data-ko="9건 중">of 9</span></td>
 </tr>
 <tr>
-  <td class="l"><div class="cardCell"><span class="rank">6</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>03</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">5</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>03</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="니코 로빈">Nico Robin</span><span class="chip var" data-ko="EB03-055 · SP">EB03-055 · SP</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 4건 중 3건 낙찰 · 75%">EN · 3 of 4 sold · 75%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB03-055&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -258,29 +249,18 @@
   <td class="dOnly">3<span class="sub2" data-ko="4건 중">of 4</span></td>
 </tr>
 <tr>
-  <td class="l"><div class="cardCell"><span class="rank">7</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>03</span></span><div class="info">
-    <div class="nameLine"><span class="name" data-ko="보아 행콕">Boa Hancock</span><span class="chip var" data-ko="EB03-026 · 패러렐">EB03-026 · Alt art</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly" data-ko="EN · 13건 중 5건 낙찰 · 38.5%">EN · 5 of 13 sold · 38.5%</div>
-    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB03-026&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
-  </div></div></td>
-  <td><span class="pv">$1,025</span><span class="sub2 mOnly">$27.01–1,200.02</span></td>
-  <td class="dOnly"><span class="range">$27.01–1,200.02</span></td>
-  <td class="dOnly">38.5%</td>
-  <td class="dOnly">5<span class="sub2" data-ko="13건 중">of 13</span></td>
-</tr>
-<tr>
-  <td class="l"><div class="cardCell"><span class="rank">8</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>31</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">6</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>31</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="몽키 D. 루피">Monkey D. Luffy</span><span class="chip var" data-ko="ST31-004 · 골드">ST31-004 · Gold</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 6건 중 4건 낙찰 · 66.7%">EN · 4 of 6 sold · 66.7%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+ST31-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$938.89</span><span class="sub2 mOnly">$887.79–990</span></td>
+  <td><span class="pv">$887.79</span><span class="sub2 mOnly">$887.79–990</span></td>
   <td class="dOnly"><span class="range">$887.79–990</span></td>
   <td class="dOnly">66.7%</td>
   <td class="dOnly">4<span class="sub2" data-ko="6건 중">of 6</span></td>
 </tr>
 <tr>
-  <td class="l"><div class="cardCell"><span class="rank">9</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>31</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">7</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>31</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="몽키 D. 루피">Monkey D. Luffy</span><span class="chip var" data-ko="ST31-004 · SP">ST31-004 · SP</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 8건 중 4건 낙찰 · 50%">EN · 4 of 8 sold · 50%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+ST31-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -291,18 +271,18 @@
   <td class="dOnly">4<span class="sub2" data-ko="8건 중">of 8</span></td>
 </tr>
 <tr>
-  <td class="l"><div class="cardCell"><span class="rank">10</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>02</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">8</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>02</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="몽키 D. 루피">Monkey D. Luffy</span><span class="chip var" data-ko="EB02-010 · 패러렐">EB02-010 · Alt art</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 13건 중 4건 낙찰 · 30.8%">EN · 4 of 13 sold · 30.8%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB02-010&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$769.50</span><span class="sub2 mOnly">$760–779</span></td>
+  <td><span class="pv">$760</span><span class="sub2 mOnly">$760–779</span></td>
   <td class="dOnly"><span class="range">$760–779</span></td>
   <td class="dOnly">30.8%</td>
   <td class="dOnly">4<span class="sub2" data-ko="13건 중">of 13</span></td>
 </tr>
-<tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">11</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>31</span></span><div class="info">
+<tr>
+  <td class="l"><div class="cardCell"><span class="rank">9</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>31</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="몽키 D. 루피">Monkey D. Luffy</span><span class="chip var" data-ko="ST31-004 · 패러렐">ST31-004 · Alt art</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 4건 중 3건 낙찰 · 75%">EN · 3 of 4 sold · 75%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+ST31-004&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -312,8 +292,8 @@
   <td class="dOnly">75%</td>
   <td class="dOnly">3<span class="sub2" data-ko="4건 중">of 4</span></td>
 </tr>
-<tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">12</span><img class="thumb" src="img/cards/thumb/op16-073-borsalino-manga.webp" alt="" width="36" height="50" loading="lazy" /><div class="info">
+<tr>
+  <td class="l"><div class="cardCell"><span class="rank">10</span><img class="thumb" src="img/cards/thumb/op16-073-borsalino-manga.webp" alt="" width="36" height="50" loading="lazy" /><div class="info">
     <div class="nameLine"><span class="name" data-ko="볼사리노">Borsalino</span><span class="chip var" data-ko="OP16-073 · 슈퍼 패러렐">OP16-073 · Super alt</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 4건 중 3건 낙찰 · 75%">EN · 3 of 4 sold · 75%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP16-073&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -324,29 +304,29 @@
   <td class="dOnly">3<span class="sub2" data-ko="4건 중">of 4</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">13</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>02</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">11</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>02</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="몽키 D. 루피">Monkey D. Luffy</span><span class="chip var" data-ko="EB02-010 · 일반">EB02-010 · Base</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 41건 중 21건 낙찰 · 53.7%">EN · 21 of 41 sold · 53.7%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB02-010&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$715.50</span><span class="sub2 mOnly">$646.98–1,199</span></td>
+  <td><span class="pv">$710</span><span class="sub2 mOnly">$646.98–1,199</span></td>
   <td class="dOnly"><span class="range">$646.98–1,199</span></td>
   <td class="dOnly">53.7%</td>
   <td class="dOnly">21<span class="sub2" data-ko="41건 중">of 41</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">14</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">12</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="샬롯 링링">Charlotte Linlin</span><span class="chip var" data-ko="OP17-112 · 슈퍼 패러렐">OP17-112 · Super alt</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 4건 중 4건 낙찰 · 100%">EN · 4 of 4 sold · 100%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-112&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$715</span><span class="sub2 mOnly">$700–730</span></td>
+  <td><span class="pv">$700</span><span class="sub2 mOnly">$700–730</span></td>
   <td class="dOnly"><span class="range">$700–730</span></td>
   <td class="dOnly">100%</td>
   <td class="dOnly">4<span class="sub2" data-ko="4건 중">of 4</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">15</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>10</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">13</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>10</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="트라팔가 로">Trafalgar Law</span><span class="chip var" data-ko="OP10-119 · 슈퍼 패러렐">OP10-119 · Super alt</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 3건 중 3건 낙찰 · 100%">EN · 3 of 3 sold · 100%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP10-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -357,7 +337,7 @@
   <td class="dOnly">3<span class="sub2" data-ko="3건 중">of 3</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">16</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>14</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">14</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>14</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="쥬라큘 미호크">Dracule Mihawk</span><span class="chip var" data-ko="OP14-119 · 슈퍼 패러렐">OP14-119 · Super alt</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 3건 중 3건 낙찰 · 100%">EN · 3 of 3 sold · 100%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP14-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -368,7 +348,7 @@
   <td class="dOnly">3<span class="sub2" data-ko="3건 중">of 3</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">17</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>14</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">15</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>14</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="미스 올 선데이">Ms All Sunday</span><span class="chip var" data-ko="OP14-084 · SP">OP14-084 · SP</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 10건 중 6건 낙찰 · 60%">EN · 6 of 10 sold · 60%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP14-084&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -379,18 +359,7 @@
   <td class="dOnly">6<span class="sub2" data-ko="10건 중">of 10</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">18</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>16</span></span><div class="info">
-    <div class="nameLine"><span class="name" data-ko="보아 행콕">Boa Hancock</span><span class="chip var" data-ko="OP16-032 · 일반">OP16-032 · Base</span><span class="chip ed dOnly">JP</span></div>
-    <div class="meta mOnly" data-ko="JP · 13건 중 6건 낙찰 · 46.2%">JP · 6 of 13 sold · 46.2%</div>
-    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP16-032&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
-  </div></div></td>
-  <td><span class="pv">$508.50</span><span class="sub2 mOnly">$1.25–1,015.75</span></td>
-  <td class="dOnly"><span class="range">$1.25–1,015.75</span></td>
-  <td class="dOnly">46.2%</td>
-  <td class="dOnly">6<span class="sub2" data-ko="13건 중">of 13</span></td>
-</tr>
-<tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">19</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>04</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">16</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>04</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="롤로노아 조로">Roronoa Zoro</span><span class="chip var" data-ko="EB04-007 · 슈퍼 패러렐">EB04-007 · Super alt</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 6건 중 4건 낙찰 · 66.7%">EN · 4 of 6 sold · 66.7%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB04-007&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -401,7 +370,7 @@
   <td class="dOnly">4<span class="sub2" data-ko="6건 중">of 6</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">20</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>12</span></span><div class="info">
+  <td class="l"><div class="cardCell"><span class="rank">17</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>12</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="보아 행콕">Boa Hancock</span><span class="chip var" data-ko="OP12-014 · SP">OP12-014 · SP</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 9건 중 7건 낙찰 · 77.8%">EN · 7 of 9 sold · 77.8%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP12-014&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
@@ -410,6 +379,39 @@
   <td class="dOnly"><span class="range">$440–470</span></td>
   <td class="dOnly">77.8%</td>
   <td class="dOnly">7<span class="sub2" data-ko="9건 중">of 9</span></td>
+</tr>
+<tr hidden>
+  <td class="l"><div class="cardCell"><span class="rank">18</span><span class="thumb ph" aria-hidden="true"><span>EB</span><span>04</span></span><div class="info">
+    <div class="nameLine"><span class="name" data-ko="롤로노아 조로">Roronoa Zoro</span><span class="chip var" data-ko="EB04-007 · SP">EB04-007 · SP</span><span class="chip ed dOnly">EN</span></div>
+    <div class="meta mOnly" data-ko="EN · 16건 중 9건 낙찰 · 56.3%">EN · 9 of 16 sold · 56.3%</div>
+    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+EB04-007&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
+  </div></div></td>
+  <td><span class="pv">$413.39</span><span class="sub2 mOnly">$410–455</span></td>
+  <td class="dOnly"><span class="range">$410–455</span></td>
+  <td class="dOnly">56.3%</td>
+  <td class="dOnly">9<span class="sub2" data-ko="16건 중">of 16</span></td>
+</tr>
+<tr hidden>
+  <td class="l"><div class="cardCell"><span class="rank">19</span><span class="thumb ph" aria-hidden="true"><span>ST</span><span>26</span></span><div class="info">
+    <div class="nameLine"><span class="name" data-ko="몽키 D. 루피">Monkey D. Luffy</span><span class="chip var" data-ko="ST26-005 · SP">ST26-005 · SP</span><span class="chip ed dOnly">EN</span></div>
+    <div class="meta mOnly" data-ko="EN · 7건 중 3건 낙찰 · 42.9%">EN · 3 of 7 sold · 42.9%</div>
+    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+ST26-005&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
+  </div></div></td>
+  <td><span class="pv">$380</span><span class="sub2 mOnly">$380–810</span></td>
+  <td class="dOnly"><span class="range">$380–810</span></td>
+  <td class="dOnly">42.9%</td>
+  <td class="dOnly">3<span class="sub2" data-ko="7건 중">of 7</span></td>
+</tr>
+<tr hidden>
+  <td class="l"><div class="cardCell"><span class="rank">20</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>13</span></span><div class="info">
+    <div class="nameLine"><span class="name" data-ko="샹크스">Shanks</span><span class="chip var" data-ko="OP13-028 · SP">OP13-028 · SP</span><span class="chip ed dOnly">EN</span></div>
+    <div class="meta mOnly" data-ko="EN · 9건 중 5건 낙찰 · 55.6%">EN · 5 of 9 sold · 55.6%</div>
+    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP13-028&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
+  </div></div></td>
+  <td><span class="pv">$325</span><span class="sub2 mOnly">$316–395</span></td>
+  <td class="dOnly"><span class="range">$316–395</span></td>
+  <td class="dOnly">55.6%</td>
+  <td class="dOnly">5<span class="sub2" data-ko="9건 중">of 9</span></td>
 </tr>
 </tbody>
             <tbody id="boardSales" hidden>
@@ -452,7 +454,7 @@
     <div class="meta mOnly" data-ko="EN · 131건 중 76건 낙찰 · 58.8%">EN · 76 of 131 sold · 58.8%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-093&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$4.65</span><span class="sub2 mOnly">$3.02–6.50</span></td>
+  <td><span class="pv">$4.55</span><span class="sub2 mOnly">$3.02–6.50</span></td>
   <td class="dOnly"><span class="range">$3.02–6.50</span></td>
   <td class="dOnly">58.8%</td>
   <td class="dOnly">76<span class="sub2" data-ko="131건 중">of 131</span></td>
@@ -496,7 +498,7 @@
     <div class="meta mOnly" data-ko="EN · 107건 중 45건 낙찰 · 42.1%">EN · 45 of 107 sold · 42.1%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-022&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$3.02</span><span class="sub2 mOnly">$1–4</span></td>
+  <td><span class="pv">$3</span><span class="sub2 mOnly">$1–4</span></td>
   <td class="dOnly"><span class="range">$1–4</span></td>
   <td class="dOnly">42.1%</td>
   <td class="dOnly">45<span class="sub2" data-ko="107건 중">of 107</span></td>
@@ -507,7 +509,7 @@
     <div class="meta mOnly" data-ko="EN · 69건 중 44건 낙찰 · 63.8%">EN · 44 of 69 sold · 63.8%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP16-119&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$21.05</span><span class="sub2 mOnly">$18–23.50</span></td>
+  <td><span class="pv">$21</span><span class="sub2 mOnly">$18–23.50</span></td>
   <td class="dOnly"><span class="range">$18–23.50</span></td>
   <td class="dOnly">63.8%</td>
   <td class="dOnly">44<span class="sub2" data-ko="69건 중">of 69</span></td>
@@ -540,43 +542,43 @@
     <div class="meta mOnly" data-ko="EN · 58건 중 38건 낙찰 · 65.5%">EN · 38 of 58 sold · 65.5%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-039&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$42.52</span><span class="sub2 mOnly">$37–51</span></td>
+  <td><span class="pv">$42.05</span><span class="sub2 mOnly">$37–51</span></td>
   <td class="dOnly"><span class="range">$37–51</span></td>
   <td class="dOnly">65.5%</td>
   <td class="dOnly">38<span class="sub2" data-ko="58건 중">of 58</span></td>
 </tr>
 <tr hidden>
   <td class="l"><div class="cardCell"><span class="rank">13</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
+    <div class="nameLine"><span class="name" data-ko="록스 D. 지벡">Rocks D. Xebec</span><span class="chip var" data-ko="OP17-118 · 패러렐">OP17-118 · Alt art</span><span class="chip ed dOnly">EN</span></div>
+    <div class="meta mOnly" data-ko="EN · 67건 중 38건 낙찰 · 56.7%">EN · 38 of 67 sold · 56.7%</div>
+    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-118&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
+  </div></div></td>
+  <td><span class="pv">$29.50</span><span class="sub2 mOnly">$18.39–39.50</span></td>
+  <td class="dOnly"><span class="range">$18.39–39.50</span></td>
+  <td class="dOnly">56.7%</td>
+  <td class="dOnly">38<span class="sub2" data-ko="67건 중">of 67</span></td>
+</tr>
+<tr hidden>
+  <td class="l"><div class="cardCell"><span class="rank">14</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="샬롯 링링">Charlotte Linlin</span><span class="chip var" data-ko="OP17-112 · 일반">OP17-112 · Base</span><span class="chip ed dOnly">EN</span></div>
     <div class="meta mOnly" data-ko="EN · 73건 중 38건 낙찰 · 54.8%">EN · 38 of 73 sold · 54.8%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-112&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$3.20</span><span class="sub2 mOnly">$1.99–4.25</span></td>
+  <td><span class="pv">$3.14</span><span class="sub2 mOnly">$1.99–4.25</span></td>
   <td class="dOnly"><span class="range">$1.99–4.25</span></td>
   <td class="dOnly">54.8%</td>
   <td class="dOnly">38<span class="sub2" data-ko="73건 중">of 73</span></td>
 </tr>
 <tr hidden>
-  <td class="l"><div class="cardCell"><span class="rank">14</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
-    <div class="nameLine"><span class="name" data-ko="록스 D. 지벡">Rocks D. Xebec</span><span class="chip var" data-ko="OP17-118 · 패러렐">OP17-118 · Alt art</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly" data-ko="EN · 66건 중 37건 낙찰 · 56.1%">EN · 37 of 66 sold · 56.1%</div>
-    <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-118&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
-  </div></div></td>
-  <td><span class="pv">$29.50</span><span class="sub2 mOnly">$18.50–39.50</span></td>
-  <td class="dOnly"><span class="range">$18.50–39.50</span></td>
-  <td class="dOnly">56.1%</td>
-  <td class="dOnly">37<span class="sub2" data-ko="66건 중">of 66</span></td>
-</tr>
-<tr hidden>
   <td class="l"><div class="cardCell"><span class="rank">15</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
     <div class="nameLine"><span class="name" data-ko="샹크스">Shanks</span><span class="chip var" data-ko="OP17-022 · 패러렐">OP17-022 · Alt art</span><span class="chip ed dOnly">EN</span></div>
-    <div class="meta mOnly" data-ko="EN · 54건 중 36건 낙찰 · 66.7%">EN · 36 of 54 sold · 66.7%</div>
+    <div class="meta mOnly" data-ko="EN · 55건 중 36건 낙찰 · 65.5%">EN · 36 of 55 sold · 65.5%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+OP17-022&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
   <td><span class="pv">$24.50</span><span class="sub2 mOnly">$21.50–33</span></td>
   <td class="dOnly"><span class="range">$21.50–33</span></td>
-  <td class="dOnly">66.7%</td>
-  <td class="dOnly">36<span class="sub2" data-ko="54건 중">of 54</span></td>
+  <td class="dOnly">65.5%</td>
+  <td class="dOnly">36<span class="sub2" data-ko="55건 중">of 55</span></td>
 </tr>
 <tr hidden>
   <td class="l"><div class="cardCell"><span class="rank">16</span><span class="thumb ph" aria-hidden="true"><span>OP</span><span>17</span></span><div class="info">
@@ -606,7 +608,7 @@
     <div class="meta mOnly" data-ko="EN · 38건 중 30건 낙찰 · 78.9%">EN · 30 of 38 sold · 78.9%</div>
     <a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+PRB02-006&amp;LH_Auction=1&amp;_sop=1&amp;customid=auc-card&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>
   </div></div></td>
-  <td><span class="pv">$56</span><span class="sub2 mOnly">$36–68</span></td>
+  <td><span class="pv">$52</span><span class="sub2 mOnly">$36–68</span></td>
   <td class="dOnly"><span class="range">$36–68</span></td>
   <td class="dOnly">78.9%</td>
   <td class="dOnly">30<span class="sub2" data-ko="38건 중">of 38</span></td>
@@ -642,12 +644,12 @@
       <section id="trend">
         <div class="secHead"><h2 data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt" data-ko="13주 · 7/20–10/12">13 weeks · Jul 20 – Oct 12</span></div>
         <div class="wk">
-          <div class="wkHead"><span data-ko="종료 경매 중 낙찰 비율">Share of closed auctions that sold</span><span class="nt" data-ko="연한 막대 = 이번 주(진행 중)">Lighter bar = this week so far</span></div>
+          <div class="wkHead"><span data-ko="종료 경매 중 낙찰 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="흐린 막대 = 7일을 다 세지 못한 주">Faded bar = week not fully counted</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>40%</span></div>
             <div class="guide" style="bottom:50%"><span>20%</span></div>
             <span class="zero">0</span>
-            <div class="cols"><div class="col key" style="--h:88.5%" title="Week of Jul 20: 35.4% sold (1,169 of 3,303) — some days missing"><span class="v">35.4</span><i></i></div><div class="col" style="--h:75.8%" title="Week of Jul 27: 30.3% sold (1,547 of 5,100) — some days missing"><span class="v">30.3</span><i></i></div><div class="col" style="--h:82.5%" title="Week of Aug 3: 33% sold (2,141 of 6,492) — some days missing"><span class="v">33</span><i></i></div><div class="col" style="--h:78.5%" title="Week of Aug 10: 31.4% sold (2,364 of 7,540)"><span class="v">31.4</span><i></i></div><div class="col key" style="--h:73.3%" title="Week of Aug 17: 29.3% sold (2,046 of 6,991) — some days missing"><span class="v">29.3</span><i></i></div><div class="col" style="--h:89%" title="Week of Aug 24: 35.6% sold (2,139 of 6,011) — some days missing"><span class="v">35.6</span><i></i></div><div class="col key" style="--h:94.5%" title="Week of Aug 31: 37.8% sold (3,337 of 8,835) — some days missing"><span class="v">37.8</span><i></i></div><div class="col" style="--h:91%" title="Week of Sep 7: 36.4% sold (3,652 of 10,024)"><span class="v">36.4</span><i></i></div><div class="col" style="--h:83.5%" title="Week of Sep 14: 33.4% sold (3,095 of 9,264)"><span class="v">33.4</span><i></i></div><div class="col" style="--h:80.7%" title="Week of Sep 21: 32.3% sold (2,530 of 7,822) — some days missing"><span class="v">32.3</span><i></i></div><div class="col" style="--h:89.5%" title="Week of Sep 28: 35.8% sold (3,452 of 9,633)"><span class="v">35.8</span><i></i></div><div class="col" style="--h:75.8%" title="Week of Oct 5: 30.3% sold (2,748 of 9,065)"><span class="v">30.3</span><i></i></div><div class="col key now" style="--h:79.3%" title="Week of Oct 12: 31.7% sold (448 of 1,413) — so far"><span class="v">31.7</span><i></i></div></div>
+            <div class="cols"><div class="col key part" style="--h:88.5%" title="Week of Jul 20: 35.4% sold (1,169 of 3,303) — some days missing" data-ko-title="7/20 주: 낙찰률 35.4% (3,303건 중 1,169건) — 빠진 날 있음"><span class="v">35.4</span><i></i></div><div class="col part" style="--h:75.8%" title="Week of Jul 27: 30.3% sold (1,547 of 5,100) — some days missing" data-ko-title="7/27 주: 낙찰률 30.3% (5,100건 중 1,547건) — 빠진 날 있음"><span class="v">30.3</span><i></i></div><div class="col part" style="--h:82.5%" title="Week of Aug 3: 33% sold (2,141 of 6,492) — some days missing" data-ko-title="8/3 주: 낙찰률 33% (6,492건 중 2,141건) — 빠진 날 있음"><span class="v">33</span><i></i></div><div class="col" style="--h:78.5%" title="Week of Aug 10: 31.4% sold (2,364 of 7,540)" data-ko-title="8/10 주: 낙찰률 31.4% (7,540건 중 2,364건)"><span class="v">31.4</span><i></i></div><div class="col key part" style="--h:73.3%" title="Week of Aug 17: 29.3% sold (2,046 of 6,991) — some days missing" data-ko-title="8/17 주: 낙찰률 29.3% (6,991건 중 2,046건) — 빠진 날 있음"><span class="v">29.3</span><i></i></div><div class="col part" style="--h:89%" title="Week of Aug 24: 35.6% sold (2,139 of 6,011) — some days missing" data-ko-title="8/24 주: 낙찰률 35.6% (6,011건 중 2,139건) — 빠진 날 있음"><span class="v">35.6</span><i></i></div><div class="col key part" style="--h:94.5%" title="Week of Aug 31: 37.8% sold (3,337 of 8,835) — some days missing" data-ko-title="8/31 주: 낙찰률 37.8% (8,835건 중 3,337건) — 빠진 날 있음"><span class="v">37.8</span><i></i></div><div class="col" style="--h:91%" title="Week of Sep 7: 36.4% sold (3,652 of 10,024)" data-ko-title="9/7 주: 낙찰률 36.4% (10,024건 중 3,652건)"><span class="v">36.4</span><i></i></div><div class="col" style="--h:83.5%" title="Week of Sep 14: 33.4% sold (3,095 of 9,264)" data-ko-title="9/14 주: 낙찰률 33.4% (9,264건 중 3,095건)"><span class="v">33.4</span><i></i></div><div class="col part" style="--h:80.7%" title="Week of Sep 21: 32.3% sold (2,530 of 7,822) — some days missing" data-ko-title="9/21 주: 낙찰률 32.3% (7,822건 중 2,530건) — 빠진 날 있음"><span class="v">32.3</span><i></i></div><div class="col" style="--h:89.5%" title="Week of Sep 28: 35.8% sold (3,452 of 9,633)" data-ko-title="9/28 주: 낙찰률 35.8% (9,633건 중 3,452건)"><span class="v">35.8</span><i></i></div><div class="col" style="--h:75.8%" title="Week of Oct 5: 30.3% sold (2,748 of 9,065)" data-ko-title="10/5 주: 낙찰률 30.3% (9,065건 중 2,748건)"><span class="v">30.3</span><i></i></div><div class="col key part" style="--h:79.3%" title="Week of Oct 12: 31.7% sold (448 of 1,413) — so far" data-ko-title="10/12 주: 낙찰률 31.7% (1,413건 중 448건) — 진행 중"><span class="v">31.7</span><i></i></div></div>
           </div>
           <div class="wkAxis"><span><span data-ko="7/20">Jul 20</span></span><span><span data-ko="8/31">Aug 31</span></span><span><span data-ko="10/12">Oct 12</span> · <span data-ko="진행 중">so far</span></span></div>
         </div>
@@ -692,7 +694,7 @@
       </section>
 
       <section id="sets">
-        <div class="secHead"><h2 data-ko="세트별, 최근 30일">By set, last 30 days</h2><span class="nt" data-ko="9/12–10/12">Sep 12 – Oct 12, 2026</span></div>
+        <div class="secHead"><h2 data-ko="세트별 · 최근 30일">By set, last 30 days</h2><span class="nt" data-ko="9/12–10/12">Sep 12 – Oct 12, 2026</span></div>
         <div class="scroll narrow">
           <table class="t">
             <thead><tr><th class="l" data-ko="세트">Set</th><th data-ko="종료">Closed</th><th data-ko="낙찰률">Sell rate</th><th data-ko="중앙 낙찰가">Median price</th></tr></thead>
@@ -1077,9 +1079,9 @@
       })();
     </script>
     <footer class="footer">
-      <nav class="guideLinks" aria-label="Price guides" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">Price guides:</span> <a href="/">Booster boxes</a> · <a href="/weekly.html">This week</a> · <a href="/sets/index.html">Set guides</a> · <a href="/sets/op-18.html">OP-18 release date</a> · <a href="/sets/eb-05.html">EB-05 release date</a> · <a href="/articles/one-piece-set-list-release-dates.html">Release dates</a> · <a href="/box-prices.html">All box prices</a> · <a href="/cards/">Card prices</a> · <a href="/psa10-ranking.html">Top PSA 10</a> · <a href="/psa-grading.html">Grading population</a> · <a href="/compare.html">Compare sets</a> · <a href="/free-data.html">Free data</a> · <a href="/ko/">한국어</a></nav>
-      <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav class="guideLinks" aria-label="Price guides" style="display:block;margin:0 0 14px;font-size:13px;line-height:1.9;color:var(--muted);"><span style="font-weight:700;" data-ko="가격 가이드:">Price guides:</span> <span style="white-space:nowrap;"><a href="/" data-ko="부스터 박스">Booster boxes</a> ·</span> <span style="white-space:nowrap;"><a href="/weekly.html" data-ko="이번 주">This week</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html" data-ko="세트 가이드">Set guides</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/op-18.html" data-ko="OP-18 발매일">OP-18 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/eb-05.html" data-ko="EB-05 발매일">EB-05 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/one-piece-set-list-release-dates.html" data-ko="발매일 목록">Release dates</a> ·</span> <span style="white-space:nowrap;"><a href="/box-prices.html" data-ko="전체 박스 시세">All box prices</a> ·</span> <span style="white-space:nowrap;"><a href="/cards/" data-ko="카드 시세">Card prices</a> ·</span> <span style="white-space:nowrap;"><a href="/psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a> ·</span> <span style="white-space:nowrap;"><a href="/psa-grading.html" data-ko="그레이딩 통계">Grading population</a> ·</span> <span style="white-space:nowrap;"><a href="/compare.html" data-ko="세트 비교">Compare sets</a> ·</span> <span style="white-space:nowrap;"><a href="/free-data.html" data-ko="무료 데이터">Free data</a> ·</span> <span style="white-space:nowrap;"><a href="/ko/">한국어</a></span></nav>
+      <p data-ko="OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.">OP Box Index is a data-driven research site, not investment advice.</p>
+      <nav aria-label="Footer navigation"><a href="about.html" data-ko="소개">About</a><a href="methodology.html" data-ko="집계 방법">Methodology</a><a href="free-data.html" data-ko="무료 데이터(CSV)">Free data (CSV)</a><a href="privacy.html" data-ko="개인정보처리방침">Privacy</a><a href="disclaimer.html" data-ko="면책 고지">Disclaimer</a></nav>
     </footer>
   </body>
 </html>

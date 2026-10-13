@@ -13,10 +13,10 @@
     <meta property="og:description" content="Sell rate, median sold price and auctions closing per day across 13 card games, from auctions we settle ourselves." />
     <meta property="og:url" content="https://opboxindex.com/tcg-auction.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Trading card game auction results by game","description":"eBay auction results across 13 trading card games, re-read after close: sell rate, median sold price and auctions closing per day, last 7 days and week by week.","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"temporalCoverage":"2026-08-07/2026-10-13","dateModified":"2026-10-13","variableMeasured":["Sell rate","Median sold price","Auctions closing per day","Sell rate by week"]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Trading card game auction results by game","description":"eBay auction results across 13 trading card games, re-read after close: sell rate, median sold price and auctions closing per day, last 7 days and week by week.","isAccessibleForFree":true,"creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"temporalCoverage":"2026-08-07/2026-10-12","dateModified":"2026-10-12","variableMeasured":["Sell rate","Median sold price","Auctions closing per day","Sell rate by week"]}</script>
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261008font" />
-    <script defer src="lang-toggle.js?v=20261008font"></script>
+    <link rel="stylesheet" href="styles.css?v=20261013qa" />
+    <script defer src="lang-toggle.js?v=20261013qa"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       /* 토큰만 쓴다(styles.css :root). 모션 없음(hover 색만). 숫자는 tabular-nums. */
@@ -89,7 +89,10 @@
       .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
       .col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
       .col i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
-      .col.now i { background: rgba(var(--accent-rgb), .38); }
+      .col.part i { background: rgba(var(--accent-rgb), .38); }   /* 7일을 다 못 센 주: 진행 중·빠진 날·제외일 */
+      /* 범례 견본 — 흐린 막대와 같은 칠. 배경이 어두워 "연한" 이 아니라 "흐린" 으로 읽힌다(2026-10-13 QA) */
+      .lg { display: inline-flex; align-items: center; gap: 6px; }
+      .lg .sw { display: inline-block; width: 10px; height: 12px; border-radius: 2px 2px 0 0; background: rgba(var(--accent-rgb), .38); }
       .col:hover i { background: var(--ink); }
       .col .v { position: absolute; left: -8px; right: -8px; bottom: calc(var(--h) + 3px); text-align: center; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
       .col.nul .v { bottom: 3px; color: var(--muted); }
@@ -114,30 +117,30 @@
     </style>
   </head>
   <body>
-    <a class="skipLink" href="#main-content">Skip to main content</a>
+    <a class="skipLink" href="#main-content" data-ko="본문 바로가기">Skip to main content</a>
     <header class="topbar">
-      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="원피스 부스터 박스">One Piece Booster Boxes</a><a href="auction.html" data-ko="원피스 이베이 경매">One Piece eBay Auctions</a><a href="tcg-auction.html" aria-current="page" data-ko="TCG 경매">TCG Auctions</a><a href="psa-grading.html" data-ko="원피스 그레이딩 통계">One Piece Grading</a><a href="amazon-lottery.html" data-ko="일본 아마존 응모">Amazon Japan Raffle</a></nav>
+      <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small data-ko="부스터박스 리서치">Booster box research</small></span></a>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="원피스 부스터 박스">One Piece Booster Boxes</a><a href="auction.html" data-ko="원피스 이베이 경매">One Piece eBay Auctions</a><a href="tcg-auction.html" aria-current="page" data-ko="TCG 경매">TCG Auctions</a><a href="psa-grading.html" data-ko="원피스 그레이딩 통계">One Piece Grading</a><a href="amazon-lottery.html" data-ko="일본 아마존 응모">Amazon Japan Raffle</a><script>(function(n){function f(){var a=n.querySelector('[aria-current="page"]');if(!a||n.scrollWidth<=n.clientWidth)return;var r=n.getBoundingClientRect(),b=a.getBoundingClientRect();if(b.left<r.left||b.right>r.right-36)n.scrollLeft+=b.left+b.width/2-r.left-r.width/2;}f();document.addEventListener("DOMContentLoaded",f);})(document.currentScript.parentNode)</script></nav>
     </header>
     <main id="main-content" class="wrap">
       <h1 data-ko="카드게임별 경매 시장">TCG auction market by game</h1>
-      <nav class="nextLinks" aria-label="Next"><a href="/">Live box prices →</a><a href="/amazon-lottery.html">OP-18 Amazon invite →</a><a href="/sets/op-18.html">OP-18 release date →</a><a href="/sets/index.html">All set guides →</a></nav>
-      <p class="sub"><span data-ko="eBay 경매 · 13개 게임 · 데이터 기준일 2026-10-13">eBay auctions · 13 games · data through Oct 13, 2026</span></p>
+      <nav class="nextLinks" aria-label="Next"><a href="/" data-ko="실시간 박스 시세 →">Live box prices →</a><a href="/amazon-lottery.html" data-ko="OP-18 아마존 응모 →">OP-18 Amazon invite →</a><a href="/sets/op-18.html" data-ko="OP-18 발매일 →">OP-18 release date →</a><a href="/sets/index.html" data-ko="전체 세트 가이드 →">All set guides →</a></nav>
+      <p class="sub"><span data-ko="eBay 경매 · 13개 게임 · 데이터 기준일 2026-10-12">eBay auctions · 13 games · data through Oct 12, 2026</span></p>
       <p class="affTop" data-ko-html="&lt;b&gt;Paid Link:&lt;/b&gt; eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다."><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>
 
       <section id="week" aria-labelledby="weekTitle">
-        <div class="secHead"><h2 id="weekTitle" data-ko="이번 주">This week</h2><span class="nt"><span data-ko="최근 7일 vs 직전 7일">Last 7 days vs the 7 before</span> · <span data-ko="10/7–10/13">Oct 7 – Oct 13, 2026</span></span></div>
+        <div class="secHead"><h2 id="weekTitle" data-ko="이번 주">This week</h2><span class="nt"><span data-ko="최근 7일 vs 직전 7일">Last 7 days vs the 7 before</span> · <span data-ko="10/6–10/12">Oct 6 – Oct 12, 2026</span> · <span data-ko="3일 제외">3 days excluded</span></span></div>
         <div class="strip">
-          <div class="kpi"><span class="lbl" data-ko="낙찰률">Sell rate</span><b>29.4%</b><span class="delta down" data-ko="▼ 6.5%p">▼ 6.5 pts</span><span class="was"><span data-ko="직전">was</span> 35.9%</span></div>
-          <div class="kpi"><span class="lbl" data-ko="중앙 낙찰가">Median sold price</span><b>$39</b><span class="delta up">▲ $3</span><span class="was"><span data-ko="직전">was</span> $36</span></div>
-          <div class="kpi"><span class="lbl" data-ko="하루 종료 경매">Auctions closing per day</span><b>57,839</b><span class="delta up">▲ 4,459</span><span class="was"><span data-ko="직전">was</span> 53,380</span></div>
+          <div class="kpi"><span class="lbl" data-ko="낙찰률">Sell rate</span><b>40.0%</b><span class="delta up" data-ko="▲ 2.8%p">▲ 2.8 pts</span><span class="was"><span data-ko="직전">was</span> 37.2%</span></div>
+          <div class="kpi"><span class="lbl" data-ko="중앙 낙찰가">Median sold price</span><b>$45</b><span class="delta up">▲ $12.01</span><span class="was"><span data-ko="직전">was</span> $32.99</span></div>
+          <div class="kpi"><span class="lbl" data-ko="하루 종료 경매">Auctions closing per day</span><b>58,479</b><span class="delta">▲ 5,205</span><span class="was"><span data-ko="직전">was</span> 53,274</span></div>
         </div>
-        <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span></p>
+        <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span> · <b data-ko="제외일">Excluded day</b> = <span data-ko="정해진 수집 시각 밖에 표본을 고른 날(낙찰률·낙찰가만 뺌)">sample picked outside the usual hour (dropped from sell rate and sold price only)</span></p>
       </section>
 
       <section id="games" aria-labelledby="gamesTitle">
-        <div class="secHead"><h2 id="gamesTitle" data-ko="게임별">By game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · <span data-ko="10/7–10/13">Oct 7 – Oct 13, 2026</span> · <span data-ko="낙찰률 높은 순">sorted by sell rate</span></span></div>
-        <p class="def"><b data-ko="추이">Trend</b> = <span data-ko="주별 낙찰률">sell rate by week</span>, 10 <span data-ko="주">weeks</span> · ± = <span data-ko="95% 구간">95% interval</span></p>
+        <div class="secHead"><h2 id="gamesTitle" data-ko="게임별">By game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · <span data-ko="10/6–10/12">Oct 6 – Oct 12, 2026</span> · <span data-ko="낙찰률 높은 순">sorted by sell rate</span> · <span data-ko="3일 제외">3 days excluded</span></span></div>
+        <p class="def"><b data-ko="추이">Trend</b> = <span data-ko="주별 낙찰률">sell rate by week</span>, <span data-ko="10주">10 weeks</span> · <span data-ko="11일 제외">11 days excluded</span> · ± = <span data-ko="95% 구간">95% interval</span></p>
         <table class="t">
           <thead><tr>
             <th class="l" data-ko="게임">Game</th>
@@ -149,194 +152,194 @@
           </tr></thead>
           <tbody>
           <tr>
-            <td class="l"><span class="nm">Riftbound (LoL)</span><span class="sub2 mOnly"><span class="d up" data-ko="▲ 2.7%p">▲ 2.7 pts</span> · <span data-ko="중앙가 $227.50">median $227.50</span> · <span data-ko="하루 165건 종료">165 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Riftbound+League+of+Legends&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-riftbound&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">65.3%</span><span class="sub2">±3.5</span></td>
-            <td class="dOnly"><span class="d up" data-ko="▲ 2.7%p">▲ 2.7 pts</span></td>
-            <td class="dOnly">$227.50</td>
-            <td class="dOnly">165</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 66.5%, 58.6%, 67.2%, 58.8%, 59.3%, 56.6%, 66.8%, 61.3%, 63.3%, 69.1%"><path d="M3.0 6.7 L12.3 8.9 L21.7 6.5 L31.0 8.8 L40.3 8.7 L49.7 9.4 L59.0 6.6 L68.3 8.1 L77.7 7.6 L87.0 6.0" /><circle cx="87.0" cy="6.0" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Dragon Ball Fusion World</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 24.4%p">▲ 24.4 pts</span> · <span data-ko="중앙가 $78">median $78</span> · <span data-ko="하루 197건 종료">197 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Dragon+Ball+Fusion+World&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-dragonball&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">67.3%</span><span class="sub2">±4.2</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 24.4%p">▲ 24.4 pts</span></td>
+            <td class="dOnly">$78</td>
+            <td class="dOnly">197</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 53.4%, 64.0%, 55.9%, 38.5%, 55.2%, 55.8%, 55.6%, 43.9%, 60.4%, 84.0%"><path d="M3.0 11.9 L12.3 9.4 L21.7 11.3 L31.0 15.6 L40.3 11.5 L49.7 11.4 L59.0 11.4 L68.3 14.3 L77.7 10.2 L87.0 4.5" /><circle cx="87.0" cy="4.5" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Dragon Ball Fusion World</span><span class="sub2 mOnly"><span class="d up" data-ko="▲ 3.6%p">▲ 3.6 pts</span> · <span data-ko="중앙가 $74.70">median $74.70</span> · <span data-ko="하루 199건 종료">199 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Dragon+Ball+Fusion+World&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-dragonball&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">51.8%</span><span class="sub2">±3.5</span></td>
-            <td class="dOnly"><span class="d up" data-ko="▲ 3.6%p">▲ 3.6 pts</span></td>
-            <td class="dOnly">$74.70</td>
-            <td class="dOnly">199</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 53.4%, 57.7%, 56.4%, 46.1%, 50.8%, 54.8%, 51.1%, 46.9%, 48.7%, 77.3%"><path d="M3.0 10.3 L12.3 9.1 L21.7 9.5 L31.0 12.3 L40.3 11.0 L49.7 9.9 L59.0 10.9 L68.3 12.1 L77.7 11.6 L87.0 3.7" /><circle cx="87.0" cy="3.7" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Riftbound (LoL)</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 7.4%p">▲ 7.4 pts</span> · <span data-ko="중앙가 $230">median $230</span> · <span data-ko="하루 166건 종료">166 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Riftbound+League+of+Legends&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-riftbound&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">63.7%</span><span class="sub2">±4.6</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 7.4%p">▲ 7.4 pts</span></td>
+            <td class="dOnly">$230</td>
+            <td class="dOnly">166</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 66.5%, 55.5%, 66.8%, 60.1%, 60.7%, 55.5%, 64.9%, 56.5%, 61.5%, 68.2%"><path d="M3.0 8.7 L12.3 11.4 L21.7 8.7 L31.0 10.3 L40.3 10.2 L49.7 11.4 L59.0 9.1 L68.3 11.2 L77.7 10.0 L87.0 8.3" /><circle cx="87.0" cy="8.3" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">One Piece</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 16.1%p">▼ 16.1 pts</span> · <span data-ko="중앙가 $29.95">median $29.95</span> · <span data-ko="하루 2,046건 종료">2,046 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-onepiece&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">31.8%</span><span class="sub2">±3.0</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 16.1%p">▼ 16.1 pts</span></td>
-            <td class="dOnly">$29.95</td>
-            <td class="dOnly">2,046</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 59.6%, 43.9%, 45.5%, 61.2%, 37.3%, 41.5%, 43.1%, 48.9%, 35.7%, 39.7%"><path d="M3.0 8.6 L12.3 12.9 L21.7 12.5 L31.0 8.2 L40.3 14.7 L49.7 13.6 L59.0 13.1 L68.3 11.6 L77.7 15.2 L87.0 14.1" /><circle cx="87.0" cy="14.1" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Disney Lorcana</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 6.8%p">▲ 6.8 pts</span> · <span data-ko="중앙가 $105.50">median $105.50</span> · <span data-ko="하루 642건 종료">642 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Disney+Lorcana&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-lorcana&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">53.3%</span><span class="sub2">±4.4</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 6.8%p">▲ 6.8 pts</span></td>
+            <td class="dOnly">$105.50</td>
+            <td class="dOnly">642</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 50.1%, 47.9%, 46.2%, 33.1%, 65.1%, 63.2%, 60.3%, 44.8%, 53.9%, 64.8%"><path d="M3.0 12.8 L12.3 13.3 L21.7 13.7 L31.0 16.9 L40.3 9.1 L49.7 9.6 L59.0 10.3 L68.3 14.0 L77.7 11.8 L87.0 9.2" /><circle cx="87.0" cy="9.2" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Disney Lorcana</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 12.7%p">▼ 12.7 pts</span> · <span data-ko="중앙가 $86">median $86</span> · <span data-ko="하루 637건 종료">637 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Disney+Lorcana&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-lorcana&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">30.5%</span><span class="sub2">±3.1</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 12.7%p">▼ 12.7 pts</span></td>
-            <td class="dOnly">$86</td>
-            <td class="dOnly">637</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 50.1%, 46.4%, 37.6%, 28.9%, 43.1%, 45.3%, 44.8%, 38.9%, 33.6%, 58.1%"><path d="M3.0 11.2 L12.3 12.2 L21.7 14.7 L31.0 17.1 L40.3 13.1 L49.7 12.5 L59.0 12.7 L68.3 14.3 L77.7 15.8 L87.0 9.0" /><circle cx="87.0" cy="9.0" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">One Piece</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d down" data-ko="▼ 6.8%p">▼ 6.8 pts</span> · <span data-ko="중앙가 $28.89">median $28.89</span> · <span data-ko="하루 2,045건 종료">2,045 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=One+Piece+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-onepiece&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">49.4%</span><span class="sub2">±4.4</span></td>
+            <td class="dOnly"><span class="d down" data-ko="▼ 6.8%p">▼ 6.8 pts</span></td>
+            <td class="dOnly">$28.89</td>
+            <td class="dOnly">2,045</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 59.6%, 57.0%, 64.0%, 69.5%, 48.9%, 51.8%, 51.4%, 54.9%, 55.1%, 44.8%"><path d="M3.0 10.4 L12.3 11.1 L21.7 9.4 L31.0 8.0 L40.3 13.0 L49.7 12.3 L59.0 12.4 L68.3 11.6 L77.7 11.5 L87.0 14.0" /><circle cx="87.0" cy="14.0" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Palworld TCG</span><span class="sub2 mOnly"><span class="d up" data-ko="▲ 11.3%p">▲ 11.3 pts</span> · <span data-ko="중앙가 $15.50">median $15.50</span> · <span data-ko="하루 30건 종료">30 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Palworld+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-palworld&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">28.6%</span><span class="sub2">±7.8</span></td>
-            <td class="dOnly"><span class="d up" data-ko="▲ 11.3%p">▲ 11.3 pts</span></td>
-            <td class="dOnly">$15.50</td>
-            <td class="dOnly">30</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 69.9%, 53.5%, 56.8%, 75.2%, 47.8%, 42.2%, 36.2%, 18.8%, 30.1%"><path d="M3.0 5.8 L13.5 10.3 L24.0 9.4 L34.5 4.3 L45.0 11.9 L55.5 13.4 L66.0 15.0 L76.5 19.8 L87.0 16.7" /><circle cx="87.0" cy="16.7" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Yu-Gi-Oh!</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 13.5%p">▲ 13.5 pts</span> · <span data-ko="중앙가 $32.51">median $32.51</span> · <span data-ko="하루 3,080건 종료">3,080 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Yu-Gi-Oh&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-yugioh&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">45.2%</span><span class="sub2">±4.4</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 13.5%p">▲ 13.5 pts</span></td>
+            <td class="dOnly">$32.51</td>
+            <td class="dOnly">3,080</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 31.1%, 36.6%, 28.2%, 41.0%, 14.7%, 27.6%, 25.6%, 30.3%, 39.7%, 63.7%"><path d="M3.0 17.4 L12.3 16.1 L21.7 18.1 L31.0 15.0 L40.3 21.4 L49.7 18.3 L59.0 18.7 L68.3 17.6 L77.7 15.3 L87.0 9.4" /><circle cx="87.0" cy="9.4" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Union Arena</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 15.6%p">▼ 15.6 pts</span> · <span data-ko="중앙가 $22.22">median $22.22</span> · <span data-ko="하루 148건 종료">148 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Union+Arena&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-unionarena&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">27.8%</span><span class="sub2">±3.3</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 15.6%p">▼ 15.6 pts</span></td>
-            <td class="dOnly">$22.22</td>
-            <td class="dOnly">148</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 34.9%, 33.8%, 34.8%, 43.8%, 33.7%, 39.4%, 36.0%, 45.9%, 30.9%, 20.8%"><path d="M3.0 15.4 L12.3 15.7 L21.7 15.4 L31.0 13.0 L40.3 15.7 L49.7 14.2 L59.0 15.1 L68.3 12.4 L77.7 16.5 L87.0 19.3" /><circle cx="87.0" cy="19.3" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Magic: The Gathering</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 10.6%p">▲ 10.6 pts</span> · <span data-ko="중앙가 $38.07">median $38.07</span> · <span data-ko="하루 4,586건 종료">4,586 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Magic+The+Gathering&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-magic&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">39.0%</span><span class="sub2">±4.3</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 10.6%p">▲ 10.6 pts</span></td>
+            <td class="dOnly">$38.07</td>
+            <td class="dOnly">4,586</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 26.6%, 27.8%, 56.2%, 18.7%, 31.7%, 29.9%, 26.6%, 24.8%, 45.7%, 32.8%"><path d="M3.0 18.5 L12.3 18.2 L21.7 11.3 L31.0 20.4 L40.3 17.3 L49.7 17.7 L59.0 18.5 L68.3 18.9 L77.7 13.8 L87.0 17.0" /><circle cx="87.0" cy="17.0" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Yu-Gi-Oh!</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 1.6%p">▼ 1.6 pts</span> · <span data-ko="중앙가 $25">median $25</span> · <span data-ko="하루 3,081건 종료">3,081 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Yu-Gi-Oh&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-yugioh&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">26.9%</span><span class="sub2">±2.8</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 1.6%p">▼ 1.6 pts</span></td>
-            <td class="dOnly">$25</td>
-            <td class="dOnly">3,081</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 31.1%, 26.0%, 23.2%, 29.6%, 10.0%, 20.7%, 20.7%, 26.7%, 23.5%, 54.6%"><path d="M3.0 16.4 L12.3 17.9 L21.7 18.6 L31.0 16.9 L40.3 22.3 L49.7 19.3 L59.0 19.3 L68.3 17.7 L77.7 18.5 L87.0 10.0" /><circle cx="87.0" cy="10.0" r="2.2" /></svg></td>
-          </tr>
-          <tr>
-            <td class="l"><span class="nm">Pokemon (Japanese)</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 14.2%p">▼ 14.2 pts</span> · <span data-ko="중앙가 $8.50">median $8.50</span> · <span data-ko="하루 6,111건 종료">6,111 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+Card+Japanese&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemonjp&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">26.5%</span><span class="sub2">±2.9</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 14.2%p">▼ 14.2 pts</span></td>
-            <td class="dOnly">$8.50</td>
-            <td class="dOnly">6,111</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 42.7%, 33.8%, 33.4%, 28.0%, 16.3%, 27.2%, 30.4%, 46.5%, 26.9%, 32.9%"><path d="M3.0 13.3 L12.3 15.7 L21.7 15.8 L31.0 17.3 L40.3 20.5 L49.7 17.5 L59.0 16.6 L68.3 12.2 L77.7 17.6 L87.0 16.0" /><circle cx="87.0" cy="16.0" r="2.2" /></svg></td>
-          </tr>
-          <tr>
-            <td class="l"><span class="nm">Gundam Card Game</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 0.3%p">▼ 0.3 pts</span> · <span data-ko="중앙가 $22.50">median $22.50</span> · <span data-ko="하루 112건 종료">112 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Gundam+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-gundam&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">26.4%</span><span class="sub2">±4.1</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 0.3%p">▼ 0.3 pts</span></td>
+            <td class="l"><span class="nm">Union Arena</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d down" data-ko="▼ 5.7%p">▼ 5.7 pts</span> · <span data-ko="중앙가 $22.50">median $22.50</span> · <span data-ko="하루 145건 종료">145 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Union+Arena&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-unionarena&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">34.6%</span><span class="sub2">±5.0</span></td>
+            <td class="dOnly"><span class="d down" data-ko="▼ 5.7%p">▼ 5.7 pts</span></td>
             <td class="dOnly">$22.50</td>
-            <td class="dOnly">112</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 30.5%, 40.0%, 36.0%, 24.9%, 26.3%, 25.2%, 23.9%, 22.9%, 24.7%, 45.7%"><path d="M3.0 16.6 L12.3 14.0 L21.7 15.1 L31.0 18.2 L40.3 17.8 L49.7 18.1 L59.0 18.4 L68.3 18.7 L77.7 18.2 L87.0 12.4" /><circle cx="87.0" cy="12.4" r="2.2" /></svg></td>
+            <td class="dOnly">145</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 34.9%, 36.6%, 37.3%, 41.3%, 33.6%, 36.5%, 24.1%, 41.9%, 37.2%, 21.6%"><path d="M3.0 16.5 L12.3 16.1 L21.7 15.9 L31.0 14.9 L40.3 16.8 L49.7 16.1 L59.0 19.1 L68.3 14.8 L77.7 15.9 L87.0 19.7" /><circle cx="87.0" cy="19.7" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Pokemon</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 6.1%p">▼ 6.1 pts</span> · <span data-ko="중앙가 $12.50">median $12.50</span> · <span data-ko="하루 46,061건 종료">46,061 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">24.1%</span><span class="sub2">±2.8</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 6.1%p">▼ 6.1 pts</span></td>
-            <td class="dOnly">$12.50</td>
-            <td class="dOnly">46,061</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 33.7%, 28.7%, 33.1%, 20.6%, 19.1%, 22.9%, 25.3%, 30.5%, 25.7%, 17.7%"><path d="M3.0 15.7 L12.3 17.1 L21.7 15.9 L31.0 19.3 L40.3 19.7 L49.7 18.7 L59.0 18.0 L68.3 16.6 L77.7 17.9 L87.0 20.1" /><circle cx="87.0" cy="20.1" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Palworld TCG</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 17.4%p">▲ 17.4 pts</span> · <span data-ko="중앙가 $10">median $10</span> · <span data-ko="하루 31건 종료">31 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Palworld+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-palworld&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">34.2%</span><span class="sub2">±10.6</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 17.4%p">▲ 17.4 pts</span></td>
+            <td class="dOnly">$10</td>
+            <td class="dOnly">31</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 69.9%, 51.5%, 54.5%, 53.8%, 50.7%, 42.5%, 35.0%, 18.8%, 35.2%"><path d="M3.0 7.9 L13.5 12.4 L24.0 11.7 L34.5 11.8 L45.0 12.6 L55.5 14.6 L66.0 16.4 L76.5 20.4 L87.0 16.4" /><circle cx="87.0" cy="16.4" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Magic: The Gathering</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 12.4%p">▼ 12.4 pts</span> · <span data-ko="중앙가 $12.69">median $12.69</span> · <span data-ko="하루 4,613건 종료">4,613 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Magic+The+Gathering&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-magic&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">19.2%</span><span class="sub2">±2.5</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 12.4%p">▼ 12.4 pts</span></td>
-            <td class="dOnly">$12.69</td>
-            <td class="dOnly">4,613</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 26.6%, 24.1%, 35.7%, 16.8%, 24.4%, 27.8%, 20.8%, 22.5%, 28.8%, 27.8%"><path d="M3.0 17.7 L12.3 18.4 L21.7 15.2 L31.0 20.4 L40.3 18.3 L49.7 17.4 L59.0 19.3 L68.3 18.8 L77.7 17.1 L87.0 17.4" /><circle cx="87.0" cy="17.4" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Pokemon (Japanese)</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d down" data-ko="▼ 20.6%p">▼ 20.6 pts</span> · <span data-ko="중앙가 $7.50">median $7.50</span> · <span data-ko="하루 6,212건 종료">6,212 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+Card+Japanese&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemonjp&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">32.5%</span><span class="sub2">±4.1</span></td>
+            <td class="dOnly"><span class="d down" data-ko="▼ 20.6%p">▼ 20.6 pts</span></td>
+            <td class="dOnly">$7.50</td>
+            <td class="dOnly">6,212</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 42.7%, 38.7%, 38.8%, 39.7%, 22.9%, 30.6%, 34.5%, 53.4%, 37.2%, 40.8%"><path d="M3.0 14.6 L12.3 15.5 L21.7 15.5 L31.0 15.3 L40.3 19.4 L49.7 17.5 L59.0 16.6 L68.3 11.9 L77.7 15.9 L87.0 15.0" /><circle cx="87.0" cy="15.0" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Weiss Schwarz</span><span class="sub2 mOnly"><span class="d down" data-ko="▼ 6.5%p">▼ 6.5 pts</span> · <span data-ko="중앙가 $40">median $40</span> · <span data-ko="하루 488건 종료">488 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Weiss+Schwarz&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-weiss&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">15.8%</span><span class="sub2">±2.4</span></td>
-            <td class="dOnly"><span class="d down" data-ko="▼ 6.5%p">▼ 6.5 pts</span></td>
-            <td class="dOnly">$40</td>
-            <td class="dOnly">488</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 22.7%, 28.5%, 19.7%, 22.1%, 21.4%, 26.6%, 24.4%, 24.8%, 13.5%, 28.0%"><path d="M3.0 18.8 L12.3 17.2 L21.7 19.6 L31.0 18.9 L40.3 19.1 L49.7 17.7 L59.0 18.3 L68.3 18.2 L77.7 21.3 L87.0 17.3" /><circle cx="87.0" cy="17.3" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Gundam Card Game</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 5.1%p">▲ 5.1 pts</span> · <span data-ko="중앙가 $30">median $30</span> · <span data-ko="하루 110건 종료">110 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Gundam+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-gundam&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">30.1%</span><span class="sub2">±5.4</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 5.1%p">▲ 5.1 pts</span></td>
+            <td class="dOnly">$30</td>
+            <td class="dOnly">110</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 30.5%, 41.6%, 36.7%, 23.7%, 23.9%, 24.6%, 24.7%, 22.9%, 30.1%, 41.2%"><path d="M3.0 17.5 L12.3 14.8 L21.7 16.0 L31.0 19.2 L40.3 19.2 L49.7 19.0 L59.0 19.0 L68.3 19.4 L77.7 17.6 L87.0 14.9" /><circle cx="87.0" cy="14.9" r="2.2" /></svg></td>
           </tr>
           <tr>
-            <td class="l"><span class="nm">Digimon</span><span class="sub2 mOnly"><span class="d up" data-ko="▲ 2.7%p">▲ 2.7 pts</span> · <span data-ko="중앙가 $2.34">median $2.34</span> · <span data-ko="하루 258건 종료">258 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Digimon+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-digimon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
-            <td><span class="pv">10.9%</span><span class="sub2">±2.3</span></td>
-            <td class="dOnly"><span class="d up" data-ko="▲ 2.7%p">▲ 2.7 pts</span></td>
-            <td class="dOnly">$2.34</td>
-            <td class="dOnly">258</td>
-            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 9.2%, 8.2%, 11.0%, 7.2%, 10.8%, 10.9%, 10.4%, 10.1%, 7.5%, 14.4%"><path d="M3.0 22.5 L12.3 22.7 L21.7 22.0 L31.0 23.0 L40.3 22.0 L49.7 22.0 L59.0 22.1 L68.3 22.2 L77.7 22.9 L87.0 21.0" /><circle cx="87.0" cy="21.0" r="2.2" /></svg></td>
+            <td class="l"><span class="nm">Pokemon</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d down" data-ko="▼ 8.7%p">▼ 8.7 pts</span> · <span data-ko="중앙가 $14">median $14</span> · <span data-ko="하루 46,726건 종료">46,726 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Pokemon+TCG&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-pokemon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">24.7%</span><span class="sub2">±3.8</span></td>
+            <td class="dOnly"><span class="d down" data-ko="▼ 8.7%p">▼ 8.7 pts</span></td>
+            <td class="dOnly">$14</td>
+            <td class="dOnly">46,726</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 33.7%, 32.3%, 41.3%, 40.3%, 22.5%, 25.7%, 26.7%, 32.7%, 28.4%, 19.2%"><path d="M3.0 16.8 L12.3 17.1 L21.7 14.9 L31.0 15.1 L40.3 19.5 L49.7 18.7 L59.0 18.5 L68.3 17.0 L77.7 18.1 L87.0 20.3" /><circle cx="87.0" cy="20.3" r="2.2" /></svg></td>
+          </tr>
+          <tr>
+            <td class="l"><span class="nm">Weiss Schwarz</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d down" data-ko="▼ 3.0%p">▼ 3.0 pts</span> · <span data-ko="중앙가 $46">median $46</span> · <span data-ko="하루 482건 종료">482 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Weiss+Schwarz&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-weiss&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">23.2%</span><span class="sub2">±3.7</span></td>
+            <td class="dOnly"><span class="d down" data-ko="▼ 3.0%p">▼ 3.0 pts</span></td>
+            <td class="dOnly">$46</td>
+            <td class="dOnly">482</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 22.7%, 29.2%, 20.0%, 21.0%, 24.1%, 36.5%, 31.3%, 27.1%, 19.7%, 29.6%"><path d="M3.0 19.5 L12.3 17.9 L21.7 20.1 L31.0 19.9 L40.3 19.1 L49.7 16.1 L59.0 17.3 L68.3 18.4 L77.7 20.2 L87.0 17.8" /><circle cx="87.0" cy="17.8" r="2.2" /></svg></td>
+          </tr>
+          <tr>
+            <td class="l"><span class="nm">Digimon</span><span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> <span class="d up" data-ko="▲ 0.4%p">▲ 0.4 pts</span> · <span data-ko="중앙가 $0.99">median $0.99</span> · <span data-ko="하루 269건 종료">269 closing/day</span></span><a class="live" href="https://www.ebay.com/sch/i.html?_nkw=Digimon+Card+Game&amp;LH_Auction=1&amp;_sop=1&amp;customid=tcg-digimon&amp;mkcid=1&amp;mkrid=711-53200-19255-0&amp;siteid=0&amp;campid=5339163744&amp;toolid=10001&amp;mkevt=1" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a></td>
+            <td><span class="pv">8.8%</span><span class="sub2">±2.9</span></td>
+            <td class="dOnly"><span class="d up" data-ko="▲ 0.4%p">▲ 0.4 pts</span></td>
+            <td class="dOnly">$0.99</td>
+            <td class="dOnly">269</td>
+            <td class="trend"><svg class="spark" viewBox="0 0 90 28" width="90" height="28" role="img" aria-label="Sell rate by week: 9.2%, 9.5%, 11.3%, 6.1%, 12.9%, 11.1%, 6.6%, 10.6%, 8.3%, 3.0%"><path d="M3.0 22.8 L12.3 22.7 L21.7 22.2 L31.0 23.5 L40.3 21.8 L49.7 22.3 L59.0 23.4 L68.3 22.4 L77.7 23.0 L87.0 24.3" /><circle cx="87.0" cy="24.3" r="2.2" /></svg></td>
           </tr>
           </tbody>
         </table>
       </section>
 
       <section id="weekly" aria-labelledby="weeklyTitle">
-        <div class="secHead"><h2 id="weeklyTitle" data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt">10 <span data-ko="주">weeks</span> · 13 <span data-ko="게임 합산">games combined</span> · <span data-ko="8/10–10/13">Aug 10 – Oct 13, 2026</span></span></div>
+        <div class="secHead"><h2 id="weeklyTitle" data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt"><span data-ko="10주">10 weeks</span> · <span data-ko="13개 게임 합산">13 games combined</span> · <span data-ko="8/10–10/12">Aug 10 – Oct 12, 2026</span> · <span data-ko="11일 제외">11 days excluded</span></span></div>
         <div class="wk">
-          <div class="wkHead"><span data-ko="종료 경매 중 팔린 비율">Share of closed auctions that sold</span><span class="nt" data-ko="연한 막대 = 이번 주(진행 중)">Lighter bar = this week so far</span></div>
+          <div class="wkHead"><span data-ko="종료 경매 중 팔린 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="흐린 막대 = 7일을 다 세지 못한 주">Faded bar = week not fully counted</span></span></div>
           <div class="wkPlot">
-            <div class="guide" style="bottom:100%"><span>40%</span></div>
-            <div class="guide" style="bottom:50%"><span>20%</span></div>
+            <div class="guide" style="bottom:100%"><span>50%</span></div>
+            <div class="guide" style="bottom:50%"><span>25%</span></div>
             <span class="zero">0</span>
-            <div class="cols"><div class="col key" style="--h:99.0%" title="Week of Aug 10: 39.6% sold (3,277 of 8,273)"><span class="v">39.6</span><i></i></div><div class="col" style="--h:87.0%" title="Week of Aug 17: 34.8% sold (5,325 of 15,297)"><span class="v">34.8</span><i></i></div><div class="col" style="--h:88.8%" title="Week of Aug 24: 35.5% sold (4,376 of 12,327)"><span class="v">35.5</span><i></i></div><div class="col" style="--h:77.3%" title="Week of Aug 31: 30.9% sold (4,490 of 14,518)"><span class="v">30.9</span><i></i></div><div class="col key" style="--h:72.5%" title="Week of Sep 7: 29.0% sold (3,428 of 11,837)"><span class="v">29.0</span><i></i></div><div class="col" style="--h:83.0%" title="Week of Sep 14: 33.2% sold (4,768 of 14,365)"><span class="v">33.2</span><i></i></div><div class="col" style="--h:81.8%" title="Week of Sep 21: 32.7% sold (3,379 of 10,320)"><span class="v">32.7</span><i></i></div><div class="col" style="--h:88.0%" title="Week of Sep 28: 35.2% sold (3,990 of 11,345)"><span class="v">35.2</span><i></i></div><div class="col" style="--h:75.5%" title="Week of Oct 5: 30.2% sold (3,274 of 10,846)"><span class="v">30.2</span><i></i></div><div class="col key now" style="--h:97.8%" title="Week of Oct 12: 39.1% sold (902 of 2,305) — so far"><span class="v">39.1</span><i></i></div></div>
+            <div class="cols"><div class="col key" style="--h:79.2%" title="Week of Aug 10: 39.6% sold (3,277 of 8,273)" data-ko-title="8/10 주: 낙찰률 39.6% (8,273건 중 3,277건)"><span class="v">39.6</span><i></i></div><div class="col part" style="--h:80.0%" title="Week of Aug 17: 40.0% sold (4,038 of 10,104) — 1 day excluded" data-ko-title="8/17 주: 낙찰률 40.0% (10,104건 중 4,038건) — 1일 제외"><span class="v">40.0</span><i></i></div><div class="col part" style="--h:83.4%" title="Week of Aug 24: 41.7% sold (3,085 of 7,404) — 2 days excluded" data-ko-title="8/24 주: 낙찰률 41.7% (7,404건 중 3,085건) — 2일 제외"><span class="v">41.7</span><i></i></div><div class="col part" style="--h:72.0%" title="Week of Aug 31: 36.0% sold (2,309 of 6,419) — 2 days excluded" data-ko-title="8/31 주: 낙찰률 36.0% (6,419건 중 2,309건) — 2일 제외"><span class="v">36.0</span><i></i></div><div class="col key part" style="--h:71.2%" title="Week of Sep 7: 35.6% sold (2,474 of 6,943) — 2 days excluded" data-ko-title="9/7 주: 낙찰률 35.6% (6,943건 중 2,474건) — 2일 제외"><span class="v">35.6</span><i></i></div><div class="col" style="--h:74.6%" title="Week of Sep 14: 37.3% sold (3,570 of 9,561)" data-ko-title="9/14 주: 낙찰률 37.3% (9,561건 중 3,570건)"><span class="v">37.3</span><i></i></div><div class="col part" style="--h:72.0%" title="Week of Sep 21: 36.0% sold (2,400 of 6,674) — 1 day excluded" data-ko-title="9/21 주: 낙찰률 36.0% (6,674건 중 2,400건) — 1일 제외"><span class="v">36.0</span><i></i></div><div class="col" style="--h:73.4%" title="Week of Sep 28: 36.7% sold (3,515 of 9,572)" data-ko-title="9/28 주: 낙찰률 36.7% (9,572건 중 3,515건)"><span class="v">36.7</span><i></i></div><div class="col part" style="--h:80.6%" title="Week of Oct 5: 40.3% sold (2,274 of 5,644) — 3 days excluded" data-ko-title="10/5 주: 낙찰률 40.3% (5,644건 중 2,274건) — 3일 제외"><span class="v">40.3</span><i></i></div><div class="col key part" style="--h:89.2%" title="Week of Oct 12: 44.6% sold (562 of 1,261) — so far" data-ko-title="10/12 주: 낙찰률 44.6% (1,261건 중 562건) — 진행 중"><span class="v">44.6</span><i></i></div></div>
           </div>
           <div class="wkAxis"><span><span data-ko="8/10">Aug 10</span></span><span><span data-ko="9/14">Sep 14</span></span><span><span data-ko="10/12">Oct 12</span> · <span data-ko="진행 중">so far</span></span></div>
         </div>
       </section>
 
       <section id="prices" aria-labelledby="pricesTitle">
-        <div class="secHead"><h2 id="pricesTitle" data-ko="게임별 중앙 낙찰가">Median sold price by game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · <span data-ko="10/7–10/13">Oct 7 – Oct 13, 2026</span> · <span data-ko="낙찰 20건 이상">20 or more sold</span></span></div>
+        <div class="secHead"><h2 id="pricesTitle" data-ko="게임별 중앙 낙찰가">Median sold price by game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · <span data-ko="10/6–10/12">Oct 6 – Oct 12, 2026</span> · <span data-ko="낙찰 20건 이상">20 or more sold</span> · <span data-ko="3일 제외">3 days excluded</span></span></div>
         <div class="pbs" role="list">
           <div class="pb" role="listitem">
             <span class="nm">Riftbound (LoL)</span>
             <span class="tr"><i style="width:100.0%"></i></span>
-            <span class="val">$227.50<small data-ko="458건 낙찰">458 sold</small></span>
+            <span class="val">$230<small data-ko="262건 낙찰">262 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Disney Lorcana</span>
-            <span class="tr"><i style="width:37.8%"></i></span>
-            <span class="val">$86<small data-ko="265건 낙찰">265 sold</small></span>
+            <span class="tr"><i style="width:45.9%"></i></span>
+            <span class="val">$105.50<small data-ko="262건 낙찰">262 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Dragon Ball Fusion World</span>
-            <span class="tr"><i style="width:32.8%"></i></span>
-            <span class="val">$74.70<small data-ko="410건 낙찰">410 sold</small></span>
+            <span class="tr"><i style="width:33.9%"></i></span>
+            <span class="val">$78<small data-ko="323건 낙찰">323 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Weiss Schwarz</span>
-            <span class="tr"><i style="width:17.6%"></i></span>
-            <span class="val">$40<small data-ko="135건 낙찰">135 sold</small></span>
+            <span class="tr"><i style="width:20.0%"></i></span>
+            <span class="val">$46<small data-ko="114건 낙찰">114 sold</small></span>
           </div>
           <div class="pb" role="listitem">
-            <span class="nm">One Piece</span>
-            <span class="tr"><i style="width:13.2%"></i></span>
-            <span class="val">$29.95<small data-ko="301건 낙찰">301 sold</small></span>
+            <span class="nm">Magic: The Gathering</span>
+            <span class="tr"><i style="width:16.6%"></i></span>
+            <span class="val">$38.07<small data-ko="192건 낙찰">192 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Yu-Gi-Oh!</span>
-            <span class="tr"><i style="width:11.0%"></i></span>
-            <span class="val">$25<small data-ko="251건 낙찰">251 sold</small></span>
+            <span class="tr"><i style="width:14.1%"></i></span>
+            <span class="val">$32.51<small data-ko="222건 낙찰">222 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Gundam Card Game</span>
-            <span class="tr"><i style="width:9.9%"></i></span>
-            <span class="val">$22.50<small data-ko="118건 낙찰">118 sold</small></span>
+            <span class="tr"><i style="width:13.0%"></i></span>
+            <span class="val">$30<small data-ko="84건 낙찰">84 sold</small></span>
+          </div>
+          <div class="pb" role="listitem">
+            <span class="nm">One Piece</span>
+            <span class="tr"><i style="width:12.6%"></i></span>
+            <span class="val">$28.89<small data-ko="243건 낙찰">243 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Union Arena</span>
             <span class="tr"><i style="width:9.8%"></i></span>
-            <span class="val">$22.22<small data-ko="192건 낙찰">192 sold</small></span>
-          </div>
-          <div class="pb" role="listitem">
-            <span class="nm">Palworld TCG</span>
-            <span class="tr"><i style="width:6.8%"></i></span>
-            <span class="val">$15.50<small data-ko="36건 낙찰">36 sold</small></span>
-          </div>
-          <div class="pb" role="listitem">
-            <span class="nm">Magic: The Gathering</span>
-            <span class="tr"><i style="width:5.6%"></i></span>
-            <span class="val">$12.69<small data-ko="176건 낙찰">176 sold</small></span>
+            <span class="val">$22.50<small data-ko="120건 낙찰">120 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Pokemon</span>
-            <span class="tr"><i style="width:5.5%"></i></span>
-            <span class="val">$12.50<small data-ko="222건 낙찰">222 sold</small></span>
+            <span class="tr"><i style="width:6.1%"></i></span>
+            <span class="val">$14<small data-ko="121건 낙찰">121 sold</small></span>
+          </div>
+          <div class="pb" role="listitem">
+            <span class="nm">Palworld TCG</span>
+            <span class="tr"><i style="width:4.3%"></i></span>
+            <span class="val">$10<small data-ko="25건 낙찰">25 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Pokemon (Japanese)</span>
-            <span class="tr"><i style="width:3.7%"></i></span>
-            <span class="val">$8.50<small data-ko="243건 낙찰">243 sold</small></span>
+            <span class="tr"><i style="width:3.3%"></i></span>
+            <span class="val">$7.50<small data-ko="160건 낙찰">160 sold</small></span>
           </div>
           <div class="pb" role="listitem">
             <span class="nm">Digimon</span>
-            <span class="tr"><i style="width:1.0%"></i></span>
-            <span class="val">$2.34<small data-ko="77건 낙찰">77 sold</small></span>
+            <span class="tr"><i style="width:0.4%"></i></span>
+            <span class="val">$0.99<small data-ko="33건 낙찰">33 sold</small></span>
           </div>
         </div>
       </section>
@@ -345,9 +348,9 @@
     </main>
 
     <footer class="footer">
-      <nav class="guideLinks" aria-label="Price guides" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">Price guides:</span> <a href="/">Booster boxes</a> · <a href="/weekly.html">This week</a> · <a href="/sets/index.html">Set guides</a> · <a href="/sets/op-18.html">OP-18 release date</a> · <a href="/sets/eb-05.html">EB-05 release date</a> · <a href="/articles/one-piece-set-list-release-dates.html">Release dates</a> · <a href="/box-prices.html">All box prices</a> · <a href="/cards/">Card prices</a> · <a href="/psa10-ranking.html">Top PSA 10</a> · <a href="/psa-grading.html">Grading population</a> · <a href="/compare.html">Compare sets</a> · <a href="/free-data.html">Free data</a> · <a href="/ko/">한국어</a></nav>
-      <p>OP Box Index is a data-driven research site, not investment advice.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav class="guideLinks" aria-label="Price guides" style="display:block;margin:0 0 14px;font-size:13px;line-height:1.9;color:var(--muted);"><span style="font-weight:700;" data-ko="가격 가이드:">Price guides:</span> <span style="white-space:nowrap;"><a href="/" data-ko="부스터 박스">Booster boxes</a> ·</span> <span style="white-space:nowrap;"><a href="/weekly.html" data-ko="이번 주">This week</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html" data-ko="세트 가이드">Set guides</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/op-18.html" data-ko="OP-18 발매일">OP-18 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/eb-05.html" data-ko="EB-05 발매일">EB-05 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/one-piece-set-list-release-dates.html" data-ko="발매일 목록">Release dates</a> ·</span> <span style="white-space:nowrap;"><a href="/box-prices.html" data-ko="전체 박스 시세">All box prices</a> ·</span> <span style="white-space:nowrap;"><a href="/cards/" data-ko="카드 시세">Card prices</a> ·</span> <span style="white-space:nowrap;"><a href="/psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a> ·</span> <span style="white-space:nowrap;"><a href="/psa-grading.html" data-ko="그레이딩 통계">Grading population</a> ·</span> <span style="white-space:nowrap;"><a href="/compare.html" data-ko="세트 비교">Compare sets</a> ·</span> <span style="white-space:nowrap;"><a href="/free-data.html" data-ko="무료 데이터">Free data</a> ·</span> <span style="white-space:nowrap;"><a href="/ko/">한국어</a></span></nav>
+      <p data-ko="OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.">OP Box Index is a data-driven research site, not investment advice.</p>
+      <nav aria-label="Footer navigation"><a href="about.html" data-ko="소개">About</a><a href="methodology.html" data-ko="집계 방법">Methodology</a><a href="free-data.html" data-ko="무료 데이터(CSV)">Free data (CSV)</a><a href="privacy.html" data-ko="개인정보처리방침">Privacy</a><a href="disclaimer.html" data-ko="면책 고지">Disclaimer</a></nav>
     </footer>
     <script defer src="track.js"></script>
   </body>

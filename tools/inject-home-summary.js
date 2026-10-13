@@ -114,22 +114,24 @@ const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</
 //    사람용 전체 표는 전용 페이지 box-prices.html(홈에서 1클릭, 색인 O, 매일 재생성)로.
 //    홈 마커 구간: 한 줄 + 링크 + **접힌 정적 표** — 표를 아예 빼면 R1(봇용 정적 시세)이
 //    무너져 노출 불가침 위반이다. 접힌 표는 화면 ~40px 이고 봇은 정상 색인한다(7월 원설계).
+// 한국어 토글(packs.js 가 data-ko·data-ko-html 을 바꾼다) — 2026-10-13 QA: 한국어로 바꿔도 이 블록이 통째로 영어로 남았다.
+const summaryKo = `${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), eBay 실거래 중앙값, 매일 갱신. 4주간 <strong>${nUp}</strong> 상승 · <strong>${nDn}</strong> 하락. <a href="box-prices.html"><strong>전체 표 — ${rows.length}개 세트 →</strong></a>`;
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
-          <h2>Japanese booster box prices — all ${rows.length} sets <small>data ${esc(DATA_DATE)} · each row dated by its last sale</small></h2>
-          <p>${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
+          <h2><span data-ko="일본판 부스터 박스 시세 — 전체 ${rows.length}개 세트">Japanese booster box prices — all ${rows.length} sets</span> <small data-ko="데이터 ${esc(DATA_DATE)} · 행마다 마지막 거래 기준">data ${esc(DATA_DATE)} · each row dated by its last sale</small></h2>
+          <p data-ko-html="${esc(summaryKo)}">${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
           <details class="homeCollapse">
-          <summary>Quick table (same data as the full page)</summary>
+          <summary data-ko="빠른 표(전체 페이지와 같은 데이터)">Quick table (same data as the full page)</summary>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
-            <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Last sale</th><th>4-wk change</th></tr></thead>
+            <thead><tr><th data-ko="세트">Set</th><th data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th data-ko="마지막 거래">Last sale</th><th data-ko="4주 등락">4-wk change</th></tr></thead>
             <tbody>
 ${tr}
             </tbody>
           </table>
           </div>
           </details>
-          <p class="note"><a href="free-data.html">Citable data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auctions</a> · <a href="ko/">한국어 시세</a></p>
+          <p class="note"><a href="free-data.html" data-ko="인용용 데이터(JSON/CSV)">Citable data (JSON/CSV)</a> · <a href="psa-grading.html" data-ko="그레이딩 통계">Grading population</a> · <a href="auction.html" data-ko="경매">Auctions</a> · <a href="ko/">한국어 시세</a></p>
         </section>
         ${/* 홈은 사이트에서 가장 많이 색인되는 페이지다. 화면은 짧게(접힘) 두되 본문은 실어야
              검색이 읽을 게 있다 — 2026-08-28 "표만" 정리로 본문이 7,861→4,425자로 줄어

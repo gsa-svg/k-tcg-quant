@@ -40,8 +40,42 @@ function withNextLinks(html, rel, inKo) {
   return html.slice(0, end) + "\n      " + want + html.slice(end);
 }
 
+// 영문 페이지 푸터·브랜드 부제의 한국어 토글 라벨 — 2026-10-13 QA: 한국어로 바꿔도 푸터 문구·푸터 메뉴·상단 부제가 영어로 남았다.
+// 각 페이지(생성기·손 HTML)가 같은 글자를 따로 갖고 있어 여기서 data-ko 만 덧붙인다(글자는 그대로). 몇 번 돌려도 결과가 같다.
+// 홈·packs(packs.js 가 토글을 맡는 페이지)의 푸터 문단은 packs.js 가 setText 로 직접 바꾼다 — 거기에 data-ko 를 또 달면
+// 첫 전환 때 한국어가 원문(data-en)으로 저장돼 영어로 못 돌아온다. 그래서 그 페이지들의 문단만 건너뛴다.
+const FOOT_NOTE_EN = "OP Box Index is a data-driven research site, not investment advice.";
+const FOOT_NOTE_KO = "OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.";
+const FOOT_LINK_KO = {
+  About: "소개", Methodology: "집계 방법", "Free data (CSV)": "무료 데이터(CSV)", Privacy: "개인정보처리방침", Disclaimer: "면책 고지",
+  "Card Prices": "카드 시세", "Compare Sets": "세트 비교", "PSA Population": "PSA 인구", "Set Guides": "세트 가이드", "Top PSA 10": "PSA10 랭킹",
+};
+const BRAND_SUB_EN = "Booster box research", BRAND_SUB_KO = "부스터박스 리서치";
+const SKIP_RE = /<a class="skipLink" href="#main-content"(?: data-ko="[^"]*")?>Skip to main content<\/a>/;
+const FOOT_NAV_RE = /<nav aria-label="Footer navigation">([\s\S]*?)<\/nav>/;
+const FOOT_NOTE_RE = /<p(?: data-ko="[^"]*")?>OP Box Index is a data-driven research site, not investment advice\.<\/p>/;
+const BRAND_SUB_RE = /<small(?: data-ko="[^"]*")?>Booster box research<\/small>/;
+function withFooterKo(html) {
+  const packsOwns = /<script[^>]*(?:src="[^"]*packs\.js|data-home-js)/.test(html);
+  const labelLink = (a, attrs, text) => {
+    const ko = FOOT_LINK_KO[text];
+    return ko ? "<a " + attrs.replace(/\s*data-ko="[^"]*"/, "") + ' data-ko="' + ko + '">' + text + "</a>" : a;
+  };
+  let out = html.replace(FOOT_NAV_RE, (m, inner) => '<nav aria-label="Footer navigation">' + inner.replace(/<a ([^>]*?)>([^<]+)<\/a>/g, labelLink) + "</nav>");
+  if (!packsOwns) out = out.replace(FOOT_NOTE_RE, () => '<p data-ko="' + FOOT_NOTE_KO + '">' + FOOT_NOTE_EN + "</p>");
+  out = out.replace(BRAND_SUB_RE, () => '<small data-ko="' + BRAND_SUB_KO + '">' + BRAND_SUB_EN + "</small>");
+  out = out.replace(SKIP_RE, () => '<a class="skipLink" href="#main-content" data-ko="본문 바로가기">Skip to main content</a>');
+  return out;
+}
+// ko/ 페이지의 영문판 — 그 페이지가 선언한 hreflang en(사이트 절대경로로). 없으면 영문 홈.
+function enHrefOf(html) {
+  const m = html.match(/<link rel="alternate" hreflang="en" href="https:\/\/opboxindex\.com(\/[^"]*)"/);
+  return m ? m[1] : "../";
+}
+
 const checkOnly = process.argv.includes("--check");
-const NAV_RE = /<nav class="nav"[^>]*>[\s\S]*?<\/nav>/;
+// 메뉴 + (ko/ 페이지) 바로 뒤의 영문 전환 링크(data-lang-link)를 한 덩어리로 갈아끼운다 — 따로 두면 돌 때마다 링크가 하나씩 는다.
+const NAV_RE = /<nav class="nav"[^>]*>[\s\S]*?<\/nav>(?:<a [^>]*data-lang-link[^>]*>[^<]*<\/a>)?/;
 
 function listHtml() {
   const out = [];
@@ -118,13 +152,18 @@ for (const rel of listHtml()) {
     if (checkOnly) mismatch.push(rel + " (nextLinks)");
     else { fs.writeFileSync(abs, withNext, "utf8"); html = withNext; if (!changed.includes(rel)) changed.push(rel); }
   }
+  const withFoot = inKo ? html : withFooterKo(html);
+  if (withFoot !== html) {
+    if (checkOnly) mismatch.push(rel + " (footer ko labels)");
+    else { fs.writeFileSync(abs, withFoot, "utf8"); html = withFoot; if (!changed.includes(rel)) changed.push(rel); }
+  }
   if (!NAV_RE.test(html)) { skipped.push(rel); continue; }
 
   const depth = rel.includes("/") ? 1 : 0;
   // current 는 항상 루트 기준 전체 경로를 넘긴다("sets/op-01.html"). 종전에는 하위 폴더면 null 을
   // 넘겼는데, site-nav 가 그 값으로 한국어 링크를 붙일지 판단하게 되면서 구분이 필요해졌다.
   // (세트 페이지에는 packs.js 토글이 이미 있어 링크를 붙이면 버튼이 둘이 된다)
-  const want = inKo ? navHtmlKo() : navHtml(depth ? "../" : "", rel);
+  const want = inKo ? navHtmlKo(rel, enHrefOf(html)) : navHtml(depth ? "../" : "", rel);
 
   const cur = html.match(NAV_RE)[0];
   if (cur === want) continue;

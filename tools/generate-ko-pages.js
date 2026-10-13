@@ -210,9 +210,10 @@ const html = `<!doctype html>
       .up { color: var(--accent); } .down { color: var(--red); }
       .ixChg.up { background: rgba(var(--accent-rgb), .12); } .ixChg.down { background: rgba(255,125,125,.12); }
       .koBoard { width: 100%; max-width: 760px; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
-      .koBoard th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; }
+      .koBoard th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11.5px; }
       .koBoard th.l, .koBoard td.nm, .koBoard td.code, .koBoard td.rp { text-align: left; }
       .koBoard td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+      @media (max-width: 640px) { .koBoard th, .koBoard td { padding: 8px 6px; } }   /* 390px 에서 표가 2px 넘쳐 가로 스크롤됐다(2026-10-13 QA) */
       .koBoard td.num { text-align: right; white-space: nowrap; }
       .koBoard td.code { font-weight: 700; color: #cfd6e4; }
       .koBoard td.nm { color: #9aa4b6; }
@@ -549,9 +550,10 @@ ${cardRows}
       .up { color: var(--accent); } .down { color: var(--red); }
       .ixChg.up { background: rgba(var(--accent-rgb), .12); } .ixChg.down { background: rgba(255,125,125,.12); }
       .koBoard { width: 100%; max-width: 760px; border-collapse: collapse; font-size: 14px; margin: 10px 0; }
-      .koBoard th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; }
+      .koBoard th { text-align: right; padding: 8px 10px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11.5px; }
       .koBoard th.l, .koBoard td.nm, .koBoard td.code { text-align: left; }
       .koBoard td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; }
+      @media (max-width: 640px) { .koBoard th, .koBoard td { padding: 8px 6px; } }   /* 390px 에서 표가 2px 넘쳐 가로 스크롤됐다(2026-10-13 QA) */
       .koBoard td.num { text-align: right; white-space: nowrap; }
       .koBoard td.code { color: #9aa4b6; font-size: 12.5px; }
       .koBoard td.thumb { width: 52px; padding: 6px 8px; }

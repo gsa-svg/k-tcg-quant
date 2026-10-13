@@ -15,8 +15,6 @@ const { navHtmlKo } = require("./site-nav");   // 메뉴는 한 곳에서만 정
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const auc = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-sold.json"), "utf8"));
-const cardStats = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-card-stats.json"), "utf8"));
 const fx = d.fx || {};
 const DATA_DATE = d.updated || "";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -57,7 +55,7 @@ function psa10Krw(c) {
 
 // ── 카드명 한글 병기 — 사전은 tools/ko-labels.js 한 곳(영문 auction.html 의 토글 data-ko 와 같은 사전). 2026-10-13 분리.
 //    캐릭터명만 매핑하고(변형 접미사는 영문 그대로), 확신 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
-const { koCharOf, tierKo } = require("./ko-labels");
+const { koCharOf } = require("./ko-labels");
 
 // <head> 공통 태그 — 네 장이 같은 노출 상태(robots·canonical·hreflang·og·빵부스러기)를 공유한다. 페이지별 <style> 은 호출 쪽에서 붙인다.
 function koHeadTags({ file, title, desc, breadcrumbName, enHref }) {
@@ -102,11 +100,11 @@ function page({ file, title, desc, h1, eyebrow, body, breadcrumbName, enHref, no
 ${koHeadTags({ file, title, desc, breadcrumbName, enHref })}
     <style>
       .koBoard { width: 100%; max-width: 860px; border-collapse: collapse; font-size: 13.5px; margin: 10px 0; }
-      .koBoard th { text-align: right; padding: 8px 9px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11px; white-space: nowrap; }
+      .koBoard th { text-align: right; padding: 8px 9px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-size: 11.5px; white-space: nowrap; }
       .koBoard th.l, .koBoard td.l { text-align: left; }
       .koBoard td { padding: 8px 9px; border-bottom: 1px solid rgba(255,255,255,.05); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
       .koBoard td.l { color: #cfd6e4; }
-      .koBoard td.l small { color: var(--muted); display: block; font-size: 11px; }
+      .koBoard td.l small { color: var(--muted); display: block; font-size: 11.5px; }
       .koProse { color: #9aa4b6; font-size: 14px; max-width: 760px; line-height: 1.78; margin: 8px 0; }
       .koProse strong { color: #cfd6e4; }
       main h2 { font-size: 18.5px; margin: 26px 0 6px; }
@@ -328,166 +326,33 @@ ${tr}
 // 2026-10-13: 영문 auction.html(tools/generate-auction-page.js, 승인 목업 "가격판 우선")과 같은 구조·같은 데이터의 한국어판.
 // 구조: ① h1 + 제휴 고지 ② 시장 온도 3칸(최근 7일 vs 직전 7일) ③ 카드 가격판(생카드 변형 단위, PSA 10 별도 열)
 //       ④ 주별 낙찰률 막대 ⑤ 종류별 표 ⑥ 세트별 표(최근 30일) ⑦ 하단 링크. 우리가 쓴 문장(요약·해설·FAQ)은 넣지 않는다.
-// 숫자는 영문판과 같은 원본(auction-sold·auction-series·auction-archive 원장·auction-card-stats·set-auction-stats)에서
-// 같은 규칙으로 낸다 — 진행 중인 오늘 제외, 합산은 완전 수집일만, 중앙값은 원장의 낙찰 건을 한 줄로 세워 자른다.
-// 영문 생성기는 함수를 export 하지 않고 실행 즉시 파일을 쓰므로 계산을 여기 최소한으로 복제한다. 규칙을 바꾸면 두 곳을 같이 고친다.
+// 숫자는 영문판과 같은 tools/auction-page-model.js 에서 받는다(계산 한 벌 — 규칙은 그 파일 머리말). 여기서는 한국어 글자와 배치만.
 // 값은 달러 그대로(이베이 낙찰가의 원본 통화) — 환율 환산값을 섞지 않는다. 표는 전부 서버에서 그린다(JS 는 탭·더보기·스와이프 힌트만).
-const { readRecent } = require("./auction-archive");
-const { summarizeKinds, med, perUnit } = require("./auction-aggregate");
-const { epnUrl } = require("./set-page-shared");
-const { ourTier } = require("./cgc-card-pop-ingest");   // 썸네일 변형 판별 — 집계기(auction-card-stats)와 같은 함수
+const { buildAuctionModel, CARD_SHOW, SET_SHOW, pct, money, bare, tenth, mdKo: md } = require("./auction-page-model");
 
 function auctionPage() {
-  const readJson = (f, fallback) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", f), "utf8")); } catch { return fallback; } };
-  // partial 판정은 auction-series.json 만 들고 있다.
-  const PARTIAL_DAYS = new Set((readJson("auction-series.json", { daily: [] }).daily || []).filter((r) => r.partial).map((r) => r.d));
-  const setStats = readJson("set-auction-stats.json", { window: {}, sets: {} });
-
+  const m = buildAuctionModel();
+  if (!m) { console.error("ko/auction 실패: 일별 집계가 3일 미만 — 페이지 미생성"); process.exitCode = 1; return null; }
+  const {
+    dataThrough: DATA_THROUGH, aggFrom, fullDays, skippedDays, totN,
+    last7, prev7, tempGap, kpis, weekly, wkTop: WK_TOP, kindRows, setRows, setWindow,
+    cardWindowDays: CARD_WINDOW_DAYS, byPrice, bySales, hasPsa: HAS_PSA,
+  } = m;
   const cnt = (n) => (n == null || !isFinite(n) ? "—" : Number(n).toLocaleString("ko-KR"));
-  const pct = (v) => (v == null || !isFinite(v) ? "—" : `${v}%`);
-  // 돈: 정수면 $9,989, 아니면 $16.26 — 소수 두 자리를 자르지 않는다(낙찰가는 센트 단위다).
-  const money = (v) => (v == null || !isFinite(v) ? "—" : "$" + (Number.isInteger(v) ? v.toLocaleString("en-US") : v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })));
-  const bare = (v) => money(v).replace(/^\$/, "");
-  const md = (iso) => { if (!iso) return "—"; const [, m, dd] = iso.split("-").map(Number); return `${m}/${dd}`; };
-  const tenth = (x) => Math.round(x * 10) / 10;
-
-  // ── 날짜 창: 진행 중인 오늘은 여기서 잘라낸다. 합산은 완전 수집일만(완전일이 3일 미만이면 전체로 폴백).
-  const TODAY_ISO = new Date().toISOString().slice(0, 10);
-  const allDays = (auc.daily || []).filter((x) => x.d < TODAY_ISO);
-  if (allDays.length < 3) { console.error("ko/auction 실패: 일별 집계가 3일 미만 — 페이지 미생성"); process.exitCode = 1; return null; }
-  const fullAll = allDays.filter((x) => !PARTIAL_DAYS.has(x.d));
-  const aggDays = fullAll.length >= 3 ? fullAll : allDays;
-  const skippedDays = allDays.length - aggDays.length;
-  const aggFrom = aggDays[0].d;
-  const DATA_THROUGH = aggDays[aggDays.length - 1].d;   // 마지막 완전 수집일 — 화면의 "기준일"
-  const totN = aggDays.reduce((t, x) => t + x.n, 0);
-
-  // 원장 — 7일 창·주별 막대·종류별 전부 여기서 직접 낸다(일별 값을 다시 평균/중앙값 내지 않는다).
-  const ledger = readRecent(400).filter((r) => r && r.d && r.d < TODAY_ISO);
-
-  // ── ② 시장 온도: 최근 7일 vs 직전 7일(완전 수집일만). 낙찰률 분모는 결과가 확정된 건(sold !== null)만.
-  function windowStats(days) {
-    const set = new Set(days.map((x) => x.d));
-    const rows = ledger.filter((r) => set.has(r.d));
-    const decided = rows.filter((r) => r.sold !== null);
-    const sold = rows.filter((r) => r.sold === true);
-    const prices = sold.map(perUnit).filter(Number.isFinite);
-    return {
-      days: days.length, from: days.length ? days[0].d : null, to: days.length ? days[days.length - 1].d : null,
-      closed: rows.length,
-      rate: decided.length ? Number(((sold.length / decided.length) * 100).toFixed(1)) : null,
-      med: med(prices),
-    };
-  }
-  const last7 = windowStats(aggDays.slice(-7));
-  const prev7 = windowStats(aggDays.slice(-14, -7));
-  const spanDays = (a, b) => (a && b ? Math.round((Date.parse(b) - Date.parse(a)) / 864e5) + 1 : 0);
-  const tempGap = prev7.from && last7.to ? spanDays(prev7.from, last7.to) - (last7.days + prev7.days) : 0;
-
-  // ── ④ 주별 낙찰률 — 원장에서 직접, 월요일 시작
-  const weekKey = (iso) => { const t = new Date(iso + "T00:00:00Z"); const dow = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - dow); return t.toISOString().slice(0, 10); };
-  const weekEnd = (k) => { const t = new Date(k + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 6); return t.toISOString().slice(0, 10); };
-  const weekly = (() => {
-    const buckets = new Map();
-    for (const r of ledger) {
-      const k = weekKey(r.d);
-      if (!buckets.has(k)) buckets.set(k, { rows: [], missing: false });
-      const b = buckets.get(k);
-      b.rows.push(r);
-      if (PARTIAL_DAYS.has(r.d)) b.missing = true;
-    }
-    return [...buckets.entries()].sort((x, y) => x[0].localeCompare(y[0])).map(([k, b]) => {
-      const decided = b.rows.filter((r) => r.sold !== null);
-      const sold = b.rows.filter((r) => r.sold === true);
-      return {
-        week: k, closed: b.rows.length, sold: sold.length,
-        rate: decided.length ? Number(((sold.length / decided.length) * 100).toFixed(1)) : null,
-        missing: b.missing,
-        now: weekEnd(k) > DATA_THROUGH,   // 아직 다 차지 않은 주 — 흐리게 + "진행 중"
-      };
-    }).filter((w) => w.rate != null);
-  })();
-
-  // ── ⑤ 종류별(전 기간 완전 수집일)
-  const kindSummary = summarizeKinds(ledger, aggDays.map((x) => x.d));
-  const KIND_MIN = 25;        // 낙찰률을 말하려면 이만큼은 확인했어야 한다
-  const KIND_PRICE_MIN = 12;  // 중앙 낙찰가를 말하려면 낙찰 건수가 이만큼
-  const KIND_KO = { card: "싱글 카드", pack: "부스터 팩", box: "밀봉 박스", carton: "밀봉 케이스" };
-  const KIND_QUERY = { card: "One Piece Card Game card", pack: "One Piece Card Game booster pack sealed", box: "One Piece Card Game booster box sealed", carton: "One Piece Card Game booster case sealed" };
-  const kindRows = Object.entries(kindSummary)
-    .map(([k, v]) => ({
-      key: k, ko: KIND_KO[k] || k, n: v.n, sold: v.sold,
-      rate: v.n >= KIND_MIN ? v.sellThrough : null,
-      // 판별 중앙가 — 박스는 일본판과 영문판이 4배 가까이 차이나서 하나로 합치면 어느 쪽도 아닌 수가 된다.
-      jp: v.byEd.jp.priceN >= KIND_PRICE_MIN ? v.byEd.jp.med : null,
-      en_: v.byEd.en.priceN >= KIND_PRICE_MIN ? v.byEd.en.med : null,
-    }))
-    .filter((r) => r.n > 0)
-    .sort((a, b) => b.n - a.n);
-
-  // ── ⑥ 세트별(최근 30일, build-set-auction-stats)
-  const SET_MIN = Number(setStats.window && setStats.window.minDecided) || 30;
-  const SET_DAYS = (setStats.window && setStats.window.days) || 30;
-  const setRows = Object.entries(setStats.sets || {})
-    .map(([code, s]) => ({ code, name: (d.sets[code] || {}).nameKo || (d.sets[code] || {}).nameEn || null, closed: s.ended, rate: s.thin ? null : s.sellThrough, med: s.medPrice }))
-    .filter((s) => s.closed >= SET_MIN)
-    .sort((a, b) => b.closed - a.closed);
-  const SET_SHOW = 15;
-
-  // ── ③ 카드 가격판 — 생카드 변형(번호|판|변형) 단위, suspect(미확인 가격) 제외
-  const CARD_WINDOW_DAYS = (String(cardStats.window || "").match(/(\d+)\s*d/) || [])[1] || null;
-  let IMG_FILES = [];
-  try { IMG_FILES = fs.readdirSync(path.join(ROOT, "img", "cards")).filter((f) => /\.(jpe?g|png|webp)$/i.test(f)).sort(); } catch (e) {}
-  // 썸네일은 번호 + 변형이 같은 파일만 쓴다. 번호만 맞추면 일반 행에 SP 금박 그림이 붙는다. ko/ 는 한 단계 아래라 ../ 를 붙인다.
-  function cardImg(id, tier) {
-    const pre = id.toLowerCase() + "-";
-    const hit = IMG_FILES.find((f) => f.startsWith(pre) && ourTier(f.slice(pre.length).replace(/\.[^.]+$/, "").replace(/-/g, " ")) === tier);
-    if (!hit) return null;
-    const v = variant("../img/cards/" + hit, "thumb");
-    return v ? v.src : "../img/cards/" + hit;
-  }
-  const setCodeOf = (id, c) => (c && c.set) || id.replace(/^([A-Z]+)(\d+)-.*$/i, "$1-$2").toUpperCase();
-  // 진행 중 eBay 경매(종료 임박순). customid 는 EPN 보고서에서 자리별 클릭·수익을 가르는 꼬리표(영문판과 같은 꼬리표).
-  const liveAuctionUrl = (query, spot) => epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(query)}&LH_Auction=1&_sop=1&customid=${spot}`);
-  const variants = Object.entries(cardStats.variants || {})
-    .map(([key, v]) => {
-      const [id, ed, tier] = key.split("|");
-      const c = (cardStats.cards || {})[id];
-      return {
-        id, ed, tier, tierLabel: tierKo(tier),
-        set: setCodeOf(id, c),
-        name: v.name || id,
-        price: v.medPriceContested != null ? v.medPriceContested : v.medPrice,
-        low: v.low, high: v.high, rate: v.sellThrough, sold: v.sold, n: v.n,
-        psa10Med: v.psa10Med, psa10Sold: v.psa10Sold,
-        suspect: !!v.suspect,
-        img: cardImg(id, tier),
-        ebay: liveAuctionUrl(`One Piece ${id}`, "auc-card"),
-      };
-    })
-    .filter((v) => !v.suspect && (v.ed === "jp" || v.ed === "en") && v.price != null);
-  const CARD_TOP = 20, CARD_SHOW = 10;
-  const byPrice = variants.slice().sort((a, b) => b.price - a.price || b.sold - a.sold).slice(0, CARD_TOP);
-  const bySales = variants.slice().sort((a, b) => b.sold - a.sold || b.price - a.price).slice(0, CARD_TOP);
-  // PSA 10 열은 가격판 행 가운데 한 줄이라도 값이 있을 때만 그린다(2026-10-13 QA: 40행 전부 '—' 인 죽은 열이 폭만 차지했다).
-  // 값이 생기면(같은 변형 PSA 10 낙찰 3건 이상) 열·정의 토막·스와이프 힌트가 저절로 돌아온다.
-  const HAS_PSA = [...byPrice, ...bySales].some((v) => v.psa10Med != null);
-  // 세트 코드 → 세트 가이드 링크(있는 페이지만). ko/ 는 한 단계 아래라 ../ 를 붙인다.
-  const setHref = (code) => (fs.existsSync(path.join(ROOT, "sets", code.toLowerCase() + ".html")) ? `../sets/${code.toLowerCase()}.html` : null);
+  const up = (p) => (p ? "../" + p : null);   // 모델 경로는 루트 기준 — ko/ 는 한 단계 아래
 
   // ── HTML 조각
   const live = (url) => (url ? `<a class="live" href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored">진행 경매 →</a>` : "");
   const thumb = (v, i) => (v.img
-    ? `<img class="thumb" src="${esc(v.img)}" alt="" width="36" height="50"${i >= 3 ? ' loading="lazy"' : ""} />`
+    ? `<img class="thumb" src="${esc(up(v.img))}" alt="" width="36" height="50"${i >= 3 ? ' loading="lazy"' : ""} />`
     : `<span class="thumb ph" aria-hidden="true">${v.set.split("-").map((p) => `<span>${esc(p)}</span>`).join("")}</span>`);
   function boardRow(v, i) {
     const ed = v.ed === "jp" ? "JP" : "EN";
     const range = v.low != null && v.high != null ? `${money(v.low)}–${bare(v.high)}` : "—";
     const psa = v.psa10Med == null ? "—" : `<span class="pv psa">${money(v.psa10Med)}</span><span class="sub2">${cnt(v.psa10Sold)}건</span>`;
-    const ko = koCharOf(v.name);   // 한글 캐릭터명이 잡히면 영문 옆에 병기(ko/cards.html 과 같은 사전)
     return `<tr${i >= CARD_SHOW ? " hidden" : ""}>
   <td class="l"><div class="cardCell"><span class="rank">${i + 1}</span>${thumb(v, i)}<div class="info">
-    <div class="nameLine"><span class="name">${esc(v.name)}</span>${ko ? `<span class="nameKo">${esc(ko)}</span>` : ""}<span class="chip var">${esc(v.id)} · ${esc(v.tierLabel)}</span><span class="chip ed dOnly">${ed}</span></div>
+    <div class="nameLine"><span class="name">${esc(v.name)}</span>${v.nameKo ? `<span class="nameKo">${esc(v.nameKo)}</span>` : ""}<span class="chip var">${esc(v.id)} · ${esc(v.tierKo)}</span><span class="chip ed dOnly">${ed}</span></div>
     <div class="meta mOnly">${ed} · ${cnt(v.n)}건 중 ${cnt(v.sold)}건 낙찰 · ${pct(v.rate)}</div>
     ${live(v.ebay)}
   </div></div></td>
@@ -501,43 +366,39 @@ function auctionPage() {
   const boardBody = (rows, id, hidden) => `<tbody id="${id}"${hidden ? " hidden" : ""}>\n${rows.map(boardRow).join("\n")}\n</tbody>`;
 
   const kindTr = kindRows.map((k) => `<tr>
-  <td class="l"><span class="kind">${esc(k.ko)}</span><br />${live(liveAuctionUrl(KIND_QUERY[k.key] || `One Piece Card Game ${k.key}`, "auc-kind"))}</td>
+  <td class="l"><span class="kind">${esc(k.labelKo)}</span><br />${live(k.live)}</td>
   <td>${pct(k.rate)}${k.rate != null ? `<div class="bar" aria-hidden="true"><i style="width:${k.rate}%"></i></div>` : ""}</td>
-  <td>${money(k.jp)}</td>
-  <td>${money(k.en_)}</td>
+  <td>${money(k.medJp)}</td>
+  <td>${money(k.medEn)}</td>
 </tr>`).join("\n");
 
-  const setTr = setRows.map((s, i) => `<tr${i >= SET_SHOW ? " hidden" : ""}>
-  <td class="l">${setHref(s.code) ? `<a class="setCode" href="${setHref(s.code)}">${esc(s.code)}</a>` : `<span class="setCode">${esc(s.code)}</span>`}${s.name && s.name !== s.code ? `<span class="setName">${esc(s.name)}</span>` : ""}</td>
+  const setTr = setRows.map((s, i) => {
+    const name = s.nameKo || s.nameEn;
+    return `<tr${i >= SET_SHOW ? " hidden" : ""}>
+  <td class="l">${s.page ? `<a class="setCode" href="${up(s.page)}">${esc(s.code)}</a>` : `<span class="setCode">${esc(s.code)}</span>`}${name && name !== s.code ? `<span class="setName">${esc(name)}</span>` : ""}</td>
   <td>${cnt(s.closed)}</td>
   <td>${pct(s.rate)}</td>
   <td>${money(s.med)}</td>
-</tr>`).join("\n");
+</tr>`;
+  }).join("\n");
 
-  // 시장 온도 칸 — 화살표·차이·직전값. 종료 건수의 증감은 좋고 나쁨이 없어 색을 입히지 않는다.
-  function kpi(label, cur, prev, fmt, deltaFmt, colored) {
-    const has = cur != null && prev != null;
-    const diff = has ? cur - prev : null;
-    const arrow = diff == null ? "" : diff > 0 ? "▲" : diff < 0 ? "▼" : "•";
-    const cls = colored && diff != null ? (diff > 0 ? " up" : diff < 0 ? " down" : "") : "";
-    const delta = diff == null ? "—" : `${arrow} ${deltaFmt(Math.abs(diff))}`;
-    return `<div class="kpi"><span class="lbl">${esc(label)}</span><b>${fmt(cur)}</b><span class="delta${cls}">${delta}</span><span class="was">직전 ${fmt(prev)}</span></div>`;
+  // 시장 온도 칸 — 화살표·차이·직전값. 종료 건수의 증감은 좋고 나쁨이 없어 색을 입히지 않는다(colored=false).
+  function kpi(label, k, fmt, deltaFmt, colored) {
+    const cls = colored && k.dir ? ` ${k.dir}` : "";
+    const delta = k.diff == null ? "—" : `${k.arrow} ${deltaFmt(Math.abs(k.diff))}`;
+    return `<div class="kpi"><span class="lbl">${esc(label)}</span><b>${fmt(k.cur)}</b><span class="delta${cls}">${delta}</span><span class="was">직전 ${fmt(k.prev)}</span></div>`;
   }
   const strip = [
-    kpi("낙찰률", last7.rate, prev7.rate, pct, (x) => `${tenth(x)}%p`, true),
-    kpi("중앙 낙찰가", last7.med, prev7.med, money, (x) => money(Math.round(x * 100) / 100), true),
-    kpi("종료 경매", last7.closed, prev7.closed, cnt, cnt, false),
+    kpi("낙찰률", kpis.rate, pct, (x) => `${tenth(x)}%p`, true),
+    kpi("중앙 낙찰가", kpis.med, money, (x) => money(Math.round(x * 100) / 100), true),
+    kpi("종료 경매", kpis.closed, cnt, cnt, false),
   ].join("\n        ");
   const tempRange = last7.from && prev7.from ? `${md(last7.from)}–${md(last7.to)} vs ${md(prev7.from)}–${md(prev7.to)}` : "";
 
-  // 주별 막대 — 축 하나, 눈금은 최고값을 10 단위로 올린 값과 그 절반. 값 라벨은 데스크톱 전부, 모바일은 처음·끝·최고·최저만.
-  const WK_TOP = Math.max(10, Math.ceil(Math.max(...weekly.map((w) => w.rate)) / 10) * 10);
-  const wkRates = weekly.map((w) => w.rate);
-  const wkHi = Math.max(...wkRates), wkLo = Math.min(...wkRates);
-  const wkCols = weekly.map((w, i) => {
-    const key = i === 0 || i === weekly.length - 1 || w.rate === wkHi || w.rate === wkLo;
+  // 주별 막대 — 높이(h)·값 라벨(key)은 모델이 정한다. 값 라벨은 데스크톱 전부, 모바일은 key 만.
+  const wkCols = weekly.map((w) => {
     const title = `${md(w.week)} 주: 낙찰률 ${pct(w.rate)} (${cnt(w.closed)}건 중 ${cnt(w.sold)}건)${w.now ? " — 진행 중" : ""}${w.missing ? " — 빠진 날 있음" : ""}`;
-    return `<div class="col${key ? " key" : ""}${w.now ? " now" : ""}" style="--h:${tenth((w.rate / WK_TOP) * 100)}%" title="${esc(title)}"><span class="v">${w.rate}</span><i></i></div>`;
+    return `<div class="col${w.key ? " key" : ""}${w.faded ? " part" : ""}" style="--h:${w.h}%" title="${esc(title)}"><span class="v">${w.rate}</span><i></i></div>`;
   }).join("");
   const wkMid = weekly[Math.floor(weekly.length / 2)];
   const wkLast = weekly[weekly.length - 1];
@@ -546,7 +407,7 @@ function auctionPage() {
 
   // ── <head> 는 다른 ko 주제 페이지와 같은 노출 상태(canonical ko·hreflang en↔ko·robots·og·빵부스러기)를 그대로 쓴다.
   const title = "원피스 이베이 경매 낙찰가·낙찰률 | opboxindex";
-  const desc = `원피스 이베이 경매 실제 낙찰가와 낙찰률 — 카드별·주별·세트별. ${aggDays.length}일 ${cnt(totN)}건, 호가 아닌 낙찰 기준 (${DATA_DATE}).`;
+  const desc = `원피스 이베이 경매 실제 낙찰가와 낙찰률 — 카드별·주별·세트별. ${fullDays}일 ${cnt(totN)}건, 호가 아닌 낙찰 기준 (${DATA_DATE}).`;
 
   return `<!doctype html>
 <html lang="ko">
@@ -653,7 +514,9 @@ ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이
       .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
       .col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
       .col i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
-      .col.now i { background: rgba(var(--accent-rgb), .38); }
+      .col.part i { background: rgba(var(--accent-rgb), .38); }   /* 7일을 다 세지 못한 주(진행 중·빠진 날) — 영문판·TCG 와 같은 규칙 */
+      .lg { display: inline-flex; align-items: center; gap: 6px; }
+      .lg .sw { display: inline-block; width: 10px; height: 12px; border-radius: 2px 2px 0 0; background: rgba(var(--accent-rgb), .38); }
       .col:hover i { background: var(--ink); }
       .col .v { position: absolute; left: -8px; right: -8px; bottom: calc(var(--h) + 3px); text-align: center; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
       .wkAxis { display: flex; justify-content: space-between; margin: 6px 0 0 34px; color: var(--muted); font-size: 12px; }
@@ -718,7 +581,7 @@ ${koHeadTags({ file: "auction.html", title, desc, breadcrumbName: "원피스 이
       <section id="trend">
         <div class="secHead"><h2>주별 낙찰률</h2><span class="nt">${esc(wkRange)}</span></div>
         <div class="wk">
-          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt">연한 막대 = 이번 주(진행 중)</span></div>
+          <div class="wkHead"><span>종료 경매 중 낙찰 비율</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span>흐린 막대 = 7일을 다 세지 못한 주</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>${WK_TOP}%</span></div>
             <div class="guide" style="bottom:50%"><span>${WK_TOP / 2}%</span></div>
@@ -745,7 +608,7 @@ ${kindTr}
       </section>
 
       <section id="sets">
-        <div class="secHead"><h2>세트별, 최근 ${SET_DAYS}일</h2><span class="nt">${setStats.window && setStats.window.from ? `${esc(md(setStats.window.from))}–${esc(md(setStats.window.to))}` : ""}</span></div>
+        <div class="secHead"><h2>세트별 · 최근 ${setWindow.days}일</h2><span class="nt">${setWindow.from ? `${esc(md(setWindow.from))}–${esc(md(setWindow.to))}` : ""}</span></div>
         <div class="scroll narrow">
           <table class="t">
             <thead><tr><th class="l">세트</th><th>종료</th><th>낙찰률</th><th>중앙 낙찰가</th></tr></thead>
@@ -970,8 +833,11 @@ for (const [f, html] of out) fs.writeFileSync(path.join(ROOT, "ko", f), html, "u
     const lmClose = at < 0 ? -1 : sm.indexOf("</lastmod>", at);
     const urlEnd = at < 0 ? -1 : sm.indexOf("</url>", at);
     if (lmOpen > at && lmClose > lmOpen && lmClose < urlEnd) {
-      sm = sm.slice(0, lmOpen) + "<lastmod>" + DATA_DATE + sm.slice(lmClose);
-      touched++; continue;
+      // 앞으로만 옮긴다(sync-sitemap-lastmod 와 같은 규칙) — 2026-10-13: 데이터 기준일(10-12)이 이미 적힌 10-13 을
+      // 덮어써 ko/cards·grading·auction 의 lastmod 가 뒤로 갔다.
+      const cur = sm.slice(lmOpen + "<lastmod>".length, lmClose).trim();
+      if (!(cur >= DATA_DATE)) { sm = sm.slice(0, lmOpen) + "<lastmod>" + DATA_DATE + sm.slice(lmClose); touched++; }
+      continue;
     }
     sm = sm.replace("</urlset>", `  <url>${NL}    <loc>${loc}</loc>${NL}    <lastmod>${DATA_DATE}</lastmod>${NL}    <changefreq>daily</changefreq>${NL}    <priority>0.8</priority>${NL}  </url>${NL}</urlset>`);
     added++;

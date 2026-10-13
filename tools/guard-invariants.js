@@ -14,7 +14,10 @@ const path = require("path");
 const { spawnSync } = require("child_process");
 const ROOT = path.join(__dirname, "..");
 const errors = [];
-const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
+// 경고 — 배포를 막지 않고 결과 JSON 에만 남긴다(2026-10-13, A5 의 at 누락). 형식은 "코드(경고) …" —
+// 워크플로가 실패 로그에서 오류를 뽑는 패턴("A5: …")에 걸리지 않게 콜론을 코드 바로 뒤에 두지 않는다.
+const warnings = [];
+const read =(p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 const exists = (p) => fs.existsSync(path.join(ROOT, p));
 
 function walkHtml(dirs) {
@@ -874,6 +877,60 @@ if (exists("data/auction-card-stats.json")) {
               errors.push(`A3: ${scope} ${r.d} ${k} 물량(${g.live})이 일봉 최대(${dailyMax})를 넘음 — 평균이 아니라 합으로 집계된 듯`);
             }
           }
+        }
+      }
+    }
+  }
+}
+
+// ── A5. TCG 스냅샷 시각(at)과 다른 시각 표본일(offHour) — 2026-10-13 신설.
+//    감시 표본은 스냅샷 때 고른 "종료 임박 순" 경매라 낙찰률이 찍은 시각을 탄다(10/8~10/10 07:18~07:19 UTC 12.3~22.9% vs 표준일 최저 25.6%).
+//    tcg-auction.html 은 offHour 날 표본을 비교값에서 뺀다. 오류로 막는 것은 series 표시가 스냅샷 at 과 표준 시각
+//    (tcg-config TCG_SNAPSHOT_STD_HOURS)에서 그대로 나오지 않는 경우뿐이다 — 어긋나면 낮은 날이 조용히 비교에 다시 섞이거나
+//    멀쩡한 날이 빠진다. 화면은 여기서 보지 않는다 — collect-tcg 는 series 만 굽고 페이지는 다른 워크플로가 굽는다.
+//    at 이 없는 점은 경고만 한다(2026-10-13 QA): 이 가드는 collect-tcg·settle-auctions·collect-grading·collect-auction-market 에서도
+//    커밋 전에 돈다. 날짜를 박아 오류로 막으면, 옛 수집기가 at 없이 커밋한 점 하나에 모든 수집·배포가 멈추고 30시간 시한을
+//    넘긴 정산분이 영구 공백이 된다. at 이 없는 날은 offHour 를 표시하지 않으므로(build-tcg-series) 숫자가 틀어지지는 않는다.
+{
+  const { TCG_SNAPSHOT_STD_HOURS: STD } = require("./tcg-config");
+  const { isoWeek } = require("./build-tcg-series");
+  const AT_SINCE = "2026-10-14";   // 수집기가 at 을 쓰기 시작한 다음 날. 그 전 점은 git 이력에서 채웠다 — 이후 누락만 경고한다.
+  if (exists("data/tcg-snapshot.json")) {
+    const snap = JSON.parse(read("data/tcg-snapshot.json"));
+    const atOf = new Map();
+    for (const p of snap.points || []) {
+      if (p.at == null) {
+        if (p.d >= AT_SINCE) warnings.push(`A5(경고) tcg-snapshot ${p.d} 점에 at(찍은 시각) 없음 — 그날은 다른 시각 표본일을 가리지 못한다`);
+        continue;
+      }
+      const t = Date.parse(p.at);
+      const dayStart = Date.parse(`${p.d}T00:00:00Z`);
+      // 그날 안이어야 한다. 자정 직전에 시작한 실행이 넘어가는 몫으로 1시간만 더 준다.
+      if (!Number.isFinite(t) || t < dayStart || t >= dayStart + 25 * 3600 * 1000) {
+        errors.push(`A5: tcg-snapshot ${p.d} at(${p.at}) 이 그날 시각이 아님`);
+        continue;
+      }
+      atOf.set(p.d, t);
+    }
+    if (exists("data/tcg-series.json")) {
+      const S = JSON.parse(read("data/tcg-series.json"));
+      const off = [];
+      for (const r of S.daily || []) {
+        const t = atOf.get(r.d);
+        const h = t == null ? null : new Date(t).getUTCHours();
+        const want = h != null && (h < STD.from || h >= STD.to);   // at 이 없는 날은 표시하지 않는다
+        if ("offHour" in r && r.offHour !== true) errors.push(`A5: tcg-series daily ${r.d} offHour=${JSON.stringify(r.offHour)} — 표준 시각 날은 필드를 두지 않는다`);
+        if ((r.offHour === true) !== want) {
+          errors.push(`A5: tcg-series daily ${r.d} offHour=${r.offHour === true} 인데 스냅샷 시각 ${t == null ? "없음" : new Date(t).toISOString().slice(11, 16) + " UTC"} → ${want} — build-tcg-series 재실행 필요`);
+        }
+        if (r.offHour === true) off.push(r.d);
+      }
+      // 주·월 offHourDays = 그 기간의 daily offHour 일수(합계 필드는 그대로 — 표시만 더한다)
+      for (const [scope, keyOf] of [["weekly", isoWeek], ["monthly", (d) => `${d.slice(0, 7)}-01`]]) {
+        for (const r of S[scope] || []) {
+          const n = off.filter((d) => keyOf(d) === r.d).length;
+          // 필드가 없는 옛 series(표시가 하나도 없던 때)는 0 으로 본다 — 표시할 날이 생겼는데 0 이면 그때 걸린다.
+          if ((r.offHourDays ?? 0) !== n) errors.push(`A5: tcg-series ${scope} ${r.d} offHourDays=${r.offHourDays} ≠ daily 표시 ${n}일`);
         }
       }
     }
@@ -1915,7 +1972,7 @@ for (const test of [
 }
 
 if (errors.length) {
-  console.error(JSON.stringify({ guard: "FAIL", errors }, null, 2));
+  console.error(JSON.stringify({ guard: "FAIL", errors, ...(warnings.length ? { warnings } : {}) }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, ...(warnings.length ? { warnings } : {}), checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "A5", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2"] }));

@@ -250,7 +250,7 @@ function auctionSection(code) {
   const a = SET_AUCTION.sets?.[code]?.byEd?.en;
   if (!a || a.ended < 30) return "";
   const w = SET_AUCTION.window || {};
-  const catName = { card: "single cards", box: "sealed boxes", pack: "loose packs", graded: "graded slabs", lot: "multi-card lots" };
+  const catName = { card: "single cards", box: "sealed boxes", pack: "loose packs", graded: "graded slabs", lot: "multi-card lots", carton: "sealed cases" };
   const cats = Object.entries(a.byCat || {}).sort((x, y) => y[1].ended - x[1].ended).slice(0, 5);
   const rows = cats.map(([k, v]) => `<tr><td>${esc(catName[k] || k)}</td><td class="num">${intl(v.ended)}</td><td class="num">${intl(v.sold)}</td><td class="num">${v.sellThrough}%</td></tr>`).join("\n            ");
   const total = `<tr><td><strong>All English ${code} auctions</strong></td><td class="num"><strong>${intl(a.ended)}</strong></td><td class="num"><strong>${intl(a.sold)}</strong></td><td class="num"><strong>${a.sellThrough != null ? `${a.sellThrough}%` : "—"}</strong></td></tr>`;
@@ -258,14 +258,14 @@ function auctionSection(code) {
       <h2>English ${code} cards at eBay auction — last ${w.days || 30} days</h2>
       <div class="chaseTableWrap">
         <table class="chaseTable">
-          <thead><tr><th>Listing type</th><th>Ended</th><th>Sold</th><th>Sell-through</th></tr></thead>
+          <thead><tr><th>Listing type</th><th>Closed</th><th>Sold</th><th>Sell rate</th></tr></thead>
           <tbody>
             ${rows}
             ${total}
           </tbody>
         </table>
       </div>
-      <p class="priceNote">Auctions carrying English-printing ${code} items, ${esc(w.from || "")} to ${esc(w.to || "")}, every one read again after it closed.${a.medPrice != null ? ` Median winning bid ${usd(a.medPrice)}.` : ""} Sell-through counts only auctions whose outcome eBay reported; unsold auctions stay in the denominator. Buy-it-now listings are not included.</p>`;
+      <p class="priceNote">${[w.from && w.to ? `${esc(w.from)} – ${esc(w.to)}` : "", a.medPrice != null ? `Median sold price ${usd(a.medPrice)}` : "", "Sell rate = share of closed auctions that sold", "Buy-it-now not included"].filter(Boolean).join(" · ")}</p>`;
 }
 
 // FAQ — 화면과 JSON-LD 가 같은 문답을 써야 한다(가드 L2). 값은 전부 원장에서, 판단 문장은 없다.
@@ -347,7 +347,7 @@ const PAGE_CSS = `      .setHero { display: flex; gap: 18px; align-items: flex-s
       .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
 ${BUY_CTA_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
-      .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      .affNote { margin-top: 16px; color: var(--muted); font-size: 11.5px; opacity: .8; }
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 760px; }
       .affTop b { color: inherit; font-weight: 600; }
       .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
@@ -375,7 +375,7 @@ ${BUY_CTA_CSS}
       .chaseTable { width: 100%; border-collapse: collapse; font-size: 14px; }
       .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .chaseTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
-      .chaseTable .psaKind { color: var(--muted); font-size: 11px; }
+      .chaseTable .psaKind { color: var(--muted); font-size: 11.5px; }
       .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }`;
 

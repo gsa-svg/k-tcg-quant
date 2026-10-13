@@ -10,8 +10,8 @@
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261008font" />
-    <script defer src="lang-toggle.js?v=20261008font"></script>
+    <link rel="stylesheet" href="styles.css?v=20261013qa" />
+    <script defer src="lang-toggle.js?v=20261013qa"></script>
     <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
          그때 요청하면 스크립트 받는 시간만큼 첫 표가 늦게 뜬다(로컬 실측 222ms → 125ms).
          rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
@@ -21,7 +21,7 @@
       // 느린 폰에서 그만큼 그리기가 늦어진다(라이트하우스 실측). load 뒤에 받고, 받으면 packs.js 가 같은 화면을 다시 그린다.
       window.__opPackData = new Promise(function (resolve) {
         var go = function () {
-          resolve(fetch("data/onepiece-packs.json?v=20261008font", { cache: "default", priority: "low" })
+          resolve(fetch("data/onepiece-packs.json?v=20261013qa", { cache: "default", priority: "low" })
             .then(function (r) { return r.ok ? r.json() : null; })
             .catch(function () { return null; }));
         };
@@ -1081,7 +1081,7 @@
     <link rel="alternate" type="application/rss+xml" title="OP Box Index articles" href="https://opboxindex.com/feed.xml" />
   </head>
   <body>
-    <a class="skipLink" href="#main-content">Skip to main content</a>
+    <a class="skipLink" href="#main-content" data-ko="본문 바로가기">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./">
         <span class="brandMark" aria-hidden="true">OP</span>
@@ -1161,13 +1161,13 @@
         <div id="detail"><p class="detailLoading">Loading set details…</p></div>
         <!-- HOME_SUMMARY:START -->
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
-          <h2>Japanese booster box prices — all 22 sets <small>data 2026-10-12 · each row dated by its last sale</small></h2>
-          <p>$79 (OP-08) – $299 (OP-01), median of completed eBay sales, updated daily. <strong>5</strong> up · <strong>11</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all 22 sets →</strong></a></p>
+          <h2><span data-ko="일본판 부스터 박스 시세 — 전체 22개 세트">Japanese booster box prices — all 22 sets</span> <small data-ko="데이터 2026-10-12 · 행마다 마지막 거래 기준">data 2026-10-12 · each row dated by its last sale</small></h2>
+          <p data-ko-html="$79 (OP-08) – $299 (OP-01), eBay 실거래 중앙값, 매일 갱신. 4주간 &lt;strong&gt;5&lt;/strong&gt; 상승 · &lt;strong&gt;11&lt;/strong&gt; 하락. &lt;a href=&quot;box-prices.html&quot;&gt;&lt;strong&gt;전체 표 — 22개 세트 →&lt;/strong&gt;&lt;/a&gt;">$79 (OP-08) – $299 (OP-01), median of completed eBay sales, updated daily. <strong>5</strong> up · <strong>11</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all 22 sets →</strong></a></p>
           <details class="homeCollapse">
-          <summary>Quick table (same data as the full page)</summary>
+          <summary data-ko="빠른 표(전체 페이지와 같은 데이터)">Quick table (same data as the full page)</summary>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
-            <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Last sale</th><th>4-wk change</th></tr></thead>
+            <thead><tr><th data-ko="세트">Set</th><th data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th data-ko="마지막 거래">Last sale</th><th data-ko="4주 등락">4-wk change</th></tr></thead>
             <tbody>
 <tr><td><a href="sets/op-01.html">OP-01</a></td><td>Romance Dawn<small class="rowLinks"> · <a href="sets/op-01-english.html" title="English OP-01 box price">EN box</a> · <a href="cards/op01-120-shanks-parallel-manga-alternate-art.html" title="Shanks Parallel Manga Alternate Art price">Shanks Parallel Manga Alternate Art</a></small></td><td class="num">$299</td><td class="num when">10-04<small> n=13</small></td><td class="num down">-1%</td></tr>
 <tr class="stale"><td><a href="sets/op-02.html">OP-02</a></td><td>Paramount War<small class="rowLinks"> · <a href="sets/op-02-english.html" title="English OP-02 box price">EN box</a> · <a href="cards/op02-013-portgas-d-ace-parallel-manga-alternate-art.html" title="Portgas D. Ace Parallel Manga Alternate Art price">Portgas D. Ace Parallel Manga Alternate Art</a></small></td><td class="num">$147</td><td class="num when" title="Last completed sale 2026-07-07 — no sales in the last 28 days">07-07<small> n=6</small></td><td class="num ">—</td></tr>
@@ -1195,7 +1195,7 @@
           </table>
           </div>
           </details>
-          <p class="note"><a href="free-data.html">Citable data (JSON/CSV)</a> · <a href="psa-grading.html">Grading population</a> · <a href="auction.html">Auctions</a> · <a href="ko/">한국어 시세</a></p>
+          <p class="note"><a href="free-data.html" data-ko="인용용 데이터(JSON/CSV)">Citable data (JSON/CSV)</a> · <a href="psa-grading.html" data-ko="그레이딩 통계">Grading population</a> · <a href="auction.html" data-ko="경매">Auctions</a> · <a href="ko/">한국어 시세</a></p>
         </section>
         
         <section class="homeFaqWrap" aria-label="Frequently asked questions">
@@ -1288,23 +1288,23 @@
     </main>
 
     <footer class="footer">
-      <nav class="guideLinks" aria-label="Price guides" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">Price guides:</span> <a href="/">Booster boxes</a> · <a href="/weekly.html">This week</a> · <a href="/sets/index.html">Set guides</a> · <a href="/sets/op-18.html">OP-18 release date</a> · <a href="/sets/eb-05.html">EB-05 release date</a> · <a href="/articles/one-piece-set-list-release-dates.html">Release dates</a> · <a href="/box-prices.html">All box prices</a> · <a href="/cards/">Card prices</a> · <a href="/psa10-ranking.html">Top PSA 10</a> · <a href="/psa-grading.html">Grading population</a> · <a href="/compare.html">Compare sets</a> · <a href="/free-data.html">Free data</a> · <a href="/ko/">한국어</a></nav>
+      <nav class="guideLinks" aria-label="Price guides" style="display:block;margin:0 0 14px;font-size:13px;line-height:1.9;color:var(--muted);"><span style="font-weight:700;" data-ko="가격 가이드:">Price guides:</span> <span style="white-space:nowrap;"><a href="/" data-ko="부스터 박스">Booster boxes</a> ·</span> <span style="white-space:nowrap;"><a href="/weekly.html" data-ko="이번 주">This week</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html" data-ko="세트 가이드">Set guides</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/op-18.html" data-ko="OP-18 발매일">OP-18 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/eb-05.html" data-ko="EB-05 발매일">EB-05 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/one-piece-set-list-release-dates.html" data-ko="발매일 목록">Release dates</a> ·</span> <span style="white-space:nowrap;"><a href="/box-prices.html" data-ko="전체 박스 시세">All box prices</a> ·</span> <span style="white-space:nowrap;"><a href="/cards/" data-ko="카드 시세">Card prices</a> ·</span> <span style="white-space:nowrap;"><a href="/psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a> ·</span> <span style="white-space:nowrap;"><a href="/psa-grading.html" data-ko="그레이딩 통계">Grading population</a> ·</span> <span style="white-space:nowrap;"><a href="/compare.html" data-ko="세트 비교">Compare sets</a> ·</span> <span style="white-space:nowrap;"><a href="/free-data.html" data-ko="무료 데이터">Free data</a> ·</span> <span style="white-space:nowrap;"><a href="/ko/">한국어</a></span></nav>
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <p class="affDisclosure">Paid Link: As an eBay Partner, OP Box Index may earn a commission from qualifying purchases made through eBay links, at no extra cost to you.</p>
       <nav aria-label="Footer navigation">
-        <a href="sets/index.html">Set Guides</a>
-        <a href="psa10-ranking.html">Top PSA 10</a>
+        <a href="sets/index.html" data-ko="세트 가이드">Set Guides</a>
+        <a href="psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a>
         <a href="ko/">한국어 시세</a>
         <a href="https://www.threads.com/@opboxindex" rel="me noopener" target="_blank">Threads</a>
-        <a href="about.html">About</a>
-        <a href="methodology.html">Methodology</a><a href="free-data.html">Free data (CSV)</a><a href="privacy.html">Privacy</a>
-        <a href="disclaimer.html">Disclaimer</a>
+        <a href="about.html" data-ko="소개">About</a>
+        <a href="methodology.html" data-ko="집계 방법">Methodology</a><a href="free-data.html" data-ko="무료 데이터(CSV)">Free data (CSV)</a><a href="privacy.html" data-ko="개인정보처리방침">Privacy</a>
+        <a href="disclaimer.html" data-ko="면책 고지">Disclaimer</a>
       </nav>
     </footer>
 
     <!-- 2026-10-08: 화면 JS(box-chart·packs)는 load 뒤에 끼운다. 첫 화면은 정적 선렌더라 JS 가 그리기 전에 필요 없는데,
          defer 로 두면 첫 그리기 전에 받자마자 실행돼(느린 폰 CPU 4배 기준 1초+) 첫 글자가 그만큼 늦게 떴다(라이트하우스 실측).
          ?v= 는 packs.js 의 DATA_VERSION 과 같아야 한다(가드 V1). -->
-    <script data-home-js>(function(){function go(){["packs.js?v=20261008font"].forEach(function(src){var e=document.createElement("script");e.src=src;e.async=false;document.body.appendChild(e);});}if(document.readyState==="complete")setTimeout(go,0);else window.addEventListener("load",function(){setTimeout(go,0);});})();</script>
+    <script data-home-js>(function(){function go(){["packs.js?v=20261013qa"].forEach(function(src){var e=document.createElement("script");e.src=src;e.async=false;document.body.appendChild(e);});}if(document.readyState==="complete")setTimeout(go,0);else window.addEventListener("load",function(){setTimeout(go,0);});})();</script>
   </body>
 </html>

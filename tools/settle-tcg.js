@@ -141,6 +141,10 @@ async function getItem(tok, id) {
       title: (it.title || "").slice(0, 120) || undefined,
       // 남는 쿼터로 더 읽은 여유분(topup-tcg-watch.js · 전 게임 배분). 표본 250 과 나눠 볼 수 있게 남긴다.
       extra: p.extra ? true : undefined,
+      // 표본일(UTC) — 감시 목록에 넣은 날(스냅샷·여유분의 seen). 2026-10-14 부터 적는다. 원장 날짜는 종료일이라
+      // 표본을 뽑은 날과 1:1 로 맞지 않는다(10/8~10/10 표본의 18~22% 가 다음 날 원장으로 넘어갔다). 다른 시각에 뽑은
+      // 날(tcg-series offHour)의 표본을 정확히 빼려면 이 값이 필요하다. 그 전 행은 없다 — 원장은 고치지 않는다.
+      seen: typeof p.seen === "string" ? p.seen : undefined,
     });
   }
 

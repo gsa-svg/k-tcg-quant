@@ -12,6 +12,7 @@
 //   2) 스텝 리스트의 들여쓰기가 파일 안에서 섞임 (위 사고의 정확한 형태)
 //   3) 최상위 필수 키 존재 (name / on / jobs)
 //   4) run: 블록 스칼라 안이 아닌 곳에서 이어지는 명령 (앵커가 밀린 흔적)
+//   5) 세트별 경매 집계가 그 파일을 읽는 생성기보다 먼저 도는가 (2026-10-13 하루 지연 사고)
 //
 // Run: node tools/audit-workflows.js [--json]
 const fs = require("node:fs");
@@ -20,6 +21,17 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "..");
 const DIR = path.join(ROOT, ".github", "workflows");
 const problems = [], notes = [];
+
+// 5) 준비: data/set-auction-stats.json 을 읽는 도구 — 이름이 소스에 있거나, 그런 모듈을 require 하는 도구.
+//    (generate-ai-extras.js 는 ai-data-extras.js 를 거쳐 읽는다.)
+const AGG = "build-set-auction-stats.js", AGG_OUT = "set-auction-stats.json";
+const TOOLS = path.join(ROOT, "tools");
+const toolSrc = new Map(fs.existsSync(TOOLS)
+  ? fs.readdirSync(TOOLS).filter((f) => f.endsWith(".js")).map((f) => [f, fs.readFileSync(path.join(TOOLS, f), "utf8")])
+  : []);
+const mentions = (f) => (toolSrc.get(f) || "").includes(AGG_OUT);
+const aggReaders = new Set([...toolSrc.keys()].filter((f) => f !== AGG && f !== path.basename(__filename) && (mentions(f)
+  || [...toolSrc.get(f).matchAll(/require\("\.\/([\w-]+?)(?:\.js)?"\)/g)].some((m) => mentions(`${m[1]}.js`)))));
 
 if (!fs.existsSync(DIR)) {
   console.log(JSON.stringify({ audit: "NO_WORKFLOWS", problems: [], notes: ["워크플로 디렉터리 없음"] }));
@@ -67,6 +79,20 @@ for (const file of fs.readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f))) {
       problems.push(`${file}:${i + 1} run: 한 줄짜리인데 다음 줄이 이어진다 — 블록(|)으로 바꾸거나 한 줄로 합칠 것`);
     }
   });
+
+  // 5) 집계를 돌리는 워크플로에서 k번째로 읽는 실행은 k번째 집계 뒤여야 한다(본 단계·rebase 후 재생성 두 묶음).
+  //    집계를 안 돌리는 워크플로(update-market-data)는 커밋된 파일을 그대로 쓰므로 대상 아님.
+  const calls = lines.filter((l) => !/^\s*#/.test(l)).flatMap((l) => [...l.matchAll(/node tools\/([\w-]+\.js)/g)].map((m) => m[1]));
+  const aggAt = calls.flatMap((c, i) => (c === AGG ? [i] : []));
+  if (aggAt.length) {
+    const seen = new Map();
+    calls.forEach((c, i) => {
+      if (!aggReaders.has(c)) return;
+      const k = seen.get(c) || 0;
+      seen.set(c, k + 1);
+      if (!(aggAt[k] < i)) problems.push(`${file}: ${c} 의 ${k + 1}번째 실행이 ${AGG} 보다 먼저다 — 화면이 하루 묵은 data/${AGG_OUT} 를 싣는다`);
+    });
+  }
 
   notes.push(`${file}: 스텝 ${[...stepIndents.values()].reduce((a, b) => a + b.length, 0)}개`);
 }

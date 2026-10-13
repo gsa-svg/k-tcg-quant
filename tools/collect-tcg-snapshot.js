@@ -228,13 +228,15 @@ const { remaining, settleBudget } = require("./ebay-budget");
 
   const prev = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : { points: [] };
   // 하루 한 줄. 같은 날 다시 돌면 덮어쓴다(하루가 지나면 다시 쓰지 않는다).
-  const points = prev.points.filter((p) => p.d !== day).concat([{ d: day, games }]);
+  // at = 이 점을 찍은 시각(UTC) — 2026-10-13 추가. 감시 표본이 "이 시각 직후 끝나는 경매"라 낙찰률이 시각을 탄다
+  // (tcg-config TCG_SNAPSHOT_STD_HOURS). 그 전 점의 at 은 git 이력의 updated 로 채웠다. 가드 A5 가 10/14 이후 필수로 본다.
+  const points = prev.points.filter((p) => p.d !== day).concat([{ d: day, at: new Date().toISOString(), games }]);
   points.sort((a, b) => a.d.localeCompare(b.d));
   const cut = new Date(Date.now() - KEEP_DAYS * 86400000).toISOString().slice(0, 10);
 
   fs.writeFileSync(OUT, `${JSON.stringify({
     basis: "Live eBay auction listings by trading card game, sampled once a day",
-    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 1,000 listings ending soonest (every game is sampled the same way): withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms of use: https://opboxindex.com/free-data.html#terms",
+    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 1,000 listings ending soonest (every game is sampled the same way): withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. at is when that day's point was taken (UTC); the settled sample is the auctions ending soonest at that moment, so it depends on the hour. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms of use: https://opboxindex.com/free-data.html#terms",
     marketplace: marketplaceId,
     sampleSize: SAMPLE,
     terms: Object.fromEntries(TCGS.map((g, i) => [g.k, { name: g.nm, query: g.q, order: i }])),

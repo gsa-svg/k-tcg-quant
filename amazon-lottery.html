@@ -36,8 +36,8 @@
     <title>Amazon Japan One Piece & Pokemon Raffle From Overseas</title>
     <meta name="description" content="How Amazon.co.jp invite-only TCG sales work, whether you can request one from outside Japan, and what gates delivery. Live list of open raffles." />
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261008font" />
-    <script defer src="lang-toggle.js?v=20261008font"></script>
+    <link rel="stylesheet" href="styles.css?v=20261013qa" />
+    <script defer src="lang-toggle.js?v=20261013qa"></script>
     <style>
       main { max-width: 1180px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 28px) 44px; }
       .lotteryListHead {
@@ -207,7 +207,7 @@
     <link rel="manifest" href="/site.webmanifest" />
   </head>
   <body>
-    <a class="skipLink" href="#main-content">Skip to main content</a>
+    <a class="skipLink" href="#main-content" data-ko="본문 바로가기">Skip to main content</a>
     <header class="topbar">
       <a class="brand" href="./" aria-label="OP Box Index home" data-nav>
         <span class="brandMark">OP</span>
@@ -216,7 +216,7 @@
           <small data-ko="원피스 부스터팩 리서치">One Piece Booster Box Research</small>
         </span>
       </a>
-      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="원피스 부스터 박스">One Piece Booster Boxes</a><a href="auction.html" data-ko="원피스 이베이 경매">One Piece eBay Auctions</a><a href="tcg-auction.html" data-ko="TCG 경매">TCG Auctions</a><a href="psa-grading.html" data-ko="원피스 그레이딩 통계">One Piece Grading</a><a href="amazon-lottery.html" aria-current="page" data-ko="일본 아마존 응모">Amazon Japan Raffle</a></nav>
+      <nav class="nav" aria-label="Primary navigation"><a href="./" data-ko="원피스 부스터 박스">One Piece Booster Boxes</a><a href="auction.html" data-ko="원피스 이베이 경매">One Piece eBay Auctions</a><a href="tcg-auction.html" data-ko="TCG 경매">TCG Auctions</a><a href="psa-grading.html" data-ko="원피스 그레이딩 통계">One Piece Grading</a><a href="amazon-lottery.html" aria-current="page" data-ko="일본 아마존 응모">Amazon Japan Raffle</a><script>(function(n){function f(){var a=n.querySelector('[aria-current="page"]');if(!a||n.scrollWidth<=n.clientWidth)return;var r=n.getBoundingClientRect(),b=a.getBoundingClientRect();if(b.left<r.left||b.right>r.right-36)n.scrollLeft+=b.left+b.width/2-r.left-r.width/2;}f();document.addEventListener("DOMContentLoaded",f);})(document.currentScript.parentNode)</script></nav>
     </header>
 
     <main id="main-content">
@@ -342,9 +342,9 @@
     </main>
 
     <footer class="footer">
-      <nav class="guideLinks" aria-label="Price guides" style="margin:0 0 14px;font-size:13px;line-height:1.9;color:#7d8698;"><span style="color:#9aa4b6;font-weight:700;">Price guides:</span> <a href="/">Booster boxes</a> · <a href="/weekly.html">This week</a> · <a href="/sets/index.html">Set guides</a> · <a href="/sets/op-18.html">OP-18 release date</a> · <a href="/sets/eb-05.html">EB-05 release date</a> · <a href="/articles/one-piece-set-list-release-dates.html">Release dates</a> · <a href="/box-prices.html">All box prices</a> · <a href="/cards/">Card prices</a> · <a href="/psa10-ranking.html">Top PSA 10</a> · <a href="/psa-grading.html">Grading population</a> · <a href="/compare.html">Compare sets</a> · <a href="/free-data.html">Free data</a> · <a href="/ko/">한국어</a></nav>
+      <nav class="guideLinks" aria-label="Price guides" style="display:block;margin:0 0 14px;font-size:13px;line-height:1.9;color:var(--muted);"><span style="font-weight:700;" data-ko="가격 가이드:">Price guides:</span> <span style="white-space:nowrap;"><a href="/" data-ko="부스터 박스">Booster boxes</a> ·</span> <span style="white-space:nowrap;"><a href="/weekly.html" data-ko="이번 주">This week</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html" data-ko="세트 가이드">Set guides</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/op-18.html" data-ko="OP-18 발매일">OP-18 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/eb-05.html" data-ko="EB-05 발매일">EB-05 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/one-piece-set-list-release-dates.html" data-ko="발매일 목록">Release dates</a> ·</span> <span style="white-space:nowrap;"><a href="/box-prices.html" data-ko="전체 박스 시세">All box prices</a> ·</span> <span style="white-space:nowrap;"><a href="/cards/" data-ko="카드 시세">Card prices</a> ·</span> <span style="white-space:nowrap;"><a href="/psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a> ·</span> <span style="white-space:nowrap;"><a href="/psa-grading.html" data-ko="그레이딩 통계">Grading population</a> ·</span> <span style="white-space:nowrap;"><a href="/compare.html" data-ko="세트 비교">Compare sets</a> ·</span> <span style="white-space:nowrap;"><a href="/free-data.html" data-ko="무료 데이터">Free data</a> ·</span> <span style="white-space:nowrap;"><a href="/ko/">한국어</a></span></nav>
       <p>OP Box Index is an independent data-research site. Amazon invite availability and shipping eligibility can change.</p>
-      <nav aria-label="Footer navigation"><a href="about.html">About</a><a href="methodology.html">Methodology</a><a href="privacy.html">Privacy</a><a href="disclaimer.html">Disclaimer</a></nav>
+      <nav aria-label="Footer navigation"><a href="about.html" data-ko="소개">About</a><a href="methodology.html" data-ko="집계 방법">Methodology</a><a href="privacy.html" data-ko="개인정보처리방침">Privacy</a><a href="disclaimer.html" data-ko="면책 고지">Disclaimer</a></nav>
     </footer>
 
     <script>

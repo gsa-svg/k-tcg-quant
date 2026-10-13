@@ -11,9 +11,15 @@
 // 변형(variants)에는 2026-10-13 부터 이상치 표식이 붙는다:
 //   contestedSold=입찰자 2명 이상 낙찰 수, medPriceContested=그 중앙값,
 //   psa10Sold/psa10Med=같은 번호·판·변형의 PSA 10 낙찰(3건 이상일 때만),
-//   suspect=true ⇔ contestedSold<3 이거나 medPrice>2×psa10Med.
+//   suspect=true ⇔ contestedSold<3 이거나 medPrice>2×psa10Med 이거나 high/low(가운데 절반 구간 양끝)>10.
 //   왜: 변형 중앙가 1위에 "입찰 1회짜리 3건 $9,989, 같은 카드 PSA 10 은 $124" 같은 오분류가 올라왔다.
+//   2026-10-13: 가운데 절반 구간이 10배를 넘는 변형 — 값이 두 덩어리로 갈린 것(다른 변형·다른 물건이 같은 키로 섞임).
+//   OP15-108 Base EN 낙찰 $0.99·$1.73·$1,150·$1,865, OP16-032 Base JP $0.99~$2.99 와 $1,015~$1,075. 그런 중앙값은
+//   어느 쪽 물건의 값도 아니다. 생카드 단일 변형은 45일 동안 가운데 절반이 10배 넘게 벌어지지 않는다(실측 p90 6.2배,
+//   그 위는 위 같은 섞임이 대부분). 이 규칙은 가격판 상위 20(최고가·최다 낙찰)에서 그런 세 행만 빠지게 했다.
 //   값을 지우지 않고 표식만 단다 — 화면이 가려서 보여주거나 순위에서 뺀다.
+// 중앙값은 실제 관측값이다(2026-10-13): 짝수 개면 가운데 둘 중 아래 값. 가운데 둘의 평균은 아무도 낸 적 없는 값이 된다
+//   ($1.25 와 $1,015.75 의 평균 $508.50 이 최고가 순위에 올랐다 — 규칙 "추정 금지").
 // 개별 낙찰기록은 아카이브가 원장이므로 여기선 파생 집계만 저장한다.
 //
 // 원칙: 조작 없음. 낙찰가는 sold=true + 유효 개당가만. 표본 얇은 카드(sold<MIN)는 담지 않는다(빈 값이 틀린 값보다 낫다).
@@ -38,8 +44,10 @@ const LAST_N = 5;            // 카드별 최근 낙찰 표시 개수
 const MIN_PSA10 = 3;         // 같은 번호·판·변형의 PSA 10 낙찰이 이보다 적으면 비교값을 내지 않는다
 const MIN_CONTESTED = 3;     // 입찰자 2명 이상 낙찰이 이보다 적으면 중앙가를 확인된 값으로 보지 않는다
 const SUSPECT_RATIO = 2;     // 생카드 중앙가가 PSA 10 중앙가의 이 배수를 넘으면 의심
+const SPREAD_RATIO = 10;     // 가운데 절반 구간(high/low)이 이 배수를 넘으면 의심 — 두 물건이 섞인 분포
 
-const med = (a) => { const x = a.filter(Number.isFinite).sort((m, n) => m - n); if (!x.length) return null; const i = Math.floor(x.length / 2); return Number((x.length % 2 ? x[i] : (x[i - 1] + x[i]) / 2).toFixed(2)); };
+// 아래 중앙값 — 항상 실제로 있었던 값 하나(짝수 개면 가운데 둘 중 아래). 평균을 내지 않는다.
+const med = (a) => { const x = a.filter(Number.isFinite).sort((m, n) => m - n); if (!x.length) return null; return Number(x[Math.floor((x.length - 1) / 2)].toFixed(2)); };
 const q = (a, p) => { const s = a.filter(Number.isFinite).sort((m, n) => m - n); if (!s.length) return null; return Number(s[Math.min(s.length - 1, Math.max(0, Math.round(p * (s.length - 1))))].toFixed(2)); };
 // 개당 낙찰가: 새 기록은 unitPrice, 옛 기록은 price(카드는 대부분 qty=1). qty가 불명(null)인 다수량은 제외.
 const unit = (r) => ("qty" in r ? (r.qty == null ? null : r.unitPrice) : r.price);
@@ -82,20 +90,21 @@ function main() {
     const psa10 = psa10ByVariant[key] || [];
     const medPrice = med(prices);
     const psa10Med = psa10.length >= MIN_PSA10 ? med(psa10) : null;
+    const low = q(prices, 0.25), high = q(prices, 0.75);
     variants[key] = {
       n: rows.length,
       sold: soldRows.length,
       sellThrough: decided.length ? Number((decided.filter((r) => r.sold).length / decided.length * 100).toFixed(1)) : null,
       medPrice,
-      low: q(prices, 0.25),
-      high: q(prices, 0.75),
+      low,
+      high,
       last: [...soldRows].sort((a, b) => b.d.localeCompare(a.d)).slice(0, LAST_N).map((r) => ({ d: r.d, price: unit(r), bids: Number.isFinite(r.bids) ? r.bids : null })),
       ...nameOf(key.split("|")[0]),
       contestedSold: contestedRows.length,
       medPriceContested: contestedRows.length ? med(contestedRows.map(unit)) : null,
       psa10Sold: psa10.length >= MIN_PSA10 ? psa10.length : null,
       psa10Med,
-      suspect: contestedRows.length < MIN_CONTESTED || (psa10Med != null && medPrice > SUSPECT_RATIO * psa10Med),
+      suspect: contestedRows.length < MIN_CONTESTED || (psa10Med != null && medPrice > SUSPECT_RATIO * psa10Med) || (low > 0 && high / low > SPREAD_RATIO),
     };
   }
 
@@ -127,7 +136,7 @@ function main() {
     window: "rolling 45d (daily auction archive)",
     updated: new Date().toISOString(),
     cardCount: Object.keys(cards).length,
-    variantNote: "variants: key = cardNumber|print(jp/en)|variant tier read from the listing title (base/alt/super/red/sp/gold/silver/signature/boxtopper/wanted/tr); raw (ungraded) auctions only; rows with < " + MIN_SOLD + " sales omitted. contestedSold = sales with 2+ distinct bidders, medPriceContested = median of those. psa10Sold/psa10Med = PSA 10 sales of the same number, print and tier in the window (null under " + MIN_PSA10 + "). suspect = true when contestedSold < " + MIN_CONTESTED + " or medPrice > " + SUSPECT_RATIO + " × psa10Med — the price is unconfirmed, show it as such or leave it out of rankings.",
+    variantNote: "variants: key = cardNumber|print(jp/en)|variant tier read from the listing title (base/alt/super/red/sp/gold/silver/signature/boxtopper/wanted/tr); raw (ungraded) auctions only; rows with < " + MIN_SOLD + " sales omitted. contestedSold = sales with 2+ distinct bidders, medPriceContested = median of those. psa10Sold/psa10Med = PSA 10 sales of the same number, print and tier in the window (null under " + MIN_PSA10 + "). suspect = true when contestedSold < " + MIN_CONTESTED + ", medPrice > " + SUSPECT_RATIO + " × psa10Med, or high > " + SPREAD_RATIO + " × low (two different items mixed under one key) — the price is unconfirmed, show it as such or leave it out of rankings. Medians are the lower middle value, always a price that was actually paid.",
     variantCount: Object.keys(variants).length,
     suspectCount: Object.values(variants).filter((v) => v.suspect).length,
     variants,

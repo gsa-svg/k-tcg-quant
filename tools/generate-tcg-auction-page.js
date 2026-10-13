@@ -15,11 +15,20 @@
 //   ⑥ raw CSV · How we count 링크
 //
 // ── 데이터(전부 data/ 에서 파생, 추정·하드코딩 없음)
-//   data/tcg-series.json   게임 × 날짜: ended/sold(우리가 종료 후 다시 읽은 표본) + endingToday(eBay 가 알려준 실제 수)
-//   data/tcg-archive/*.json 낙찰 원장 — 중앙 낙찰가는 여기서 낙찰 건을 한 줄로 세워 자른다(일별 중앙값의 중앙값은 중앙값이 아니다)
+//   data/tcg-series.json   게임 × 날짜: endingToday(eBay 가 알려준 실제 종료 수) · offHour(다른 시각 표본일 표시)
+//   data/tcg-archive/*.json 정산 원장(종료일 파일) — 낙찰률·중앙 낙찰가는 전부 여기서 직접 센다. 중앙가는 낙찰 건을 한 줄로
+//                           세워 자른다(일별 중앙값의 중앙값은 중앙값이 아니다).
+//   진행 중인 오늘은 뺀다(2026-10-13 QA: 정산이 덜 된 반쪽 날이 7일 창에 들어갔다 — auction-page-model 과 같은 규칙).
 //   표본 하한: 낙찰률은 series.minRateSample(20) 미만이면 "—", 중앙가는 낙찰 20건 미만이면 "—".
 //   낙찰률 ± 는 95% 윌슨 구간 반폭(원피스 페이지와 같은 식).
 //   제외 게임: tcg-config EXCLUDED_TCG_KEYS(수집 중단 4종).
+//   비교값(이번 주 낙찰률·중앙가, 게임표, 주별 막대, 추이, 중앙가 막대)은 "표준 시각 표본"만 센다 — 2026-10-13:
+//   · 여유분(원장 extra:true, topup-tcg-watch)은 뺀다. 남는 쿼터로 다른 UTC 회차에 고른 종료 임박 표본이라 표준일에
+//     그대로 섞이면 낙찰률이 내려간다(직전 7일 2,210건·18%; 10/11 여유분 17.5% vs 표본 42.7%).
+//   · 다른 시각 표본일(series daily offHour — 스냅샷이 tcg-config TCG_SNAPSHOT_STD_HOURS 밖)에 고른 표본은 뺀다
+//     (10/8~10/10: 12.3·20.7·22.9%). 표본일은 원장 행의 seen(2026-10-14~), 없으면 원장 날짜로 대신한다.
+//   하루 종료 경매 수는 eBay 가 알려준 실제 수(표본 아님)라 그대로 둔다. 뺀 날이 있으면 기간 라벨에 "N days excluded",
+//   정의는 이번 주 아래 정의 줄에 한 번만 적는다.
 //   ⚠️ eBay 의 "Pokemon Card Japanese" 종료 수는 "Pokemon TCG" 안에 들어 있다(snapshot note). 합산 KPI 에서는 뺀다.
 //
 // Run: node tools/generate-tcg-auction-page.js
@@ -59,7 +68,9 @@ const MIN_PRICE_N = 20;                                                         
 const EXCLUDED = new Set(EXCLUDED_TCG_KEYS);
 const CONTAINED = new Set(["pokemonjp"]);   // eBay 종료 수가 pokemon 안에 포함 — 합산 KPI 에서 제외
 
-const days = (series.daily || []).filter((d) => d && d.d && d.games);
+// 진행 중인 오늘(UTC)은 뺀다 — 정산이 아직 도는 날이라 표본이 반쪽이다(10/13 728건 vs 평소 1,200~2,100건).
+const TODAY = new Date().toISOString().slice(0, 10);
+const days = (series.daily || []).filter((d) => d && d.d && d.games && d.d < TODAY);
 if (days.length < 3) throw new Error("TCG 시계열이 너무 짧다 — 페이지를 만들지 않는다");
 const from = days[0].d, to = days[days.length - 1].d;
 const dayMap = new Map(days.map((d) => [d.d, d]));
@@ -67,19 +78,32 @@ const names = series.games || {};
 const GAMES = TCGS.map((g) => g.k).filter((k) => !EXCLUDED.has(k) && days.some((d) => d.games[k]));
 const nameOf = (k) => (names[k] && names[k].name) || (TCGS.find((g) => g.k === k) || {}).nm || k;
 
-// ── 낙찰 원장: 날짜 → 게임 → 낙찰가[]
+// ── 표준 시각 밖에서 표본을 고른 날 — 그날 고른 표본을 비교값에서 뺀다(맨 위 주석). closing(eBay 실제 종료 수)에는 쓰지 않는다.
+const OFF = new Set(days.filter((r) => r.offHour === true).map((r) => r.d));
+const offIn = (dayList) => dayList.filter((d) => OFF.has(d)).length;
+
+// ── 정산 원장: 종료일 → 게임 → { ended, sold, prices[] } — 표준 시각 표본만(여유분·다른 시각 표본일 제외)
 const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
 const ledger = {};
+let leftExtra = 0, leftOff = 0;
 // ⚠️ 정규식의 \d 는 셸을 거치면 d 로 깨진다 — 이 파일은 Edit/Write 도구로만 고치고, 고친 뒤 \d 가 살아있는지 확인할 것.
 for (const f of fs.readdirSync(ARCHIVE).filter((x) => /^\d{4}-\d{2}-\d{2}\.json$/.test(x))) {
+  const d = f.slice(0, 10);
+  if (d >= TODAY) continue;
   const day = JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8"));
   for (const r of day.sales || []) {
-    if (!r || r.sold !== true || !Number.isFinite(r.price)) continue;
-    const d = (r.endedAt || f.slice(0, 10)).slice(0, 10);
-    ((ledger[d] = ledger[d] || {})[r.g] = ledger[d][r.g] || []).push(r.price);
+    if (!r || !r.g) continue;
+    if (r.extra) { leftExtra += 1; continue; }
+    if (OFF.has(typeof r.seen === "string" ? r.seen : d)) { leftOff += 1; continue; }
+    const b = ((ledger[d] = ledger[d] || {})[r.g] = ledger[d][r.g] || { ended: 0, sold: 0, prices: [] });
+    b.ended += 1;
+    if (r.sold !== true) continue;
+    b.sold += 1;
+    // 통화가 USD 가 아니면 가격에서 뺀다(build-tcg-series 와 같은 규칙 — 환산해 섞으면 어느 시점 환율인지 모른다).
+    if (r.currency === "USD" && Number.isFinite(r.price) && r.price > 0) b.prices.push(r.price);
   }
 }
-const pricesOf = (d, k) => (ledger[d] || {})[k] || [];
+const cellOf = (d, k) => (ledger[d] || {})[k] || null;
 
 // ── 7일 창(달력 기준). 기록이 없는 날은 row=null 로 남겨 "Some days missing" 라벨의 근거가 된다.
 const windowDays = (end, len) => Array.from({ length: len }, (_, i) => { const d = addDays(end, i - (len - 1)); return { d, row: dayMap.get(d) || null }; });
@@ -94,11 +118,10 @@ function gameStats(key, win) {
     const g = row.games[key];
     if (g) {
       present += 1;
-      ended += g.ended || 0;
-      sold += g.sold || 0;
       if (Number.isFinite(g.endingToday)) closing.push(g.endingToday);
     }
-    for (const p of pricesOf(d, key)) prices.push(p);
+    const c = cellOf(d, key);
+    if (c) { ended += c.ended; sold += c.sold; for (const p of c.prices) prices.push(p); }
   }
   return {
     ended, sold, days: present,
@@ -116,7 +139,7 @@ function totalStats(win) {
     const s = gameStats(k, win);
     ended += s.ended; sold += s.sold;
     if (!CONTAINED.has(k) && s.closing != null) { closing += s.closing; closingKnown = true; }
-    for (const { d } of win) for (const p of pricesOf(d, k)) prices.push(p);
+    for (const { d, row } of win) { const c = row && cellOf(d, k); if (c) for (const p of c.prices) prices.push(p); }
   }
   return {
     ended, sold,
@@ -127,6 +150,11 @@ function totalStats(win) {
   };
 }
 const L = totalStats(W7), P = totalStats(P7);
+// 뺀 날 수는 창마다 따로 센다 — 14일을 합쳐 적으면 직전 7일에서 뺀 날이 최근 7일에서 빠진 것처럼 읽힌다(2026-10-13 QA).
+const offLast7 = offIn(W7.map((x) => x.d)), offPrev7 = offIn(P7.map((x) => x.d));
+// 라벨은 "N days excluded" 로 짧게 — 무엇을 뺐는지(정의)는 이번 주 정의 줄에 한 번만 적는다(EXCL_DEF).
+const exclSpan = (n) => `<span data-ko="${n}일 제외">${n} day${n === 1 ? "" : "s"} excluded</span>`;
+const exclLabel = (a, b = 0) => (a ? ` · ${exclSpan(a)}` : "") + (b ? ` · <span data-ko="직전 7일 ${b}일 제외">${b} excluded in the 7 before</span>` : "");
 const dRate = L.rate != null && P.rate != null ? Math.round((L.rate - P.rate) * 10) / 10 : null;
 const dMed = L.med != null && P.med != null ? Math.round((L.med - P.med) * 100) / 100 : null;
 const dClosing = L.closing != null && P.closing != null ? Math.round(L.closing - P.closing) : null;
@@ -136,15 +164,16 @@ const someMissing = L.missing > 0 || P.missing > 0;
 const weekMap = new Map();
 for (const row of days) {
   const wk = weekKeyOf(row.d);
-  if (!weekMap.has(wk)) weekMap.set(wk, { d: wk, days: 0, ended: 0, sold: 0, games: {} });
+  if (!weekMap.has(wk)) weekMap.set(wk, { d: wk, days: 0, off: 0, ended: 0, sold: 0, games: {} });
   const w = weekMap.get(wk);
   w.days += 1;
+  if (OFF.has(row.d)) w.off += 1;   // 다른 시각 표본일 — 그날 고른 표본은 원장에서 이미 뺐다(막대는 흐리게)
   for (const k of GAMES) {
-    const g = row.games[k];
-    if (!g) continue;
+    const c = cellOf(row.d, k);
+    if (!c) continue;
     const gw = (w.games[k] = w.games[k] || { ended: 0, sold: 0 });
-    gw.ended += g.ended || 0; gw.sold += g.sold || 0;
-    w.ended += g.ended || 0; w.sold += g.sold || 0;
+    gw.ended += c.ended; gw.sold += c.sold;
+    w.ended += c.ended; w.sold += c.sold;
   }
 }
 const MAX_WEEKS = 13;
@@ -155,7 +184,13 @@ const weekInProgress = to !== addDays(currentWeek, 6);
 const allWeeks = [...weekMap.values()].sort((a, b) => a.d.localeCompare(b.d));
 if (allWeeks.length && allWeeks[0].days < 7 && allWeeks[0].d !== currentWeek) allWeeks.shift();
 const weeks = allWeeks.slice(-MAX_WEEKS);
-const weeklyTotal = visibleTrendRows(weeks.map((w) => ({ d: w.d, ended: w.ended, sold: w.sold, rate: rateOf(w.sold, w.ended), p: w.d === currentWeek && weekInProgress ? 1 : 0, m: w.days < 7 && w.d !== currentWeek ? 1 : 0 })), "rate");
+// m = 7일을 다 못 센 주(빠진 날 miss 또는 뺀 날 off) — 이번 주(p)와 같이 흐리게 그린다.
+const weeklyTotal = visibleTrendRows(weeks.map((w) => {
+  const miss = w.days < 7 && w.d !== currentWeek ? 1 : 0;
+  return { d: w.d, ended: w.ended, sold: w.sold, rate: rateOf(w.sold, w.ended), p: w.d === currentWeek && weekInProgress ? 1 : 0, miss, off: w.off, m: miss || w.off ? 1 : 0 };
+}), "rate");
+const offWeeks = weeks.reduce((a, w) => a + w.off, 0);               // 추이(스파크라인)가 쓰는 주들에서 뺀 날
+const offWeeklyTotal = weeklyTotal.reduce((a, w) => a + w.off, 0);   // 주별 막대(가장자리 빈 주를 자른 뒤)에서 뺀 날
 const weeklyByGame = {};
 for (const k of GAMES) {
   weeklyByGame[k] = visibleTrendRows(weeks.map((w) => { const g = w.games[k] || { ended: 0, sold: 0 }; return { d: w.d, ended: g.ended, sold: g.sold, rate: rateOf(g.sold, g.ended) }; }), "rate");
@@ -180,7 +215,8 @@ const liveLink = (key) => {
   return url ? `<a class="live" href="${esc(url)}" target="_blank" rel="noopener noreferrer sponsored" data-ko="진행 경매 →">Live auctions →</a>` : "";
 };
 
-// ── 화살표·차이. 부호에 따라 ▲(green)·▼(red)·•(muted) — 색은 토큰만.
+// ── 화살표·차이. 낙찰률·낙찰가는 부호에 따라 ▲(green)·▼(red)·•(muted) — 색은 토큰만.
+// 종료 경매 수의 증감은 좋고 나쁨이 없는 값이라 색을 입히지 않는다(muted) — 원피스 페이지와 같다(2026-10-13 QA).
 const arrow = (d) => (d == null ? "" : d > 0 ? "▲" : d < 0 ? "▼" : "•");
 const cls = (d) => (d == null ? "" : d > 0 ? " up" : d < 0 ? " down" : "");
 const ptsDelta = (d) => (d == null ? "—" : `${arrow(d)} ${Math.abs(d).toFixed(1)} pts`);
@@ -211,9 +247,10 @@ const sparkLabel = (r) => `Sell rate by week: ${r.weekly.map((w) => (w.rate == n
 const tableRows = rows.map((r) => {
   const thin = r.rate == null;
   // 모바일 둘째 줄은 열 이름이 없어 값마다 짧은 라벨을 붙인다(2026-10-13 QA: "$213 · 166/day" 가 무엇인지 헤더 없이는 못 읽었다).
+  // 증감 앞에도 비교 기준을 붙인다 — "vs last week" 열 머리는 데스크톱에만 있다(2026-10-13 QA).
   const meta = thin
     ? `<span class="sub2 tiny" data-ko="표본 적음">small sample</span>`
-    : `<span class="sub2 mOnly">${ptsSpan(r.delta, "d")} · <span data-ko="중앙가 ${esc(money(r.med))}">median ${esc(money(r.med))}</span> · <span data-ko="하루 ${esc(num(r.closing))}건 종료">${esc(num(r.closing))} closing/day</span></span>`;
+    : `<span class="sub2 mOnly"><span data-ko="지난주 대비">vs last week</span> ${ptsSpan(r.delta, "d")} · <span data-ko="중앙가 ${esc(money(r.med))}">median ${esc(money(r.med))}</span> · <span data-ko="하루 ${esc(num(r.closing))}건 종료">${esc(num(r.closing))} closing/day</span></span>`;
   return `          <tr>
             <td class="l"><span class="nm">${esc(r.name)}</span>${meta}${liveLink(r.key)}</td>
             <td><span class="pv">${esc(pct(r.rate))}</span>${r.ci != null ? `<span class="sub2">±${r.ci.toFixed(1)}</span>` : ""}</td>
@@ -231,9 +268,12 @@ const wkHi = wkRates.length ? Math.max(...wkRates) : null, wkLo = wkRates.length
 const wkCols = weeklyTotal.map((w, i) => {
   const isLast = i === weeklyTotal.length - 1;
   const key = isLast || i === 0 || w.rate === wkHi || w.rate === wkLo;
-  const title = `Week of ${md(w.d)}: ${pct(w.rate)} sold (${num(w.sold)} of ${num(w.ended)})${w.p ? " — so far" : ""}${w.m ? " — some days missing" : ""}`;
-  if (w.rate == null) return `<div class="col nul" title="${esc(title)}"><span class="v">—</span></div>`;
-  return `<div class="col${key ? " key" : ""}${w.p ? " now" : ""}" style="--h:${((w.rate / wkTop) * 100).toFixed(1)}%" title="${esc(title)}"><span class="v">${w.rate.toFixed(1)}</span><i></i></div>`;
+  const title = `Week of ${md(w.d)}: ${pct(w.rate)} sold (${num(w.sold)} of ${num(w.ended)})${w.p ? " — so far" : ""}${w.miss ? " — some days missing" : ""}${w.off ? ` — ${w.off} day${w.off === 1 ? "" : "s"} excluded` : ""}`;
+  // 한국어 토글용 툴팁(lang-toggle.js 가 data-ko-title 로 title 을 갈아끼운다).
+  const titleKo = `${mdKo(w.d)} 주: 낙찰률 ${pct(w.rate)} (${num(w.ended)}건 중 ${num(w.sold)}건)${w.p ? " — 진행 중" : ""}${w.miss ? " — 빠진 날 있음" : ""}${w.off ? ` — ${w.off}일 제외` : ""}`;
+  const tt = `title="${esc(title)}" data-ko-title="${esc(titleKo)}"`;
+  if (w.rate == null) return `<div class="col nul" ${tt}><span class="v">—</span></div>`;
+  return `<div class="col${key ? " key" : ""}${w.p || w.m ? " part" : ""}" style="--h:${((w.rate / wkTop) * 100).toFixed(1)}%" ${tt}><span class="v">${w.rate.toFixed(1)}</span><i></i></div>`;
 }).join("");
 const wkFirst = weeklyTotal[0], wkLast = weeklyTotal[weeklyTotal.length - 1], wkMid = weeklyTotal[Math.floor(weeklyTotal.length / 2)];
 const axisDate = (iso) => `<span data-ko="${mdKo(iso)}">${md(iso)}</span>`;
@@ -255,6 +295,10 @@ const rangeLabel = (win) => `${md(win[0].d)} – ${mdy(win[win.length - 1].d)}`;
 const rangeKo = (win) => `${mdKo(win[0].d)}–${mdKo(win[win.length - 1].d)}`;
 const rangeSpan = (win) => `<span data-ko="${esc(rangeKo(win))}">${esc(rangeLabel(win))}</span>`;
 const GAME_COUNT = rows.length;
+// 제외일 정의 — 페이지에 한 번만(이번 주 정의 줄). 뺀 날이 하나도 없으면 싣지 않는다.
+const EXCL_DEF = offLast7 || offPrev7 || offWeeks || offWeeklyTotal
+  ? ` · <b data-ko="제외일">Excluded day</b> = <span data-ko="정해진 수집 시각 밖에 표본을 고른 날(낙찰률·낙찰가만 뺌)">sample picked outside the usual hour (dropped from sell rate and sold price only)</span>`
+  : "";
 
 // 제휴 고지 — 공용 AFF_TOP(가드 E1 이 보는 .affTop)에 한국어 토글용 data-ko-html 만 얹는다(굵은 글씨가 있어 data-ko 로는 못 바꾼다). 문구는 ko/auction.html 과 같다.
 const AFF_TOP_KO = `<b>Paid Link:</b> eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다.`;
@@ -362,7 +406,10 @@ const html = `<!doctype html>
       .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
       .col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
       .col i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
-      .col.now i { background: rgba(var(--accent-rgb), .38); }
+      .col.part i { background: rgba(var(--accent-rgb), .38); }   /* 7일을 다 못 센 주: 진행 중·빠진 날·제외일 */
+      /* 범례 견본 — 흐린 막대와 같은 칠. 배경이 어두워 "연한" 이 아니라 "흐린" 으로 읽힌다(2026-10-13 QA) */
+      .lg { display: inline-flex; align-items: center; gap: 6px; }
+      .lg .sw { display: inline-block; width: 10px; height: 12px; border-radius: 2px 2px 0 0; background: rgba(var(--accent-rgb), .38); }
       .col:hover i { background: var(--ink); }
       .col .v { position: absolute; left: -8px; right: -8px; bottom: calc(var(--h) + 3px); text-align: center; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
       .col.nul .v { bottom: 3px; color: var(--muted); }
@@ -398,18 +445,18 @@ const html = `<!doctype html>
       ${affTop}
 
       <section id="week" aria-labelledby="weekTitle">
-        <div class="secHead"><h2 id="weekTitle" data-ko="이번 주">This week</h2><span class="nt"><span data-ko="최근 7일 vs 직전 7일">Last 7 days vs the 7 before</span> · ${rangeSpan(W7)}${someMissing ? ` · <span data-ko="빠진 날 있음">Some days missing</span>` : ""}</span></div>
+        <div class="secHead"><h2 id="weekTitle" data-ko="이번 주">This week</h2><span class="nt"><span data-ko="최근 7일 vs 직전 7일">Last 7 days vs the 7 before</span> · ${rangeSpan(W7)}${someMissing ? ` · <span data-ko="빠진 날 있음">Some days missing</span>` : ""}${exclLabel(offLast7, offPrev7)}</span></div>
         <div class="strip">
           <div class="kpi"><span class="lbl" data-ko="낙찰률">Sell rate</span><b>${esc(pct(L.rate))}</b>${ptsSpan(dRate, "delta")}<span class="was"><span data-ko="직전">was</span> ${esc(pct(P.rate))}</span></div>
           <div class="kpi"><span class="lbl" data-ko="중앙 낙찰가">Median sold price</span><b>${esc(money(L.med))}</b><span class="delta${cls(dMed)}">${esc(moneyDelta(dMed))}</span><span class="was"><span data-ko="직전">was</span> ${esc(money(P.med))}</span></div>
-          <div class="kpi"><span class="lbl" data-ko="하루 종료 경매">Auctions closing per day</span><b>${esc(num(L.closing))}</b><span class="delta${cls(dClosing)}">${esc(numDelta(dClosing))}</span><span class="was"><span data-ko="직전">was</span> ${esc(num(P.closing))}</span></div>
+          <div class="kpi"><span class="lbl" data-ko="하루 종료 경매">Auctions closing per day</span><b>${esc(num(L.closing))}</b><span class="delta">${esc(numDelta(dClosing))}</span><span class="was"><span data-ko="직전">was</span> ${esc(num(P.closing))}</span></div>
         </div>
-        <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span></p>
+        <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span>${EXCL_DEF}</p>
       </section>
 
       <section id="games" aria-labelledby="gamesTitle">
-        <div class="secHead"><h2 id="gamesTitle" data-ko="게임별">By game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · ${rangeSpan(W7)} · <span data-ko="낙찰률 높은 순">sorted by sell rate</span></span></div>
-        <p class="def"><b data-ko="추이">Trend</b> = <span data-ko="주별 낙찰률">sell rate by week</span>, ${weeks.length} <span data-ko="주">weeks</span> · ± = <span data-ko="95% 구간">95% interval</span></p>
+        <div class="secHead"><h2 id="gamesTitle" data-ko="게임별">By game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · ${rangeSpan(W7)} · <span data-ko="낙찰률 높은 순">sorted by sell rate</span>${exclLabel(offLast7, offPrev7)}</span></div>
+        <p class="def"><b data-ko="추이">Trend</b> = <span data-ko="주별 낙찰률">sell rate by week</span>, <span data-ko="${weeks.length}주">${weeks.length} weeks</span>${exclLabel(offWeeks)} · ± = <span data-ko="95% 구간">95% interval</span></p>
         <table class="t">
           <thead><tr>
             <th class="l" data-ko="게임">Game</th>
@@ -426,9 +473,9 @@ ${tableRows}
       </section>
 
       <section id="weekly" aria-labelledby="weeklyTitle">
-        <div class="secHead"><h2 id="weeklyTitle" data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt">${weeklyTotal.length} <span data-ko="주">weeks</span> · ${GAME_COUNT} <span data-ko="게임 합산">games combined</span>${weeklyTotal.length ? ` · <span data-ko="${esc(mdKo(wkFirst.d))}–${esc(mdKo(to))}">${esc(md(wkFirst.d))} – ${esc(mdy(to))}</span>` : ""}</span></div>
+        <div class="secHead"><h2 id="weeklyTitle" data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt"><span data-ko="${weeklyTotal.length}주">${weeklyTotal.length} weeks</span> · <span data-ko="${GAME_COUNT}개 게임 합산">${GAME_COUNT} games combined</span>${weeklyTotal.length ? ` · <span data-ko="${esc(mdKo(wkFirst.d))}–${esc(mdKo(to))}">${esc(md(wkFirst.d))} – ${esc(mdy(to))}</span>` : ""}${exclLabel(offWeeklyTotal)}</span></div>
         <div class="wk">
-          <div class="wkHead"><span data-ko="종료 경매 중 팔린 비율">Share of closed auctions that sold</span><span class="nt" data-ko="연한 막대 = 이번 주(진행 중)">Lighter bar = this week so far</span></div>
+          <div class="wkHead"><span data-ko="종료 경매 중 팔린 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="흐린 막대 = 7일을 다 세지 못한 주">Faded bar = week not fully counted</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>${wkTop}%</span></div>
             <div class="guide" style="bottom:50%"><span>${wkTop / 2}%</span></div>
@@ -440,7 +487,7 @@ ${tableRows}
       </section>
 
       <section id="prices" aria-labelledby="pricesTitle">
-        <div class="secHead"><h2 id="pricesTitle" data-ko="게임별 중앙 낙찰가">Median sold price by game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · ${rangeSpan(W7)} · <span data-ko="낙찰 20건 이상">20 or more sold</span></span></div>
+        <div class="secHead"><h2 id="pricesTitle" data-ko="게임별 중앙 낙찰가">Median sold price by game</h2><span class="nt"><span data-ko="최근 7일">Last 7 days</span> · ${rangeSpan(W7)} · <span data-ko="낙찰 20건 이상">20 or more sold</span>${exclLabel(offLast7)}</span></div>
         <div class="pbs" role="list">${priceBars}
         </div>
       </section>
@@ -471,4 +518,4 @@ if (!sm.includes(`<loc>${loc}</loc>`)) {
   added = 1;
 }
 
-console.log(JSON.stringify({ games: GAME_COUNT, last7: { rate: L.rate, med: L.med, closing: L.closing == null ? null : Math.round(L.closing), missingDays: L.missing }, prev7: { rate: P.rate, med: P.med, closing: P.closing == null ? null : Math.round(P.closing), missingDays: P.missing }, weeks: weeklyTotal.length, range: `${from} ~ ${to}`, sitemapAdded: added }, null, 1));
+console.log(JSON.stringify({ games: GAME_COUNT, last7: { rate: L.rate, med: L.med, closing: L.closing == null ? null : Math.round(L.closing), missingDays: L.missing }, prev7: { rate: P.rate, med: P.med, closing: P.closing == null ? null : Math.round(P.closing), missingDays: P.missing }, weeks: weeklyTotal.length, range: `${from} ~ ${to}`, offHourLeftOut: { last7: W7.map((x) => x.d).filter((d) => OFF.has(d)), prev7: P7.map((x) => x.d).filter((d) => OFF.has(d)), weeks: offWeeklyTotal }, leftOutRows: { extra: leftExtra, offHourSample: leftOff }, sitemapAdded: added }, null, 1));

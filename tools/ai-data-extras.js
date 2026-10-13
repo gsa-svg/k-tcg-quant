@@ -85,8 +85,11 @@ function buildTcgAuctions(series) {
   if (!series || !Array.isArray(series.daily)) return null;
   const games = Object.entries(series.games || {}).sort((a, b) => (a[1].order ?? 0) - (b[1].order ?? 0))
     .map(([key, g]) => ({ key, name: g.name || key }));
+  // offHour — 그날 표본을 표준 시각 밖에서 골랐다는 표시(build-tcg-series). 페이지는 그날 표본을 비교에서 뺀다.
+  // 표시 없이 내보내면 10/8~10/10 의 낮은 낙찰률(12.3·20.7·22.9%)이 평범한 날처럼 읽힌다(2026-10-13 QA).
   const daily = series.daily.slice(-14).map((d) => ({
     date: d.d,
+    offHour: d.offHour === true,
     games: Object.fromEntries(Object.entries(d.games || {}).map(([k, g]) => [k, {
       ended: num(g.ended), sold: num(g.sold), sellThroughPct: num(g.sellThrough),
       medianWinningBidUsd: num(g.medPrice), priceSample: num(g.priceN), amountUsd: num(g.amount),
@@ -101,6 +104,7 @@ function buildTcgAuctions(series) {
       liveAuctions: "eBay's own count of running auctions for that game at snapshot time — a real count, not a sample",
       endingWithin24h: "eBay's own count of auctions closing within 24 hours at snapshot time",
       medianWinningBidUsd: "median winning bid among the sold auctions in the sample",
+      offHour: "true when that day's sample was picked outside the usual snapshot hour; its sell-through runs low, so the canonical page leaves that day's sample out of week-on-week comparisons",
     },
     canonicalPage: `${SITE}/tcg-auction.html`,
     games, daily,

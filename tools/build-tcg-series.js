@@ -14,6 +14,8 @@
 // Run: node tools/build-tcg-series.js
 const fs = require("node:fs");
 const path = require("node:path");
+const { tcgOffHour, TCG_SNAPSHOT_STD_HOURS } = require("./tcg-config");
+const hh = (h) => `${String(h).padStart(2, "0")}:00`;
 
 const ROOT = path.resolve(__dirname, "..");
 const SNAP = path.join(ROOT, "data", "tcg-snapshot.json");
@@ -61,6 +63,11 @@ function main() {
   }
 
   const days = [...new Set([...snap.points.map((p) => p.d), ...sales.keys()])].sort();
+  // 표준 시각(tcg-config TCG_SNAPSHOT_STD_HOURS) 밖에서 찍힌 날 — 2026-10-13. 그날 고른 표본은 다른 시각의 "종료 임박 순"
+  // 이라 낙찰률이 낮게 나온다(10/8~10/10). 표본 일부는 다음 날 원장으로 넘어간다(tcg-config 주석).
+  // 여기서는 표시만 한다: 합계·비율은 그대로 두고, 빼는 판단은 화면이 한다(원장 seen 이 있으면 그 날짜 기준).
+  // at 이 없는 날(스냅샷 없이 정산만 있는 날)은 표시하지 않는다 — 모르는 걸 지어내지 않는다.
+  const offDays = new Set(snap.points.filter((p) => tcgOffHour(p.at) === true).map((p) => p.d));
 
   const rowFor = (dayList) => {
     const games = {};
@@ -105,16 +112,16 @@ function main() {
       m.get(k).push(d);
     }
     return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([k, list]) => ({ d: k, days: list.length, games: rowFor(list) }));
+      .map(([k, list]) => ({ d: k, days: list.length, offHourDays: list.filter((d) => offDays.has(d)).length, games: rowFor(list) }));
   };
 
   const out = {
     basis: "eBay listings and settled auctions by trading card game",
-    note: "Three different kinds of number live here. endingToday is how many auctions eBay says close within 24 hours -- a real count, not a sample -- while ended/sold are the ones we actually re-read after close, which is a small fraction of that. live and liveFixed are how many listings were open when we looked, so a week is the AVERAGE of its days -- adding them would count the same listing every day it stayed up. ended, sold and amount are things that happened inside the period, so a week is the SUM. Sell-through is left null under 20 settled auctions and medPrice under 5, because a rate built on a handful of listings is noise. None of this is the size of a game's market: eBay is one channel, fixed-price listings are counted but we cannot see whether they sold, and shipping is excluded. What it is good for is comparing games with each other, since every game is measured the same way. Terms of use: https://opboxindex.com/free-data.html#terms",
+    note: "Three different kinds of number live here. endingToday is how many auctions eBay says close within 24 hours -- a real count, not a sample -- while ended/sold are the ones we actually re-read after close, which is a small fraction of that. live and liveFixed are how many listings were open when we looked, so a week is the AVERAGE of its days -- adding them would count the same listing every day it stayed up. ended, sold and amount are things that happened inside the period, so a week is the SUM. Sell-through is left null under 20 settled auctions and medPrice under 5, because a rate built on a handful of listings is noise. None of this is the size of a game's market: eBay is one channel, fixed-price listings are counted but we cannot see whether they sold, and shipping is excluded. What it is good for is comparing games with each other, since every game is measured the same way. offHour marks a day whose snapshot -- and so its settled sample, the auctions ending soonest at that moment -- was taken outside " + hh(TCG_SNAPSHOT_STD_HOURS.from) + "-" + hh(TCG_SNAPSHOT_STD_HOURS.to) + " UTC; offHourDays counts those days in a week or month, and the sums still include them. Terms of use: https://opboxindex.com/free-data.html#terms",
     games: terms,
     minRateSample: MIN_RATE_N,
     builtFrom: { first: days[0] || null, last: days[days.length - 1] || null, days: days.length },
-    daily: days.map((d) => ({ d, days: 1, games: rowFor([d]) })),
+    daily: days.map((d) => ({ d, days: 1, ...(offDays.has(d) ? { offHour: true } : {}), games: rowFor([d]) })),
     weekly: group(isoWeek),
     monthly: group((d) => `${d.slice(0, 7)}-01`),
   };
@@ -124,6 +131,7 @@ function main() {
   console.log(JSON.stringify({
     status: "ok", days: days.length, weeks: out.weekly.length, months: out.monthly.length, games: keys.length,
     lastDay: last ? last.d : null,
+    offHourDays: [...offDays].sort(),
     settled: keys.reduce((a, k) => a + (last?.games[k]?.ended || 0), 0),
   }, null, 1));
 }

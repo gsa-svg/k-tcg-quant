@@ -207,7 +207,7 @@ const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스
       .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
 ${BUY_CTA_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
-      .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      .affNote { margin-top: 16px; color: var(--muted); font-size: 11.5px; opacity: .8; }
       /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
       .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
       .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 14px; font-weight: 700; color: var(--muted); list-style: none; }
@@ -254,10 +254,27 @@ ${BUY_CTA_CSS}
       .chaseTable th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
       .chaseTable td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,.05); vertical-align: top; }
       .chaseTable td:first-child { color: var(--muted); font-variant-numeric: tabular-nums; }
-      .chaseTable .cNum { display: block; color: var(--muted); font-size: 11px; margin-top: 1px; }
-      .chaseTable .psaKind { color: var(--muted); font-size: 11px; }
+      .chaseTable .cNum { display: block; color: var(--muted); font-size: 11.5px; margin-top: 1px; }
+      .chaseTable .psaKind { color: var(--muted); font-size: 11.5px; }
       .chaseTable td.psaStale { opacity: .62; }   /* 35일 넘은 PSA10 sold — 값은 두되 흐리게(2026-09-24) */
       .chaseTable td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      /* 카드명은 왼쪽 — styles.css 기사 표 기본(.bodyPage table 2열부터 오른쪽)보다 구체적으로 이긴다 */
+      .bodyPage table.chaseTable :is(th, td).cn:not(:first-child) { text-align: left; }
+      .chaseTable .gSub { display: none; }
+      /* 모바일: 등급 열을 카드명 아래 줄로 접고, PSA 10 의 sold/ask 꼬리표는 값 아래로 내려 열을 좁힌다(가로 스크롤 0).
+         styles.css 가 ≤720px 기사 표를 블록+가로 스크롤+오른쪽 흐림으로 바꾸는데, 이 표는 접어서 폭 안에 들어오므로 표로 되돌린다. */
+      @media (max-width: 720px) {
+        .bodyPage table.chaseTable { display: table; width: 100%; min-width: 0; overflow: visible; -webkit-mask-image: none; mask-image: none; }
+      }
+      @media (max-width: 640px) {
+        .chaseTable { font-size: 13.5px; }
+        .chaseTable th, .chaseTable td { padding: 8px 6px; }
+        .chaseTable .gCol { display: none; }
+        .chaseTable .gSub { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+        .chaseTable .gSub .gradeTrio { white-space: normal; }
+        .chaseTable td.num .psaKind { display: block; }
+        .chaseTable.aucTable td:first-child { white-space: normal; }
+      }
       .priceNote { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
       .gearRec { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(var(--accent-rgb), .05); font-size: 14px; line-height: 1.55; color: var(--muted); }
       .gearRec strong { color: #eef2ff; }
@@ -535,7 +552,10 @@ function setPage(code, prev, next) {
     const p = cardPrices(c);
     const cardHref = CARD_MAP[(c.number || "") + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")];
     const nameCell = cardHref ? `<a href="../cards/${cardHref}"><strong>${esc(c.name)}</strong></a>` : `<strong>${esc(c.name)}</strong>`;
-    return `<tr><td>${i + 1}</td><td>${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num${p.psaStale ? " psaStale" : ""}"${p.psaStale ? ` title="Last PSA 10 sales observed ${esc(p.psaDate || "")} (n=${p.psaN || "?"}) — older than 35 days"` : ""}>${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? `sold${p.psaDate ? " · " + esc(p.psaDate.slice(5)) : ""}` : "ask"}</span>` : "—"}</td><td class="num">${gradeCell(code, c.number, c.name)}</td></tr>`;
+    // 모바일(≤640px)은 등급 열(gCol)을 숨기고 같은 값을 카드명 아래 줄(gSub)로 접는다 — 2026-10-13 QA: 390px 에서 표가 458px 로
+    // 가로 스크롤되고 카드명이 4~5줄로 접혔다(경매 페이지 표와 같은 방식).
+    const grade = gradeCell(code, c.number, c.name);
+    return `<tr><td>${i + 1}</td><td class="cn">${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span>${grade !== "—" ? `<span class="gSub">PSA / CGC / TAG ${grade}</span>` : ""}</td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num${p.psaStale ? " psaStale" : ""}"${p.psaStale ? ` title="Last PSA 10 sales observed ${esc(p.psaDate || "")} (n=${p.psaN || "?"}) — older than 35 days"` : ""}>${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? `sold${p.psaDate ? " · " + esc(p.psaDate.slice(5)) : ""}` : "ask"}</span>` : "—"}</td><td class="num gCol">${grade}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 라인 (안정 데이터)
@@ -599,26 +619,25 @@ function setPage(code, prev, next) {
     const a = SET_AUCTION.sets && SET_AUCTION.sets[code];
     if (a && a.ended >= 30) {
       const w = SET_AUCTION.window || {};
-      const catName = { card: "single cards", box: "sealed boxes", pack: "loose packs", graded: "graded slabs", lot: "multi-card lots" };
+      const catName = { card: "single cards", box: "sealed boxes", pack: "loose packs", graded: "graded slabs", lot: "multi-card lots", carton: "sealed cases" };
       const cats = Object.entries(a.byCat || {}).sort((x, y) => y[1].ended - x[1].ended).slice(0, 4);
+      // 2026-10-13 QA: 서술 문단("we settled … ended eBay auctions …")과 내부 용어(Ended·Sell-through·outcome)를 표로 바꿨다.
+      // 열 이름은 경매 페이지와 같다(Closed·Sold·Sell rate). 숫자는 그대로 SET_AUCTION 에서 — 영문판 세트 페이지와 같은 꼴.
       const catRows = cats.map(function (e) {
-        return "<tr><td>" + esc(catName[e[0]] || e[0]) + "</td><td>" + intl(e[1].ended) + "</td><td>" + intl(e[1].sold) + "</td><td>" + e[1].sellThrough + "%</td></tr>";
+        return "<tr><td>" + esc(catName[e[0]] || e[0]) + "</td><td class=\"num\">" + intl(e[1].ended) + "</td><td class=\"num\">" + intl(e[1].sold) + "</td><td class=\"num\">" + (e[1].sellThrough != null ? e[1].sellThrough + "%" : "—") + "</td></tr>";
       }).join("");
-      const rateTxt = a.sellThrough == null
-        ? "Too few had an outcome reported by eBay to publish a rate."
-        : "<strong>" + a.sellThrough + "%</strong> found a buyer and <strong>" + a.passThrough + "%</strong> passed unsold";
-      const amtTxt = a.amount ? ", for <strong>$" + intl(a.amount) + "</strong> in hammer value" : "";
-      const medTxt = a.medPrice ? " The median winning bid was <strong>$" + a.medPrice + "</strong>" : "";
-      const bidTxt = a.medBidders ? " with " + a.medBidders + " bidders on a typical sold lot" : "";
-      const table = catRows
-        ? "<div style=\"overflow-x:auto\"><table class=\"chaseTable\"><thead><tr><th>Listing type</th><th>Ended</th><th>Sold</th><th>Sell-through</th></tr></thead><tbody>" + catRows + "</tbody></table></div>"
-        : "";
-      auctionSection = "<h2>How " + esc(code) + " cards actually sell at auction</h2>"
-        + "<p>Over the " + (w.days || 30) + " days to " + esc(SET_AUCTION.updated || "") + " we settled <strong>" + intl(a.ended)
-        + "</strong> ended eBay auctions carrying " + esc(code) + " cards — every one read again after it closed, so these are results, not asking prices. "
-        + rateTxt + amtTxt + "." + medTxt + bidTxt + ".</p>"
-        + table
-        + "<p class=\"priceNote\">Auctions only — buy-it-now listings are counted separately and are not in this table. Sell-through uses auctions whose outcome eBay reported; unsold auctions stay in the denominator.</p>";
+      const totalRow = "<tr><td><strong>All " + esc(code) + " auctions</strong></td><td class=\"num\"><strong>" + intl(a.ended) + "</strong></td><td class=\"num\"><strong>" + intl(a.sold) + "</strong></td><td class=\"num\"><strong>" + (a.sellThrough != null ? a.sellThrough + "%" : "—") + "</strong></td></tr>";
+      const facts = [
+        w.from && w.to ? esc(w.from) + " – " + esc(w.to) : "",
+        a.medPrice ? "Median sold price $" + a.medPrice : "",
+        a.amount ? "Total sold $" + intl(a.amount) : "",
+        a.medBidders ? "Bidders per sold lot (median) " + a.medBidders : "",
+        "Sell rate = share of closed auctions that sold",
+        "Buy-it-now not included",
+      ].filter(Boolean).join(" · ");
+      auctionSection = "<h2>" + esc(code) + " cards at eBay auction — last " + (w.days || 30) + " days</h2>"
+        + "<div class=\"chaseTableWrap\"><table class=\"chaseTable aucTable\"><thead><tr><th>Listing type</th><th>Closed</th><th>Sold</th><th>Sell rate</th></tr></thead><tbody>" + catRows + totalRow + "</tbody></table></div>"
+        + "<p class=\"priceNote\">" + facts + "</p>";
     }
   }
 
@@ -876,7 +895,7 @@ function setPage(code, prev, next) {
       <p>${analysis}</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
-          <thead><tr><th>#</th><th>Card</th><th>NM (raw)</th><th>PSA 10</th><th>Graded (PSA / CGC / TAG)</th></tr></thead>
+          <thead><tr><th>#</th><th class="cn">Card</th><th>NM (raw)</th><th>PSA 10</th><th class="gCol">Graded (PSA / CGC / TAG)</th></tr></thead>
           <tbody>
             ${rows}
           </tbody>
@@ -1169,7 +1188,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       .cardCell a, .cardCell .cardLink { display: flex; align-items: center; gap: 10px; min-width: 200px; }
       .cardCell img, .cardCell .noImg { width: 40px; height: 56px; border-radius: 4px; object-fit: cover; background: rgba(255,255,255,.06); flex: 0 0 40px; }
       .cardCell b { display: block; font-size: 13.5px; line-height: 1.25; white-space: normal; }
-      .cardCell small { display: block; color: var(--muted); font-size: 11px; margin: 2px 0 0; }
+      .cardCell small { display: block; color: var(--muted); font-size: 11.5px; margin: 2px 0 0; }
       .kindList { margin: 6px 0 2px; }
       .kindRow { display: grid; grid-template-columns: minmax(150px, 1.3fr) 2fr minmax(160px, 0.9fr); gap: 10px; align-items: center; font-size: 13px; padding: 5px 0; }
       .kindHead { color: var(--muted); font-size: 12.5px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 6px; margin-bottom: 4px; }
@@ -1179,13 +1198,13 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
       .kindRow .kFill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); opacity: .85; }
       .kindRow .kVal { position: absolute; left: 8px; top: 0; line-height: 22px; font-size: 12px; color: #061014; font-weight: 800; }
       .kindRow .kMed { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-      .kindRow .kMed small { font-size: 11px; }
+      .kindRow .kMed small { font-size: 11.5px; }
       .rankFaq { max-width: 760px; margin: 22px 0 0; }
       .rankFaq h2 { font-size: 18px; margin: 0 0 6px; }
       .faqItem { border-bottom: 1px solid rgba(255,255,255,.08); padding: 2px 0; }
       .faqItem summary { cursor: pointer; font-weight: 700; padding: 8px 0; font-size: 14px; }
       .faqItem p { font-size: 13.5px; margin: 4px 0 10px; color: var(--muted); line-height: 1.6; }
-      .rankWrap .affNote { margin-top: 16px; color: var(--muted); font-size: 11px; opacity: .8; }
+      .rankWrap .affNote { margin-top: 16px; color: var(--muted); font-size: 11.5px; opacity: .8; }
       @media (max-width: 640px) {
         .statRow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
         .stat { padding: 12px; }

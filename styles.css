@@ -228,7 +228,7 @@ a {
   background: rgba(var(--accent-rgb), 0.16);
   border: 1px solid rgba(var(--accent-rgb), 0.42);
   color: var(--accent);
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 800;
   letter-spacing: 0.06em;
   line-height: 1.5;
@@ -592,7 +592,7 @@ h2 {
   border-radius: 999px;
   background: #1a1e28;
   color: #9aa3b6;
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 800;
   vertical-align: middle;
   white-space: nowrap;
@@ -1302,7 +1302,7 @@ h2 {
   }
 
   .tickerBand span {
-    font-size: 11px;
+    font-size: 11.5px;
   }
 
   /* 390px에서 긴 원화 금액이 잘리지 않도록 */
@@ -1392,7 +1392,7 @@ h2 {
 .setBadge.reprint:hover { background: rgba(255,125,60,.22); }
 
 /* 재판 배지 출처 표기 */
-.setBadge.reprint .rpSrc { font-size: 11px; font-weight: 700; opacity: .7; border-left: 1px solid rgba(255,125,60,.4); padding-left: 5px; margin-left: 1px; }
+.setBadge.reprint .rpSrc { font-size: 11.5px; font-weight: 700; opacity: .7; border-left: 1px solid rgba(255,125,60,.4); padding-left: 5px; margin-left: 1px; }
 
 /* 재판 기록 없음 배지(회색, 조사했으나 못 찾음 — 빈칸 대신 명시) */
 .setBadge.reprintNone { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.13); color: #8b93a1; cursor: help; }
@@ -1542,4 +1542,11 @@ small { font-size: 12px; }
     -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
     mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
   }
+}
+
+/* 한국어 줄바꿈 — 2026-10-13 QA: '중/앙값'·'일평/균'·'가운데 절/반 구간'·'하루 165/건'처럼 단어 중간에서 끊겼다.
+   한국어(정적 ko/ 페이지와 토글로 lang="ko" 가 된 페이지)는 어절 단위로만 끊는다. 한 어절이 줄보다 길 때만 그 안에서 끊는다(넘침 방지). */
+html[lang="ko"] :is(p, li, dd, dt, h1, h2, h3, summary, small, label, .nt, .def, .sub, .sub2, .note, .lbl, .was, .affTop, .wkHead, .val) {
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }

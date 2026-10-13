@@ -59,8 +59,11 @@ function pageHead({ title, desc, canonical, ogType = "article", extraLd = "", ko
     ? `\n    <link rel="alternate" hreflang="en" href="${canonical}" />\n    <link rel="alternate" hreflang="ko" href="${koHref}" />\n    <link rel="alternate" hreflang="x-default" href="${canonical}" />`
     : "";
   const style = extraCss ? `    <style>\n${extraCss}\n    </style>\n` : "";
+  // 한국어판이 있으면 언어 버튼이 그 페이지로 보낸다(lang-toggle.js data-ko-page) — 2026-10-13 QA: 제자리 번역은 메뉴·칩만
+  // 바뀌고 본문 약 190곳이 영어로 남았다. 주소는 hreflang ko 와 같은 곳(사이트 절대경로).
+  const koPage = koHref ? ` data-ko-page="${esc(koHref.replace(SITE, ""))}"` : "";
   return `<!doctype html>
-<html lang="en">
+<html lang="en"${koPage}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -185,7 +188,7 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow b { font-size: 16px; letter-spacing: .01em; }
       .ctaRow a.buyNow .buyArrow { opacity: .75; font-size: 12px; }
       .ctaRow a.buyNow .buyOff { font-style: normal; font-size: 11.5px; font-weight: 600; color: #ffd166; }
-      .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11px; color: rgba(255,255,255,.55); }
+      .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11.5px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
 module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS };

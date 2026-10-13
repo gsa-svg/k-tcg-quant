@@ -27,4 +27,27 @@ const TCG_SCHEDULE_UTC = Object.freeze([1, 4, 6, 7, 10, 13, 16, 19, 22]);
 const TCG_WATCH_PER_GAME = 250;       // 상한
 const TCG_WATCH_PER_GAME_MIN = 125;   // 하한
 
-module.exports = { TCGS, TCG_KEYS, EXCLUDED_TCG_KEYS, TCG_SCHEDULE_UTC, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN };
+// 표준 스냅샷 시각(UTC 시, from 포함 · to 미포함) — 2026-10-13 신설.
+// 스냅샷은 그 UTC 날짜의 첫 실행에서 "종료 임박 순" 표본(게임당 최대 250)을 감시 목록에 넣는다(seen = 그날).
+// 그래서 몇 시에 찍었느냐가 곧 "미국 하루 중 언제 끝나는 경매를 골랐느냐"다. 다만 그 표본이 모두 그날 안에 끝나지는
+// 않는다 — 작은 게임은 표본이 하루 넘게 걸쳐 있어, 원장(종료일 기준)에서는 일부가 다음 날 파일로 넘어간다
+// (10/8·10/9·10/10 표본 중 263·272·322건, 18~22%. 반대로 10/8 원장에는 10/7 표준 표본 159건이 섞였다).
+// 원장 행의 seen(표본일)은 2026-10-14 부터 적힌다(settle-tcg). 화면은 seen 이 있으면 그 날짜로, 없으면 원장 날짜로 뺀다.
+// 남는 쿼터로 더 읽는 여유분(extra, topup-tcg-watch)은 다른 UTC 회차에 고른 표본이라 화면 비교값에서 아예 뺀다.
+// 실측 62일(시각 = 그 점을 마지막으로 쓴 수집기의 updated, git 이력에서 복원):
+//   00:10~03:08 UTC 50일 — 일 낙찰률 평균 36.8%(최저 25.6%) · 표본 입찰 비율 평균 28.0%
+//   06:16~08:58 UTC 12일 — 일 낙찰률 평균 24.0% · 입찰 비율 20.9% (07 회차 = 쿼터 리셋 뒤 첫 실행, 미국 새벽 종료분)
+//   10/8·10/9·10/10(07:18~07:19) 은 12.3·20.7·22.9% — 표준일 최저보다 낮다. 8/20(00:54·02:06·04:50·06:16)·8/28(01:23·08:34)
+//   은 같은 날 다시 찍어 표본이 섞였다 — 남은 점의 시각은 마지막 것이라 offHour 로 잡힌다.
+// 이 창 밖에서 찍힌 날은 tcg-series daily 에 offHour:true 로 표시하고(build-tcg-series), 그날 고른 표본을 화면의
+// 주간 비교·추이에서 뺀다(generate-tcg-auction-page). 원장(tcg-archive)과 기간 합계는 그대로다. 가드 A5 가 표시와 at 의 일치를 본다.
+const TCG_SNAPSHOT_STD_HOURS = Object.freeze({ from: 0, to: 4 });
+// 스냅샷 시각(ISO) → 표준 시각 밖이면 true, 안이면 false, 시각이 없거나 못 읽으면 null(표시하지 않는다).
+function tcgOffHour(at) {
+  const t = Date.parse(at || "");
+  if (!Number.isFinite(t)) return null;
+  const h = new Date(t).getUTCHours();
+  return h < TCG_SNAPSHOT_STD_HOURS.from || h >= TCG_SNAPSHOT_STD_HOURS.to;
+}
+
+module.exports = { TCGS, TCG_KEYS, EXCLUDED_TCG_KEYS, TCG_SCHEDULE_UTC, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN, TCG_SNAPSHOT_STD_HOURS, tcgOffHour };

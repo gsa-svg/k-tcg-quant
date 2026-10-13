@@ -25,7 +25,9 @@
     // 스크립트 "태그"로 판정한다. 플래그나 버튼 유무만 보면 로드 순서에 걸린다 —
     // packs.js 가 아직 실행되기 전이면 둘 다 없어서, 홈에 버튼이 두 개 붙었다(2026-09-01 실측).
     // 태그는 HTML 파싱 시점에 이미 DOM 에 있으므로 순서와 무관하다.
-    if (document.querySelector('script[src*="packs.js"]')) return true;
+    // 2026-10-13: 홈(index·packs)은 10/08 부터 packs.js 를 load 뒤에 script[data-home-js] 로더가 끼워 넣는다.
+    // 그 시점엔 src 태그가 아직 없어 이 스크립트도 버튼을 만들었고, 뒤이어 packs.js 가 또 만들어 '한국어'가 둘이 됐다(390px 실측).
+    if (document.querySelector('script[src*="packs.js"], script[data-home-js]')) return true;
     return !!window.__opboxPacksLang || !!document.querySelector("#displayLangToggle");
   }
 
@@ -64,6 +66,13 @@
       if (re.dataset.enHtml == null) re.dataset.enHtml = re.innerHTML;
       re.innerHTML = lang === "ko" ? re.dataset.koHtml : re.dataset.enHtml;
     }
+    // 툴팁(title) — 2026-10-13. 주별 막대 같은 곳은 글자가 title 에만 있어 data-ko 로는 안 바뀌었다.
+    var tips = document.querySelectorAll("[data-ko-title]");
+    for (var k = 0; k < tips.length; k++) {
+      var tp = tips[k];
+      if (tp.dataset.enTitle == null) tp.dataset.enTitle = tp.getAttribute("title") || "";
+      tp.setAttribute("title", lang === "ko" ? tp.dataset.koTitle : tp.dataset.enTitle);
+    }
     document.documentElement.lang = lang;
     // 스스로 글자를 만드는 부분(차트 라벨 등)은 data-ko 로 못 바꾼다. 이벤트로 알려서 다시 그리게 한다.
     // 클릭만 듣게 하면 첫 로드(저장된 ko 로 시작할 때)를 놓친다 — 그래서 apply 때마다 쏜다.
@@ -80,6 +89,23 @@
     // 버튼은 스크롤되는 .nav 안이 아니라 .topbar 직속에 둔다 — 메뉴 끝에 붙이면 모바일에서 밀려 안 보인다(2026-09-16).
     var bar = document.querySelector(".topbar") || document.querySelector(".topbar .nav");
     if (!bar) return;
+    // 한국어판이 따로 있는 페이지(<html data-ko-page="/ko/…">, 세트 가이드) — 2026-10-13 QA: 여기서 바꾸면 메뉴·칩 몇 개만
+    // 한글이 되고 본문 약 190곳은 영어로 남았다. 그 자리에서 바꾸지 않고 정적 한국어판(hreflang ko 와 같은 주소)으로 보낸다.
+    // 이 페이지는 영문 그대로 두고, 누르면 선택을 ko 로 남긴다(다른 페이지도 한글로 이어진다). 한국어판의 "English" 는 en 으로 되돌린다.
+    var koPage = document.documentElement.getAttribute("data-ko-page");
+    if (koPage) {
+      if (document.querySelector("#langToggle")) return;
+      var link = document.createElement("a");
+      link.id = "langToggle";
+      link.className = "navKo langBtn";
+      link.href = koPage;
+      link.lang = "ko";
+      link.setAttribute("hreflang", "ko");
+      link.textContent = "한국어";
+      link.addEventListener("click", function () { remember("ko"); });
+      bar.appendChild(link);
+      return;
+    }
     var btn = document.querySelector("#langToggle");
     if (!btn) {
       btn = document.createElement("button");

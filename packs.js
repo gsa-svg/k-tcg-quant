@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261008font";
+const DATA_VERSION = "20261013qa";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -703,7 +703,7 @@ function applyStaticI18n() {
       </details>`,
   );
   const jpTab = document.querySelector('.langTab[data-lang="jp"]');
-  if (jpTab) jpTab.innerHTML = `JP / EN BOX <small id="statJp"></small>`;
+  if (jpTab) jpTab.innerHTML = `${t("일본판 / 영문판 박스", "JP / EN BOX")} <small id="statJp"></small>`;
   const extraTab = document.querySelector('.langTab[data-lang="extra"]');
   if (extraTab) extraTab.innerHTML = `${t("EB·PRB", "EB / PRB")} <small id="statExtra"></small>`;
   setText(".packSection > .note", "신규 세트는 시세 데이터가 준비되는 대로 반영됩니다. 모든 가격은 참고값입니다.", "New sets appear once price data is ready. All prices are reference values.");
@@ -719,9 +719,15 @@ function applyStaticI18n() {
     if (el.dataset.en == null) el.dataset.en = el.textContent;
     el.textContent = state.hl === "ko" ? el.dataset.ko : el.dataset.en;
   });
+  // 링크·굵은 글씨가 든 문단(제휴 고지·홈 요약·세트 가이드 목록)은 innerHTML 로 — lang-toggle.js 와 같은 규칙(2026-10-13 QA).
+  document.querySelectorAll("[data-ko-html]").forEach((el) => {
+    if (el.dataset.enHtml == null) el.dataset.enHtml = el.innerHTML;
+    el.innerHTML = state.hl === "ko" ? el.dataset.koHtml : el.dataset.enHtml;
+  });
   document.documentElement.lang = state.hl;
+  // 라벨은 다른 페이지(lang-toggle.js)와 같다 — 홈만 "EN" 이었다(2026-10-13 QA).
   const btn = document.querySelector("#displayLangToggle");
-  if (btn) btn.textContent = state.hl === "en" ? "한국어" : "EN";
+  if (btn) btn.textContent = state.hl === "en" ? "한국어" : "English";
 }
 
 function bindDisplayLanguage() {
@@ -744,6 +750,9 @@ function bindDisplayLanguage() {
     try { localStorage.setItem("ktcg_hl", state.hl); localStorage.setItem("opbox_lang", state.hl); } catch (e) {}
     state.renderedLang = null;
     applyStaticI18n();
+    // 첫 화면 위쪽(시장 상태·4주 등락·오늘의 딜·보호용품·세트 찾기)도 다시 그린다 — 2026-10-13 QA: 처음 그린 언어로 남아
+    // 한국어로 바꿔도 영어였다. 같은 데이터·같은 함수라 값은 그대로고 글자만 바뀐다.
+    if (state.data) { renderQuickSet(); renderMarketStatus(); renderTickerBoard(); renderTodayDeals(); }
     renderPackGrid();
     renderDetail();
     updateUrl(true);
@@ -1017,7 +1026,7 @@ function renderPsaDestruction(set) {
   const fullGems = full ? (full.gems != null ? full.gems : full.gem10) : null;
   const body = rows.map((r) => `<tr><td class="pdName">${r.name} <em>#${r.number}</em></td><td><span class="pdRar">${psaRarShort(r.rarity)}</span></td><td class="pdNum">${num(r.psa10)}</td><td class="pdNum pdMut">${num(r.psa9)}</td><td class="pdNum">${num(r.total)}</td><td class="pdGem">${r.gem}%</td></tr>`).join("");
   return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사 · 세트 전체", "Population via PSA · full set")}${updated ? ` · ${updated}` : ""}</small></div>
-    <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
+    <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11.5px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11.5px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11.5px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
     ${renderEditionTable(set)}
     <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10.`)}</p>
     ${rows.length ? `<div class="pdTableWrap" role="region" tabindex="0" aria-label="${t("카드별 PSA 등급 수", "PSA population by card")}"><table class="pdTable"><thead><tr><th>${t("카드", "Card")} <em class="pdEd">${t("일본판", "JP")}</em></th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
