@@ -22,7 +22,7 @@
 // Run: node tools/generate-english-set-pages.js   (generate-set-pages.js 보다 먼저 — 허브·일본판 페이지가 이 파일 존재를 보고 링크를 건다)
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS } = require("./set-page-shared");
+const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss } = require("./set-page-shared");
 
 const readJson = (rel, fallback) => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; }
@@ -54,16 +54,20 @@ function englishMetrics(code) {
   const s = data.sets[code] || {};
   const ser = SOLD.sets?.[code] || {};
   const en = (ser.en || []).filter((p) => p && p.median != null);
-  const last = en.length ? en[en.length - 1] : null;
+  // 현재가는 current(28일 규칙) — 2026-10-14 QA: 설명문 "3.8x the JP box" 가 98일 전 일본판 값(07-07)으로 계산돼 있었다.
+  //   큰 숫자·배수·설명문 모두 current 가 있을 때만. 배수는 JP·EN current 가 둘 다 있을 때만.
+  const cur = ser.current || {};
+  const last = cur.en || null;
   const prior = en.length >= 5 ? en[en.length - 5] : null;         // 4주 전(점 하나 = 7일)
   const supply = lastWith(ser.supply, "en");
   const windowDays = ser.windowDays?.en || null;
   const sold = s.boxMarket?.en?.ebaySold || null;
   const ask = s.boxMarket?.en?.ebayActive || null;
-  const jpLast = lastWith(ser.jp, "median");
+  const jpLast = cur.jp || null;
   return {
     price: last ? last.median : null,
     priceD: last ? last.d : null,
+    priceN: last ? last.n ?? null : null,
     chg: last && prior && prior.median ? pct1(last.median, prior.median) : null,
     stock: supply ? supply.en : null,
     stockD: supply ? supply.d : null,
@@ -86,6 +90,8 @@ function englishMetrics(code) {
 const ORDER = [...(data.jp?.list || []), ...(data.extra?.list || [])]
   .filter((code) => data.sets?.[code]?.boxMarket?.en?.ebaySold?.median != null);
 const METRICS = Object.fromEntries(ORDER.map((code) => [code, englishMetrics(code)]));
+// 최신 세트 — 제목·H1 에 Release Date 를 넣는다(일본판 생성기와 같은 함수).
+const LATEST = latestSets(ORDER, DATA_DATE);
 
 // 기준선 = 영문판 페이지가 있는 세트들의 중앙값. 라벨의 "N-set" 은 실제 모수로 쓴다.
 const BASE = (() => {
@@ -142,7 +148,7 @@ function keyFacts(code, nameEn, m, s) {
   if (m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3) facts.push(`Current eBay asking prices run around <strong>${usd(m.ask.middle)}</strong> (${m.ask.sampleSize} active listings, ${esc(m.ask.updated || DATA_DATE)}).`);
   if (m.multiple != null) facts.push(`The English ${code}${rp} box trades at about <strong>${m.multiple}x</strong> the Japanese box (${usd(m.jpPrice)} as of ${esc(m.jpPriceD)}).`);
   if (m.psa != null && m.gem != null) facts.push(`PSA has graded <strong>${intl(m.psa)}</strong> English ${code} cards with a <strong>${m.gem}%</strong> PSA 10 rate (as of ${esc(m.psaD || DATA_DATE)}).`);
-  if (s.release) facts.push(`The English edition of ${code} released ${esc(monthYear(s.release))}.`);
+  if (s.release) facts.push(`The English edition of ${code} released ${esc(s.release)}.`);   // 일 단위(2026-10-14, 종전 "Dec 2022")
   if (facts.length < 2) return "";
   return `
       <section id="key-facts" aria-label="Key facts">
@@ -173,17 +179,10 @@ function chartBlock(code) {
 // 검색어에 sealed 가 있어도 "Unsealed"·"Open Box" 매물이 최저가로 잡힌다(OP-13 실측).
 // 최저 실매물 버튼 — cheapestBox 와 같은 검수 조건(미개봉 새 제품, 개봉/손상 문구 제외)을 쓴다.
 // 값이 찍힌 버튼이 검색 링크보다 훨씬 많이 눌린다(2026-09-16 실측).
-function cheapestBoxCta(code, m) {
-  const bl = m.ask && m.ask.bestListing;
-  if (!bl || bl.total == null || !/new/i.test(bl.condition || "")) return "";
-  if (/unseal|open|empty|no packs|reseal|damaged/i.test(bl.title || "")) return "";
-  return buyCta({
-    url: bl.url,
-    price: bl.total,
-    mid: m.ask.middle != null ? m.ask.middle : null,
-    updated: m.ask.updated,
-    label: `sealed English ${code} box`,
-  });
+// 값은 Key facts 표의 "Lowest live ask" 와 같은 함수(set-page-shared.lowestAsk)에서 — 표와 버튼이 늘 같은 숫자다(2026-10-14).
+function cheapestBoxCta(code) {
+  const a = lowestAsk(data.sets[code], "en");
+  return a ? buyCta({ url: a.url, price: a.total, mid: a.mid, updated: a.updated, label: `sealed English ${code} box` }) : "";
 }
 
 function cheapestBox(code, m) {
@@ -220,7 +219,9 @@ function weeklyTable(code) {
 }
 
 function compareTable(code, m, s) {
-  const jpSold = s.boxMarket?.jp?.ebaySold, jpAsk = s.boxMarket?.jp?.ebayActive;
+  // 일본판 판매 칸도 current(28일 규칙) — 2026-10-14 QA: 98일 전 값이 날짜와 함께 비교표에 남아 다른 표("—")와 엇갈렸다.
+  const jpCur = SOLD.sets?.[code]?.current?.jp || null;
+  const jpSold = jpCur ? { median: jpCur.median, updated: jpCur.d, sampleSize: jpCur.n } : null, jpAsk = s.boxMarket?.jp?.ebayActive;
   const sup = lastWith(SOLD.sets?.[code]?.supply, "en");
   const jpRel = SET_FACTS.sets?.[code]?.jpRelease?.date || null;
   const row = (label, en, jp) => (en == null && jp == null ? "" : `<tr><td>${label}</td><td class="num">${en ?? "—"}</td><td class="num">${jp ?? "—"}</td></tr>`);
@@ -259,7 +260,7 @@ function auctionSection(code) {
   return `
       <h2>English ${code} cards at eBay auction — last ${w.days || 30} days</h2>
       <div class="chaseTableWrap">
-        <table class="chaseTable">
+        <table class="chaseTable tblFit">
           <thead><tr><th>Listing type</th><th>Closed</th><th>Sold</th><th>Sell rate</th></tr></thead>
           <tbody>
             ${rows}
@@ -304,7 +305,7 @@ function faqHtml(code, nameEn, items) {
       </section>`;
 }
 
-function jsonLd(code, nameEn, m, s, items, canonical) {
+function jsonLd(code, nameEn, m, s, items, canonical, pageName) {
   const ld = [];
   if (items.length) ld.push({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: items.map((x) => ({ "@type": "Question", name: x.q, acceptedAnswer: { "@type": "Answer", text: x.a } })) });
   ld.push({
@@ -316,12 +317,16 @@ function jsonLd(code, nameEn, m, s, items, canonical) {
       { "@type": "ListItem", position: 4, name: `${code} English box`, item: canonical },
     ],
   });
-  ld.push({ "@context": "https://schema.org", "@type": "WebPage", url: canonical, dateModified: DATA_DATE });
+  // name = 이 페이지 <title> — WebPage.name 이 비어 있었다(2026-10-14 W6b).
+  ld.push({ "@context": "https://schema.org", "@type": "WebPage", ...(pageName ? { name: pageName } : {}), url: canonical, dateModified: DATA_DATE });
   // Product 스키마는 유효한 호가 구간이 있을 때만 — 불완전한 Product 는 서치콘솔 경고가 된다.
   const a = m.ask;
   if (a && a.middle != null && (a.sampleSize || 0) >= 3) {
-    const offers = a.low != null && a.high != null && a.high >= a.low
-      ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(a.low), highPrice: Math.round(a.high), offerCount: a.sampleSize, availability: "https://schema.org/InStock", url: canonical }
+    // lowPrice = 화면 Key facts 의 "Lowest live ask"(검증된 최저 실매물 총액) — 2026-10-14(W5a). 실매물이 없을 때만 호가 하위 15% 값.
+    const best = lowestAsk(s, "en");
+    const lowV = best ? best.total : a.low;
+    const offers = lowV != null && a.high != null && (best || a.high >= lowV)
+      ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(lowV), highPrice: Math.round(Math.max(a.high, lowV)), offerCount: a.sampleSize, availability: "https://schema.org/InStock", url: canonical }
       : { "@type": "Offer", priceCurrency: "USD", price: Math.round(a.middle), availability: "https://schema.org/InStock", url: canonical };
     ld.push({
       "@context": "https://schema.org", "@type": "Product",
@@ -348,12 +353,11 @@ const PAGE_CSS = `      .setHero { display: flex; gap: 18px; align-items: flex-s
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
 ${BUY_CTA_CSS}
+${KF_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11.5px; opacity: .8; }
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 760px; }
       .affTop b { color: inherit; font-weight: 600; }
-      .dataSummary { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
-      .dataSummary b { color: var(--accent); font-weight: 800; }
       .pageUpdated { margin: 6px 0 0; color: var(--muted); font-size: 12.5px; }
       .statGloss { margin: 8px 0 0; max-width: 760px; font-size: 12.5px; color: var(--muted, #9aa4b6); }
       .statGloss > summary { cursor: pointer; color: var(--muted, #9aa4b6); }
@@ -391,12 +395,16 @@ function englishPage(code, prev, next) {
   // 제목 = "<코드> <세트명> English Booster Box Price"(2026-09-17). 브랜드 꼬리는 60자 안에 들어맞을 때만, 그래도 넘치면 "Booster" 를 뺀다.
   // (2026-09-09 감사 때 60자 "안팎"으로 줄였지만 22장 중 20장이 여전히 60자를 넘어 검색결과에서 잘렸다.)
   const core = `${code} ${nameEn} English Booster Box Price`;
+  // 최신 세트(set-page-shared.latestSets — 일본판 생성기와 같은 규칙)는 "Release Date" 를 앞세운다(2026-10-14, W5a).
+  // "Card List" 는 넣지 않는다 — 카드 리스트 페이지는 일본판 공식 목록 기준이다.
+  const rel = LATEST.has(code);
+  const latestCands = rel ? [`One Piece ${code} English Booster Box Price & Release Date`, `One Piece ${code} English Box Price & Release Date`, `${code} English Box Price & Release Date | OP Box Index`] : [];
   // 2026-09-29: 'One Piece' 를 맨 앞 후보로. 다음 후보는 'Booster' 를 빼고 'One Piece' 를 지킨다(일본판 생성기와 같은 규칙).
-  const title = uniqueTitle(fit([`One Piece ${core}`, `One Piece ${code} ${nameEn} English Box Price`, `${core} | OP Box Index`, core, `${code} ${nameEn} English Box Price`], TITLE_MAX, code));
+  const title = uniqueTitle(fit([...latestCands, `One Piece ${core}`, `One Piece ${code} ${nameEn} English Box Price`, `${core} | OP Box Index`, core, `${code} ${nameEn} English Box Price`], TITLE_MAX, code));
   // 설명은 155자 안에서 문장이 끝나야 한다 — 종전 slice(0,155) 는 단어 중간을 잘랐다. 값 없는 조각은 빠진다.
   // 넘치면 긴 꼬리를 떼고, 그래도 넘치면 같은 숫자를 짧은 말로 다시 쓴다(숫자는 그대로).
   const bitsOf = (short) => [
-    m.sold?.median != null ? (m.reprint ? "reprint (White) " : "") + (short ? `eBay sold median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales, ${m.sold.updated})` : `completed eBay sale median $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales to ${m.sold.updated})`) : "",
+    m.price != null ? (m.reprint ? "reprint (White) " : "") + (short ? `eBay sold median $${Math.round(m.price)} (${m.priceN} sales, ${m.priceD})` : `completed eBay sale median $${Math.round(m.price)} (${m.priceN} sales to ${m.priceD})`) : "",
     m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3 ? (short ? `ask $${Math.round(m.ask.middle)}` : `asking mid $${Math.round(m.ask.middle)}`) : "",
     m.multiple != null ? (short ? `${m.multiple}x the JP box` : `${m.multiple}x the Japanese box`) : "",
     m.gem != null ? (short ? `PSA 10 rate ${m.gem}%` : `English PSA 10 rate ${m.gem}%`) : "",
@@ -408,35 +416,32 @@ function englishPage(code, prev, next) {
     `English ${code} ${nameEn} box: ${bitsOf(true)}.`,
   ], DESC_MAX, code);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box English sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
-  const enBuy = cheapestBoxCta(code, m);
+  const enBuy = cheapestBoxCta(code);
 
-  const summaryBits = [];
-  if (m.sold?.median != null) summaryBits.push(`${m.reprint ? "Reprint (White) sold" : "Sold"} median <b>${usd(m.sold.median)}</b> (${m.sold.sampleSize} sales · ${esc(m.sold.updated)})`);
-  if (m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3) summaryBits.push(`Asking <b>${usd(m.ask.middle)}</b> (${m.ask.sampleSize} listings)`);
-  if (m.gem != null) summaryBits.push(`English PSA 10 rate <b>${m.gem}%</b>${m.psa != null ? ` (${intl(m.psa)} graded)` : ""}`);
-  const summaryLine = summaryBits.length ? `<p class="dataSummary">${summaryBits.join(" · ")}</p>` : "";
-
-  return `${pageHead({ title, desc, canonical, extraLd: jsonLd(code, nameEn, m, s, items, canonical), extraCss: PAGE_CSS })}
+  // 머리 요약 줄(dataSummary)은 H1 아래 Key facts 표로 바뀌었다 — 2026-10-14(W5a). 일본판·한국어 페이지와 같은 함수에서 같은 사실을 읽는다.
+  // chart:false — 박스 차트 CSS 는 차트 바로 앞(withChartCss)에 둔다. 머리를 가볍게 해 Key facts 표를 HTML 앞쪽에(2026-10-14, W5a).
+  return `${pageHead({ title, desc, canonical, extraLd: jsonLd(code, nameEn, m, s, items, canonical, title), extraCss: PAGE_CSS, chart: false })}
       <p class="eyebrow">Set Guide · English edition</p>
       <div class="setHero">
         <div>
-          <h1>One Piece ${code} ${esc(nameEn)} — English booster box price</h1>
-          <p class="eyebrow">English edition${s.release ? ` · released ${esc(s.release)}` : ""} · <a href="${slug(code)}.html">Japanese box guide</a></p>
-          ${summaryLine}
+          <h1>One Piece ${code} ${esc(nameEn)} — English booster box price${rel ? " &amp; release date" : ""}</h1>
+          ${keyFactsHtml(keyFactsModel(code, "en"))}
+          <p class="eyebrow"><span data-ko="영문판">English edition</span> · <a href="${slug(code)}.html" data-ko="일본판 박스 가이드">Japanese box guide</a></p>
           <p class="pageUpdated">Data updated <time datetime="${DATA_DATE}">${DATA_DATE}</time> · refreshed daily</p>
         </div>
       </div>
       ${AFF_TOP}
-      ${statGrid(code, m)}
-      ${/* 구매 버튼은 박스 시세 바로 아래 — 2026-10-07(일본판 생성기와 같은 이유: 차트 뒤에 두면 첫 화면에 살 길이 없다). */ ""}
+      ${/* 구매 버튼은 박스 시세 바로 아래 — 2026-10-07(일본판 생성기와 같은 이유: 차트 뒤에 두면 첫 화면에 살 길이 없다).
+            2026-10-14(W5a): 박스 시세가 H1 아래 Key facts 표로 올라와, 버튼도 지표 격자 앞(표·고지 바로 뒤)으로. */ ""}
       <div class="ctaRow">
         ${enBuy}
         <a class="${enBuy ? "" : "primary"}" href="${ebaySearch}" target="_blank" rel="noopener noreferrer sponsored">${enBuy ? `All English ${code} box listings` : `Browse English ${code} boxes on eBay`}</a>
         <a href="../?set=${encodeURIComponent(code)}&amp;hl=en">Open live ${code} tracker</a>
         <a href="${slug(code)}.html">Japanese ${code} box guide</a>
       </div>
+      ${statGrid(code, m)}
       ${keyFacts(code, nameEn, m, s)}
-      ${chartBlock(code)}
+      ${withChartCss(chartBlock(code))}
       ${cheapestBox(code, m)}
       ${weeklyTable(code)}
       ${compareTable(code, m, s)}

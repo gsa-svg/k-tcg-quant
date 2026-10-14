@@ -85,6 +85,14 @@ function checkStaticContent() {
   }
   for (const file of setPages) {
     requiredPageChecks(file);
+    // 세트별 공식 카드리스트(2026-10-14, W7)는 FAQ 를 새로 넣지 않는 규칙이라 대신 목록 구조화데이터를 요구한다.
+    if (/-card-list\.html$/.test(file)) {
+      const content = read(file);
+      requireMatch(content, /"@type"\s*:\s*"CollectionPage"/i, "CollectionPage schema", file);
+      requireMatch(content, /"@type"\s*:\s*"ItemList"/i, "ItemList schema", file);
+      requireMatch(content, /"@type"\s*:\s*"BreadcrumbList"/i, "BreadcrumbList schema", file);
+      continue;
+    }
     requireMatch(read(file), /"@type"\s*:\s*"FAQPage"/i, "FAQ schema", file);
   }
 
@@ -100,9 +108,30 @@ function checkStaticContent() {
   }
 }
 
+// Product 는 어디에 있든(최상위·ItemList 안·@graph 안) offers / review / aggregateRating 중 하나가 있어야 한다.
+// 2026-10-14 QA: 발매일 글·ja 발매일 표의 ItemList 안 Product 73개에 셋 다 없어 Search Console Product snippets 무효 항목이 된다.
+function checkNestedProducts() {
+  const files = [...readHtmlFiles("articles"), ...readHtmlFiles("sets"), ...readHtmlFiles("ja"), ...readHtmlFiles("ko"), "index.html", "box-prices.html", "compare.html"]
+    .filter((f) => fs.existsSync(path.join(ROOT, f)));
+  const walk = (node, file, where) => {
+    if (Array.isArray(node)) { node.forEach((n, i) => walk(n, file, `${where}[${i}]`)); return; }
+    if (!node || typeof node !== "object") return;
+    const t = [].concat(node["@type"] || []);
+    if (t.includes("Product") && !node.offers && !node.review && !node.aggregateRating) errors.push(`${file}: Product without offers/review/aggregateRating at ${where} (${String(node.name || "").slice(0, 60)})`);
+    for (const [k, v] of Object.entries(node)) if (v && typeof v === "object") walk(v, file, `${where}.${k}`);
+  };
+  for (const file of files) {
+    for (const m of read(file).matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
+      let j; try { j = JSON.parse(m[1]); } catch { continue; }
+      walk(j, file, "$");
+    }
+  }
+}
+
 checkHome();
 checkSitemap();
 checkStaticContent();
+checkNestedProducts();
 
 console.log(JSON.stringify({
   homePages: 2,

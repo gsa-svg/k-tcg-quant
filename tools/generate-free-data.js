@@ -91,6 +91,37 @@ const datasets = [
   dataset({ id: "auction-csv", name: "Completed auction results by day", description: "Settled auction counts, sold counts, sell-through, median winning bids and bid counts by product type.", modified: maxDate(auctionDates) || DATA_DATE, dates: auctionDates, variables: AUCTION_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` }),
   dataset({ id: "box-csv", name: "Japanese and English booster box market snapshots", description: `${nPrices} sets with completed-sale medians and active asking-price medians kept separate, including sample sizes and observation dates.`, modified: maxDate(priceDates) || DATA_DATE, dates: priceDates, variables: BOX_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }),
 ];
+// 세트별 공식 카드리스트 CSV·JSON(generate-card-list-pages.js 산출) — 2026-10-14(W7). 카드 사실은 반다이 공식 목록이라
+// CC BY 를 붙이지 않는다(우리 숫자 열만 CC BY — 파일 안 notes 에 적혀 있다). 그래서 dataset() 헬퍼를 쓰지 않는다.
+const CARD_LISTS = require("./card-list-shared").products();
+// 카드리스트 기간 = 공식 목록 확인일과 우리 숫자 관측일(NM·경매·PSA 10)의 범위 — 각 세트 JSON 에서
+const CARD_LIST_SPAN = (() => {
+  const dates = [];
+  for (const p of CARD_LISTS) {
+    let j = null;
+    try { j = JSON.parse(fs.readFileSync(path.join(ROOT, "sets", `${p.slug}-card-list.json`), "utf8")); } catch { continue; }
+    dates.push(j.officialList && j.officialList.checked);
+    for (const c of j.cards || []) dates.push(c.nm && c.nm.observedOn, c.auction && c.auction.through, c.auctionEnglishPrint && c.auctionEnglishPrint.through, c.psa10 && c.psa10.observedOn);
+  }
+  return temporalCoverage(dates);
+})();
+if (CARD_LISTS.length) {
+  datasets.push({
+    "@type": "Dataset", "@id": `${SITE}/free-data.html#card-lists`,
+    name: "One Piece Card Game official card lists by set (Japanese edition) with matched prices",
+    description: `${CARD_LISTS.length} sets, one row per official card ID (${CARD_LISTS.reduce((s, p) => s + p.counts.cards, 0)} cards): number, English and Japanese names, rarity, type, color, cost or life, power and counter from Bandai's official card lists, plus OP Box Index raw NM, auction and PSA 10 prices where the card ID matches by rule.`,
+    url: `${SITE}/free-data.html#card-lists`, isAccessibleForFree: true, dateModified: DATA_DATE, creator: publisher,
+    // 라이선스는 둘로 나뉜다 — 우리 숫자 열(nm·auction·psa10)은 CC BY 4.0, 카드 사실 열은 반다이 공식 목록(출처 링크) — 2026-10-14 QA.
+    license: { "@type": "CreativeWork", name: "OP Box Index numbers (nm, auction, psa10 columns): CC BY 4.0. Card facts: Bandai official card list (see isBasedOn), not relicensed.", url: `${SITE}/free-data.html#card-lists` },
+    ...(CARD_LIST_SPAN ? { temporalCoverage: CARD_LIST_SPAN } : {}),
+    isBasedOn: "https://www.onepiece-cardgame.com/cardlist/",
+    variableMeasured: ["id", "number", "print", "rarity", "type", "name_en", "name_ja", "color", "cost", "power", "counter", "nm_usd", "auction_jp_median_usd", "auction_en_median_usd", "psa10_usd"],
+    distribution: CARD_LISTS.flatMap((p) => [
+      { "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${SITE}/sets/${p.slug}-card-list.csv`, name: `${p.code} card list (CSV)` },
+      { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE}/sets/${p.slug}-card-list.json`, name: `${p.code} card list (JSON)` },
+    ]),
+  });
+}
 const datasetLd = JSON.stringify({
   "@context": "https://schema.org",
   "@graph": [
@@ -201,7 +232,15 @@ ${gradePreview}
       <h2 id="box-csv">4. Japanese and English booster box markets — <code>opbox-set-prices.csv</code></h2>
       <p data-ko-html="추적 상품마다 한 행입니다. 일본판과 영문판 인쇄본은 분리합니다. 실거래 중앙값에는 25/75 백분위, 표본 수, 표본 수집일이 함께 들어갑니다. 진행 중 호가 중앙값에는 15/85 백분위, 확인된 매물 수, 관측일이 들어갑니다. 둘을 조용히 섞는 현재가 같은 열은 두지 않습니다.">One row per tracked product. Japanese and English printings are separate. Completed-sale medians include the 25th/75th percentile, sample size and sample-collection date. Active asking-price medians include the 15th/85th percentile, verified listing count and observation date. There is no generic “current price” column that silently mixes the two.</p>
 
-      <h2 data-ko="어떻게 만드는가">How it's built</h2>
+${CARD_LISTS.length ? `      <h2 id="card-lists" data-ko="5. 세트별 공식 카드 리스트">5. Official card lists by set — <code>sets/&lt;code&gt;-card-list.csv</code> · <code>.json</code></h2>
+      <div class="fields">
+        One row per official card ID (Japanese edition). Card facts: Bandai official card list, with its URL and checked date in each file. Our columns: <code>nm_usd</code> · <code>auction_jp_median_usd</code> · <code>auction_en_median_usd</code> · <code>psa10_usd</code> — only where the card ID matches by rule, blank otherwise. No effect text or images.
+      </div>
+      <ul class="note">
+        ${CARD_LISTS.map((p) => `<li><b>${esc(p.code)}</b> <a href="sets/${p.slug}-card-list.html">page</a> · <a href="sets/${p.slug}-card-list.csv">CSV</a> · <a href="sets/${p.slug}-card-list.json">JSON</a> · ${p.counts.cards} cards</li>`).join("\n        ")}
+      </ul>
+
+` : ""}      <h2 data-ko="어떻게 만드는가">How it's built</h2>
       <p data-ko-html="박스 시세는 실거래 또는 확인된 진행 매물의 집계이며, 부스터 박스 한 개 기준으로 환산하고 인쇄본을 표시합니다. 그레이딩 수는 각 감정사의 공개 인구 보고서에서 각자의 주기로 수집해, 다시 쓰지 않는 원장에 덧붙입니다. 경매 수치는 매물이 끝난 뒤에 읽습니다. 파생 집계만 공개하고 매물 원본 덤프는 내보내지 않습니다. 값을 확인할 수 없으면 추정하지 않고 비웁니다.">Box prices are aggregates of completed sales or verified active listings, normalised to one booster box and labelled by printing. Grading counts come from each grader's public population reporting, collected on its own cadence and appended to ledgers we never rewrite. Auction figures are read after listings close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
 
       <div class="attrBox" id="terms">

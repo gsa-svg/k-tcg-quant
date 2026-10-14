@@ -267,6 +267,12 @@
         "source": "https://web.archive.org/web/20231215/https://www.onepiece-cardgame.com/products/boosters/eb01.php",
         "sourceNote": "Bandai official product page, read via Wayback snapshot 20231215 (the live page now 404s).",
         "verifiedOn": "2026-08-13"
+      },
+      "enPackContents": {
+        "cardsPerPack": 12,
+        "source": "https://en.onepiece-cardgame.com/products/boosters/eb01.php",
+        "verifiedOn": "2026-10-14",
+        "note": "Bandai English EB-01 page: Contents - 12 cards per pack, 24 packs per box."
       }
     },
     "EB-02": {
@@ -341,7 +347,7 @@
       "cardTypes": "131+4",
       "jpSpecSource": {
         "source": "https://www.onepiece-cardgame.com/products/op17.html",
-        "verifiedOn": "2026-09-28",
+        "verifiedOn": "2026-10-14",
         "note": "Pack price, cards per pack, card-type count and rarity counts are from Bandai's official OP-17 page. The 24-pack box figure is the standard OP configuration and is not stated on that page."
       },
       "jpRarityCounts": {
@@ -355,7 +361,20 @@
         "common": 45,
         "don": 4,
         "source": "https://www.onepiece-cardgame.com/products/op17.html",
-        "verifiedOn": "2026-09-28"
+        "verifiedOn": "2026-10-14"
+      },
+      "enRelease": {
+        "date": "2026-08-28",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": "131+4",
+        "source": "https://en.onepiece-cardgame.com/products/boosters/op17/",
+        "verifiedOn": "2026-10-14"
+      },
+      "boxConfig": {
+        "stated": false,
+        "basis": "24 packs x pack price",
+        "note": "Bandai's official OP-17 page lists the pack price (240 yen) but no box configuration. packsPerBox 24 and jpMsrpYen 5760 are the standard OP box (24 packs x 240 yen), not a figure printed by Bandai.",
+        "verifiedOn": "2026-10-14"
       }
     },
     "OP-18": {
@@ -364,17 +383,102 @@
       "cardTypes": "127+1",
       "jpSpecSource": {
         "source": "https://www.onepiece-cardgame.com/products/op18.html",
-        "verifiedOn": "2026-09-30",
-        "note": "Pack price (240 yen, tax included), cards per pack and card-type count are from Bandai's official OP-18 page. The page does not state a box configuration, so packsPerBox and jpMsrpYen are left out."
+        "verifiedOn": "2026-10-14",
+        "note": "Pack price (240 yen, tax included), cards per pack and card-type count are from Bandai's official OP-18 page. The page does not state a box configuration or a rarity breakdown, so packsPerBox, jpMsrpYen and jpRarityCounts are left out."
+      },
+      "jpRelease": {
+        "date": "2026-11-21",
+        "source": "https://www.onepiece-cardgame.com/products/op18.html",
+        "sourceNote": "Bandai official Japanese product page: 発売日 2026年11月21日(土).",
+        "verifiedOn": "2026-10-14"
+      },
+      "enRelease": {
+        "date": "2026-11-20",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": "127+1",
+        "source": "https://en.onepiece-cardgame.com/products/op18.html",
+        "verifiedOn": "2026-10-14"
       }
     },
     "EB-05": {
       "jpMsrpYenPerPack": 240,
       "cardsPerPack": 6,
+      "cardTypes": "75+2",
       "jpSpecSource": {
         "source": "https://www.onepiece-cardgame.com/products/eb05.html",
-        "verifiedOn": "2026-09-30",
-        "note": "Pack price (240 yen, tax included) and cards per pack are from Bandai's official Japanese EB-05 page. The page states no card-type count and no box configuration, so cardTypes, packsPerBox and jpMsrpYen are left out."
+        "verifiedOn": "2026-10-14",
+        "note": "Pack price (240 yen, tax included), cards per pack, card-type count (全75種+2種) and rarity counts are from Bandai's official Japanese EB-05 page. The page states no box configuration, so packsPerBox and jpMsrpYen are left out."
+      },
+      "jpRarityCounts": {
+        "leader": 7,
+        "common": 29,
+        "rare": 21,
+        "superRare": 9,
+        "secretRare": 1,
+        "special": 8,
+        "don": 2,
+        "source": "https://www.onepiece-cardgame.com/products/eb05.html",
+        "verifiedOn": "2026-10-14"
+      },
+      "jpRelease": {
+        "date": "2026-10-31",
+        "source": "https://www.onepiece-cardgame.com/products/eb05.html",
+        "sourceNote": "Bandai official Japanese product page: 発売日 2026年10月31日(土).",
+        "verifiedOn": "2026-10-14"
+      },
+      "enRelease": {
+        "date": "2026-10-30",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": "75+2",
+        "source": "https://en.onepiece-cardgame.com/products/eb05.html",
+        "verifiedOn": "2026-10-14"
+      },
+      "enPackContents": {
+        "cardsPerPack": null,
+        "source": "https://en.onepiece-cardgame.com/products/eb05.html",
+        "verifiedOn": "2026-10-14",
+        "note": "Bandai English EB-05 page lists 75+2 types but no per-pack card count."
+      }
+    },
+    "EB-04": {
+      "jpMsrpYenPerPack": 220,
+      "cardsPerPack": 6,
+      "cardTypes": "67+1",
+      "jpSpecSource": {
+        "source": "https://www.onepiece-cardgame.com/products/boosters/eb04.php",
+        "verifiedOn": "2026-10-14",
+        "note": "Pack price (220 yen, tax included), cards per pack, card-type count (全67種+1種) and rarity counts are from Bandai's official Japanese EB-04 page. The page states no box configuration, so packsPerBox and jpMsrpYen are left out."
+      },
+      "jpRarityCounts": {
+        "leader": 1,
+        "common": 29,
+        "rare": 21,
+        "superRare": 9,
+        "secretRare": 1,
+        "special": 6,
+        "don": 1,
+        "source": "https://www.onepiece-cardgame.com/products/boosters/eb04.php",
+        "verifiedOn": "2026-10-14"
+      },
+      "jpRelease": {
+        "date": "2026-01-31",
+        "source": "https://www.onepiece-cardgame.com/products/boosters/eb04.php",
+        "sourceNote": "Bandai official Japanese product page: 発売日 2026年1月31日(土).",
+        "verifiedOn": "2026-10-14"
+      },
+      "enRelease": {
+        "date": null,
+        "combinedIn": [
+          "OP14-EB04",
+          "OP15-EB04"
+        ],
+        "source": "https://en.onepiece-cardgame.com/cardlist/?series=569114",
+        "sources": [
+          "https://en.onepiece-cardgame.com/cardlist/?series=569114",
+          "https://en.onepiece-cardgame.com/cardlist/?series=569115"
+        ],
+        "verifiedOn": "2026-10-14",
+        "note": "No standalone English EB-04 booster. Bandai's English card list carries the EB-04 cards inside the [OP14-EB04] and [OP15-EB04] booster products."
       }
     }
   },

@@ -1,5 +1,5 @@
 {
- "note": "Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every 7 days and dated by SALE date (not collection date). The averaging window is chosen per series (28-56 days) so that each point rests on roughly 12 sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than 6 sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum 6 sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.",
+ "note": "Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every 7 days and dated by SALE date (not collection date). The averaging window is chosen per series (28-56 days) so that each point rests on roughly 12 sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than 6 sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Sales dated before an edition's official release date (pre-orders) are excluded from the sold series and summarized separately per set under preRelease (median only when at least 3 different listings sold). current is the latest point when the edition is released and that point is within 28 days of asOf, otherwise null. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum 6 sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.",
  "window": {
   "targetSales": 12,
   "minDays": 28,
@@ -7,13 +7,17 @@
   "stepDays": 7,
   "minSales": 6,
   "basis": "sold",
-  "datedBy": "saleDate"
+  "datedBy": "saleDate",
+  "fromRelease": true
  },
  "builtFrom": {
   "ledger": "data/box-sold-ledger.json",
   "updated": "2026-10-14"
  },
  "updated": "2026-10-14",
+ "asOf": "2026-10-14",
+ "staleDays": 28,
+ "preReleaseMinListings": 3,
  "sets": {
   "OP-01": {
    "jp": [
@@ -1001,7 +1005,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2022-07-22",
+    "en": "2022-12-02"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 47,
+    "en": 71
+   },
+   "current": {
+    "jp": {
+     "median": 299,
+     "low": 274,
+     "high": 305,
+     "n": 13,
+     "d": "2026-10-04"
+    },
+    "en": {
+     "median": 1419,
+     "low": 1391,
+     "high": 1489,
+     "n": 12,
+     "d": "2026-10-07"
+    }
+   }
   },
   "OP-02": {
    "jp": [
@@ -1710,7 +1742,29 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2022-11-04",
+    "en": "2023-03-10"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 11,
+    "en": 80
+   },
+   "current": {
+    "jp": null,
+    "en": {
+     "median": 559,
+     "low": 509,
+     "high": 579,
+     "n": 13,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-03": {
    "jp": [
@@ -2417,7 +2471,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2023-02-11",
+    "en": "2023-06-30"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 18,
+    "en": 49
+   },
+   "current": {
+    "jp": {
+     "median": 130,
+     "low": 108,
+     "high": 171,
+     "n": 6,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 554,
+     "low": 525,
+     "high": 578,
+     "n": 12,
+     "d": "2026-10-11"
+    }
+   }
   },
   "OP-04": {
    "jp": [
@@ -3159,7 +3241,29 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2023-05-27",
+    "en": "2023-09-22"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 19,
+    "en": 58
+   },
+   "current": {
+    "jp": null,
+    "en": {
+     "median": 488,
+     "low": 474,
+     "high": 500,
+     "n": 12,
+     "d": "2026-10-11"
+    }
+   }
   },
   "OP-05": {
    "jp": [
@@ -4213,7 +4317,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2023-08-26",
+    "en": "2023-12-08"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 39,
+    "en": 181
+   },
+   "current": {
+    "jp": {
+     "median": 174,
+     "low": 156,
+     "high": 199,
+     "n": 10,
+     "d": "2026-10-11"
+    },
+    "en": {
+     "median": 1001,
+     "low": 923,
+     "high": 1064,
+     "n": 25,
+     "d": "2026-10-12"
+    }
+   }
   },
   "OP-06": {
    "jp": [
@@ -4990,7 +5122,29 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2023-11-25",
+    "en": "2024-03-15"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 20,
+    "en": 142
+   },
+   "current": {
+    "jp": null,
+    "en": {
+     "median": 381,
+     "low": 303,
+     "high": 398,
+     "n": 21,
+     "d": "2026-10-12"
+    }
+   }
   },
   "OP-07": {
    "jp": [
@@ -6022,7 +6176,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2024-02-24",
+    "en": "2024-06-28"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 55,
+    "en": 170
+   },
+   "current": {
+    "jp": {
+     "median": 80,
+     "low": 79,
+     "high": 80,
+     "n": 16,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 298,
+     "low": 250,
+     "high": 336,
+     "n": 24,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-08": {
    "jp": [
@@ -6885,7 +7067,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2024-05-25",
+    "en": "2024-09-13"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 38,
+    "en": 112
+   },
+   "current": {
+    "jp": {
+     "median": 79,
+     "low": 75,
+     "high": 91,
+     "n": 12,
+     "d": "2026-09-23"
+    },
+    "en": {
+     "median": 258,
+     "low": 252,
+     "high": 260,
+     "n": 11,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-09": {
    "jp": [
@@ -7904,7 +8114,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2024-08-31",
+    "en": "2024-12-13"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 72,
+    "en": 168
+   },
+   "current": {
+    "jp": {
+     "median": 134,
+     "low": 126,
+     "high": 143,
+     "n": 10,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 598,
+     "low": 549,
+     "high": 622,
+     "n": 22,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-10": {
    "jp": [
@@ -8798,7 +9036,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2024-11-30",
+    "en": "2025-03-21"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 29,
+    "en": 134
+   },
+   "current": {
+    "jp": {
+     "median": 88,
+     "low": 78,
+     "high": 94,
+     "n": 7,
+     "d": "2026-10-07"
+    },
+    "en": {
+     "median": 254,
+     "low": 245,
+     "high": 266,
+     "n": 24,
+     "d": "2026-10-12"
+    }
+   }
   },
   "OP-11": {
    "jp": [
@@ -9776,7 +10042,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-03-01",
+    "en": "2025-06-06"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 52,
+    "en": 144
+   },
+   "current": {
+    "jp": {
+     "median": 104,
+     "low": 99,
+     "high": 136,
+     "n": 13,
+     "d": "2026-10-11"
+    },
+    "en": {
+     "median": 594,
+     "low": 544,
+     "high": 627,
+     "n": 18,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-12": {
    "jp": [
@@ -10709,7 +11003,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-05-31",
+    "en": "2025-08-22"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 40,
+    "en": 130
+   },
+   "current": {
+    "jp": {
+     "median": 110,
+     "low": 92,
+     "high": 147,
+     "n": 10,
+     "d": "2026-10-01"
+    },
+    "en": {
+     "median": 275,
+     "low": 268,
+     "high": 285,
+     "n": 22,
+     "d": "2026-10-10"
+    }
+   }
   },
   "OP-13": {
    "jp": [
@@ -12255,7 +12577,35 @@
      "label": "EN release",
      "labelKo": "영문판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-08-23",
+    "en": "2025-11-07"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 113,
+    "en": 461
+   },
+   "current": {
+    "jp": {
+     "median": 129,
+     "low": 128,
+     "high": 162,
+     "n": 27,
+     "d": "2026-10-10"
+    },
+    "en": {
+     "median": 465,
+     "low": 449,
+     "high": 485,
+     "n": 71,
+     "d": "2026-10-14"
+    }
+   }
   },
   "OP-14": {
    "jp": [
@@ -13236,7 +13586,44 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-11-22",
+    "en": "2026-01-16"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": {
+     "release": "2026-01-16",
+     "sales": 1,
+     "listings": 1,
+     "median": null,
+     "low": null,
+     "high": null,
+     "first": "2026-01-12",
+     "last": "2026-01-12"
+    }
+   },
+   "sinceRelease": {
+    "jp": 60,
+    "en": 198
+   },
+   "current": {
+    "jp": {
+     "median": 90,
+     "low": 87,
+     "high": 97,
+     "n": 14,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 270,
+     "low": 262,
+     "high": 284,
+     "n": 27,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-15": {
    "jp": [
@@ -14369,48 +14756,78 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2026-02-28",
+    "en": "2026-04-03"
+   },
+   "preRelease": {
+    "jp": {
+     "release": "2026-02-28",
+     "sales": 1,
+     "listings": 1,
+     "median": null,
+     "low": null,
+     "high": null,
+     "first": "2026-02-24",
+     "last": "2026-02-24"
+    },
+    "en": {
+     "release": "2026-04-03",
+     "sales": 3,
+     "listings": 3,
+     "median": 254,
+     "low": 217,
+     "high": 260,
+     "first": "2026-01-21",
+     "last": "2026-03-18"
+    }
+   },
+   "sinceRelease": {
+    "jp": 56,
+    "en": 206
+   },
+   "current": {
+    "jp": {
+     "median": 96,
+     "low": 93,
+     "high": 99,
+     "n": 11,
+     "d": "2026-10-07"
+    },
+    "en": {
+     "median": 265,
+     "low": 258,
+     "high": 277,
+     "n": 29,
+     "d": "2026-10-13"
+    }
+   }
   },
   "OP-16": {
    "jp": [
     {
-     "d": "2026-05-26",
-     "median": 94,
-     "low": 93,
-     "high": 229,
-     "n": 7,
-     "vol": 5
-    },
-    {
-     "d": "2026-06-02",
-     "median": 140,
-     "low": 97,
-     "high": 170,
-     "n": 14,
-     "vol": 7
-    },
-    {
      "d": "2026-06-09",
-     "median": 134,
-     "low": 114,
-     "high": 159,
-     "n": 21,
+     "median": 146,
+     "low": 129,
+     "high": 152,
+     "n": 12,
      "vol": 7
     },
     {
      "d": "2026-06-16",
-     "median": 146,
-     "low": 127,
-     "high": 171,
-     "n": 20,
+     "median": 147,
+     "low": 129,
+     "high": 159,
+     "n": 13,
      "vol": 1
     },
     {
      "d": "2026-06-23",
-     "median": 134,
-     "low": 126,
-     "high": 150,
-     "n": 17,
+     "median": 145,
+     "low": 128,
+     "high": 155,
+     "n": 15,
      "vol": 2
     },
     {
@@ -14546,17 +14963,17 @@
     {
      "d": "2026-06-16",
      "median": 232,
-     "low": 225,
-     "high": 247,
-     "n": 42,
-     "vol": 41
+     "low": 227,
+     "high": 244,
+     "n": 40,
+     "vol": 40
     },
     {
      "d": "2026-06-23",
      "median": 225,
      "low": 217,
      "high": 239,
-     "n": 97,
+     "n": 95,
      "vol": 55
     },
     {
@@ -14564,7 +14981,7 @@
      "median": 221,
      "low": 214,
      "high": 237,
-     "n": 152,
+     "n": 150,
      "vol": 55
     },
     {
@@ -14572,7 +14989,7 @@
      "median": 219,
      "low": 213,
      "high": 231,
-     "n": 190,
+     "n": 189,
      "vol": 39
     },
     {
@@ -14697,14 +15114,6 @@
    "monthly": {
     "jp": [
      {
-      "d": "2026-05-01",
-      "median": 134,
-      "low": 94,
-      "high": 177,
-      "n": 13,
-      "vol": 13
-     },
-     {
       "d": "2026-06-01",
       "median": 129,
       "low": 118,
@@ -14751,8 +15160,8 @@
       "median": 221,
       "low": 214,
       "high": 237,
-      "n": 152,
-      "vol": 152
+      "n": 150,
+      "vol": 150
      },
      {
       "d": "2026-07-01",
@@ -15495,14 +15904,6 @@
    "counts": {
     "through": "2026-10-14",
     "jp": {
-     "2026-05-18": 1,
-     "2026-05-19": 1,
-     "2026-05-20": 1,
-     "2026-05-22": 1,
-     "2026-05-24": 1,
-     "2026-05-25": 2,
-     "2026-05-27": 1,
-     "2026-05-28": 1,
      "2026-05-30": 2,
      "2026-05-31": 2,
      "2026-06-01": 1,
@@ -15568,8 +15969,6 @@
      "2026-10-13": 1
     },
     "en": {
-     "2026-06-08": 1,
-     "2026-06-11": 1,
      "2026-06-12": 7,
      "2026-06-13": 5,
      "2026-06-14": 7,
@@ -16040,7 +16439,53 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2026-05-30",
+    "en": "2026-06-12"
+   },
+   "preRelease": {
+    "jp": {
+     "release": "2026-05-30",
+     "sales": 9,
+     "listings": 9,
+     "median": 104,
+     "low": 94,
+     "high": 229,
+     "first": "2026-05-18",
+     "last": "2026-05-28"
+    },
+    "en": {
+     "release": "2026-06-12",
+     "sales": 3,
+     "listings": 3,
+     "median": 254,
+     "low": 239,
+     "high": 255,
+     "first": "2026-01-22",
+     "last": "2026-06-11"
+    }
+   },
+   "sinceRelease": {
+    "jp": 85,
+    "en": 538
+   },
+   "current": {
+    "jp": {
+     "median": 97,
+     "low": 94,
+     "high": 97,
+     "n": 22,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 233,
+     "low": 225,
+     "high": 251,
+     "n": 60,
+     "d": "2026-10-13"
+    }
+   }
   },
   "EB-01": {
    "jp": [
@@ -16700,7 +17145,29 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2024-01-27",
+    "en": "2024-05-03"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 18,
+    "en": 41
+   },
+   "current": {
+    "jp": null,
+    "en": {
+     "median": 847,
+     "low": 765,
+     "high": 899,
+     "n": 11,
+     "d": "2026-10-06"
+    }
+   }
   },
   "EB-02": {
    "jp": [
@@ -17524,7 +17991,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-01-25",
+    "en": "2025-05-09"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 47,
+    "en": 78
+   },
+   "current": {
+    "jp": {
+     "median": 159,
+     "low": 135,
+     "high": 200,
+     "n": 9,
+     "d": "2026-10-09"
+    },
+    "en": {
+     "median": 797,
+     "low": 738,
+     "high": 825,
+     "n": 15,
+     "d": "2026-10-12"
+    }
+   }
   },
   "EB-03": {
    "jp": [
@@ -18398,7 +18893,44 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-10-25",
+    "en": "2026-02-20"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": {
+     "release": "2026-02-20",
+     "sales": 1,
+     "listings": 1,
+     "median": null,
+     "low": null,
+     "high": null,
+     "first": "2026-02-11",
+     "last": "2026-02-11"
+    }
+   },
+   "sinceRelease": {
+    "jp": 49,
+    "en": 104
+   },
+   "current": {
+    "jp": {
+     "median": 115,
+     "low": 114,
+     "high": 115,
+     "n": 13,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 331,
+     "low": 325,
+     "high": 342,
+     "n": 13,
+     "d": "2026-10-12"
+    }
+   }
   },
   "PRB-01": {
    "jp": [
@@ -19286,7 +19818,35 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2024-07-27",
+    "en": "2024-11-08"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 70,
+    "en": 56
+   },
+   "current": {
+    "jp": {
+     "median": 150,
+     "low": 145,
+     "high": 152,
+     "n": 13,
+     "d": "2026-10-09"
+    },
+    "en": {
+     "median": 915,
+     "low": 902,
+     "high": 995,
+     "n": 15,
+     "d": "2026-10-12"
+    }
+   }
   },
   "PRB-02": {
    "jp": [
@@ -20242,48 +20802,68 @@
      "label": "JP release",
      "labelKo": "일본판 발매"
     }
-   ]
+   ],
+   "release": {
+    "jp": "2025-07-26",
+    "en": "2025-10-03"
+   },
+   "preRelease": {
+    "jp": null,
+    "en": null
+   },
+   "sinceRelease": {
+    "jp": 72,
+    "en": 106
+   },
+   "current": {
+    "jp": {
+     "median": 100,
+     "low": 92,
+     "high": 105,
+     "n": 14,
+     "d": "2026-10-13"
+    },
+    "en": {
+     "median": 374,
+     "low": 344,
+     "high": 398,
+     "n": 22,
+     "d": "2026-10-09"
+    }
+   }
   },
   "OP-17": {
    "jp": [
     {
-     "d": "2026-08-18",
-     "median": 169,
-     "low": 160,
-     "high": 189,
-     "n": 9,
-     "vol": 6
-    },
-    {
      "d": "2026-08-25",
-     "median": 162,
-     "low": 156,
-     "high": 180,
-     "n": 25,
-     "vol": 16
+     "median": 156,
+     "low": 153,
+     "high": 176,
+     "n": 13,
+     "vol": 13
     },
     {
      "d": "2026-09-01",
-     "median": 157,
+     "median": 148,
      "low": 135,
-     "high": 172,
-     "n": 40,
+     "high": 169,
+     "n": 30,
      "vol": 17
     },
     {
      "d": "2026-09-08",
-     "median": 144,
-     "low": 135,
-     "high": 164,
-     "n": 56,
+     "median": 135,
+     "low": 131,
+     "high": 156,
+     "n": 47,
      "vol": 17
     },
     {
      "d": "2026-09-15",
      "median": 135,
      "low": 130,
-     "high": 155,
-     "n": 64,
+     "high": 152,
+     "n": 61,
      "vol": 14
     },
     {
@@ -20321,83 +20901,27 @@
    ],
    "en": [
     {
-     "d": "2026-07-15",
-     "median": 400,
-     "low": 399,
-     "high": 528,
-     "n": 9,
-     "vol": 6
-    },
-    {
-     "d": "2026-07-22",
-     "median": 451,
-     "low": 410,
-     "high": 468,
-     "n": 20,
-     "vol": 12
-    },
-    {
-     "d": "2026-07-29",
-     "median": 439,
-     "low": 400,
-     "high": 468,
-     "n": 24,
-     "vol": 4
-    },
-    {
-     "d": "2026-08-05",
-     "median": 422,
-     "low": 350,
-     "high": 455,
-     "n": 41,
-     "vol": 19
-    },
-    {
-     "d": "2026-08-12",
-     "median": 426,
-     "low": 350,
-     "high": 455,
-     "n": 50,
-     "vol": 15
-    },
-    {
-     "d": "2026-08-19",
-     "median": 391,
-     "low": 350,
-     "high": 425,
-     "n": 65,
-     "vol": 27
-    },
-    {
-     "d": "2026-08-26",
-     "median": 375,
-     "low": 360,
-     "high": 411,
-     "n": 239,
-     "vol": 178
-    },
-    {
      "d": "2026-09-02",
-     "median": 370,
-     "low": 350,
-     "high": 395,
-     "n": 444,
-     "vol": 224
+     "median": 360,
+     "low": 340,
+     "high": 378,
+     "n": 202,
+     "vol": 202
     },
     {
      "d": "2026-09-09",
-     "median": 366,
-     "low": 350,
-     "high": 390,
-     "n": 547,
+     "median": 359,
+     "low": 340,
+     "high": 377,
+     "n": 320,
      "vol": 118
     },
     {
      "d": "2026-09-16",
-     "median": 365,
-     "low": 350,
-     "high": 390,
-     "n": 608,
+     "median": 360,
+     "low": 341,
+     "high": 378,
+     "n": 408,
      "vol": 88
     },
     {
@@ -20405,7 +20929,7 @@
      "median": 359,
      "low": 340,
      "high": 377,
-     "n": 488,
+     "n": 466,
      "vol": 58
     },
     {
@@ -20443,11 +20967,11 @@
     "jp": [
      {
       "d": "2026-08-01",
-      "median": 159,
-      "low": 140,
-      "high": 174,
-      "n": 38,
-      "vol": 38
+      "median": 151,
+      "low": 135,
+      "high": 169,
+      "n": 26,
+      "vol": 26
      },
      {
       "d": "2026-09-01",
@@ -20468,20 +20992,12 @@
     ],
     "en": [
      {
-      "d": "2026-07-01",
-      "median": 427,
-      "low": 400,
-      "high": 461,
-      "n": 25,
-      "vol": 25
-     },
-     {
       "d": "2026-08-01",
-      "median": 372,
-      "low": 350,
-      "high": 400,
-      "n": 409,
-      "vol": 409
+      "median": 360,
+      "low": 345,
+      "high": 380,
+      "n": 149,
+      "vol": 149
      },
      {
       "d": "2026-09-01",
@@ -20504,14 +21020,6 @@
    },
    "daily": {
     "jp": [
-     {
-      "d": "2026-08-12",
-      "median": 175,
-      "low": 160,
-      "high": 192,
-      "n": 4,
-      "vol": 4
-     },
      {
       "d": "2026-08-23",
       "median": 176,
@@ -20682,166 +21190,6 @@
      }
     ],
     "en": [
-     {
-      "d": "2026-07-18",
-      "median": 450,
-      "low": 439,
-      "high": 469,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-07-19",
-      "median": 452,
-      "low": 452,
-      "high": 454,
-      "n": 4,
-      "vol": 4
-     },
-     {
-      "d": "2026-08-03",
-      "median": 350,
-      "low": 350,
-      "high": 400,
-      "n": 9,
-      "vol": 9
-     },
-     {
-      "d": "2026-08-04",
-      "median": 441,
-      "low": 425,
-      "high": 448,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-08-05",
-      "median": 474,
-      "low": 448,
-      "high": 487,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-08-06",
-      "median": 455,
-      "low": 440,
-      "high": 483,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-08-07",
-      "median": 325,
-      "low": 325,
-      "high": 388,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-08-10",
-      "median": 546,
-      "low": 481,
-      "high": 546,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-08-11",
-      "median": 433,
-      "low": 430,
-      "high": 451,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-08-17",
-      "median": 380,
-      "low": 365,
-      "high": 387,
-      "n": 7,
-      "vol": 7
-     },
-     {
-      "d": "2026-08-18",
-      "median": 360,
-      "low": 359,
-      "high": 377,
-      "n": 7,
-      "vol": 7
-     },
-     {
-      "d": "2026-08-19",
-      "median": 395,
-      "low": 368,
-      "high": 400,
-      "n": 7,
-      "vol": 7
-     },
-     {
-      "d": "2026-08-20",
-      "median": 390,
-      "low": 378,
-      "high": 420,
-      "n": 11,
-      "vol": 11
-     },
-     {
-      "d": "2026-08-21",
-      "median": 400,
-      "low": 370,
-      "high": 455,
-      "n": 16,
-      "vol": 16
-     },
-     {
-      "d": "2026-08-22",
-      "median": 360,
-      "low": 348,
-      "high": 394,
-      "n": 39,
-      "vol": 39
-     },
-     {
-      "d": "2026-08-23",
-      "median": 375,
-      "low": 367,
-      "high": 398,
-      "n": 34,
-      "vol": 34
-     },
-     {
-      "d": "2026-08-24",
-      "median": 370,
-      "low": 359,
-      "high": 395,
-      "n": 32,
-      "vol": 32
-     },
-     {
-      "d": "2026-08-25",
-      "median": 382,
-      "low": 369,
-      "high": 409,
-      "n": 28,
-      "vol": 28
-     },
-     {
-      "d": "2026-08-26",
-      "median": 401,
-      "low": 370,
-      "high": 451,
-      "n": 18,
-      "vol": 18
-     },
-     {
-      "d": "2026-08-27",
-      "median": 368,
-      "low": 360,
-      "high": 427,
-      "n": 22,
-      "vol": 22
-     },
      {
       "d": "2026-08-28",
       "median": 354,
@@ -21232,14 +21580,6 @@
    "counts": {
     "through": "2026-10-14",
     "jp": {
-     "2026-08-03": 1,
-     "2026-08-04": 1,
-     "2026-08-06": 1,
-     "2026-08-12": 4,
-     "2026-08-14": 1,
-     "2026-08-16": 1,
-     "2026-08-19": 1,
-     "2026-08-20": 2,
      "2026-08-22": 2,
      "2026-08-23": 5,
      "2026-08-24": 2,
@@ -21289,48 +21629,6 @@
      "2026-10-13": 1
     },
     "en": {
-     "2026-07-06": 1,
-     "2026-07-07": 1,
-     "2026-07-09": 1,
-     "2026-07-12": 2,
-     "2026-07-13": 2,
-     "2026-07-14": 1,
-     "2026-07-16": 1,
-     "2026-07-18": 3,
-     "2026-07-19": 4,
-     "2026-07-20": 2,
-     "2026-07-21": 1,
-     "2026-07-22": 1,
-     "2026-07-23": 1,
-     "2026-07-26": 1,
-     "2026-07-28": 2,
-     "2026-07-31": 1,
-     "2026-08-01": 1,
-     "2026-08-02": 2,
-     "2026-08-03": 9,
-     "2026-08-04": 3,
-     "2026-08-05": 3,
-     "2026-08-06": 3,
-     "2026-08-07": 3,
-     "2026-08-09": 1,
-     "2026-08-10": 3,
-     "2026-08-11": 3,
-     "2026-08-12": 2,
-     "2026-08-13": 2,
-     "2026-08-14": 2,
-     "2026-08-15": 1,
-     "2026-08-16": 1,
-     "2026-08-17": 7,
-     "2026-08-18": 7,
-     "2026-08-19": 7,
-     "2026-08-20": 11,
-     "2026-08-21": 16,
-     "2026-08-22": 39,
-     "2026-08-23": 34,
-     "2026-08-24": 32,
-     "2026-08-25": 28,
-     "2026-08-26": 18,
-     "2026-08-27": 22,
      "2026-08-28": 28,
      "2026-08-29": 48,
      "2026-08-30": 37,
@@ -21587,280 +21885,82 @@
      "ed": "jp",
      "label": "JP release",
      "labelKo": "일본판 발매"
-    }
-   ]
-  },
-  "EB-05": {
-   "jp": [
-    {
-     "d": "2026-10-06",
-     "median": 229,
-     "low": 180,
-     "high": 230,
-     "n": 10,
-     "vol": 9
     },
     {
-     "d": "2026-10-13",
-     "median": 132,
-     "low": 130,
-     "high": 221,
-     "n": 34,
-     "vol": 24
+     "d": "2026-08-28",
+     "ed": "en",
+     "label": "EN release",
+     "labelKo": "영문판 발매"
     }
    ],
-   "en": [
-    {
-     "d": "2026-10-06",
-     "median": 318,
-     "low": 314,
-     "high": 329,
-     "n": 7,
-     "vol": 6
-    }
-   ],
-   "enBlue": [],
-   "windowDays": {
-    "jp": 28,
-    "en": 28,
-    "enBlue": null
+   "release": {
+    "jp": "2026-08-22",
+    "en": "2026-08-28"
    },
-   "monthly": {
-    "jp": [
-     {
-      "d": "2026-10-01",
-      "median": 132,
-      "low": 130,
-      "high": 197,
-      "n": 33,
-      "vol": 33
-     }
-    ],
-    "en": [
-     {
-      "d": "2026-10-01",
-      "median": 317,
-      "low": 313,
-      "high": 326,
-      "n": 6,
-      "vol": 6
-     }
-    ],
-    "enBlue": []
-   },
-   "daily": {
-    "jp": [
-     {
-      "d": "2026-10-06",
-      "median": 153,
-      "low": 132,
-      "high": 193,
-      "n": 4,
-      "vol": 4
-     },
-     {
-      "d": "2026-10-07",
-      "median": 136,
-      "low": 132,
-      "high": 168,
-      "n": 4,
-      "vol": 4
-     },
-     {
-      "d": "2026-10-09",
-      "median": 132,
-      "low": 132,
-      "high": 137,
-      "n": 5,
-      "vol": 5
-     },
-     {
-      "d": "2026-10-11",
-      "median": 130,
-      "low": 122,
-      "high": 130,
-      "n": 4,
-      "vol": 4
-     },
-     {
-      "d": "2026-10-12",
-      "median": 132,
-      "low": 132,
-      "high": 162,
-      "n": 4,
-      "vol": 4
-     },
-     {
-      "d": "2026-10-13",
-      "median": 132,
-      "low": 131,
-      "high": 133,
-      "n": 3,
-      "vol": 3
-     }
-    ],
-    "en": [
-     {
-      "d": "2026-10-04",
-      "median": 312,
-      "low": 312,
-      "high": 314,
-      "n": 3,
-      "vol": 3
-     }
-    ],
-    "enBlue": []
-   },
-   "counts": {
-    "through": "2026-10-14",
+   "preRelease": {
     "jp": {
-     "2026-09-28": 1,
-     "2026-10-01": 1,
-     "2026-10-02": 1,
-     "2026-10-04": 1,
-     "2026-10-05": 2,
-     "2026-10-06": 4,
-     "2026-10-07": 4,
-     "2026-10-08": 2,
-     "2026-10-09": 5,
-     "2026-10-10": 2,
-     "2026-10-11": 4,
-     "2026-10-12": 4,
-     "2026-10-13": 3
+     "release": "2026-08-22",
+     "sales": 12,
+     "listings": 12,
+     "median": 166,
+     "low": 160,
+     "high": 189,
+     "first": "2026-08-03",
+     "last": "2026-08-20"
     },
     "en": {
-     "2026-09-28": 1,
-     "2026-10-01": 1,
-     "2026-10-04": 3,
-     "2026-10-05": 1,
-     "2026-10-06": 1
+     "release": "2026-08-28",
+     "sales": 287,
+     "listings": 276,
+     "median": 380,
+     "low": 360,
+     "high": 421,
+     "first": "2026-06-13",
+     "last": "2026-08-27"
     }
    },
-   "supply": [],
-   "reprintPct": {
-    "jp": null,
-    "en": null
+   "sinceRelease": {
+    "jp": 116,
+    "en": 669
    },
-   "firstPrint": {
-    "jp": null,
-    "en": null
-   },
-   "events": []
-  },
-  "OP-18": {
-   "jp": [
-    {
-     "d": "2026-10-11",
-     "median": 110,
-     "low": 109,
-     "high": 142,
-     "n": 8,
-     "vol": 5
-    }
-   ],
-   "en": [
-    {
-     "d": "2026-10-06",
-     "median": 350,
-     "low": 325,
-     "high": 378,
-     "n": 7,
-     "vol": 7
+   "current": {
+    "jp": {
+     "median": 125,
+     "low": 114,
+     "high": 130,
+     "n": 55,
+     "d": "2026-10-13"
     },
-    {
-     "d": "2026-10-13",
-     "median": 312,
-     "low": 299,
-     "high": 358,
-     "n": 20,
-     "vol": 13
+    "en": {
+     "median": 315,
+     "low": 297,
+     "high": 340,
+     "n": 261,
+     "d": "2026-10-14"
     }
-   ],
+   }
+  },
+  "EB-05": {
+   "jp": [],
+   "en": [],
    "enBlue": [],
    "windowDays": {
-    "jp": 28,
-    "en": 28,
+    "jp": null,
+    "en": null,
     "enBlue": null
    },
    "monthly": {
-    "jp": [
-     {
-      "d": "2026-10-01",
-      "median": 110,
-      "low": 109,
-      "high": 145,
-      "n": 7,
-      "vol": 7
-     }
-    ],
-    "en": [
-     {
-      "d": "2026-10-01",
-      "median": 312,
-      "low": 299,
-      "high": 358,
-      "n": 20,
-      "vol": 20
-     }
-    ],
+    "jp": [],
+    "en": [],
     "enBlue": []
    },
    "daily": {
     "jp": [],
-    "en": [
-     {
-      "d": "2026-10-05",
-      "median": 350,
-      "low": 337,
-      "high": 364,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-10-11",
-      "median": 300,
-      "low": 298,
-      "high": 327,
-      "n": 3,
-      "vol": 3
-     },
-     {
-      "d": "2026-10-13",
-      "median": 285,
-      "low": 285,
-      "high": 293,
-      "n": 3,
-      "vol": 3
-     }
-    ],
+    "en": [],
     "enBlue": []
    },
    "counts": {
-    "through": "2026-10-14",
-    "jp": {
-     "2026-09-27": 1,
-     "2026-10-03": 1,
-     "2026-10-04": 1,
-     "2026-10-05": 1,
-     "2026-10-06": 1,
-     "2026-10-09": 1,
-     "2026-10-10": 1,
-     "2026-10-11": 1
-    },
-    "en": {
-     "2026-10-02": 1,
-     "2026-10-03": 1,
-     "2026-10-04": 1,
-     "2026-10-05": 3,
-     "2026-10-06": 1,
-     "2026-10-07": 1,
-     "2026-10-08": 1,
-     "2026-10-09": 2,
-     "2026-10-10": 2,
-     "2026-10-11": 3,
-     "2026-10-12": 1,
-     "2026-10-13": 3
-    }
+    "through": "2026-10-14"
    },
    "supply": [],
    "reprintPct": {
@@ -21871,7 +21971,134 @@
     "jp": null,
     "en": null
    },
-   "events": []
+   "events": [
+    {
+     "d": "2026-10-31",
+     "ed": "jp",
+     "label": "JP release",
+     "labelKo": "일본판 발매"
+    },
+    {
+     "d": "2026-10-30",
+     "ed": "en",
+     "label": "EN release",
+     "labelKo": "영문판 발매"
+    }
+   ],
+   "release": {
+    "jp": "2026-10-31",
+    "en": "2026-10-30"
+   },
+   "preRelease": {
+    "jp": {
+     "release": "2026-10-31",
+     "sales": 34,
+     "listings": 9,
+     "median": 132,
+     "low": 130,
+     "high": 221,
+     "first": "2026-09-28",
+     "last": "2026-10-13"
+    },
+    "en": {
+     "release": "2026-10-30",
+     "sales": 7,
+     "listings": 7,
+     "median": 318,
+     "low": 314,
+     "high": 329,
+     "first": "2026-09-28",
+     "last": "2026-10-06"
+    }
+   },
+   "sinceRelease": {
+    "jp": 0,
+    "en": 0
+   },
+   "current": {
+    "jp": null,
+    "en": null
+   }
+  },
+  "OP-18": {
+   "jp": [],
+   "en": [],
+   "enBlue": [],
+   "windowDays": {
+    "jp": null,
+    "en": null,
+    "enBlue": null
+   },
+   "monthly": {
+    "jp": [],
+    "en": [],
+    "enBlue": []
+   },
+   "daily": {
+    "jp": [],
+    "en": [],
+    "enBlue": []
+   },
+   "counts": {
+    "through": "2026-10-14"
+   },
+   "supply": [],
+   "reprintPct": {
+    "jp": null,
+    "en": null
+   },
+   "firstPrint": {
+    "jp": null,
+    "en": null
+   },
+   "events": [
+    {
+     "d": "2026-11-21",
+     "ed": "jp",
+     "label": "JP release",
+     "labelKo": "일본판 발매"
+    },
+    {
+     "d": "2026-11-20",
+     "ed": "en",
+     "label": "EN release",
+     "labelKo": "영문판 발매"
+    }
+   ],
+   "release": {
+    "jp": "2026-11-21",
+    "en": "2026-11-20"
+   },
+   "preRelease": {
+    "jp": {
+     "release": "2026-11-21",
+     "sales": 8,
+     "listings": 2,
+     "median": null,
+     "low": null,
+     "high": null,
+     "first": "2026-09-27",
+     "last": "2026-10-11"
+    },
+    "en": {
+     "release": "2026-11-20",
+     "sales": 20,
+     "listings": 8,
+     "median": 312,
+     "low": 299,
+     "high": 358,
+     "first": "2026-10-02",
+     "last": "2026-10-13"
+    }
+   },
+   "sinceRelease": {
+    "jp": 0,
+    "en": 0
+   },
+   "current": {
+    "jp": null,
+    "en": null
+   }
   }
  }
 }

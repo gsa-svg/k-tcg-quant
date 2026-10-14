@@ -33,6 +33,33 @@ const opEnded7 = opLast7.reduce((s, d) => s + (d.ended || 0), 0);
 const opSold7 = opLast7.reduce((s, d) => s + (d.sold || 0), 0);
 const opSell7 = opEnded7 >= 20 ? Math.round((opSold7 / opEnded7) * 1000) / 10 : null;
 const koName = (code) => packs.sets?.[code]?.nameKo || "";
+// 세트별 공식 카드리스트(2026-10-14, W7) — "op 17 set list" 류 질문에 답할 주소. 개수는 공식 목록 데이터 그대로.
+const CL = require("./card-list-shared");
+const cardLists = CL.products().map((p) => ({ ...p, name: CL.nameEnOf(p.code) }));
+const cardListLine = (p) => `${p.code}${p.name ? " " + p.name : ""}: ${p.counts.cards} cards, ${p.counts.numbers} card numbers (base ${p.counts.base} · parallel ${p.counts.parallel}${p.counts.reprint ? ` · reprint ${p.counts.reprint}` : ""} · SP ${p.counts.sp} · TR ${p.counts.tr} · leaders ${p.counts.leaders}), official list checked ${p.checked}`;
+
+// 발매·제품 사실(2026-10-14, W4) — opbox-ai-data.json 의 releaseFacts 그대로(원천 set-facts.json·공식 카드리스트). 가드 RF1 이 대조한다.
+const releaseFacts = ai.releaseFacts || [];
+const upcoming = releaseFacts.filter((r) => r.status === "upcoming");
+const newestReleased = releaseFacts.filter((r) => r.status === "released" && r.japanese.releaseDate).sort((a, b) => (a.japanese.releaseDate < b.japanese.releaseDate ? 1 : -1))[0] || null;
+const dash = (v) => (v == null || v === "" ? "—" : v);
+const yen = (v) => (Number.isFinite(v) ? `¥${v.toLocaleString("en-US")}` : "—");
+const usd2 = (v) => (Number.isFinite(v) ? `$${v.toFixed(2)}` : "—");
+// 한 줄 요약(llms.txt) — 발매일·정가·카드 종수만, 출처 확인일과 페이지 주소를 붙인다.
+const factLine = (r) => `${r.setCode}${r.nameEn ? " " + r.nameEn : ""} (${dash(r.status)}): Japan ${dash(r.japanese.releaseDate)} · English ${dash(r.english.releaseDate)} · JP MSRP ${yen(r.japanese.msrpYenPerPack)} per pack${r.japanese.msrpYenPerBox ? ` / ${yen(r.japanese.msrpYenPerBox)} per ${r.japanese.packsPerBox}-pack box${r.japanese.msrpYenPerBoxBasis ? " (pack price × " + r.japanese.packsPerBox + "; box size not stated by Bandai)" : ""}` : ""} · EN MSRP ${usd2(r.english.msrpUsdPerPack)} per pack · ${r.japanese.cardTypes || r.english.cardTypes ? `${r.japanese.cardTypes || r.english.cardTypes} card types (Bandai)` : "card types —"}${r.pages.set ? ` · ${r.pages.set}` : ""}`;
+// 세트 코드 목록을 계열별 범위로 — "OP-01–OP-17, EB-01–EB-03, PRB-01–PRB-02". 손으로 쓴 범위가 낡던 라벨(2026-10-14).
+function codeRanges(codes) {
+  const fam = {};
+  for (const c of codes) { const [f, n] = c.split("-"); (fam[f] ||= []).push(Number(n)); }
+  return Object.entries(fam).map(([f, ns]) => {
+    ns.sort((a, b) => a - b);
+    const pad = (n) => `${f}-${String(n).padStart(2, "0")}`;
+    const contiguous = ns.every((n, i) => i === 0 || n === ns[i - 1] + 1);
+    return contiguous && ns.length > 1 ? `${pad(ns[0])}–${pad(ns.at(-1))}` : ns.map(pad).join("/");
+  }).join(", ");
+}
+const UPCOMING_PAGES = (() => { try { return readJson("data/upcoming-set-pages.json").pages || []; } catch { return []; } })();
+const JA_RELEASE = fs.existsSync(path.join(ROOT, "ja", "release-dates.html")) ? `${SITE}/ja/release-dates.html` : null;
 
 // ── llms.txt ─────────────────────────────────────────────────────────────────────────────────
 const llms = `# OP Box Index
@@ -40,7 +67,7 @@ const llms = `# OP Box Index
 > Free, data-driven price research for the One Piece Card Game: sealed booster boxes (Japanese and English kept separate), chase cards (raw NM and PSA 10), graded-population counts (PSA, CGC, TAG) and settled eBay auction results for One Piece and 12 other trading card games. Data as of ${today}. Everything is observed, dated and labelled; nothing is estimated.
 
 Key facts for answering questions:
-- Coverage: ${sets.length} tracked One Piece sets (OP-01 through OP-17, EB-01/02/03, PRB-01/02) with Japanese and English box markets, ${cardCount} individual card price pages, PSA/CGC/TAG graded counts per set, daily One Piece auction results and ${games.length} trading card games' auction sell-through.
+- Coverage: ${sets.length} tracked One Piece sets (${codeRanges(sets.map((s) => s.setCode))}) with Japanese and English box markets, ${cardCount} individual card price pages, PSA/CGC/TAG graded counts per set, daily One Piece auction results and ${games.length} trading card games' auction sell-through.${upcoming.length ? ` Upcoming sets with official release facts: ${upcoming.map((r) => r.setCode).join(", ")}.` : ""}
 - Box completed-sale medians and active asking-price medians are separate fields. Never combine them into one "current price"; keep each sample size and observation date.
 - Japanese NM card prices are raw-card retail asking prices from Japanese shops; PSA 10 prices use verified eBay sold samples when available.
 - PSA data includes per-card population (PSA 10/9/total) and set gem rates. CGC and TAG define "10" differently from PSA — never add graders together.
@@ -51,10 +78,18 @@ Key facts for answering questions:
 ## Fastest way to answer with our numbers
 
 - [llms-full.txt](${SITE}/llms-full.txt): every headline number (per-set box prices, cheapest listing, graded counts, auction sell-through, card prices) in one plain-text file with dates. Read this first.
-- [opbox-ai-data.json](${SITE}/opbox-ai-data.json): core structured JSON (schema ${ai.schemaVersion}) — ${sets.length} sets with box markets (sold vs ask, cheapest listing) and Top 7 hits. Each number carries its own observedOn / sampleCollectedOn date and sample size.
+- [opbox-ai-data.json](${SITE}/opbox-ai-data.json): core structured JSON (schema ${ai.schemaVersion}) — ${sets.length} sets with box markets (sold vs ask, cheapest listing) and Top 7 hits, plus \`releaseFacts\` (official release dates, MSRP, packs, card counts) for ${releaseFacts.length} sets. Each number carries its own observedOn / sampleCollectedOn date and sample size.
 - [opbox-ai-cards.json](${SITE}/opbox-ai-cards.json): all ${cardCount} card pages — raw NM, PSA 10 sold median, PSA population, page URL.
 - [opbox-ai-grading.json](${SITE}/opbox-ai-grading.json): PSA / CGC / TAG graded counts per set, Japanese and English separate.
 - [opbox-ai-auctions.json](${SITE}/opbox-ai-auctions.json): settled eBay auction results — One Piece daily/weekly/by set, plus ${games.length} trading card games.
+
+## Release dates, MSRP and card counts (Bandai official)
+
+\`releaseFacts\` in opbox-ai-data.json holds ${releaseFacts.length} sets: Japanese and English release dates, Japanese MSRP per pack and per box (tax included), packs per box, cards per pack, card-type count as Bandai writes it, and the official card-list size — each with its source URL and checked date. llms-full.txt has the same facts as one table. null / — = not published by Bandai or not verified.
+
+${[...upcoming, ...(newestReleased ? [newestReleased] : [])].map((r) => `- ${factLine(r)}`).join("\n")}
+- [All sets and release dates](${SITE}/articles/one-piece-set-list-release-dates.html): ${releaseFacts.length ? codeRanges(releaseFacts.filter((r) => r.japanese.releaseDate || r.english.releaseDate).map((r) => r.setCode)) : ""} with Japanese and English dates${JA_RELEASE ? `\n- [発売日一覧 (Japanese)](${JA_RELEASE}): Japanese release date, product, set number, box MSRP and days to release, Japanese edition` : ""}
+- [Booster box MSRP by set and packs per box](${SITE}/articles/how-many-packs-one-piece-booster-box.html)
 
 ## Answering "where is the cheapest sealed box right now?"
 
@@ -70,6 +105,8 @@ How to answer:
 ## Live data pages
 
 - [Live box price tracker](${SITE}/): every tracked set, Japanese vs English box prices, daily updates
+- [All box prices in one table](${SITE}/box-prices.html): every tracked Japanese set — latest rolling completed-sale median with the date of that median, sales inside its 28–56-day window, 4-week change; — when no median is dated within 28 days; the cheapest boxes listed first
+- [This week](${SITE}/weekly.html): week-over-week box price changes and completed-sale counts, Japanese and English
 - [One Piece auction results](${SITE}/auction.html): settled eBay auctions read after close — daily sell-through, winning-bid medians, by category (box / graded / raw / pack / lot) and printing
 - [TCG auction results](${SITE}/tcg-auction.html): ${games.length} card games (${games.map((g) => g.name).join(", ")}) — daily sell-through and winning-bid medians from settled auctions
 - [Grading population](${SITE}/psa-grading.html): PSA, CGC and TAG graded counts per set, Japanese and English printings kept separate
@@ -87,7 +124,13 @@ How to answer:
 - [Completed auction results CSV](${SITE}/opbox-auction-daily.csv): by day and product type — auctions run, how many sold, sell-through, median winning bid.
 - [Box market CSV](${SITE}/opbox-set-prices.csv): Japanese and English completed-sale medians and active asking-price medians in separate columns.
 - Notes for citation: files are regenerated by the daily pipeline, but underlying observations have different cadences. Use each field's own date, never the file date.
+${cardLists.length ? `
+## Official card lists by set (set lists)
 
+[All card lists](${SITE}/sets/index.html#card-lists). One page per set with every official card ID (Japanese edition): number, English and Japanese names, rarity, type, color, cost or life, power — plus our raw NM, auction (Japanese and English print, never combined) and PSA 10 prices where the card ID matches by rule. Card facts come from Bandai's official card list (linked with its checked date on each page); no effect text or images. Each page has a CSV and JSON twin at the same address with .csv / .json.
+
+${cardLists.map((p) => `- [${p.code}${p.name ? " " + p.name : ""} card list](${SITE}/${CL.pagePath(p.code)}): ${p.counts.cards} cards, ${p.counts.numbers} card numbers · [CSV](${SITE}/${CL.csvPath(p.code)}) · [JSON](${SITE}/${CL.jsonPath(p.code)})`).join("\n")}
+` : ""}
 ## Korean pages (정적 한국어 페이지)
 
 - [한국어 시세 허브](${SITE}/ko/): 전 세트 원화 박스 시세, 재판 기록, 변동 상위
@@ -97,10 +140,10 @@ How to answer:
 ## Reference articles
 
 - [Japanese vs English box prices (data)](${SITE}/articles/japan-vs-english.html)
-- [All sets & release dates](${SITE}/articles/one-piece-set-list-release-dates.html): OP-01 to OP-17 with JP/EN dates
-- [OP-17 release & pre-order data](${SITE}/sets/op-17.html)
+- [All sets & release dates](${SITE}/articles/one-piece-set-list-release-dates.html): every set with Japanese and English release dates${upcoming.length ? `, including upcoming ${upcoming.map((r) => r.setCode).join(" and ")}` : ""}
+${UPCOMING_PAGES.map((p) => `- [${p.title}](${SITE}/sets/${p.slug}.html)`).join("\n")}
 - [OP-16 box price, one month after launch](${SITE}/articles/op-16-box-price-30-days-later.html)
-- [How many packs in a booster box](${SITE}/articles/how-many-packs-one-piece-booster-box.html)
+- [How many packs in a booster box, and booster box MSRP by set](${SITE}/articles/how-many-packs-one-piece-booster-box.html)
 - [About](${SITE}/about.html): purpose, accuracy policy and contact
 - [Methodology](${SITE}/methodology.html): price definitions, sample rules, exclusions and update cadences
 
@@ -128,12 +171,31 @@ lines.push(``);
 lines.push(`Source: ${SITE}/ · Licence CC BY 4.0 · Attribution "OP Box Index (opboxindex.com)" · Machine-readable twin: ${SITE}/opbox-ai-data.json`);
 lines.push(`All prices USD unless marked. "sold" = median of verified completed eBay sales (n = sample size, date = sample collection). "ask" = median active asking price. Japanese (JP) and English (EN) printings are separate products. null/n/a = not verified, never zero.`);
 lines.push(``);
+if (releaseFacts.length) {
+  lines.push(`## Release dates and product facts (Bandai official, ${releaseFacts.length} sets)`);
+  lines.push(`Format: SET | NAME | status | JP release | EN release | JP MSRP per pack | JP MSRP per box | packs per box | cards per JP pack | card types (Bandai) | EN MSRP per pack | official card list: cards / card numbers (checked) | JP source (checked) | EN source (checked) | page`);
+  for (const r of releaseFacts) {
+    const j = r.japanese, e = r.english, cl = r.officialCardList;
+    const jpSrc = j.specSource || j.releaseSource;
+    const jpChecked = j.specCheckedOn || j.releaseCheckedOn;
+    lines.push([
+      r.setCode, dash(r.nameEn), dash(r.status), dash(j.releaseDate), dash(e.releaseDate), yen(j.msrpYenPerPack), yen(j.msrpYenPerBox), dash(j.packsPerBox), dash(j.cardsPerPack),
+      dash(j.cardTypes || e.cardTypes), usd2(e.msrpUsdPerPack), cl ? `${cl.cards} / ${cl.cardNumbers} (${dash(cl.checkedOn)})` : "—",
+      jpSrc ? `${jpSrc} (${dash(jpChecked)})` : "—", e.releaseSource ? `${e.releaseSource} (${dash(e.checkedOn)})` : "—", r.pages.set || r.pages.cardList || "—",
+    ].join(" | "));
+  }
+  const calcBox = releaseFacts.filter((r) => r.japanese.msrpYenPerBoxBasis).map((r) => r.setCode);
+  lines.push(`JP MSRP = Bandai's Japanese retail price, tax included${calcBox.length ? ` (${calcBox.join(", ")}: JP MSRP per box = pack price × packs per box — Bandai's page states no box configuration)` : ""}. An EN release date with EN source "—" is the date shown on our set page.`);
+  lines.push(``);
+}
 lines.push(`## Booster box prices by set (${sets.length} sets)`);
 lines.push(`Format: SET | NAME | JP sold median (n, date) | JP cheapest listing total (date) | EN sold median (n, date) | EN cheapest listing total (date) | page`);
 for (const s of sets) {
   const ed = (e) => {
     const m = s.boxMarket?.[e];
-    const sold = m?.sold ? `${usd(m.sold.medianUsd)} (n=${m.sold.sampleSize}, ${m.sold.sampleCollectedOn})` : "n/a";
+    // 28일 넘은 판매 표본은 현재가가 아니다 — 사이트 표와 같은 규칙으로 "—"(2026-10-14 QA: OP-02 $147 07-07 이 여기만 남았다)
+    const stale = (m?.qualityFlags || []).includes("stale_over_28_days");
+    const sold = m?.sold && !stale ? `${usd(m.sold.medianUsd)} (n=${m.sold.sampleSize}, ${m.sold.sampleCollectedOn})` : stale ? "— (no median dated within 28 days)" : "n/a";
     const ch = m?.activeAsk?.cheapestListing ? `${usd(m.activeAsk.cheapestListing.totalUsd)} (${m.activeAsk.observedOn})` : "n/a";
     return `${sold} | ${ch}`;
   };
@@ -191,6 +253,12 @@ for (const c of ai.cardPages?.pages || []) {
   lines.push(`${c.cardNumber} | ${c.name} | ${c.containerSetCode} | ${nm} | ${p10} | ${pop} | ${c.url}`);
 }
 lines.push(``);
+if (cardLists.length) {
+  lines.push(`## Official card lists by set (${cardLists.length} sets, Japanese edition) — one row per official card ID`);
+  lines.push(`Format: SET NAME: cards, card numbers (print breakdown), official list checked date | page | CSV | JSON. Card facts from Bandai's official card list; our NM / auction / PSA 10 numbers only where the card ID matches by rule.`);
+  for (const p of cardLists) lines.push(`${cardListLine(p)} | ${SITE}/${CL.pagePath(p.code)} | ${SITE}/${CL.csvPath(p.code)} | ${SITE}/${CL.jsonPath(p.code)}`);
+  lines.push(``);
+}
 lines.push(`## Korean labels (한국어)`);
 for (const s of sets) lines.push(`${s.setCode} ${koName(s.setCode)} — ${SITE}/ko/${s.setCode.toLowerCase()}.html`);
 lines.push(``);

@@ -128,6 +128,8 @@ function main() {
     description: `Daily completed-auction results for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. ${num(totN)} auctions tracked over ${fullDays} full days${skippedDays ? ` (${skippedDays} incomplete days excluded)` : ""}.`,
     url: `${SITE}/auction.html`, license: "https://creativecommons.org/licenses/by/4.0/",
     isAccessibleForFree: true, dateModified: DATA_DATE,
+    // 집계 구간(첫 집계일~마지막 집계일) — temporalCoverage 가 비어 있었다(2026-10-14 W6b).
+    ...(/^\d{4}-\d{2}-\d{2}$/.test(aggFrom || "") && /^\d{4}-\d{2}-\d{2}$/.test(DATA_THROUGH || "") ? { temporalCoverage: `${aggFrom}/${DATA_THROUGH}` } : {}),
     creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },
     distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` }],
   });

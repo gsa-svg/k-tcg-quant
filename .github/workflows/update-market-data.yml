@@ -50,11 +50,14 @@ jobs:
           node --check tools/audit-price-quality.js
           node --check tools/audit-active-listings.js
           node --check tools/generate-card-pages.js
+          node --check tools/card-list-shared.js
+          node --check tools/generate-card-list-pages.js
           node --check tools/generate-set-pages.js
           node --check tools/generate-english-set-pages.js
           node --check tools/generate-upcoming-set-pages.js
           node --check tools/generate-ko-pages.js
           node --check tools/generate-ko-topic-pages.js
+          node --check tools/generate-ja-pages.js
           node --check tools/generate-auction-page.js
           node --check tools/generate-free-data.js
           node --check tools/free-data-records.js
@@ -172,11 +175,14 @@ jobs:
           node tools/generate-psa-grading-page.js 2>&1 | tee logs/generate-psa-grading-page.log
           node tools/generate-image-variants.js 2>&1 | tee logs/generate-image-variants.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
+          # 세트별 공식 카드리스트 — 커밋된 data/official-cardlist.json 으로 다시 굽는다(수집은 일일 워크플로). 2026-10-14(W7).
+          node tools/generate-card-list-pages.js 2>&1 | tee logs/generate-card-list-pages.log
           node tools/generate-english-set-pages.js 2>&1 | tee logs/generate-english-set-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
           node tools/generate-upcoming-set-pages.js 2>&1 | tee logs/generate-upcoming-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
+          node tools/generate-ja-pages.js 2>&1 | tee logs/generate-ja-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
           node tools/generate-weekly.js 2>&1 | tee logs/generate-weekly.log
@@ -196,11 +202,14 @@ jobs:
           node tools/inject-jp-vs-en-buy.js 2>&1 | tee logs/inject-jp-vs-en-buy.log
           node tools/inject-op05-op06.js 2>&1 | tee logs/inject-op05-op06.log
           node tools/inject-sea-prices.js 2>&1 | tee logs/inject-sea-prices.log
-          node tools/sync-sitemap-lastmod.js 2>&1 | tee logs/sync-sitemap-lastmod.log
+          # 글 날짜는 한 곳에서(본문이 바뀐 날·article 메타·바이라인) — 모든 글 주입기 뒤. 2026-10-14.
+          node tools/sync-article-dates.js 2>&1 | tee logs/sync-article-dates.log
           node tools/test-ai-data.js 2>&1 | tee logs/test-ai-data.log
           # 메뉴·언어 토글은 생성기가 덮어쓴다 → 반드시 생성기 뒤에. 빠지면 가드 N1 FAIL(2026-09-06 까지 매주 실패한 원인).
           node tools/inject-nav.js 2>&1 | tee logs/inject-nav.log
           node tools/inject-lang-toggle.js 2>&1 | tee logs/inject-lang-toggle.log
+          # 사이트맵 lastmod 는 모든 HTML 생성기·주입기 뒤에서 본문 해시로(2026-10-14 W9, 가드 SM1).
+          node tools/sync-sitemap-lastmod.js 2>&1 | tee logs/sync-sitemap-lastmod.log
           node tools/guard-invariants.js 2>&1 | tee logs/guard-invariants.log
           node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
           node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
@@ -227,13 +236,13 @@ jobs:
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html; then
+          if git diff --quiet data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html; then
             echo "No market data changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html
+          git add data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -259,11 +268,13 @@ jobs:
             node tools/generate-psa-grading-page.js
             node tools/generate-image-variants.js
             node tools/generate-card-pages.js
+            node tools/generate-card-list-pages.js
             node tools/generate-english-set-pages.js
             node tools/generate-set-pages.js
             node tools/generate-upcoming-set-pages.js
             node tools/generate-ko-pages.js
             node tools/generate-ko-topic-pages.js
+            node tools/generate-ja-pages.js
             node tools/generate-auction-page.js
             node tools/generate-free-data.js
             node tools/generate-feed.js
@@ -273,10 +284,11 @@ jobs:
             node tools/test-ai-data.js
             node tools/inject-nav.js
             node tools/inject-lang-toggle.js
+            node tools/sync-sitemap-lastmod.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
             node tools/audit-ai-discovery.js
-            git add data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html
+            git add data/grading-series.json data/onepiece-packs.json data/image-variants.json data/gemrate-psa-history.json data/psa-population-snapshots.json data/psa-edition-weekly.json data/gemrate-psa-en-totals.json data/price-quality-audit.json data/active-listing-audit.json sets/ cards/ ko/ articles/ psa-grading.html psa10-ranking.html feed.xml auction.html box-prices.html compare.html index.html packs.html free-data.html weekly.html opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short

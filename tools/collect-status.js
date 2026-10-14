@@ -165,6 +165,15 @@ const SOURCES = [
     warn: 2, late: 3, get: pick.field("data/card-series.json", "updated"), files: ["card-series.json"] },
   { key: "box-series", name: "박스 시세 시계열(JP/EN×호가/실거래)", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
     warn: 2, late: 3, get: pick.packsField("boxseries"), files: [] },
+  // 반다이 공식 카드리스트(JP·EN) — 2026-10-14 신설(W7, fetch-official-cardlist.js). 상품마다 마지막으로 받은 날(checked) 중
+  // 가장 이른 날 — 한 상품만 계속 실패해도(직전 값 유지) 여기서 늦음으로 보인다.
+  { key: "official-cardlist", name: "반다이 공식 카드리스트(JP·EN)", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
+    warn: 2, late: 3, files: ["official-cardlist.json"],
+    get: () => {
+      const j = readJSON("data/official-cardlist.json");
+      const ds = ["jp", "en"].flatMap((l) => Object.values((j[l] && j[l].products) || {}).map((p) => p.checked)).filter(Boolean).sort();
+      return ds[0] || null;
+    } },
 
   // ── 수동 (실브라우저 필요) ──
   { key: "box", name: "박스 판매(BIN) 원장", mode: "manual", every: "주 3회(월·수·금)",
@@ -227,6 +236,8 @@ const IGNORE = {
   "jp-image-verdicts.json": "이미지 판정 결과(파생)",
   "priority-set-seo.json": "SEO 우선순위 설정(수동)",
   "upcoming-set-pages.json": "발매 예정 세트 설정(수동)",
+  // 2026-10-14(W9): 사이트맵 lastmod 를 "본문이 바뀐 날"로만 정하려고 남기는 페이지별 본문 해시·날짜. 수집이 아니라 생성 사슬의 부산물.
+  "sitemap-lastmod-state.json": "파생 — sync-sitemap-lastmod.js 가 쓰는 URL별 본문 해시·마지막 변경일(사이트맵 날짜 원천, 수집원 아님)",
   "pull-rate-research-op01-jp.json": "OP-01 봉입률 1회성 조사(고정)",
   // 2026-06-29 에 한 번 돌린 감사 기록. 지금은 아무 스크립트도 쓰지 않는다(세부보기가 65일 정지로 찾아냈다).
   // 수집 고장이 아니라 잔재 — 지우지는 않는다(그때 무엇을 고쳤는지 남은 유일한 근거).

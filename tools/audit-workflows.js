@@ -13,6 +13,7 @@
 //   3) 최상위 필수 키 존재 (name / on / jobs)
 //   4) run: 블록 스칼라 안이 아닌 곳에서 이어지는 명령 (앵커가 밀린 흔적)
 //   5) 세트별 경매 집계가 그 파일을 읽는 생성기보다 먼저 도는가 (2026-10-13 하루 지연 사고)
+//   6) 공식 카드리스트 수집 → 카드 페이지 → 카드리스트 생성 순서 (2026-10-14, W7)
 //
 // Run: node tools/audit-workflows.js [--json]
 const fs = require("node:fs");
@@ -94,7 +95,34 @@ for (const file of fs.readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f))) {
     });
   }
 
+  // 6) 공식 카드리스트(2026-10-14, W7) — 순서가 어긋나면 하루 늦은 페이지가 나간다.
+  //    (a) 수집기(fetch-official-cardlist)를 돌리는 워크플로에서는 첫 수집이 첫 카드리스트 생성보다 먼저
+  //    (b) 카드리스트 생성의 k번째 실행은 카드 페이지 생성(card-map.json)의 k번째 실행 뒤 — 본 단계·rebase 후 재생성 두 묶음 모두
+  {
+    const at = (name) => calls.flatMap((c, i) => (c === name ? [i] : []));
+    const fetchAt = at("fetch-official-cardlist.js"), genAt = at("generate-card-list-pages.js"), cardsAt = at("generate-card-pages.js");
+    if (fetchAt.length && genAt.length && !(fetchAt[0] < genAt[0])) problems.push(`${file}: fetch-official-cardlist.js 가 generate-card-list-pages.js 보다 늦다 — 공식 목록이 뜬 날 페이지가 하루 늦는다`);
+    if (fetchAt.length && !genAt.length) problems.push(`${file}: fetch-official-cardlist.js 를 돌리는데 generate-card-list-pages.js 가 없다`);
+    genAt.forEach((g, k) => { if (!(cardsAt[k] < g)) problems.push(`${file}: generate-card-list-pages.js 의 ${k + 1}번째 실행이 generate-card-pages.js 보다 먼저다 — 카드 페이지 링크(card-map.json)가 하루 묵는다`); });
+  }
+
   notes.push(`${file}: 스텝 ${[...stepIndents.values()].reduce((a, b) => a + b.length, 0)}개`);
+}
+
+// 7) 무인 수집 파이프라인(저장소 밖 daily.ps1)의 재생성 목록 ⊇ 페이지 생성 워크플로의 생성기 — 2026-10-14 QA.
+//    daily.ps1 은 원장을 적재하면 current 가 바뀌는데 카드리스트·ja·글 날짜 생성기가 빠져 있으면 가드(CL1·AD1)가 막혀 매일 멈춘다.
+//    저장소 밖 파일이고 소유자 관할이라 경고(notes)로만 알린다 — 수집을 막지 않는다. 파일이 없는 곳(클라우드)에서는 건너뛴다.
+{
+  const DAILY = process.env.OPBOX_DAILY_PS1 || path.join(ROOT, "..", "box-sold-cdp", "daily.ps1");
+  const MD = path.join(DIR, "update-market-data.yml");
+  if (fs.existsSync(DAILY) && fs.existsSync(MD)) {
+    const gen = ((fs.readFileSync(DAILY, "utf8").match(/\$GEN\s*=\s*@\(([^)]*)\)/) || [])[1] || "").match(/"([\w-]+)"/g) || [];
+    const have = new Set(gen.map((s) => s.replace(/"/g, "")));
+    const block = (fs.readFileSync(MD, "utf8").match(/- name: Regenerate SEO pages with fresh market data[\s\S]*?(?=\n {6}- name:)/) || [""])[0];
+    const want = [...new Set([...block.matchAll(/node tools\/((?:generate|inject|sync|prerender|build)-[\w-]+)\.js/g)].map((m) => m[1]))];
+    const missing = want.filter((t) => !have.has(t));
+    if (missing.length) notes.push(`경고: daily.ps1 $GEN 에 페이지 생성 워크플로의 생성기 ${missing.length}개가 없다(${missing.join(", ")}) — 저장소 밖, 소유자 결정`);
+  }
 }
 
 const out = { audit: problems.length ? "FAIL" : "WORKFLOWS_OK", checked: fs.readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f)).length, problems, notes };

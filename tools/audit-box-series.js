@@ -40,13 +40,29 @@ let checkedPoints = 0, checkedSeries = 0;
 const WAVE1_BLUE = /\b(blue\s*bottom|wave\s*1)\b/i;
 const isFirstPrint = (r) => WAVE1_BLUE.test((r && r.title) || "");
 
-// 원장 레코드 → 계열별 실거래(즉시구매만). 생성기와 같은 조건이어야 값이 맞는다.
+// 판별 공식 발매일 — 2026-10-14. 발매일 이전 판매(예약판매)는 sold 시계열에 들어가지 않는다(생성기 preRelease).
+// 생성기 코드를 쓰지 않고 원천 파일에서 따로 읽는다: set-facts(공식) → packs(releaseJa=일본판, release=영문판) → upcoming(발매 전 공식).
+const readOr = (p, d) => { try { return read(p); } catch { return d; } };
+const FACTS = readOr("data/set-facts.json", { sets: {} });
+const UPCOMING = {};
+for (const p of readOr("data/upcoming-set-pages.json", { pages: [] }).pages || []) UPCOMING[p.code] = p;
+const dayOr = (v) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+function officialRelease(code, ed) {
+  const f = (FACTS.sets || {})[code] || {}, p = (PACKS.sets || {})[code] || {}, u = UPCOMING[code] || {};
+  return ed === "jp"
+    ? dayOr(f.jpRelease && f.jpRelease.date) || dayOr(p.releaseJa) || dayOr(u.releaseJp)
+    : dayOr(f.enRelease && f.enRelease.date) || dayOr(u.releaseEn) || dayOr(p.release);
+}
+
+// 원장 레코드 → 계열별 실거래(즉시구매만, 발매일 당일부터). 생성기와 같은 조건이어야 값이 맞는다.
 // wave: null=전부 · "blue"=초판만 · "white"=재판만
 function recordsOf(code, ed, wave) {
   const node = (LEDGER.sets || {})[code] || {};
   const arr = node[ed] || [];
+  const rel = officialRelease(code, ed);
   return arr
     .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number(r.unit) > 0 && r.fmt === "bin")
+    .filter((r) => !rel || r.d >= rel)
     .filter((r) => (wave === "blue" ? isFirstPrint(r) : wave === "white" ? !isFirstPrint(r) : true))
     .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit) }))
     .sort((a, b) => a.t - b.t);
@@ -54,6 +70,9 @@ function recordsOf(code, ed, wave) {
 
 for (const [code, node] of Object.entries(SERIES.sets || {})) {
   for (const ed of ["jp", "en"]) {
+    // 시계열을 자른 발매일이 원천의 공식 발매일과 같은가 — 다르면 예약판매가 섞이거나 발매 후 판매가 빠진다.
+    const rel = officialRelease(code, ed), used = (node.release || {})[ed] || null;
+    if (rel !== used) problems.push(`${code}|${ed} — 시계열 발매일 기준 ${used} ≠ 공식 발매일 ${rel} (예약판매 분리 기준이 어긋났다)`);
     const pts = (node[ed] || []).filter((p) => p && p.median != null);
     if (!pts.length) continue;
     checkedSeries += 1;

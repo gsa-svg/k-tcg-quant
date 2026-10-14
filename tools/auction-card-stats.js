@@ -7,7 +7,7 @@
 // 산출(카드별, 최근 창 기준):
 //   n=기록수, sold=낙찰수, sellThrough=낙찰률%(팔림/유찰 확정분 분모), medPrice=개당 낙찰 중앙값(USD),
 //   low/high=사분위, medBids=입찰수 중앙값, medBidders=고유입찰자 중앙값, last=최근 낙찰 몇 건,
-//   name/nameSource=이름표(data/card-names.json — build-card-names.js 가 굽는다. override > catalog > title).
+//   name/nameSource=이름표(data/card-names.json — build-card-names.js 가 굽는다. override > official(반다이 공식 영문, 2026-10-14) > catalog > title).
 // 변형(variants)에는 2026-10-13 부터 이상치 표식이 붙는다:
 //   contestedSold=입찰자 2명 이상 낙찰 수, medPriceContested=그 중앙값,
 //   psa10Sold/psa10Med=같은 번호·판·변형의 PSA 10 낙찰(3건 이상일 때만),
@@ -132,7 +132,7 @@ function main() {
   }
 
   const out = {
-    note: "Per-card completed eBay auction stats for One Piece Card Game singles, derived from the daily auction archive (data/auction-archive/). medPrice is the median final winning bid per card (USD), sellThrough is the share of decided auctions that actually sold, medBids/medBidders show bidding competition. name/nameSource come from data/card-names.json (override > catalog > title; null when unresolved). Cards with fewer than " + MIN_SOLD + " confirmed sales are omitted rather than shown on thin samples. This is a rolling snapshot recomputed from the last " + WINDOW_DAYS + " days of the archive; those daily files are the source of truth for individual sales.",
+    note: "Per-card completed eBay auction stats for One Piece Card Game singles, derived from the daily auction archive (data/auction-archive/). medPrice is the median final winning bid per card (USD), sellThrough is the share of decided auctions that actually sold, medBids/medBidders show bidding competition. name/nameSource come from data/card-names.json (override > official Bandai English card list name > catalog > title; null when unresolved). Cards with fewer than " + MIN_SOLD + " confirmed sales are omitted rather than shown on thin samples. This is a rolling snapshot recomputed from the last " + WINDOW_DAYS + " days of the archive; those daily files are the source of truth for individual sales.",
     window: "rolling 45d (daily auction archive)",
     updated: new Date().toISOString(),
     cardCount: Object.keys(cards).length,

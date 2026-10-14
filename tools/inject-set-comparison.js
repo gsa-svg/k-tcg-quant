@@ -35,21 +35,19 @@ const jpyKrw = fx.jpyKrw || 8.7;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const money = (v) => (v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"));
 
-// 마지막 판매가 이보다 오래되면 그 칸은 "—" — inject-box-price-guide.js 와 같은 기준.
+// 현재가 칸은 box-sold-series 의 current — 발매됐고 마지막 점이 asOf 로부터 28일 이내일 때만 값, 아니면 "—".
 // 2026-09-30 발견: OP-02 일본판이 84일 전(7/8) 값을 표시 없이 현재가처럼 보여주고 있었다.
-const STALE_DAYS = 28;
-const asOfMs = Date.parse(series.updated || packs.updated || "") || Date.now();
-const isFresh = (p) => p && Date.parse(p.d) >= asOfMs - STALE_DAYS * 86400000;
-
+// 2026-10-14: 미발매 EB-05·OP-18 의 예약판매가 실거래 중앙값으로 들어가 EB-05 "−42%" 같은 숫자가 나왔다 →
+//   예약판매는 시계열에서 빠졌고(preRelease), 미발매 세트 행은 남기되 값 칸은 전부 "—".
 function buildRows() {
   const rows = [];
   for (const [code, eds] of Object.entries(series.sets || {})) {
     const jp = (eds.jp || []).filter((x) => Number.isFinite(x.median));
-    const enAll = (eds.en || []).filter((x) => Number.isFinite(x.median));
-    if (!jp.length) continue;
-    const jpLast = jp[jp.length - 1];
-    const now = isFresh(jpLast) ? jpLast : { median: null, n: null };
-    const en = isFresh(enAll[enAll.length - 1]) ? enAll : [];
+    const unreleased = !!(eds.release && eds.release.jp && series.asOf && eds.release.jp > series.asOf);
+    if (!jp.length && !unreleased) continue;
+    const cur = eds.current || {};
+    const now = cur.jp || { median: null, n: null };
+    const enNow = cur.en || null;
     const prev = now.median ? jp[Math.max(0, jp.length - 5)] : null;   // 약 4주 전 점
     const set = packs.sets?.[code] || {};
 
@@ -66,10 +64,10 @@ function buildRows() {
       name: set.nameEn || "",
       jp: now.median,
       jpN: now.n,
-      en: en.length ? en[en.length - 1].median : null,
-      enN: en.length ? en[en.length - 1].n : null,
+      en: enNow ? enNow.median : null,
+      enN: enNow ? enNow.n : null,
       chg,
-      ratio: en.length && now.median ? en[en.length - 1].median / now.median : null,
+      ratio: enNow && now.median ? enNow.median / now.median : null,
       topName: top ? top.name : null,
       topUsd: top ? (top.nmJpy * jpyKrw) / usdKrw : null,
       gem: set.psaFull?.gemRate ?? null,
@@ -119,14 +117,14 @@ function inject(file, html) {
 
 const rows = buildRows();
 if (rows.length < 10) throw new Error(`세트가 ${rows.length}개뿐 — 시계열 로딩 실패 의심`);
-const html = tableHtml(rows, series.updated || packs.updated || "");
+const html = tableHtml(rows, series.asOf || series.updated || packs.updated || "");
 const out = ["compare.html", "articles/best-one-piece-booster-box.html"].map((f) => inject(f, html));
 
 // 글의 수정일(JSON-LD dateModified·화면 Updated)을 표의 "As of" 날짜에 맞춘다.
 // 2026-09-30 발견: 표는 매일 바뀌는데 수정일이 2026-08-10 에 멈춰 있었다(가드 U1).
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
-const asOf = series.updated || packs.updated || "";
+const asOf = series.asOf || series.updated || packs.updated || "";
 if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
   const p = path.join(ROOT, "articles/best-one-piece-booster-box.html");
   let s = fs.readFileSync(p, "utf8");

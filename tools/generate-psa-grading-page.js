@@ -68,6 +68,8 @@ const sumBy = (e, k, f) => rows.reduce((t, r) => t + ((r[e][k] && r[e][k][f]) ||
 const K = {};
 for (const e of ["jp", "en"]) for (const k of GR) K[e + k] = { total: sumBy(e, k, "total"), add: sumBy(e, k, "add"), gem: sumBy(e, k, "gem") };
 const win = (k, e) => { const r = rows.find((x) => x[e][k] && x[e][k].from); return r ? `${r[e][k].from.slice(5)} → ${r[e][k].to.slice(5)}` : ""; };
+// Dataset 기간·수정일 = 배포 파일(등급 CSV·JSON)의 관측일 범위 — free-data 의 같은 Dataset 과 한 함수(tools/dataset-coverage.js, 2026-10-14 QA).
+const GRADE_SPAN = require("./dataset-coverage").gradingSpan(JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "data", "onepiece-packs.json"), "utf8")));
 const updated = rows.flatMap((r) => ["jp", "en"].flatMap((e) => GR.map((k) => (r[e][k] && r[e][k].to) || ""))).sort().pop() || wNow;
 
 // ── 세트별 누적 막대(회사별 색), 일본판·영문판 두 줄, 같은 눈금
@@ -128,7 +130,7 @@ const html = `<!doctype html>
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
     <meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "One Piece grading population by set (PSA, CGC, TAG; Japanese and English)", description: DESC, isAccessibleForFree: true, creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" }, temporalCoverage: `${wPrev}/${updated}`, dateModified: updated, variableMeasured: ["Cards graded by PSA", "Cards graded by CGC", "Cards graded by TAG", "PSA 10 share", "TAG 10 and 10P share", "Change since previous report"] })}</script>
+    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "Dataset", name: "One Piece grading population by set (PSA, CGC, TAG; Japanese and English)", description: DESC, isAccessibleForFree: true, url: "https://opboxindex.com/psa-grading.html", license: "https://creativecommons.org/licenses/by/4.0/", distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: "https://opboxindex.com/opbox-grading-population.csv" }, { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: "https://opboxindex.com/opbox-ai-grading.json" }], creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" }, temporalCoverage: GRADE_SPAN ? GRADE_SPAN.coverage : `${wPrev}/${updated}`, dateModified: GRADE_SPAN ? GRADE_SPAN.to : updated, variableMeasured: ["Cards graded by PSA", "Cards graded by CGC", "Cards graded by TAG", "PSA 10 share", "TAG 10 and 10P share", "Change since previous report"] })}</script>
     <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "OP Box Index", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "Grading population", item: "https://opboxindex.com/psa-grading.html" }] })}</script>
     <link rel="stylesheet" href="styles.css?v=${ver}" />
     <script defer src="lang-toggle.js?v=${ver}"></script>

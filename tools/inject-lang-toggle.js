@@ -23,7 +23,8 @@ function listHtml(dir, out = [], depth = 0) {
   for (const f of fs.readdirSync(path.join(ROOT, dir || "."), { withFileTypes: true })) {
     const rel = dir ? `${dir}/${f.name}` : f.name;
     if (f.isDirectory()) {
-      if (["node_modules", ".git", "data", "tools", "ko", "img"].includes(f.name)) continue;
+      // ja/ 도 제외(2026-10-14 W8) — 일본어로 구운 정적 표 한 장이라 한국어로 바꿀 대상이 없다.
+      if (["node_modules", ".git", "data", "tools", "ko", "ja", "img"].includes(f.name)) continue;
       if (depth < 1) listHtml(rel, out, depth + 1);
       continue;
     }

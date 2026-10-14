@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261014bars";
+const DATA_VERSION = "20261014seo";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -277,6 +277,9 @@ function setJsonLd(id, data) {
   script.textContent = JSON.stringify(data);
 }
 
+// 화면 상태 파라미터(set·lang·view·hl)만 다시 쓰고, 그 밖의 파라미터(utm_*·gclid 등)는 원래 순서대로 뒤에 남긴다.
+// 2026-10-14: 전부 지우던 시절에는 GA(load 뒤 지연 로딩)가 utm 이 지워진 URL 을 읽어 ChatGPT 방문이 (direct)로 잡혔다.
+const ROUTE_PARAMS = ["set", "lang", "view", "hl"];
 function updateUrl(replace = false) {
   if (!state.selected) return;
   const params = new URLSearchParams();
@@ -284,6 +287,7 @@ function updateUrl(replace = false) {
   if (state.lang !== "jp") params.set("lang", state.lang);
   if (state.view !== "hits") params.set("view", state.view);
   if (state.hl === "en") params.set("hl", "en");
+  for (const [k, v] of new URLSearchParams(location.search)) if (!ROUTE_PARAMS.includes(k)) params.append(k, v);
   history[replace ? "replaceState" : "pushState"](
     { selected: state.selected, lang: state.lang, view: state.view, hl: state.hl },
     "",
@@ -660,7 +664,7 @@ window.addEventListener("popstate", () => {
 function applyStaticI18n() {
   document.documentElement.lang = state.hl === "en" ? "en" : "ko";
   document.body?.classList.toggle("hl-en", state.hl === "en");
-  setText(".brand small", "원피스 부스터팩 리서치", "One Piece Booster Box Research");
+  setText(".brand small", "부스터박스 리서치", "Booster box research");
   // 메뉴 라벨은 tools/site-nav.js 한 곳에서 정의하고 data-ko 로 전환한다(아래 공통 루프).
   // 여기서 또 박아 두면 site-nav 를 고쳐도 홈만 옛 라벨로 남는다 — 2026-09-16 에 "Amazon Raffle" 로 실제로 어긋났다.
   // 아마존 응모 페이지로 현재 표시 언어 전달

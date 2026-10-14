@@ -348,6 +348,10 @@ const ld = JSON.stringify({
   name: "Trading card game auction results by game",
   description: `eBay auction results across ${GAME_COUNT} trading card games, re-read after close: sell rate, median sold price and auctions closing per day, last 7 days and week by week.`,
   isAccessibleForFree: true,
+  // url·license·내려받기(같은 값의 JSON) — 비어 있었다(2026-10-14 W6b).
+  url: `${SITE}/tcg-auction.html`,
+  license: "https://creativecommons.org/licenses/by/4.0/",
+  distribution: [{ "@type": "DataDownload", encodingFormat: "application/json", contentUrl: `${SITE}/opbox-ai-auctions.json` }],
   creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },
   temporalCoverage: `${from}/${to}`,
   dateModified: series.updated || to,

@@ -6,7 +6,7 @@
 //     문단은 그 기간의 기록이라 손대지 않는다. 대신 지금 값을 옆에 붙여 표가 7월에서 멈춰 보이지 않게 한다.
 //
 // 규칙 (tools/inject-box-price-guide.js 와 같다)
-//  · 값은 각 시계열의 마지막 관측 중앙값(USD). 마지막 판매가 STALE_DAYS 를 넘으면 그 칸은 "—".
+//  · 값은 box-sold-series 의 current(발매 후·마지막 점이 asOf 로부터 28일 이내일 때만 값). 없으면 그 칸은 "—".
 //  · 배수는 JP·EN 둘 다 신선할 때만 낸다. 한쪽이라도 비면 "—".
 //  · 과거 열 셀은 글에 있던 그대로 옮긴다. 표에 없던 세트는 행을 추가하고 과거 열은 "—".
 //  · 새 행의 세트 이름은 data/onepiece-packs.json 의 nameEn, 없으면 코드만 — 지어내지 않는다.
@@ -18,7 +18,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/japanese-vs-english-box-price-data-2026.html");
 const SERIES = path.join(ROOT, "data/box-sold-series.json");
-const STALE_DAYS = 28;
+// STALE_DAYS(28) 는 box-sold-series 의 staleDays — current 가 이미 그 기준으로 걸러져 있다.
 const NOW_TH = ["JP now", "EN now", "EN/JP now"];
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
@@ -27,7 +27,8 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const skip = (reason) => { console.log(JSON.stringify({ status: "skip", reason })); process.exit(0); };
 
 if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) skip("file missing");
-const S = JSON.parse(fs.readFileSync(SERIES, "utf8")).sets || {};
+const STORE = JSON.parse(fs.readFileSync(SERIES, "utf8"));
+const S = STORE.sets || {};
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
@@ -70,18 +71,11 @@ for (const code of Object.keys(S)) {
 const ord = (c) => { const [m, n] = c.split("-"); return ({ OP: 1, EB: 2, PRB: 3 }[m] || 9) * 100 + Number(n); };
 const order = Object.keys(hist).sort((a, b) => ord(a) - ord(b));
 
-let dataDate = "";
-for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) {
-  const a = (S[c] && S[c][ed]) || [];
-  if (a.length && a[a.length - 1].d > dataDate) dataDate = a[a.length - 1].d;
-}
+// 기준일·현재가는 box-sold-series 의 asOf·current — 모든 페이지 표가 같은 칸을 읽는다(2026-10-14, 가드 D17).
+// current 는 발매 후·28일 이내만 값. 미발매 세트의 예약판매는 시계열에 없다(전엔 OP-18 $110 이 "JP now" 에 섞였다).
+const dataDate = STORE.asOf || "";
 if (!dataDate) skip("no series dates");
-const now = Date.parse(dataDate);
-const fresh = (c, ed) => {
-  const a = (S[c] && S[c][ed]) || [];
-  const l = a.length ? a[a.length - 1] : null;
-  return l && Date.parse(l.d) >= now - STALE_DAYS * 86400000 ? l : null;
-};
+const fresh = (c, ed) => (S[c] && S[c].current && S[c].current[ed]) || null;
 
 const rows = [];
 let jpN = 0, enN = 0, pairs = 0;

@@ -7,7 +7,8 @@
 //     실측 차이 예: OP-04 글 $115 → 실제 $175, OP-16 배수 글 1.7x → 실제 2.4x.
 //
 // 규칙
-//  · 값은 각 시계열의 마지막 관측 중앙값(USD). 마지막 판매가 STALE_DAYS 를 넘으면 그 칸은 "—".
+//  · 값은 box-sold-series 의 current(USD) — 발매됐고 마지막 점이 asOf 로부터 28일 이내일 때만 값, 아니면 "—".
+//    미발매 세트의 예약판매는 시계열에 없다(2026-10-14 전엔 OP-18 $110·EB-05 $132 가 이 표에 실거래로 섞였다).
 //  · 배수는 JP·EN 둘 다 신선할 때만 낸다. 한쪽이라도 비면 "—".
 //  · 세트 이름은 기존 표에서 읽어 그대로 유지한다(데이터에 없는 정보라 새로 만들지 않는다).
 //  · 해설 문단의 숫자(최저·최고 배수, 일본판 가격대, 표본 얇은 세트)도 전부 데이터에서 계산한다.
@@ -18,7 +19,6 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/one-piece-booster-box-price-guide.html");
 const SERIES = path.join(ROOT, "data/box-sold-series.json");
-const STALE_DAYS = 28;
 const THIN_N = 6; // 표본이 이보다 적으면 "얇다"고 밝힌다
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
@@ -28,7 +28,9 @@ if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) {
   console.log(JSON.stringify({ status: "skip", reason: "file missing" }));
   process.exit(0);
 }
-const S = JSON.parse(fs.readFileSync(SERIES, "utf8")).sets || {};
+const STORE = JSON.parse(fs.readFileSync(SERIES, "utf8"));
+const S = STORE.sets || {};
+const STALE_DAYS = STORE.staleDays || 28;
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
@@ -57,18 +59,10 @@ for (const code of Object.keys(S)) {
 }
 order.sort((a, b) => ord(a) - ord(b));
 
-let dataDate = "";
-for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) {
-  const a = (S[c] && S[c][ed]) || [];
-  if (a.length && a[a.length - 1].d > dataDate) dataDate = a[a.length - 1].d;
-}
+const dataDate = STORE.asOf || "";
 if (!dataDate) { console.log(JSON.stringify({ status: "skip", reason: "no series dates" })); process.exit(0); }
-const now = Date.parse(dataDate);
-const fresh = (c, ed) => {
-  const a = (S[c] && S[c][ed]) || [];
-  const l = a.length ? a[a.length - 1] : null;
-  return l && Date.parse(l.d) >= now - STALE_DAYS * 86400000 ? l : null;
-};
+// 현재가 = 시계열의 current(발매 후·28일 이내). 모든 페이지 표가 같은 칸을 읽는다(가드 D17).
+const fresh = (c, ed) => (S[c] && S[c].current && S[c].current[ed]) || null;
 
 const rows = [];
 const ratios = [];
@@ -102,7 +96,7 @@ html = html.replace(/(<tbody>)[\s\S]*?(<\/tbody>)/, () => nl(`<tbody>\n${rows.jo
 
 // 해설 문단 1 — 배수와 일본판 가격대
 const P1 = nl(
-  `<p>Two patterns come out of this table. First, <strong>every English box with a recent sale trades above its Japanese counterpart</strong> — the premium runs from ${lo.r.toFixed(1)}&times; on ${lo.code} up to ${hi.r.toFixed(1)}&times; on ${hi.code}. The premium is smallest on sets still in print and widens as English stock dries up. Second, the Japanese side is cheaper and flatter than most buyers expect: of the ${jpVals.length} sets with a Japanese sale in the last ${STALE_DAYS} days, ${band} sit at ${usd(150)} or below, and the whole range is ${usd(jpLo)} to ${usd(jpHi)}. Sets with no completed sale in that window are left blank rather than carried forward.</p>`
+  `<p>Two patterns come out of this table. First, <strong>every English box with a recent sale trades above its Japanese counterpart</strong> — the premium runs from ${lo.r.toFixed(1)}&times; on ${lo.code} up to ${hi.r.toFixed(1)}&times; on ${hi.code}. The premium is smallest on sets still in print and widens as English stock dries up. Second, the Japanese side is cheaper and flatter than most buyers expect: of the ${jpVals.length} sets with a Japanese sold median dated within the last ${STALE_DAYS} days, ${band} sit at ${usd(150)} or below, and the whole range is ${usd(jpLo)} to ${usd(jpHi)}. Sets without such a median (a median needs at least 6 sales in its 28–56-day window) are left blank rather than carried forward.</p>`
 );
 html = html.replace(/<p>Two patterns[\s\S]*?<\/p>/, () => P1);
 
@@ -111,7 +105,7 @@ const thinTxt = thin.length
   ? `A few Japanese medians are thin — ${thin.join(", ")} sales — and we would not anchor a purchase to those without checking the live tracker first.`
   : `No Japanese median in this table rests on fewer than ${THIN_N} sales.`;
 const P2 = nl(
-  `<p>Sample depth matters when you read this table. English medians rest on ${Number.isFinite(enNmin) ? `${enNmin}–${enNmax}` : "several"} sales per set in the latest week. ${thinTxt} Every figure here is a median of completed sales, not an asking price.</p>`
+  `<p>Sample depth matters when you read this table. English medians rest on ${Number.isFinite(enNmin) ? `${enNmin}–${enNmax}` : "several"} sales per set inside their rolling windows (28–56 days). ${thinTxt} Every figure here is a median of completed sales, not an asking price.</p>`
 );
 html = html.replace(/<p>Sample depth matters[\s\S]*?<\/p>/, () => P2);
 

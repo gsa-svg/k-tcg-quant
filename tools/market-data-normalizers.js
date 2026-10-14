@@ -86,6 +86,8 @@ function buildBoxMarket(set, datasetUpdatedOn, setUrl) {
     if (rawActive && !activeAsk) qualityFlags.push("active_ask_sample_insufficient_or_invalid");
     if (ratio != null && (ratio >= 2 || ratio <= 0.5)) qualityFlags.push("sold_active_median_divergence_over_2x");
     if (activeAsk && activeAsk.p85Usd / activeAsk.p15Usd >= 5) qualityFlags.push("active_ask_spread_over_5x");
+    // 28일 넘은 판매 표본 — 사이트 표는 이 값을 "—" 로 둔다(현재가 아님). 2026-10-14 QA: OP-02 ageDays 98 에 표시가 없었다.
+    if (sold && Number.isFinite(sold.ageDaysAtDatasetUpdate) && sold.ageDaysAtDatasetUpdate > 28) qualityFlags.push("stale_over_28_days");
     return { sold, activeAsk, soldToActiveMedianRatio: ratio, qualityFlags };
   };
   return { japanese: edition("jp"), english: edition("en") };

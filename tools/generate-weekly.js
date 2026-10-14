@@ -118,7 +118,7 @@ const ld = JSON.stringify({
   name: "One Piece booster box prices — weekly table", description: desc, url: `${SITE}/weekly.html`,
   temporalCoverage: `${weekStart}/${weekEnd}`, dateModified: DATA_DATE, license: "https://creativecommons.org/licenses/by/4.0/",
   creator: { "@type": "Organization", name: "OP Box Index", url: SITE },
-  distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }],
+  // 내려받기 파일을 걸지 않는다 — opbox-set-prices.csv 는 이 주간 표가 아니라 세트별 현재 시세 스냅샷이다(기간이 다르다, 2026-10-14 QA).
 });
 
 const html = `<!doctype html>

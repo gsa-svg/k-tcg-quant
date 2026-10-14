@@ -265,6 +265,49 @@ const today = new Date().toISOString().slice(0, 10);
 // 그래프에 표시할 사건 — 검증된 발매일만(data/set-facts.json, 반다이 공식 페이지 출처). 2026-09-24.
 let FACTS = { sets: {} };
 try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
+const packsPath = path.join(ROOT, "data", "onepiece-packs.json");
+const packs = JSON.parse(fs.readFileSync(packsPath, "utf8"));
+let UPCOMING = {};
+try { for (const p of JSON.parse(fs.readFileSync(path.join(ROOT, "data", "upcoming-set-pages.json"), "utf8")).pages || []) UPCOMING[p.code] = p; } catch (e) {}
+
+// ── 발매 전 판매(예약판매)는 sold 시계열에서 뺀다 — 2026-10-14.
+// 사고: 미발매 OP-18 의 예약판매 8건(매물 2개)이 일본판 "sold median $110" 으로 시계열에 들어가, AI 인용 1위 글
+// (발매일 글)의 "최신 세트(OP-17) 박스값" 자리에 OP-18 값이 찍혔고(최신 세트 = 시계열이 있는 가장 큰 번호),
+// 7개 페이지 표에 EB-05·OP-18 예약판매가가 실거래 중앙값으로 섞였다. sets/op-18 은 같은 날 "no completed sale" 이었다.
+// 예약판매는 발매 후 시세와 다른 시장이다(배송 전 선결제, 소수 매물의 반복 판매). 원장은 그대로 두고 여기서 판(jp/en)별
+// 공식 발매일로 나눈다: 발매일 이전 판매 → preRelease 요약(따로), 발매일 당일부터 → sold 시계열.
+// 발매일 원천(앞이 우선): set-facts.json(반다이 공식, 출처 포함) → onepiece-packs.json(releaseJa=일본판, release=영문판)
+// → upcoming-set-pages.json(발매 전 세트의 반다이 공식 날짜). 날짜가 없는 판은 거르지 않는다(종전 동작).
+const isoDay = (v) => (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+function releaseFor(code) {
+  const f = (FACTS.sets && FACTS.sets[code]) || {}, p = (packs.sets && packs.sets[code]) || {}, u = UPCOMING[code] || {};
+  return {
+    jp: isoDay(f.jpRelease && f.jpRelease.date) || isoDay(p.releaseJa) || isoDay(u.releaseJp),
+    en: isoDay(f.enRelease && f.enRelease.date) || isoDay(u.releaseEn) || isoDay(p.release),
+  };
+}
+const isBinSale = (r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number(r.unit) > 0 && (!BIN_ONLY || r.fmt === "bin");
+// 예약판매 요약. 매물 한두 개가 여러 번 팔린 것뿐이면(OP-18 일본판: 8건 = 매물 2개) 중앙값은 그 매물의 호가일 뿐이다 —
+// 서로 다른 매물이 PRE_MIN_LISTINGS 개 미만이면 값은 비우고(null → 화면 "—") 건수만 남긴다.
+const PRE_MIN_LISTINGS = 3;
+function preReleaseFor(pre, rel) {
+  const rs = (pre || []).filter(isBinSale);
+  if (!rs.length) return null;
+  const listings = new Set(rs.map((r) => String(r.id || ""))).size;
+  const u = rs.map((r) => Number(r.unit));
+  const ds = rs.map((r) => r.d).sort();
+  const ok = listings >= PRE_MIN_LISTINGS;
+  return {
+    release: rel, sales: rs.length, listings,
+    median: ok ? Math.round(quant(u, 0.5)) : null, low: ok ? Math.round(quant(u, 0.25)) : null, high: ok ? Math.round(quant(u, 0.75)) : null,
+    first: ds[0], last: ds[ds.length - 1],
+  };
+}
+const splitAtRelease = (records, rel) => {
+  const pre = [], post = [];
+  for (const r of records || []) (rel && r && typeof r.d === "string" && r.d < rel ? pre : post).push(r);
+  return { pre, post };
+};
 function eventsFor(code) {
   const f = (FACTS.sets && FACTS.sets[code]) || {};
   const out = [];
@@ -280,9 +323,16 @@ let points = 0, drawable = 0;
 const windowsUsed = {};
 let monthPoints = 0;
 let dayPoints = 0;
-for (const [code, eds] of Object.entries(ledger.sets || {})) {
+const preReleaseExcluded = {};
+for (const [code, all] of Object.entries(ledger.sets || {})) {
+  const release = releaseFor(code);
+  const sJp = splitAtRelease(all.jp, release.jp), sEn = splitAtRelease(all.en, release.en);
+  const eds = { jp: sJp.post, en: sEn.post };   // 아래는 전부 발매일 당일부터의 판매만 본다
+  const preRelease = { jp: preReleaseFor(sJp.pre, release.jp), en: preReleaseFor(sEn.pre, release.en) };
+  for (const ed of ["jp", "en"]) if (preRelease[ed]) preReleaseExcluded[`${code}.${ed}`] = preRelease[ed].sales;
   const jp = seriesFor(eds.jp), en = seriesFor(eds.en, "white"), enBlue = seriesFor(eds.en, "blue");
-  if (!jp.points.length && !en.points.length) continue;
+  // 발매 전 세트(점이 없고 예약판매만 있는 세트)도 남긴다 — 예약판매 요약과 발매일을 실어 보내야 화면이 "—" 와 건수를 낼 수 있다.
+  if (!jp.points.length && !en.points.length && !preRelease.jp && !preRelease.en) continue;
   const mJp = monthlyFor(eds.jp), mEn = monthlyFor(eds.en, "white"), mEnBlue = monthlyFor(eds.en, "blue");
   const dJp = dailyFor(eds.jp), dEn = dailyFor(eds.en, "white"), dEnBlue = dailyFor(eds.en, "blue");
   const fJp = countsFrom(jp.points, mJp, dJp), fEn = countsFrom(en.points, mEn, dEn), fBlue = countsFrom(enBlue.points, mEnBlue, dEnBlue);
@@ -303,6 +353,10 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
     reprintPct: { jp: reprintShare(eds.jp), en: reprintShare(eds.en) },
     firstPrint: { jp: firstPrintSpot(eds.jp), en: firstPrintSpot(eds.en) },
     events: eventsFor(code),
+    // 판별 공식 발매일(시계열을 자른 기준), 발매일 이전 판매 요약, 발매일 당일부터의 즉시구매 건수.
+    release,
+    preRelease,
+    sinceRelease: { jp: eds.jp.filter(isBinSale).length, en: eds.en.filter(isBinSale).length },
   };
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;
@@ -312,11 +366,35 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   }
 }
 
+// ── 현재가(current) — 모든 페이지 표의 "지금 값" 칸이 읽는 단 하나의 원천. 2026-10-14.
+// 종전엔 소비자마다 기준일·신선도를 따로 셌다(어떤 곳은 일본판 마지막 관측, 어떤 곳은 오늘). 같은 세트가 페이지마다
+// 다른 값(또는 한쪽만 "—")으로 나올 수 있었다. 이제 기준일(asOf)은 전 계열의 마지막 관측일 중 가장 늦은 날,
+// 현재가는 마지막 점이 asOf 로부터 STALE_DAYS 이내이고 그 판이 발매된 경우만 값, 아니면 null(화면 "—").
+const STALE_DAYS = 28;
+let asOf = "";
+for (const node of Object.values(sets)) for (const ed of ["jp", "en"]) {
+  const a = node[ed] || [];
+  if (a.length && a[a.length - 1].d > asOf) asOf = a[a.length - 1].d;
+}
+for (const node of Object.values(sets)) {
+  node.current = {};
+  for (const ed of ["jp", "en"]) {
+    const a = (node[ed] || []).filter((p) => p && p.median != null);
+    const last = a[a.length - 1];
+    const released = !node.release[ed] || (asOf && node.release[ed] <= asOf);
+    const fresh = last && asOf && Date.parse(last.d) >= Date.parse(asOf) - STALE_DAYS * DAY;
+    node.current[ed] = released && fresh ? { median: last.median, low: last.low, high: last.high, n: last.n, d: last.d } : null;
+  }
+}
+
 const store = {
-  note: `Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every ${STEP_DAYS} days and dated by SALE date (not collection date). The averaging window is chosen per series (${MIN_WINDOW}-${MAX_WINDOW} days) so that each point rests on roughly ${TARGET_N} sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than ${MIN_N} sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum ${MONTH_MIN_N} sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.`,
-  window: { targetSales: TARGET_N, minDays: MIN_WINDOW, maxDays: MAX_WINDOW, stepDays: STEP_DAYS, minSales: MIN_N, basis: "sold", datedBy: "saleDate" },
+  note: `Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every ${STEP_DAYS} days and dated by SALE date (not collection date). The averaging window is chosen per series (${MIN_WINDOW}-${MAX_WINDOW} days) so that each point rests on roughly ${TARGET_N} sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than ${MIN_N} sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Sales dated before an edition's official release date (pre-orders) are excluded from the sold series and summarized separately per set under preRelease (median only when at least ${PRE_MIN_LISTINGS} different listings sold). current is the latest point when the edition is released and that point is within ${STALE_DAYS} days of asOf, otherwise null. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum ${MONTH_MIN_N} sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.`,
+  window: { targetSales: TARGET_N, minDays: MIN_WINDOW, maxDays: MAX_WINDOW, stepDays: STEP_DAYS, minSales: MIN_N, basis: "sold", datedBy: "saleDate", fromRelease: true },
   builtFrom: { ledger: "data/box-sold-ledger.json", updated: ledger.updated || today },
   updated: today,
+  asOf: asOf || null,
+  staleDays: STALE_DAYS,
+  preReleaseMinListings: PRE_MIN_LISTINGS,
   sets,
 };
 
@@ -330,8 +408,6 @@ fs.writeFileSync(seriesPath, JSON.stringify(store, null, 1) + "\n", "utf8");
 // 이 값은 AI 피드(opbox-ai-data.json)·CSV·화면(packs.js 실거래 카드)에 그대로 나가므로
 // 여기서 시리즈 최신점(판매일 기준 롤링 중앙값)을 그대로 미러링한다. low/high = p25/p75 동일.
 {
-  const packsPath = path.join(ROOT, "data", "onepiece-packs.json");
-  const packs = JSON.parse(fs.readFileSync(packsPath, "utf8"));
   let synced = 0, cleared = 0;
   for (const [code, node] of Object.entries(sets)) {
     const target = packs.sets[code];
@@ -368,5 +444,7 @@ const out = {
   drawableSeries: `${drawable}/${Object.keys(sets).length * 2}`,
   windowsUsed,
   range: dates.length ? `${dates[0]} ~ ${dates[dates.length - 1]}` : null,
+  asOf,
+  preReleaseExcluded,
 };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));

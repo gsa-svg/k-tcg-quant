@@ -6,6 +6,10 @@ const fs = require("fs");
 const { variant } = require("./image-variants");
 const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
+// 세트별 공식 카드리스트(ko/<code>-card-list.html — generate-card-list-pages.js). 링크는 공식 목록 데이터로 정한다(2026-10-14, W7).
+const CARD_LIST = require("./card-list-shared");
+// 상단 Key facts 표 — 영문 세트 페이지와 같은 함수에서 같은 사실을 읽는다(2026-10-14, W5a). 한국어로 그린다.
+const { keyFactsModel, keyFactsHtml, KF_CSS, latestSets } = require("./set-page-shared");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 // 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 영문 세트 페이지와 같은 원본을 쓴다.
@@ -33,6 +37,8 @@ function orderKey(code) {
   return fam * 1000 + (m ? parseInt(m[2], 10) : 0);
 }
 const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
+// 최신 세트(계열별 가장 늦은 발매·120일 이내·공식 카드 리스트 있음) — 영문 생성기와 같은 함수.
+const LATEST_KO = latestSets(rows.map((b) => b.code), DATA_DATE);
 
 // 박스 시세(원): board.nowUsd(우리 실판매 중앙값)×환율.
 // 종전엔 sets.boxSeries KRW 를 우선했는데 그 외부 시세가 07-12 에 멈춘 것을 아무도 몰랐다 — 2026-08-21 제거.
@@ -64,7 +70,8 @@ function psa10Krw(p) {
 }
 
 function nameKo(code) { const s = d.sets[code]; return (s && s.nameKo) || code; }
-function reprintRecords(code) { return ((mi.reprints.bySet[code] || {}).reprintRecords) || []; }
+// 발매 전 추첨판매(kind=pre-release-lottery)는 초판 배정이지 추가 공급이 아니다 — 재판 횟수에서 뺀다(영문판 세트 페이지와 같은 사실, 2026-10-14 QA).
+function reprintRecords(code) { return (((mi.reprints.bySet[code] || {}).reprintRecords) || []).filter((r) => r.kind !== "pre-release-lottery"); }
 
 /** Return a Korean noun phrase with the correct 은/는 topic particle. */
 function topic(value) {
@@ -129,7 +136,7 @@ const tableRows = rows.map((b) => {
   return `<tr>
     <td class="code"><a href="${koSlug(b.code)}.html">${esc(b.code)}</a></td>
     <td class="nm">${esc(nameKo(b.code))}</td>
-    <td class="num">${won(krw)}</td>
+    <td class="num">${won(krw)}${b.nowDate ? `<small class="fromDate">${esc(b.nowDate)}</small>` : ""}</td>
     <td class="num ${chgCls}">${pct(b.changePct)}${b.changeBasis ? `<small class="fromDate">${esc(b.changeBasis)} 대비</small>` : ""}</td>
     <td class="rp">${rpCell}</td>
   </tr>`;
@@ -168,6 +175,11 @@ const datasetLd = JSON.stringify({
   description: "일본판 원피스 카드게임 부스터박스 전 세트의 원화 시세, 1월 대비 변동률, 재판 기록. 매일 갱신.",
   inLanguage: "ko", isAccessibleForFree: true,
   url: `${SITE}/ko/`, dateModified: DATA_DATE,
+  // 표에 실린 값의 마지막 판매일 범위·라이선스·내려받기 — 비어 있었다(2026-10-14 W6b). 영문 홈 Dataset 과 같은 기준.
+  // 기간 = 배포 파일(opbox-set-prices.csv)의 관측일 범위 — free-data 의 같은 Dataset 과 한 함수(2026-10-14 QA).
+  ...(() => { const sp = require("./dataset-coverage").boxCsvSpan(d); return sp ? { temporalCoverage: sp.coverage } : {}; })(),
+  license: "https://creativecommons.org/licenses/by/4.0/",
+  distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }],
   creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },
 });
 
@@ -261,10 +273,10 @@ const html = `<!doctype html>
 
       <section aria-label="전 세트 시세표">
         <h2>전 세트 박스 시세표 (원화)</h2>
-        <p class="koNote">변동률은 각 세트의 <strong>추적 시작일 대비</strong>입니다(발매일 대비 아님 — 대부분 2026-01-07부터 추적, 기준일은 행마다 표기). 세트 코드를 누르면 세트별 상세 시세로 갑니다.</p>
+        <p class="koNote">시세 = 이베이 실거래 중앙값(원화 환산), 아래 날짜는 그 중앙값의 날짜 · 변동률 = 그 값의 <strong>28일 전 중앙값 대비</strong>(기준일은 행마다 표기, 발매일 대비 아님) · — = 28일 안에 날짜가 찍힌 중앙값 없음(중앙값은 창 안 판매 6건 이상). 세트 코드를 누르면 세트별 상세 시세로 갑니다.</p>
         <div style="overflow-x:auto">
         <table class="koBoard">
-          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>일판 박스 시세</th><th>기준일 대비</th><th class="l">재판</th></tr></thead>
+          <thead><tr><th class="l">세트</th><th class="l">이름</th><th>일판 박스 시세 (기준일)</th><th>4주 등락</th><th class="l">재판</th></tr></thead>
           <tbody>
 ${tableRows}
           </tbody>
@@ -275,7 +287,7 @@ ${tableRows}
 ${hubProse}
 
       <section aria-label="급등 급락">
-        <h2>급등·급락 TOP 3 (1월 대비)</h2>
+        <h2>급등·급락 TOP 3 (4주)</h2>
         <div class="moverGrid">
           <div class="moverCol"><h3>▲ 급등</h3><ul>${topUp.map((b) => `<li><span>${esc(b.code)} ${esc(nameKo(b.code))}</span><span class="up">${pct(b.changePct)}</span></li>`).join("")}</ul></div>
           <div class="moverCol"><h3>▼ 급락</h3><ul>${topDn.map((b) => `<li><span>${esc(b.code)} ${esc(nameKo(b.code))}</span><span class="down">${pct(b.changePct)}</span></li>`).join("")}</ul></div>
@@ -391,7 +403,9 @@ ${cardRows}
     if (fromLo != null && offHi != null) {
       line += hi.d === last.d
         ? ` 현재가가 곧 추적 기간 최고가입니다 — 저점 대비 ${pct(fromLo)} 오른 상태로, 최근 매수세가 가격을 끌어올리고 있다는 뜻입니다.`
-        : ` 현재 시세 ${won(last.p)}은 저점 대비 ${pct(fromLo)}, 고점 대비 ${pct(offHi)} 수준입니다.`;
+        : krw != null
+          ? ` 현재 시세 ${won(last.p)}은 저점 대비 ${pct(fromLo)}, 고점 대비 ${pct(offHi)} 수준입니다.`
+          : ` 마지막 중앙값 ${won(last.p)}(${esc(last.d)})은 저점 대비 ${pct(fromLo)}, 고점 대비 ${pct(offHi)} 수준입니다(28일 안에 날짜가 찍힌 중앙값 없음).`;
     }
     prose.push({ h: "시세 흐름", p: [line, `${esc(code)} ${esc(nKo)}의 일별 차트와 검증된 매물 링크는 <a href="${enHref || "../?set=" + code}">영문 상세 페이지</a>에 함께 표시됩니다.`] });
   }
@@ -484,15 +498,14 @@ ${cardRows}
         ${sec.p.map((t) => `<p class="koProse">${t}</p>`).join("\n        ")}
       </section>`).join("\n");
 
-  // 팩트 리스트 — 검증된 값만
+  // 팩트 리스트 — 검증된 값만.
+  // 2026-10-14(W5a): 현재 시세·발매 정가·영문판 발매일은 H1 아래 Key facts 표로 옮겼다(영문 페이지와 같은 함수·같은 값).
+  // 종전 "현재 박스 시세 (기준일 데이터 갱신일)" 은 관측일이 아니라 갱신일을 적어, 7/7 값(OP-02)이 10/13 값처럼 나갔다.
   const facts = [];
-  facts.push(`현재 박스 시세 <strong>${won(krw)}</strong> (기준일 ${esc(DATA_DATE)})`);
   if (chg != null) facts.push(`${esc(b.changeBasis || "추적 시작일")} 대비 <strong>${pct(chg)}</strong> — 발매일 대비가 아님`);
-  if (b.msrpYen) facts.push(`발매 정가 <strong>¥${b.msrpYen.toLocaleString("ko-KR")}</strong>`);
   const reprintDates = rr.map((r) => r.date).filter(Boolean);
   facts.push(rr.length ? `재판 기록 <strong>${rr.length}회</strong>${reprintDates.length ? ` (${reprintDates.join(", ")})` : ""} — 유통사·리테일러 재입고 기준` : `<strong>재판 기록 없음</strong> — 확인된 재입고 기록이 없다는 뜻`);
   if (s.psaTotal != null) facts.push(`PSA 누적 감정 <strong>${Number(s.psaTotal).toLocaleString("ko-KR")}장</strong>${s.psaGem != null ? ` · PSA10 비율 <strong>${s.psaGem}%</strong>` : ""}`);
-  if (s.release) facts.push(`영문(NA)판 발매일 ${esc(s.release)} — 이 페이지 시세는 <strong>일본판</strong> 기준`);
 
   const setFaqs = [
     { q: `${code} ${nKo} 박스 시세는 지금 얼마인가요?`, a: `${DATA_DATE} 기준 ${code} ${nKo} 일본판 부스터박스 추적가는 약 ${won(krw)}이며, 판매처와 밀봉 상태에 따라 실제 총구매가는 달라질 수 있습니다.` },
@@ -508,10 +521,18 @@ ${cardRows}
 
   // 네이버 간단체크: 제목 40자·설명 80자 초과는 사이트 카드에서 잘린다(2026-09-16).
   // 세트명 길이가 제각각이라(EB-02·PRB 는 14자) 넘치면 브랜드를 떼서 맞춘다 — 자르는 것보다 낫다.
-  const titleFull = `${code} ${nKo} 일판 박스 시세 | opboxindex`;
-  const title = titleFull.length <= 40 ? titleFull : `${code} ${nKo} 일판 박스 시세`;
-  const descFull = `${code} ${nKo} 일판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 재판 기록·인기 카드 NM 시세, 매일 갱신.`;
-  const desc = descFull.length <= 80 ? descFull : `${code} ${nKo} 일판 부스터박스 시세 ${won(krw)} (${DATA_DATE} 기준). 매일 갱신.`;
+  // 최신 세트(영문 생성기와 같은 규칙 — set-page-shared.latestSets)는 발매일·카드 리스트를 제목·H1 에 넣는다(2026-10-14, W5a).
+  const rel = LATEST_KO.has(code);
+  const titleCands = rel
+    ? [`${code} ${nKo} 박스 시세·발매일`, `${code} 박스 시세·발매일 | opboxindex`, `${code} 박스 시세·발매일`]
+    : [`${code} ${nKo} 일판 박스 시세 | opboxindex`, `${code} ${nKo} 일판 박스 시세`];
+  const title = titleCands.find((x) => x.length <= 40) || titleCands[titleCands.length - 1];
+  // 값은 board(= box-sold-series current.jp)일 때만, 날짜는 그 중앙값의 날짜(b.nowDate). 없으면 값을 빼고 쓴다 — 2026-10-14 QA:
+  // 07-07 값(OP-02)을 "(2026-10-13 기준)" 으로 적어 같은 페이지 Key facts(기준일 07-07)와 날짜가 엇갈렸다.
+  const descCands = krw != null
+    ? [`${code} ${nKo} 일판 부스터박스 시세 ${won(krw)} (${b.nowDate} 기준). 재판 기록·인기 카드 NM 시세, 매일 갱신.`, `${code} ${nKo} 일판 부스터박스 시세 ${won(krw)} (${b.nowDate} 기준). 매일 갱신.`]
+    : [`${code} ${nKo} 일판 부스터박스 시세·재판 기록·인기 카드 NM 시세. 매일 갱신.`, `${code} ${nKo} 일판 부스터박스 시세·재판 기록. 매일 갱신.`];
+  const desc = descCands.find((x) => x.length <= 80) || descCands[descCands.length - 1];
 
   return { slug, html: `<!doctype html>
 <html lang="ko">
@@ -527,7 +548,7 @@ ${cardRows}
     ${detailRobotsMeta()}
     <link rel="canonical" href="${canonical}" />
     <link rel="alternate" hreflang="ko" href="${canonical}" />
-    ${enHref ? `<link rel="alternate" hreflang="en" href="${SITE}/sets/${slug}.html" />` : ""}
+    ${enHref ? `<link rel="alternate" hreflang="en" href="${SITE}/sets/${slug}.html" />\n    <link rel="alternate" hreflang="x-default" href="${SITE}/sets/${slug}.html" />` : ""}
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>${esc(title)}</title>
     <meta name="description" content="${esc(desc)}" />
@@ -541,6 +562,7 @@ ${cardRows}
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${setFaqLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
+    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: title, url: canonical, inLanguage: "ko", dateModified: DATA_DATE })}</script>
     <link rel="stylesheet" href="../styles.css?v=${CACHE}" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
@@ -568,6 +590,7 @@ ${cardRows}
       .koCta a { display: inline-block; padding: 11px 18px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; }
       .koCta .primary { background: var(--accent); color: #08131a; }
       .koCta .ghost { border: 1px solid #2a3140; color: #cfd6e4; }
+${KF_CSS}
     </style>
   </head>
   <body>
@@ -578,7 +601,8 @@ ${cardRows}
     </header>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 일본판</p>
-      <h1>${esc(code)} ${esc(nKo)} 부스터박스 시세 (일본판)</h1>
+      <h1>${esc(code)} ${esc(nKo)} 부스터박스 시세${rel ? " · 발매일" : ""} (일본판)</h1>
+      ${keyFactsHtml(keyFactsModel(code, "jp"), { lang: "ko", usdKrw: fx.usdKrw })}
       <div class="ixHero">
         <span class="big">${won(krw)}</span>
         ${chg != null ? `<span class="ixChg ${up ? "up" : "down"}">${pct(chg)}</span>` : ""}
@@ -590,6 +614,7 @@ ${cardsSection}
       <div class="koCta">
         <a class="primary" href="./">전 세트 시세표 →</a>
         ${enHref ? `<a class="ghost" href="${enHref}">영문 상세(차트·PSA) →</a>` : ""}
+        ${CARD_LIST.has(code) ? `<a class="ghost" href="${slug}-card-list.html">카드 리스트 ${CARD_LIST.productOf(code).counts.cards}장 →</a>` : ""}
         <a class="ghost" href="amazon-lottery.html">아마존 응모 안내 →</a>
       </div>
       <section aria-label="자주 묻는 질문">

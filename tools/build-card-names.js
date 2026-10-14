@@ -4,7 +4,10 @@
 //   10장(top10)만 담아 220건뿐인데, 경매 원장에는 번호가 2,000개 넘게 나온다. 사람이 보고 판단하려면
 //   "OP05-119" 가 아니라 "Monkey D. Luffy" 가 보여야 한다.
 //
-// 우선순위: data/card-name-overrides.json(수동) > 카탈로그 name(변형 수식어를 벗긴 것) > 원장 제목에서 추정.
+// 우선순위: data/card-name-overrides.json(수동) > 반다이 공식 영문 카드리스트 이름(data/official-cardlist.json, 2026-10-14 W7)
+//   > 카탈로그 name(변형 수식어를 벗긴 것) > 원장 제목에서 추정.
+//   공식 이름은 표기 그대로 쓴다("Monkey.D.Luffy", "Edward.Newgate" — 반다이 영문판 표기). 조사 때 제목 추정 이름 289건이 공식과 달랐다
+//   (예: OP17-052 "Marlon" → 공식 "Don Marlon", OP17-068 "Nami" → 공식 "Sasaki").
 // 추정: 번호별 제목(data/auction-archive/ 전체)에서 노이즈(상품·언어·등급·희귀도·변형·세트명·호객 단어)를
 //   걷어낸 뒤, 노이즈로 끊기지 않은 연속 1~4단어 구 가운데 "가장 긴 것 중 최다 제목에 나온 것"을 고른다
 //   (최다 구의 절반 이상 나온 구만 후보). 4단어까지 보는 이유: 기술명 카드("Gum Gum Jet Gatling", "Mr. 2 Bon Kurei")가
@@ -24,6 +27,7 @@ const { reclassify } = require("./auction-aggregate");
 
 const CATALOG_FILE = path.join(ROOT, "data", "onepiece-packs.json");
 const OVERRIDES_FILE = path.join(ROOT, "data", "card-name-overrides.json");
+const OFFICIAL_FILE = path.join(ROOT, "data", "official-cardlist.json");
 const outPath = path.join(ROOT, "data", "card-names.json");
 
 const CARD_ID = /^[A-Z]{1,4}\d{2}-\d{3}$/;
@@ -139,6 +143,14 @@ function guessName(titles, phrases) {
 function main() {
   const catalog = loadJson(CATALOG_FILE);
   const overrides = loadJson(OVERRIDES_FILE).names || {};
+  // 공식 영문 이름 — 번호 단위(같은 번호는 같은 카드라 패러렐·SP 도 같은 이름). 파일이 없으면 이 단계만 건너뛴다.
+  const officialNames = {};
+  try {
+    for (const c of Object.values(loadJson(OFFICIAL_FILE).en.cards || {})) {
+      const id = String((c && c.num) || "").toUpperCase();
+      if (CARD_ID.test(id) && c.name && !officialNames[id]) officialNames[id] = String(c.name);
+    }
+  } catch { /* 공식 목록 없음 — 종전 순위 그대로 */ }
   const phrases = setPhrases(catalog);
 
   // 카탈로그: 번호별 첫 세트(packs.json 순서)의 이름.
@@ -167,12 +179,13 @@ function main() {
 
   const ids = [...new Set([...Object.keys(overrides), ...Object.keys(catalogNames), ...Object.keys(titles)])].sort();
   const names = {};
-  const count = { override: 0, catalog: 0, title: 0, none: 0 };
+  const count = { override: 0, official: 0, catalog: 0, title: 0, none: 0 };
   for (const id of ids) {
     const all = titles[id] || [];
     const samples = all.length;
     let name = null, source = null;
     if (overrides[id]) { name = String(overrides[id]); source = "override"; }
+    else if (officialNames[id]) { name = officialNames[id]; source = "official"; }
     else if (catalogNames[id]) { name = catalogNames[id]; source = "catalog"; }
     else {
       const single = all.filter((t) => !t.multi);
@@ -184,7 +197,7 @@ function main() {
   }
 
   const out = {
-    note: "Card number → display name for One Piece Card Game singles. source: override (data/card-name-overrides.json) > catalog (data/onepiece-packs.json top-10 lists, variant words stripped) > title (most frequent 1–3 word phrase in eBay auction titles from data/auction-archive/, noise words removed, at least 3 titles). name is null where no source resolves it. Deterministic: same inputs → same file.",
+    note: "Card number → display name for One Piece Card Game singles. source: override (data/card-name-overrides.json) > official (Bandai English card list name, data/official-cardlist.json) > catalog (data/onepiece-packs.json top-10 lists, variant words stripped) > title (most frequent 1–3 word phrase in eBay auction titles from data/auction-archive/, noise words removed, at least 3 titles). name is null where no source resolves it. Deterministic: same inputs → same file.",
     updated: days.length ? days[days.length - 1] : null,
     archiveDays: days.length,
     counts: count,

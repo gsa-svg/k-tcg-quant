@@ -51,9 +51,16 @@ function buildAuctions(series, setStats) {
     byCategory: catBlock(w.byCat),
   }));
   const bySet = [];
+  // 인용 주소는 실제로 있는 페이지만 — 2026-10-14 QA: sets/eb-04.html·sets/st-01.html 등 49개가 404 였다.
+  //   세트 페이지 → 없으면 공식 카드리스트 페이지(EB-04) → 없으면 경매 페이지(스타트 덱 등). 파일 존재가 기준.
+  const pageFor = (code) => {
+    const slug = code.toLowerCase();
+    for (const rel of [`sets/${slug}.html`, `sets/${slug}-card-list.html`]) if (fs.existsSync(path.join(ROOT, rel))) return `${SITE}/${rel}`;
+    return `${SITE}/auction.html`;
+  };
   for (const [code, s] of Object.entries(setStats?.sets || {})) {
     bySet.push({
-      setCode: code, canonicalUrl: `${SITE}/sets/${code.toLowerCase()}.html`,
+      setCode: code, canonicalUrl: pageFor(code),
       ended: num(s.ended), sold: num(s.sold), sellThroughPct: num(s.sellThrough),
       amountUsd: num(s.amount), medianWinningBidUsd: num(s.medPrice), medianBidders: num(s.medBidders),
       thinSample: !!s.thin,

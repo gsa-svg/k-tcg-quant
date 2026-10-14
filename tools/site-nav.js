@@ -103,15 +103,21 @@ function upcomingGuideItems() {
   return pages.filter((p) => p.slug && p.code).map((p) => [`${p.code} release date`, `/sets/${p.slug}.html`, `${p.code} 발매일`]);
 }
 // 세 번째 칸 = 한국어 토글 라벨(data-ko) — 2026-10-13 QA: 영문 페이지를 한국어로 바꿔도 이 줄이 통째로 영어로 남았다.
+// 2026-10-14(W6b): "Packs & MSRP"(팩 수·세트별 정가 글 — 들어오는 내부 링크가 4개뿐이었다)·카드 리스트 허브·글 허브를 더했다.
+// 일본어 발매일 표(ja/)는 파일이 있을 때만 — 푸터는 모든 페이지에 깔리므로 없는 주소를 걸지 않는다.
+const JA_RELEASE = fs.existsSync(path.join(__dirname, "..", "ja", "release-dates.html")) ? [["日本語", "/ja/release-dates.html"]] : [];
 const GUIDE_ITEMS = [
   ["Booster boxes", "/", "부스터 박스"], ["This week", "/weekly.html", "이번 주"], ["Set guides", "/sets/index.html", "세트 가이드"],
   ...upcomingGuideItems(), ["Release dates", "/articles/one-piece-set-list-release-dates.html", "발매일 목록"],
-  ["All box prices", "/box-prices.html", "전체 박스 시세"], ["Card prices", "/cards/", "카드 시세"], ["Top PSA 10", "/psa10-ranking.html", "PSA10 랭킹"],
-  ["Grading population", "/psa-grading.html", "그레이딩 통계"], ["Compare sets", "/compare.html", "세트 비교"], ["Free data", "/free-data.html", "무료 데이터"], ["한국어", "/ko/"],
+  ["Packs & MSRP", "/articles/how-many-packs-one-piece-booster-box.html", "팩 수·정가"],
+  ["All box prices", "/box-prices.html", "전체 박스 시세"], ["Card prices", "/cards/", "카드 시세"], ["Card lists", "/sets/index.html#card-lists", "카드 리스트"], ["Top PSA 10", "/psa10-ranking.html", "PSA10 랭킹"],
+  ["Grading population", "/psa-grading.html", "그레이딩 통계"], ["Compare sets", "/compare.html", "세트 비교"], ["Guides", "/articles/", "가이드"], ["Free data", "/free-data.html", "무료 데이터"], ["한국어", "/ko/"],
+  ...JA_RELEASE,
 ];
 const GUIDE_ITEMS_KO = [
-  ["부스터 박스", "/ko/"], ["이번 주", "/weekly.html"], ["세트 가이드", "/sets/index.html"], ["전체 박스 시세", "/box-prices.html"], ["카드 시세", "/ko/cards.html"], ["PSA10 랭킹", "/psa10-ranking.html"],
-  ["그레이딩 통계", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["무료 데이터", "/free-data.html"], ["아마존 응모", "/ko/amazon-lottery.html"], ["English", "/"],
+  ["부스터 박스", "/ko/"], ["이번 주", "/weekly.html"], ["세트 가이드", "/sets/index.html"], ["전체 박스 시세", "/box-prices.html"], ["팩 수·정가", "/articles/how-many-packs-one-piece-booster-box.html"], ["카드 시세", "/ko/cards.html"], ["카드 리스트", "/sets/index.html#card-lists"], ["PSA10 랭킹", "/psa10-ranking.html"],
+  ["그레이딩 통계", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["가이드", "/articles/"], ["무료 데이터", "/free-data.html"], ["아마존 응모", "/ko/amazon-lottery.html"], ["English", "/"],
+  ...JA_RELEASE,
 ];
 function guideLinksHtml(inKo = false) {
   const items = inKo ? GUIDE_ITEMS_KO : GUIDE_ITEMS;

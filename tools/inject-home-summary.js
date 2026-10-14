@@ -34,22 +34,27 @@ function orderKey(code) {
 }
 const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
 
-// 28일 넘게 거래가 없으면 "현재가"가 아니다 — 값은 남기되 날짜를 붙이고 흐리게, 4주 등락은 비운다(기준점이 없다).
+// 현재가 = board(= box-sold-series current.jp) — 2026-10-14 QA. 마지막 중앙값 점이 asOf 로부터 28일 밖이면 board 가 값·날짜·등락을
+// 비워 둔다(build-market-index). 그 행은 "—" 로 남긴다 — 모든 표가 같은 규칙(값+그 날짜 / "—"). 날짜 칸은 그 중앙값 점의 날짜이고,
+// n 은 그 점의 평균 창(windowDays, 28~56일) 안 판매 건수다(그 주 건수가 아니다).
 const STALE_DAYS = 28;
-const ageDays = (iso) => (iso && DATA_DATE ? Math.round((Date.parse(DATA_DATE) - Date.parse(iso)) / 864e5) : null);
 const mmdd = (iso) => (iso ? iso.slice(5) : "—");
+const NO_MEDIAN = `No sold median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window)`;
+const nCell = (b) => (b.n != null ? `<small> n=${b.n}${b.windowDays ? `/${b.windowDays}d` : ""}</small>` : "");
 const tr = rows.map((b) => {
   const s = d.sets[b.code] || {};
-  const age = ageDays(b.nowDate);
-  const stale = age != null && age > STALE_DAYS;
-  const chg = stale ? null : b.changePct;
+  const none = b.nowUsd == null;
+  const chg = none ? null : b.changePct;
   const slug = b.code.toLowerCase();
-  const enLink = fs.existsSync(path.join(ROOT, "sets", `${slug}-english.html`)) ? ` · <a href="sets/${slug}-english.html" title="English ${esc(b.code)} box price">EN box</a>` : "";
+  const enLink = fs.existsSync(path.join(ROOT, "sets", `${slug}-english.html`)) ? `<a href="sets/${slug}-english.html" title="English ${esc(b.code)} box price">EN box</a>` : "";
   const top = (s.cards || [])[0];
   const topSlug = cardSlug(top);
-  const topLink = topSlug ? ` · <a href="cards/${topSlug}" title="${esc(top.name)} price">${esc(top.name)}</a>` : "";
-  const when = b.nowDate ? `<td class="num when"${stale ? ` title="Last completed sale ${esc(b.nowDate)} — no sales in the last ${STALE_DAYS} days"` : ""}>${esc(mmdd(b.nowDate))}${b.n != null ? `<small> n=${b.n}</small>` : ""}</td>` : `<td class="num when">—</td>`;
-  return `<tr${stale ? ' class="stale"' : ""}><td><a href="sets/${slug}.html">${esc(b.code)}</a></td><td>${esc(s.nameEn || "")}<small class="rowLinks">${enLink}${topLink}</small></td><td class="num">${usd(b.nowUsd)}</td>${when}<td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
+  const topLink = topSlug ? `<a href="cards/${topSlug}" title="${esc(top.name)} price">${esc(top.name)}</a>` : "";
+  const links = [enLink, topLink].filter(Boolean).join(" · ");
+  const when = b.nowDate
+    ? `<td class="num when" title="Median point ${esc(b.nowDate)}${b.n != null ? ` · ${b.n} sales in its ${b.windowDays ? `${b.windowDays}-day ` : ""}window` : ""}">${esc(mmdd(b.nowDate))}${nCell(b)}</td>`
+    : `<td class="num when" title="${esc(NO_MEDIAN)}">—</td>`;
+  return `<tr${none ? ' class="stale"' : ""}><td class="code"><a href="sets/${slug}.html">${esc(b.code)}</a></td><td class="name">${esc(s.nameEn || "")}${links ? `<small class="rowLinks">${links}</small>` : ""}</td><td class="num">${usd(b.nowUsd)}</td>${when}<td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
 }).join("\n");
 
 
@@ -62,7 +67,7 @@ const nameOf = (c) => (d.sets[c] || {}).nameEn || c;
 
 // 상승/하락은 세트별로만 말한다 — 시장 전체를 숫자 하나로 요약하던 지수는 삭제됨(2026-07-29).
 // 28일 넘게 거래 없는 세트는 4주 등락 집계에서도 뺀다 — 표에서 "—" 로 비운 값을 문장에서 세면 안 된다.
-const withChg = rows.filter((b) => b.changePct != null && !(ageDays(b.nowDate) > STALE_DAYS));
+const withChg = rows.filter((b) => b.changePct != null && b.nowUsd != null);
 const byChg = [...withChg].sort((a, b) => b.changePct - a.changePct);
 const nUp = withChg.filter((b) => b.changePct > 0).length;
 const nDn = withChg.filter((b) => b.changePct < 0).length;
@@ -95,6 +100,9 @@ const faqLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "FAQPage",
   mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 });
+// temporalCoverage = 배포 파일(opbox-ai-data.json)에 실린 관측일 범위 — free-data 의 같은 Dataset 과 한 함수(tools/dataset-coverage.js).
+// 2026-10-14 QA: 홈은 표의 날짜로, free-data 는 파일의 날짜로 따로 세서 같은 파일의 기간이 페이지마다 달랐다.
+const AI_SPAN = require("./dataset-coverage").aiDataSpan(d);
 const dsLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
   name: "One Piece TCG box markets and Top 7 card data",
@@ -102,10 +110,11 @@ const dsLd = JSON.stringify({
   url: "https://opboxindex.com/free-data.html",
   license: "https://creativecommons.org/licenses/by/4.0/",
   isAccessibleForFree: true, dateModified: DATA_DATE,
+  ...(AI_SPAN ? { temporalCoverage: AI_SPAN.coverage } : {}),
   creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" },
+  // 배포 파일은 하나(opbox-ai-data.json) — 기간이 그 파일 기준이라 CSV(기간이 다르다)는 free-data 의 자기 Dataset 이 맡는다.
   distribution: [
     { "@type": "DataDownload", encodingFormat: "application/json", contentUrl: "https://opboxindex.com/opbox-ai-data.json" },
-    { "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: "https://opboxindex.com/opbox-set-prices.csv" },
   ],
 });
 const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n          ");
@@ -118,13 +127,13 @@ const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</
 const summaryKo = `${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), eBay 실거래 중앙값, 매일 갱신. 4주간 <strong>${nUp}</strong> 상승 · <strong>${nDn}</strong> 하락. <a href="box-prices.html"><strong>전체 표 — ${rows.length}개 세트 →</strong></a>`;
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
-          <h2><span data-ko="일본판 부스터 박스 시세 — 전체 ${rows.length}개 세트">Japanese booster box prices — all ${rows.length} sets</span> <small data-ko="데이터 ${esc(DATA_DATE)} · 행마다 마지막 거래 기준">data ${esc(DATA_DATE)} · each row dated by its last sale</small></h2>
+          <h2><span data-ko="일본판 부스터 박스 시세 — 전체 ${rows.length}개 세트">Japanese booster box prices — all ${rows.length} sets</span> <small data-ko="데이터 ${esc(DATA_DATE)} · 행마다 그 중앙값의 날짜">data ${esc(DATA_DATE)} · each row dated by its median point</small></h2>
           <p data-ko-html="${esc(summaryKo)}">${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
           <details class="homeCollapse">
           <summary data-ko="빠른 표(전체 페이지와 같은 데이터)">Quick table (same data as the full page)</summary>
           <div style="overflow-x:auto">
           <table class="homeSummaryTable">
-            <thead><tr><th data-ko="세트">Set</th><th data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th data-ko="마지막 거래">Last sale</th><th data-ko="4주 등락">4-wk change</th></tr></thead>
+            <thead><tr><th data-ko="세트">Set</th><th class="name" data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th><span data-ko="기준일">As of</span> <small data-ko="n / 창">n / window</small></th><th><span data-ko="4주">4-wk</span> <small data-ko="등락">change</small></th></tr></thead>
             <tbody>
 ${tr}
             </tbody>
@@ -145,6 +154,26 @@ ${tr}
         <script type="application/ld+json">${faqLd}</script>
         <script type="application/ld+json">${dsLd}</script>
         ${END}`;
+
+// ── 가장 싼 일본판 박스 5개 — 2026-10-14(W6a). "cheapest one piece booster box" 질의는 AI 인용 70건인데 일반검색은 10위 밖이었다.
+//    같은 board 값(= current)을 가격 오름차순으로 다섯 줄. 정렬 라벨일 뿐 결론 문장은 없다. current 가 없는 세트는 넣지 않는다.
+//    n 칸은 그 점의 평균 창 안 판매 건수(창 길이 함께) — 2026-10-14 QA: "n (week)" 라벨이 창 전체 건수를 주간 건수처럼 보이게 했다.
+const CHEAP_N = 5;
+const cheapRows = [...rows].filter((b) => b.nowUsd != null).sort((a, b) => a.nowUsd - b.nowUsd || orderKey(a.code) - orderKey(b.code)).slice(0, CHEAP_N);
+const cheapTr = cheapRows.map((b) => {
+  const s = d.sets[b.code] || {};
+  const slug = b.code.toLowerCase();
+  return `<tr><td><a href="sets/${slug}.html">${esc(b.code)}</a><br><small>${esc(s.nameEn || "")}</small></td><td class="num">${usd(b.nowUsd)}</td><td class="num when">${esc(b.nowDate || "—")}</td><td class="num">${b.n != null ? b.n : "—"}${b.windowDays ? `<small> / ${b.windowDays}d</small>` : ""}</td></tr>`;
+}).join("\n");
+const cheapSection = cheapRows.length ? `<h2 id="cheapest" data-ko="가장 싼 일본판 부스터 박스">Cheapest Japanese booster boxes</h2>
+      <div style="overflow-x:auto">
+      <table class="homeSummaryTable tblFit" data-cheapest>
+        <thead><tr><th data-ko="세트">Set</th><th data-ko="박스 시세">Box price</th><th data-ko="기준일">As of</th><th data-ko="창 안 판매 수 / 창">n / window</th></tr></thead>
+        <tbody>
+${cheapTr}
+        </tbody>
+      </table>
+      </div>` : "";
 
 const NAV = `<header class="topbar">
       <a class="brand" href="./"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>Booster box research</small></span></a>
@@ -167,8 +196,8 @@ const pricesPage = `<!doctype html>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="https://opboxindex.com/box-prices.html" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <title>One Piece Booster Box Prices — All ${rows.length} Sets, Updated Daily | OP Box Index</title>
-    <meta name="description" content="Current sealed Japanese One Piece booster box prices for all ${rows.length} sets, from ${usd(cheapest.nowUsd)} to ${usd(priciest.nowUsd)}, each the median of completed eBay sales, updated daily. With 4-week change and FAQ." />
+    <title>One Piece Booster Box Prices — All ${rows.length} Sets | OP Box Index</title>
+    <meta name="description" content="Sealed Japanese One Piece booster box prices for all ${rows.length} sets, ${usd(cheapest.nowUsd)}–${usd(priciest.nowUsd)}: completed eBay sale medians, cheapest first, with each median's date and 4-week change." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="article" />
     <meta property="og:title" content="One Piece Booster Box Prices — All ${rows.length} Sets, Updated Daily" />
@@ -180,13 +209,7 @@ const pricesPage = `<!doctype html>
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <script type="application/ld+json">${dsLd}</script>
-    <style>
-      .homeSummaryTable { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
-      .homeSummaryTable th { text-align: left; padding: 6px 8px; border-bottom: 1px solid #2a3140; color: #9aa4b6; font-weight: 600; }
-      .homeSummaryTable td { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.06); }
-      .homeSummaryTable td.num { text-align: right; }
-      .homeSummaryTable td.up { color: #10d7a0; } .homeSummaryTable td.down { color: #e5484d; }
-    </style>
+    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "Booster box prices", item: "https://opboxindex.com/box-prices.html" }] })}</script>
   </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
@@ -194,10 +217,12 @@ const pricesPage = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Prices · Updated ${esc(DATA_DATE)} · refreshed daily</p>
       <h1>Japanese One Piece booster box prices — all ${rows.length} sets</h1>
-      <p class="note">Median of completed eBay sales · "Last sale" = week of the latest completed sale (n = sales that week) · "4-wk change" = vs 4 weeks earlier, blank when no sale in ${STALE_DAYS} days · ${nUp} up, ${nDn} down</p>
+      <p class="note"><span data-ko="이베이 실거래 중앙값 · 기준일 = 그 중앙값 점의 날짜 · n = 그 점의 평균 창(28~56일, 세트별) 안 판매 건수 · 4주 등락 = 28일 전 중앙값 대비 · — = 28일 안에 날짜가 찍힌 중앙값 없음(중앙값은 창 안 판매 6건 이상)">Median of completed eBay sales · "As of" = date of that median point · n = sales inside its rolling window (28–56 days, set per series) · "4-wk change" = vs the median 28 days earlier · — = no median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window)</span> · ${nUp} up, ${nDn} down</p>
+      ${cheapSection}
+      <h2 id="all-sets" data-ko="전체 ${rows.length}개 세트">All ${rows.length} sets</h2>
       <div style="overflow-x:auto">
-      <table class="homeSummaryTable">
-        <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>Last sale</th><th>4-wk change</th></tr></thead>
+      <table class="homeSummaryTable tblFit" data-all-sets>
+        <thead><tr><th data-ko="세트">Set</th><th class="name" data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th><span data-ko="기준일">As of</span> <small data-ko="n / 창">n / window</small></th><th><span data-ko="4주">4-wk</span> <small data-ko="등락">change</small></th></tr></thead>
         <tbody>
 ${tr}
         </tbody>

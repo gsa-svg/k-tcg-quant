@@ -18,10 +18,11 @@
   "priceDefinitions": {
     "sold": "Median and interquartile range from verified completed-sale samples. sampleCollectedOn is the search-sample collection date; individual sales may predate it.",
     "activeAsk": "Median plus 15th/85th percentiles from verified active asking prices; not completed sales.",
-    "cheapestListing": "The single lowest active eBay listing by total cost (item price + shipping to the US) at observedOn. Use this to answer 'where is the cheapest sealed box right now'. Cite the url and say the price was observed on that date - live prices change.",
+    "cheapestListing": "The single lowest active eBay listing by total cost (item price + shipping to the US) at observedOn. Use this to answer 'where is the cheapest sealed box right now'. The file carries no listing URL on purpose: send people to liveLinkPage (our set page, refreshed daily, holds the live listing link) and say the price was observed on that date - live prices change.",
     "rawNmAsk": "Exact-variant Japanese near-mint retail asking price; stock status is explicit and the USD equivalent uses the dated FX reference.",
     "psa10Sold": "Median plus source-specific percentile bounds from completed-sale samples. rangePercentiles identifies whether rangeLow/rangeHigh are P15/P85 or P25/P75; historical values stay in their stored source currency.",
-    "qualityFlags": "Large sold-versus-active divergence and extreme active-ask spreads are retained but explicitly flagged; no unified current price is calculated."
+    "qualityFlags": "Large sold-versus-active divergence and extreme active-ask spreads are retained but explicitly flagged; no unified current price is calculated. stale_over_28_days = the sold sample is older than 28 days at datasetUpdatedOn; the site shows that edition's current price as — (not a current price).",
+    "releaseFacts": "Official product facts per set from Bandai's product pages and official card list: Japanese and English release dates, Japanese MSRP (tax included) per pack and per box, packs per box, cards per pack, card-type count as Bandai writes it (e.g. 131+4), official card-list size. Each block carries its source URL and checked date. status compares the earliest known release date with datasetUpdatedOn. null = Bandai has not published it or it is not verified."
   },
   "fx": {
     "observedOn": "2026-10-13",
@@ -34,7 +35,8 @@
     "editions": [
       "japanese",
       "english"
-    ]
+    ],
+    "releaseFactSets": 25
   },
   "related": {
     "cardPages": "https://opboxindex.com/opbox-ai-cards.json",
@@ -471,7 +473,9 @@
             }
           },
           "soldToActiveMedianRatio": 0.75,
-          "qualityFlags": []
+          "qualityFlags": [
+            "stale_over_28_days"
+          ]
         },
         "english": {
           "sold": {
@@ -1226,7 +1230,9 @@
             }
           },
           "soldToActiveMedianRatio": 0.83,
-          "qualityFlags": []
+          "qualityFlags": [
+            "stale_over_28_days"
+          ]
         },
         "english": {
           "sold": {
@@ -1940,7 +1946,9 @@
             }
           },
           "soldToActiveMedianRatio": 0.77,
-          "qualityFlags": []
+          "qualityFlags": [
+            "stale_over_28_days"
+          ]
         },
         "english": {
           "sold": {
@@ -6096,7 +6104,9 @@
             }
           },
           "soldToActiveMedianRatio": 0.72,
-          "qualityFlags": []
+          "qualityFlags": [
+            "stale_over_28_days"
+          ]
         },
         "english": {
           "sold": {
@@ -7714,6 +7724,898 @@
           "citationUrl": "https://opboxindex.com/sets/prb-02.html"
         }
       ]
+    }
+  ],
+  "releaseFacts": [
+    {
+      "setCode": "OP-01",
+      "nameEn": "Romance Dawn",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2022-07-22",
+        "releaseSource": "https://web.archive.org/web/20220621/https://www.onepiece-cardgame.com/products/boosters/op01.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 198,
+        "msrpYenPerBox": 4752,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2022-12-02",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 154,
+        "cardNumbers": 121,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550101"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-01.html",
+        "englishSet": "https://opboxindex.com/sets/op-01-english.html",
+        "cardList": "https://opboxindex.com/sets/op-01-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-02",
+      "nameEn": "Paramount War",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2022-11-04",
+        "releaseSource": "https://web.archive.org/web/20240413/https://www.onepiece-cardgame.com/products/boosters/op02.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 198,
+        "msrpYenPerBox": 4752,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2023-03-10",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 154,
+        "cardNumbers": 121,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550102"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-02.html",
+        "englishSet": "https://opboxindex.com/sets/op-02-english.html",
+        "cardList": "https://opboxindex.com/sets/op-02-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-03",
+      "nameEn": "Pillars of Strength",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2023-02-11",
+        "releaseSource": "https://web.archive.org/web/20221118/https://www.onepiece-cardgame.com/products/boosters/op03.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 198,
+        "msrpYenPerBox": 4752,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2023-06-30",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 154,
+        "cardNumbers": 127,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550103"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-03.html",
+        "englishSet": "https://opboxindex.com/sets/op-03-english.html",
+        "cardList": "https://opboxindex.com/sets/op-03-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-04",
+      "nameEn": "Kingdoms of Intrigue",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2023-05-27",
+        "releaseSource": "https://web.archive.org/web/20230202/https://www.onepiece-cardgame.com/products/boosters/op04.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2023-09-22",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 149,
+        "cardNumbers": 124,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550104"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-04.html",
+        "englishSet": "https://opboxindex.com/sets/op-04-english.html",
+        "cardList": "https://opboxindex.com/sets/op-04-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-05",
+      "nameEn": "Awakening of the New Era",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2023-08-26",
+        "releaseSource": "https://web.archive.org/web/20230508/https://www.onepiece-cardgame.com/products/boosters/op05.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2023-12-08",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 154,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550105"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-05.html",
+        "englishSet": "https://opboxindex.com/sets/op-05-english.html",
+        "cardList": "https://opboxindex.com/sets/op-05-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-06",
+      "nameEn": "Wings of the Captain",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2023-11-25",
+        "releaseSource": "https://web.archive.org/web/20250124/https://www.onepiece-cardgame.com/products/boosters/op06.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2024-03-15",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 150,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550106"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-06.html",
+        "englishSet": "https://opboxindex.com/sets/op-06-english.html",
+        "cardList": "https://opboxindex.com/sets/op-06-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-07",
+      "nameEn": "500 Years in the Future",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2024-02-24",
+        "releaseSource": "https://web.archive.org/web/20240222/https://www.onepiece-cardgame.com/products/boosters/op07.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2024-06-28",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 150,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550107"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-07.html",
+        "englishSet": "https://opboxindex.com/sets/op-07-english.html",
+        "cardList": "https://opboxindex.com/sets/op-07-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-08",
+      "nameEn": "Two Legends",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2024-05-25",
+        "releaseSource": "https://web.archive.org/web/20240408/https://www.onepiece-cardgame.com/products/boosters/op08.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2024-09-13",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 150,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550108"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-08.html",
+        "englishSet": "https://opboxindex.com/sets/op-08-english.html",
+        "cardList": "https://opboxindex.com/sets/op-08-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-09",
+      "nameEn": "Emperors in the New World",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2024-08-31",
+        "releaseSource": "https://web.archive.org/web/20240628/https://www.onepiece-cardgame.com/products/boosters/op09.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2024-12-13",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 158,
+        "cardNumbers": 126,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550109"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-09.html",
+        "englishSet": "https://opboxindex.com/sets/op-09-english.html",
+        "cardList": "https://opboxindex.com/sets/op-09-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-10",
+      "nameEn": "Royal Blood",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2024-11-30",
+        "releaseSource": "https://web.archive.org/web/20241110/https://www.onepiece-cardgame.com/products/boosters/op10.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2025-03-21",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 150,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550110"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-10.html",
+        "englishSet": "https://opboxindex.com/sets/op-10-english.html",
+        "cardList": "https://opboxindex.com/sets/op-10-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-11",
+      "nameEn": "A Fist of Divine Speed",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-03-01",
+        "releaseSource": "https://web.archive.org/web/20250117/https://www.onepiece-cardgame.com/products/boosters/op11.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2025-06-06",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 155,
+        "cardNumbers": 126,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550111"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-11.html",
+        "englishSet": "https://opboxindex.com/sets/op-11-english.html",
+        "cardList": "https://opboxindex.com/sets/op-11-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-12",
+      "nameEn": "Legacy of the Master",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-05-31",
+        "releaseSource": "https://web.archive.org/web/20250316/https://www.onepiece-cardgame.com/products/boosters/op12.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2025-08-22",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 154,
+        "cardNumbers": 126,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550112"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-12.html",
+        "englishSet": "https://opboxindex.com/sets/op-12-english.html",
+        "cardList": "https://opboxindex.com/sets/op-12-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-13",
+      "nameEn": "Carrying on His Will",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-08-23",
+        "releaseSource": "https://www.onepiece-cardgame.com/products/boosters/op13/",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2025-11-07",
+        "releaseSource": "https://en.onepiece-cardgame.com/products/boosters/op13/",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": null,
+        "checkedOn": "2026-08-13"
+      },
+      "officialCardList": {
+        "cards": 174,
+        "cardNumbers": 128,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550113"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-13.html",
+        "englishSet": "https://opboxindex.com/sets/op-13-english.html",
+        "cardList": "https://opboxindex.com/sets/op-13-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-14",
+      "nameEn": "The Azure Sea's Seven",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-11-22",
+        "releaseSource": "https://web.archive.org/web/20251015/https://www.onepiece-cardgame.com/products/boosters/op14.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2026-01-16",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 156,
+        "cardNumbers": 126,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550114"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-14.html",
+        "englishSet": "https://opboxindex.com/sets/op-14-english.html",
+        "cardList": "https://opboxindex.com/sets/op-14-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-15",
+      "nameEn": "Adventure on Kami's Island",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2026-02-28",
+        "releaseSource": "https://web.archive.org/web/20260115/https://www.onepiece-cardgame.com/products/boosters/op15.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2026-04-03",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 152,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550115"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-15.html",
+        "englishSet": "https://opboxindex.com/sets/op-15-english.html",
+        "cardList": "https://opboxindex.com/sets/op-15-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-16",
+      "nameEn": "The Time of Battle",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2026-05-30",
+        "releaseSource": "https://web.archive.org/web/20260514/https://www.onepiece-cardgame.com/products/",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2026-06-12",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 155,
+        "cardNumbers": 125,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550116"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-16.html",
+        "englishSet": "https://opboxindex.com/sets/op-16-english.html",
+        "cardList": "https://opboxindex.com/sets/op-16-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-17",
+      "nameEn": "The World's Strongest Warriors",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2026-08-22",
+        "releaseSource": "https://www.onepiece-cardgame.com/products/boosters/op17/",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 240,
+        "msrpYenPerBox": 5760,
+        "msrpYenPerBoxBasis": "pack price x packsPerBox; box configuration not stated by Bandai",
+        "packsPerBox": 24,
+        "cardsPerPack": 6,
+        "cardTypes": "131+4",
+        "specSource": "https://www.onepiece-cardgame.com/products/op17.html",
+        "specCheckedOn": "2026-10-14"
+      },
+      "english": {
+        "releaseDate": "2026-08-28",
+        "releaseSource": "https://en.onepiece-cardgame.com/products/boosters/op17/",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": "131+4",
+        "checkedOn": "2026-10-14"
+      },
+      "officialCardList": {
+        "cards": 169,
+        "cardNumbers": 130,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550117"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-17.html",
+        "englishSet": "https://opboxindex.com/sets/op-17-english.html",
+        "cardList": "https://opboxindex.com/sets/op-17-card-list.html"
+      }
+    },
+    {
+      "setCode": "OP-18",
+      "nameEn": "The Dominance of God",
+      "status": "upcoming",
+      "japanese": {
+        "releaseDate": "2026-11-21",
+        "releaseSource": "https://www.onepiece-cardgame.com/products/op18.html",
+        "releaseCheckedOn": "2026-10-14",
+        "msrpYenPerPack": 240,
+        "msrpYenPerBox": null,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": null,
+        "cardsPerPack": 6,
+        "cardTypes": "127+1",
+        "specSource": "https://www.onepiece-cardgame.com/products/op18.html",
+        "specCheckedOn": "2026-10-14"
+      },
+      "english": {
+        "releaseDate": "2026-11-20",
+        "releaseSource": "https://en.onepiece-cardgame.com/products/op18.html",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": "127+1",
+        "checkedOn": "2026-10-14"
+      },
+      "officialCardList": null,
+      "pages": {
+        "set": "https://opboxindex.com/sets/op-18.html",
+        "englishSet": null,
+        "cardList": null
+      }
+    },
+    {
+      "setCode": "EB-01",
+      "nameEn": "Memorial Collection",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2024-01-27",
+        "releaseSource": "https://web.archive.org/web/20231215/https://www.onepiece-cardgame.com/products/boosters/eb01.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2024-05-03",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 80,
+        "cardNumbers": 61,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550201"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/eb-01.html",
+        "englishSet": "https://opboxindex.com/sets/eb-01-english.html",
+        "cardList": "https://opboxindex.com/sets/eb-01-card-list.html"
+      }
+    },
+    {
+      "setCode": "EB-02",
+      "nameEn": "Anime 25th Collection",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-01-25",
+        "releaseSource": "https://web.archive.org/web/20241210/https://www.onepiece-cardgame.com/products/boosters/eb02.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2025-05-09",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 105,
+        "cardNumbers": 87,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550202"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/eb-02.html",
+        "englishSet": "https://opboxindex.com/sets/eb-02-english.html",
+        "cardList": "https://opboxindex.com/sets/eb-02-card-list.html"
+      }
+    },
+    {
+      "setCode": "EB-03",
+      "nameEn": "Heroine's Edition",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-10-25",
+        "releaseSource": "https://web.archive.org/web/20250915/https://www.onepiece-cardgame.com/products/boosters/eb03.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": 5280,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 24,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2026-02-20",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 90,
+        "cardNumbers": 62,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550203"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/eb-03.html",
+        "englishSet": "https://opboxindex.com/sets/eb-03-english.html",
+        "cardList": "https://opboxindex.com/sets/eb-03-card-list.html"
+      }
+    },
+    {
+      "setCode": "EB-04",
+      "nameEn": "EGGHEAD CRISIS",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2026-01-31",
+        "releaseSource": "https://www.onepiece-cardgame.com/products/boosters/eb04.php",
+        "releaseCheckedOn": "2026-10-14",
+        "msrpYenPerPack": 220,
+        "msrpYenPerBox": null,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": null,
+        "cardsPerPack": 6,
+        "cardTypes": "67+1",
+        "specSource": "https://www.onepiece-cardgame.com/products/boosters/eb04.php",
+        "specCheckedOn": "2026-10-14"
+      },
+      "english": {
+        "releaseDate": null,
+        "releaseSource": "https://en.onepiece-cardgame.com/cardlist/?series=569114",
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": "2026-10-14"
+      },
+      "officialCardList": {
+        "cards": 85,
+        "cardNumbers": 65,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550204"
+      },
+      "pages": {
+        "set": null,
+        "englishSet": null,
+        "cardList": "https://opboxindex.com/sets/eb-04-card-list.html"
+      }
+    },
+    {
+      "setCode": "EB-05",
+      "nameEn": "Heroines Edition vol.2",
+      "status": "upcoming",
+      "japanese": {
+        "releaseDate": "2026-10-31",
+        "releaseSource": "https://www.onepiece-cardgame.com/products/eb05.html",
+        "releaseCheckedOn": "2026-10-14",
+        "msrpYenPerPack": 240,
+        "msrpYenPerBox": null,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": null,
+        "cardsPerPack": 6,
+        "cardTypes": "75+2",
+        "specSource": "https://www.onepiece-cardgame.com/products/eb05.html",
+        "specCheckedOn": "2026-10-14"
+      },
+      "english": {
+        "releaseDate": "2026-10-30",
+        "releaseSource": "https://en.onepiece-cardgame.com/products/eb05.html",
+        "msrpUsdPerPack": 4.99,
+        "cardTypes": "75+2",
+        "checkedOn": "2026-10-14"
+      },
+      "officialCardList": null,
+      "pages": {
+        "set": "https://opboxindex.com/sets/eb-05.html",
+        "englishSet": null,
+        "cardList": null
+      }
+    },
+    {
+      "setCode": "PRB-01",
+      "nameEn": "Premium Booster — The Best",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2024-07-27",
+        "releaseSource": "https://web.archive.org/web/20240610/https://www.onepiece-cardgame.com/products/boosters/prb01.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 550,
+        "msrpYenPerBox": 5500,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 10,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2024-11-08",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 319,
+        "cardNumbers": 111,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550301"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/prb-01.html",
+        "englishSet": "https://opboxindex.com/sets/prb-01-english.html",
+        "cardList": "https://opboxindex.com/sets/prb-01-card-list.html"
+      }
+    },
+    {
+      "setCode": "PRB-02",
+      "nameEn": "Premium Booster — The Best vol.2",
+      "status": "released",
+      "japanese": {
+        "releaseDate": "2025-07-26",
+        "releaseSource": "https://web.archive.org/web/20250610/https://www.onepiece-cardgame.com/products/boosters/prb02.php",
+        "releaseCheckedOn": "2026-08-13",
+        "msrpYenPerPack": 550,
+        "msrpYenPerBox": 5500,
+        "msrpYenPerBoxBasis": null,
+        "packsPerBox": 10,
+        "cardsPerPack": null,
+        "cardTypes": null,
+        "specSource": null,
+        "specCheckedOn": null
+      },
+      "english": {
+        "releaseDate": "2025-10-03",
+        "releaseSource": null,
+        "msrpUsdPerPack": null,
+        "cardTypes": null,
+        "checkedOn": null
+      },
+      "officialCardList": {
+        "cards": 316,
+        "cardNumbers": 173,
+        "checkedOn": "2026-10-14",
+        "officialUrl": "https://www.onepiece-cardgame.com/cardlist/?series=550302"
+      },
+      "pages": {
+        "set": "https://opboxindex.com/sets/prb-02.html",
+        "englishSet": "https://opboxindex.com/sets/prb-02-english.html",
+        "cardList": "https://opboxindex.com/sets/prb-02-card-list.html"
+      }
     }
   ]
 }

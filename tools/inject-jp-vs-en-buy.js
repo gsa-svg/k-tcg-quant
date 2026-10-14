@@ -6,7 +6,7 @@
 //     "지금" 이라면서 두 달 반 낡은 값이었다(예: OP-16 EN 프리미엄 글 +25% → 9/29 실측 +143%).
 //
 // 규칙
-//  · 값은 각 시계열의 마지막 관측 중앙값(USD). 마지막 판매가 STALE_DAYS 를 넘으면 그 쪽은 신선하지 않다.
+//  · 값은 box-sold-series 의 current(발매 후·마지막 점이 asOf 로부터 28일 이내일 때만 값). 없으면 그 쪽은 신선하지 않다.
 //  · 표에는 JP·EN 둘 다 신선한 쌍만 전부 넣는다(예전 10쌍 제한 없음). 한쪽이라도 낡으면 그 쌍은 뺀다.
 //  · EN premium = (EN/JP − 1)×100 반올림 %.
 //  · 세트 이름은 data/onepiece-packs.json 의 nameEn, 없으면 코드만 — 지어내지 않는다.
@@ -25,7 +25,7 @@ const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/japan-vs-english.html");
 const SERIES = path.join(ROOT, "data/box-sold-series.json");
-const STALE_DAYS = 28;
+const STALE_DAYS = 28;   // 표시용(설명 줄) — 실제 거름은 box-sold-series current 가 같은 28일로 한다
 const NEWER_SMALLER_RHO = -0.5;
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
@@ -38,7 +38,8 @@ if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) {
   console.log(JSON.stringify({ status: "skip", reason: "file missing" }));
   process.exit(0);
 }
-const S = JSON.parse(fs.readFileSync(SERIES, "utf8")).sets || {};
+const STORE = JSON.parse(fs.readFileSync(SERIES, "utf8"));
+const S = STORE.sets || {};
 let PACKS = {};
 try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")); PACKS = p.sets || p; } catch {}
 let html = fs.readFileSync(ART, "utf8");
@@ -58,18 +59,10 @@ if (missing.length) {
   process.exit(1);
 }
 
-let dataDate = "";
-for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) {
-  const a = (S[c] && S[c][ed]) || [];
-  if (a.length && a[a.length - 1].d > dataDate) dataDate = a[a.length - 1].d;
-}
+// 기준일·현재가는 box-sold-series 의 asOf·current — 모든 페이지 표가 같은 칸을 읽는다(2026-10-14, 가드 D17).
+const dataDate = STORE.asOf || "";
 if (!dataDate) { console.log(JSON.stringify({ status: "skip", reason: "no series dates" })); process.exit(0); }
-const now = Date.parse(dataDate);
-const fresh = (c, ed) => {
-  const a = (S[c] && S[c][ed]) || [];
-  const l = a.length ? a[a.length - 1] : null;
-  return l && Date.parse(l.d) >= now - STALE_DAYS * 86400000 ? l : null;
-};
+const fresh = (c, ed) => (S[c] && S[c].current && S[c].current[ed]) || null;
 
 const ord = (c) => { const [m, n] = c.split("-"); return ({ OP: 1, EB: 2, PRB: 3 }[m] || 9) * 100 + Number(n); };
 const codes = Object.keys(S).filter((c) => /^(OP|EB|PRB)-\d{2}$/.test(c)).sort((a, b) => ord(a) - ord(b));
@@ -135,7 +128,7 @@ html = html.replace(RE.tbody, (_m, a, b) => a + nl(`\n${rows.join("\n")}\n      
 
 // 표 아래 설명 줄 — 표 바로 다음 <p>
 html = html.replace(RE.note, (_m, a, b) =>
-  a + `Median sold price per sealed box from completed eBay sales, as of ${longDate(dataDate)} (${pairs.length} of the ${tracked} set pairs we track — both editions sold in the last ${STALE_DAYS} days; every pair is on the <a href="../compare.html">compare page</a>). EN premium = how much more the English box costs than the Japanese box of the same set.` + b
+  a + `Median sold price per sealed box from completed eBay sales, as of ${longDate(dataDate)} (${pairs.length} of the ${tracked} set pairs we track — both editions have a sold median dated within the last ${STALE_DAYS} days; every pair is on the <a href="../compare.html">compare page</a>). EN premium = how much more the English box costs than the Japanese box of the same set.` + b
 );
 
 // 도입 문단 — 표본 월과 "모든 세트" 주장

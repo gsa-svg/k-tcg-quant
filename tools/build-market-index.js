@@ -84,19 +84,26 @@ for (const c of codes) {
     });
     continue;
   }
-  const lastV = p[p.length - 1].p;
-  const lastD = p[p.length - 1].d;
-  const cut = new Date(Date.parse(lastD) - 28 * 864e5).toISOString().slice(0, 10);
+  // 현재가는 box-sold-series 의 current.jp 하나만 읽는다(2026-10-14 QA). 종전엔 마지막 점을 그대로 써서
+  // 98일 전 값(OP-02 $147, 07-07)이 홈·box-prices·ko 설명문에 "현재 시세"로 나갔고, 다른 표(발매일 글 등)는 같은 세트를 "—"로 냈다.
+  // current 가 없으면(마지막 중앙값 점이 asOf 로부터 28일 밖) 행은 남기고 값·날짜·등락을 비운다 — 모든 표가 같은 규칙.
+  const cur = (SOLD.sets[c] && SOLD.sets[c].current && SOLD.sets[c].current.jp) || null;
+  const lastV = cur ? cur.median : null;
+  const lastD = cur ? cur.d : null;
   let ref = null;
-  for (const pt of p) { if (pt.d <= cut) ref = pt; else break; }
+  if (cur) {
+    const cut = new Date(Date.parse(lastD) - 28 * 864e5).toISOString().slice(0, 10);
+    for (const pt of p) { if (pt.d <= cut) ref = pt; else break; }
+  }
   const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
   const nowUsd = lastV;   // 이미 USD
   board.push({
     code: c,
     nameEn: d.sets[c].nameEn || c,
-    nowUsd: Math.round(nowUsd),
-    nowDate: lastD,   // 마지막 판매 관측일 — 표가 "오늘 값"으로 읽히지 않게
-    n: p[p.length - 1].n ?? null,   // 그 주의 판매 건수 — 화면 라벨 "n=8" 용(2026-09-24)
+    nowUsd: nowUsd != null ? Math.round(nowUsd) : null,
+    nowDate: lastD,   // 그 중앙값 점의 날짜(마지막 판매일이 아니다) — 표가 "오늘 값"으로 읽히지 않게
+    n: cur ? cur.n ?? null : null,   // 그 점의 평균 창(windowDays, 28~56일) 안 판매 건수 — 그 주 건수가 아니다(2026-10-14 QA)
+    windowDays: cur ? ((SOLD.sets[c].windowDays || {}).jp || null) : null,
     changePct: ref ? Math.round((lastV / ref.p - 1) * 1000) / 10 : null,   // 최근 4주
     changeBasis: ref ? ref.d : null,
     launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
@@ -110,7 +117,7 @@ board.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity));
 
 const out = {
   updated: d.updated || SOLD.updated || todayIso,
-  method: "Per-set 4-week change: latest weekly median of completed eBay sales of sealed Japanese booster boxes (our own ledger) vs the weekly median 28 days earlier. Each row carries its own last-sale date.",
+  method: "Per-set current price: the latest rolling median of completed eBay sales of sealed Japanese booster boxes (our own ledger) when that median point is dated within 28 days of the series asOf, otherwise null. n = sales inside that point's rolling window (windowDays, 28-56 days). 4-week change: that median vs the median point 28 days earlier.",
   meter: {
     latestWeek: meterLatest,
     weeks: meterWeeks,

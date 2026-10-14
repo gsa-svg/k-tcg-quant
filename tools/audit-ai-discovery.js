@@ -107,6 +107,20 @@ if (!fs.existsSync(aiPath)) {
   }
 }
 
+// AI JSON 안의 모든 우리 주소는 실제 파일이어야 한다 — 2026-10-14 QA: opbox-ai-auctions.json 의 canonicalUrl 49개가 404(sets/eb-04·st-01 …).
+for (const file of ["opbox-ai-data.json", "opbox-ai-cards.json", "opbox-ai-grading.json", "opbox-ai-auctions.json"]) {
+  const abs = path.join(ROOT, file);
+  if (!fs.existsSync(abs)) continue;
+  const txt = fs.readFileSync(abs, "utf8");
+  const missing = new Set();
+  for (const m of txt.matchAll(/"https:\/\/opboxindex\.com\/([^"#?]*)/g)) {
+    let rel = decodeURIComponent(m[1]);
+    if (rel === "" || rel.endsWith("/")) rel += "index.html";
+    if (!fs.existsSync(path.join(ROOT, rel))) missing.add(rel);
+  }
+  if (missing.size) errors.push(`${file}: ${missing.size} internal URL(s) point at files that do not exist (${[...missing].slice(0, 4).join(", ")})`);
+}
+
 const freeData = fs.readFileSync(path.join(ROOT, "free-data.html"), "utf8");
 for (const requiredUrl of ["opbox-ai-data.json", "opbox-set-prices.csv", "opbox-grading-population.csv", "opbox-auction-daily.csv"]) {
   if (!freeData.includes(requiredUrl)) errors.push(`free-data.html: missing distribution ${requiredUrl}`);

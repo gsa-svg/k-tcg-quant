@@ -52,7 +52,10 @@ const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network 
 //   extraLd  : 구조화데이터 <script type="application/ld+json"> 문자열들
 //   koHref   : 한국어 짝 페이지 URL. 있을 때만 hreflang 을 낸다.
 //   extraCss : 그 페이지에만 쓰는 스타일(선택). <style> 안에 그대로 들어간다.
-function pageHead({ title, desc, canonical, ogType = "article", extraLd = "", koHref = "", extraCss = "" }) {
+//   chart    : false 면 머리에 박스 차트 CSS(7.8KB)를 싣지 않는다 — 차트가 없는 페이지(카드리스트·허브, 2026-10-14),
+//              또는 차트 바로 앞에 withChartCss() 로 CSS 를 두는 세트 페이지(2026-10-14, W5a: 머리가 25KB 라 H1 아래 Key facts 표가
+//              HTML 의 25% 지점을 넘었다. 차트 CSS 는 .opbc* 전용이라 차트 앞에만 있으면 된다 — box-chart.js 는 id 로 찾는다).
+function pageHead({ title, desc, canonical, ogType = "article", extraLd = "", koHref = "", extraCss = "", chart = true }) {
   // hreflang 은 반드시 양방향이어야 구글이 인정한다. ko 짝이 있을 때만, en(자기)·ko·x-default 를 함께 선언.
   // (ko 페이지는 이미 en 을 가리키는데 en 쪽이 침묵해서 단방향으로 무시되던 문제 — 2026-07-21 감사)
   const hreflang = koHref
@@ -98,8 +101,7 @@ function pageHead({ title, desc, canonical, ogType = "article", extraLd = "", ko
     ${extraLd}
     <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
     <script defer src="../lang-toggle.js?v=${CSS_VER}"></script>
-${style}    <style id="opBoxChartCss">${BoxChart.CSS}</style>
-  </head>
+${style}${chart ? `    <style id="opBoxChartCss">${BoxChart.CSS}</style>\n` : ""}  </head>
   <body>
     <a class="skipLink" href="#main-content">Skip to main content</a>
     <header class="topbar">
@@ -110,9 +112,10 @@ ${style}    <style id="opBoxChartCss">${BoxChart.CSS}</style>
 }
 
 // 페이지 꼬리. 푸터 고지(affNote)와 About/Methodology 링크는 애드센스·EPN 심사 항목이라 빼면 안 된다.
-const FOOT = `
-      <script src="../box-chart.js?v=${CSS_VER}" defer></script>
-      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>
+// foot({ chart:false, affiliate:false }) — 차트도 eBay 링크도 없는 페이지(카드리스트)용. 푸터 메뉴는 같은 글자다.
+const foot = ({ chart = true, affiliate = true } = {}) => `${chart ? `
+      <script src="../box-chart.js?v=${CSS_VER}" defer></script>` : ""}${affiliate ? `
+      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this page — at no extra cost to you.</p>` : ""}
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
@@ -121,6 +124,10 @@ const FOOT = `
   </body>
 </html>
 `;
+const FOOT = foot();
+
+// 차트 블록 앞에 차트 CSS 를 붙인다(차트가 없으면 둘 다 없다). pageHead({ chart: false }) 와 짝으로 쓴다.
+const withChartCss = (chartHtml) => (chartHtml ? `<style id="opBoxChartCss">${BoxChart.CSS}</style>\n      ${chartHtml}` : "");
 
 // 사이트맵 갱신 — 같은 URL 은 lastmod 만 오늘로 바꾸고, 없는 URL 만 새로 넣는다(몇 번 돌려도 결과가 같다).
 // 홈(/)은 매일 데이터가 바뀌므로 함께 lastmod 를 올린다. 반환값: { added: 새로 넣은 개수 }.
@@ -181,6 +188,151 @@ function buyCta({ url, price, mid, updated, label }) {
     + `${chip}${asOf}</a>`;
 }
 
+// ── 상단 Key facts 표 — 2026-10-14(W5a) ─────────────────────────────────────────
+// ChatGPT 가 보내던 세트 페이지에서 발매일·정가·팩 수 같은 핵심 사실이 HTML 97% 지점(접힌 재판 이력 안)에 있었고,
+// 머리의 카드 수는 낡은 값(OP-01 "106 cards" — 공식 목록 121종·154장)이었다. 일본판·영문판·한국어 페이지가
+// **같은 함수**에서 사실을 읽어 H1 바로 아래 라벨:값 표로 낸다(각자 세면 한쪽만 어긋난다). 값이 없으면 "—".
+//   가격  : box-sold-series 의 그 판 current(마지막 중앙값 점이 asOf 로부터 28일 이내일 때만, 아니면 "—" — 모든 표와 같은 규칙, 가드 D17)
+//           · 최저 실매물(구매 버튼과 같은 값, 매물 수 표시)
+//   사실  : data/set-facts.json(반다이 공식 — 발매일·정가·팩 수·카드 종류, 확인일 포함) · data/official-cardlist.json(공식 카드 리스트)
+// 문장·해설 없이 라벨과 값만 쓴다. 표 안의 링크는 첫 칸(카드 리스트)뿐이다 — 출처 링크는 표 아래 한 줄로.
+const readData = (rel, fallback) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; } };
+let KF_SRC = null;
+const kfSrc = () => (KF_SRC || (KF_SRC = {
+  packs: readData("data/onepiece-packs.json", { sets: {} }),
+  sold: readData("data/box-sold-series.json", { sets: {} }),
+  facts: readData("data/set-facts.json", { sets: {} }),
+}));
+
+// 최저 실매물 — 미개봉 새 제품이고 제목이 개봉·빈 박스·재밀봉·손상을 말하지 않는 검증된 최저 총액(가격+배송).
+// 세트 페이지 구매 버튼(buyCta)과 Key facts 표가 이 함수 하나를 쓴다 — 표의 값과 버튼의 값이 늘 같다.
+function lowestAsk(set, ed) {
+  const a = set && set.boxMarket && set.boxMarket[ed] && set.boxMarket[ed].ebayActive;
+  const bl = a && a.bestListing;
+  if (!bl || bl.total == null || !epnUrl(bl.url)) return null;
+  if (!/new/i.test(bl.condition || "")) return null;
+  if (/unseal|open|empty|no packs|reseal|damaged/i.test(bl.title || "")) return null;
+  const fx = (kfSrc().packs.fx || {}).usdKrw;
+  const toU = (v, cur) => (v == null ? null : cur === "USD" ? v : cur === "KRW" && fx ? v / fx : null);
+  const total = toU(bl.total, bl.currency || a.currency);
+  if (total == null) return null;
+  return { total, url: bl.url, updated: a.updated || null, mid: a.middle != null ? toU(a.middle, a.currency) : null, listings: Number.isInteger(a.sampleSize) ? a.sampleSize : null };
+}
+
+// 세트·판 하나의 사실 묶음. ed = "jp" | "en" — 가격 두 줄만 판을 따르고 나머지는 세트 단위 사실이다.
+function keyFactsModel(code, ed) {
+  const { packs, sold, facts } = kfSrc();
+  const s = (packs.sets || {})[code] || {};
+  const sf = (facts.sets || {})[code] || {};
+  const ser = (sold.sets || {})[code] || {};
+  // 현재가 = current[ed] — 2026-10-14 QA: 마지막 점(98일 전 값 포함)을 그대로 써서 표("—")와 Key facts($147, 07-07)가 같은 사실을 두 방식으로 냈다.
+  const last = (ser.current && ser.current[ed]) || null;
+  const CL = require("./card-list-shared");
+  const cl = CL.productOf(code);
+  const jpPack = sf.jpMsrpYenPerPack || (sf.jpMsrpYen && sf.packsPerBox && Number.isInteger(sf.jpMsrpYen / sf.packsPerBox) ? sf.jpMsrpYen / sf.packsPerBox : null);
+  const en = sf.enRelease || {};
+  const sources = [];
+  if (sf.jpRelease && sf.jpRelease.source) sources.push({ key: "jpRelease", en: "JP release", ko: "일본판 발매일", url: sf.jpRelease.source, checked: sf.jpRelease.verifiedOn || null, archived: /web\.archive\.org/.test(sf.jpRelease.source) });
+  if (sf.jpSpecSource && sf.jpSpecSource.source) sources.push({ key: "jpSpec", en: "JP MSRP & card types", ko: "일본판 정가·카드 종류", url: sf.jpSpecSource.source, checked: sf.jpSpecSource.verifiedOn || null });
+  if (en.source) sources.push({ key: "en", en: "EN release & MSRP", ko: "영문판 발매일·정가", url: en.source, checked: en.verifiedOn || null });
+  if (cl) sources.push({ key: "cardList", en: "card list", ko: "카드 리스트", url: cl.url, checked: cl.checked || null });
+  return {
+    code, ed,
+    sold: last ? { median: last.median, n: last.n ?? null, d: last.d, windowDays: (ser.windowDays || {})[ed] || null, reprint: ed === "en" && enIsReprint(ser) } : null,
+    soldReleased: !!(ser.release && ser.release[ed] && (!sold.asOf || ser.release[ed] <= sold.asOf)),
+    boxConfigStated: sf.boxConfig ? sf.boxConfig.stated !== false : null,
+    ask: lowestAsk(s, ed),
+    jpRelease: (sf.jpRelease && sf.jpRelease.date) || null,
+    enRelease: en.date || s.release || null,
+    msrp: { jpBox: sf.jpMsrpYen || null, jpPack, enPack: en.msrpUsdPerPack ?? null },
+    packsPerBox: sf.packsPerBox || null,
+    cardsPerPack: sf.cardsPerPack || null,
+    cardTypes: sf.cardTypes ? { official: true, value: String(sf.cardTypes) } : cl ? { official: false, numbers: cl.counts.numbers } : null,
+    cardList: cl ? { href: `${CL.slugOf(code)}-card-list.html`, cards: cl.counts.cards, numbers: cl.counts.numbers, checked: cl.checked || null } : null,
+    sources,
+  };
+}
+
+// 최신 세트 — 계열(OP·EB·PRB)마다 일본판 발매일이 가장 늦은 추적 세트 중, 발매 후 120일 이내이고 공식 카드 리스트가 있는 것.
+// "op 17 release date"·"op 17 set list" 질의는 발매 전후 몇 달에 몰린다(2026-10-14 Bing 실측). 그 세트의 제목·H1 에
+// Release Date·Card List 를 넣는다. 손목록이 아니라 데이터로 정하므로 EB-05·OP-18 이 추적 세트가 되는 날 자동으로 넘어간다.
+function latestSets(codes, asOf) {
+  const { facts } = kfSrc();
+  const CL = require("./card-list-shared");
+  const best = {};
+  for (const c of codes) {
+    const d = (((facts.sets || {})[c] || {}).jpRelease || {}).date;
+    if (!d || d > asOf) continue;
+    const fam = c.split("-")[0];
+    if (!best[fam] || d > best[fam].d) best[fam] = { c, d };
+  }
+  return new Set(Object.values(best).filter(({ c, d }) => (Date.parse(asOf) - Date.parse(d)) / 864e5 <= 120 && CL.has(c)).map(({ c }) => c));
+}
+
+// 표 그리기. lang = "en"(영어 페이지 — data-ko 로 제자리 번역) | "ko"(정적 한국어 페이지).
+// 행마다 data-k 를 단다 — 가드 KF1 이 행을 집어 원천과 대조한다.
+function keyFactsHtml(m, { lang = "en", usdKrw = null } = {}) {
+  const ko = lang === "ko";
+  const t = (enText, koText) => (ko ? esc(koText) : `<span data-ko="${esc(koText)}">${esc(enText)}</span>`);
+  const time = (iso) => `<time datetime="${esc(iso)}">${esc(iso)}</time>`;
+  const yen = (n) => "¥" + Number(n).toLocaleString("en-US");
+  const edEn = m.ed === "en" ? "English" : "Japanese", edKo = m.ed === "en" ? "영문판" : "일본판";
+  const dash = "—";
+  const rows = [];
+  const row = (k, labelEn, labelKo, value, labelHtml) => rows.push(`<tr data-k="${k}"><th scope="row">${labelHtml || t(labelEn, labelKo)}</th><td>${value}</td></tr>`);
+
+  const sd = m.sold;
+  row("sold", `Sold median (${edEn} box)`, `판매 중앙값 (${edKo} 박스)`, sd
+    ? `<b>${usd(sd.median)}</b> <small>${ko && usdKrw ? `${esc(Math.round(sd.median * usdKrw).toLocaleString("ko-KR"))}원 · ` : ""}${sd.reprint ? t("reprint (White)", "재판(화이트)") + " · " : ""}${sd.n != null ? `${t(`${sd.n} sales`, `${sd.n}건`)} · ` : ""}${t(sd.windowDays ? `${sd.windowDays} days to` : "to", sd.windowDays ? `${sd.windowDays}일 · 기준일` : "기준일")} ${time(sd.d)}</small>`
+    : m.soldReleased ? `${dash} <small>${t("no median dated within 28 days", "28일 안에 날짜가 찍힌 중앙값 없음")}</small>` : dash);
+  row("ask", `Lowest live ask (${edEn} box)`, `최저 매물가 (${edKo} 박스)`, m.ask
+    ? `<b>${usd(m.ask.total)}</b> <small>${t("eBay, incl. shipping", "이베이 · 배송비 포함")}${m.ask.listings != null ? ` · ${t(`${m.ask.listings} listings`, `매물 ${m.ask.listings}건`)}` : ""}${m.ask.updated ? ` · ${time(m.ask.updated)}` : ""}</small>`
+    : dash);
+  row("release", "Release date", "발매일", m.jpRelease || m.enRelease
+    ? [m.jpRelease ? `${t("JP", "일본판")} ${time(m.jpRelease)}` : `${t("JP", "일본판")} ${dash}`, m.enRelease ? `${t("EN", "영문판")} ${time(m.enRelease)}` : `${t("EN", "영문판")} ${dash}`].join(" · ")
+    : dash);
+  const ms = m.msrp;
+  // 박스 구성이 공식 페이지에 없는 세트(OP-17: 팩 가격만 있음)는 박스 값에 "24 × 팩 가격" 라벨을 붙인다 — 2026-10-14 QA.
+  const boxBasis = m.boxConfigStated === false && ms.jpPack && m.packsPerBox ? ` <small>(${m.packsPerBox} × ${yen(ms.jpPack)} · ${t("box size not stated by Bandai", "박스 구성 공식 미기재")})</small>` : "";
+  row("msrp", "MSRP", "정가", ms.jpBox || ms.jpPack || ms.enPack != null
+    ? [`${t("JP", "일본판")} ${ms.jpBox ? `${yen(ms.jpBox)} ${t("/ box", "/ 박스")}${boxBasis}` : dash}${ms.jpPack ? ` · ${yen(ms.jpPack)} ${t("/ pack", "/ 팩")}` : ""}`,
+       `${t("EN", "영문판")} ${ms.enPack != null ? `$${Number(ms.enPack).toFixed(2)} ${t("/ pack", "/ 팩")}` : dash}`].join(" · ")
+    : dash);
+  row("packs", "Packs per box", "박스당 팩 수", m.packsPerBox
+    ? `<b>${m.packsPerBox}</b> <small>${t("JP box", "일본판 박스")}${m.boxConfigStated === false ? ` · ${t("standard box, not stated by Bandai", "표준 구성 · 공식 미기재")}` : ""}${m.cardsPerPack ? ` · ${t(`${m.cardsPerPack} cards per pack`, `팩당 ${m.cardsPerPack}장`)}` : ""}</small>`
+    : dash);
+  // 카드 수 두 줄은 출처가 다르다 — "Card types" = 반다이 상품 페이지의 종류 수(예: 131+4), "Card list" = 반다이 카드 리스트의 장·번호 수.
+  // 둘 다 "(official)" 로 쓰면 131 과 130 이 같은 사실의 다른 값처럼 보였다(2026-10-14 QA). 상품 페이지 값이 없으면 카드 리스트 줄 하나만.
+  const ct = m.cardTypes;
+  if (ct && ct.official) row("types", "Card types", "카드 종류", `<b>${esc(ct.value)}</b> <small>${t("types (Bandai product page)", "종 (반다이 상품 페이지)")}</small>`);
+  else if (!m.cardList) row("types", "Card types", "카드 종류", dash);
+  const cl = m.cardList;
+  row("cardlist", "Card list", "카드 리스트", cl
+    ? `<b>${cl.cards}</b> <small>${t(`cards · ${cl.numbers} card numbers (Bandai card list)`, `장 · 카드 번호 ${cl.numbers}종 (반다이 카드 리스트)`)}</small>`
+    : dash, cl ? `<a href="${esc(cl.href)}">${t("Card list", "카드 리스트")}</a>` : "");
+
+  const src = m.sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">${t(x.en + (x.archived ? " (archived)" : ""), x.ko + (x.archived ? " (보관본)" : ""))}</a>${x.checked ? ` ${t("checked", "확인")} ${time(x.checked)}` : ""}`);
+  const srcLine = src.length ? `<p class="kfSrc">${t("Bandai official", "반다이 공식")}: ${src.join(" · ")}</p>` : "";
+  return `<table class="kfTable text" id="key-facts-table" aria-label="${esc(ko ? `${m.code} 핵심 정보` : `${m.code} key facts`)}"><tbody>
+            ${rows.join("\n            ")}
+          </tbody></table>
+          ${srcLine}`;
+}
+
+// 세트·영문세트·한국어 생성기가 각자 인라인 <style> 에 넣는다. 색은 styles.css 토큰만.
+// styles.css 의 기사 표 규칙(≤720px 가로 스크롤+오른쪽 흐림, 2열부터 오른쪽 정렬)을 이 표에서만 되돌린다 — 2열이라 폭 안에 들어온다.
+const KF_CSS = `      .bodyPage table.kfTable { width: 100%; max-width: 640px; min-width: 0; margin: 12px 0 4px; font-size: 14px; }
+      .bodyPage .kfTable th, .bodyPage .kfTable td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; line-height: 1.45; word-break: keep-all; overflow-wrap: break-word; }
+      .kfTable time, .kfSrc time { white-space: nowrap; }
+      .bodyPage .kfTable th { width: 40%; color: var(--muted); font-size: 13px; font-weight: 600; }
+      .bodyPage .kfTable th a { color: var(--accent); font-weight: 700; }
+      .bodyPage .kfTable td b { color: var(--ink); font-weight: 700; }
+      .bodyPage .kfTable td small { color: var(--muted); font-size: 12px; }
+      .kfSrc { margin: 4px 0 0; max-width: 640px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .kfSrc a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+      @media (max-width: 720px) { .bodyPage table.kfTable { display: table; overflow: visible; -webkit-mask-image: none; mask-image: none; } }
+      @media (max-width: 640px) { .bodyPage .kfTable th { width: 36%; } .bodyPage .kfTable td small { display: block; } }`;
+
 // 세트·영문세트·카드 생성기가 각자 인라인 <style> 에 넣는다(세 곳 모두 styles.css 를 따로 안 쓴다).
 const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; padding: 7px 16px;
         background: rgba(16,215,160,.16); border-color: rgba(16,215,160,.55); color: #10d7a0; }
@@ -191,4 +343,4 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11.5px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS };
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss };

@@ -1077,6 +1077,10 @@ h2 {
 .bodyPage h1 {
   font-size: clamp(30px, 3.6vw, 42px);
 }
+/* 좁은 화면은 한 단계 작게 — 2026-10-14 QA: sets/op-17 H1 이 390px 에서 5줄(약 170px)이라 첫 화면에 Key facts 가 3행만 보였다. */
+@media (max-width: 640px) {
+  .bodyPage h1 { font-size: clamp(24px, 6.6vw, 28px); }
+}
 
 /* 데스크톱은 본문을 넓게 쓴다 — 소유자 지시(2026-08-28): "양옆 공간이 충분하니 늘려라,
    모바일은 따로 맞추면 된다". 차트 2열도 이 폭 안에 자연스럽게 들어간다. */
@@ -1542,6 +1546,41 @@ small { font-size: 12px; }
     -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
     mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
   }
+  /* 폭 안에 들어오는 표(.tblFit)는 표로 두고 흐림을 걷는다 — 2026-10-14 QA: 넘치지 않는 표에도 오른쪽 28px 흐림이 걸려
+     마지막 열 숫자('12'의 2, '$132')가 잘린 것처럼 보였다. 넘치는 표만 가로 스크롤+흐림(위 규칙). 검사: tools/audit-mobile-tables.js */
+  .bodyPage table.tblFit,
+  .dataTable.tblFit {
+    display: table;
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/* 요약 시세표(홈·box-prices·세트 허브) — 2026-10-14 QA: 390px 에서 'OP-'/'01' 로 코드가 갈리고, 이름 칸이 오른쪽 정렬에
+   링크까지 붙어 5~7줄로 접혀 '4-wk change' 열이 화면 밖으로 밀렸다. 코드는 한 줄, 이름은 왼쪽, 링크는 이름 아래 한 줄. */
+.homeSummaryTable td.code { white-space: nowrap; }
+.bodyPage table.homeSummaryTable :is(td.name, th.name) { text-align: left; }
+.homeSummaryTable th small { display: block; font-size: 11.5px; font-weight: 500; }
+.homeSummaryTable .rowLinks { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+@media (max-width: 720px) {
+  .bodyPage table.homeSummaryTable { font-size: 13.5px; }
+  .bodyPage table.homeSummaryTable th,
+  .bodyPage table.homeSummaryTable td { padding: 7px 4px; }
+  .homeSummaryTable td.when small { display: block; }
+  /* 이름 아래 링크 줄(영문판·1위 카드)은 좁은 화면에서 접는다 — 다섯 열이 한 화면에 들어가게. 세트 페이지에서 같은 링크로 간다. */
+  .homeSummaryTable .rowLinks { display: none; }
+}
+
+/* 발매일 글 세트 목록 표 — 첫 칸(세트 코드)이 'OP-'/'01' 로 갈려 행 높이가 두 배였다(2026-10-14 QA). */
+.dataTable.setList td:first-child { white-space: nowrap; }
+
+/* 일본어 글꼴 — 2026-10-14 QA: --font-text 에 일본어 글꼴이 없고 'Malgun Gothic' 이 앞에 있어 한국어 윈도우에서 가나는 맑은 고딕,
+   한자는 Yu Gothic 으로 한 단어 안에서 섞였다(ja 발매일 표·카드리스트 일본어 이름·OP-18 공개 카드). */
+:lang(ja) {
+  font-family: system-ui, "Hiragino Sans", "Yu Gothic UI", "Yu Gothic", Meiryo, sans-serif;
 }
 
 /* 한국어 줄바꿈 — 2026-10-13 QA: '중/앙값'·'일평/균'·'가운데 절/반 구간'·'하루 165/건'처럼 단어 중간에서 끊겼다.

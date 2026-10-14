@@ -79,10 +79,15 @@ jobs:
           node --check tools/generate-english-set-pages.js
           node --check tools/generate-upcoming-set-pages.js
           node --check tools/generate-card-pages.js
+          node --check tools/fetch-official-cardlist.js
+          node --check tools/card-list-shared.js
+          node --check tools/generate-card-list-pages.js
+          node tools/test-official-cardlist.js
           node --check tools/fetch-card-images.js
           node --check tools/fetch-box-images.js
           node --check tools/generate-ko-pages.js
           node --check tools/generate-ko-topic-pages.js
+          node --check tools/generate-ja-pages.js
           node --check tools/generate-auction-page.js
           node --check tools/generate-free-data.js
           node --check tools/free-data-records.js
@@ -217,15 +222,21 @@ jobs:
           # 세트별 경매 실적(data/set-auction-stats.json) — 세트·영문 세트·ko·경매 페이지와 AI 파일이 읽는다.
           # 예전엔 생성기들 뒤에 돌아 화면이 하루 묵은 값을 실었다(2026-10-13 발견). 반드시 생성기들보다 먼저 돈다.
           node tools/build-set-auction-stats.js 2>&1 | tee logs/build-set-auction-stats.log
+          # 반다이 공식 카드리스트(JP·EN) → data/official-cardlist.json — 2026-10-14(W7). 사실 열만(효과 텍스트·이미지 없음), 요청 간 2초.
+          # 실패해도 직전 파일을 그대로 두고 0 으로 끝난다. OP-18·EB-05 처럼 새 상품이 공식 목록에 뜨는 날 아래 생성기가 그날 페이지를 만든다.
+          node tools/fetch-official-cardlist.js 2>&1 | tee logs/fetch-official-cardlist.log
           node tools/fetch-box-images.js 2>&1 | tee logs/fetch-box-images.log
           node tools/fetch-card-images.js 2>&1 | tee logs/fetch-card-images.log
           node tools/generate-image-variants.js 2>&1 | tee logs/generate-image-variants.log
           node tools/generate-card-pages.js 2>&1 | tee logs/generate-card-pages.log
+          # 세트별 공식 카드리스트 페이지(sets/·ko/ <코드>-card-list.html + .csv·.json) — card-map.json(카드 페이지) 다음.
+          node tools/generate-card-list-pages.js 2>&1 | tee logs/generate-card-list-pages.log
           node tools/generate-english-set-pages.js 2>&1 | tee logs/generate-english-set-pages.log
           node tools/generate-set-pages.js 2>&1 | tee logs/generate-set-pages.log
           node tools/generate-upcoming-set-pages.js 2>&1 | tee logs/generate-upcoming-set-pages.log
           node tools/generate-ko-pages.js 2>&1 | tee logs/generate-ko-pages.log
           node tools/generate-ko-topic-pages.js 2>&1 | tee logs/generate-ko-topic-pages.log
+          node tools/generate-ja-pages.js 2>&1 | tee logs/generate-ja-pages.log
           node tools/generate-auction-page.js 2>&1 | tee logs/generate-auction-page.log
           node tools/generate-free-data.js 2>&1 | tee logs/generate-free-data.log
           node tools/generate-weekly.js 2>&1 | tee logs/generate-weekly.log
@@ -248,10 +259,14 @@ jobs:
           node tools/inject-jp-vs-en-buy.js 2>&1 | tee logs/inject-jp-vs-en-buy.log
           node tools/inject-op05-op06.js 2>&1 | tee logs/inject-op05-op06.log
           node tools/inject-sea-prices.js 2>&1 | tee logs/inject-sea-prices.log
-          node tools/sync-sitemap-lastmod.js 2>&1 | tee logs/sync-sitemap-lastmod.log
+          # 글 날짜는 여기 한 곳에서 정한다(2026-10-14) — 위 주입기들이 쓴 dateModified 를 "본문이 실제로 바뀐 날"로 되돌리고
+          # article:published_time·modified_time 메타와 바이라인(Updated 먼저)을 맞춘다. 모든 글 주입기 뒤, 가드 앞.
+          node tools/sync-article-dates.js 2>&1 | tee logs/sync-article-dates.log
           node tools/generate-tcg-auction-page.js 2>&1 | tee logs/generate-tcg-auction-page.log
           # 메뉴는 site-nav.js 한 곳에서 정의한다. 손으로 쓴 HTML 14개는 이걸로만 갱신된다.
           node tools/inject-nav.js 2>&1 | tee logs/inject-nav.log
+          # 사이트맵 lastmod 는 모든 HTML 생성기·주입기 뒤에서 본문 해시로 정한다(2026-10-14 W9, 가드 SM1). 앞에 두면 뒤 단계가 바꾼 본문을 놓친다.
+          node tools/sync-sitemap-lastmod.js 2>&1 | tee logs/sync-sitemap-lastmod.log
           # 색인 대상 중 얇은 페이지 목록 — 애드센스 "가치 없는 콘텐츠" 재발 감시용(실패시키지 않음)
           node tools/audit-thin-pages.js 2>&1 | tee logs/audit-thin-pages.log || true
 
@@ -299,18 +314,19 @@ jobs:
             data/image-variants.json
             data/auction-stats.json
             data/auction-deals.json
+            data/official-cardlist.json
           retention-days: 14
           if-no-files-found: ignore
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html; then
+          if git diff --quiet data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
+          git add data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -341,11 +357,13 @@ jobs:
             node tools/build-set-auction-stats.js
             node tools/generate-image-variants.js
             node tools/generate-card-pages.js
+            node tools/generate-card-list-pages.js
             node tools/generate-english-set-pages.js
             node tools/generate-set-pages.js
             node tools/generate-upcoming-set-pages.js
             node tools/generate-ko-pages.js
             node tools/generate-ko-topic-pages.js
+            node tools/generate-ja-pages.js
             node tools/generate-auction-page.js
             node tools/generate-free-data.js
             node tools/generate-feed.js
@@ -364,12 +382,12 @@ jobs:
             node tools/inject-jp-vs-en-buy.js
             node tools/inject-op05-op06.js
             node tools/inject-sea-prices.js
-            node tools/sync-sitemap-lastmod.js
             node tools/generate-tcg-auction-page.js
             node tools/inject-nav.js
+            node tools/sync-sitemap-lastmod.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
-            git add data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
+            git add data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short
@@ -380,8 +398,7 @@ jobs:
           done
 
       # 검색엔진에 갱신을 즉시 통지 — IndexNow(Bing·Naver·Yandex). 구글은 안 받지만 네이버 색인 지연을 줄인다.
-      # 페이지 값이 매일 바뀌므로 사이트맵 전체(110개)를 보낸다. 도구는 8월에 만들어 두고 어느 워크플로도
-      # 안 돌리고 있었다(2026-09-07 발견). 실패해도 갱신을 막지 않는다.
+      # 2026-10-14(W9): 사이트맵 전체 대신 lastmod 가 오늘인 URL(=오늘 본문이 바뀐 페이지)만 보낸다. 실패해도 갱신을 막지 않는다.
       - name: Notify IndexNow
         if: success()
         continue-on-error: true

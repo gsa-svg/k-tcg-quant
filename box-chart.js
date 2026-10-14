@@ -814,7 +814,11 @@
     // 3초 안에 읽혀야 하는 것: 두 판이 지금 얼마이고 몇 배 차이인가.
     // 패널이 위아래로 떨어져 있어 스크롤하지 않으면 비교가 안 된다 — 맨 위에 숫자로 못박는다.
     const lastOf = (arr) => { const c = clean(arr); return c.length ? c[c.length - 1].median : null; };
-    const jpNow = lastOf(series && series.jp), enNow = lastOf(series && series.en);
+    // "지금 값"·배수는 current(28일 규칙)가 있으면 그것만 — 2026-10-14 QA: 98일 전 일본판 값으로 "English 3.8x" 를 냈다(표는 "—").
+    //   current 를 싣지 않은 호출(옛 데이터)만 마지막 점을 쓴다. 각 판 패널의 선·날짜 표시는 그대로(시계열).
+    const cur = series && series.current;
+    const nowOf = (ed) => (cur ? (cur[ed] && cur[ed].median) || null : lastOf(series && series[ed]));
+    const jpNow = nowOf("jp"), enNow = nowOf("en");
     let compare = "";
     if (jpNow && enNow) {
       const times = (Math.max(jpNow, enNow) / Math.min(jpNow, enNow)).toFixed(1).replace(/\.0$/, "");
