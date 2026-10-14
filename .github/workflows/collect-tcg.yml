@@ -18,9 +18,11 @@ on:
     # 한 번에 670건이 밀려 있었다. 종료 후 30시간이면 조회가 막혀 영구 소실이므로 여유가 없다.
     # 8회로 늘리면 회차당 처리량이 절반이면 되고, 크론이 몇 번 빠져도 버틴다.
     # eBay 쿼터 창은 **07:00 UTC(KST 16:00)** 에 리셋된다(실측 2026-09-03, analytics reset 값).
-    # 스냅샷(~340콜, 그 순간에만 존재하는 값)은 창이 열린 직후에 찍어야 굶지 않는다 —
-    # 종전 00:00 UTC 는 창의 끝이라 잔여가 바닥나 8/29·8/30·9/1 스냅샷이 통째로 빠졌다.
-    - cron: "30 7 * * *"                    # 스냅샷 + 정산 (창 시작, KST 16:30)
+    # 스냅샷(그 순간에만 존재하는 값)은 UTC 날짜가 바뀐 뒤 첫 실행이 찍는다 — 자가치유가 00:15 UTC 이후 오늘 점이
+    # 없으면 바로 쏜다(하트비트 00:17 → 00:18, 2026-10-14). 00시는 쿼터 창의 끝이라, 순서상 뒤인 TCG 정산·여유분이 스냅샷 몫(~124콜)을
+    # 남긴다(tools/ebay-budget.js reserveFor "tcgSnapshot" — 원피스 검색·정산은 앞 순서라 남기지 않는다) — 종전엔 아무도 안 남겨
+    # 8/29·8/30·9/1 이 빠지고 07:18 로 밀린 날이 있었다.
+    - cron: "30 7 * * *"                    # 창 첫 정산 (창 시작, KST 16:30)
     - cron: "30 1,4,10,13,16,19,22 * * *"   # 정산만 (3시간 간격)
     - cron: "45 6 * * *"                    # 창 마지막 회차 — 남은 쿼터를 남김 없이(전 게임 여유분). 07:00 리셋 직전
 
@@ -98,3 +100,28 @@ jobs:
             echo "Push raced; rebasing before retry $((attempt + 1))/3."
             git pull --rebase
           done
+
+      # 실패해도 이번 실행이 받은 데이터는 남긴다 — 2026-10-14. 가드 FAIL·푸시 실패로 커밋을 못 하면 받은 원장·데이터가 러너와 함께
+      # 사라졌다(9/25~9/27 P1 정지 41시간, 8/27 T2). 이 워크플로가 쓰는 파일과 오늘·어제·그제(UTC) 날짜 원장을 올린다 — 가드는 그대로 막는다.
+      # 회수: 실행 화면 Artifacts. 원장(archive)은 append-only 라 덮지 말고 빠진 행만 합친다.
+      - name: Rescue dates
+        if: failure()
+        run: |
+          echo "D0=$(date -u +%F)" >> "$GITHUB_ENV"
+          echo "D1=$(date -u -d '1 day ago' +%F)" >> "$GITHUB_ENV"
+          echo "D2=$(date -u -d '2 days ago' +%F)" >> "$GITHUB_ENV"
+
+      - name: Keep collected data on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collect-tcg-data-on-failure
+          path: |
+            data/tcg-snapshot.json
+            data/tcg-watch.json
+            data/tcg-series.json
+            data/tcg-archive/${{ env.D0 }}.json
+            data/tcg-archive/${{ env.D1 }}.json
+            data/tcg-archive/${{ env.D2 }}.json
+          retention-days: 14
+          if-no-files-found: warn

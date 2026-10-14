@@ -13,6 +13,9 @@
 //   1. gone 은 "판매"가 아니다. Browse API로는 판매/취소/만료를 구분할 수 없다.
 //      화면·CSV·스키마 어디에도 sold(실거래)로 표기하지 말 것. 라벨은 "delisted or sold".
 //   2. 전일 스냅샷이 없으면 0이 아니라 null. 없는 걸 0으로 채우면 "거래 0건"으로 읽혀 거짓이 된다.
+//   3. 대조 기준(listing-ids.json)이 **전날** 것이 아니면 신규/사라짐도 null — 2026-10-14.
+//      공백(워크플로 실패) 다음 날 며칠치가 하루로 몰렸다(9/27 jpNew 85·enNew 130, 평소 10~25). 하루치가 아닌 값을
+//      하루 점에 싣지 않는다. 같은 날 재실행이면 기준이 오늘 앞선 실행분이라, 그 실행이 전날과 대조해 낸 값을 그대로 둔다.
 //
 // 파일: data/listing-ids.json   (오늘 스냅샷만, 매일 덮어씀 — 대조용)
 //       data/supply-series.json (일자별 집계, 180일 롤링)
@@ -54,6 +57,11 @@ function diff(curr, before) {
   };
 }
 
+// 원칙 3 — 기준이 전날이면 대조, 오늘(같은 날 재실행)이면 앞선 실행의 대조값 유지, 그 밖(공백 뒤·기록 없음)은 null.
+const yesterday = new Date(Date.parse(`${today}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+const baseline = prev.updated === yesterday ? "yesterday" : prev.updated === today ? "rerun" : "none";
+const DIFF_KEYS = ["jpNew", "jpGone", "enNew", "enGone", "jpNewPrice", "jpGonePrice", "enNewPrice", "enGonePrice"];
+
 const nextIds = { updated: today, sets: {} };
 let touched = 0, awaitingBaseline = 0;
 
@@ -66,8 +74,8 @@ for (const [code, set] of Object.entries(data.sets || {})) {
   const enP = en?.itemPrices && typeof en.itemPrices === "object" ? en.itemPrices : null;
   nextIds.sets[code] = { jp: jpP || {}, en: enP || {} };
 
-  const dJp = diff(jpP, prev.sets?.[code]?.jp);
-  const dEn = diff(enP, prev.sets?.[code]?.en);
+  const dJp = diff(jpP, baseline === "yesterday" ? prev.sets?.[code]?.jp : null);
+  const dEn = diff(enP, baseline === "yesterday" ? prev.sets?.[code]?.en : null);
   if (dJp.added == null && dEn.added == null) awaitingBaseline += 1;
 
   const point = {
@@ -103,6 +111,8 @@ for (const [code, set] of Object.entries(data.sets || {})) {
   };
 
   series.sets[code] = series.sets[code] || { points: [] };
+  const earlier = baseline === "rerun" ? series.sets[code].points.find((p) => p.d === today) : null;
+  if (earlier) for (const k of DIFF_KEYS) point[k] = earlier[k] ?? null;
   const pts = series.sets[code].points.filter((p) => p.d !== today);
   pts.push(point);
   const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - HISTORY_DAYS);
@@ -117,6 +127,7 @@ fs.writeFileSync(idsPath, JSON.stringify(nextIds) + "\n", "utf8");
 fs.writeFileSync(seriesPath, JSON.stringify(series, null, 1) + "\n", "utf8");
 console.log(JSON.stringify({
   sets: touched,
+  baseline: `${baseline} (${prev.updated || "없음"})`,
   awaitingBaseline,
   idsKB: Math.round(fs.statSync(idsPath).size / 1024),
   seriesKB: Math.round(fs.statSync(seriesPath).size / 1024),

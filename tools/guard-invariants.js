@@ -1075,7 +1075,8 @@ if (exists("data/box-sold-ledger.json")) {
 //    우리 자체 eBay 시계열(boxSeriesEbay / boxSeriesEnEbay)은 계속 쌓이며, 9월에 일판/영문판
 //    두 지수로 다시 세울 예정이다(기준일은 중국셀러 정리 이후인 2026-07-17 이후로 잡을 것).
 // ── S1. 외부 소스명 공개 금지 (영구 규칙)
-for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "opbox-ai-data.json", "llms.txt", "feed.xml"]) {
+// data/card-series.json — 2026-10-14 packs.json 에서 떼어낸 카드별 이력(공개 data/). 떼어내도 검사 범위는 그대로.
+for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "data/card-series.json", "opbox-ai-data.json", "llms.txt", "feed.xml"]) {
   if (!exists(f)) continue;
   if (/collectr/i.test(read(f))) errors.push(`S1: ${f} 에 외부 소스명 노출 (Weekly ungraded market 라벨 사용)`);
 }
@@ -1574,6 +1575,9 @@ for (const f of ["index.html", "packs.html"]) {
 //    로 저장한다(1177KB). 그래서 "무엇이 마지막에 썼는가"에 따라 크기가 425KB 씩 오갔고,
 //    compact-series 스텝이 없는 워크플로(update-fx)가 상한을 넘겨 3일간 죽어 있었다.
 //    아래 두 번째 검사가 그 포맷을 못 박는다 — 파이프라인 끝에 compact-series.js 를 돌리면 된다.
+// 2026-10-14: 1,073KB(하루 ~7.7KB 증가, 10/28 전후 FAIL 예상). 가장 크게 자라던 카드별 이력(card.series, 314KB·하루 ~4.2KB)은
+//    방문자 화면이 안 읽는 값이라 data/card-series.json 으로 옮겼다(tools/card-series-store.js) → 759KB. 상한은 그대로다.
+//    다음으로 자라는 것은 박스 진행매물 시계열(boxSeriesEbay·EnEbay, 화면 미사용 — 감사·D13 만 읽는다)이다.
 {
   const PAYLOAD_LIMIT = 1_200_000;   // bytes, 원본 기준. 압축 전 크기가 커도 결국 파싱은 원본으로 한다.
   const f = "data/onepiece-packs.json";

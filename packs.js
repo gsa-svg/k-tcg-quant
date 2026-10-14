@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261013qa";
+const DATA_VERSION = "20261014bars";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -1544,27 +1544,43 @@ function fillPackSparks() {
     const pts = (((soldSeries.sets || {})[code] || {}).jp || []).filter((p) => p && p.median != null).slice(-12);
     const hasNow = b && b.nowUsd != null;
     if (pts.length < 3 && !hasNow) { el.dataset.done = "1"; return; }
-    const sign = b && b.changePct != null ? Math.sign(b.changePct) : 0;
+    // 마지막 점이 데이터 기준일보다 28일 넘게 묵었으면 흐리게 + 'MM/DD', 등락은 숨긴다 — 4주 등락 띠(renderTickerBoard)와 같은 규칙.
+    // 28일 넘게 거래가 없으면 "4주 등락"의 기준점이 없다(2026-10-14, 종전엔 49일 묵은 OP-06 이 +19% 로 칩에 떴다).
+    const dataT = Date.parse(state.data.updated || "") || Date.now();
+    const lastD = pts.length ? pts[pts.length - 1].d : (b && b.nowDate) || null;
+    const stale = !!lastD && dataT - Date.parse(lastD) > 28 * 864e5;
+    const sign = !stale && b && b.changePct != null ? Math.sign(b.changePct) : 0;
     const color = sign > 0 ? "#00e5a0" : sign < 0 ? "#ff5f6e" : "#8d95a7";   // --green / --red / --muted (styles.css 와 같은 값)
     let svg = "";
     if (pts.length >= 3) {
       const vs = pts.map((p) => p.median);
       const lo = Math.min(...vs), hi = Math.max(...vs);
       const W = 64, H = 18, PAD = 2.5;
-      const y = (v) => hi === lo ? H / 2 : PAD + (1 - (v - lo) / (hi - lo)) * (H - PAD * 2);
-      const xy = vs.map((v, i) => [(i / (vs.length - 1)) * (W - 3) + 1.5, y(v)]);
-      const d = xy.map(([x, yy], i) => (i ? "L" : "M") + x.toFixed(1) + " " + yy.toFixed(1)).join("");
+      // 세로 폭은 값의 8% 이상 — 박스 차트(box-chart.js)와 같은 최소 축 폭. 1% 흔들림이 칩 높이를 다 채워 급등락처럼 보이지 않게.
+      const mid = (hi + lo) / 2, span = Math.max(hi - lo, mid * 0.08) || 1;
+      const y = (v) => PAD + (1 - (v - (mid - span / 2)) / span) * (H - PAD * 2);
+      // x 는 날짜 간격대로(종전엔 점 순번이라 빠진 주가 눌려 안 보였다). 7일 격자에서 점이 빠진 곳은 선을 끊는다 — 잇지 않는다.
+      const ts = pts.map((p) => Date.parse(p.d)), t0 = ts[0], tSpan = (ts[ts.length - 1] - t0) || 1;
+      const xy = vs.map((v, i) => [((ts[i] - t0) / tSpan) * (W - 3) + 1.5, y(v)]);
+      const d = xy.map(([x, yy], i) => (i && ts[i] - ts[i - 1] <= 7.5 * 864e5 ? "L" : "M") + x.toFixed(1) + " " + yy.toFixed(1)).join("");
       const [lx, ly] = xy[xy.length - 1];
-      svg = `<svg class="packSpark" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2" fill="${color}"/></svg>`;
+      // 끊긴 구간은 칩 바닥에 옅은 점선으로 '빈칸'을 드러낸다 — 값을 잇지 않는 바닥 기준선(2026-10-14 QA: OP-03 은 4조각이라
+      // 64px 칩에서 깨진 그림처럼 보였다). path 가 아니라 line 이라 첫 화면 추세선 그리기 모션(.packSpark path)과 무관하다.
+      const gapLines = xy.slice(1).map(([x], i) => (ts[i + 1] - ts[i] > 7.5 * 864e5
+        ? `<line x1="${(xy[i][0] + 1.5).toFixed(1)}" y1="${H - 1}" x2="${(x - 1.5).toFixed(1)}" y2="${H - 1}" style="stroke:var(--muted,#8d95a7)" stroke-width="1" stroke-dasharray="1.5 2" opacity=".7"/>`
+        : "")).join("");
+      svg = `<svg class="packSpark" viewBox="0 0 ${W} ${H}" aria-hidden="true">${gapLines}<path d="${d}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2" fill="${color}"/></svg>`;
     }
     const now = hasNow ? `<span class="packNow"><i class="packEd">JP</i>$${b.nowUsd}</span>` : "";
-    const chg = b && b.changePct != null
-      ? `<b class="packChg ${sign > 0 ? "up" : sign < 0 ? "down" : "flat"}">${b.changePct > 0 ? "+" : ""}${b.changePct.toFixed(1)}%</b>` : "";
+    const chg = stale ? (lastD ? `<small class="packAsOf">${lastD.slice(5).replace("-", "/")}</small>` : "")
+      : b && b.changePct != null
+        ? `<b class="packChg ${sign > 0 ? "up" : sign < 0 ? "down" : "flat"}">${b.changePct > 0 ? "+" : ""}${b.changePct.toFixed(1)}%</b>` : "";
     if (hasNow) {
       el.title = t(
-        `일본판 박스 실거래 중앙값 $${b.nowUsd} (${b.nowDate} 주)${b.changePct != null ? ` · 4주 등락 ${b.changePct > 0 ? "+" : ""}${b.changePct}% (${b.changeBasis} 대비)` : ""}${pts.length >= 3 ? ` · 선은 최근 ${pts.length}주` : ""}`,
-        `JP box sold median $${b.nowUsd} (week of ${b.nowDate})${b.changePct != null ? ` · 4-week change ${b.changePct > 0 ? "+" : ""}${b.changePct}% vs ${b.changeBasis}` : ""}${pts.length >= 3 ? ` · line = last ${pts.length} weeks` : ""}`);
+        `일본판 박스 실거래 중앙값 $${b.nowUsd} (${b.nowDate} 주)${!stale && b.changePct != null ? ` · 4주 등락 ${b.changePct > 0 ? "+" : ""}${b.changePct}% (${b.changeBasis} 대비)` : ""}${pts.length >= 3 ? ` · 선은 최근 ${pts.length}점` : ""}`,
+        `JP box sold median $${b.nowUsd} (week of ${b.nowDate})${!stale && b.changePct != null ? ` · 4-week change ${b.changePct > 0 ? "+" : ""}${b.changePct}% vs ${b.changeBasis}` : ""}${pts.length >= 3 ? ` · line = last ${pts.length} points` : ""}`);
     }
+    el.classList.toggle("stale", stale);
     el.innerHTML = svg + now + chg;
     el.dataset.done = "1";
   });
@@ -1744,7 +1760,8 @@ function renderDetail() {
       event.stopPropagation();
       trackEvent("outbound_click", { pack_code: state.selected, label: a.textContent.trim(), url: a.href });
     }));
-    wirePinBtn(el);  fillBoxMounts();
+    wirePinBtn(el);
+  fillBoxMounts();
     return;
   }
   const hasPsa = (set.psa || []).length > 0;
@@ -1767,7 +1784,8 @@ function renderDetail() {
   }));
   el.querySelectorAll(".hitName a").forEach((a) => a.addEventListener("click", (ev) => ev.stopPropagation()));
   el.querySelectorAll(".hitThumb").forEach((button) => button.addEventListener("click", () => { const f = button.closest(".hitCard"); const card = cards[Number(f.dataset.cardIndex)] || {}; trackEvent("image_zoom", { pack_code: state.selected, card_name: f.dataset.name }); openLightbox(f.dataset.img, f.dataset.name, card, f.dataset.imgFallback); }));
-  wirePinBtn(el);  fillBoxMounts();
+  wirePinBtn(el);
+  fillBoxMounts();
 }
 
 function renderStats() {

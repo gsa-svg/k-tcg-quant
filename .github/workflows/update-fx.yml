@@ -119,3 +119,20 @@ jobs:
             git diff --cached --quiet || git commit --amend --no-edit
             sleep $((attempt * 5))
           done
+
+      # 실패해도 이번 실행이 받은 데이터는 남긴다 — 2026-10-14. 가드 FAIL·푸시 실패로 커밋을 못 하면 받은 원장·데이터가 러너와 함께
+      # 사라졌다(9/25~9/27 P1 정지 41시간, 8/27 T2). 이 워크플로가 쓰는 파일과 오늘·어제·그제(UTC) 날짜 원장을 올린다 — 가드는 그대로 막는다.
+      # 회수: 실행 화면 Artifacts. 원장(archive)은 append-only 라 덮지 말고 빠진 행만 합친다.
+      - name: Keep collected data on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-fx-data-on-failure
+          path: |
+            data/fx.json
+            data/fx-history.json
+            data/onepiece-packs.json
+            opbox-ai-data.json
+            logs/
+          retention-days: 14
+          if-no-files-found: warn

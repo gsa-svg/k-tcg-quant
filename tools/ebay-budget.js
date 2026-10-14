@@ -9,14 +9,16 @@
 //   그래서 **순서**가 규칙이다(소유자: 이 사이트의 주제는 원피스, TCG 는 남는 만큼 최대로):
 //     ① 원피스 검색 — 감시목록에 없으면 그 경매는 영원히 못 읽는다. 가장 싸고(회차 ~50콜) 가장 급하다.
 //     ② 원피스 정산 — 종료 후 30시간 안에 읽어야 한다.
-//     ③ TCG 스냅샷 — 하루 한 점, 그 순간에만 존재하는 값. 창이 열리자마자(07:30 UTC) 찍는다.
+//     ③ TCG 스냅샷 — 하루 한 점, 그 순간에만 존재하는 값. UTC 자정 직후(00:18) 찍는다 — 창의 끝(리셋 7시간 전)이라
+//        그 뒤 순서(④ TCG 정산·여유분·드레인)가 그 몫(reserveFor "tcgSnapshot", ~124콜)을 남긴다(2026-10-14).
+//        ①·② 원피스 검색·정산은 앞 순서라 이 몫을 남기지 않는다.
 //     ④ TCG 정산 — 남는 쿼터 전부. 단, 이 창에서 끝나는 원피스 건수만큼은 남겨 둔다.
 //
 // ⚠️ 잔여량은 eBay 가 알려주는 실제 값을 쓴다. 우리가 센 횟수로 추정하면 다른 워크플로가
 //    쓴 몫을 놓쳐 429 를 맞는다(2026-09-02 에 실제로 맞았다).
 const fs = require("fs");
 const path = require("path");
-const { TCG_SCHEDULE_UTC } = require("./tcg-config");
+const { TCG_SCHEDULE_UTC, TCG_SNAPSHOT_RESERVE } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
 const HOUR = 3600000;
@@ -95,6 +97,8 @@ const PER_RUN = {
   //   PSA10 링크 카드 207장 × (검색 1~3 + getItem 1) ≈ 500 + 박스 호가 JP/EN + 매물 수 + 특가 검색 ≈ 200.
   // 예약이 없어서 TCG 보충이 잔여를 다 쓴 날 429 로 죽었다(2026-09-07 20:51 UTC 실제). 이 창에서 아직 안 돌았으면 남긴다.
   active: 800,
+  // TCG 스냅샷 한 번(13게임 × 8콜 + 여유) — 이 창 안의 UTC 자정 뒤 점이 아직 없을 때만 남긴다(reserveFor).
+  tcgSnapshot: TCG_SNAPSHOT_RESERVE,
 };
 
 // 각 예약이 걸린 워크플로의 실행 시각(UTC 시). 리셋 창 안에 아직 안 온 실행이 있을 때만 예약한다.
@@ -172,8 +176,28 @@ function auctionInflow(nowMs, resetMs) {
   return Math.max(0, Math.round((OP_INFLOW_PER_HOUR * (resetMs - nowMs)) / HOUR));
 }
 
+/**
+ * 이 쿼터 창이 찍어야 할 TCG 스냅샷 날짜 — 창 [리셋−24h, 리셋) 안의 UTC 자정은 리셋 날짜의 00:00 이다.
+ * 스냅샷은 UTC 날짜가 바뀐 뒤 첫 실행이 찍으므로(collect-tcg-snapshot) 그 날짜의 점이 이 창의 몫이다.
+ */
+function snapshotDayFor(resetMs) {
+  return new Date(resetMs).toISOString().slice(0, 10);
+}
+
+/** 이 창이 찍어야 할 스냅샷 점이 아직 없는가 — data/tcg-snapshot.json. 못 읽으면 없는 것으로 본다(몫을 남긴다). */
+function snapshotPending(resetMs, root = ROOT) {
+  const day = snapshotDayFor(resetMs);
+  try {
+    const snap = JSON.parse(fs.readFileSync(path.join(root, "data", "tcg-snapshot.json"), "utf8"));
+    return !(snap.points || []).some((p) => p && p.d === day);
+  } catch { return true; }
+}
+
 function reserveFor(key, nowMs, resetMs, root = ROOT) {
   if (key === "auction") return auctionNeed(resetMs, root) + auctionInflow(nowMs, resetMs);
+  // 스냅샷 몫 — 2026-10-14. 00:18 UTC 는 창의 마지막 7시간 안이라 잔여가 바닥 쪽이다. 아무도 이 몫을 남기지 않아
+  // 9/5~9/8·10/8~10/10 스냅샷이 리셋 뒤 07:18 로 밀렸다(표준 시각 밖). 그날 점이 생기면 바로 풀린다.
+  if (key === "tcgSnapshot") return snapshotPending(resetMs, root) ? PER_RUN.tcgSnapshot : 0;
   if (key === "active") {
     if (activeListingsFresh(resetMs, root)) return 0;
     const windowStart = resetMs - 24 * HOUR;
@@ -182,9 +206,19 @@ function reserveFor(key, nowMs, resetMs, root = ROOT) {
   return reserveLeft(key, nowMs, resetMs);
 }
 
+// 남겨 둘 몫 목록 — 소비자마다 한 곳에서 가져간다(2026-10-14 스냅샷 몫 추가).
+//   OP_SETTLE: 원피스 정산(settleBudget 기본) — 검색·안전·진행 매물. TCG 몫(스냅샷·정산 300)은 남기지 않는다 — 순서 ②가 ③④보다 앞이다.
+//   TCG:       TCG 정산·여유분·드레인 — 원피스 정산(auction)과 TCG 스냅샷(tcgSnapshot)을 먼저 남긴다.
+//   TCG_SNAPSHOT_SIZE: 스냅샷이 게임당 감시 표본 크기를 정할 때 — 자기 몫(tcgSnapshot)은 watchPerGameFor 가 따로 뺀다.
+const RESERVE_KEYS = Object.freeze({
+  OP_SETTLE: Object.freeze(["search", "safety", "active"]),
+  TCG: Object.freeze(["auction", "search", "safety", "active", "tcgSnapshot"]),
+  TCG_SNAPSHOT_SIZE: Object.freeze(["auction", "search", "safety", "active"]),
+});
+
 // 이번 실행에서 정산에 쓸 수 있는 건수.
-//   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: search·safety — 원피스 정산용).
-//                    TCG 정산은 ["auction","search","safety"] 로 부른다(원피스 몫을 먼저 남긴다).
+//   opts.reserveFor: 이번 실행 뒤에도 남겨 둘 용도들(기본: RESERVE_KEYS.OP_SETTLE — 원피스 정산용).
+//                    TCG 정산은 RESERVE_KEYS.TCG 로 부른다(원피스 몫을 먼저 남긴다).
 //   opts.share: 남은 몫 중 이번 회차가 가져갈 비율. 한 번에 다 쓰면 창 나머지 시간대가 굶는다.
 //   opts.min / opts.max: 하한·상한(한 번에 너무 적거나 많이 돌지 않게)
 //   opts.drainKey: 이 워크플로의 스케줄 키. 리셋 전 마지막 회차면 share 를 1 로 올려 남김 없이 쓴다.
@@ -198,9 +232,9 @@ async function settleBudget(opts = {}) {
   const reset = q.reset ?? nextReset(now);
   const drain = opts.drainKey ? isLastRunBeforeReset(opts.drainKey, now, reset) : false;
   const share = drain ? 1 : (opts.share ?? 0.4);
-  // 기본(원피스 정산)은 검색·안전만 남긴다 — TCG 는 원피스보다 뒤다. 창 끝에서 TCG 드레인 몫(300)까지
+  // 기본(원피스 정산)은 검색·안전·진행 매물만 남긴다 — TCG(스냅샷·정산)는 원피스보다 뒤다. 창 끝에서 TCG 몫까지
   // 남기면 원피스 정산이 0 이 된다(2026-09-04 00:30 UTC 실측: 잔여 480 · 예약 580 → 가용 0).
-  const keys = opts.reserveFor || ["search", "safety", "active"];
+  const keys = opts.reserveFor || RESERVE_KEYS.OP_SETTLE;
   const keep = keys.reduce((t, k) => t + reserveFor(k, now, reset), 0);
   const usable = Math.max(0, left - keep);
   const n = Math.max(0, Math.min(max, Math.floor(usable * share)));
@@ -210,13 +244,13 @@ async function settleBudget(opts = {}) {
   return { n, left, keep, reset, drain, note: `잔여 ${left} · 예약 ${keep}(${keys.join("+")}) · 가용 ${usable} · 이번 회차 ${n}${tail}` };
 }
 
-module.exports = { token, quota, remaining, settleBudget, reserveLeft, reserveFor, activeListingsFresh, auctionInflow, OP_INFLOW_PER_HOUR, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR };
+module.exports = { token, quota, remaining, settleBudget, reserveLeft, reserveFor, snapshotDayFor, snapshotPending, activeListingsFresh, auctionInflow, OP_INFLOW_PER_HOUR, isLastRunBeforeReset, auctionNeed, nextReset, runsBeforeReset, PER_RUN, SCHEDULE, SEARCH_SCHEDULE_UTC, RESET_UTC_HOUR, RESERVE_KEYS };
 
 if (require.main === module) {
   (async () => {
     const q = await quota();
     const b = await settleBudget();
-    const t = await settleBudget({ reserveFor: ["auction", "search", "safety"], share: 0.5, min: 60, max: 900 });
+    const t = await settleBudget({ reserveFor: RESERVE_KEYS.TCG, share: 0.5, min: 60, max: 900 });
     console.log(JSON.stringify({
       잔여: q.remaining, 한도: q.limit, 리셋: q.reset ? new Date(q.reset).toISOString() : null,
       원피스_이번회차: b.n, 원피스_설명: b.note,

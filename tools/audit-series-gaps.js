@@ -142,6 +142,49 @@ if (auc && tcg && tcgSeries && auctionWatch && tcgWatch) {
   addRule(dayRules, "TCG 정산 일별", (d) => !!loss.settlement(d));
 }
 
+// TCG 표본 회수(표본일) — 2026-10-14 추가(위 "TCG 정산 일별" 검사는 그대로 둔다).
+// 위 검사는 종료일 원장 합계를 보수적 최소(min(eBay 24h, 125) × 0.5)와 비교한다. 그래서 시한(종료 + 30시간)을 넘겨 사라진
+// 표본이 다른 날 고른 표본·여유분에 가려 안 보였다(9/4 포켓몬 표본 250건 전량 소실, 9/9 큰 게임 표본 40~77% 소실이 통과 —
+// 표본일 기준 60일 4,517건). 여기서는 그날 고른 표본(tcg-series sampleWatched) 중 종료 후 읽은 수(sampleSettled, 표본일 기준)를
+// 본다. 감시 목록에 그날 표본이 아직 남아 있으면(시한 안) 회수 중이라 보지 않는다 — 다 빠진 뒤에야 확정 손실이다.
+// 기준 98%: 사라진 매물(eBay 404) 몇 건의 여유. 표본 수가 모르는 날(null)은 보지 않는다.
+// 분자는 분모 집합 안에서만 센다 — 같은 실행에서 넣고 바로 읽어 감시 이력에 없는 표본 행은 분모(보정 파일 sampled)에도 더한다
+// (2026-10-14 QA: 종전엔 분자에만 들어가 손실을 가렸다 — 9/13 pokemon 120/116 통과, 실제 120/125). 아래 min 은 같은 날
+// 스냅샷을 다시 찍은(--force) 경우처럼 분모가 덮인 날의 안전장치다.
+const SAMPLE_LABEL = "TCG 표본 회수(표본일)";
+const SAMPLE_MIN_RATE = 0.98;
+if (tcgSeries) {
+  const { TCG_KEYS } = require("./tcg-config");
+  const pendingSample = new Set((tcgWatch?.pending || []).filter((p) => !p.extra && typeof p.seen === "string").map((p) => `${p.g}|${p.seen}`));
+  const rows = new Map((tcgSeries.daily || []).map((r) => [r.d, r]));
+  const known = (tcgSeries.daily || []).filter((r) => TCG_KEYS.some((k) => Number.isFinite(r.games?.[k]?.sampleWatched)));
+  const firstSampleDay = known.length ? known[0].d : null;
+  const sampleShortfall = (d) => {
+    const row = rows.get(d);
+    const thin = [];
+    for (const k of TCG_KEYS) {
+      const g = row?.games?.[k];
+      const watched = g?.sampleWatched;
+      if (!Number.isFinite(watched) || watched <= 0 || pendingSample.has(`${k}|${d}`)) continue;
+      const settled = Math.min(Number(g.sampleSettled) || 0, watched);
+      if (settled < watched * SAMPLE_MIN_RATE) thin.push(`${k} ${settled}/${watched}`);
+    }
+    return thin;
+  };
+  if (firstSampleDay) {
+    for (let t = Date.parse(firstSampleDay > WINDOW_START ? firstSampleDay : WINDOW_START); t <= Date.parse(LAST_FULL); t += DAY) {
+      const d = iso(t);
+      const thin = sampleShortfall(d);
+      if (!thin.length) continue;
+      const line = `${SAMPLE_LABEL} — ${d} 표본 회수 ${SAMPLE_MIN_RATE * 100}% 미달(읽음/표본, 시한 지나 확정): ${thin.join(", ")}`;
+      if (knownDay(SAMPLE_LABEL, d)) notes.push(`${line} · known-gaps.json 등록(복구 불가 확인)`);
+      else problems.push(line);
+    }
+  }
+  // 남은 첫 표본 기록보다 앞은 반박할 근거가 없으니 빈 것으로 본다(위 계열들과 같은 규칙).
+  addRule(dayRules, SAMPLE_LABEL, (d) => !firstSampleDay || d < firstSampleDay || sampleShortfall(d).length > 0);
+}
+
 const pw = read("data/palworld-auction-market.json");
 if (pw) checkDaily("팰월드 경매 관측", (pw.points || []).map((r) => r.d));
 else problems.push("팰월드 경매 관측 파일을 못 읽었다");
@@ -222,10 +265,13 @@ checkManual("팰월드 sold", "data/palworld-sold-ledger.json");
 // PSA 카드별 d 는 GemRate 인구 변동일이라 값이 안 변한 카드는 d 가 그대로고 seen 만 앞으로 간다.
 // d 만 보다가 9/14 에 386점을 관측한(seen=09-14) W38 을 공백으로 오판했고, 그게 known-gaps 에 영구 공백으로
 // 등록까지 됐다(5c155cb3). audit-collection-health 는 9/16 에 이미 seen||d 로 바꿨었다.
+// 2026-10-14: seen 과 d 를 둘 다 센다. seen||d 는 반대쪽 오판을 냈다 — 9/7 수집이 GemRate 변동일 8/31~9/4 점(d)을 담았는데
+// seen(9/7, W37)만 세서 W36 을 공백으로 냈다(PSA 카드별). d 는 그 값이 성립한 날이라 그 주의 값이 있다는 뜻이다.
+// seen 은 지금 PSA 카드별에만 있다(다른 원장은 d 하나).
 function observedDates(sets) {
   const out = [];
   (function walk(o) {
-    if (Array.isArray(o)) { for (const p of o) if (p && p.d) out.push(p.seen || p.d); }
+    if (Array.isArray(o)) { for (const p of o) if (p && p.d) { out.push(p.d); if (p.seen) out.push(p.seen); } }
     else if (o && typeof o === "object") for (const v of Object.values(o)) walk(v);
   })(sets);
   return out;

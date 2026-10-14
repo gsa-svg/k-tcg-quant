@@ -1,6 +1,6 @@
 {
  "note": "조사가 끝난 영구 공백. 소급 수집이 불가능하다고 확인된 것만 넣는다. audit-series-gaps.js 가 여기 적힌 것은 problems 대신 notes 로 낸다 — 매번 FAIL 이 나면 사람이 감사를 무시하게 되고, 그러면 진짜 새 공백도 같이 묻힌다. 새 공백을 여기 넣어 조용히 덮는 데 쓰지 말 것: 반드시 사유와 확인일을 적는다.",
- "updated": "2026-10-11",
+ "updated": "2026-10-14",
  "gaps": [
   {
    "series": "TCG 시장 스냅샷",
@@ -25,8 +25,9 @@
     "2026-08-29",
     "2026-08-30"
    ],
-   "reason": "collect-tcg 워크플로가 8/29~8/30 실패(Settle auctions 가 가드 T3 에서 죽던 것과 같은 기간). eBay 는 지나간 날의 진행 중 매물 수를 되돌려주지 않는다. 근본 원인은 2026-08-31 커밋에서 수정(핫 파일에서 개별 판매 제거).",
-   "confirmed": "2026-08-31"
+   "reason": "collect-tcg 워크플로가 8/29~8/30 실패(Settle auctions 가 가드 T3 에서 죽던 것과 같은 기간). 2026-10-14 정정: 실패한 단계는 'Snapshot (once a day)' 다 — 8/29 05:13Z(run 33235648189)·8/30 03:05Z(run 33289464877) — 스냅샷이 실패하면 그 실행은 정산까지 가지 않았다. eBay 는 지나간 날의 진행 중 매물 수를 되돌려주지 않는다. 근본 원인은 2026-08-31 커밋에서 수정(핫 파일에서 개별 판매 제거).",
+   "confirmed": "2026-08-31",
+   "corrected": "2026-10-14"
   },
   {
    "series": "팰월드 경매 관측",
@@ -41,8 +42,9 @@
    "dates": [
     "2026-09-01"
    ],
-   "reason": "collect-tcg 워크플로가 수동 트리거라 그날 실행되지 않았다. 스냅샷은 그 시점에 진행 중이던 매물 수라 지나가면 eBay 에서 되돌려 받을 수 없다. 같은 날 낙찰 정산은 다음 실행(2026-09-02)이 소급해 담았다 — 비는 것은 진행 중 매물 수뿐이다.",
-   "confirmed": "2026-09-02"
+   "reason": "2026-10-14 정정: 종전 사유('수동 트리거라 실행되지 않았다')는 틀렸다 — 9/1 03:06Z 예약 실행(run 33464993685)이 'Snapshot (once a day)' 단계에서 실패했고, 그날 뒤 실행(10:48Z·15:47Z·20:19Z)은 스냅샷을 찍지 않았다. 스냅샷은 그 시점에 진행 중이던 매물 수라 지나가면 eBay 에서 되돌려 받을 수 없다. 같은 날 낙찰 정산은 다음 실행(2026-09-02)이 소급해 담았다 — 비는 것은 진행 중 매물 수뿐이다.",
+   "confirmed": "2026-09-02",
+   "corrected": "2026-10-14"
   },
   {
    "series": "원피스 경매 일별",
@@ -65,16 +67,18 @@
    "dates": [
     "2026-09-26"
    ],
-   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 그래서 09-26(UTC) 스냅샷이 한 번도 커밋되지 않았다. 스냅샷은 그 시점 진행 중 매물 수라 지나간 날은 eBay 에서 되돌려 받을 수 없다.",
-   "confirmed": "2026-09-30"
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 원인은 가드 P1 이다(2026-10-14 감사로 정정) — update-active-listings 가 9/22 부터 실패해 공급 시계열(supply-series.json) updated 가 2026-09-21 에 멈췄고, 09-25 12:00Z 에 경과가 4.5일(반올림 5일 > 4)을 넘자 P1 이 FAIL 했다. 같은 head 7e39099c3 로 재현하면 11:43Z OK · 12:49Z P1 FAIL 이다. 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-25 12:49Z 부터 Guard 단계에서 실패했고(그 기간 실행 88회 전부 head 7e39099c3), 09-27 05:36Z 로컬 커밋 6fcce2ac(9/26 공급 점)·5d4ba3ed 가 함께 푸시돼 공급 시계열이 갱신되면서 풀렸다. 종전 기록의 'R4·__testFakeCollector' 사유는 틀렸다 — 그 키가 든 6fcce2ac 는 09-27 05:36Z 에 키를 지운 커밋과 함께 처음 푸시됐다. 그래서 09-26(UTC) 스냅샷이 한 번도 커밋되지 않았다. 스냅샷은 그 시점 진행 중 매물 수라 지나간 날은 eBay 에서 되돌려 받을 수 없다.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "팰월드 경매 관측",
    "dates": [
     "2026-09-26"
    ],
-   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 그래서 09-26(UTC) 팰월드 관측이 없다(09-25 다음 09-27). 진행 중 매물 관측이라 소급 불가.",
-   "confirmed": "2026-09-30"
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 원인은 가드 P1 이다(2026-10-14 감사로 정정) — update-active-listings 가 9/22 부터 실패해 공급 시계열(supply-series.json) updated 가 2026-09-21 에 멈췄고, 09-25 12:00Z 에 경과가 4.5일(반올림 5일 > 4)을 넘자 P1 이 FAIL 했다. 같은 head 7e39099c3 로 재현하면 11:43Z OK · 12:49Z P1 FAIL 이다. 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-25 12:49Z 부터 Guard 단계에서 실패했고(그 기간 실행 88회 전부 head 7e39099c3), 09-27 05:36Z 로컬 커밋 6fcce2ac(9/26 공급 점)·5d4ba3ed 가 함께 푸시돼 공급 시계열이 갱신되면서 풀렸다. 종전 기록의 'R4·__testFakeCollector' 사유는 틀렸다 — 그 키가 든 6fcce2ac 는 09-27 05:36Z 에 키를 지운 커밋과 함께 처음 푸시됐다. 그래서 09-26(UTC) 팰월드 관측이 없다(09-25 다음 09-27). 진행 중 매물 관측이라 소급 불가.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "CGC 카드별",
@@ -89,8 +93,9 @@
    "dates": [
     "2026-09-26"
    ],
-   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 그래서 09-26(UTC) 시장 스캔 점이 없다(09-25 다음 09-27). 스캔은 그 시점 진행 중 경매라 소급 불가.",
-   "confirmed": "2026-09-30"
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 원인은 가드 P1 이다(2026-10-14 감사로 정정) — update-active-listings 가 9/22 부터 실패해 공급 시계열(supply-series.json) updated 가 2026-09-21 에 멈췄고, 09-25 12:00Z 에 경과가 4.5일(반올림 5일 > 4)을 넘자 P1 이 FAIL 했다. 같은 head 7e39099c3 로 재현하면 11:43Z OK · 12:49Z P1 FAIL 이다. 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-25 12:49Z 부터 Guard 단계에서 실패했고(그 기간 실행 88회 전부 head 7e39099c3), 09-27 05:36Z 로컬 커밋 6fcce2ac(9/26 공급 점)·5d4ba3ed 가 함께 푸시돼 공급 시계열이 갱신되면서 풀렸다. 종전 기록의 'R4·__testFakeCollector' 사유는 틀렸다 — 그 키가 든 6fcce2ac 는 09-27 05:36Z 에 키를 지운 커밋과 함께 처음 푸시됐다. 그래서 09-26(UTC) 시장 스캔 점이 없다(09-25 다음 09-27). 스캔은 그 시점 진행 중 경매라 소급 불가.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "원피스 경매 일별",
@@ -98,8 +103,9 @@
     "2026-09-26",
     "2026-09-27"
    ],
-   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 마지막 시장 스캔(09-25 07:49Z)이 감시목록(auction-watch)에 넣은 경매는 09-26 07시 종료분까지였고 다음 감시목록 갱신은 09-27 07:49Z 였다 — 그 사이 종료 경매는 ID 가 없다. 그래서 09-26 은 UTC 08시 이후 거의 0건(588건·14시간 공백), 09-27 은 UTC 01~07시 0건(829건·7시간 공백). eBay Browse 는 끝난 매물을 검색으로 찾을 수 없어 회수 불가.",
-   "confirmed": "2026-09-30"
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 원인은 가드 P1 이다(2026-10-14 감사로 정정) — update-active-listings 가 9/22 부터 실패해 공급 시계열(supply-series.json) updated 가 2026-09-21 에 멈췄고, 09-25 12:00Z 에 경과가 4.5일(반올림 5일 > 4)을 넘자 P1 이 FAIL 했다. 같은 head 7e39099c3 로 재현하면 11:43Z OK · 12:49Z P1 FAIL 이다. 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-25 12:49Z 부터 Guard 단계에서 실패했고(그 기간 실행 88회 전부 head 7e39099c3), 09-27 05:36Z 로컬 커밋 6fcce2ac(9/26 공급 점)·5d4ba3ed 가 함께 푸시돼 공급 시계열이 갱신되면서 풀렸다. 종전 기록의 'R4·__testFakeCollector' 사유는 틀렸다 — 그 키가 든 6fcce2ac 는 09-27 05:36Z 에 키를 지운 커밋과 함께 처음 푸시됐다. 마지막 시장 스캔(09-25 07:49Z)이 감시목록(auction-watch)에 넣은 경매는 09-26 07시 종료분까지였고 다음 감시목록 갱신은 09-27 07:49Z 였다 — 그 사이 종료 경매는 ID 가 없다. 그래서 09-26 은 UTC 08시 이후 거의 0건(588건·14시간 공백), 09-27 은 UTC 01~07시 0건(829건·7시간 공백). eBay Browse 는 끝난 매물을 검색으로 찾을 수 없어 회수 불가.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "TCG 정산 일별",
@@ -107,16 +113,18 @@
     "2026-09-25",
     "2026-09-26"
    ],
-   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 두 구간이다 — ① 09-25 11:43Z ~ 09-26 07:07Z: 원인 미확정(Actions 실행 기록 미확인). ② 09-26 07:07Z 로컬 커밋 6fcce2ac 가 data/onepiece-packs.json 에 시험용 키 __testFakeCollector 를 남겨 가드 R4(test-collect-status 의 '평시 packs UNTRACKED')가 FAIL — 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-27 05:36Z 5d4ba3ed 가 키를 지울 때까지 멈췄다. 09-25 는 digimon 38/62·gundam 13/23·palworld 14/18(확인/보수적 최소) — 정산 실행이 09-27 05:47Z 에야 재개돼 그 사이 30시간 시한을 넘긴 종료분을 못 읽었다. 09-26 은 스냅샷이 없어 그날 몫의 감시 표본이 안 들어갔다 — 확인 pokemonjp·pokemon·magic·yugioh·onepiece·lorcana·weiss·riftbound·dragonball 0, digimon 19, unionarena 38, gundam 46, palworld 28(감시 하한 기준 최소 62). tcg-watch 에 두 날 종료분이 남아 있지 않아 회수 불가.",
-   "confirmed": "2026-09-30"
+   "reason": "2026-09-25 11:43Z ~ 09-27 05:38Z 동안 GitHub Actions 수집 커밋이 하나도 없다. 원인은 가드 P1 이다(2026-10-14 감사로 정정) — update-active-listings 가 9/22 부터 실패해 공급 시계열(supply-series.json) updated 가 2026-09-21 에 멈췄고, 09-25 12:00Z 에 경과가 4.5일(반올림 5일 > 4)을 넘자 P1 이 FAIL 했다. 같은 head 7e39099c3 로 재현하면 11:43Z OK · 12:49Z P1 FAIL 이다. 가드를 도는 수집 워크플로 7개(collect-auction-market·collect-grading·collect-tcg·settle-auctions·update-active-listings·update-fx·update-market-data)가 09-25 12:49Z 부터 Guard 단계에서 실패했고(그 기간 실행 88회 전부 head 7e39099c3), 09-27 05:36Z 로컬 커밋 6fcce2ac(9/26 공급 점)·5d4ba3ed 가 함께 푸시돼 공급 시계열이 갱신되면서 풀렸다. 종전 기록의 'R4·__testFakeCollector' 사유는 틀렸다 — 그 키가 든 6fcce2ac 는 09-27 05:36Z 에 키를 지운 커밋과 함께 처음 푸시됐다. 09-25 는 digimon 38/62·gundam 13/23·palworld 14/18(확인/보수적 최소) — 정산 실행이 09-27 05:47Z 에야 재개돼 그 사이 30시간 시한을 넘긴 종료분을 못 읽었다. 09-26 은 스냅샷이 없어 그날 몫의 감시 표본이 안 들어갔다 — 확인 pokemonjp·pokemon·magic·yugioh·onepiece·lorcana·weiss·riftbound·dragonball 0, digimon 19, unionarena 38, gundam 46, palworld 28(감시 하한 기준 최소 62). tcg-watch 에 두 날 종료분이 남아 있지 않아 회수 불가.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "TCG 정산 일별",
    "dates": [
     "2026-09-28"
    ],
-   "reason": "큰 5종이 보수적 최소 62 에 못 미친다 — pokemonjp 54, pokemon 58, magic 52, yugioh 53, onepiece 55. 9/28 01:05Z 스냅샷이 게임당 125건(종료 임박 순)을 감시에 넣었는데 9/29 06:18Z 에도 67~73건이 미정산으로 남았고, 9/29 07:29Z 실행(563e7be1)이 30시간 시한으로 지웠다. 정산이 밀린 원인은 미확정. tcg-watch 에 9/28 종료분이 남아 있지 않아 회수 불가.",
-   "confirmed": "2026-09-30"
+   "reason": "큰 5종이 보수적 최소 62 에 못 미친다 — pokemonjp 54, pokemon 58, magic 52, yugioh 53, onepiece 55. 9/28 01:05Z 스냅샷이 게임당 125건(종료 임박 순)을 감시에 넣었는데 9/29 06:18Z 에도 67~73건이 미정산으로 남았고, 9/29 07:29Z 실행(563e7be1)이 30시간 시한으로 지웠다. 정산이 밀린 원인(2026-10-14 감사): 가드 P1 정지(09-25 12:49Z ~ 09-27 05:36Z)가 풀린 뒤 원피스 정산·검색 백로그 회복이 쿼터를 먼저 써 TCG 정산 몫이 0 인 회차가 이어졌다(아래 'TCG 표본 회수(표본일)' 9/27·9/28 항목). tcg-watch 에 9/28 종료분이 남아 있지 않아 회수 불가.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "TCG 정산 일별",
@@ -126,8 +134,9 @@
     "2026-09-19",
     "2026-09-24"
    ],
-   "reason": "게임 하나씩 보수적 최소에 못 미친다(확인/최소) — 09-09 lorcana 29/62, 09-12 gundam 50/51, 09-19 gundam 44/47, 09-24 gundam 55/60. 원인은 조사하지 않았다. tcg-watch 에 이 날들 종료분이 남아 있지 않아(30시간 시한 지남) 회수 불가.",
-   "confirmed": "2026-09-30"
+   "reason": "게임 하나씩 보수적 최소에 못 미친다(확인/최소) — 09-09 lorcana 29/62, 09-12 gundam 50/51, 09-19 gundam 44/47, 09-24 gundam 55/60. 원인(2026-10-14 감사): 09-09 lorcana 는 표본 시한 초과 소실 — 9/9 표본 125 중 96건의 마감(종료 + 30시간) 9/10 06~08Z 를 못 읽었다(아래 'TCG 표본 회수(표본일)' 9/8·9/9 항목). 09-12·09-19·09-24 gundam 은 소실 0 인 구조 미달 — 그날 종료분 중 당일 표본이 0·0·37건이고 나머지는 전날 표본·표본 밖이었다(표본 시각·종료일 귀속). tcg-watch 에 이 날들 종료분이 남아 있지 않아(30시간 시한 지남) 회수 불가.",
+   "confirmed": "2026-09-30",
+   "corrected": "2026-10-14"
   },
   {
    "series": "CGC 세트 누적",
@@ -277,7 +286,209 @@
    "dates": [
     "2026-10-13"
    ],
-   "reason": "riftbound 49/62 · dragonball 58/62 — 10/13 스냅샷이 03:08 UTC(평소보다 2~3시간 늦음)에 찍혀, 하루 종료가 적은 두 게임(리프트바운드 126·드래곤볼 ~200건/일)은 표본의 대부분이 10/14 종료분으로 넘어갔다. 10/13 종료분 대기 0건(더 올 수 없음). 웹 종료 목록으로는 못 메운다(opbox-tcg-gap-recovery).",
+   "reason": "riftbound 42/62 · dragonball 58/62 — 10/13 스냅샷이 03:08 UTC(평소보다 2~3시간 늦음)에 찍혀, 하루 종료가 적은 두 게임(리프트바운드 126·드래곤볼 ~200건/일)은 표본의 대부분이 10/14 종료분으로 넘어갔다. 10/13 종료분 대기 0건(더 올 수 없음). 웹 종료 목록으로는 못 메운다(opbox-tcg-gap-recovery).",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-23",
+    "2026-09-24",
+    "2026-09-25"
+   ],
+   "reason": "읽음/표본 — 9/23 palworld 34/41 · 9/24 gundam 102/112 · 9/25 weiss 120/125, digimon 37/125, unionarena 81/127, dragonball 106/125. 가드 P1 정지(2026-09-25 12:49Z ~ 09-27 05:36Z, 위 9/26 항목과 같은 사고) 동안 collect-tcg 가 Guard 단계에서 실패해 정산이 돌지 않았고, 재개(09-27 05:47Z) 직후는 창 끝(07:00Z 리셋 전) 잔여가 바닥이었다. 이 날 고른 표본 중 마감(종료 + 30시간)이 09-26 17Z ~ 09-27 07Z 에 지난 것을 못 읽었다(2026-10-14 감사, git 감시 이력 대조). tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-27",
+    "2026-09-28"
+   ],
+   "reason": "읽음/표본 — 9/27 pokemonjp 73/125, pokemon 69/125, magic 73/125, yugioh 72/121, onepiece 73/125, lorcana 96/125, weiss 83/125, digimon 103/125 · 9/28 pokemonjp 54/125, pokemon 58/125, magic 52/125, yugioh 54/125, onepiece 55/125, lorcana 112/125, weiss 101/125, digimon 110/125, riftbound 82/125, unionarena 116/123, dragonball 93/125. P1 정지가 풀린 뒤 9/27~9/28 원피스 정산·검색 백로그 회복이 쿼터를 먼저 써 TCG 정산 몫이 0 인 회차가 이어졌다(9/27 창에서 TCG 정산이 예산을 받은 회차는 07:12Z 한 번 — 2026-10-14 감사). 9/27(07:11Z)·9/28(01:05Z) 표본 중 마감(종료 + 30시간)이 09-28 13Z ~ 09-29 07Z 에 지난 것을 못 읽었고, 9/29 07:29Z 실행이 시한으로 지웠다. tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08"
+   ],
+   "reason": "읽음/표본 — 10/06 riftbound 121/126, gundam 42/57 · 10/07 pokemonjp 117/125, pokemon 117/125, magic 117/125, yugioh 117/125, onepiece 117/125, lorcana 117/125, weiss 117/125, digimon 51/125, riftbound 88/125, unionarena 67/125, dragonball 89/125 · 10/08 dragonball 110/125. 10/7 창은 TCG 정산이 07:43Z 한 번만 예산을 받았고, 10/8·10/9 창은 update-active-listings 가 커밋 단계 실패로 두 번씩 끝까지 돌아 쿼터를 하루 두 몫 소모했다(쿼터 게이트는 잔여 400 만 보고 다른 소비자 몫을 남기지 않았다 — 위 'TCG 정산 일별' 10/7~10/9 항목과 같은 사고, 2026-10-14 감사). 마감(종료 + 30시간)이 10-08 07Z ~ 10-10 02Z 에 지난 표본을 못 읽었다. tcg-watch 에서 시한으로 빠져 회수 불가. 10/06 riftbound 5건(종료 10-06 01:00~01:07Z)은 그날 표본에 들었는데 이미 여유분으로 감시 중이던 매물(data/tcg-archive-seen.json promoted, 2026-10-14 QA 표본 정의 정정)이라 정산 순서가 표본 뒤였고, 마감 10-07 07:00~07:07Z 전 마지막 감시 상태(10-07 01:48Z) 뒤 시한으로 빠졌다.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "공급 시계열",
+   "dates": [
+    "2026-07-21",
+    "2026-07-24",
+    "2026-07-25",
+    "2026-07-26",
+    "2026-07-27",
+    "2026-08-14",
+    "2026-08-24",
+    "2026-08-25",
+    "2026-08-26",
+    "2026-09-08"
+   ],
+   "reason": "공급 시계열 빈 날 17일 중 미등록 10일 — update-active-listings 하루 1회 작업이 통째로 실패한 날이다(GitHub Actions 실행·단계 기록, 2026-10-14 감사). 07-21: 예약 실행(run 29859627867, 19:00Z)이 'Verify scripts' 단계에서 실패했고 다음 성공이 07-22 01:48Z(push)라 UTC 날짜를 넘겨 07-22 점으로 찍혔다(9736dc97d, 같은 날 19:01Z eb293c6d8 이 덮어씀). 07-24·07-25·07-26: 예약 실행(30119627103·30170273871·30215633770)이 'Update eBay active box links' 단계에서 실패 — 07-24 06:38Z eBay Cert ID 회전으로 OAuth 401(3ef62ee38). 07-27: 키를 고친 뒤 실행(30296818063)이 'Verify scripts' 단계의 가드 실행에서 데이터 신선도(T1/P1)로 실패 — 시작 시점 가드 교착, 1778923b5 에서 제거. 다음 성공 07-28 02:16Z. 08-14: 예약 실행(31829501612, 18:37Z)이 'Audit active listing quality' 단계에서 실패(08-13 18:48Z 2a9a8e266 다음 커밋이 08-15 18:14Z dfce647d9). 08-24·08-25: 예약 실행(32761918182·32883160281)이 'Audit active listing quality' 단계에서 실패 — 수집 뒤 매물 감사가 OP-07 일판 0건(시장 사실)을 block 으로 exit 1. 08-26: 예약 실행(33005365851)이 'Verify scripts' 단계에서 실패(audit-seo OP-17 계약). 08-27 01:37Z 로컬 커밋 9d8d2f456 이 복구. 09-08: 실행 두 번(34273914974 dispatch 20:17Z · 34274540383 예약 20:23Z)이 수집 전 'Verify scripts' 단계의 audit-grading-numbers(G7 — TAG 화면 총량 ≠ 최신 관측)로 실패. 진행 매물은 그 시점 목록이라 UTC 날짜가 지나면 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "박스 진행매물 시계열 JP",
+   "dates": [
+    "2026-07-21",
+    "2026-07-24",
+    "2026-07-25",
+    "2026-07-26",
+    "2026-07-27",
+    "2026-08-14",
+    "2026-08-24",
+    "2026-08-25",
+    "2026-08-26",
+    "2026-09-08"
+   ],
+   "reason": "공급 시계열과 같은 작업(update-active-listings)이 박스 진행매물도 같이 수집한다 — update-active-listings 하루 1회 작업이 통째로 실패한 날이다(GitHub Actions 실행·단계 기록, 2026-10-14 감사). 07-21: 예약 실행(run 29859627867, 19:00Z)이 'Verify scripts' 단계에서 실패했고 다음 성공이 07-22 01:48Z(push)라 UTC 날짜를 넘겨 07-22 점으로 찍혔다(9736dc97d, 같은 날 19:01Z eb293c6d8 이 덮어씀). 07-24·07-25·07-26: 예약 실행(30119627103·30170273871·30215633770)이 'Update eBay active box links' 단계에서 실패 — 07-24 06:38Z eBay Cert ID 회전으로 OAuth 401(3ef62ee38). 07-27: 키를 고친 뒤 실행(30296818063)이 'Verify scripts' 단계의 가드 실행에서 데이터 신선도(T1/P1)로 실패 — 시작 시점 가드 교착, 1778923b5 에서 제거. 다음 성공 07-28 02:16Z. 08-14: 예약 실행(31829501612, 18:37Z)이 'Audit active listing quality' 단계에서 실패(08-13 18:48Z 2a9a8e266 다음 커밋이 08-15 18:14Z dfce647d9). 08-24·08-25: 예약 실행(32761918182·32883160281)이 'Audit active listing quality' 단계에서 실패 — 수집 뒤 매물 감사가 OP-07 일판 0건(시장 사실)을 block 으로 exit 1. 08-26: 예약 실행(33005365851)이 'Verify scripts' 단계에서 실패(audit-seo OP-17 계약). 08-27 01:37Z 로컬 커밋 9d8d2f456 이 복구. 09-08: 실행 두 번(34273914974 dispatch 20:17Z · 34274540383 예약 20:23Z)이 수집 전 'Verify scripts' 단계의 audit-grading-numbers(G7 — TAG 화면 총량 ≠ 최신 관측)로 실패. 진행 매물은 그 시점 목록이라 UTC 날짜가 지나면 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "박스 진행매물 시계열 EN",
+   "dates": [
+    "2026-07-21",
+    "2026-07-24",
+    "2026-07-25",
+    "2026-07-26",
+    "2026-07-27",
+    "2026-08-14",
+    "2026-08-24",
+    "2026-08-25",
+    "2026-08-26",
+    "2026-09-08"
+   ],
+   "reason": "공급 시계열과 같은 작업(update-active-listings)이 박스 진행매물도 같이 수집한다 — update-active-listings 하루 1회 작업이 통째로 실패한 날이다(GitHub Actions 실행·단계 기록, 2026-10-14 감사). 07-21: 예약 실행(run 29859627867, 19:00Z)이 'Verify scripts' 단계에서 실패했고 다음 성공이 07-22 01:48Z(push)라 UTC 날짜를 넘겨 07-22 점으로 찍혔다(9736dc97d, 같은 날 19:01Z eb293c6d8 이 덮어씀). 07-24·07-25·07-26: 예약 실행(30119627103·30170273871·30215633770)이 'Update eBay active box links' 단계에서 실패 — 07-24 06:38Z eBay Cert ID 회전으로 OAuth 401(3ef62ee38). 07-27: 키를 고친 뒤 실행(30296818063)이 'Verify scripts' 단계의 가드 실행에서 데이터 신선도(T1/P1)로 실패 — 시작 시점 가드 교착, 1778923b5 에서 제거. 다음 성공 07-28 02:16Z. 08-14: 예약 실행(31829501612, 18:37Z)이 'Audit active listing quality' 단계에서 실패(08-13 18:48Z 2a9a8e266 다음 커밋이 08-15 18:14Z dfce647d9). 08-24·08-25: 예약 실행(32761918182·32883160281)이 'Audit active listing quality' 단계에서 실패 — 수집 뒤 매물 감사가 OP-07 일판 0건(시장 사실)을 block 으로 exit 1. 08-26: 예약 실행(33005365851)이 'Verify scripts' 단계에서 실패(audit-seo OP-17 계약). 08-27 01:37Z 로컬 커밋 9d8d2f456 이 복구. 09-08: 실행 두 번(34273914974 dispatch 20:17Z · 34274540383 예약 20:23Z)이 수집 전 'Verify scripts' 단계의 audit-grading-numbers(G7 — TAG 화면 총량 ≠ 최신 관측)로 실패. 진행 매물은 그 시점 목록이라 UTC 날짜가 지나면 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "공급 시계열",
+   "dates": [
+    "2026-09-26"
+   ],
+   "reason": "9/26 점은 로컬 커밋 6fcce2ac 의 조회 한도 50(.env EBAY_SEARCH_LIMIT) 스냅샷이었다 — 합계 jp 148·en 217 로 앞뒤 날(클라우드 한도 100, jp 215~227·en 328)과 같은 잣대가 아니다(OP-01 jp 12→8→14, en 22→12→21). 같은 이유로 박스 진행매물 9/26 은 이미 공백으로 두었는데 공급에만 남아 있어, 2026-10-14 그 점을 지웠고(data/supply-series.json 과 box-sold-series.json 의 supply 사본) 그 점을 기준으로 계산된 9/27 신규/사라짐(jpNew 85·enNew 130 등)도 null 로 바꿨다. 클라우드 수집은 9/22~9/26 실패(위 9/22~9/25 항목, 9/25 12:49Z 부터는 가드 P1 정지)라 같은 잣대의 9/26 관측은 없다 — 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "원피스 경매 일별",
+   "dates": [
+    "2026-08-22",
+    "2026-08-27",
+    "2026-08-28",
+    "2026-08-29",
+    "2026-08-31",
+    "2026-09-01"
+   ],
+   "reason": "부분수집 — 정산은 감시목록(auction-watch)에 들어간 경매만 읽는데, 당시 시장 스캔의 감시 지평이 7시간이라 스캔 간격이 그보다 벌어지면 그 사이 종료 경매는 ID 가 없다(collect-auction-market 실행 기록, 2026-10-14 감사). 08-22 04~08Z: run 131(02:53Z)이 Collect 단계에서 1초 만에 실패 — eBay 응답 하나만 실패해도 재시도 없이 그 회차를 버린다. 앞 성공 08-21 20:25Z, 다음 08-22 08:29Z. 08-27 06~23Z·08-28 00Z: run 151(08-27 12:23Z)·152(23:37Z)와 정산 실행이 Guard 단계에서 실패 — 가드 T2(packs.json 1174KB 상한 초과, 로컬 커밋 9d8d2f456)·A4(페이지 내비). 앞 성공 08-26 22:46Z, 다음 08-28 01:22Z(run 153). 08-28 16~23Z·08-29 00~10Z: run 153(08-28 01:22Z)·로컬 전수 전환 스캔(470201535, 09:02Z) 뒤 run 154(08-28 21:19Z)·155(08-29 04:05Z)가 Collect 단계에서 1초 만에 실패, 다음 성공 08-29 11:31Z(run 156). 08-31 08Z·16Z: 스캔이 01:16Z·08:28Z·17:57Z(run 164~166)로 간격이 7.2·9.5시간 — 크론 지연으로 지평(7시간)을 넘었다. 09-01 01~06Z: run 167(08-31 23:40Z)이 Collect 단계에서 1초 만에 실패, 앞 성공 17:57Z·다음 09-01 07:35Z. eBay Browse 는 끝난 매물을 검색으로 찾을 수 없어 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "원피스 경매 시장 스캔",
+   "dates": [
+    "2026-08-27"
+   ],
+   "reason": "collect-auction-market run 151(08-27 12:23Z)·152(23:37Z)가 Guard 단계에서 실패 — 가드 T2(packs.json 1174KB 상한 초과, 로컬 커밋 9d8d2f456)·A4(페이지 내비). 08-26 22:46Z(run 150) 다음 성공이 08-28 01:22Z(run 153)라 08-27(UTC) 스캔 점이 없다(2026-10-14 감사). 스캔은 그 시점 진행 중 경매라 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-08-21",
+    "2026-08-23",
+    "2026-09-08"
+   ],
+   "reason": "소실 0 인 구조 미달(표본 시각·종료일 귀속) — 그날 종료분 원장 합계가 보수적 최소에 못 미쳤지만 고른 표본은 시한 안에 다 읽었다(2026-10-14 감사). 08-21 palworld 16/37 · 08-23 gundam 39/40 · 09-08 palworld 23/27 은 그날 종료분 중 당일 표본이 0~1건이었다(표본이 하루를 넘겨 걸침). 저거래 게임은 종료가 UTC 01시에 몰려, 스냅샷 시각에 따라 표본 대부분이 다음 날 종료분으로 넘어간다. 표본에 안 든 그날 종료 경매는 ID 가 없어 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-08-29",
+    "2026-08-30",
+    "2026-09-01"
+   ],
+   "reason": "그날 TCG 시장 스냅샷이 없다(위 'TCG 시장 스냅샷' 8/29·8/30·9/1 항목) — collect-tcg 가 'Snapshot (once a day)' 단계에서 실패해(08-29 05:13Z run 33235648189 · 08-30 03:05Z run 33289464877 · 09-01 03:06Z run 33464993685) 그날 몫 감시 표본이 들어가지 않았다. 확인된 정산은 전날 표본·표본 밖 몇 건뿐이다(예: 08-29 weiss 26 · gundam 55, 09-01 gundam 58 · digimon 50 — 2026-10-14 감사 shortfall). 표본에 안 든 경매는 ID 가 없어 소급 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 정산 일별",
+   "dates": [
+    "2026-09-04",
+    "2026-09-06"
+   ],
+   "reason": "표본 시한(종료 + 30시간) 초과 소실 — 09-04 pokemonjp 215·pokemon 250 표본 전량을 마감(09-05 06Z) 안에 못 읽었고, 09-06 pokemonjp·pokemon 209/250 · lorcana 206/250 · weiss 199/248 이 마감(09-07 13Z ~ 09-08 05Z) 안에 안 읽혔다(git 감시 이력 대조, 2026-10-14 감사). 09-04~09-06 은 여유분 과투입(09-04 큰 게임 여유분 923건씩)과 자가치유 재실행 폭주(30분마다 dispatch)로 창 쿼터가 먼저 바닥났고, 09-07 창은 update-active-listings 가 두 번 돌아(dispatch 20:17Z + 예약 20:51Z, 회당 ~600콜 — 워크플로 gate 주석) TCG 정산이 굶었다. 09-06 gundam 44/62 는 소실 0 인 구조 미달. tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-08-24",
+    "2026-08-25",
+    "2026-08-26",
+    "2026-08-27",
+    "2026-08-28",
+    "2026-08-31"
+   ],
+   "reason": "읽음/표본 — 08-24 palworld 36/37 · 08-25 palworld 29/36 · 08-26 gundam 38/46 · 08-27 riftbound 189/200, unionarena 182/200, dragonball 191/200, palworld 22/23 · 08-28 yugioh 387/396, lorcana 261/298, weiss 257/286, digimon 216/221, gundam 47/55 · 08-31 lorcana 139/200, weiss 112/200, digimon 167/200, riftbound 175/200, unionarena 181/200, dragonball 152/200. 못 읽은 표본의 마감(종료 + 30시간)이 두 구간에 몰린다(git 감시 이력 대조, 2026-10-14 감사): 08-29 09~11Z — collect-tcg 08-29 05:13Z 실행이 'Snapshot (once a day)' 단계에서 실패해 정산까지 못 갔고(run 33235648189) 다음 실행이 11:59Z 였다. 09-01 08~10Z — 09-01 03:06Z 실행이 같은 단계에서 실패(run 33464993685), 다음 실행 10:48Z. 08-25 palworld·08-28 gundam·08-31 은 09-01 구간, 나머지는 08-29 구간. tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-04",
+    "2026-09-05",
+    "2026-09-06"
+   ],
+   "reason": "읽음/표본 — 09-04 pokemonjp 0/245, pokemon 0/250(마감 09-05 06Z) · 09-05 digimon 123/212, riftbound 45/143, unionarena 91/173, dragonball 232/250 · 09-06 pokemonjp 41/250, pokemon 41/250, magic 134/250, yugioh 106/250, onepiece 103/250, lorcana 44/250, weiss 49/248, digimon 87/120, dragonball 86/193(09-05·09-06 마감 09-07 13Z ~ 09-08 07Z). 09-04~09-06 은 여유분 과투입과 자가치유 재실행 폭주로 창 쿼터가 먼저 바닥났고, 09-07 창은 update-active-listings 가 두 번 돌아(dispatch 20:17Z + 예약 20:51Z) TCG 정산 몫이 0 이었다(위 'TCG 정산 일별' 9/4·9/6 항목과 같은 사고, 2026-10-14 감사). tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-08",
+    "2026-09-09"
+   ],
+   "reason": "읽음/표본 — 09-08 lorcana 200/240(마감 09-10 04~06Z) · 09-09 pokemonjp 73/125, pokemon 75/125, magic 69/125, yugioh 70/125, onepiece 67/125, lorcana 29/125, weiss 46/105(마감 09-10 06~11Z). 09-09 창(09-09 07:00Z ~ 09-10 07:00Z)에서 정산 예산이 진행매물 갱신 몫(active)을 밤새 남겨 둔 채 TCG 정산 몫이 바닥났다(2026-10-14 감사). tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-13"
+   ],
+   "reason": "읽음/표본 — pokemonjp 119/125, pokemon 120/125, magic 124/125, yugioh 121/125, onepiece 120/125, lorcana 118/125(6게임 28건 미회수 — 2026-10-14 QA 재판정: 같은 실행에서 바로 읽힌 표본을 분모에도 더하자 pokemon 이 120/116 통과에서 120/125 미달로 바뀌었다). 못 읽은 표본의 마감(종료 + 30시간)이 09-14 06~07Z, 쿼터 리셋(07:00Z) 직전이었고 그 사이 collect-tcg 실행(03:17Z·05:47Z·06:17Z·06:47Z)이 그 창의 남은 TCG 정산 몫으로 다 읽지 못했다(git 감시 이력 대조, 2026-10-14 감사). tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-21"
+   ],
+   "reason": "읽음/표본 — digimon 112/125, riftbound 103/125, dragonball 110/125(50건 미회수). 2026-10-14 QA 로 표본 정의를 고치며 드러났다 — 9/21 스냅샷 표본 중 이미 여유분(extra)으로 감시 중이던 매물이 여유분으로 남아(data/tcg-archive-seen.json promoted) 정산 순서가 표본 뒤였고(settle-tcg: 표본 먼저·여유분 뒤), 못 읽은 50건(종료 09-21 00:27~01:55Z)은 마감(종료 + 30시간) 09-22 06:27~07:55Z 직전 09-22 06:40Z 감시 상태를 마지막으로 시한으로 빠졌다(git 감시 이력 대조). 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "TCG 표본 회수(표본일)",
+   "dates": [
+    "2026-09-22"
+   ],
+   "reason": "읽음/표본 — palworld 4/18. 못 읽은 14건의 마감(종료 + 30시간)이 09-27 01~05Z 로, 가드 P1 정지(09-25 12:49Z ~ 09-27 05:36Z, 위 9/26 항목) 안이었다 — collect-tcg 가 Guard 단계에서 실패해 정산이 돌지 않았다(git 감시 이력 대조, 2026-10-14 감사). tcg-watch 에서 시한으로 빠져 회수 불가.",
+   "confirmed": "2026-10-14"
+  },
+  {
+   "series": "공급 시계열",
+   "dates": [
+    "2026-08-27"
+   ],
+   "reason": "8/27 점은 CI 가 8/24~8/26 실패한 뒤 로컬 커밋 9d8d2f456 이 로컬 .env 로 대신 돌린 스냅샷이다 — 로컬 조회 한도 50(가드 D14 주석: 로컬 보충분 8/27·9/18·9/22·9/23·9/26 은 매물을 절반만 봤다)이라 합계 jp 134·en 238 로 앞뒤 날(클라우드 한도 100 — 8/23 jp 222·en 329, 8/28 jp 217·en 359)과 같은 잣대가 아니다(OP-01 jp 20→11→14, en 21→11→25). 2026-10-14 9/26 과 같은 처리로 그 점을 지웠고(data/supply-series.json 과 box-sold-series.json 의 supply 사본) 그 점을 기준으로 계산된 8/28 신규/사라짐도 null 로 바꿨다. 8/27(UTC)엔 클라우드 실행이 없었다(8/26 19:28Z 실패 다음 8/28 01:49Z) — 같은 잣대의 관측이 없어 소급 불가.",
    "confirmed": "2026-10-14"
   }
  ]

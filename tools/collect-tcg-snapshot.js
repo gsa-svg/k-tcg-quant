@@ -19,7 +19,7 @@
 // Run: node tools/collect-tcg-snapshot.js
 const fs = require("node:fs");
 const path = require("node:path");
-const { TCGS, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN } = require("./tcg-config");
+const { TCGS, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN, TCG_SNAPSHOT_PAGES, TCG_SNAPSHOT_CALLS, TCG_SNAPSHOT_RESERVE } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
 const OUT = path.join(ROOT, "data", "tcg-snapshot.json");
@@ -30,7 +30,7 @@ const WATCH = path.join(ROOT, "data", "tcg-watch.json");
 // ⚠️ eBay Browse API 는 한 호출에 limit 200 이 상한이라 5장을 이어 받는다(PAGE_SIZE × PAGES).
 //    offset 은 9,999 까지라 이 방식으로도 한 검색당 최대 1만 건이다. 전수 조사는 불가능하다.
 const PAGE_SIZE = 200;
-const PAGES = 5;
+const PAGES = TCG_SNAPSHOT_PAGES;   // 5 — 호출 수 계산(TCG_SNAPSHOT_CALLS)과 같은 값을 tcg-config 한 곳에서
 const SAMPLE = PAGE_SIZE * PAGES;
 const KEEP_DAYS = 730;
 // 정산(낙찰 여부·낙찰가)까지 볼 표본. 게임당 이만큼만 감시 목록에 넣는다.
@@ -54,7 +54,7 @@ const KEEP_DAYS = 730;
 // 하한 125 = 연속성 점검(collection-continuity)의 보수적 최소. 잔여를 못 읽으면 하한을 쓴다.
 const WATCH_PER_GAME_MAX = TCG_WATCH_PER_GAME;
 const WATCH_PER_GAME_MIN = TCG_WATCH_PER_GAME_MIN;   // 하한은 tcg-config 한 곳에서 관리(연속성 점검과 공유)
-const SNAPSHOT_CALLS = TCGS.length * (PAGES + 3);   // 게임당: 총계 1 + 24시간 1 + 즉시구매 1 + 표본 PAGES
+const SNAPSHOT_CALLS = TCG_SNAPSHOT_CALLS;   // 게임당: 총계 1 + 24시간 1 + 즉시구매 1 + 표본 PAGES
 function watchPerGameFor(usableCalls) {
   if (!Number.isFinite(usableCalls)) return WATCH_PER_GAME_MIN;
   const forSettle = Math.max(0, usableCalls - SNAPSHOT_CALLS) * 0.9;   // 10% 는 사라진 매물·재시도 여유
@@ -119,22 +119,35 @@ const median = (a) => {
   return Math.round(s[Math.floor(s.length / 2)] * 100) / 100;
 };
 
-const { remaining, settleBudget } = require("./ebay-budget");
+const { quota, nextReset, settleBudget, RESERVE_KEYS } = require("./ebay-budget");
 
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("eBay 자격증명 없음");
 
-  // 쿼터가 스냅샷 몫(17게임 × 5페이지 ≈ 340콜)에 못 미치면 조용히 건너뛴다(exit 0).
+  // 쿼터가 스냅샷 몫(실제 호출 TCG_SNAPSHOT_CALLS + 여유 20)에 못 미치면 조용히 건너뛴다(exit 0).
   // 워크플로에 quota gate 를 두지 않는 대신 여기서 판단한다 — 죽지 않고 다음 실행에 맡긴다.
   // 스냅샷은 하루 한 점이라 그날 한 번만 성공하면 되고, 실패로 죽으면 부분수집만 늘어난다.
-  const left = await remaining();
-  if (left != null && left < 400) {
-    console.log(JSON.stringify({ skipped: true, reason: "쿼터 부족", remaining: left }));
+  // 2026-10-14: 종전 기준 400(17게임 시절 값)은 실제 필요(104)의 4배라 잔여 200~400 인 날 00~07 UTC 실행이 전부
+  // 건너뛰고 07:18 에 찍혔다(9/5~9/8·10/8~10/10). TCG 쪽 소비자는 이 몫을 남긴다(ebay-budget reserveFor "tcgSnapshot").
+  const q = await quota();
+  const left = q.remaining;
+  if (left != null && left < TCG_SNAPSHOT_RESERVE) {
+    const today = new Date().toISOString().slice(0, 10);
+    const prevSnap = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : null;
+    // 오늘 점이 아직 없으면 건너뜀 도장을 감시 파일에 남긴다 — 2026-10-14 QA. 자가치유가 이걸 보고 쿼터 리셋 전까지는
+    // 오늘 스냅샷을 이유로 다시 쏘지 않고(그 사이 잔여는 늘지 않는다 — 00:17~07:00 하트비트마다 빈 실행 ~14회),
+    // 경고도 하루 한 번만 낸다(self-heal-policy). 점이 찍히면 도장은 지운다(아래 감시 파일 쓰기).
+    if (!(prevSnap?.points || []).some((p) => p.d === today)) {
+      const w = fs.existsSync(WATCH) ? JSON.parse(fs.readFileSync(WATCH, "utf8")) : { pending: [] };
+      w.snapshotSkip = { d: today, at: new Date().toISOString(), reason: "quota", remaining: left, need: TCG_SNAPSHOT_RESERVE, reset: new Date(q.reset ?? nextReset()).toISOString() };
+      fs.writeFileSync(WATCH, `${JSON.stringify(w)}\n`, "utf8");
+    }
+    console.log(JSON.stringify({ skipped: true, reason: "쿼터 부족", remaining: left, need: TCG_SNAPSHOT_RESERVE }));
     return;
   }
 
   // 이번 창의 TCG 몫(원피스 정산·검색·안전을 뺀 가용 콜) → 게임당 감시 표본 크기
-  const tcgBudget = await settleBudget({ reserveFor: ["auction", "search", "safety", "active"], share: 1, min: 0, max: 1e9 });
+  const tcgBudget = await settleBudget({ reserveFor: RESERVE_KEYS.TCG_SNAPSHOT_SIZE, share: 1, min: 0, max: 1e9 });
   const WATCH_PER_GAME = watchPerGameFor(tcgBudget.left == null ? null : tcgBudget.n);
   console.log(JSON.stringify({ watchPerGame: WATCH_PER_GAME, tcgUsable: tcgBudget.left == null ? null : tcgBudget.n, note: tcgBudget.note }));
 
@@ -226,6 +239,30 @@ const { remaining, settleBudget } = require("./ebay-budget");
   }
   if (!watchAdd.length) throw new Error("감시 목록에 넣을 매물을 하나도 못 받았다");
 
+  // 감시 목록 — 이미 들어 있는 id 는 새로 넣지 않는다(중복 정산 방지).
+  const prevWatch = fs.existsSync(WATCH) ? JSON.parse(fs.readFileSync(WATCH, "utf8")) : { pending: [] };
+  const byId = new Map(prevWatch.pending.map((p) => [p.id, p]));
+  const fresh = watchAdd.filter((p) => !byId.has(p.id));
+  // 표본 승격 — 2026-10-14 QA. 표본에 든 매물이 이미 여유분(extra)으로 감시 중이면 그 항목을 오늘 표본으로 바꾼다(extra 를 빼고
+  // seen = 오늘, 게임 = 표본을 고른 게임). 종전엔 여유분으로 남아 표본의 가장 먼저 끝나는 앞부분이 표본 낙찰률·tcg-series·ai-data
+  // 에서 빠졌다(10/12 unionarena 표본 126건 중 79건, digimon 58건). 바꾸는 것은 감시 파일이고 원장은 그대로다 — 정산이 이 항목을
+  // 읽을 때 표본 행으로 적힌다. 전날 표본(extra 아님)은 그날 표본으로 남긴다. 그 전 날은 data/tcg-archive-seen.json promoted.
+  const promoted = [];
+  for (const p of watchAdd) {
+    const had = byId.get(p.id);
+    if (!had || !had.extra) continue;
+    delete had.extra;
+    had.seen = p.seen;
+    had.g = p.g;
+    promoted.push(p);
+  }
+  // watched = 그날 표본으로 감시에 넣은 수(게임별, 새로 넣은 것 + 여유분에서 승격한 것) — 2026-10-14. "그날 표본 중 몇 건을
+  // 종료 후 읽었나"(표본일 기준 회수율, audit-series-gaps)의 분모다. 이미 감시 중이던 전날 표본은 그날 표본으로 남으므로 세지 않는다.
+  // 그 전 날의 분모는 git 감시 이력에서 복원했다(data/tcg-archive-seen.json sampled, tools/build-tcg-archive-seen.js).
+  const watchedBy = {};
+  for (const p of fresh.concat(promoted)) watchedBy[p.g] = (watchedBy[p.g] || 0) + 1;
+  for (const g of games) g.watched = watchedBy[g.k] || 0;
+
   const prev = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, "utf8")) : { points: [] };
   // 하루 한 줄. 같은 날 다시 돌면 덮어쓴다(하루가 지나면 다시 쓰지 않는다).
   // at = 이 점을 찍은 시각(UTC) — 2026-10-13 추가. 감시 표본이 "이 시각 직후 끝나는 경매"라 낙찰률이 시각을 탄다
@@ -236,7 +273,7 @@ const { remaining, settleBudget } = require("./ebay-budget");
 
   fs.writeFileSync(OUT, `${JSON.stringify({
     basis: "Live eBay auction listings by trading card game, sampled once a day",
-    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 1,000 listings ending soonest (every game is sampled the same way): withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. at is when that day's point was taken (UTC); the settled sample is the auctions ending soonest at that moment, so it depends on the hour. Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms of use: https://opboxindex.com/free-data.html#terms",
+    note: "live is how many auction listings, and liveFixed how many fixed-price listings, eBay reports for that game's search term right now -- a snapshot, not a period total. The rest comes from a sample of up to 1,000 listings ending soonest (every game is sampled the same way): withBids counts how many already have a bid, medBid is the median current bid, and bidSum adds those bids up. Current bids are not winning bids -- auctions move in their final minutes -- so bidSum is a floor for turnover, never the turnover itself. Search terms can overlap -- a Japanese Pokemon card matches both Pokemon queries -- so each listing is claimed by the first game in order and never counted twice in the settled sample. The live and liveFixed counts come straight from eBay and cannot be split that way, so Pokemon (Japanese) is contained inside Pokemon there: never add those two together. at is when that day's point was taken (UTC); the settled sample is the auctions ending soonest at that moment, so it depends on the hour. watched is how many of that sample went on the settlement watch list as that day's sample -- newly added, plus listings already being read as leftover-quota extras, which are switched to the sample (listings already in an earlier day's sample stay with that day). Games are comparable to each other because every game is measured the same way, but none of these numbers is the size of that game's market: eBay auctions are only one channel, and fixed-price sales are excluded. Terms of use: https://opboxindex.com/free-data.html#terms",
     marketplace: marketplaceId,
     sampleSize: SAMPLE,
     terms: Object.fromEntries(TCGS.map((g, i) => [g.k, { name: g.nm, query: g.q, order: i }])),
@@ -244,10 +281,6 @@ const { remaining, settleBudget } = require("./ebay-budget");
     points: points.filter((p) => p.d >= cut),
   })}\n`, "utf8");
 
-  // 감시 목록 — 이미 들어 있는 id 는 건드리지 않는다(중복 정산 방지).
-  const prevWatch = fs.existsSync(WATCH) ? JSON.parse(fs.readFileSync(WATCH, "utf8")) : { pending: [] };
-  const have = new Set(prevWatch.pending.map((p) => p.id));
-  const fresh = watchAdd.filter((p) => !have.has(p.id));
   // 종료 후 30시간이 지나도 못 읽은 건 버린다 — 추측값을 채우느니 비워 둔다.
   const cutoff = Date.now() - 30 * 3600 * 1000;
   const pending = prevWatch.pending
@@ -255,8 +288,10 @@ const { remaining, settleBudget } = require("./ebay-budget");
     .concat(fresh);
   // checkedAt(정산이 돈 시각) 같은 다른 키는 보존한다 — 자가치유가 "이번 창에 정산이 있었나"를 이걸로 본다.
   // 2026-09-04: 날짜가 바뀐 첫 스냅샷이 파일을 통째로 다시 써서 도장을 지웠고, 자가치유가 헛경고를 냈다.
+  // 쿼터 부족 건너뜀 도장(snapshotSkip)만은 지운다 — 점이 찍혔으니 끝난 일이다.
+  const { snapshotSkip: _done, ...keepWatch } = prevWatch;
   fs.writeFileSync(WATCH, `${JSON.stringify({
-    ...prevWatch,
+    ...keepWatch,
     note: "Auctions we are waiting to settle, one row per listing. settle-tcg.js re-reads each after it ends and writes the outcome to data/tcg-archive. Entries older than 30 hours past their end time are dropped rather than guessed at.",
     updated: new Date().toISOString(),
     pending,
@@ -264,7 +299,7 @@ const { remaining, settleBudget } = require("./ebay-budget");
 
   console.log(JSON.stringify({
     status: "ok", day, games: games.length,
-    watchAdded: fresh.length, watchPending: pending.length, watchPerGame: WATCH_PER_GAME,
+    watchAdded: fresh.length, watchPromoted: promoted.length, watchPending: pending.length, watchPerGame: WATCH_PER_GAME,
     rows: games.map((g) => `${g.k} auc=${g.live} fix=${g.liveFixed} bid=${g.bidRate}% med=${g.medBid}`),
   }, null, 1));
 })().catch((e) => { console.error(String(e.message || e)); process.exit(1); });

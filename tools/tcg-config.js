@@ -18,7 +18,8 @@ const TCGS = Object.freeze([
 
 const TCG_KEYS = Object.freeze(TCGS.map((game) => game.k));
 const EXCLUDED_TCG_KEYS = Object.freeze(["swu", "vanguard", "metazoo", "fab"]);
-// eBay 쿼터 창은 07:00 UTC 에 리셋된다(실측 2026-09-03). 07 회차가 창의 첫 실행 = 스냅샷 + 정산.
+// eBay 쿼터 창은 07:00 UTC 에 리셋된다(실측 2026-09-03). 07 회차는 창의 첫 정산이다.
+// 스냅샷은 UTC 날짜가 바뀐 뒤 첫 실행이 찍는다 — 자가치유가 00:15 UTC 이후 오늘 점이 없으면 바로 쏜다(하트비트 00:17 → 00:18, 2026-10-14).
 // 06(06:45) 은 창 마지막 회차 — 남은 쿼터를 남김 없이 쓴다(전 게임 여유분).
 const TCG_SCHEDULE_UTC = Object.freeze([1, 4, 6, 7, 10, 13, 16, 19, 22]);
 // 게임당 감시(정산 대상) 표본. 스냅샷은 남은 쿼터에 맞춰 MIN~MAX 사이에서 고른다(collect-tcg-snapshot.js).
@@ -26,6 +27,14 @@ const TCG_SCHEDULE_UTC = Object.freeze([1, 4, 6, 7, 10, 13, 16, 19, 22]);
 // 기준으로 하면 표본이 하한(125)인 날 1건만 못 읽어도 빨간불이 난다(2026-09-07 실제: 124/125 로 FAIL).
 const TCG_WATCH_PER_GAME = 250;       // 상한
 const TCG_WATCH_PER_GAME_MIN = 125;   // 하한
+
+// 스냅샷 한 번의 실제 eBay 호출 수 — 게임당 진행 총계 1 + 즉시구매 1 + 24시간 종료 1 + 표본 페이지 5(200건씩).
+// 쿼터 몫(ebay-budget reserveFor "tcgSnapshot")과 스냅샷 자신의 잔여 확인(collect-tcg-snapshot)이 같은 값을 쓴다 — 2026-10-14.
+// 종전 스냅샷은 잔여 400 미만이면 건너뛰었는데(실제 필요 104) 아무도 그 몫을 남기지 않아, 9/5~9/8·10/8~10/10 의
+// 00~07 UTC 실행이 전부 건너뛰고 쿼터 리셋 뒤 07:18 에 찍혔다(표준 시각 밖 — 그날 표본 낙찰률이 낮게 나온다).
+const TCG_SNAPSHOT_PAGES = 5;
+const TCG_SNAPSHOT_CALLS = TCGS.length * (TCG_SNAPSHOT_PAGES + 3);
+const TCG_SNAPSHOT_RESERVE = TCG_SNAPSHOT_CALLS + 20;   // 여유 20(재시도·검색어 겹침 없음 — 계산 오차 몫)
 
 // 표준 스냅샷 시각(UTC 시, from 포함 · to 미포함) — 2026-10-13 신설.
 // 스냅샷은 그 UTC 날짜의 첫 실행에서 "종료 임박 순" 표본(게임당 최대 250)을 감시 목록에 넣는다(seen = 그날).
@@ -50,4 +59,4 @@ function tcgOffHour(at) {
   return h < TCG_SNAPSHOT_STD_HOURS.from || h >= TCG_SNAPSHOT_STD_HOURS.to;
 }
 
-module.exports = { TCGS, TCG_KEYS, EXCLUDED_TCG_KEYS, TCG_SCHEDULE_UTC, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN, TCG_SNAPSHOT_STD_HOURS, tcgOffHour };
+module.exports = { TCGS, TCG_KEYS, EXCLUDED_TCG_KEYS, TCG_SCHEDULE_UTC, TCG_WATCH_PER_GAME, TCG_WATCH_PER_GAME_MIN, TCG_SNAPSHOT_PAGES, TCG_SNAPSHOT_CALLS, TCG_SNAPSHOT_RESERVE, TCG_SNAPSHOT_STD_HOURS, tcgOffHour };

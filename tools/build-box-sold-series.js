@@ -191,6 +191,29 @@ function dailyFor(records, wave) {
   return rows.slice(cut);
 }
 
+// 판매일별 건수 — 2026-10-14. 그래프 아래 거래량 막대(달력 주·달·일)의 유일한 원천.
+// 종전엔 막대가 가격 점(롤링 격자)의 vol 이라 점이 빠진 주는 막대도 통째로 빠졌다(빈 칸 = 0건인지 미집계인지 구분 불가).
+// 여기서는 원장의 즉시구매 실거래를 판매일마다 그대로 센다. 0건인 날은 키가 없을 뿐이고, 화면은 through(원장 갱신일)까지를
+// 집계된 기간으로 보고 그 안의 빈 날을 0건으로 그린다 — 0은 원장에 판매가 없다는 사실값이지 추정이 아니다.
+// 범위는 그래프가 그리는 구간(주간·월간·일간 첫 점 중 가장 이른 날의 7일 전)부터만 싣는다.
+function countsFor(records, wave, fromD) {
+  const out = {};
+  for (const r of records || []) {
+    if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
+    if (BIN_ONLY && r.fmt !== "bin") continue;
+    if (wave === "blue" && !isFirstPrint(r)) continue;
+    if (wave === "white" && isFirstPrint(r)) continue;
+    if (fromD && r.d < fromD) continue;
+    out[r.d] = (out[r.d] || 0) + 1;
+  }
+  return Object.fromEntries(Object.keys(out).sort().map((d) => [d, out[d]]));
+}
+// 그 판의 그래프가 시작하는 날(가장 이른 첫 점)의 7일 전. 그릴 점이 하나도 없으면 null(건수도 싣지 않는다).
+function countsFrom(...arrs) {
+  const firsts = arrs.map((a) => (a && a.length ? a[0].d : null)).filter(Boolean).sort();
+  return firsts.length ? iso(Date.parse(firsts[0]) - 7 * DAY) : null;
+}
+
 // 진행 중 매물 수(공급)는 tools/update-supply-series.js 가 매일 쌓는다.
 // 가격과 함께 한 파일로 실어 보낸다 — 화면이 요청을 두 번 하지 않게. 원본(347KB)에서
 // 날짜와 jp/en 매물 수만 뽑는다. 나머지 필드(신규·이탈·판매자 구성)는 이 그래프가 안 쓴다.
@@ -262,12 +285,20 @@ for (const [code, eds] of Object.entries(ledger.sets || {})) {
   if (!jp.points.length && !en.points.length) continue;
   const mJp = monthlyFor(eds.jp), mEn = monthlyFor(eds.en, "white"), mEnBlue = monthlyFor(eds.en, "blue");
   const dJp = dailyFor(eds.jp), dEn = dailyFor(eds.en, "white"), dEnBlue = dailyFor(eds.en, "blue");
+  const fJp = countsFrom(jp.points, mJp, dJp), fEn = countsFrom(en.points, mEn, dEn), fBlue = countsFrom(enBlue.points, mEnBlue, dEnBlue);
   sets[code] = {
     // 기존 키(jp/en)는 그대로 둔다 — 주간이 기본 보기이고, 이 키를 읽는 곳이 여럿이다.
     jp: jp.points, en: en.points, enBlue: enBlue.points,
     windowDays: { jp: jp.windowDays, en: en.windowDays, enBlue: enBlue.windowDays },
     monthly: { jp: mJp, en: mEn, enBlue: mEnBlue },
     daily: { jp: dJp, en: dEn, enBlue: dEnBlue },
+    // 판매일별 즉시구매 건수(거래량 막대 원천). through = 원장 갱신일 — 그 뒤는 아직 안 센 날이라 0 으로 그리지 않는다.
+    counts: {
+      through: ledger.updated || today,
+      ...(fJp ? { jp: countsFor(eds.jp, null, fJp) } : {}),
+      ...(fEn ? { en: countsFor(eds.en, "white", fEn) } : {}),
+      ...(fBlue ? { enBlue: countsFor(eds.en, "blue", fBlue) } : {}),
+    },
     supply: supplyFor(code),
     reprintPct: { jp: reprintShare(eds.jp), en: reprintShare(eds.en) },
     firstPrint: { jp: firstPrintSpot(eds.jp), en: firstPrintSpot(eds.en) },

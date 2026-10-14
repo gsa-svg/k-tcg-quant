@@ -10,6 +10,11 @@
 // ── 쓰는 법
 //   node tools/check-ebay-quota.js            남은 콜을 출력
 //   node tools/check-ebay-quota.js --min 300  남은 콜이 그 아래면 exit 1 (워크플로에서 게이트로)
+//   node tools/check-ebay-quota.js --min 400 --reserve tcgSnapshot
+//        다른 소비자 몫(tools/ebay-budget.js reserveFor 키, 쉼표로 여럿)을 더해 문턱을 올린다 — 2026-10-14.
+//        창 끝 잔여가 모자란 날 00:18 TCG 스냅샷이 리셋 뒤 07:18 로 밀렸다(9/5~9/8·10/8~10/10). 진행 매물 갱신
+//        (update-active-listings)은 한 번에 ~700콜을 쓰면서 문턱 400 만 보고 그 몫을 남기지 않았다.
+//        그 몫이 아직 필요할 때만 더한다(그날 점이 생기면 0).
 //
 // 워크플로 앞에 두면, 한도가 바닥일 때 수집을 시작해 실패로 원장을 더럽히는 대신
 // 그 회차를 건너뛴다. 감시목록은 그대로 남아 다음 회차에 재시도된다.
@@ -17,6 +22,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
+const { reserveFor, nextReset } = require("./ebay-budget");
 
 function loadEnv(p) {
   if (!fs.existsSync(p)) return {};
@@ -28,6 +34,8 @@ const env = { ...loadEnv(path.join(ROOT, ".env")), ...process.env };
 
 const minIdx = process.argv.indexOf("--min");
 const MIN = minIdx > -1 ? Number(process.argv[minIdx + 1]) || 0 : 0;
+const reserveIdx = process.argv.indexOf("--reserve");
+const RESERVE_KEYS = reserveIdx > -1 ? String(process.argv[reserveIdx + 1] || "").split(",").map((k) => k.trim()).filter(Boolean) : [];
 
 (async () => {
   if (!env.EBAY_CLIENT_ID || !env.EBAY_CLIENT_SECRET) throw new Error("eBay 자격증명 없음");
@@ -55,11 +63,15 @@ const MIN = minIdx > -1 ? Number(process.argv[minIdx + 1]) || 0 : 0;
     }
   }
   const browse = out.find((x) => x.name === "buy.browse") || out[0];
-  const report = { checked: new Date().toISOString(), resources: out, remaining: browse ? browse.remaining : null, limit: browse ? browse.limit : null };
+  const now = Date.now();
+  const resetMs = Date.parse(browse?.reset || "");
+  const keep = Object.fromEntries(RESERVE_KEYS.map((k) => [k, reserveFor(k, now, Number.isFinite(resetMs) ? resetMs : nextReset(now))]));
+  const need = MIN + Object.values(keep).reduce((a, b) => a + b, 0);
+  const report = { checked: new Date().toISOString(), resources: out, remaining: browse ? browse.remaining : null, limit: browse ? browse.limit : null, ...(RESERVE_KEYS.length ? { min: MIN, reserve: keep, need } : {}) };
   console.log(JSON.stringify(report, null, 1));
 
-  if (MIN && browse && browse.remaining < MIN) {
-    console.error(`남은 호출 ${browse.remaining} < 요구 ${MIN} — 이 회차는 건너뛴다(한도 리셋 ${browse.reset}).`);
+  if (need && browse && browse.remaining < need) {
+    console.error(`남은 호출 ${browse.remaining} < 요구 ${need}(최소 ${MIN}${RESERVE_KEYS.length ? ` + 남길 몫 ${JSON.stringify(keep)}` : ""}) — 이 회차는 건너뛴다(한도 리셋 ${browse.reset}).`);
     process.exit(1);
   }
 })();

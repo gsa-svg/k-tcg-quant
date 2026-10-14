@@ -36,6 +36,77 @@
   // [주간|월간] 탭까지 사라진다 — 다른 세트엔 있는 탭이 여기만 없으면 고장으로 읽힌다.
   const MIN_POINTS_MONTH = 2;
 
+  // ── 거래량 막대는 가격 점이 아니라 **달력 칸**마다 그린다(2026-10-14 소유자 "누락 구간 없어야").
+  //    종전엔 막대가 가격 점(롤링 격자)에 붙어 있어 점이 빠진 주는 막대도 빠졌고, 0건 주와 미집계가 구분되지 않았다.
+  //    원천은 series.counts(판매일별 즉시구매 건수, tools/build-box-sold-series.js) 하나 — 0건 칸은 원장에 판매가 없다는 사실값이다.
+  const DAY = 86400000;
+  const iso = (t) => new Date(t).toISOString().slice(0, 10);
+  const mondayOf = (t) => t - ((new Date(t).getUTCDay() + 6) % 7) * DAY;   // 원장 날짜는 UTC 판매일
+  const monthOf = (t) => { const d = new Date(t); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1); };
+  const nextMonth = (t) => { const d = new Date(t); return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1); };
+  const monthNo = (t) => { const d = new Date(t); return d.getUTCFullYear() * 12 + d.getUTCMonth(); };
+  // 완료된 주의 판매 중앙값이 이 미만인 계열(주로 일본판)은 주 막대가 0·1·2 로 출렁여 읽을 수 없다(변동계수 61%).
+  // 겹치지 않는 4주 묶음으로 센다(28%, 빈 막대 0 — 2026-10-14 실측). 묶음 라벨은 날짜 범위다.
+  // 기준은 빗금 기준(주간 점의 최소 표본 6건 — gapN)과 같다 — 2026-10-14 QA: 3 으로는 주 3~4건 계열(OP-02 영문 0~7건,
+  // OP-16 일본판 1~8건)이 빠져 이웃 막대가 최대 13.6배로 출렁였다. 집계 단위를 키우는 것이라 값을 만들지 않는다.
+  const THIN_WEEK = 6;
+  // 일간 점(하루 3건 이상)이 있는 날이 그 구간(첫 점 ~ 원장 집계일)의 절반 미만이면 일간 선은 조각뿐이다 — 2026-10-14 QA:
+  // OP-05 영문 18점/128일 = 홀로 남은 점 16개. 그런 판은 일간 패널 대신 안내 카드를 낸다(일본판이 이미 쓰던 "하루 3건 넘는 날이 드물다").
+  const DAY_COVER_MIN = 0.5;
+  function dailySparse(pts, endMs) {
+    if (pts.length < MIN_POINTS) return true;
+    const t0 = Date.parse(pts[0].d);
+    const tEnd = Math.max(Date.parse(pts[pts.length - 1].d), Number.isFinite(endMs) ? endMs : 0);
+    return pts.length / (Math.round((tEnd - t0) / DAY) + 1) < DAY_COVER_MIN;
+  }
+  // SVG 글자 폭 어림(사용자 단위) — 라벨이 겹치거나 칸 밖으로 잘리지 않는지 미리 잰다. 한글은 1em, 공백 0.3em, 나머지 0.6em.
+  // 글자 크기는 패널 폭에 따라 11~38 단위로 바뀐다(CSS @container) — 호출부가 가장 큰 경우를 넘긴다.
+  const textW = (s, fs) => [...String(s)].reduce((w, c) => w + (/[가-힣]/.test(c) ? 1 : c === " " ? 0.3 : 0.6), 0) * fs;
+  const AX_FS_MAX = 38;      // .opbcAx 가 가장 커지는 경우(@container ≤280px)
+  const STALE_FS_MAX = 18;   // .opbcStaleTx/.opbcStaleSub 가 보이는 가장 큰 경우(@container ≤560px, ≤440px 에선 숨김)
+  // 판매형식(즉시구매·경매) 기록을 시작한 날 — tools/build-box-sold-series.js BIN_ONLY 주석.
+  // 그 전 판매는 나중에 즉시구매 목록에 다시 보인 것만 남았다. 구간을 숨기지 않고 경계선 라벨만 둔다.
+  const FMT_SINCE = "2026-08-13";
+
+  // 막대 칸 목록. tStart 가 든 칸부터 asOf(원장 집계일)가 든 칸까지 빠짐없이 — 0건 칸도 칸이다.
+  // asOf 당일은 수집 뒤에도 판매가 이어지므로 끝난 날이 아니다 → asOf 가 든 칸은 진행 중(part)이고, 센 기간만큼만 그린다.
+  function volBuckets(grain, tStart, asOf, counts) {
+    if (!counts || !(asOf >= tStart)) return { list: [], bundled: false };
+    const cnt = Object.keys(counts).map((d) => [Date.parse(d), Number(counts[d]) || 0]);
+    const sum = (a, b) => { let s = 0; for (const [t, n] of cnt) if (t >= a && t < b) s += n; return s; };
+    const end = asOf + DAY;
+    const step = grain === "day" ? (t) => t + DAY : grain === "month" ? nextMonth : (t) => t + 7 * DAY;
+    const list = [];
+    for (let s = grain === "day" ? tStart : grain === "month" ? monthOf(tStart) : mondayOf(tStart); s < end; s = step(s)) {
+      const e = step(s);
+      list.push({ s, e: Math.min(e, end), n: sum(s, Math.min(e, end)), part: e > asOf });
+    }
+    if (grain !== "week") return { list, bundled: false };
+    const full = list.filter((b) => !b.part).map((b) => b.n).sort((a, b) => a - b);
+    const k = full.length;
+    const med = k ? (k % 2 ? full[(k - 1) / 2] : (full[k / 2 - 1] + full[k / 2]) / 2) : null;
+    if (med == null || med >= THIN_WEEK) return { list, bundled: false };
+    const out = [];
+    for (let i = 0; i < list.length; i += 4) {
+      const g = list.slice(i, i + 4);
+      out.push({ s: g[0].s, e: g[g.length - 1].e, n: g.reduce((a, b) => a + b.n, 0), part: g.length < 4 || g.some((b) => b.part) });
+    }
+    return { list: out, bundled: true };
+  }
+
+  // 등락 — 탭(일·주·월)과 무관하게 하나. 마지막 점에서 28일 이전의 마지막 점 대비(marketIndex.board 와 같은 계산).
+  // 2026-10-14: 같은 "4w" 라벨인데 주간·월간 탭이 60쌍 중 20쌍 방향이 반대였다 → 주간 계열로 한 번만 계산해 모든 탭에 쓴다.
+  function chgOf(pts, lang) {
+    if (!pts || pts.length < 2) return null;
+    const last = pts[pts.length - 1], tLast = Date.parse(last.d);
+    const base28 = pts.filter((p) => Date.parse(p.d) <= tLast - 28 * DAY).pop() || null;
+    const base = base28 || pts[0];
+    return {
+      pct: Math.round(((last.median / base.median) - 1) * 1000) / 10,
+      tag: base28 ? (lang === "ko" ? "4주" : "4w") : (lang === "ko" ? "첫날 대비" : "since " + md(pts[0].d)),
+    };
+  }
+
   const JP_COLOR = "#3bc8df";   // --accent
   const EN_COLOR = "#5a9bf6";
   // 초판(Blue Bottom)은 재판과 다른 상품이라 선 색도 나눈다. 파랑끼리 두면 구분이 안 된다.
@@ -92,9 +163,13 @@
   // 월간 보기는 날짜가 매달 1일이라 "05/01" 로 찍으면 그날 하루로 오해된다. 달 이름으로 보여준다.
   const monthLabel = (d, lang) => (lang === "ko" ? Number(d.slice(5, 7)) + "월" : ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][Number(d.slice(5, 7)) - 1]);
 
-  function panel(rawPts, label, color, gid, lang, windowDays, grain, badge, supplyPts, today, lastSaleD, events) {
+  // o: {windowDays, badge, supplyPts, today, lastSaleD, events, counts, through, chg, gapN}
+  function panel(rawPts, label, color, gid, lang, grain, o) {
+    o = o || {};
+    const windowDays = o.windowDays, badge = o.badge, events = o.events;
     const pts = clean(rawPts, grain === "day" ? MIN_N_DAY : null);
     if (pts.length < (grain === "month" ? MIN_POINTS_MONTH : MIN_POINTS)) return "";
+    if (grain === "day" && dailySparse(pts, o.asOfMs)) return "";
     // 2026-08-27 시각 개편(소유자 확정안): 가격축을 오른쪽으로 옮기고 현재가 플래그를 축에 꽂는다
     // (증권 차트 문법). 왼쪽 여백은 라벨이 사라지므로 좁힌다. 전역 L/R 은 공급 패널이 계속 쓰므로
     // 여기서만 지역 상수를 쓴다.
@@ -111,34 +186,62 @@
     const yMin = yMid - ySpan / 2, yMax = yMid + ySpan / 2;
 
     const tLast = Date.parse(pts[pts.length - 1].d);
-    const t0 = Date.parse(pts[0].d);
+    const tFirst = Date.parse(pts[0].d);
+    const counts = o.counts || null;
+    const tNow = o.today ? Date.parse(o.today) : 0;
+    // 막대를 셀 수 있는 마지막 날 = 원장 갱신일(through)과 오늘 중 이른 날. 그 뒤는 아직 안 센 날이라 0 으로 그리지 않는다.
+    const asOf = counts ? Math.min(Date.parse(o.through || o.today || pts[pts.length - 1].d), tNow || Infinity) : null;
+    // 주간 축은 첫 점이 든 달력 주의 월요일에서 시작한다 — 첫 주 막대가 축 밖으로 잘리지 않게.
+    const t0 = counts && grain === "week" ? mondayOf(tFirst) : tFirst;
+    const vb = counts ? volBuckets(grain, t0, asOf, counts) : { list: [], bundled: false };
     // 축을 마지막 거래일이 아니라 오늘(또는 더 늦은 공급 관측)까지 연다.
     // 그래야 거래가 끊긴 구간이 빈칸으로 드러난다 — 선이 끝나는 곳이 축 끝이면
     // 11일째 멈춘 값도 "최신"처럼 보인다.
-    const supArr = (supplyPts || []).filter((p) => p && p.v != null && Date.parse(p.d) >= t0);
+    const supArr = (o.supplyPts || []).filter((p) => p && p.v != null && Date.parse(p.d) >= t0);
     const tSup = supArr.length ? Date.parse(supArr[supArr.length - 1].d) : 0;
-    const tNow = today ? Date.parse(today) : 0;
     // 월간은 점이 "그 달 1일"이라 오늘까지 축을 늘리면 이번 달 전체가 빈 구간처럼 보인다(2026-09-24 실사고:
-    // 9월 55건 팔린 세트에 "1d no sales" 빗금). 월간 축은 마지막 달에서 끝낸다.
-    const t1 = grain === "month" ? tLast : Math.max(tLast, tSup, tNow);
-    // 빈 구간의 길이는 점(버킷) 날짜가 아니라 실제 마지막 체결일로 잰다.
-    const tSale = lastSaleD ? Date.parse(lastSaleD) : tLast;
+    // 9월 55건 팔린 세트에 "1d no sales" 빗금). 월간 축은 마지막 달 칸(그 달 1일)에서 끝낸다 —
+    // 점이 없는 마지막 달들도 칸은 그려 '<6' 으로 드러낸다(종전엔 9월이 말없이 빠졌다).
+    const lastBucket = vb.list.length ? vb.list[vb.list.length - 1] : null;
+    const t1 = grain === "month" ? Math.max(tLast, lastBucket ? lastBucket.s : 0) : Math.max(tLast, tSup, tNow, asOf || 0);
+    // 빈 구간의 길이는 점(버킷) 날짜가 아니라 실제 마지막 체결일로 잰다 — 건수 원천이 있으면 거기서.
+    let tSale = o.lastSaleD ? Date.parse(o.lastSaleD) : tLast;
+    if (counts) {
+      const sold = Object.keys(counts).filter((d) => counts[d] > 0 && Date.parse(d) <= asOf).sort();
+      if (sold.length) tSale = Date.parse(sold[sold.length - 1]);
+    }
     const span = t1 - t0 || 1;
     const px = (p) => PL + ((Date.parse(p.d) - t0) / span) * (W - PL - PR);
     const py = (v) => T + (1 - (v - yMin) / (yMax - yMin)) * (PRICE_BOTTOM - T);
 
     const XY = pts.map((p) => ({ x: px(p), y: py(p.median) }));
-    const line = smoothPath(XY);
-    const area = line + " L" + XY[XY.length - 1].x.toFixed(1) + " " + PRICE_BOTTOM +
-      " L" + XY[0].x.toFixed(1) + " " + PRICE_BOTTOM + " Z";
+    // 빠진 점은 곡선으로 잇지 않는다(2026-10-14) — 이어 그리면 없는 값을 만드는 셈이다.
+    // 주간: 7일 격자에서 점이 빠지면(창 안 판매가 기준 미만) 끊고 빗금. 월간: 달이 비면 끊고 빗금. 일간: 하루 넘게 비면 끊기만 한다.
+    const brk = (a, b) => (grain === "month"
+      ? monthNo(Date.parse(b.d)) - monthNo(Date.parse(a.d)) > 1
+      : Date.parse(b.d) - Date.parse(a.d) > (grain === "day" ? 1.5 : 7.5) * DAY);
+    const segs = [[0]];
+    for (let i = 1; i < pts.length; i++) {
+      if (brk(pts[i - 1], pts[i])) segs.push([i]); else segs[segs.length - 1].push(i);
+    }
+    const solo = new Set(segs.filter((s) => s.length === 1).map((s) => s[0]));
+    const segPaths = segs.filter((s) => s.length >= 2).map((s) => {
+      const xy = s.map((i) => XY[i]);
+      const d = smoothPath(xy);
+      // 일간은 조각이 많아 조각마다 채움을 깔면 세로 줄무늬가 된다(2026-10-14 캡처) — 선만 그린다.
+      return (grain === "day" ? "" : '<path class="opbcArea" d="' + d + " L" + xy[xy.length - 1].x.toFixed(1) + " " + PRICE_BOTTOM +
+        " L" + xy[0].x.toFixed(1) + " " + PRICE_BOTTOM + ' Z" fill="url(#' + gid + ')"/>') +
+        '<path class="opbcLine opbcDraw" pathLength="1" d="' + d + '" stroke="' + color + '"/>';
+    }).join("");
 
     let ticks = niceTicks(yMin, yMax, 4);
     if (ticks.length < 3) ticks = niceTicks(yMin, yMax, 7);
     // 마지막 값과 겹치는 눈금 라벨은 지운다 — 현재가 플래그가 그 자리에 앉는다.
+    // 간격 48: 폰(@container ≤440)에서 플래그가 36~44 단위로 커져 36 으로는 '$220<>$225' 처럼 겹쳤다(2026-10-14 QA 측정).
     const lastY = py(pts[pts.length - 1].median);
     const grid = ticks.map((v) =>
       '<line class="opbcGrid" x1="' + PL + '" y1="' + py(v).toFixed(1) + '" x2="' + (W - PR) + '" y2="' + py(v).toFixed(1) + '"/>' +
-      (Math.abs(py(v) - lastY) < 36 ? "" :
+      (Math.abs(py(v) - lastY) < 48 ? "" :
         '<text class="opbcAx" x="' + (W - PR + 8) + '" y="' + (py(v) + 4).toFixed(1) + '">' + money(v) + "</text>")).join("");
 
     // x 라벨은 처음·중간·끝 3개만 — 더 넣으면 축이 데이터보다 시끄러워진다.
@@ -146,46 +249,111 @@
     const lab = (p) => (grain === "month" ? monthLabel(p.d, lang) : md(p.d));
     const grainWord = grain === "month" ? (lang === "ko" ? "월별" : "monthly")
       : grain === "day" ? (lang === "ko" ? "일별" : "daily") : null;
-    // 점이 3개 미만이면 중간 라벨이 끝 라벨과 같은 점을 가리킨다 — 월간 2개월치가 "Jun Jul Jul" 로 나왔다.
-    const xPts = pts.length >= 3 ? [pts[0], mid, pts[pts.length - 1]] : [pts[0], null, pts[pts.length - 1]];
-    const xl = xPts.filter(Boolean).map((p) => p).map((p, i, arr) =>
-      '<text class="opbcAx" x="' + px(p).toFixed(1) + '" y="' + (H - 12) + '" text-anchor="' +
-      (i === 0 ? "start" : i === arr.length - 1 ? "end" : "middle") + '">' + lab(p) + "</text>").join("");
+    // 진행 중인 달 칸은 달 이름 대신 센 기간을 쓴다 — "10/1–10/14". 이번 달 전체로 읽히면 막대가 반토막 급락처럼 보인다.
+    const firstDay = (t) => md(iso(t)).replace(/\/0?1$/, "/1");
+    const bLab = (b) => (grain === "day" ? md(iso(b.s))
+      : grain === "month" ? (b.part ? firstDay(b.s) + "–" + md(iso(b.e - DAY)) : monthLabel(iso(b.s), lang))
+      : md(iso(b.s)) + "–" + md(iso(b.e - DAY)));
+    // x 라벨이 차지하는 가로 구간(가장 큰 글자 기준) — 아래 막대 숫자가 이 구간과 겹치면 숫자를 뺀다.
+    const axBox = (x, s, a) => { const w = textW(s, AX_FS_MAX); return a === "start" ? [x, x + w] : a === "end" ? [x - w, x] : [x - w / 2, x + w / 2]; };
+    const xlBoxes = [];
+    const xlText = (x, s, a) => { xlBoxes.push(axBox(x, s, a)); return '<text class="opbcAx" x="' + x.toFixed(1) + '" y="' + (H - 12) + '" text-anchor="' + a + '">' + s + "</text>"; };
+    let xl;
+    if (grain === "month" && vb.list.length) {
+      // 월간은 막대 칸(마지막 달까지)으로 라벨을 단다 — 점이 없는 달도 축에 이름이 있어야 빈 칸이 보인다.
+      const L3 = vb.list.length >= 3 ? [vb.list[0], vb.list[Math.floor(vb.list.length / 2)], vb.list[vb.list.length - 1]] : [vb.list[0], vb.list[vb.list.length - 1]];
+      xl = L3.filter((b, i, a) => a.indexOf(b) === i).map((b, i, arr) =>
+        xlText(px({ d: iso(b.s) }), bLab(b), i === 0 && arr.length > 1 ? "start" : i === arr.length - 1 ? "end" : "middle")).join("");
+    } else {
+      // 주간·일간: 첫 라벨은 첫 점, 끝 라벨은 축 끝(t1 — 오늘까지 열린 축의 끝), 가운데 라벨은 양옆 라벨과 글자 폭만큼 떨어질 때만 —
+      // 2026-10-14 QA: 끝 라벨을 마지막 점에 달아 점이 왼쪽에 몰린 계열(OP-02 일본판 06/16~07/07, 축은 10/14까지)에서 세 라벨이
+      // 왼쪽 20% 안에 겹쳤다('06/1670'). 글자 크기는 패널 폭에 따라 커지므로(@container) 가장 큰 경우로 잰다.
+      const items = [{ p: pts[0], a: "start" }];
+      if (pts.length >= 3) items.push({ p: mid, a: "middle" });
+      items.push({ p: { d: iso(t1) }, a: "end" });
+      const span0 = (it) => axBox(px(it.p), lab(it.p), it.a);
+      const keep = items.filter((it) => {
+        if (it.a !== "middle") return true;
+        const [a0, a1] = span0(it), [, s1] = span0(items[0]), [e0] = span0(items[items.length - 1]);
+        return a0 >= s1 + 8 && a1 <= e0 - 8;
+      });
+      // 끝 라벨이 첫 라벨과 겹칠 만큼 축이 짧으면(점 3개가 며칠 안에 몰린 경우) 첫 라벨만 둔다.
+      const [, f1] = span0(keep[0]), [l0] = span0(keep[keep.length - 1]);
+      const shown = l0 >= f1 + 8 ? keep : [keep[0]];
+      xl = shown.map((it) => xlText(px(it.p), lab(it.p), it.a)).join("");
+    }
 
     const first = pts[0], last = pts[pts.length - 1];
-    // 등락 기준은 탭(일·주·월)에 관계없이 하나: 마지막 점에서 28일 이전의 마지막 점 — marketIndex.board(티커·홈 표)와 같은 계산.
-    // 2026-09-24 전에는 "첫 보이는 점 대비"라 같은 세트가 탭마다 ▼8.6/▲9.8/▲10.3 으로 갈렸다.
-    const base28 = pts.filter((p) => Date.parse(p.d) <= tLast - 28 * 86400000).pop() || null;
-    const base = base28 || first;
-    const chg = Math.round(((last.median / base.median) - 1) * 1000) / 10;
-    const up = chg >= 0;
-    const chgTag = base28 ? (lang === "ko" ? "4주" : "4w") : (lang === "ko" ? "첫날 대비" : "since " + md(first.d));
+    // 등락은 탭과 무관하게 하나 — 호출부가 주간 계열로 계산해 넘긴다(chgOf). 주간이 없을 때만 자기 점으로 센다:
+    // 월간은 직전 달 대비라 "4주"가 아니라 "전월 대비"로 단다(같은 라벨에 다른 계산을 싣지 않는다).
+    const fromWeekly = !!o.chg;
+    let cg = o.chg || null;
+    if (!cg && grain === "month" && pts.length >= 2) {
+      const prev = pts[pts.length - 2];
+      const consec = monthNo(Date.parse(last.d)) - monthNo(Date.parse(prev.d)) === 1;
+      cg = { pct: Math.round(((last.median / prev.median) - 1) * 1000) / 10,
+        tag: consec ? (lang === "ko" ? "전월 대비" : "vs prev. month") : (lang === "ko" ? monthLabel(prev.d, lang) + " 대비" : "vs " + monthLabel(prev.d, lang)) };
+    }
+    if (!cg) cg = chgOf(pts, lang);
+    const chg = cg.pct;
+    // 주간이 아닌 탭에서 주간 계열 등락을 쓰면 기준을 라벨에 적는다 — 2026-10-14 QA: 월간 $301(8월) 옆 ▼1% 4w(10/04 대 09/06)처럼
+    // 한 머리줄의 현재가와 등락이 서로 다른 기간이었다.
+    const chgTag = fromWeekly && grain !== "week" ? (lang === "ko" ? "주간 " : "weekly ") + cg.tag : cg.tag;
+    // 마지막 가격 점이 28일 넘게 묵었으면 홈 칩·전광판과 같은 규칙 — 현재가를 흐리게 + 'MM/DD', 등락은 숨긴다(2026-10-14 QA:
+    // OP-02 일본판 07/07 점의 $147 이 지금 값처럼 보였다). 월간 점은 그 달 말일까지의 값이라 말일로 잰다.
+    // 등락의 기준 계열(주간)이 묵었어도 숨긴다(OP-01 Blue 30일 무거래인데 ▲6.1% 4w — 칩은 숨겼다).
+    const lastEnd = grain === "month" ? nextMonth(tLast) - DAY : tLast;
+    const headStale = !!tNow && tNow - lastEnd > 28 * DAY;
+    const hideChg = headStale || !!cg.stale;
     const sampleWord = lang === "ko" ? "건" : " sales";
     const rangeWord = lang === "ko" ? "범위" : "range";
 
-    // ── 거래량 막대. 값이 1~3 건인 계열도 있는데, 그 사실 자체가 정보다 —
-    //    "이 시세는 주 2건에서 나온 값"임을 그림에서 바로 알 수 있어야 한다.
-    //    막대 높이는 그 계열 최댓값 기준(절대 개수가 아니라 상대 비교) — 계열끼리 높이를 비교하면 안 되므로
-    //    툴팁에 실제 건수를 같이 싣는다.
-    const vols = pts.map((p) => (p.vol == null ? 0 : p.vol));
-    const volMax = Math.max.apply(null, vols.concat([1]));
-    // 막대 폭은 점 간격의 60%. 점이 하나뿐일 때를 대비해 하한을 둔다.
-    const gap = pts.length > 1 ? (XY[XY.length - 1].x - XY[0].x) / (pts.length - 1) : 40;
-    const bw = Math.max(3, Math.min(26, gap * 0.6));
-    // 거래량 막대는 전 구간 대비 중앙값 방향으로 칠한다(상승=초록·하락=적·보합=회색).
-    // 주식 차트의 거래량 문법 — 색이 "그 주에 가격이 어느 쪽으로 갔나"를 겹쳐 준다.
-    const bars = pts.map((p, i) => {
-      const v = p.vol == null ? 0 : p.vol;
-      if (!v) return "";
-      const h = Math.max(2, (v / volMax) * (VOL_H - 8));
-      const dir = i === 0 ? 0 : p.median - pts[i - 1].median;
-      const bc = dir > 0 ? "#00e5a0" : dir < 0 ? "#ff5f6e" : "#3a4152";   // --green / --red
-      return '<rect class="opbcBar" x="' + (XY[i].x - bw / 2).toFixed(1) + '" y="' + (H - B - h).toFixed(1) +
-        '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1.5" fill="' + bc +
-        '" opacity="' + (dir === 0 ? ".3" : ".55") + '"/>';
+    // ── 거래량 막대 — 달력 칸마다 하나(2026-10-14). 값이 1~3 건인 계열도 있는데, 그 사실 자체가 정보다.
+    //    0건 칸은 2px 바닥선 + '0'(일간은 바닥선만 — 칸이 너무 촘촘하다). 진행 중인 칸은 테두리만.
+    //    색은 한 가지 — 종전의 상승·하락 색은 1% 미만 잡음에도 바뀌어(389번 중 204번) 신호가 아니라 소음이었다.
+    //    높이는 그 계열 최댓값 기준(상대 비교)이라 건수는 묶음·월간에선 막대 위 숫자로, 나머지는 훑기 판독에 싣는다.
+    const volMax = Math.max.apply(null, vb.list.map((b) => b.n).concat([1]));
+    const showN = vb.bundled || grain === "month";
+    const cntWord = (n) => (lang === "ko" ? n + "건" : n + (n === 1 ? " sale" : " sales"));
+    const bars = vb.list.map((b) => {
+      const xa = px({ d: iso(b.s) });
+      let cx, bw;
+      if (grain === "week") { const xb = px({ d: iso(b.e) }); cx = (xa + xb) / 2; bw = Math.max(2, (xb - xa) * 0.62); }
+      else {
+        const unit = px({ d: iso(grain === "month" ? nextMonth(b.s) : b.s + DAY) }) - xa;
+        cx = xa; bw = Math.max(1.5, Math.min(26, unit * 0.62));
+      }
+      const h = b.n ? Math.max(2, (b.n / volMax) * (VOL_H - 8)) : 2;
+      const y = H - B - h;
+      const cls = "opbcBar" + (b.part ? " opbcBarPart" : "") + (b.n ? "" : " opbcBar0");
+      const rd = (lang === "ko" ? "판매 " : "Sales ") + bLab(b) + ": " + cntWord(b.n);
+      // 숫자는 막대 가운데에 두되 SVG 왼쪽 밖으로 나가지 않게 — 2026-10-14 QA: 첫 막대가 PL 바로 위라 OP-16 영문 월간 '152' 가 '|52' 로 잘렸다.
+      const nx = (s) => Math.max(cx, textW(s, AX_FS_MAX) / 2 + 2);
+      // 낮은 막대의 숫자는 x 축 라벨 줄까지 내려온다(글자가 가장 클 때) — 라벨과 가로로 겹치면 숫자를 뺀다. 건수는 훑기 판독에 남는다.
+      // 2026-10-14 QA: '0<>06/16'·'1<>10/1–10/14' 겹침. 끝 라벨을 축 끝(오늘)으로 옮기며 진행 중 칸 숫자와도 만났다.
+      const numText = (s, yb) => {
+        const x = nx(s), w = textW(s, AX_FS_MAX);
+        const low = yb + 0.25 * AX_FS_MAX > H - 12 - 0.8 * AX_FS_MAX;
+        if (low && xlBoxes.some(([a0, a1]) => x - w / 2 < a1 + 4 && x + w / 2 > a0 - 4)) return "";
+        return '<text class="opbcAx opbcBarN" x="' + x.toFixed(1) + '" y="' + yb.toFixed(1) + '" text-anchor="middle">' + s + "</text>";
+      };
+      // data-s/data-e = 이 칸의 판매일 구간(끝 미포함) — 훑기 판독이 손가락 x 가 아니라 가격 점의 날짜로 칸을 고른다.
+      return '<rect class="' + cls + '" x="' + (cx - bw / 2).toFixed(1) + '" y="' + y.toFixed(1) +
+        '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1" data-x="' + cx.toFixed(1) +
+        '" data-s="' + iso(b.s) + '" data-e="' + iso(b.e) + '" data-l="' + esc(rd) + '"/>' +
+        (!b.n && grain !== "day" ? numText("0", H - B - 6) : b.n && showN ? numText(String(b.n), y - 5) : "");
     }).join("");
-    const volLabel = lang === "ko" ? "거래량" : "Sales";   // 툴팁 문구용. 축에는 쓰지 않는다 — 아래 범례가 이름을 댄다.
+    const anyPart = vb.list.some((b) => b.part);
     const volAxis = '<line class="opbcGrid" x1="' + PL + '" y1="' + (H - B) + '" x2="' + (W - PR) + '" y2="' + (H - B) + '"/>';
+
+    // 판매형식 기록 시작 경계(08/13). 앞 구간을 숨기지 않고 경계선만 긋고, 라벨은 아래 범례에 단다
+    // (그림 안 글자는 막대 숫자와 겹쳤다 — 2026-10-14 1366 캡처).
+    const tFmt = Date.parse(FMT_SINCE);
+    const fmtOn = vb.list.length > 0 && tFmt > t0 && tFmt < t1;
+    const fmtWord = lang === "ko" ? "즉시구매 구분 " + md(FMT_SINCE) + "~" : "BIN-tagged from " + md(FMT_SINCE);
+    const fmtLayer = fmtOn
+      ? '<line class="opbcFmt" x1="' + px({ d: FMT_SINCE }).toFixed(1) + '" y1="' + T + '" x2="' + px({ d: FMT_SINCE }).toFixed(1) + '" y2="' + (H - B) + '"/>'
+      : "";
 
     // ── 매물수 겹쳐그리기는 2026-08-27 소유자 확정으로 제거 — 회색 점선이 가격선과 엉켜
     //    "이게 무슨 그래프인지 모르겠다"는 피드백. 매물수는 아래 전용 공급 패널이 담당한다.
@@ -197,17 +365,46 @@
     //       이어진 값이 아니라 "마지막으로 팔린 가격이 여기였다"는 기준선이다.
     //    ③ 오늘 끝은 속 빈 원 — 채워진 점(실제 관측)과 모양으로 구분한다.
     let staleLayer = "", staleBadge = "", staleDefs = "";
+    const hid = gid + "hatch";
+    const hatchDefs =
+      '<pattern id="' + hid + '" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+      '<rect width="7" height="7" fill="rgba(245,200,66,.07)"/>' +
+      '<line x1="0" y1="0" x2="0" y2="7" stroke="rgba(245,200,66,.30)" stroke-width="1.6"/></pattern>';
+    // 점이 빠진 구간(창 안 판매가 기준 미만) — 같은 빗금에 '<6' 라벨. 값을 만들지 않는다.
+    const gapN = o.gapN || MIN_N + 1;
+    const gapWord = lang === "ko" ? gapN + "건 미만" : "<" + gapN + " sales";
+    const lowZones = [];
+    if (grain !== "day") {
+      for (let k = 1; k < segs.length; k++) {
+        const a = segs[k - 1][segs[k - 1].length - 1], b = segs[k][0];
+        lowZones.push([XY[a].x, XY[b].x]);
+      }
+    }
+    // 월간: 마지막 점 뒤의 완료된 달 중 점이 없는 달(OP-01 일본판 9월 3건)까지만 빗금 — 진행 중인 달은 막대 테두리(진행 중)로 이미
+    // 말한다. 2026-10-14 QA: 진행 중 10월까지 빗금을 깔아 9월 점이 있는 계열(OP-02 영문)도 9월→10월이 '누락'처럼 보였다.
+    if (grain === "month" && lastBucket) {
+      const lastDone = lastBucket.part ? vb.list[vb.list.length - 2] : lastBucket;
+      if (lastDone && lastDone.s > tLast) lowZones.push([XY[XY.length - 1].x, px({ d: iso(lastDone.s) })]);
+    }
+    // 주간·일간: 마지막 점 뒤에도 판매는 있었지만 창(일간은 하루)이 기준 미만이라 점이 안 나온 구간.
+    // 일간도 같은 빗금 — 2026-10-14 QA: OP-05 영문 10/04 뒤 10일이 빗금도 라벨도 없는 빈칸이었다.
+    if (grain !== "month" && counts && tSale > tLast + DAY) lowZones.push([XY[XY.length - 1].x, px({ d: iso(tSale) })]);
+    // 빗금 안 글자('<6 sales')는 넣지 않는다 — 범례(kHatch)에 같은 말이 있고, 그림 안 글자는 1366 에서 8~9px 로 줄었다(2026-10-14 QA).
+    const gapLayer = lowZones.map(([x0, x1]) =>
+      '<rect class="opbcStale opbcGap" x="' + x0.toFixed(1) + '" y="' + T + '" width="' + Math.max(0, x1 - x0).toFixed(1) +
+      '" height="' + (PRICE_BOTTOM - T) + '" fill="url(#' + hid + ')"/>').join("");
+    if (lowZones.length) staleDefs = hatchDefs;
     if (grain !== "month" && t1 > tSale + 86400000 * 2) {
       // 빗금은 마지막 체결일부터(점 위치가 아니라). 체결일이 점보다 뒤면 그 자리부터 시작한다.
       const gx0 = px({ d: new Date(Math.max(tSale, tLast)).toISOString().slice(0, 10) }), gx1 = W - PR;
       const days = Math.round((t1 - tSale) / 86400000);
       const gy = py(pts[pts.length - 1].median);
-      const hid = gid + "hatch";
-      const wide = gx1 - gx0 > 96;
-      staleDefs =
-        '<pattern id="' + hid + '" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
-        '<rect width="7" height="7" fill="rgba(245,200,66,.07)"/>' +
-        '<line x1="0" y1="0" x2="0" y2="7" stroke="rgba(245,200,66,.30)" stroke-width="1.6"/></pattern>';
+      // 글자가 빗금 칸 안에 들어갈 때만 쓴다 — 글자 크기를 렌더 11.5px 이상으로 올리면서(아래 CSS) 칸 폭도 그 크기로 잰다(2026-10-14 QA).
+      const txWide = lang === "ko" ? "거래 없음 " + days + "일" : days + "d no sales";
+      const subWide = lang === "ko" ? "선은 마지막 체결가" : "line = last traded price";
+      const wide = gx1 - gx0 >= Math.max(textW(txWide, STALE_FS_MAX), textW(subWide, STALE_FS_MAX)) + 12;
+      const narrowOk = gx1 - gx0 >= textW(lang === "ko" ? "거래 없음" : "no sales", STALE_FS_MAX) + 12;
+      staleDefs = hatchDefs;
       staleLayer =
         '<rect class="opbcStale" x="' + gx0.toFixed(1) + '" y="' + T + '" width="' + (gx1 - gx0).toFixed(1) +
         '" height="' + (PRICE_BOTTOM - T) + '" fill="url(#' + hid + ')"/>' +
@@ -216,31 +413,37 @@
         '" x2="' + gx1.toFixed(1) + '" y2="' + gy.toFixed(1) + '" stroke="' + color + '"/>' +
         '<circle class="opbcStaleEnd" cx="' + gx1.toFixed(1) + '" cy="' + gy.toFixed(1) + '" r="4" stroke="' + color + '"/>' +
         (wide
-          ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 15) +
-            '" text-anchor="middle">' + (lang === "ko" ? "거래 없음 " + days + "일" : days + "d no sales") + "</text>" +
-            '<text class="opbcStaleSub" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 29) +
-            '" text-anchor="middle">' + (lang === "ko" ? "선은 마지막 체결가" : "line = last traded price") + "</text>"
-          : gx1 - gx0 > 44
-            ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 15) +
+          ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 18) +
+            '" text-anchor="middle">' + txWide + "</text>" +
+            '<text class="opbcStaleSub" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 40) +
+            '" text-anchor="middle">' + subWide + "</text>"
+          : narrowOk
+            ? '<text class="opbcStaleTx" x="' + ((gx0 + gx1) / 2).toFixed(1) + '" y="' + (T + 18) +
               '" text-anchor="middle">' + (lang === "ko" ? "거래 없음" : "no sales") + "</text>"
             : "");
       staleBadge = lang === "ko" ? "거래 없음 " + days + "일" : days + "d no sales";
     }
 
-    // 계열 이름표. 거래량은 색이 방향을 뜻하므로 두 색을 같이 보여준다.
+    // 계열 이름표. 막대 단위(주·4주·월·일)를 이름에 박는다 — 묶음으로 바뀐 계열이 주 단위로 읽히지 않게.
     const kPrice = lang === "ko" ? "가격" : "Price";
-    const kVol = lang === "ko" ? "거래량 (상승·하락)" : "Sales (up · down)";
+    const kVol = vb.bundled ? (lang === "ko" ? "4주 판매 건수" : "Sales / 4 weeks")
+      : grain === "month" ? (lang === "ko" ? "월 판매 건수" : "Sales / month")
+      : grain === "day" ? (lang === "ko" ? "일 판매 건수" : "Sales / day")
+      : (lang === "ko" ? "주 판매 건수" : "Sales / week");
     const keyRow = '<div class="opbcKey">' +
       '<span><i class="kLine" style="background:' + color + '"></i>' + kPrice + "</span>" +
-      '<span><i class="kBar" style="background:#00e5a0"></i><i class="kBar" style="background:#ff5f6e"></i>' + kVol + "</span>" +
+      (vb.list.length ? '<span><i class="kBar"></i>' + kVol + "</span>" : "") +
+      (anyPart ? '<span><i class="kBar kPart"></i>' + (lang === "ko" ? "진행 중" : "in progress") + "</span>" : "") +
+      (lowZones.length ? '<span><i class="kHatch"></i>' + esc(gapWord) + "</span>" : "") +
+      (fmtOn ? '<span><i class="kFmt"></i>' + esc(fmtWord) + "</span>" : "") +
       "</div>";
 
     // 점은 마지막 것만 보인다 — 선 위 점들이 시각 소음이라는 확정안. 좌표는 스크럽 JS 가
-    // 스냅용으로 계속 쓰므로 요소 자체는 남기고 투명 처리한다.
+    // 스냅용으로 계속 쓰므로 요소 자체는 남기고 투명 처리한다. 앞뒤가 끊겨 홀로 남은 점은 선이 없으니 보이게 둔다.
     const dots = pts.map((p, i) =>
       '<circle class="opbcDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) +
-      '" r="' + (i === pts.length - 1 ? 4.5 : 3) + '" fill="' + color + '"' +
-      (i === pts.length - 1 ? "" : ' opacity="0"') + "/>").join("");
+      '" r="' + (i === pts.length - 1 ? 4.5 : solo.has(i) ? 3.5 : 3) + '" fill="' + color + '"' +
+      (i === pts.length - 1 || solo.has(i) ? "" : ' opacity="0"') + "/>").join("");
 
     // JS 가 안 돌거나 막힌 환경(일부 인앱 브라우저·미리보기)에서도 숫자가 읽혀야 한다.
     // 넉넉한 투명 원 + <title> 이면 브라우저 기본 툴팁으로 값이 나온다. 아래 스크럽 JS 는 그 위에 얹는 향상일 뿐이다.
@@ -248,14 +451,14 @@
     // 그 파싱이 언어·형식이 바뀔 때마다 깨질 자리였다. <title> 은 무JS 폴백으로 유지.
     const hits = pts.map((p, i) =>
       '<circle class="opbcHitDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) + '" r="14" fill="transparent"' +
-      ' data-d="' + (grain === "month" ? p.d.slice(0, 7) : p.d) + '" data-v="' + money(p.median) +
+      ' data-d="' + (grain === "month" ? p.d.slice(0, 7) : p.d) + '" data-t="' + p.d + '" data-v="' + money(p.median) +
       '" data-r="' + rangeWord + " " + money(p.low) + "–" + money(p.high) +
-      '" data-n="' + p.n + sampleWord + (p.vol == null || p.vol === p.n ? "" : " · " + volLabel + " " + p.vol + (lang === "ko" ? "건" : "")) +
+      // n 은 그 점(중앙값)을 만든 표본 수. 막대 건수는 달력 칸 기준이라 막대(data-l)에 따로 싣는다.
+      '" data-n="' + p.n + sampleWord +
       '" data-x="' + md(p.d) + '">' +
       "<title>" + (grain === "month" ? p.d.slice(0, 7) : p.d) + " · " + money(p.median) +
       " (" + rangeWord + " " + money(p.low) + "–" + money(p.high) +
-      " · " + p.n + sampleWord + (p.vol == null || p.vol === p.n ? "" : " · " + volLabel + " " + p.vol +
-        (lang === "ko" ? "건" : "")) + ")</title></circle>").join("");
+      " · " + p.n + sampleWord + ")</title></circle>").join("");
 
     // ── 새 시각 요소(2026-08-27 확정안): 현재가 플래그·고점/저점 라벨.
     const flagY = py(last.median);
@@ -263,7 +466,7 @@
     const flag =
       '<line x1="' + PL + '" y1="' + flagY.toFixed(1) + '" x2="' + (W - PR) + '" y2="' + flagY.toFixed(1) +
       '" stroke="' + color + '" stroke-dasharray="2 4" opacity=".45"/>' +
-      '<g class="opbcFlag"><rect x="' + (W - PR + 3) + '" y="' + (flagY - 11).toFixed(1) + '" width="' + (PR - 8) + '" height="22" rx="5" fill="' + color + '"/>' +
+      '<g class="opbcFlag"' + (headStale ? ' opacity=".55"' : "") + '><rect x="' + (W - PR + 3) + '" y="' + (flagY - 11).toFixed(1) + '" width="' + (PR - 8) + '" height="22" rx="5" fill="' + color + '"/>' +
       '<text class="opbcFlagTx" x="' + (W - PR + 3 + (PR - 8) / 2) + '" y="' + (flagY + 4).toFixed(1) +
       '" text-anchor="middle" fill="#0a0f14">' + flagTx + "</text></g>";
     const hiWord = lang === "ko" ? "고점 " : "High ";
@@ -287,8 +490,10 @@
     return '<figure class="opbcPane" data-ed="' + gid + '">' +
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(label) + "</span>" +
       (badge ? '<span class="opbcBadge">' + esc(badge) + "</span>" : "") +
-      '<span class="opbcNow">' + money(last.median) + "</span>" +
-      '<span class="opbcChg ' + (chg > 0 ? "up" : chg < 0 ? "dn" : "flat") + '">' + (chg > 0 ? "▲" : chg < 0 ? "▼" : "–") + " " + Math.abs(chg) + '% <small class="opbcChgTag">' + chgTag + "</small></span>" +
+      '<span class="opbcNow' + (headStale ? " opbcNowStale" : "") + '">' + money(last.median) + "</span>" +
+      (headStale ? '<small class="opbcAsOf">' + lab(last) + "</small>"
+        : hideChg ? ""
+        : '<span class="opbcChg ' + (chg > 0 ? "up" : chg < 0 ? "dn" : "flat") + '">' + (chg > 0 ? "▲" : chg < 0 ? "▼" : "–") + " " + Math.abs(chg) + '% <small class="opbcChgTag">' + chgTag + "</small></span>") +
       '<span class="opbcSpan">' + lab(first) + " – " + lab(last) +
       (grainWord ? " · " + grainWord
         : windowDays ? " · " + windowDays + (lang === "ko" ? "일 평균" : "-day avg") : "") +
@@ -299,9 +504,7 @@
       '<defs><linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
       '<stop offset="0" stop-color="' + color + '" stop-opacity=".30"/>' +
       '<stop offset="1" stop-color="' + color + '" stop-opacity="0"/></linearGradient>' + staleDefs + '</defs>' +
-      staleLayer + grid + volAxis + bars + evLayer +
-      '<path class="opbcArea" d="' + area + '" fill="url(#' + gid + ')"/>' +
-      '<path class="opbcLine opbcDraw" pathLength="1" d="' + line + '" stroke="' + color + '"/>' +
+      staleLayer + gapLayer + grid + volAxis + bars + fmtLayer + evLayer + segPaths +
       '<g class="opbcExtrema">' + hlLabels + '</g>' + flag + dots +
       '<circle cx="' + XY[XY.length - 1].x.toFixed(1) + '" cy="' + XY[XY.length - 1].y.toFixed(1) +
       '" r="11" class="opbcPulse" fill="' + color + '" opacity=".18"/>' +
@@ -330,8 +533,9 @@
   // 기간이 가격 그래프보다 짧다(수집을 늦게 시작했다). 그래서 같은 축에 겹치지 않고 따로 그린다 —
   // 겹치면 왼쪽 3/4 가 텅 빈 채로 "공급 데이터가 없다"처럼 보인다.
   const SUP_H = 190, SUP_B = 34, SUP_T = 22;
-  function supplyPanel(points, lang) {
-    const pts = (points || []).filter((p) => p && p.d && (Number.isFinite(p.jp) || Number.isFinite(p.en)));
+  function supplyPanel(points, lang, today) {
+    const pts = (points || []).filter((p) => p && p.d && (Number.isFinite(p.jp) || Number.isFinite(p.en)))
+      .slice().sort((a, b) => a.d.localeCompare(b.d));
     if (pts.length < MIN_POINTS) return "";
 
     const vals = [];
@@ -341,10 +545,27 @@
     // 가격 패널과 같은 방식으로 실제 범위에 맞춘다. 축에 개수가 그대로 찍히므로 오독 위험은 낮다.
     const pad = Math.max((vMax - vMin) * 0.35, 1);
     const yMax = vMax + pad, yMin = Math.max(0, vMin - pad);
-    const t0 = Date.parse(pts[0].d), t1 = Date.parse(pts[pts.length - 1].d);
+    // 하루 1회 세는 값이라 빠진 날은 빠진 날이다(2026-10-14) — 선을 끊고 가격 패널과 같은 빗금을 친다. 보간하지 않는다.
+    // 마지막 관측 뒤로 이틀 넘게 비면(오늘 몫은 아직 안 돈 것일 수 있어 하루는 봐준다) 축을 오늘까지 열어 그 구간도 빗금.
+    const tObs = Date.parse(pts[pts.length - 1].d);
+    const tToday = today ? Date.parse(today) : 0;
+    const t0 = Date.parse(pts[0].d), t1 = tToday - tObs >= 2 * DAY ? tToday : tObs;
     const span = t1 - t0 || 1;
     const px = (p) => L + ((Date.parse(p.d) - t0) / span) * (W - L - R);
     const py = (v) => SUP_T + (1 - (v - yMin) / (yMax - yMin)) * (SUP_H - SUP_T - SUP_B);
+    const holes = [];
+    for (let i = 1; i < pts.length; i++) {
+      if (Date.parse(pts[i].d) - Date.parse(pts[i - 1].d) > 1.5 * DAY) holes.push([px(pts[i - 1]), px(pts[i])]);
+    }
+    if (t1 > tObs) holes.push([px(pts[pts.length - 1]), W - R]);
+    const hid = "opbcSupHatch";
+    const holeLayer = holes.length
+      ? '<defs><pattern id="' + hid + '" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+        '<rect width="7" height="7" fill="rgba(245,200,66,.07)"/>' +
+        '<line x1="0" y1="0" x2="0" y2="7" stroke="rgba(245,200,66,.30)" stroke-width="1.6"/></pattern></defs>' +
+        holes.map(([x0, x1]) => '<rect class="opbcStale opbcGap" x="' + x0.toFixed(1) + '" y="' + SUP_T + '" width="' + Math.max(0, x1 - x0).toFixed(1) +
+          '" height="' + (SUP_H - SUP_T - SUP_B) + '" fill="url(#' + hid + ')"/>').join("")
+      : "";
 
     // 눈금 3개를 요구하면 범위 18~28 에서 10 단위가 뽑혀 20/30 둘만 남는다. 4개로 요구해 5 단위를 얻는다.
     let ticks = niceTicks(yMin, yMax, 4);
@@ -354,11 +575,19 @@
       '<text class="opbcAx" x="' + (L - 10) + '" y="' + (py(v) + 4).toFixed(1) + '" text-anchor="end">' + v + "</text>").join("");
 
     const drawLine = (key, color) => {
-      const XY = pts.filter((p) => Number.isFinite(p[key])).map((p) => ({ x: px(p), y: py(p[key]) }));
-      if (XY.length < 2) return "";
-      return '<path class="opbcLine opbcSupLine" d="' + smoothPath(XY) + '" stroke="' + color + '"/>' +
-        '<circle cx="' + XY[XY.length - 1].x.toFixed(1) + '" cy="' + XY[XY.length - 1].y.toFixed(1) +
-        '" r="4" fill="' + color + '"/>';
+      const own = pts.filter((p) => Number.isFinite(p[key]));
+      if (own.length < 2) return "";
+      // 이 판 값이 하루라도 빠지면 거기서 끊는다. 홀로 남은 날은 점으로만.
+      const segs = [[own[0]]];
+      for (let i = 1; i < own.length; i++) {
+        if (Date.parse(own[i].d) - Date.parse(own[i - 1].d) > 1.5 * DAY) segs.push([own[i]]); else segs[segs.length - 1].push(own[i]);
+      }
+      const XY = (s) => s.map((p) => ({ x: px(p), y: py(p[key]) }));
+      const lastXY = XY([own[own.length - 1]])[0];
+      return segs.map((s) => (s.length >= 2
+        ? '<path class="opbcLine opbcSupLine" d="' + smoothPath(XY(s)) + '" stroke="' + color + '"/>'
+        : s[0] === own[own.length - 1] ? "" : '<circle cx="' + XY(s)[0].x.toFixed(1) + '" cy="' + XY(s)[0].y.toFixed(1) + '" r="2.5" fill="' + color + '"/>')).join("") +
+        '<circle cx="' + lastXY.x.toFixed(1) + '" cy="' + lastXY.y.toFixed(1) + '" r="4" fill="' + color + '"/>';
     };
 
     // 훑기용 앵커. 가격 패널의 .opbcDot 자리를 대신한다 — 눈에 보이는 점은 아니지만
@@ -377,7 +606,7 @@
       "<title>" + p.d + " · " + jpWord + " " + (p.jp == null ? "-" : p.jp) +
       " · " + enWord + " " + (p.en == null ? "-" : p.en) + "</title></circle>").join("");
 
-    const xl = [pts[0], pts[pts.length - 1]].map((p, i) =>
+    const xl = [pts[0], { d: iso(t1) }].map((p, i) =>
       '<text class="opbcAx" x="' + px(p).toFixed(1) + '" y="' + (SUP_H - 10) + '" text-anchor="' +
       (i === 0 ? "start" : "end") + '">' + md(p.d) + "</text>").join("");
 
@@ -389,16 +618,18 @@
       return d === 0 ? " ±0" : (d > 0 ? " +" : " ") + d;
     };
     const title = lang === "ko" ? "지금 올라와 있는 매물" : "Listings on sale now";
-    const legend = '<span class="opbcLeg"><i style="background:' + JP_COLOR + '"></i>' +
-      (lang === "ko" ? "일본판 " : "JP ") + (lastP.jp == null ? "-" : lastP.jp) + delta("jp") + "</span>" +
-      '<span class="opbcLeg"><i style="background:' + EN_COLOR + '"></i>' +
-      (lang === "ko" ? "영문판 " : "EN ") + (lastP.en == null ? "-" : lastP.en) + delta("en") + "</span>";
+    // 관측이 하나도 없는 판은 범례에서 뺀다 — 2026-10-14 QA: 영문판 페이지(영문 값만 넘김)에 'JP -' 가 빈 값처럼 떴다.
+    const hasEd = (key) => pts.some((p) => Number.isFinite(p[key]));
+    const legend = (hasEd("jp") ? '<span class="opbcLeg"><i style="background:' + JP_COLOR + '"></i>' +
+      (lang === "ko" ? "일본판 " : "JP ") + (lastP.jp == null ? "-" : lastP.jp) + delta("jp") + "</span>" : "") +
+      (hasEd("en") ? '<span class="opbcLeg"><i style="background:' + EN_COLOR + '"></i>' +
+      (lang === "ko" ? "영문판 " : "EN ") + (lastP.en == null ? "-" : lastP.en) + delta("en") + "</span>" : "");
 
     return '<figure class="opbcPane opbcSupply" data-jpword="' + esc(jpWord) + '" data-enword="' + esc(enWord) + '">' +
       '<figcaption class="opbcHead"><span class="opbcLabel">' + esc(title) + "</span>" + legend +
       '<span class="opbcSpan">' + md(firstP.d) + " – " + md(lastP.d) + "</span></figcaption>" +
       '<svg viewBox="0 0 ' + W + " " + SUP_H + '" role="img" aria-label="' + esc(title) + '">' +
-      grid + drawLine("jp", JP_COLOR) + drawLine("en", EN_COLOR) + anchors + hits +
+      holeLayer + grid + drawLine("jp", JP_COLOR) + drawLine("en", EN_COLOR) + anchors + hits +
       '<line class="opbcCross" y1="' + SUP_T + '" y2="' + (SUP_H - SUP_B) + '" stroke="#8d95a7" stroke-dasharray="3 3" opacity="0"/>' +
       '<circle class="opbcHl opbcHlJp" r="5" fill="' + JP_COLOR + '" stroke="#11141c" stroke-width="3" opacity="0"/>' +
       '<circle class="opbcHl opbcHlEn" r="5" fill="' + EN_COLOR + '" stroke="#11141c" stroke-width="3" opacity="0"/>' +
@@ -409,7 +640,9 @@
       '<text class="opbcTipV opbcTipEn" x="10" y="51"></text></g>' +
       xl +
       '<rect class="opbcHit" x="' + L + '" y="' + SUP_T + '" width="' + (W - L - R) + '" height="' + (SUP_H - SUP_T - SUP_B) + '" fill="transparent"/>' +
-      "</svg></figure>";
+      "</svg>" +
+      (holes.length ? '<div class="opbcKey"><span><i class="kHatch"></i>' + (lang === "ko" ? "수집 없음" : "not collected") + "</span></div>" : "") +
+      "</figure>";
   }
 
   // 선을 그릴 만큼은 아니지만 값이 있는 계열(초판처럼 몇 달에 몇 건)을 위한 카드.
@@ -452,11 +685,16 @@
     // ⚠️ 안내는 **실제로 데이터가 있는 탭**을 가리켜야 한다 — 2026-08-26.
     //    종전엔 무조건 "주간으로 보세요"였는데, OP-17 일본판은 주간이 1점뿐이라 그것도 비고
     //    정작 일간에는 선이 있었다. 안내를 따라갔는데 막다른 곳이면 안내가 없느니만 못하다.
+    const today = opts.today || new Date().toISOString().slice(0, 10);
+    const cnt = (series && series.counts) || {};
+    // 원장 집계일(through)과 오늘 중 이른 날 — 일간 점이 그 구간에 얼마나 촘촘한지(dailySparse) 잴 끝.
+    const asOfMs = Math.min(Date.parse(cnt.through || today) || Infinity, Date.parse(today));
     const drawableGrain = (ed, g) => {
       const arr = g === "month" ? (mo[ed] || [])
         : g === "day" ? (((series && series.daily) || {})[ed] || [])
         : ((series && series[ed]) || []);
-      return clean(arr, g === "day" ? MIN_N_DAY : null).length >= (g === "month" ? MIN_POINTS_MONTH : MIN_POINTS);
+      const c = clean(arr, g === "day" ? MIN_N_DAY : null);
+      return c.length >= (g === "month" ? MIN_POINTS_MONTH : MIN_POINTS) && !(g === "day" && dailySparse(c, asOfMs));
     };
     const grainName = (g) => (g === "day" ? (lang === "ko" ? "일간" : "the daily view")
       : g === "month" ? (lang === "ko" ? "월간" : "the monthly view")
@@ -506,14 +744,27 @@
     })();
     const supRaw = (series && series.supply) || [];
     const supOf = (ed) => supRaw.map((p) => ({ d: p.d, v: p && p[ed] != null ? p[ed] : null })).filter((p) => p.v != null);
-    const today = new Date().toISOString().slice(0, 10);
+    // 판매일별 건수(거래량 막대 원천)와 등락(주간 계열 기준, 모든 탭 공통).
+    // 주간 계열의 마지막 점이 28일 넘게 묵었으면 등락을 숨긴다(stale) — 홈 칩·전광판과 같은 규칙(2026-10-14 QA).
+    const chgFor = (ed) => {
+      const wk = clean((series && series[ed]) || []);
+      const c = chgOf(wk, lang);
+      if (c && Date.parse(today) - Date.parse(wk[wk.length - 1].d) > 28 * DAY) c.stale = true;
+      return c;
+    };
+    const chg = { jp: chgFor("jp"), en: chgFor("en"), enBlue: chgFor("enBlue") };
+    const optsFor = (ed, g, extra) => Object.assign({
+      windowDays: g === "week" ? wd[ed] : null, today, counts: cnt[ed] || null, through: cnt.through, chg: chg[ed], asOfMs,
+      // 점이 빠진 칸의 라벨 기준 = 빌더의 최소 표본(주간 6건, 초판 Blue 주간 3건, 월간 6건, 일간 3건).
+      gapN: g === "day" ? MIN_N_DAY : g === "week" && ed === "enBlue" ? 3 : 6,
+    }, extra || {});
 
     const grid = (g, jpPts, enPts, hidden) => {
       const jpLabel = lang === "ko" ? "일본판" : "Japanese";
       const enLabel = lang === "ko" ? "영문판" : "English";
       const evs = (series && series.events) || [];
-      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g === "week" ? wd.jp : null, g, badgeFor("jp"), supOf("jp"), today, lastSale.jp, evs.filter((e) => e.ed === "jp"));
-      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g === "week" ? wd.en : null, g, badgeFor("en"), supOf("en"), today, lastSale.en, evs.filter((e) => e.ed === "en"));
+      let jp = panel(jpPts, jpLabel, JP_COLOR, "opbcJp" + g, lang, g, optsFor("jp", g, { badge: badgeFor("jp"), supplyPts: supOf("jp"), lastSaleD: lastSale.jp, events: evs.filter((e) => e.ed === "jp") }));
+      let en = panel(enPts, enLabel, EN_COLOR, "opbcEn" + g, lang, g, optsFor("en", g, { badge: badgeFor("en"), supplyPts: supOf("en"), lastSaleD: lastSale.en, events: evs.filter((e) => e.ed === "en") }));
       // 실제 선이 하나도 없는 단위는 탭 자체를 내지 않는다 — 2026-08-27 소유자 지적.
       // 종전엔 "왜 없는지" 안내 카드만 있는 빈 화면이 떴는데, 그건 고장으로 읽힌다.
       const realLine = !!(jp || en);
@@ -533,8 +784,7 @@
         : g === "day" ? ((series && series.daily) || {}).enBlue
         : (series && series.enBlue);
       const blueLabel = lang === "ko" ? "영문판 초판 Blue" : "English 1st print (Blue)";
-      let blue = panel(bluePts, blueLabel, BLUE_COLOR, "opbcBlue" + g, lang,
-        g === "week" ? wd.enBlue : null, g, null);
+      let blue = panel(bluePts, blueLabel, BLUE_COLOR, "opbcBlue" + g, lang, g, optsFor("enBlue", g));
       if (!realLine && !blue) return "";
       if (!blue) {
         blue = spotPane(bluePts, blueLabel, BLUE_COLOR, lang, lang === "ko"
@@ -582,11 +832,11 @@
       ? '<div class="opbcTop">' + (opts.title ? '<div class="opbcTitle">' + esc(opts.title) + "</div>" : "<span></span>") + tabs + "</div>"
       : "";
     const note = opts.note === false ? "" : '<p class="opbcNote">' + (lang === "ko"
-      ? "선은 우리가 직접 모은 eBay <b>실거래(sold)</b> 중앙값이며, <b>판매된 날</b> 기준입니다. 주간은 거래가 드문 세트일수록 평균 구간을 길게 잡고(위에 표시), 월간은 그 달에 팔린 것 전부를 묶습니다. 표본이 얇은 구간은 그리지 않습니다."
-      : "The line is the median of <b>completed eBay sales</b> we collect ourselves, plotted by <b>date of sale</b>. The weekly view widens its averaging window for thinly traded sets (shown above); the monthly view groups every sale within a calendar month. Thin periods are left blank rather than estimated.")
+      ? "선은 우리가 직접 모은 eBay <b>실거래(sold)</b> 중앙값이며, <b>판매된 날</b> 기준입니다. 주간은 거래가 드문 세트일수록 평균 구간을 길게 잡고(위에 표시), 월간은 그 달에 팔린 것 전부를 묶습니다. 표본이 얇은 구간은 빗금으로 두고 추정하지 않습니다."
+      : "The line is the median of <b>completed eBay sales</b> we collect ourselves, plotted by <b>date of sale</b>. The weekly view widens its averaging window for thinly traded sets (shown above); the monthly view groups every sale within a calendar month. Thin periods are hatched rather than estimated.")
       + "</p>";
     // 공급은 집계 단위(주간·월간)와 무관하다 — 매일 세는 "지금 몇 개"라서 탭 밖에 둔다.
-    const supply = supplyPanel(series && series.supply, lang);
+    const supply = supplyPanel(series && series.supply, lang, today);
     // 고지는 패널 **위**에 둔다. 아래 두면 다 보고 나서야 "이건 팔린 개수가 아니다"를 읽게 된다.
     const supNote = supply ? '<p class="opbcNote opbcSupNote">' + (lang === "ko"
       ? "<b>지금 올라와 있는 매물 수</b>입니다 — 팔린 개수가 아닙니다."
@@ -675,13 +925,27 @@
     ".opbcStaleEdge{stroke:rgba(245,200,66,.75);stroke-width:1.5;stroke-dasharray:4 3}",
     ".opbcStaleCarry{stroke-width:2;stroke-dasharray:2 5;stroke-linecap:round;opacity:.65}",
     ".opbcStaleEnd{fill:#0a0f14;stroke-width:2;opacity:.75}",
+    // 빗금 안 글자는 패널 폭에 따라 키운다(아래 @container) — 렌더 11.5px 이상(2026-10-14 QA: 1366 에서 9.2·7.9px 였다).
     ".opbcStaleTx{fill:#f5c842;font-size:11px;font-weight:800}",
-    ".opbcStaleSub{fill:rgba(245,200,66,.7);font-size:9.5px;font-weight:600}",
+    ".opbcStaleSub{fill:rgba(245,200,66,.7);font-size:11px;font-weight:600}",
+    // 마지막 점이 28일 넘게 묵은 헤드라인 — 홈 칩(.packTrend.stale)·전광판과 같은 표시: 흐리게 + 금색 'MM/DD'(2026-10-14 QA).
+    ".opbcNowStale{opacity:.55}",
+    ".opbcAsOf{font-size:11.5px;font-weight:700;color:var(--gold,#f5c842);font-variant-numeric:tabular-nums}",
     ".opbcStaleBadge{margin-left:8px;padding:3px 9px;border-radius:20px;background:rgba(245,200,66,.18);border:1px solid rgba(245,200,66,.45);color:#f5c842;font-size:11.5px;font-weight:800;white-space:nowrap}",
-    ".opbcKey{display:flex;gap:14px;margin:6px 0 0;padding:0 4px;font-size:11.5px;color:var(--muted,#8d95a7)}",
+    ".opbcKey{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 0;padding:0 4px;font-size:11.5px;color:var(--muted,#8d95a7)}",
     ".opbcKey span{display:inline-flex;align-items:center;gap:5px}",
     ".opbcKey i{display:inline-block;width:12px;height:2px;border-radius:1px}",
-    ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;opacity:.55}",
+    // 거래량 막대는 중립색 하나(2026-10-14) — 상승·하락 색은 1% 미만 잡음에도 바뀌었다. 가격선 색 규칙은 그대로.
+    ".opbcKey .kBar{width:8px;height:8px;border-radius:1px;background:var(--muted,#8d95a7);opacity:.6}",
+    ".opbcKey .kPart{background:transparent;border:1px solid var(--muted,#8d95a7);box-sizing:border-box;opacity:1}",
+    // 색은 styles.css 토큰(--gold-rgb·--muted) — 2026-10-14 QA.
+    ".opbcKey .kHatch{width:12px;height:9px;background:repeating-linear-gradient(45deg,rgba(var(--gold-rgb,245,200,66),.42) 0 1.6px,rgba(var(--gold-rgb,245,200,66),.08) 1.6px 5px)}",
+    ".opbcKey .kFmt{width:0;height:10px;border-left:1px dashed var(--muted,#8d95a7);border-radius:0}",
+    ".opbcBar{fill:var(--muted,#8d95a7);fill-opacity:.5}",
+    ".opbcBar0{fill-opacity:.8}",
+    ".opbcBarPart{fill:none;stroke:var(--muted,#8d95a7);stroke-width:1.2;stroke-opacity:.9}",
+    ".opbcBarN{font-weight:700}",
+    ".opbcFmt{stroke:var(--muted,#8d95a7);stroke-opacity:.8;stroke-width:1.2;stroke-dasharray:2 3}",
     ".opbcHitDot{cursor:pointer}.opbcHit{cursor:crosshair}",
     ".opbcTipBg{fill:#151a22;stroke:rgba(255,255,255,.16)}",
     ".opbcTipD{fill:var(--muted,#8d95a7);font-size:11px;font-variant-numeric:tabular-nums}",
@@ -697,8 +961,8 @@
     ".opbcNote b{color:var(--ink,#eef2ff);font-weight:700}",
     // SVG text scales with its panel, not the viewport. Container breakpoints keep
     // axes >=12 CSS px across phone, tablet and the desktop two-column layout.
-    "@container boxplot (max-width:760px){.opbcAx,.opbcFlagTx{font-size:16px}}",
-    "@container boxplot (max-width:560px){.opbcAx,.opbcFlagTx{font-size:20px}}",
+    "@container boxplot (max-width:760px){.opbcAx,.opbcFlagTx{font-size:16px}.opbcStaleTx,.opbcStaleSub{font-size:15px}}",
+    "@container boxplot (max-width:560px){.opbcAx,.opbcFlagTx{font-size:20px}.opbcStaleTx,.opbcStaleSub{font-size:18px}}",
     "@container boxplot (max-width:440px){.opbcAx,.opbcFlagTx{font-size:24px}.opbcExtrema,.opbcStaleTx,.opbcStaleSub,.opbcEvtTx,.opbcTip,.opbcDateTag{display:none}.opbcFlag rect{height:36px;transform:translateY(-7px)}}",
     "@container boxplot (max-width:360px){.opbcAx,.opbcFlagTx{font-size:30px}}",
     "@container boxplot (max-width:280px){.opbcAx,.opbcFlagTx{font-size:38px}.opbcFlag rect{height:44px;transform:translateY(-11px)}}",
@@ -753,6 +1017,8 @@
     const dtag = svg.querySelector(".opbcDateTag");
     const dots = [].slice.call(svg.querySelectorAll(".opbcDot"));
     const hitDots = [].slice.call(svg.querySelectorAll(".opbcHitDot"));
+    // 거래량 막대(달력 칸)는 가격 점과 위치가 다르다 — 스냅된 가격 점의 날짜가 든 칸의 건수를 판독 줄 끝에 따로 붙인다.
+    const volBars = [].slice.call(svg.querySelectorAll(".opbcBar[data-l]"));
     if (!hit || !dots.length) return;
     const updateReadout = bindChartReadout(pane, svg, dots, at);
 
@@ -766,7 +1032,10 @@
       hl.setAttribute("cx", cx); hl.setAttribute("cy", cy); hl.setAttribute("opacity", "1");
       // 헤드라인(현재가)은 건드리지 않는다 — 훑을 때마다 바뀌면 "지금 얼마"를 잃는다.
       const hd = hitDots[best] ? hitDots[best].dataset : {};
-      updateReadout(best, [hd.d, hd.v, hd.n, hd.r].filter(Boolean).join(" · "));
+      // 판독 줄의 건수는 스냅된 가격 점의 날짜가 든 칸(s ≤ d < e)에서 — 2026-10-14 QA: 손가락 x 에 가장 가까운 막대를 따로 골라
+      // '2026-10-04 · $1,143 … · Sales 10/13: 0 sales' 처럼 한 줄에 다른 날짜가 붙었다. 그 날짜가 든 칸이 없으면 건수를 붙이지 않는다.
+      const vb = hd.t ? volBars.find((b) => b.getAttribute("data-s") <= hd.t && hd.t < b.getAttribute("data-e")) || null : null;
+      updateReadout(best, [hd.d, hd.v, hd.n, hd.r, vb ? vb.getAttribute("data-l") : ""].filter(Boolean).join(" · "));
       // 툴팁 폭은 CSS 가 정한다(폰에서 216) — 186 고정이면 폰에서 상자가 오른쪽으로 삐져나갔다(2026-09-24)
       const tw = parseFloat(getComputedStyle(svg.querySelector(".opbcTipBg")).width) || 186, tx = Math.min(Math.max(cx - tw / 2, 4), W - tw - 4);
       const ty = cy - 74 < T ? cy + 14 : cy - 74;

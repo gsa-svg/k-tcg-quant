@@ -15,6 +15,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { tcgOffHour, TCG_SNAPSHOT_STD_HOURS } = require("./tcg-config");
+const { readSeenFix, sampleOf } = require("./build-tcg-archive-seen");
 const hh = (h) => `${String(h).padStart(2, "0")}:00`;
 
 const ROOT = path.resolve(__dirname, "..");
@@ -43,21 +44,42 @@ function main() {
   const terms = snap.terms || {};
   const keys = Object.keys(terms);
 
-  // 거래(정산) 원본 — 하루별 게임별로 모은다
-  const sales = new Map();   // day -> game -> {ended, sold, amount, prices[]}
+  // 거래(정산) 원본 — 하루별(원장 = 종료일) 게임별로 모은다.
+  // 표본(base)과 여유분(extra)을 나눈다 — 2026-10-14. ended·sold·sellThrough·amount·medPrice 는 표본만이다. 여유분은 남는
+  // 쿼터로 다른 UTC 회차에 고른 종료 임박 경매라 표본과 섞이면 낙찰률이 그날 쿼터 사정을 따라 흔들린다(큰 게임 n 의 변동계수
+  // 23% → 34%). 섞인 값을 ai-data 등 소비자가 그대로 썼다. 여유분은 extraEnded·extraSold·extraAmount 로 따로 싣는다.
+  // 표본일(seen)별 회수 — 그날 표본 중 몇 건을 종료 후 읽었나(sampleSettled). 원장 날짜(종료일)가 아니라 표본을 고른 날로 센다.
+  // seen 은 행의 seen(2026-10-14~) → 보정 파일(data/tcg-archive-seen.json, git 감시 이력에서 복원) → 원장 날짜 순.
+  // 그날 표본에 들었는데 이미 여유분으로 감시 중이라 원장에 extra 로 남은 행(보정 파일 promoted)은 표본으로 센다 — 2026-10-14 QA:
+  // 빠진 쪽이 무작위가 아니라 표본의 가장 먼저 끝나는 앞부분이었다(10/12 unionarena 79건). 판정은 sampleOf 한 곳에서.
+  const fix = readSeenFix(ROOT);
+  const { sampled } = fix;
+  const sales = new Map();   // day -> game -> {ended, sold, amount, prices[], extraEnded, extraSold, extraAmount}
+  const bySeen = new Map();  // 표본일 -> game -> 정산된 표본 수
   if (fs.existsSync(ARCHIVE)) {
     for (const f of fs.readdirSync(ARCHIVE).filter((n) => /^\d{4}-\d{2}-\d{2}\.json$/.test(n)).sort()) {
       const day = f.slice(0, 10);
       for (const s of (JSON.parse(fs.readFileSync(path.join(ARCHIVE, f), "utf8")).sales || [])) {
         if (!sales.has(day)) sales.set(day, new Map());
         const m = sales.get(day);
-        if (!m.has(s.g)) m.set(s.g, { ended: 0, sold: 0, amount: 0, prices: [] });
+        if (!m.has(s.g)) m.set(s.g, { ended: 0, sold: 0, amount: 0, prices: [], extraEnded: 0, extraSold: 0, extraAmount: 0 });
         const b = m.get(s.g);
+        // 통화가 USD 가 아니면 금액에서 뺀다 — 환산해 섞으면 어느 시점 환율인지 알 수 없는 값이 된다.
+        const usd = s.sold && s.currency === "USD" && s.price > 0 ? s.price : null;
+        const smp = sampleOf(s, day, fix);
+        if (!smp.base) {
+          b.extraEnded += 1;
+          if (s.sold) b.extraSold += 1;
+          if (usd != null) b.extraAmount += usd;
+          continue;
+        }
+        const seenDay = smp.seen;
+        if (!bySeen.has(seenDay)) bySeen.set(seenDay, new Map());
+        bySeen.get(seenDay).set(s.g, (bySeen.get(seenDay).get(s.g) || 0) + 1);
         b.ended += 1;
         if (!s.sold) continue;
         b.sold += 1;
-        // 통화가 USD 가 아니면 금액에서 뺀다 — 환산해 섞으면 어느 시점 환율인지 알 수 없는 값이 된다.
-        if (s.currency === "USD" && s.price > 0) { b.amount += s.price; b.prices.push(s.price); }
+        if (usd != null) { b.amount += usd; b.prices.push(usd); }
       }
     }
   }
@@ -79,11 +101,12 @@ function main() {
         return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
       };
       // 거래(낙찰)는 합 — 이건 기간 안에 실제로 일어난 사건이라 더하는 게 맞다.
-      let ended = 0, sold = 0, amount = 0, prices = [];
+      let ended = 0, sold = 0, amount = 0, prices = [], extraEnded = 0, extraSold = 0, extraAmount = 0;
       for (const d of dayList) {
         const b = sales.get(d)?.get(k);
         if (!b) continue;
         ended += b.ended; sold += b.sold; amount += b.amount; prices = prices.concat(b.prices);
+        extraEnded += b.extraEnded; extraSold += b.extraSold; extraAmount += b.extraAmount;
       }
       games[k] = {
         live: avg((g) => g.live),
@@ -99,7 +122,23 @@ function main() {
         amount: round(amount),
         medPrice: prices.length >= 5 ? median(prices) : null,
         priceN: prices.length,
+        // 여유분 — 표본과 따로(비율은 만들지 않는다: 회차·쿼터 사정으로 고른 시각이 날마다 다르다)
+        extraEnded, extraSold, extraAmount: round(extraAmount),
       };
+    }
+    return games;
+  };
+
+  // 일별 표본 회수 — sampleWatched = 그날 표본으로 감시에 넣은 수(스냅샷 games[].watched, 그 전 날은 보정 파일 sampled,
+  // 둘 다 없으면 null = 모름), sampleSettled = 그중 종료 후 읽은 수(표본일 기준). 시한(종료 + 30시간)을 넘겨 못 읽은 표본은
+  // 그날 원장 합계(ended)에선 다른 날 종료분에 묻혀 안 보인다 — 표본일로 세야 드러난다(audit-series-gaps).
+  const withSample = (d, games) => {
+    const shot = snap.points.find((p) => p.d === d);
+    const recorded = (shot?.games || []).some((g) => Number.isFinite(g?.watched));
+    for (const k of keys) {
+      const w = recorded ? (shot.games.find((g) => g.k === k)?.watched ?? 0) : sampled[d] ? (sampled[d][k] || 0) : null;
+      games[k].sampleWatched = w;
+      games[k].sampleSettled = bySeen.get(d)?.get(k) || 0;
     }
     return games;
   };
@@ -117,11 +156,11 @@ function main() {
 
   const out = {
     basis: "eBay listings and settled auctions by trading card game",
-    note: "Three different kinds of number live here. endingToday is how many auctions eBay says close within 24 hours -- a real count, not a sample -- while ended/sold are the ones we actually re-read after close, which is a small fraction of that. live and liveFixed are how many listings were open when we looked, so a week is the AVERAGE of its days -- adding them would count the same listing every day it stayed up. ended, sold and amount are things that happened inside the period, so a week is the SUM. Sell-through is left null under 20 settled auctions and medPrice under 5, because a rate built on a handful of listings is noise. None of this is the size of a game's market: eBay is one channel, fixed-price listings are counted but we cannot see whether they sold, and shipping is excluded. What it is good for is comparing games with each other, since every game is measured the same way. offHour marks a day whose snapshot -- and so its settled sample, the auctions ending soonest at that moment -- was taken outside " + hh(TCG_SNAPSHOT_STD_HOURS.from) + "-" + hh(TCG_SNAPSHOT_STD_HOURS.to) + " UTC; offHourDays counts those days in a week or month, and the sums still include them. Terms of use: https://opboxindex.com/free-data.html#terms",
+    note: "Three different kinds of number live here. endingToday is how many auctions eBay says close within 24 hours -- a real count, not a sample -- while ended/sold are the ones we actually re-read after close, which is a small fraction of that. ended, sold, sellThrough, amount, medPrice and priceN cover the daily sample only -- the auctions ending soonest when that day's snapshot was taken, including the ones already being watched as extras at that moment (before 2026-10-15 those are restored from the watch-list history as a lower bound, so a few of the earliest-closing sample auctions may still sit with the extras); extraEnded, extraSold and extraAmount are the other extra auctions read with leftover quota, picked at other hours, kept apart and never mixed into the rates. On a daily row, sampleWatched is how many auctions were in that day's sample (null when not recorded) and sampleSettled how many of them were read back after close, counted by the day the sample was picked rather than the day it closed. live and liveFixed are how many listings were open when we looked, so a week is the AVERAGE of its days -- adding them would count the same listing every day it stayed up. ended, sold and amount are things that happened inside the period, so a week is the SUM. Sell-through is left null under 20 settled auctions and medPrice under 5, because a rate built on a handful of listings is noise. None of this is the size of a game's market: eBay is one channel, fixed-price listings are counted but we cannot see whether they sold, and shipping is excluded. What it is good for is comparing games with each other, since every game is measured the same way. offHour marks a day whose snapshot -- and so its settled sample, the auctions ending soonest at that moment -- was taken outside " + hh(TCG_SNAPSHOT_STD_HOURS.from) + "-" + hh(TCG_SNAPSHOT_STD_HOURS.to) + " UTC; offHourDays counts those days in a week or month, and the sums still include them. Terms of use: https://opboxindex.com/free-data.html#terms",
     games: terms,
     minRateSample: MIN_RATE_N,
     builtFrom: { first: days[0] || null, last: days[days.length - 1] || null, days: days.length },
-    daily: days.map((d) => ({ d, days: 1, ...(offDays.has(d) ? { offHour: true } : {}), games: rowFor([d]) })),
+    daily: days.map((d) => ({ d, days: 1, ...(offDays.has(d) ? { offHour: true } : {}), games: withSample(d, rowFor([d])) })),
     weekly: group(isoWeek),
     monthly: group((d) => `${d.slice(0, 7)}-01`),
   };

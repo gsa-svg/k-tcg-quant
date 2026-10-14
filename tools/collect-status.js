@@ -110,7 +110,6 @@ const pick = {
         if (kind === "nm") take(c.nmUpdated);
         if (kind === "psa10active") take(c.psa10Active && c.psa10Active.updated);
         if (kind === "psa10sold") take(c.psa10Ebay && c.psa10Ebay.updated);
-        if (kind === "cardseries") take(c.series && c.series.updated);
         if (kind === "graderpop") for (const g of Object.values(c.graderPop || {})) for (const ed of Object.values(g || {})) take(ed && ed.d);
       }
     }
@@ -161,8 +160,9 @@ const SOURCES = [
     warn: 8, late: 12, get: pick.tail("data/social-card-price-snapshots.json", (j) => j.snapshots),
     files: ["social-card-price-snapshots.json"] },
 
+  // 2026-10-14 packs.json 의 card.series 에서 data/card-series.json 으로 분리(방문자 페이로드 상한 T2).
   { key: "card-series", name: "카드별 시세 시계열", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
-    warn: 2, late: 3, get: pick.packsField("cardseries"), files: [] },
+    warn: 2, late: 3, get: pick.field("data/card-series.json", "updated"), files: ["card-series.json"] },
   { key: "box-series", name: "박스 시세 시계열(JP/EN×호가/실거래)", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
     warn: 2, late: 3, get: pick.packsField("boxseries"), files: [] },
 
@@ -219,6 +219,8 @@ const IGNORE = {
   "set-facts.json": "세트 발매일·구성 등 고정 사실(수동 편집)",
   "set-commentary.json": "세트 해설 문구(수동 편집)",
   "known-gaps.json": "수집 공백 기록부(audit-series-gaps.js 가 씀, 수집원 아님)",
+  // 2026-10-14: 원장 행에 seen 이 없던 시절(10/14 전) TCG 표본일 보정. 수집이 아니라 git 이력에서 다시 굽는 고정 파일이다.
+  "tcg-archive-seen.json": "파생 — build-tcg-archive-seen.js 가 tcg-watch 의 git 이력에서 굽는 tcg-archive 표본일 보정(재실행 가능, 수집원 아님)",
   // 2026-09-30: 이 파일의 updated 를 등급 수집의 신선도로 읽다가 CGC 자동 수집이 죽은 걸 못 봤다. 원장 행들이 관측일로 본다.
   "grading-series.json": "파생 — build-grading-series.js 가 PSA·CGC·TAG 원장에서 다시 굽는다. updated 는 빌드 날짜라 수집 신선도가 아니다",
   "official-card-images.json": "공식 이미지 URL 목록(수동)",
@@ -254,8 +256,6 @@ const PACKS_TRACKED = [
   /\.psa10Active\.updated$/,                               // PSA10 진행매물 (자동)
   /\.psa10Ebay\.updated$/,                                 // PSA10 실거래 (수동)
   /\.graderPop\..+\.d$/,                                   // 카드별 등급인구 (수동)
-  /\.series\.(updated|cleaned)$/,                          // 카드별 시세 시계열 (자동)
-  /\.series\.points\.\d+\.d$/,
   /\.boxMarket\.(jp|en)\.ebay(Active|Sold)\.updated$/,     // 박스 시세 (자동/수동)
   /\.boxSeries(En|Ebay|EnEbay)?\.updated$/,                // 박스 시세 시계열 (자동)
   /\.boxSeries(En|Ebay|EnEbay)?\.points\.\d+\.d$/,

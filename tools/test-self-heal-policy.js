@@ -3,9 +3,9 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { buildHealPlan, hasThreeConsecutiveFailures } = require("./self-heal-policy");
+const { buildHealPlan, hasThreeConsecutiveFailures, SNAPSHOT_DUE_MINUTE, SNAPSHOT_ALERT_MINUTE, SNAPSHOT_QUOTA_ALERT_UNTIL } = require("./self-heal-policy");
 const { previousDayAssessment } = require("./collection-continuity");
-const { recordSummary, backlogSummary, COOLDOWN_MINUTES, snapshotInWindow, cooldownFor } = require("./self-heal-daily");
+const { recordSummary, backlogSummary, COOLDOWN_MINUTES, snapshotOnDay, snapshotQuotaSkip, cooldownFor } = require("./self-heal-daily");
 
 // 창 첫 실행(스냅샷 없음 / 이번 창 정산 없음)은 쿨다운 0 — 크론 누락을 메우는 일을 이력 때문에 미루지 않는다
 {
@@ -17,10 +17,11 @@ const { recordSummary, backlogSummary, COOLDOWN_MINUTES, snapshotInWindow, coold
   assert.equal(cooldownFor({ key: "auction" }, base), COOLDOWN_MINUTES.auction);
 }
 
-// 스냅샷 판정은 쿼터 창 기준: 자정을 넘겨도 창 시작일의 점이 있으면 있는 것(자정~07:30 UTC 매일 재실행 폭주 방지)
-assert.equal(snapshotInWindow([{ d: "2026-09-06" }], "2026-09-07", "2026-09-06"), true);
-assert.equal(snapshotInWindow([{ d: "2026-09-06" }], "2026-09-07", "2026-09-07"), false, "새 창이 열렸는데 점이 없으면 없는 것");
-assert.equal(snapshotInWindow([], "2026-09-07", "2026-09-06"), false);
+// 스냅샷 판정은 UTC 날짜 기준(2026-10-14 정정): 자정을 넘기면 전날 점은 오늘 몫이 아니다 — 00~07 UTC 에 전날 점을
+// 오늘 몫으로 쳐서 스냅샷을 이유로 실행을 쏘지 않았고, 찍는 시각이 크론 지연에 좌우됐다(60일 중 11일 표준 시각 밖).
+assert.equal(snapshotOnDay([{ d: "2026-09-06" }], "2026-09-07"), false, "자정을 넘기면 전날 점은 오늘 점이 아니다");
+assert.equal(snapshotOnDay([{ d: "2026-09-06" }, { d: "2026-09-07" }], "2026-09-07"), true);
+assert.equal(snapshotOnDay([], "2026-09-07"), false);
 
 // due 는 아직 읽을 수 있는 것(종료 후 30시간 안)만 — 시한 지난 건은 lost 로 분리(9/6: 만료 6천 건이 due 에 섞여 30분마다 재실행)
 {
@@ -71,11 +72,42 @@ assert.equal(cooldownFor({ key: "tcg" }, { tcg: { snapshotToday: true }, window:
 const noDrain = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, due: 0 }, window: { minutesOpen: 1397, opSwept: true, tcgChecked: true } });
 assert.deepEqual(noDrain.requests, [], "nothing due means nothing to drain");
 
+// 오늘 스냅샷: UTC 00:15 이후 오늘 점이 없으면 collect-tcg 를 바로(쿨다운 0) 쏜다. 01:00 이 지나도 없으면 경고 — 2026-10-14.
+// 창 정보(minutesOpen)는 자정 무렵 창의 끝(17시간째)이라 판정에 쓰지 않는다.
+{
+  const at = (hhmm) => ({ ...healthy, now: `2026-10-15T${hhmm}:00.000Z`, window: { minutesOpen: 1000, opSwept: true, tcgChecked: true }, tcg: { ...healthy.tcg, snapshotToday: false } });
+  assert.equal(SNAPSHOT_DUE_MINUTE, 15);
+  assert.equal(SNAPSHOT_ALERT_MINUTE, 60);
+  assert.deepEqual(buildHealPlan(at("00:10")).requests, [], "00:15 전에는 요청하지 않는다");
+  const due = buildHealPlan(at("00:17"));
+  assert.deepEqual(due.requests.map((r) => r.key), ["tcg"], "00:17 하트비트는 오늘 스냅샷을 요청한다");
+  assert.ok(/오늘 스냅샷 0/.test(due.requests[0].reason));
+  assert.deepEqual(due.alerts, [], "00:17 은 요청이지 경고가 아니다");
+  assert.equal(cooldownFor({ key: "tcg" }, at("00:17")), 0, "오늘 스냅샷 요청은 쿨다운 없이 바로 쏜다");
+  const late = buildHealPlan(at("01:05"));
+  assert.deepEqual(late.requests.map((r) => r.key), ["tcg"], "01:05 에도 없으면 계속 요청한다");
+  assert.ok(late.alerts.some((a) => /UTC 01:00.*스냅샷/.test(a)), "01:00 이 지나도 없으면 경고");
+  assert.deepEqual(buildHealPlan({ ...at("01:05"), tcg: { ...healthy.tcg, snapshotToday: true } }), { requests: [], alerts: [] }, "오늘 점이 있으면 아무것도 안 한다");
+
+  // 쿼터 부족으로 건너뛴 날(감시 파일 snapshotSkip, 리셋 전) — 2026-10-14 QA. 리셋까지 잔여가 늘지 않으니 스냅샷을 이유로 다시
+  // 쏘지 않고(00:17~07:00 빈 실행 ~14회), 경고는 01:00~02:59 UTC 한 번(크론 01:50)만 낸다.
+  const quotaSkip = (hhmm) => ({ ...at(hhmm), tcg: { ...healthy.tcg, snapshotToday: false, snapshotQuotaSkip: true } });
+  assert.deepEqual(buildHealPlan(quotaSkip("00:47")).requests, [], "쿼터 부족 건너뜀 뒤에는 스냅샷 요청을 내지 않는다");
+  assert.notEqual(cooldownFor({ key: "tcg" }, quotaSkip("00:47")), 0, "다른 이유로 쏠 때도 쿨다운을 그대로 둔다");
+  assert.ok(buildHealPlan(quotaSkip("01:50")).alerts.some((a) => /쿼터 부족/.test(a)), "01:50 크론은 한 번 경고한다");
+  for (const t of ["03:50", "05:50"]) assert.deepEqual(buildHealPlan(quotaSkip(t)).alerts, [], `${t} 크론은 같은 경고를 반복하지 않는다`);
+  assert.equal(SNAPSHOT_QUOTA_ALERT_UNTIL, 180);
+  // 도장 판정: 오늘·쿼터 사유·리셋 전일 때만
+  const now = Date.parse("2026-10-15T02:00:00Z");
+  const skip = { d: "2026-10-15", reason: "quota", reset: "2026-10-15T07:00:00.000Z" };
+  assert.equal(snapshotQuotaSkip(skip, "2026-10-15", now), true);
+  assert.equal(snapshotQuotaSkip(skip, "2026-10-15", Date.parse("2026-10-15T07:05:00Z")), false, "리셋이 지나면 풀린다 — 바로 다시 쏜다");
+  assert.equal(snapshotQuotaSkip({ ...skip, d: "2026-10-14" }, "2026-10-15", now), false, "전날 도장은 오늘 것이 아니다");
+  assert.equal(snapshotQuotaSkip(undefined, "2026-10-15", now), false);
+}
 const missingTcg = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false } });
 assert.deepEqual(missingTcg.requests.map((r) => r.key), ["tcg"]);
-assert.deepEqual(missingTcg.alerts, [], "50 minutes into the window a missing snapshot is a request, not an alert");
-const missingTcgLate = buildHealPlan({ ...healthy, tcg: { ...healthy.tcg, snapshotToday: false }, window: { ...healthy.window, minutesOpen: 300 } });
-assert.ok(missingTcgLate.alerts.some((a) => /3회 이상/.test(a)), "four hours into the window with no snapshot must alert");
+assert.ok(missingTcg.alerts.some((a) => /UTC 01:00/.test(a)), "07:50 UTC 에 오늘 점이 없으면 경고(00:18 실행이 건너뛰었다)");
 
 // 검색(전수/보충)을 쏜 회차에는 정산을 같이 쏘지 않는다 — 같은 원장을 동시에 쓰면 정산 커밋이 충돌로 버려진다(2026-09-07 07:47 UTC)
 const sweepAndStale = buildHealPlan({ ...healthy, window: { minutesOpen: 100, opSwept: false, tcgChecked: true }, auction: { staleMinutes: 450, due: 326, urgent: 2, oldestHours: 22 } });

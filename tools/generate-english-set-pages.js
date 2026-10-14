@@ -160,6 +160,8 @@ function chartBlock(code) {
     windowDays: ser.windowDays,
     monthly: { en: ser.monthly?.en, enBlue: ser.monthly?.enBlue },
     daily: { en: ser.daily?.en, enBlue: ser.daily?.enBlue },
+    // 판매일별 건수 — 거래량 막대(달력 칸)의 원천. 없으면 막대가 통째로 빠진다.
+    counts: { through: ser.counts?.through, en: ser.counts?.en, enBlue: ser.counts?.enBlue },
     supply: (ser.supply || []).map((p) => ({ d: p.d, en: p.en })),
     reprintPct: ser.reprintPct,
   };

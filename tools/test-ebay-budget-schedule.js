@@ -103,3 +103,66 @@ console.log("eBay budget schedule tests passed");
   assert.equal(auctionInflow(at("2026-09-09T07:30:00Z"), reset), 0, "리셋이 지났으면 0");
   assert.equal(reserveFor("auction", at("2026-09-09T06:45:00Z"), reset, root), 1 + Math.round(OP_INFLOW_PER_HOUR * 0.25), "auction 예약 = 아는 대기 + 유입 추정");
 }
+
+// TCG 스냅샷 몫(tcgSnapshot) — 2026-10-14. 이 창 안의 UTC 자정(리셋 날짜) 점이 아직 없을 때만 남긴다.
+// 9/5~9/8·10/8~10/10: 아무도 이 몫을 남기지 않았고 스냅샷 문턱(400)이 실제 필요(104)보다 높아 00~07 UTC 실행이 전부
+// 건너뛰고 07:18(표준 시각 밖)에 찍혔다.
+{
+  const { reserveFor, snapshotDayFor, RESERVE_KEYS } = require("./ebay-budget");
+  const { TCG_SNAPSHOT_CALLS, TCG_SNAPSHOT_RESERVE, TCGS } = require("./tcg-config");
+  assert.equal(TCG_SNAPSHOT_CALLS, TCGS.length * 8, "스냅샷 = 게임당 총계·즉시구매·24시간 종료 3콜 + 표본 5페이지");
+  assert.equal(PER_RUN.tcgSnapshot, TCG_SNAPSHOT_RESERVE);
+  assert.ok(TCG_SNAPSHOT_RESERVE < 400, "몫은 실제 필요에 맞춘다(종전 문턱 400 은 17게임 시절 값)");
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "opbox-snapkeep-"));
+  fs.mkdirSync(path.join(root, "data"));
+  const writeSnap = (days) => fs.writeFileSync(path.join(root, "data", "tcg-snapshot.json"), JSON.stringify({ points: days.map((d) => ({ d })) }));
+  const reset = at("2026-10-15T07:00:00Z");
+  assert.equal(snapshotDayFor(reset), "2026-10-15", "10/14 07:00~10/15 07:00 창이 찍을 점은 10/15 00:18 점");
+  try {
+    writeSnap(["2026-10-14"]);
+    assert.equal(reserveFor("tcgSnapshot", at("2026-10-14T15:00:00Z"), reset, root), TCG_SNAPSHOT_RESERVE, "15:00 UTC: 오늘 점이 있어도 다음 자정 점 몫은 남긴다");
+    assert.equal(reserveFor("tcgSnapshot", at("2026-10-15T00:10:00Z"), reset, root), TCG_SNAPSHOT_RESERVE, "00:10 UTC: 아직 안 찍었으면 남긴다");
+    writeSnap(["2026-10-14", "2026-10-15"]);
+    assert.equal(reserveFor("tcgSnapshot", at("2026-10-15T00:30:00Z"), reset, root), 0, "찍고 나면 바로 푼다");
+    assert.equal(reserveFor("tcgSnapshot", at("2026-10-15T07:30:00Z"), at("2026-10-16T07:00:00Z"), root), TCG_SNAPSHOT_RESERVE, "리셋 뒤 새 창은 다음 자정 점 몫을 다시 남긴다");
+    assert.equal(reserveFor("tcgSnapshot", at("2026-10-15T00:30:00Z"), reset, path.join(root, "missing")), TCG_SNAPSHOT_RESERVE, "파일을 못 읽으면 남긴다");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+  // 그 몫은 순서상 뒤인 TCG 쪽(정산·여유분·드레인)만 남긴다. 원피스 검색(①)·정산(②)은 앞 순서라 남기지 않는다 —
+  // 남기면 00:05 UTC 원피스 정산이 '잔여 480 · 예약 580 → 가용 0'(9/4)이 되고, 보충 검색이 잔여 200~324 에서 0 이 된다.
+  assert.ok(!RESERVE_KEYS.OP_SETTLE.includes("tcgSnapshot"), "원피스 정산은 TCG 스냅샷 몫을 남기지 않는다(순서 ②가 ③보다 앞)");
+  assert.ok(RESERVE_KEYS.TCG.includes("tcgSnapshot") && RESERVE_KEYS.TCG.includes("auction"), "TCG 는 원피스 정산 몫까지 남긴다");
+  assert.ok(!RESERVE_KEYS.TCG_SNAPSHOT_SIZE.includes("tcgSnapshot"), "스냅샷은 자기 몫을 watchPerGameFor 에서 뺀다");
+  for (const [file, re] of [
+    ["settle-tcg.js", /reserveFor:\s*RESERVE_KEYS\.TCG\b/],
+    ["topup-tcg-watch.js", /reserveFor:\s*RESERVE_KEYS\.TCG\b/],
+    ["collect-tcg-snapshot.js", /left < TCG_SNAPSHOT_RESERVE/],
+  ]) assert.match(fs.readFileSync(path.join(__dirname, file), "utf8"), re, `${file} 가 스냅샷 몫을 지켜야 한다`);
+  assert.doesNotMatch(fs.readFileSync(path.join(__dirname, "collect-auction-market.js"), "utf8"), /reserveFor\(\s*["']tcgSnapshot/, "원피스 검색은 TCG 스냅샷 몫을 남기지 않는다(순서 ①)");
+  // 진행 매물 갱신 게이트에 이 몫을 둘지는 소유자 결정 대기(2026-10-14 QA) — 지금은 둔다.
+  assert.match(fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "update-active-listings.yml"), "utf8"), /check-ebay-quota\.js --min \d+ --reserve tcgSnapshot/, "진행 매물 갱신 게이트도 스냅샷 몫을 남긴다");
+}
+
+// TCG 정산 순서 — 마감(종료 + 30h) 8시간 안 표본(base)을 먼저, 나머지는 게임별로 돌아가며(2026-10-14).
+{
+  const { pickDue, GIVE_UP_HOURS, URGENT_HOURS } = require("./settle-tcg");
+  const now = at("2026-10-14T12:00:00Z");
+  const ago = (h) => new Date(now - h * 3600000).toISOString();
+  const pending = [
+    { id: "a-new", g: "a", end: ago(1) },
+    { id: "a-new2", g: "a", end: ago(2) },
+    { id: "b-new", g: "b", end: ago(3) },
+    { id: "c-urg1", g: "c", end: ago(25) },
+    { id: "c-urg2", g: "c", end: ago(24) },
+    { id: "c-urg3", g: "c", end: ago(23) },
+    { id: "a-xurg", g: "a", end: ago(26), extra: true },   // 여유분은 마감이 임박해도 앞당기지 않는다
+    { id: "b-dead", g: "b", end: ago(31) },                 // 시한 지남
+    { id: "b-live", g: "b", end: ago(-1) },                 // 아직 안 끝남
+  ];
+  assert.equal(GIVE_UP_HOURS - URGENT_HOURS, 22);
+  assert.deepEqual(pickDue(pending, now, 3).map((p) => p.id), ["c-urg1", "c-urg2", "c-urg3"], "마감 8시간 안 표본이 다른 게임보다 먼저");
+  assert.deepEqual(pickDue(pending, now, 7).map((p) => p.id), ["c-urg1", "c-urg2", "c-urg3", "b-new", "a-new2", "a-new", "a-xurg"], "그 뒤는 종전 규칙(게임별 순환, 표본 먼저·여유분 뒤, 오래된 것부터)");
+  assert.equal(pickDue(pending, now, 100).length, 7, "시한 지난 것·안 끝난 것은 빼고 전부");
+}
+console.log("eBay budget snapshot-reserve / settle order tests passed");

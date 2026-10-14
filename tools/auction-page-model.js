@@ -7,7 +7,7 @@
 //
 // ── 규칙
 //   · 진행 중인 오늘은 뺀다(2026-08-25 사고: 반쪽 하루가 정상일처럼 실렸다).
-//   · 합산(시장 온도·종류별)은 완전 수집일만(부분수집일은 덜 센 날이라 섞으면 건수는 줄고 비율은 치우친다).
+//   · 합산(시장 온도·주별 막대·종류별)은 완전 수집일만(부분수집일은 덜 센 날이라 섞으면 건수는 줄고 비율은 치우친다).
 //     완전일이 3일 미만이면 전체로 폴백. 일별 집계가 3일 미만이면 null — 페이지를 만들지 않는다.
 //   · 중앙값은 일별 중앙값을 다시 중앙값 내지 않고 원장의 낙찰 건을 한 줄로 세워 자른다(2026-09-01 실측).
 //   · 낙찰률 분모는 결과가 확정된 건(sold !== null)만 — 7일 창과 주별 막대가 같은 식.
@@ -98,36 +98,35 @@ function buildAuctionModel() {
   const spanDays = (a, b) => (a && b ? Math.round((Date.parse(b) - Date.parse(a)) / 864e5) + 1 : 0);
   const tempGap = prev7.from && last7.to ? spanDays(prev7.from, last7.to) - (last7.days + prev7.days) : 0;
 
-  // ── 주별 낙찰률 — 원장에서 직접, 월요일 시작
-  const weekKey = (iso) => { const t = new Date(iso + "T00:00:00Z"); const dow = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - dow); return t.toISOString().slice(0, 10); };
-  const weekEnd = (k) => { const t = new Date(k + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + 6); return t.toISOString().slice(0, 10); };
+  // ── 주별 낙찰률 — 원장에서 직접, 월요일 시작. 상단 7일 창과 같은 규칙: 완전 수집일(aggDays)만 센다.
+  // 2026-10-14 감사: 부분수집일 행을 그대로 더해 8/31 주가 37.8%(부분일 8/31 하루 50.8%)로 튀었다 — 완전일만 33.1%.
+  // days = 그 주에서 센 날(완전 수집일) 수 → 막대 아래 'n/7'. 7 미만인 주도 값은 그대로 싣는다 — 빈 날을 메우지 않는다(보간·요일 가중 없음).
+  // 진행 중인 주(일요일이 아직 안 지난 주)는 막대에서 뺀다 — 최근 며칠은 상단 7일 창이 보여준다(월·화만 든 주는 요일 효과로 튄다).
+  // 주는 첫 주부터 마지막 완전한 주까지 빠짐없이 깐다 — 통째로 빈 주도 '0/7' 빈 칸으로 남겨 축이 눌리지 않게.
+  const addDays = (iso, n) => { const t = new Date(iso + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); };
+  const weekKey = (iso) => addDays(iso, -((new Date(iso + "T00:00:00Z").getUTCDay() + 6) % 7));
+  const weekEnd = (k) => addDays(k, 6);
+  const COUNTED = new Set(aggDays.map((x) => x.d));
   const buckets = new Map();
-  for (const r of ledger) {
-    const k = weekKey(r.d);
-    if (!buckets.has(k)) buckets.set(k, { rows: [], missing: false });
-    const b = buckets.get(k);
-    b.rows.push(r);
-    if (PARTIAL_DAYS.has(r.d)) b.missing = true;
-  }
-  const weekly = [...buckets.entries()].sort((x, y) => x[0].localeCompare(y[0])).map(([k, b]) => {
+  for (let k = weekKey(allDays[0].d); weekEnd(k) < TODAY_ISO; k = addDays(k, 7)) buckets.set(k, { rows: [], days: 0 });
+  for (const x of aggDays) { const b = buckets.get(weekKey(x.d)); if (b) b.days += 1; }
+  for (const r of ledger) { const b = COUNTED.has(r.d) && buckets.get(weekKey(r.d)); if (b) b.rows.push(r); }
+  const weekly = [...buckets.entries()].map(([k, b]) => {
     const decided = b.rows.filter((r) => r.sold !== null);
     const sold = b.rows.filter((r) => r.sold === true);
     return {
-      week: k, closed: b.rows.length, sold: sold.length,
+      week: k, end: weekEnd(k), closed: b.rows.length, sold: sold.length,
       rate: decided.length ? Number(((sold.length / decided.length) * 100).toFixed(1)) : null,
-      missing: b.missing,
-      now: weekEnd(k) > dataThrough,   // 아직 다 차지 않은 주 — "so far"/"진행 중"
+      days: b.days,   // 센 날 n(/7) — 7 미만이면 화면에 점선 윗변
     };
-  }).filter((w) => w.rate != null);
+  });
   // 막대 축 하나 — 눈금은 최고값을 10 단위로 올린 값. 값 라벨(key)은 모바일에서 처음·끝·최고·최저만 남긴다.
-  const wkTop = Math.max(10, Math.ceil(Math.max(...weekly.map((w) => w.rate)) / 10) * 10);
-  const wkHi = Math.max(...weekly.map((w) => w.rate)), wkLo = Math.min(...weekly.map((w) => w.rate));
+  const wkRates = weekly.map((w) => w.rate).filter((v) => v != null);
+  const wkTop = Math.max(10, Math.ceil(Math.max(0, ...wkRates) / 10) * 10);
+  const wkHi = Math.max(...wkRates), wkLo = Math.min(...wkRates);
   weekly.forEach((w, i) => {
-    w.key = i === 0 || i === weekly.length - 1 || w.rate === wkHi || w.rate === wkLo;
-    w.h = tenth((w.rate / wkTop) * 100);
-    // 흐린 막대 = 7일을 다 세지 못한 주(진행 중이거나 빠진 날이 있는 주) — TCG 페이지와 같은 규칙(2026-10-13 QA:
-    // 종전엔 진행 중인 주만 흐리게 해 "some days missing" 툴팁이 붙은 주가 완전한 주처럼 그려졌다).
-    w.faded = w.now || w.missing;
+    w.key = w.rate != null && (i === 0 || i === weekly.length - 1 || w.rate === wkHi || w.rate === wkLo);
+    w.h = w.rate == null ? 0 : tenth((w.rate / wkTop) * 100);
   });
 
   // ── 종류별(전 기간 완전 수집일)

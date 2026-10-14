@@ -12,7 +12,7 @@
 // Run: node tools/settle-tcg.js
 const fs = require("node:fs");
 const path = require("node:path");
-const { settleBudget } = require("./ebay-budget");
+const { settleBudget, RESERVE_KEYS } = require("./ebay-budget");
 
 const ROOT = path.join(__dirname, "..");
 const WATCH = path.join(ROOT, "data", "tcg-watch.json");
@@ -29,6 +29,49 @@ const ARCHIVE = path.join(ROOT, "data", "tcg-archive");
 const MIN_PER_RUN = 60;
 const MAX_PER_RUN_CAP = 1500;     // 워크플로 타임아웃(30분) 안에 드는 상한 — 건당 0.54초 ≈ 13.5분. 창 마감 드레인 회차가 남은 몫을 다 쓰도록 900→1500(2026-09-08)
 const GIVE_UP_HOURS = 30;         // 이보다 오래된 건 조회가 안 될 수 있다 — 추측하지 않고 버린다.
+// 마감(종료 + 30시간)까지 이 시간 안으로 남은 표본(base)은 다른 것보다 먼저 읽는다 — 2026-10-14.
+// 종전엔 게임별로 한 건씩 돌아가며 뽑아서, 한 게임에 마감 임박 표본이 몰려 있어도 덜 급한 다른 게임 표본·여유분과
+// 같은 비율로만 읽혔고, 쿼터가 얇은 창에서 그 나머지가 시한을 넘겼다(표본일 기준 base 소실 60일 4,517건 — 2026-10-14 감사).
+// 예약을 새로 잡지는 않는다 — 원피스 몫은 그대로고, TCG 가 받은 몫 안에서 읽는 순서만 바꾼다.
+const URGENT_HOURS = 8;
+
+/**
+ * 이번 회차에 읽을 대기 목록(최대 n건). 순서:
+ *   ① 마감 URGENT_HOURS 안의 표본(base) — 게임별로 돌아가며, 게임 안에서는 오래된 것부터
+ *   ② 나머지 — 게임별로 돌아가며, 게임 안에서는 표본 먼저·여유분(extra) 뒤, 같은 급은 오래된 것부터(2026-09-03·09-07 규칙)
+ * 끝나지 않은 것과 시한(30시간)이 지난 것은 뺀다.
+ */
+function pickDue(pending, now, n) {
+  const giveUp = now - GIVE_UP_HOURS * 3600 * 1000;
+  const urgentBefore = now - (GIVE_UP_HOURS - URGENT_HOURS) * 3600 * 1000;   // 이보다 먼저 끝난 것 = 마감 8시간 안
+  const ended = (p) => Date.parse(p.end);
+  const dueAll = (pending || [])
+    .filter((p) => ended(p) < now && ended(p) > giveUp)
+    .sort((a, b) => (a.extra ? 1 : 0) - (b.extra ? 1 : 0) || ended(a) - ended(b));
+  const urgent = dueAll.filter((p) => !p.extra && ended(p) <= urgentBefore);
+  const urgentIds = new Set(urgent.map((p) => p.id));
+  const rest = dueAll.filter((p) => !urgentIds.has(p.id));
+  const due = [];
+  // 게임별로 돌아가며 뽑는다 — 2026-09-03. 오래된 순으로만 자르면 큰 게임(포켓몬·매직)이 회차를 독점해
+  // 작은 게임은 0건이 된다(실측 9/3: 포켓몬 250 · 건담 1).
+  for (const list of [urgent, rest]) {
+    const byGame = new Map();
+    for (const p of list) {
+      if (!byGame.has(p.g)) byGame.set(p.g, []);
+      byGame.get(p.g).push(p);
+    }
+    while (due.length < n) {
+      let took = false;
+      for (const queue of byGame.values()) {
+        if (!queue.length || due.length >= n) continue;
+        due.push(queue.shift());
+        took = true;
+      }
+      if (!took) break;
+    }
+  }
+  return due;
+}
 
 function loadEnv(p) {
   if (!fs.existsSync(p)) return {};
@@ -58,7 +101,7 @@ async function getItem(tok, id) {
   return r.json();
 }
 
-(async () => {
+async function main() {
   if (!fs.existsSync(WATCH)) { console.log(JSON.stringify({ status: "skip", why: "감시 목록 없음" })); return; }
   const watch = JSON.parse(fs.readFileSync(WATCH, "utf8"));
   const now = Date.now();
@@ -78,34 +121,13 @@ async function getItem(tok, id) {
   // 2026-09-03 정정: 종전엔 검색·안전만 남겨서 TCG 가 회차마다 남은 쿼터의 절반을 가져갔고,
   // 자가치유가 TCG 를 3번 더 돌린 날 원피스 정산 예산이 0 이 됐다. 이 사이트의 주제는 원피스다.
   // drainKey: 창 마지막 회차(06:45 UTC)는 남김 없이 쓴다 — 리셋되면 사라지는 몫이고, 포켓몬 여유분이 기다리고 있다.
-  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: ["auction", "search", "safety", "active"], share: 0.5, drainKey: "tcg" });
+  // 스냅샷 몫(tcgSnapshot)도 남긴다 — 2026-10-14. 00:18 UTC 스냅샷이 창 끝 잔여에서 찍히기 때문이다.
+  const budget = await settleBudget({ min: MIN_PER_RUN, max: MAX_PER_RUN_CAP, reserveFor: RESERVE_KEYS.TCG, share: 0.5, drainKey: "tcg" });
   if (budget.n <= 0) {
     console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length, note: "쿼터 없음 — 건너뜀", budget: budget.note }));
     return;
   }
-  // 게임 안에서는 표본(스냅샷 250)이 먼저, 여유분(extra)은 그 뒤 — 2026-09-07 정정.
-  // 주말 실측: 포켓몬 여유분이 오래된 순으로 앞줄을 차지해 9/6 표본이 0/125 이 됐다(쿼터는 창 끝 전에 바닥).
-  // "남으면 포켓몬"이지 "포켓몬 먼저"가 아니다. 같은 급 안에서는 오래된 것부터(조회 시한이 먼저 끝난다).
-  const dueAll = watch.pending
-    .filter((p) => Date.parse(p.end) < now && Date.parse(p.end) > now - GIVE_UP_HOURS * 3600 * 1000)
-    .sort((a, b) => (a.extra ? 1 : 0) - (b.extra ? 1 : 0) || Date.parse(a.end) - Date.parse(b.end));
-  // 게임별로 돌아가며 뽑는다 — 2026-09-03. 오래된 순으로만 자르면 큰 게임(포켓몬·매직)이 회차를 독점해
-  // 작은 게임은 0건이 된다(실측 9/3: 포켓몬 250 · 건담 1). 각 게임 안에서는 여전히 오래된 것부터다.
-  const byGameQueue = new Map();
-  for (const p of dueAll) {
-    if (!byGameQueue.has(p.g)) byGameQueue.set(p.g, []);
-    byGameQueue.get(p.g).push(p);
-  }
-  const due = [];
-  while (due.length < budget.n) {
-    let took = false;
-    for (const queue of byGameQueue.values()) {
-      if (!queue.length || due.length >= budget.n) continue;
-      due.push(queue.shift());
-      took = true;
-    }
-    if (!took) break;
-  }
+  const due = pickDue(watch.pending, now, budget.n);
   if (!due.length) { console.log(JSON.stringify({ status: "ok", settled: 0, pending: watch.pending.length })); return; }
 
   const tok = await token();
@@ -186,4 +208,8 @@ async function getItem(tok, id) {
     status: "ok", settled: written, 사라진매물: gone, pending: pending.length,
     게임별: Object.fromEntries(Object.entries(byGame).map(([k, [n, s]]) => [k, `${s}/${n}`])),
   }, null, 1));
-})().catch((e) => { console.error(String(e.message || e)); process.exit(1); });
+}
+
+if (require.main === module) main().catch((e) => { console.error(String(e.message || e)); process.exit(1); });
+
+module.exports = { pickDue, GIVE_UP_HOURS, URGENT_HOURS };

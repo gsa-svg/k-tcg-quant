@@ -133,8 +133,9 @@ jobs:
       # eBay Browse 한도는 하루 5,000콜이다. 바닥일 때 시작하면 전부 429 로 실패하고
       # 원장에는 구멍만 남는다(2026-09-01 실측: settle 이 due 391건 중 390건을 놓쳤다).
       # 남은 콜이 이 회차에 필요한 양보다 적으면 여기서 멈춘다 — 감시목록은 그대로라 다음 회차에 재시도된다.
+      # --reserve tcgSnapshot: 이 창의 00:18 UTC TCG 스냅샷 몫(그날 점이 아직 없을 때 ~124콜)을 더 남긴다 — 2026-10-14.
       - name: eBay quota gate
-        run: node tools/check-ebay-quota.js --min 400
+        run: node tools/check-ebay-quota.js --min 400 --reserve tcgSnapshot
 
       - name: Update eBay active box links
         run: |
@@ -277,6 +278,8 @@ jobs:
           fi
 
       # 업로드는 가드 뒤에 둔다 — 앞에 있으면 정작 필요한 guard-invariants.log 가 빠진다.
+      # 커밋 앞이라 커밋·푸시가 실패해도 이 실행이 받은 데이터가 남는다(10/8·10/9 'unstaged' 실패 때 그날 매물 관측을 잃었다).
+      # data/ 통째(79MB) 대신 이 워크플로가 쓰는 파일을 적는다 — 2026-10-14. 커밋 목록(git add)과 같은 data 파일이다.
       - name: Upload update logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -284,19 +287,30 @@ jobs:
           name: active-listing-update-logs
           path: |
             logs/
-            data/
+            data/onepiece-packs.json
+            data/card-series.json
+            data/supply-series.json
+            data/listing-ids.json
+            data/preorder-series.json
+            data/active-listing-audit.json
+            data/price-quality-audit.json
+            data/psa10-mismatch-audit.json
+            data/set-auction-stats.json
+            data/image-variants.json
+            data/auction-stats.json
+            data/auction-deals.json
           retention-days: 14
           if-no-files-found: ignore
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html; then
+          if git diff --quiet data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
+          git add data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -355,7 +369,7 @@ jobs:
             node tools/inject-nav.js
             node tools/guard-invariants.js
             node tools/audit-seo.js
-            git add data/onepiece-packs.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
+            git add data/onepiece-packs.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short

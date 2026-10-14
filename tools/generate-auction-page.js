@@ -97,23 +97,28 @@ function main() {
   const tempRange = last7.from && prev7.from ? `${md(last7.from)} – ${md(last7.to)} vs ${md(prev7.from)} – ${md(prev7.to)}` : "";
   const tempRangeKo = last7.from && prev7.from ? `${mdKo(last7.from)}–${mdKo(last7.to)} vs ${mdKo(prev7.from)}–${mdKo(prev7.to)}` : "";
 
-  // 주별 막대 — 높이(h)·값 라벨(key)은 모델이 정한다. 값 라벨은 데스크톱 전부, 모바일은 key 만.
+  // 주별 막대 — 높이(h)·값 라벨(key)·센 날(days)은 모델이 정한다. 값 라벨은 데스크톱 전부, 모바일은 key 만.
+  // 막대 아래 'n/7' = 그 주에서 센 날(완전 수집일). 7 미만인 주는 막대를 같은 실색으로 두고 윗변만 점선 — 값은 센 날만의 값이다.
+  // (2026-10-14 소유자: 옅은 사선 막대 8/13 이 다 빠진 것처럼 보였다.) 진행 중인 주는 모델이 이미 뺐다(상단 7일 창이 맡는다).
   const wkCols = weekly.map((w) => {
-    const title = `Week of ${md(w.week)}: ${pct(w.rate)} sold (${num(w.sold)} of ${num(w.closed)})${w.now ? " — so far" : ""}${w.missing ? " — some days missing" : ""}`;
+    const title = `Week of ${md(w.week)}: ${pct(w.rate)} sold (${num(w.sold)} of ${num(w.closed)}) · ${w.days}/7 days counted`;
     // 한국어 토글용 툴팁 — lang-toggle.js 가 data-ko-title 로 갈아끼운다(ko/auction.html 과 같은 문구).
-    const titleKo = `${mdKo(w.week)} 주: 낙찰률 ${pct(w.rate)} (${num(w.closed)}건 중 ${num(w.sold)}건)${w.now ? " — 진행 중" : ""}${w.missing ? " — 빠진 날 있음" : ""}`;
-    return `<div class="col${w.key ? " key" : ""}${w.faded ? " part" : ""}" style="--h:${w.h}%" title="${esc(title)}" data-ko-title="${esc(titleKo)}"><span class="v">${w.rate}</span><i></i></div>`;
+    const titleKo = `${mdKo(w.week)} 주: 낙찰률 ${pct(w.rate)} (${num(w.closed)}건 중 ${num(w.sold)}건) · ${w.days}/7일 집계`;
+    const tt = `title="${esc(title)}" data-ko-title="${esc(titleKo)}"`;
+    const dn = `<span class="dn">${w.days}/7</span>`;
+    if (w.rate == null) return `<div class="col nul short" ${tt}><span class="v">—</span>${dn}</div>`;
+    return `<div class="col${w.key ? " key" : ""}${w.days < 7 ? " short" : ""}" style="--h:${w.h}%" ${tt}><span class="v">${w.rate}</span><i></i>${dn}</div>`;
   }).join("");
   const wkMid = weekly[Math.floor(weekly.length / 2)];
   const wkLast = weekly[weekly.length - 1];
   const axisDate = (iso) => `<span data-ko="${mdKo(iso)}">${md(iso)}</span>`;
-  const wkAxis = weekly.length ? `<span>${axisDate(weekly[0].week)}</span><span>${axisDate(wkMid.week)}</span><span>${axisDate(wkLast.week)}${wkLast.now ? ` · <span data-ko="진행 중">so far</span>` : ""}</span>` : "";
-  const wkRange = weekly.length ? `${weekly.length} weeks · ${md(weekly[0].week)} – ${md(DATA_THROUGH)}` : "";
-  const wkRangeKo = weekly.length ? `${weekly.length}주 · ${mdKo(weekly[0].week)}–${mdKo(DATA_THROUGH)}` : "";
+  const wkAxis = weekly.length ? `<span>${axisDate(weekly[0].week)}</span><span>${axisDate(wkMid.week)}</span><span>${axisDate(wkLast.week)}</span>` : "";
+  const wkRange = weekly.length ? `${weekly.length} weeks · ${md(weekly[0].week)} – ${md(wkLast.end)}` : "";
+  const wkRangeKo = weekly.length ? `${weekly.length}주 · ${mdKo(weekly[0].week)}–${mdKo(wkLast.end)}` : "";
   const weekAccess = weekExplorer(weekly.map(w => ({
     date: w.week, rate: w.rate, sold: w.sold,
-    statusEn: [w.now ? "So far" : "", w.missing ? "Days missing" : ""].filter(Boolean).join(" · "),
-    statusKo: [w.now ? "진행 중" : "", w.missing ? "빠진 날 있음" : ""].filter(Boolean).join(" · "),
+    statusEn: `${w.days}/7 days`,
+    statusKo: `${w.days}/7일`,
   })));
 
   // ── <head> — 노출 상태 불가침(title/canonical/hreflang/robots/JSON-LD). 문구만 새 구조에 맞춘다.
@@ -265,12 +270,16 @@ function main() {
       .cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 3px; }
       .col { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
       .col i { position: absolute; left: 0; right: 0; bottom: 0; height: var(--h); background: var(--accent); border-radius: 3px 3px 0 0; }
-      .col.part i { background: rgba(var(--accent-rgb), .38); }   /* 7일을 다 세지 못한 주(진행 중·빠진 날) — TCG 페이지와 같은 규칙 */
+      /* 7일 미만으로 센 주: 같은 실색 막대 + 윗변만 점선(틈은 바탕색) + 아래 n/7 — 흐린 칠·사선은 '빠진 막대'로 읽혔다(2026-10-14). TCG 페이지와 같은 규칙 */
+      .col.short i, .lg .swd { background: repeating-linear-gradient(90deg, var(--accent) 0 4px, transparent 4px 7px) top / 100% 3px no-repeat, linear-gradient(var(--accent), var(--accent)) bottom / 100% calc(100% - 5px) no-repeat; }
       .lg { display: inline-flex; align-items: center; gap: 6px; }
-      .lg .sw { display: inline-block; width: 10px; height: 12px; border-radius: 2px 2px 0 0; background: rgba(var(--accent-rgb), .38); }
+      .lg .swd { display: inline-block; width: 13px; height: 13px; border-radius: 0; }
       .col:hover i { background: var(--ink); }
       .col .v { position: absolute; left: -8px; right: -8px; bottom: calc(var(--h) + 3px); text-align: center; color: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
-      .wkAxis { display: flex; justify-content: space-between; margin: 6px 0 0 34px; color: var(--muted); font-size: 12px; }
+      .col.nul .v { bottom: 3px; color: var(--muted); }
+      .col .dn { position: absolute; left: -6px; right: -6px; top: calc(100% + 5px); text-align: center; color: var(--muted); font-size: 11.5px; line-height: 1; font-variant-numeric: tabular-nums; }
+      .col.short .dn { color: var(--ink); font-weight: 600; }
+      .wkAxis { display: flex; justify-content: space-between; margin: 24px 0 0 34px; color: var(--muted); font-size: 12px; }
       @media (max-width: 640px) {
         .wkPlot { height: 150px; }
         .col:not(.key) .v { display: none; }
@@ -338,7 +347,7 @@ function main() {
       <section id="trend">
         <div class="secHead"><h2 data-ko="주별 낙찰률">Sell rate by week</h2><span class="nt" data-ko="${esc(wkRangeKo)}">${esc(wkRange)}</span></div>
         <div class="wk">
-          <div class="wkHead"><span data-ko="종료 경매 중 낙찰 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="sw" aria-hidden="true"></i><span data-ko="사선 = 집계가 불완전한 주">Striped bar = incomplete week</span></span></div>
+          <div class="wkHead"><span data-ko="종료 경매 중 낙찰 비율">Share of closed auctions that sold</span><span class="nt lg"><i class="swd" aria-hidden="true"></i><span data-ko="n/7 = 집계한 날 · 점선 윗변 = 7일 미만">n/7 = days counted · dashed top = under 7</span></span></div>
           <div class="wkPlot">
             <div class="guide" style="bottom:100%"><span>${WK_TOP}%</span></div>
             <div class="guide" style="bottom:50%"><span>${WK_TOP / 2}%</span></div>

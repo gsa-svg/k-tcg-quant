@@ -52,26 +52,37 @@ function backlogSummary(pending, nowMs, giveUpHours = 30) {
 // sweep·active·fx 는 산출물 도장(sweptAt·updated·date)이 이미 하루 한 번으로 막는다.
 const COOLDOWN_MINUTES = { tcg: 150, auction: 45, search: 90, sweep: 0, active: 360, fx: 360 };
 
-/** Cooldown for one request: window-opening TCG work (no snapshot / no settlement in this window) is never throttled. */
+/** Cooldown for one request: today's missing snapshot and the window's first settlement are never throttled. */
 // 2026-09-07 07:47 UTC 실측: 창이 열렸는데(07:30 크론 누락) 76분 전 실행이 있다는 이유로 스냅샷을 09:02 까지 미뤘다.
-// 창 첫 실행은 크론 누락을 메우는 바로 그 일이라 쿨다운 대상이 아니다. 나머지(밀린 대기·전날 결손)만 쿨다운한다.
+// 오늘 스냅샷(00:15 UTC 이후 — self-heal-policy)·창 첫 정산은 크론 누락을 메우는 바로 그 일이라 쿨다운 대상이 아니다.
+// 나머지(밀린 대기·전날 결손)만 쿨다운한다.
 function cooldownFor(request, health) {
   if (request.key === "tcg") {
     const window = health.window || {};
     // 창 마감 드레인: 06:17 하트비트가 잡아야 하므로 이력이 있어도 15분만 쉰다(06:45 크론이 오면 그쪽이 또 돈다 — 남은 몫만 쓴다).
     if (Number.isFinite(window.minutesOpen) && window.minutesOpen >= 1380) return 15;
-    const firstRunMissing = health.tcg?.snapshotToday === false
+    // 오늘 스냅샷이 쿼터 부족으로 건너뛴 날(snapshotQuotaSkip)은 리셋 전까지 다시 쏴도 같은 결과라 쿨다운을 그대로 둔다 — 2026-10-14 QA.
+    const firstRunMissing = (health.tcg?.snapshotToday === false && !health.tcg?.snapshotQuotaSkip)
       || (window.tcgChecked === false && Number.isFinite(window.minutesOpen) && window.minutesOpen > 60);
     if (firstRunMissing) return 0;
   }
   return COOLDOWN_MINUTES[request.key] || 0;
 }
 
-/** True when a snapshot point exists for the current quota window (07:00 UTC reset), not just the UTC date. */
-// 스냅샷은 창 시작(07:30 UTC)에 찍는다. 종전 기준(오늘 UTC 날짜의 점)은 00:00~07:30 UTC 사이에 매일 거짓이라
-// 그 7시간 동안 하트비트마다 TCG 재실행을 요청했고, 스냅샷이 창 시작 대신 자정 직후에 찍혔다 — 2026-09-07.
-function snapshotInWindow(points, today, windowDay) {
-  return (points || []).some((point) => point?.d === today || point?.d === windowDay);
+/** True when today's (UTC date) snapshot point exists. */
+// 기준은 UTC 날짜다 — 2026-10-14 정정. collect-tcg-snapshot 은 UTC 날짜가 바뀐 뒤 첫 실행에서 그날 점을 찍는다.
+// 2026-09-07 엔 "창(07:00 리셋) 시작일의 점"도 인정했는데, 그러면 00~07 UTC 동안 전날 점을 오늘 몫으로 쳐서 스냅샷을
+// 이유로는 실행을 쏘지 않았다. 그래서 찍는 시각이 크론 지연·백로그 재실행에 좌우돼 60일 중 11일이 표준 시각(00~04 UTC)
+// 밖으로 밀렸다. 자가치유는 00:15 UTC 이후 오늘 점이 없으면 바로 쏜다(self-heal-policy) — 하트비트 00:17 → 00:18.
+function snapshotOnDay(points, day) {
+  return (points || []).some((point) => point?.d === day);
+}
+
+/** True when today's snapshot was skipped for lack of eBay quota and the quota has not reset since (data/tcg-watch.json snapshotSkip). */
+// 2026-10-14 QA: 쿼터가 모자라 건너뛴 날엔 리셋(07:00 UTC)까지 잔여가 늘지 않는다. 그걸 모르고 하트비트마다 collect-tcg 를
+// 쏘면 00:17~07:00 동안 빈 실행이 ~14회 돌고, 크론 자가치유가 01:50·03:50·05:50 실패 메일을 보냈다.
+function snapshotQuotaSkip(skip, day, nowMs) {
+  return !!skip && skip.d === day && skip.reason === "quota" && Date.parse(skip.reset) > nowMs;
 }
 
 /** Builds the filesystem-only health input consumed by the pure policy. */
@@ -116,7 +127,7 @@ function inspectArtifacts(now = new Date()) {
     search,
     window,
     auction: { staleMinutes: newest ? Math.round((nowMs - newest) / 60000) : 9999, ...auctionBacklog },
-    tcg: { snapshotToday: snapshotInWindow(tcgSnapshot?.points, today, iso(windowStart)), ...tcgBacklog },
+    tcg: { snapshotToday: snapshotOnDay(tcgSnapshot?.points, today), snapshotQuotaSkip: snapshotQuotaSkip(tcgWatch?.snapshotSkip, today, nowMs), ...tcgBacklog },
     activeListingsFresh: String(readJson("data/active-listing-audit.json")?.updated || "").slice(0, 10) === today,
     // fx.json 의 date 는 ECB 고시일(영업일 14:15 UTC 발표, 주말·공휴일 없음)이라 "오늘"과 같을 수 없는 날이 대부분이다.
     // 종전 기준(date === today)은 매 회차 update-fx 를 다시 쏘게 했다(30분 하트비트면 하루 48번). 4일 안이면 신선하다.
@@ -182,4 +193,4 @@ if (require.main === module) main().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary, COOLDOWN_MINUTES, snapshotInWindow, cooldownFor };
+module.exports = { backlogSummary, inspectArtifacts, newestSettlementTime, recordSummary, COOLDOWN_MINUTES, snapshotOnDay, snapshotQuotaSkip, cooldownFor };

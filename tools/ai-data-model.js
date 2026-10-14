@@ -3,13 +3,20 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd } = require("./market-data-normalizers");
+const { readCardSeries, seriesOf } = require("./card-series-store");
 
 const ROOT = path.resolve(__dirname, "..");
 
-function rawNmAsk(card, fx, datasetUpdatedOn) {
+// 카드별 시세 이력 — data/card-series.json(2026-10-14 packs.json 에서 분리). NM 관측일을 여기서 읽는다.
+let CARD_SERIES = null;
+const cardSeriesOf = (code, card) => seriesOf((CARD_SERIES ??= readCardSeries()), code, card);
+
+// code = 그 카드가 들어 있는 packs.json 의 세트 코드(이력 키가 세트별이다).
+function rawNmAsk(card, fx, datasetUpdatedOn, code) {
   if (card.nmHiddenReason || !isPositive(card.nmJpy)) return null;
-  const points = (card.series?.points || []).filter((point) => isDate(point.d) && point.nm != null);
-  const observedOn = points.at(-1)?.d || (isDate(card.series?.updated) ? card.series.updated : null);
+  const series = cardSeriesOf(code, card);
+  const points = (series?.points || []).filter((point) => isDate(point.d) && point.nm != null);
+  const observedOn = points.at(-1)?.d || (isDate(series?.updated) ? series.updated : null);
   if (!observedOn) return null;
   return {
     basis: "japanese_retail_asking_price",
@@ -89,7 +96,7 @@ function buildTopHits(code, set, fx, datasetUpdatedOn) {
       originalCardSetCode: originalSetCode(card.number),
       rarity: card.rarity || null,
       exactVariantRequired: true,
-      rawNmAsk: rawNmAsk(card, fx, datasetUpdatedOn),
+      rawNmAsk: rawNmAsk(card, fx, datasetUpdatedOn, code),
       psa10Sold: psa10Sold(card, datasetUpdatedOn),
       psaPopulation: psaPopulation(card, datasetUpdatedOn),
       qualityFlags: [

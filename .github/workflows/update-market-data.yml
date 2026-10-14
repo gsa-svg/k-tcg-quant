@@ -205,6 +205,7 @@ jobs:
           node tools/audit-seo.js 2>&1 | tee logs/audit-seo.log
           node tools/audit-ai-discovery.js 2>&1 | tee logs/audit-ai-discovery.log
 
+      # 커밋 앞이라 가드 FAIL·커밋 실패에도 이 실행이 받은 데이터가 남는다. 커밋 목록(git add)의 data 파일을 적는다 — 2026-10-14.
       - name: Upload update logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -212,8 +213,16 @@ jobs:
           name: market-data-update-logs
           path: |
             logs/
+            data/onepiece-packs.json
+            data/grading-series.json
+            data/image-variants.json
+            data/gemrate-psa-history.json
+            data/psa-population-snapshots.json
+            data/psa-edition-weekly.json
+            data/gemrate-psa-en-totals.json
             data/price-quality-audit.json
             data/active-listing-audit.json
+          retention-days: 14
           if-no-files-found: ignore
 
       - name: Commit changes

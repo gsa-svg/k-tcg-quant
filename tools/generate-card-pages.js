@@ -25,6 +25,8 @@ const TOP_N = 24;
 const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>`;
 
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+const { readCardSeries, seriesOf } = require("./card-series-store");
+const CARD_SERIES = readCardSeries();   // 카드별 시세 이력(아래 이력표)
 const FX = d.fx || {};
 // 박스 실거래 주간 시리즈 — 세트 페이지(generate-set-pages.js)와 같은 파일. 카드 페이지의 "박스 대비 배수" 분모.
 let SOLD_SERIES = { sets: {} };
@@ -257,7 +259,8 @@ for (const { code, set: s, card: c } of cands) {
 
   // 시리즈(가격 이력) 표 — 체크포인트가 2개 이상 쌓인 카드만 표시(1점짜리 무의미한 표 방지).
   // ※ 2026-07-14 이전 초기 수집은 변형매칭 미성숙으로 오염되어 폐기됨(그 이후부터 신뢰 축적).
-  const ser = (c.series && c.series.points || []).filter((p) => p.nm != null || p.psa != null);
+  // 이력은 data/card-series.json(2026-10-14 packs.json 에서 분리 — tools/card-series-store.js).
+  const ser = (seriesOf(CARD_SERIES, code, c)?.points || []).filter((p) => p.nm != null || p.psa != null);
   // PSA10 칸: 이력 점은 KRW 로만 저장된다(update-card-series-history.js). 현재 관측일(psa10Ebay.updated) 뒤의 점은
   // 같은 관측을 매일 다시 적은 것이라 점 날짜 환율로 되돌리면 KRW 저장 카드가 헤드라인보다 부푼다
   // (2026-09-30 실측: OP09-119 이력 $2,027 / 헤드라인 $1,822). 그 점들은 헤드라인과 같은 관측일 환산값을 쓴다.

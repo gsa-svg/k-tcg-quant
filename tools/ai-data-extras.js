@@ -99,7 +99,10 @@ function buildTcgAuctions(series) {
   return {
     basis: series.basis || null,
     definitions: {
-      ended: "auctions from the daily sample that closed and were re-read (a sample, not every auction on eBay)",
+      // ended·sold·sellThroughPct·amountUsd·medianWinningBidUsd 는 표본만이다(build-tcg-series, 2026-10-14) — 남는 쿼터로
+      // 다른 시각에 더 읽은 여유분(extra)은 섞지 않는다. 종전엔 섞인 값이 여기로 그대로 나갔다.
+      // 표본에 들었는데 이미 여유분으로 감시 중이던 매물은 표본으로 센다(2026-10-14 QA) — 10/15 전은 감시 이력에서 하한으로 복원.
+      ended: "auctions from the daily sample (those ending soonest when that day's snapshot was taken, including ones already being read as extras at that moment -- restored from watch-list history as a lower bound before 2026-10-15) that closed and were re-read -- a sample, not every auction on eBay; other extra auctions read with leftover quota at other hours are not included",
       sellThroughPct: `sold ÷ ended; null when ended is below ${series.minRateSample ?? 20}`,
       liveAuctions: "eBay's own count of running auctions for that game at snapshot time — a real count, not a sample",
       endingWithin24h: "eBay's own count of auctions closing within 24 hours at snapshot time",
@@ -195,7 +198,7 @@ function buildCardPages(data, cardMap, fx, datasetUpdatedOn, helpers) {
       containerSetCode: code,
       url: `${SITE}/cards/${file}`,
       exactVariantRequired: true,
-      rawNmAsk: helpers.rawNmAsk(card, fx, datasetUpdatedOn),
+      rawNmAsk: helpers.rawNmAsk(card, fx, datasetUpdatedOn, code),
       psa10Sold: withUsd(helpers.psa10Sold(card, datasetUpdatedOn), fx),
       psaPopulation: helpers.psaPopulation(card, datasetUpdatedOn),
     });

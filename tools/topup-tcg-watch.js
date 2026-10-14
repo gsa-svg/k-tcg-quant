@@ -16,7 +16,7 @@
 // Run: node tools/topup-tcg-watch.js [--dry-run]   (--dry-run: 검색까지만 하고 감시목록에 쓰지 않는다)
 const fs = require("fs");
 const path = require("path");
-const { token, settleBudget, nextReset } = require("./ebay-budget");
+const { token, settleBudget, nextReset, RESERVE_KEYS } = require("./ebay-budget");
 const { TCGS } = require("./tcg-config");
 
 const ROOT = path.join(__dirname, "..");
@@ -65,8 +65,9 @@ async function main() {
     if (p.extra && end <= now) dueByGame[p.g] = (dueByGame[p.g] || 0) + 1;
   }
 
-  // share 1 · min 0 · max 큰 값 = "원피스·검색·안전을 뺀 TCG 가용 콜 수" 그 자체를 받는다.
-  const budget = await settleBudget({ reserveFor: ["auction", "search", "safety", "active"], share: 1, min: 0, max: 1e9 });
+  // share 1 · min 0 · max 큰 값 = "원피스·검색·안전·진행 매물·TCG 스냅샷 몫을 뺀 TCG 가용 콜 수" 그 자체를 받는다.
+  // 스냅샷 몫(tcgSnapshot) — 2026-10-14. 여유분이 창 끝 잔여를 다 가져가면 00:18 스냅샷이 07:18 로 밀린다.
+  const budget = await settleBudget({ reserveFor: RESERVE_KEYS.TCG, share: 1, min: 0, max: 1e9 });
   if (budget.left == null) { console.log(JSON.stringify({ status: "skip", why: "잔여량을 못 읽음" })); return; }
   const games = TCGS.map((g) => g.k);
   const plan = planTopup({ usable: budget.n, owed, games, dueByGame });

@@ -108,6 +108,31 @@ try {
   out = run("2026-09-30");
   assert.ok(has(out.report.problems, /^원피스 경매 시장 스캔 — .*: 2026-09-26$/), out.result.stdout);
   assert.ok(has(out.report.problems, /^공급 시계열 — .*: 2026-09-24$/), out.result.stdout);
+
+  // ④ TCG 표본 회수(표본일) — 2026-10-14. 종료일 합계 검사(보수적 최소)는 다른 날 표본·여유분에 가려 시한 초과 소실을 못 봤다
+  //    (9/4 포켓몬 표본 250건 전량 소실이 통과). 그날 고른 표본 중 읽은 수를 본다. 감시 목록에 그날 표본이 남아 있으면 회수 중.
+  write("known-gaps.json", { gaps: [] });
+  write("auction-market.json", { points: ALL.map((d) => ({ d })) });
+  write("supply-series.json", { sets: { "OP-01": { points: ALL.map((d) => ({ d })) } } });
+  const sample = { "2026-09-20": [125, 100], "2026-09-21": [125, 124], "2026-09-22": [125, 50] };   // [표본, 읽음] — pokemon
+  write("tcg-series.json", { daily: ALL.map((d) => ({ d, games: Object.fromEntries(GAMES.map((k) => [k, {
+    ended: 100,
+    ...(d >= "2026-09-15" ? { sampleWatched: k === "pokemon" && sample[d] ? sample[d][0] : 125, sampleSettled: k === "pokemon" && sample[d] ? sample[d][1] : 125 } : { sampleWatched: null, sampleSettled: 0 }),
+  }])) })) });
+  write("tcg-watch.json", { pending: [{ g: "pokemon", id: "x", end: "2026-09-30T05:00:00Z", seen: "2026-09-22" }, { g: "pokemon", id: "y", end: "2026-09-30T05:00:00Z", seen: "2026-09-21", extra: true }] });
+  out = run("2026-09-30");
+  const sampleProblems = out.report.problems.filter((p) => /^TCG 표본 회수/.test(p));
+  assert.deepEqual(sampleProblems, ["TCG 표본 회수(표본일) — 2026-09-20 표본 회수 98% 미달(읽음/표본, 시한 지나 확정): pokemon 100/125"],
+    `98% 미만만, 회수 중(감시 목록에 그날 표본)인 9/22 는 빼고, 99.2% 인 9/21 은 통과: ${out.result.stdout}`);
+  write("known-gaps.json", { gaps: [
+    { series: "TCG 표본 회수(표본일)", dates: ["2026-09-20"], reason: "테스트", confirmed: "2026-09-30" },
+    { series: "TCG 표본 회수(표본일)", dates: ["2026-09-21"], reason: "테스트 — 다 읽은 날", confirmed: "2026-09-30" },
+    { series: "TCG 표본 회수(표본일)", dates: ["2026-09-05"], reason: "테스트 — 표본 기록 앞", confirmed: "2026-09-30" },
+  ] });
+  out = run("2026-09-30");
+  assert.ok(!out.report.problems.some((p) => /^TCG 표본 회수/.test(p)), out.result.stdout);
+  assert.ok(has(out.report.notes, /^TCG 표본 회수\(표본일\) — 2026-09-20 .* known-gaps\.json 등록/), out.result.stdout);
+  assert.deepEqual(out.report.knownWrong, ["TCG 표본 회수(표본일) 2026-09-21 — 이 계열 기준으로 비어 있지 않다(관측이 있거나 아직 회수 중) · 등록을 빼야 한다"], out.result.stdout);
   console.log("series gaps tests passed");
 } finally {
   fs.rmSync(root, { recursive: true, force: true });

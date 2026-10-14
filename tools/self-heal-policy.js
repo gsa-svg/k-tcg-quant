@@ -1,12 +1,8 @@
 const FAILED_CONCLUSIONS = new Set(["failure", "timed_out", "cancelled", "action_required", "startup_failure"]);
-
-/** Counts two-hour self-heal windows that should already have run today. */
-function elapsedDailyOpportunities(now) {
-  const hour = new Date(now).getUTCHours();
-  let count = 0;
-  for (let scheduled = 1; scheduled <= hour; scheduled += 2) count += 1;
-  return count;
-}
+// 오늘 TCG 스냅샷을 요청·경고하는 UTC 시각(자정 뒤 분) — 2026-10-14.
+const SNAPSHOT_DUE_MINUTE = 15;
+const SNAPSHOT_ALERT_MINUTE = 60;
+const SNAPSHOT_QUOTA_ALERT_UNTIL = 180;   // 쿼터 부족 건너뜀 경고는 이 시각(자정 뒤 분) 전까지만 — 하루 한 번
 
 /** Pure decision layer: converts artifact health into deduplicated workflow requests and alerts. */
 function buildHealPlan(input) {
@@ -59,19 +55,26 @@ function buildHealPlan(input) {
   // 창 마감 소진 — 2026-09-08. TCG 는 원피스 몫을 다 남기고 나머지만 쓰므로 실제 몫은 창 끝(06:45 UTC 드레인)에 생긴다.
   // 그 크론이 안 오면 남은 콜이 리셋에 사라지고 그날 TCG 표본은 굶는다(9/7: 38건). 마감 60분 전부터 대기가 있으면 요청한다.
   const drainDue = windowOpen != null && windowOpen >= 1380 && windowOpen < 1440 && tcg.due > 0;
-  if (recovery.tcg || !tcg.snapshotToday || tcg.due > 800 || tcg.urgent > 0 || tcgUnchecked || drainDue) {
+  // 오늘(UTC 날짜) 스냅샷 — 2026-10-14. 00:15 UTC 가 지나도 오늘 점이 없으면 바로 쏜다(쿨다운 0 — self-heal-daily cooldownFor).
+  // 하트비트(로컬 30분, :17·:47)가 00:17 에 이 요청을 내면 00:18 에 찍힌다(실측 10일 모두). 표본은 "그 순간 종료 임박 순"
+  // 이라 찍는 시각이 곧 표본이다 — 크론 지연·백로그 재실행에 맡기면 01~03시·07시로 흩어졌다(60일 중 11일 표준 밖).
+  const utcMinutes = Number.isFinite(Date.parse(input.now)) ? new Date(input.now).getUTCHours() * 60 + new Date(input.now).getUTCMinutes() : null;
+  // 쿼터 부족으로 건너뛴 날(tcg.snapshotQuotaSkip — 감시 파일 snapshotSkip, 리셋 전)은 스냅샷을 이유로 다시 쏘지 않는다 — 2026-10-14 QA.
+  // 리셋(07:00 UTC)까지 잔여가 늘지 않아 하트비트마다 빈 실행만 ~14회 돌았다. 리셋이 지나면 도장이 풀려 바로 쏜다.
+  const snapshotDue = !tcg.snapshotToday && !tcg.snapshotQuotaSkip && utcMinutes != null && utcMinutes >= SNAPSHOT_DUE_MINUTE;
+  if (recovery.tcg || snapshotDue || tcg.due > 800 || tcg.urgent > 0 || tcgUnchecked || drainDue) {
     requests.push({
       key: "tcg",
       workflow: "collect-tcg.yml",
       reason: `${drainDue ? `창 마감 ${1440 - windowOpen}분 전 남은 쿼터 소진 · ` : ""}${recovery.tcg ? "직전 완료일 정산 부족 · " : ""}${tcgUnchecked ? `창 열린 지 ${windowOpen}분 정산 없음 · ` : ""}오늘 스냅샷 ${tcg.snapshotToday ? 1 : 0} · 대기 ${tcg.due}건 · 임박 ${tcg.urgent}건`,
     });
     if (tcgUnchecked && windowOpen > 240) alerts.push("쿼터 창이 열린 지 4시간이 지났는데 TCG 정산이 한 번도 돌지 않았습니다");
-    // 스냅샷은 창 시작(07:30 UTC)에 찍으므로 "없음"의 기준도 창이다 — 창이 열린 지 4시간이 지나도 없어야 경고(2026-09-07 정정:
-    // 종전 UTC 자정 기준 2시간 창 3회는 창이 열린 직후(07:47)에 바로 울렸다). 창 정보가 없을 때만 옛 기준을 쓴다.
-    const snapshotLate = windowOpen != null ? windowOpen > 240 : elapsedDailyOpportunities(input.now) >= 3;
-    if (!tcg.snapshotToday && snapshotLate) {
-      alerts.push("TCG 스냅샷 복구 기회가 3회 이상 지났는데도 오늘 관측이 없습니다");
-    }
+  }
+  // 01:00 UTC 가 지나도 오늘 점이 없으면 경고 — 00:18 실행이 실패로 건너뛴 것이다(표준 시각 00~04 UTC 안에 다시 쏘는 중).
+  // 쿼터 부족으로 건너뛴 날은 하루 한 번만 — 01:00~02:59 UTC(크론 자가치유 01:50 회차). 03:50·05:50 은 같은 사실의 반복이다.
+  if (!tcg.snapshotToday && utcMinutes != null && utcMinutes >= SNAPSHOT_ALERT_MINUTE) {
+    if (!tcg.snapshotQuotaSkip) alerts.push("UTC 01:00 이 지났는데 오늘 TCG 스냅샷이 없습니다");
+    else if (utcMinutes < SNAPSHOT_QUOTA_ALERT_UNTIL) alerts.push("오늘 TCG 스냅샷이 eBay 쿼터 부족으로 건너뛰었습니다 — 쿼터 리셋(07:00 UTC) 뒤에 찍힙니다");
   }
 
   if (new Date(input.now).getUTCHours() >= 20 && !input.activeListingsFresh) {
@@ -87,4 +90,4 @@ function hasThreeConsecutiveFailures(runs) {
   return completed.length === 3 && completed.every((run) => FAILED_CONCLUSIONS.has(run.conclusion));
 }
 
-module.exports = { buildHealPlan, elapsedDailyOpportunities, hasThreeConsecutiveFailures };
+module.exports = { buildHealPlan, hasThreeConsecutiveFailures, SNAPSHOT_DUE_MINUTE, SNAPSHOT_ALERT_MINUTE, SNAPSHOT_QUOTA_ALERT_UNTIL };
