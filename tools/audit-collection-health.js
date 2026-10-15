@@ -331,6 +331,29 @@ if (has("data/grading-series.json")) {
   }
 }
 
+// ── 11) 카드별 수집이 판본째 빠진 것 — 2026-10-15 추가.
+// 10) 은 "있던 계열이 멈춘 것"만 본다. 처음부터 한 번도 안 들어온 판본은 못 잡는다:
+// TAG 연도 페이지가 2쪽이 된 뒤 카드별 수집기가 1쪽만 읽어 영문 OP-10·일본판 OP-14 가 계열 0개인 채로 몇 달을 갔다.
+// 세트 총량 이력에 그 판본이 있는데(50장+) 카드별 파일에 그 판본 계열이 하나도 없으면 실패.
+{
+  const packs = readJSON("data/onepiece-packs.json");
+  for (const [cardF, histF] of [["tag-card-pop.json", "tag-grading-history.json"], ["cgc-card-pop.json", "cgc-grading-history.json"]]) {
+    if (!has("data/" + cardF) || !has("data/" + histF)) continue;
+    const card = readJSON("data/" + cardF), hist = readJSON("data/" + histF);
+    const missing = [];
+    for (const [code, eds] of Object.entries(hist.sets || {})) {
+      if (!(packs.sets || {})[code]) continue;
+      for (const ed of ["jp", "en"]) {
+        const arr = eds[ed];
+        const total = Array.isArray(arr) && arr.length ? arr[arr.length - 1].total || 0 : 0;
+        if (total >= 50 && !Object.keys(((card.sets || {})[code] || {})[ed] || {}).length) missing.push(`${code} ${ed}(세트 ${total}장)`);
+      }
+    }
+    if (missing.length) fail(`${cardF}: 세트 총량은 있는데 카드별 계열이 0개인 판본 — ${missing.join(" · ")}`);
+    else ok(`${cardF}: 세트 총량이 있는 판본은 모두 카드별 계열 있음`);
+  }
+}
+
 const out = { status: problems.length ? "FAIL" : "OK", today, problems, checked: notes };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));
 if (problems.length) process.exit(1);

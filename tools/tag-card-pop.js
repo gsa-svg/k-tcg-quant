@@ -52,13 +52,28 @@ window.__tagNavParse=async(href)=>{
  }
  return {rows:out};
 };
-window.__tagCardYear=async(year,MAXV=8)=>{
- // 연도 페이지로 이동 후 우리 박스 관련 세트 링크 수집(판본 무관).
- // TAG 카드별 커버리지가 75% 였던 주된 이유가 영문판 미수집이었다(2026-08-25 실측).
+// 연도 페이지는 200행마다 쪽이 나뉜다(2024=211행·2025=242행, 2026-10). 첫 쪽 링크만 보던 탓에
+// 알파벳 뒤쪽 세트(영문 "Wings of the Captain" = OP-06)가 2쪽으로 밀린 10/6 부터 카드별 수집에서 통째로 빠졌다.
+// 그래서 마지막 쪽까지 넘기며 링크를 모으고, 연도별로 한 번만 모아 둔다(패스마다 다시 넘기지 않게).
+window.__tagLinks=window.__tagLinks||{};
+window.__tagYearLinks=async(year)=>{
  history.pushState({},"","/pop-report/One Piece/"+year);window.dispatchEvent(new PopStateEvent("popstate"));
  for(let i=0;i<24;i++){await new Promise(z=>setTimeout(z,400));if([...document.querySelectorAll("table a")].length>3)break;}
- const links=[...document.querySelectorAll("table a")].map(a=>({t:(a.textContent||"").replace(/\\s+/g," ").trim(),h:a.getAttribute("href")||""}))
-  .filter(x=>window.__tagMatchBox(x.t));   // 일본판·영문판 둘 다 — 2026-08-25. 종전엔 /Japanese/ 로 걸러 영문판을 통째로 안 봤다.
+ await new Promise(z=>setTimeout(z,1500));
+ const links=[];const seen=new Set();let pages=0;
+ for(let p=0;p<12;p++){pages++;
+  for(const a of document.querySelectorAll("table a")){const t=(a.textContent||"").replace(/\\s+/g," ").trim();const h=a.getAttribute("href")||"";
+   if(!t||seen.has(t)||!window.__tagMatchBox(t))continue;seen.add(t);links.push({t,h});}   // 일본판·영문판 둘 다 — 2026-08-25
+  const el=[...document.querySelectorAll("button,[role=button]")].find(e=>/chevron_right/.test(e.textContent||"")&&!e.disabled);
+  if(!el)break;
+  const before=(document.querySelector("table a")||{}).textContent||"";el.click();
+  for(let i=0;i<20;i++){await new Promise(z=>setTimeout(z,400));const now=(document.querySelector("table a")||{}).textContent||"";if(now&&now!==before)break;}
+ }
+ window.__tagLinks[year]={links,pages};
+ return window.__tagLinks[year];
+};
+window.__tagCardYear=async(year,MAXV=8)=>{
+ const {links,pages}=window.__tagLinks[year]||await window.__tagYearLinks(year);
  let visited=0,keptTotal=0;
  for(const l of links){
   const key=year+"|"+l.t;
@@ -73,7 +88,7 @@ window.__tagCardYear=async(year,MAXV=8)=>{
   for(let i=0;i<16;i++){await new Promise(z=>setTimeout(z,350));if([...document.querySelectorAll("table a")].length>3)break;}
  }
  const remaining=links.filter(l=>!window.__tagVisited[year+"|"+l.t]).length;
- return JSON.stringify({year,visited,kept:keptTotal,remaining,cardsTotal:window.__tagCards.length});
+ return JSON.stringify({year,pages,links:links.length,visited,kept:keptTotal,remaining,cardsTotal:window.__tagCards.length});
 };
 window.__tagCardResult=()=>JSON.stringify({source:"my.taggrading.com pop report",collectedAt:new Date().toISOString().slice(0,10),cards:window.__tagCards});
 return 'tagcard-ready';})()`;
