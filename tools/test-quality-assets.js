@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const sharp = require('sharp');
+// sharp 는 update-market-data 워크플로 러너(npm ci 없음)에 없다 — 없으면 이 테스트만 건너뛴다(2026-10-16, check.js --pre 가 전 테스트를 돌리게 되면서).
+let sharp;
+try { sharp = require('sharp'); } catch { console.log('skip test-quality-assets: sharp 미설치'); process.exit(0); }
 const { ensureBoxThumbnail } = require('./generate-box-thumbnails');
 const root = path.resolve(__dirname, '..');
 

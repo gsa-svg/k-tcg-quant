@@ -14,6 +14,10 @@
 //   4) run: 블록 스칼라 안이 아닌 곳에서 이어지는 명령 (앵커가 밀린 흔적)
 //   5) 세트별 경매 집계가 그 파일을 읽는 생성기보다 먼저 도는가 (2026-10-13 하루 지연 사고)
 //   6) 공식 카드리스트 수집 → 카드 페이지 → 카드리스트 생성 순서 (2026-10-14, W7)
+//   7) 무인 수집(daily.ps1)이 같은 빌드(tools/build.js)를 쓰는가
+//   8) build.js 를 돌리는 워크플로의 커밋 범위가 빌드 산출물을 전부 담는가
+// 2026-10-15: 생성 순서가 tools/build.js 한 곳으로 옮겨졌다. 워크플로의 `node tools/build.js` 는 그 STEPS 로,
+//   `node tools/check.js` 는 그 CHECKS 로 펼쳐서 본다 — 순서 검사(5·6)는 종전과 같은 의미로 그대로 동작한다.
 //
 // Run: node tools/audit-workflows.js [--json]
 const fs = require("node:fs");
@@ -23,6 +27,26 @@ const ROOT = path.resolve(__dirname, "..");
 const DIR = path.join(ROOT, ".github", "workflows");
 const problems = [], notes = [];
 
+// build.js / check.js 호출을 그 안의 단계 이름으로 펼친다(파일명 .js 붙여서). 플래그를 본다 — `check.js --pre` 는 테스트만 돈다.
+const BUILD = require("./build"), CHECK = require("./check");
+const has = (flags, f) => flags.includes(f);
+function expandCall(name, flags) {
+  if (name === "build.js") return BUILD.plan({ only: has(flags, "--only") ? flags[flags.indexOf("--only") + 1].split(",") : null, from: has(flags, "--from") ? flags[flags.indexOf("--from") + 1] : null }).map((s) => `${s}.js`);
+  if (name === "check.js") return CHECK.plan({ pre: has(flags, "--pre"), gate: has(flags, "--gate"), fast: has(flags, "--fast") || has(flags, "--no-browser") }).map((c) => `${c.name}.js`);
+  return [name];
+}
+// 주석이 아닌 줄의 `node tools/<x>.js [플래그…]` 를 차례로 — 플래그는 그 호출 뒤 다음 구분자(2>·|·&&·;)까지.
+function callsOf(lines) {
+  return lines.filter((l) => !/^\s*#/.test(l)).flatMap((l) => {
+    const ms = [...l.matchAll(/node tools\/([\w-]+\.js)/g)];
+    return ms.flatMap((m, i) => {
+      const end = i + 1 < ms.length ? ms[i + 1].index : l.length;
+      const flags = l.slice(m.index + m[0].length, end).split(/\s(?:2>|\||&&|;|>)/)[0].trim().split(/\s+/).filter(Boolean);
+      return expandCall(m[1], flags);
+    });
+  });
+}
+
 // 5) 준비: data/set-auction-stats.json 을 읽는 도구 — 이름이 소스에 있거나, 그런 모듈을 require 하는 도구.
 //    (generate-ai-extras.js 는 ai-data-extras.js 를 거쳐 읽는다.)
 const AGG = "build-set-auction-stats.js", AGG_OUT = "set-auction-stats.json";
@@ -31,7 +55,8 @@ const toolSrc = new Map(fs.existsSync(TOOLS)
   ? fs.readdirSync(TOOLS).filter((f) => f.endsWith(".js")).map((f) => [f, fs.readFileSync(path.join(TOOLS, f), "utf8")])
   : []);
 const mentions = (f) => (toolSrc.get(f) || "").includes(AGG_OUT);
-const aggReaders = new Set([...toolSrc.keys()].filter((f) => f !== AGG && f !== path.basename(__filename) && (mentions(f)
+const SELF = new Set([AGG, path.basename(__filename), "build.js", "check.js"]);   // 펼쳐지는 둘은 이름만 적을 뿐 읽지 않는다
+const aggReaders = new Set([...toolSrc.keys()].filter((f) => !SELF.has(f) && (mentions(f)
   || [...toolSrc.get(f).matchAll(/require\("\.\/([\w-]+?)(?:\.js)?"\)/g)].some((m) => mentions(`${m[1]}.js`)))));
 
 if (!fs.existsSync(DIR)) {
@@ -83,7 +108,7 @@ for (const file of fs.readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f))) {
 
   // 5) 집계를 돌리는 워크플로에서 k번째로 읽는 실행은 k번째 집계 뒤여야 한다(본 단계·rebase 후 재생성 두 묶음).
   //    집계를 안 돌리는 워크플로(update-market-data)는 커밋된 파일을 그대로 쓰므로 대상 아님.
-  const calls = lines.filter((l) => !/^\s*#/.test(l)).flatMap((l) => [...l.matchAll(/node tools\/([\w-]+\.js)/g)].map((m) => m[1]));
+  const calls = callsOf(lines);
   const aggAt = calls.flatMap((c, i) => (c === AGG ? [i] : []));
   if (aggAt.length) {
     const seen = new Map();
@@ -106,22 +131,32 @@ for (const file of fs.readdirSync(DIR).filter((f) => /\.ya?ml$/.test(f))) {
     genAt.forEach((g, k) => { if (!(cardsAt[k] < g)) problems.push(`${file}: generate-card-list-pages.js 의 ${k + 1}번째 실행이 generate-card-pages.js 보다 먼저다 — 카드 페이지 링크(card-map.json)가 하루 묵는다`); });
   }
 
+  // 8) build.js 를 돌리는 워크플로는 빌드가 쓰는 경로(build.js OUTPUTS)를 전부 커밋 범위에 둬야 한다 — 2026-10-15.
+  //    빠지면 미스테이징 변경이 남아 "Tracked generated files remain unstaged" 로 멈추거나 푸시 경합 뒤 rebase 가 죽는다(가드 W1 과 같은 사고).
+  //    가드 W1 은 워크플로에 이름이 적힌 도구의 소스만 보므로 build.js 안의 단계는 못 본다 — 그 몫을 여기서 한다.
+  if (lines.some((l) => !/^\s*#/.test(l) && /node tools\/build\.js/.test(l))) {
+    const addLine = (text.match(/^\s*git add ([^\n]+)/m) || [])[1];
+    if (addLine) {
+      const scope = addLine.trim().split(/\s+/);
+      const missing = BUILD.OUTPUTS.filter((p) => !scope.includes(p));
+      if (missing.length) problems.push(`${file}: 커밋 범위(git add)에 빌드 산출물 ${missing.length}개가 없다 — ${missing.join(", ")}`);
+    }
+  }
+
   notes.push(`${file}: 스텝 ${[...stepIndents.values()].reduce((a, b) => a + b.length, 0)}개`);
 }
 
-// 7) 무인 수집 파이프라인(저장소 밖 daily.ps1)의 재생성 목록 ⊇ 페이지 생성 워크플로의 생성기 — 2026-10-14 QA.
-//    daily.ps1 은 원장을 적재하면 current 가 바뀌는데 카드리스트·ja·글 날짜 생성기가 빠져 있으면 가드(CL1·AD1)가 막혀 매일 멈춘다.
+// 7) 무인 수집 파이프라인(저장소 밖 daily.ps1)도 같은 빌드·검사를 써야 한다 — 2026-10-14 QA, 2026-10-15 개정.
+//    종전엔 daily.ps1 의 $GEN 목록과 워크플로 목록을 대조했다(카드리스트·ja·글 날짜 생성기가 빠져 가드 CL1·AD1 이 매일 막혔다).
+//    이제 목록은 tools/build.js 하나다 — daily.ps1 이 build.js·check.js 를 부르는지만 본다.
 //    저장소 밖 파일이고 소유자 관할이라 경고(notes)로만 알린다 — 수집을 막지 않는다. 파일이 없는 곳(클라우드)에서는 건너뛴다.
 {
   const DAILY = process.env.OPBOX_DAILY_PS1 || path.join(ROOT, "..", "box-sold-cdp", "daily.ps1");
-  const MD = path.join(DIR, "update-market-data.yml");
-  if (fs.existsSync(DAILY) && fs.existsSync(MD)) {
-    const gen = ((fs.readFileSync(DAILY, "utf8").match(/\$GEN\s*=\s*@\(([^)]*)\)/) || [])[1] || "").match(/"([\w-]+)"/g) || [];
-    const have = new Set(gen.map((s) => s.replace(/"/g, "")));
-    const block = (fs.readFileSync(MD, "utf8").match(/- name: Regenerate SEO pages with fresh market data[\s\S]*?(?=\n {6}- name:)/) || [""])[0];
-    const want = [...new Set([...block.matchAll(/node tools\/((?:generate|inject|sync|prerender|build)-[\w-]+)\.js/g)].map((m) => m[1]))];
-    const missing = want.filter((t) => !have.has(t));
-    if (missing.length) notes.push(`경고: daily.ps1 $GEN 에 페이지 생성 워크플로의 생성기 ${missing.length}개가 없다(${missing.join(", ")}) — 저장소 밖, 소유자 결정`);
+  if (fs.existsSync(DAILY)) {
+    const ps = fs.readFileSync(DAILY, "utf8");
+    if (!/node\s+tools[\\/]build\.js/.test(ps)) notes.push("경고: daily.ps1 이 tools/build.js 를 부르지 않는다 — 생성 순서가 두 곳이 된다(저장소 밖, 소유자 결정)");
+    if (!/node\s+tools[\\/]check\.js/.test(ps)) notes.push("경고: daily.ps1 이 tools/check.js 를 부르지 않는다 — 검사 목록이 두 곳이 된다(저장소 밖, 소유자 결정)");
+    if (/\$GEN\s*=\s*@\(/.test(ps)) notes.push("경고: daily.ps1 에 생성 목록($GEN)이 아직 있다 — tools/build.js 가 유일한 순서다");
   }
 }
 

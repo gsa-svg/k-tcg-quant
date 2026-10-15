@@ -1,5 +1,9 @@
 // 인기 카드 개별 페이지 생성 — cards/<slug>.html + cards/index.html 허브 + 사이트맵 idempotent
 // 대상: NM가 보유 카드 중 상위 N(중복 변형 제거). 카드당 NM/PSA10/인구/이력/박스대비 배수까지 실데이터.
+// 2026-10-15(F4): 사실은 전부 data/derived/site-facts.json(tools/build-site-facts.js) 에서 읽는다 — F.sets[code].cards[i] 의
+//   nm(usable·usd·date·stock·fresh)·psa10(usd·n·date·stale)·psa10Ask(usd·n·date·url·mid·fresh·buy)·pop(gem)·gradingRows·psaPopHistory·
+//   auctionRows·checkpoints·boxMultiple·rankShown·pageDate·rarity·tier, F.sets[code].cardBox·grading.psa.jp·nameEn, F.cardAuction.day, F.cardPages.
+//   여기서는 후보 고르기(상위 N·PSA 10 표본·이전 공개분)와 그리기만 한다. 원장 직접 읽기: img/cards/map.json(썸네일 — 사실이 아닌 파일 존재)뿐.
 // Run: node tools/generate-card-pages.js
 const CSS_VER = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩하면 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 const fs = require("fs");
@@ -10,17 +14,13 @@ const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
-// 카드별 경매 실적 — auction-card-stats.js 가 굽는다(45일 롤링). 없으면 섹션을 생략한다.
-// ⚠️ ROOT 정의 **뒤에** 둘 것. 앞에 두면 try/catch 가 ReferenceError 를 삼켜
-//    섹션이 조용히 0개가 된다(2026-09-01 세트 페이지에서 그렇게 당했다).
-let CARD_AUCTION = { cards: {}, window: "", updated: "" };
-try { CARD_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-card-stats.json"), "utf8")); } catch { /* 없으면 생략 */ }
-// 경매 집계 기준일 — 경매 표 라벨 "last 45 days to <날짜>" 와 수정일(pageDate)이 같이 쓴다. 카드리스트(AUCTION_DAY)와 같은 값 — 2026-10-15.
-const AUC_DAY = String(CARD_AUCTION.updated || "").slice(0, 10);
+const F = require("./build-site-facts").load();
+// 경매 집계 기준일 — 경매 표 라벨 "last 45 days to <날짜>" 가 쓴다(수정일 pageDate 는 사실 파일이 같은 날짜로 센다). 카드리스트와 같은 값 — 2026-10-15.
+const AUC_DAY = F.cardAuction.day;
 const SITE = "https://opboxindex.com";
 const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
 const TOP_N = 24;
-// PSA 10 sold 표본 낡음 기준(일) — 홈 packs.js PSA10_STALE_DAYS 와 같은 값. 넘으면 원본 대비 배수(Premium)를 내지 않는다(상세·허브 공통, 2026-10-15).
+// PSA 10 sold 표본 낡음 기준(일) — 라벨 글자용. 판정(psa10.stale)은 사실 파일이 같은 값(PSA10_STALE_DAYS)으로 한다(상세·허브 공통, 2026-10-15).
 const PSA10_STALE_DAYS = 35;
 // EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게".
 // 2026-08-10 EPN 위반 통지: 문구 자체는 적절하나 푸터에 있어 잘 보이지 않는다는 지적.
@@ -28,25 +28,10 @@ const PSA10_STALE_DAYS = 35;
 // 스타일은 styles.css 의 .affTop. 작게 줄이거나 opacity 를 낮추면 위반으로 되돌아간다.
 const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>`;
 
-const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const { readCardSeries, seriesOf } = require("./card-series-store");
-const CARD_SERIES = readCardSeries();   // 카드별 시세 이력(아래 이력표)
-const FX = d.fx || {};
-// 박스 실거래 주간 시리즈 — 세트 페이지(generate-set-pages.js)와 같은 파일. 카드 페이지의 "박스 대비 배수" 분모.
-let SOLD_SERIES = { sets: {} };
-try { SOLD_SERIES = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch (e) {}
-const krwUsd = (krw) => (Number.isFinite(krw) ? krw / FX.usdKrw : null);
-// 관측일 환율로 되돌리는 변환 — PSA10 실거래(KRW 저장)에 쓴다. 이력에 없는 날짜면 오늘 환율로 떨어진다.
-const { fxAt, stockStatus, nmUsable, nmUsd: nmUsdOf } = require("./market-data-normalizers");
-// 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도(card-list-shared.rarityCode — 세트·한국어·AI 피드와 같은 코드, 2026-10-15).
+// 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도(사실 파일 cards[i].rarity — 세트·한국어·AI 피드와 같은 코드, 2026-10-15).
 // H1 의 작은 레어도 표기도 같은 코드 — 2026-10-15(3차): H1 은 원본 c.rarity(EB03-026 "· SR"), 같은 페이지 "Rarity label" 은 공식 SP 라 한 페이지에 두 값이었다.
 // <title> 과 H1 의 카드 이름은 그대로 둔다(SEO 민감 요소).
-const CARD_LIST = require("./card-list-shared");
 const { buyCta, BUY_CTA_CSS } = require("./set-page-shared");
-const toUsdAt = (v, cur, date) => (v == null ? null : cur === "USD" ? v : cur === "KRW" ? v / (fxAt(date) || FX.usdKrw) : null);
-// 변형 판별(tier) — 등급 원장·경매 변형 집계와 같은 함수.
-const { ourTier } = require("./cgc-card-pop-ingest.js");
-const toUsd = (v, cur) => (v == null ? null : cur === "USD" ? v : krwUsd(v));
 const usd = (n) => (n == null ? null : "$" + Math.round(n).toLocaleString("en-US"));
 const jpy = (n) => (n == null ? null : "¥" + Math.round(n).toLocaleString("en-US"));
 const intl = (n) => (n == null ? "" : Number(n).toLocaleString("en-US"));
@@ -56,14 +41,15 @@ const aN = (n) => { const dg = String(Math.floor(Math.abs(Number(n) || 0))); ret
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const slugify = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70);
-const DATA_DATE = d.updated || new Date().toISOString().slice(0, 10);
+const DATA_DATE = F.dataDate;
 
-// ---- 후보 수집 + 중복 변형 제거(번호+정규화이름 기준; 홈세트 우선)
+// ---- 후보 수집 + 중복 변형 제거(번호+정규화이름 기준; 홈세트 우선). 세트 순서는 원장 적재 순(F.order.packSets) — 동가 정렬이 이 순서를 따른다.
 const seen = new Map();
-for (const [code, s] of Object.entries(d.sets || {})) {
-  for (const c of s.cards || []) {
-    if (c.nmJpy == null || !c.number) continue;
-    const key = c.number + "|" + norm(c.name);
+for (const code of F.order.packSets) {
+  const s = F.sets[code];
+  for (const c of s.cards) {
+    if (c.nm.jpy == null || !c.number) continue;
+    const key = c.key;
     const isHome = c.number.replace("-", "").toUpperCase().startsWith(code.replace("-", "").toUpperCase());
     const prev = seen.get(key);
     if (!prev || (isHome && !prev.isHome)) seen.set(key, { code, set: s, card: c, isHome });
@@ -73,12 +59,12 @@ for (const [code, s] of Object.entries(d.sets || {})) {
 // 유유테이 갱신 한 번에 80장 값이 바뀌면서 OP-02 에이스 망가가 24위 밖으로 밀려 페이지가 지워졌다.
 // 살아 있던 URL 이 시세 등락 때문에 404 가 되면 안 된다(노출 페이지는 추가만, 임의 제거 금지).
 // 밀려난 카드도 계속 만들되 **데이터는 매번 최신으로** 다시 쓴다 — 남겨두는 것과 방치는 다르다.
-const keyOfCard = (c) => c.number + "|" + norm(c.name);
+const keyOfCard = (c) => c.key;
 const CARDS_DIR = path.join(ROOT, "cards");
-let publishedBefore = {};
-try { publishedBefore = JSON.parse(fs.readFileSync(path.join(CARDS_DIR, "card-map.json"), "utf8")); } catch { publishedBefore = {}; }
-if (!Object.keys(publishedBefore).length) throw new Error("card-map.json 을 못 읽었다 — 이전 공개 목록 없이 생성하면 살아 있던 페이지가 빠진다");
-const top = [...seen.values()].sort((a, b) => b.card.nmJpy - a.card.nmJpy).slice(0, TOP_N);
+// 이전 공개 목록 = 사실 파일의 카드 페이지 색인(cards/card-map.json 에서 굽는다 — F.cardPages).
+const publishedBefore = new Set(F.cardPages.map((p) => p.key));
+if (!publishedBefore.size) throw new Error("card-map.json 을 못 읽었다 — 이전 공개 목록 없이 생성하면 살아 있던 페이지가 빠진다");
+const top = [...seen.values()].sort((a, b) => b.card.nm.jpy - a.card.nm.jpy).slice(0, TOP_N);
 const inTop = new Set(top.map((x) => keyOfCard(x.card)));
 // PSA 10 실판매 표본(n>=3)이 있는 카드는 순위와 무관하게 전부 낸다 — 2026-09-07(소유자 지시 "유입 늘려라").
 // 카드 단위 "<카드> psa 10 price" 검색이 이 사이트에 오는 가장 구체적인 질문인데, 답이 있는 카드가 88장인데
@@ -86,71 +72,35 @@ const inTop = new Set(top.map((x) => keyOfCard(x.card)));
 // 값이 흔들린다(빈 값이 틀린 값보다 낫다). 한 번 낸 URL 은 card-map.json 이 지켜서 사라지지 않는다.
 const strong = [...seen.values()]
   .filter((x) => !inTop.has(keyOfCard(x.card)))
-  .filter((x) => { const p = x.card.psa10Ebay; return p && p.soldBased && p.middle != null && (p.sampleSize || 0) >= 3; })
-  .sort((a, b) => b.card.nmJpy - a.card.nmJpy);
+  .filter((x) => x.card.psa10 != null)   // psa10 = 실판매 표본 3건 이상의 중앙값(사실 파일)
+  .sort((a, b) => b.card.nm.jpy - a.card.nm.jpy);
 const inStrong = new Set(strong.map((x) => keyOfCard(x.card)));
 const keptFromBefore = [...seen.values()]
-  .filter((x) => !inTop.has(keyOfCard(x.card)) && !inStrong.has(keyOfCard(x.card)) && publishedBefore[keyOfCard(x.card)])
-  .sort((a, b) => b.card.nmJpy - a.card.nmJpy);
+  .filter((x) => !inTop.has(keyOfCard(x.card)) && !inStrong.has(keyOfCard(x.card)) && publishedBefore.has(keyOfCard(x.card)))
+  .sort((a, b) => b.card.nm.jpy - a.card.nm.jpy);
 const cands = [...top, ...strong, ...keptFromBefore];
 
-// PSA 인구 — card.graderPop.psa.jp(번호|tier 변형 매칭, tools/inject-card-grades.js 산출)을 쓴다.
+// PSA 인구 — 사실 파일 cards[i].pop(card.graderPop.psa.jp, 번호|tier 변형 매칭 — tools/inject-card-grades.js 산출). 젬률(gem) = PSA 10 ÷ 전체(세트 페이지와 같다).
 // 2026-09-29: 종전엔 세트 psa 표에서 "번호 부분일치 + 이름 앞 10자"로 첫 행을 집었다. rarity 를 안 봐서
 // 인구를 보여 주던 88장이 전부 틀렸다(0/88 일치). 예: OP13-118 Super AA 와 Red Manga 가 둘 다 4,349(AA 행)였는데
 // sets/op-13.html 은 같은 두 카드를 2,574 와 744 로 보여 준다. 나머지 24장은 데이터가 있는데도 비어 있었다.
-// 젬률 정의는 세트 페이지(generate-set-pages.js)와 같다: PSA 10 ÷ 전체.
 function popOf(card) {
-  const g = card.graderPop && card.graderPop.psa && card.graderPop.psa.jp;
+  const g = card.pop;
   if (!g || !g.total) return null;
-  const psa10 = g.g10 || 0;
-  const psa9 = g.g9 || 0;
-  return { total: g.total, psa10, psa9, gem: Math.round((psa10 / g.total) * 100), d: g.d || null };
+  return { total: g.total, psa10: g.g10 || 0, psa9: g.g9 || 0, gem: g.gem, d: g.d };
 }
 
-// 등급사 × 판 표 — PSA/CGC/TAG 를 일본판·영문판 따로. 등급사·판은 합산하지 않는다(inject-card-grades.js 규칙).
-// 최고 등급 정의는 세트 페이지와 같다: PSA 10 / CGC Pristine 10 + Gem Mint 10 / TAG 10 + 10P.
+// 등급사 × 판 표 — 사실 파일 cards[i].gradingRows(PSA/CGC/TAG 를 일본판·영문판 따로, 합산 없음, 최고 등급 정의는 세트 페이지와 같다).
 // 이 카드의 변형 하나에만 해당하는 값이라, 형제 카드 페이지와 겹치지 않는 고유 데이터다.
-function graderRows(card) {
-  const gp = card.graderPop || {};
-  const out = [];
-  const add = (grader, ed, total, top, topLabel, d) => {
-    if (!total) return;
-    out.push({ grader, ed, total, top, topLabel, share: Math.round((top / total) * 100), d });
-  };
-  for (const [ed, label] of [["jp", "Japanese"], ["en", "English"]]) {
-    const p = gp.psa && gp.psa[ed];
-    if (p) add("PSA", label, p.total, p.g10 || 0, "PSA 10", p.d);
-    const c = gp.cgc && gp.cgc[ed];
-    if (c) add("CGC", label, c.total, (c.pristine10 || 0) + (c.gemMint10 || 0), "Pristine 10 + Gem Mint 10", c.d);
-    const t = gp.tag && gp.tag[ed];
-    if (t) add("TAG", label, t.total, (t.g10 || 0) + (t.g10p || 0), "TAG 10 + 10P", t.d);
-  }
-  const order = { PSA: 0, CGC: 1, TAG: 2 };
-  return out.sort((a, b) => order[a.grader] - order[b.grader] || (a.ed === "Japanese" ? -1 : 1));
-}
-// PSA 인구 관측 이력(일본판) — data/psa-card-pop.json 의 이 카드 변형 시계열.
-// 매칭은 tools/inject-card-grades.js 와 똑같이 한다(donRef 가 있으면 그 키, 없으면 `번호|tier`, 담고 있는 박스 코드) —
-// 그래야 이 표의 마지막 행이 위 헤드라인 PSA 인구(graderPop.psa.jp.total)와 같은 값이 된다.
+const graderRows = (card) => card.gradingRows;
+// PSA 인구 관측 이력(일본판) — 사실 파일 cards[i].psaPopHistory(data/psa-card-pop.json 의 이 카드 변형 시계열, 매칭은 inject-card-grades.js 와 같다 —
+// 그래야 이 표의 마지막 행이 위 헤드라인 PSA 인구와 같은 값이 된다).
 // 2026-09-29(감사 cards-weekly-pop-series-unrendered): 카드별 원장이 111장에 중앙값 10점씩 쌓여 있었는데
 // 색인된 어느 페이지에도 나오지 않았다. 카드마다 다른 값이라 형제 페이지와 겹치지 않는다.
 // 관측일은 불규칙하다(수집한 날 PSA 공개 보고를 기록) — 그래서 "by week" 가 아니라 "by observation date".
 // 음수 증감(재등급·정정)은 화면에 증감으로 띄우지 않는다(audit-grading-numbers.js 와 같은 규칙).
-// ourTier 는 파일 위쪽(37행)에서 이미 불러왔다.
-const { donRef } = require("./psa-card-pop-ingest.js");
-let PSA_CARD_POP = null;
-try { PSA_CARD_POP = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "psa-card-pop.json"), "utf8")); } catch {}
-function psaHistory(card, boxCode) {
-  if (!PSA_CARD_POP || !boxCode) return [];
-  const num = (card.number || "").toUpperCase();
-  const don = donRef(card.name);
-  if (!num && !don) return [];
-  const key = don ? don.key : `${num}|${ourTier(card.name || "")}`;
-  const arr = PSA_CARD_POP.sets?.[boxCode]?.jp?.[key];
-  if (!Array.isArray(arr)) return [];
-  return arr.filter((p) => Number.isInteger(p.total) && p.total > 0 && Number.isInteger(p.g10) && p.g10 <= p.total);
-}
-function psaHistorySection(card, boxCode) {
-  const pts = psaHistory(card, boxCode);
+function psaHistorySection(card) {
+  const pts = card.psaPopHistory;
   if (pts.length < 2) return "";
   const rows = pts
     .map((p, i) => {
@@ -188,18 +138,10 @@ function graderSection(card) {
       </tbody></table>
       <p class="srcNoteA">Counts = exact printing ${esc(card.number || "")} ${esc(card.name)}</p>`;
 }
-// PSA10 표시가(세트 페이지와 동일 규칙: sold n>=3 우선, 아니면 최저 ask)
+// PSA10 표시가(세트 페이지와 동일 규칙: sold n>=3 우선, 아니면 최저 ask) — 사실 파일 cards[i].psa10(관측일 환율로 되돌린 달러) · psa10Ask.
 function psa10Of(card) {
-  const sold = card.psa10Ebay;
-  if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
-    const v = toUsdAt(sold.middle, sold.currency, sold.updated);
-    if (v != null) return { v, kind: "sold", n: sold.sampleSize, date: sold.updated };
-  }
-  const bl = card.psa10Active && card.psa10Active.bestListing;
-  if (bl && bl.total != null) {
-    const v = toUsd(bl.total, bl.currency);
-    if (v != null) return { v, kind: "ask", n: card.psa10Active.sampleSize, date: card.psa10Active.updated, url: bl.url };
-  }
+  if (card.psa10) return { v: card.psa10.usd, kind: "sold", n: card.psa10.n, date: card.psa10.date };
+  if (card.psa10Ask) return { v: card.psa10Ask.usd, kind: "ask", n: card.psa10Ask.n, date: card.psa10Ask.date, url: card.psa10Ask.url };
   return null;
 }
 
@@ -234,13 +176,13 @@ const written = [];
 for (const { code, set: s, card: c } of cands) {
   // NM = 쓸 수 있는 값만(nmUsable — 값·읽은 날 있음·숨김 표시 없음), 환산은 AI 피드 rawNmAsk.usdEquivalent 와 같은 함수 — 2026-10-15.
   // 종전엔 읽은 날이 없는 3장($1,250·$31·$38)과 숨김 표시 2장($157·$630 Offer)이 화면·Product 에 나갔는데 피드는 null 이었다.
-  const nmUsd = nmUsdOf(c, FX);
+  const nmUsd = c.nm.usd;
   // raw 대 PSA 차이("raw-to-slab spread")를 말하는 절은 이 값과 PSA 10 값(p10)이 둘 다 화면에 있을 때만(5차 검증: PSA 10 없는 5장에 남았다) — 2026-10-15(5차): NM 칸이 "—"인 eb01-061·op07-038 에
   // "…which helps explain its raw-to-slab spread" 가 남아, 화면에 없는 차이를 가리켰다.
-  // NM 관측일 = 그 변형을 실제로 다시 읽은 날(nmUpdated) — 2026-10-15 감사(#10). 종전엔 페이지 빌드일(DATA_DATE)을 "as of" 로 달아
+  // NM 관측일 = 그 변형을 실제로 다시 읽은 날(nm.date) — 2026-10-15 감사(#10). 종전엔 페이지 빌드일(DATA_DATE)을 "as of" 로 달아
   // 10-11 에 읽은 값이 10-14 값처럼, 09-07 에 읽은 OP09-093 SP Gold 도 10-14 로 나갔다(카드리스트는 10-11). AI 피드·카드리스트와 같은 날짜.
   // 읽은 날이 없는 값(nmUpdated 없음 5장)에는 날짜를 지어 붙이지 않는다.
-  const nmDate = nmUsd != null ? c.nmUpdated : null;
+  const nmDate = nmUsd != null ? c.nm.date : null;
   const p10 = psa10Of(c);
   const pop = popOf(c);
   const slug = slugify(c.number + "-" + c.name);
@@ -253,15 +195,11 @@ for (const { code, set: s, card: c } of cands) {
   const imgAbs = IMG_MAP[slug] ? `${SITE}/${IMG_MAP[slug]}` : (selfHosted ? `${SITE}/${selfHosted}` : (c.image || c.img || null));
   const imgRel = IMG_MAP[slug] ? `../${IMG_MAP[slug]}` : (selfHosted ? `../${selfHosted}` : (c.image || c.img || null));
   const setSlug = code.toLowerCase();
-  // 박스 분모는 세트 페이지·홈과 같은 소스 — 우리 eBay 실거래 주간 중앙값(USD). 2026-09-24 전까지는 7월에 멈춘
-  // 외부 주간 시리즈(boxSeries)를 써서 같은 세트가 카드 페이지 $148 / 세트 페이지 $129 로 갈렸다.
-  // 마지막 점이 28일보다 오래되면 배수를 말하지 않는다 — 낡은 분모로 "currently" 를 쓰면 안 된다.
-  const jpSold = ((SOLD_SERIES.sets || {})[code] || {}).jp || [];
-  const jpLast = jpSold.filter((p) => p && p.median != null).pop() || null;
-  const boxAge = jpLast ? (Date.parse(DATA_DATE) - Date.parse(jpLast.d)) / 864e5 : null;
-  const boxUsd = jpLast && boxAge != null && boxAge <= 28 ? jpLast.median : null;
-  const boxAsOf = boxUsd ? jpLast.d : null;
-  const boxMult = boxUsd && nmUsd ? (nmUsd / boxUsd) : null;
+  // 박스 분모는 세트 페이지·홈과 같은 소스 — 우리 eBay 실거래 주간 중앙값(USD), 사실 파일 sets[code].cardBox(마지막 점이 28일보다 오래되면 null —
+  // 낡은 분모로 "currently" 를 쓰면 안 된다). 2026-09-24 전까지는 7월에 멈춘 외부 주간 시리즈(boxSeries)를 써서 같은 세트가 카드 페이지 $148 / 세트 페이지 $129 로 갈렸다.
+  const boxUsd = s.cardBox ? s.cardBox.usd : null;
+  const boxAsOf = s.cardBox ? s.cardBox.asOf : null;
+  const boxMult = c.boxMultiple;
   const rank = c.rank || null;
   // 가격 카드 아래 머리 줄 = 라벨만 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). 종전 문장 "… is the #1 chase card in …"·
   // "One raw … is currently worth about 63x a sealed … box" 는 라벨(세트·체이스 순위·박스 배수)로 바꾸고,
@@ -269,34 +207,26 @@ for (const { code, set: s, card: c } of cands) {
   const ebayRaw = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} ${c.name} Japanese`)}&_sop=15&${EPN}`;
   const ebayPsa = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} PSA 10 Japanese`)}&_sop=15&${EPN}`;
   // PSA 10 최저 실매물 버튼. 검색 링크는 값이 없어 잘 안 눌린다(2026-09-16 실측).
-  // 표시가가 sold 중앙값이어도 실매물 URL 은 따로 있으므로 항상 psa10Active 에서 직접 읽는다.
-  const pa = c.psa10Active || {};
-  const paBl = pa.bestListing;
-  const psaBuy = paBl ? buyCta({
-    url: paBl.url,
-    price: toUsd(paBl.total, paBl.currency),
-    mid: pa.middle != null ? toUsd(pa.middle, pa.currency) : null,
-    updated: pa.updated,
+  // 표시가가 sold 중앙값이어도 실매물 URL 은 따로 있으므로 항상 psa10Ask(사실 파일, psa10Active 의 최저 매물)에서 읽는다. buy = EPN 링크로 바꿀 수 있는 매물.
+  const pa = c.psa10Ask;
+  const psaBuy = pa && pa.buy ? buyCta({
+    url: pa.url,
+    price: pa.usd,
+    mid: pa.mid,
+    updated: pa.date,
     label: `PSA 10 ${c.number || c.name}`,
   }) : "";
 
   // 시리즈(가격 이력) 표 — 체크포인트가 2개 이상 쌓인 카드만 표시(1점짜리 무의미한 표 방지).
   // ※ 2026-07-14 이전 초기 수집은 변형매칭 미성숙으로 오염되어 폐기됨(그 이후부터 신뢰 축적).
-  // 이력은 data/card-series.json(2026-10-14 packs.json 에서 분리 — tools/card-series-store.js).
-  // 못 쓰는 NM(nmUsable 거짓)은 이력 칸에서도 뺀다 — 읽은 날이 없는 값은 매일 환율로 다시 적힌 점이라 날짜가 관측일이 아니다(2026-10-15).
-  const ser = (seriesOf(CARD_SERIES, code, c)?.points || []).map((p) => (nmUsd != null ? p : { ...p, nm: null })).filter((p) => p.nm != null || p.psa != null);
-  // PSA10 칸: 이력 점은 KRW 로만 저장된다(update-card-series-history.js). 현재 관측일(psa10Ebay.updated) 뒤의 점은
-  // 같은 관측을 매일 다시 적은 것이라 점 날짜 환율로 되돌리면 KRW 저장 카드가 헤드라인보다 부푼다
-  // (2026-09-30 실측: OP09-119 이력 $2,027 / 헤드라인 $1,822). 그 점들은 헤드라인과 같은 관측일 환산값을 쓴다.
-  const g10 = c.psa10Ebay && c.psa10Ebay.soldBased && c.psa10Ebay.middle != null ? c.psa10Ebay : null;
-  const g10Usd = g10 ? toUsdAt(g10.middle, g10.currency, g10.updated) : null;
-  const serPsaUsd = (p) => (g10Usd != null && g10.updated && p.d > g10.updated ? g10Usd : toUsdAt(p.psa, "KRW", p.d));
+  // 이력은 data/card-series.json(2026-10-14 packs.json 에서 분리) — 달러 환산(NM 은 각 시점 환율, PSA 10 은 현재 관측일 뒤 점은 머리와 같은 값)과
+  // 못 쓰는 NM 빼기는 사실 파일 cards[i].checkpoints 가 한다(2026-10-15).
+  const ser = c.checkpoints;
   // 체크포인트 캡션 = 열 정의만(2026-10-15 소유자 결정) — "… checkpoints use …; missing cells remain unestimated" 설명 절은 지웠다.
-  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(toUsdAt(p.nm, "KRW", p.d)) : "—"}</td><td class="num">${p.psa != null ? usd(serPsaUsd(p)) : "—"}</td></tr>`).join("") : "";   // NM 은 각 시점의 환율(fx-history)
+  const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(p.nm) : "—"}</td><td class="num">${p.psa != null ? usd(p.psa) : "—"}</td></tr>`).join("") : "";
 
-  // PSA10 sold 값의 나이. 홈(packs.js PSA10_STALE_DAYS=35)과 같은 기준 — 35일 넘은 sold 중앙값으로는 프리미엄을 계산하지 않는다.
-  const p10Age = p10 && p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : null;
-  const p10Stale = !!(p10 && p10.kind === "sold" && Number.isFinite(p10Age) && p10Age > PSA10_STALE_DAYS);
+  // PSA10 sold 값의 나이. 홈(packs.js PSA10_STALE_DAYS=35)과 같은 기준 — 35일 넘은 sold 중앙값으로는 프리미엄을 계산하지 않는다(사실 파일 psa10.stale).
+  const p10Stale = !!(p10 && p10.kind === "sold" && c.psa10.stale);
 
   // 그레이딩 경제성(전부 실데이터 파생 — 추정치 없음)
   // PSA 등급 분포 표(10 / 9 / 8 이하) — 아래 세 갈래가 같은 표를 쓴다(2026-10-15, NM 없는 갈래를 더하며 하나로 묶음).
@@ -333,7 +263,7 @@ for (const { code, set: s, card: c } of cands) {
     // PSA10 실거래·인구가 아직 없는 변형(금·은 SP 등) — 추정치를 넣는 건 금지다. 세트 맥락(검증된 값만)을 둔다. 2026-07-30.
     // 2026-10-15 소유자 결정: "No PSA 10 figure is shown … because …" 문장과 "Fallback estimate: none" 을 지우고
     // 값 칸 라벨 하나("PSA 10 sold median: — (fewer than 3 …)")로 바꿨다.
-    const sf = s.psaFull;
+    const sf = s.grading.psa.jp;
     gradeSection = `
       <h2>${esc(c.name)} PSA 10 market status</h2>
       <ul class="factList">
@@ -353,31 +283,24 @@ for (const { code, set: s, card: c } of cands) {
   // 이 카드번호가 경매에서 실제로 어떻게 팔렸나 — 종료 후 재조회해 쌓은 원장(auction-card-stats.json)에서만 나온다.
   // 2026-09-10: 번호 단위 통계는 변형(패러렐·망가·SP)과 기본판이 섞여 "이 카드" 값으로 쓸 수 없었다(109장 중 50장 오표시).
   // 그래서 판(JP/EN) × 변형(제목에서 읽은 tier, 등급 원장과 같은 ourTier)별로 나눠 표로 보이고 이 카드의 변형 행을 표시한다.
-  // 감정품(PSA/CGC/TAG) 경매는 뺐다(다른 시장). 3건 미만 행은 싣지 않는다 — 빈 값이 틀린 값보다 낫다.
-  // 2026-10-15: 행 계산을 수정일(pageDate) 앞으로 올렸다 — 표 라벨에 집계 기준일("last 45 days to <날짜>")을 찍으므로 수정일도 그 날짜를 본다.
+  // 감정품(PSA/CGC/TAG) 경매는 뺐다(다른 시장). 3건 미만 행은 싣지 않는다 — 빈 값이 틀린 값보다 낫다. 행은 사실 파일 cards[i].auctionRows, 이 카드의 변형은 cards[i].tier.
   const AUC_TIER = { base: "Base print", alt: "Alternate art / parallel", super: "Super alternate art (manga)", red: "Red alt art / red manga", sp: "SP", gold: "SP gold", silver: "SP silver", signature: "Signature / stamped", boxtopper: "Box topper", wanted: "Wanted poster", tr: "Treasure rare" };
-  const aucMine = ourTier(c.name);
-  const aucRows = [];
-  for (const ed of ["jp", "en"]) for (const tier of Object.keys(AUC_TIER)) {
-    const v = (CARD_AUCTION.variants || {})[`${c.number}|${ed}|${tier}`];
-    if (!v || v.sold < 3) continue;
-    aucRows.push({ ed, tier, v });
-  }
+  const aucMine = c.tier;
+  const aucRows = c.auctionRows.map((v) => ({ ed: v.ed, tier: v.tier, v }));
   // PSA10 실거래 표본이 드문 카드는 값이 몇 달 묵기도 한다. 그때 페이지 빌드일(DATA_DATE)로 "Updated" 를 달면
   // 6월 가격이 오늘 값처럼 읽힌다(2026-09-22 실측 18장). 28일 넘으면 그 숫자 옆에 관측일을 붙인다(아래 p10Dated, 2026-10-15 — 종전 35일·월 표기).
   // 설명은 155자 이하. 넘치면 같은 숫자를 압축 표현으로 다시 쓴다(숫자는 그대로, 말만 줄임).
-  // 페이지 수정일(Article dateModified·설명의 "Updated") = 이 페이지에 찍히는 관측일 중 가장 늦은 날 — 2026-10-15 감사(#4).
+  // 페이지 수정일(Article dateModified·설명의 "Updated") = 이 페이지에 찍히는 관측일 중 가장 늦은 날 — 2026-10-15 감사(#4), 사실 파일 cards[i].pageDate
+  // (데이터일·NM 관측일·PSA 10 관측일·구매 버튼 매물 관측일·박스 관측일·경매 기준일·등급사 표 날짜·PSA 인구 이력 마지막 날·체크포인트 마지막 날).
   // 종전엔 DATA_DATE(packs.updated 10-14)라, 등급사 표에 "2026-10-15" TAG 값이 있는 21장의 수정일이 내용보다 일렀다.
-  const pageDate = [DATA_DATE, nmDate, p10 && p10.date, psaBuy ? pa.updated : null, boxAsOf, aucRows.length ? AUC_DAY : null,
-    ...graderRows(c).map((r) => r.d), (psaHistory(c, code).at(-1) || {}).d, (ser.at(-1) || {}).d]
-    .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "")).sort().pop();
+  const pageDate = c.pageDate;
   // 설명(meta·og)의 PSA 10 값이 그 설명의 "Updated" 날짜(pageDate)보다 28일(사이트 "현재" 기준, 가드 D17) 넘게 앞서면 관측일을 붙인다 —
   // 2026-10-15 소유자 결정("묵은 중앙값을 현재처럼 쓰지 않는다"). 종전엔 35일 넘을 때만 월("(Jul 2026)")을 붙여,
   // 29~35일 된 sold 중앙값 78장이 "Updated 2026-10-14" 옆에서 오늘 값처럼 읽혔다.
   const p10Dated = p10 && p10.date && (Date.parse(pageDate) - Date.parse(p10.date)) / 864e5 > 28 ? ` (${p10.date})` : "";
   // 2026-10-15(검증): 28일 넘은 PSA 10 sold 중앙값은 날짜를 붙여도 설명(meta·og)에서 현재가처럼 읽힌다 — 소유자 결정 "묵은 값을 현재가로 쓰지 않는다".
   // 그때는 지금 걸려 있는 최저 PSA 10 실매물(bestListing)로 바꾸고, 그것도 없으면 설명에서 PSA 10 값을 뺀다. 화면 표·FAQ 는 날짜와 함께 그대로 둔다.
-  const paLow = paBl ? toUsd(paBl.total, paBl.currency) : null;
+  const paLow = pa ? pa.usd : null;
   const p10Desc = p10 && !p10Dated ? p10 : (p10Dated && paLow != null ? { kind: "listed", v: paLow } : null);
   // 쓸 수 있는 NM 이 없으면 설명에서 NM 부분을 뺀다(2026-10-15 — "raw Japanese NM $1,250" 이 피드 null 과 갈렸다).
   const descOf = (nmL, p10L, popL, gemL) => {
@@ -420,20 +343,18 @@ for (const { code, set: s, card: c } of cands) {
   // 지금 나와 있는 매물 값이고 offerCount 는 매물 수다 — 지난 판매가는 매물이 아니다(OP13-118: 범위 상한 $14,134 = 7/10 sold,
   // 같은 날 화면의 최저 PSA 10 매물은 $20,668). 그래서 아래 두 호가만 각자 Offer 로 싣는다. 재고 상태가 서로 달라
   // AggregateOffer 하나로 묶지 않고, 매물 수를 다 세지 않으므로 offerCount 도 쓰지 않는다.
-  //   ① 일본판 NM 소매 호가 — 실제로 다시 본 날(nmUpdated)이 28일 이내이고 재고 표기가 있을 때. "×" 면 OutOfStock
+  //   ① 일본판 NM 소매 호가 — 실제로 다시 본 날(nm.date)이 28일 이내(nm.fresh)이고 재고 표기가 있을 때. "×" 면 OutOfStock
   //      (AI JSON 의 stockStatus 와 같은 함수 — 한 사실은 한 값).
-  //   ② PSA 10 최저 실매물 — 화면 구매 버튼(buyCta)이 보일 때만, 버튼과 같은 값. 관측일(psa10Active.updated) 28일 이내.
-  // 28일 = 사이트의 "현재" 기준(가드 D17, 위 박스 배수와 같다). 둘 다 없으면 Product 를 내지 않는다 —
+  //   ② PSA 10 최저 실매물 — 화면 구매 버튼(buyCta)이 보일 때만, 버튼과 같은 값. 관측일(psa10Ask.date) 28일 이내(psa10Ask.fresh).
+  // 28일 = 사이트의 "현재" 기준(가드 D17, 위 박스 배수와 같다 — 사실 빌더 CURRENT_DAYS). 둘 다 없으면 Product 를 내지 않는다 —
   // offers 없는 Product 는 Search Console 무효 항목이다(2026-10-14 QA). sold 중앙값은 화면·FAQ·description 에만 남는다.
-  const ASK_MAX_DAYS = 28;
-  const askFresh = (date) => !!date && (Date.parse(DATA_DATE) - Date.parse(date)) / 864e5 <= ASK_MAX_DAYS;
-  const nmStock = stockStatus(c.nmStock);
-  const paUsd = paBl ? toUsd(paBl.total, paBl.currency) : null;
+  const nmStock = c.nm.stock;
+  const paUsd = pa ? pa.usd : null;
   const asks = [];
-  if (Number.isFinite(nmUsd) && nmUsd > 0 && askFresh(c.nmUpdated) && nmStock !== "unknown") {
+  if (Number.isFinite(nmUsd) && nmUsd > 0 && c.nm.fresh && nmStock !== "unknown") {
     asks.push({ "@type": "Offer", name: "Japanese NM (raw)", priceCurrency: "USD", price: Math.round(nmUsd), availability: nmStock === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock", url: canonical });
   }
-  if (psaBuy && Number.isFinite(paUsd) && paUsd > 0 && askFresh(pa.updated)) {
+  if (psaBuy && Number.isFinite(paUsd) && paUsd > 0 && pa.fresh) {
     asks.push({ "@type": "Offer", name: "PSA 10 (lowest listing)", priceCurrency: "USD", price: Math.round(paUsd), availability: "https://schema.org/InStock", url: canonical });
   }
   const prodLd = asks.length ? JSON.stringify({
@@ -512,7 +433,7 @@ ${BUY_CTA_CSS}
     <main id="main-content" class="bodyPage">
       <!-- 허브 링크는 정식 주소(/cards/)로 — index.html 형태는 서치콘솔에 "대체 페이지(표준 태그 있음)"로 쌓인다(2026-09-07) -->
       <p class="eyebrow"><a href="./" style="color:inherit;">Card Prices</a> · ${esc(code)}</p>
-      <h1>${esc(c.name)} <small style="color:var(--muted);font-size:.55em;">${esc(c.number)}${CARD_LIST.rarityCode(code, c) ? " · " + esc(CARD_LIST.rarityCode(code, c)) : ""}</small></h1>
+      <h1>${esc(c.name)} <small style="color:var(--muted);font-size:.55em;">${esc(c.number)}${c.rarity ? " · " + esc(c.rarity) : ""}</small></h1>
       ${AFF_TOP}
       <div class="cardHero">
         ${imgRel ? (() => { const v = variant(imgRel, "hero"); return `<img src="${esc(v ? v.src : imgRel)}" alt="${esc(`${c.name} ${c.number} One Piece card`)}" width="${v ? v.w : 716}" height="${v ? v.h : 1000}" loading="eager" decoding="async" fetchpriority="high" />`; })() : ""}
@@ -524,7 +445,7 @@ ${BUY_CTA_CSS}
             ${p10 ? `<div class="pc"><span>PSA 10 ${p10.kind === "sold" ? "(sold median)" : "(lowest listing)"}</span><b>${usd(p10.v)}</b><small>${p10.kind === "sold" ? `${p10.n} sales` : "ask, not a sale"} · ${esc(p10.date || "")}</small></div>` : ""}
             ${pop ? `<div class="pc"><span>PSA population</span><b>${intl(pop.total)}</b><small>${intl(pop.psa10)} in PSA 10 · ${pop.gem}% gem rate</small></div>` : ""}
           </div>
-          <p>Set: <a href="../sets/${setSlug}.html">${esc(`${code} ${s.nameEn || ""}`.trim())}</a>${rank && !((s.cards || []).filter((x) => x.nmJpy != null && x.nmJpy === c.nmJpy).length > 1) ? ` · chase rank <b>#${rank}</b>` : ""}${boxMult && boxMult > 0.8 ? ` · raw NM ÷ sealed ${esc(code)} JP box: <b>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x</b> (${usd(boxUsd)} sold median, week of ${esc(boxAsOf)})` : ""}</p>
+          <p>Set: <a href="../sets/${setSlug}.html">${esc(`${code} ${s.nameEn || ""}`.trim())}</a>${c.rankShown ? ` · chase rank <b>#${rank}</b>` : ""}${boxMult && boxMult > 0.8 ? ` · raw NM ÷ sealed ${esc(code)} JP box: <b>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x</b> (${usd(boxUsd)} sold median, week of ${esc(boxAsOf)})` : ""}</p>
           <div class="ctaRow">
             ${psaBuy}
             <a class="${psaBuy ? "" : "primary"}" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
@@ -539,7 +460,7 @@ ${BUY_CTA_CSS}
 
       ${gradeSection}
       ${graderSection(c)}
-      ${psaHistorySection(c, code)}
+      ${psaHistorySection(c)}
 
       ${(() => {
         // 행은 위(aucRows — pageDate 앞)에서 계산한다. 캡션 = 라벨만 — 2026-10-15 소유자 결정: "each read again after it closed"·
@@ -555,7 +476,7 @@ ${BUY_CTA_CSS}
       <ul class="factList">
         <li>Tracked card number: ${esc(c.number)}</li>
         <li>Tracked name: ${esc(c.name)}</li>
-        <li>Rarity label: ${esc(CARD_LIST.rarityCode(code, c) || "not supplied")}</li>
+        <li>Rarity label: ${esc(c.rarity || "not supplied")}</li>
         <li>Required listing match: artwork, finish, number and PSA label</li>
         <li><a href="../articles/one-piece-card-price-guide.html">Variant-matching method</a> · <a href="../articles/psa-10-vs-nm-card-prices.html">PSA 10 vs NM method</a></li>
       </ul>
@@ -565,7 +486,7 @@ ${BUY_CTA_CSS}
             크롤 경로를 만든다. 값은 같은 산식(NM=nmUsd, PSA 10=psa10Of)이라 세트 페이지 TOP10 과 어긋나지 않는다. */ ""}
       ${(() => {
         const sib = cands.filter((x) => x.code === code && x.card !== c)
-          .map((x) => ({ card: x.card, nm: nmUsdOf(x.card, FX), p10: psa10Of(x.card) }))
+          .map((x) => ({ card: x.card, nm: x.card.nm.usd, p10: psa10Of(x.card) }))
           .sort((a, b) => (b.nm || 0) - (a.nm || 0));
         if (!sib.length) return "";
         const rows = sib.map((x) => `<tr><td><a href="${slugify(x.card.number + "-" + x.card.name)}.html">${esc(seoName(x.card).short)}</a></td><td class="num">${x.nm != null ? usd(x.nm) : "—"}</td><td class="num">${x.p10 ? `${usd(x.p10.v)}${x.p10.kind === "ask" ? " ask" : ""}` : "—"}</td></tr>`).join("");
@@ -630,24 +551,23 @@ fs.writeFileSync(path.join(CARDS_DIR, "card-map.json"), JSON.stringify(cardMap, 
 // 같은 거래가 허브 $15,717 / 카드 상세·랭킹 $14,134 로 갈렸다(KRW 저장 카드 7행).
 const gradedRows = (() => {
   const rows = [];
-  for (const [code, set] of Object.entries(d.sets || {})) {
-    for (const c of set.cards || []) {
-      // 쓸 수 있는 NM 만(nmUsable, 2026-10-15) — 카드 상세·세트 Top 10·AI 피드와 같은 값.
-      const p10 = nmUsable(c) ? psa10Of(c) : null;
+  for (const code of F.order.packSets) {
+    for (const c of F.sets[code].cards) {
+      // 쓸 수 있는 NM 만(nm.usable, 2026-10-15) — 카드 상세·세트 Top 10·AI 피드와 같은 값.
+      const p10 = c.nm.usable ? psa10Of(c) : null;
       if (!p10 || p10.kind !== "sold") continue;
-      const rawUsd = nmUsdOf(c, FX);
+      const rawUsd = c.nm.usd;
       if (!(rawUsd > 0) || !(p10.v > 0)) continue;
       const mult = p10.v / rawUsd;
       // 배수가 비현실적으로 크면 raw 쪽이 잘못 잡힌 것이다(2026-09-01 실측: OP02-059 박스토퍼가
       // raw 가 거의 0 으로 잡혀 557배가 나왔다). 값을 고쳐 쓰지 말고 표에서 뺀다.
       if (mult > 40) continue;
-      // 35일 넘은 PSA 10 표본은 배수 칸을 "—" 로 — 카드 상세의 "Premium … —"·홈(packs.js psa10Stale)과 같은 기준(2026-10-15).
+      // 35일 넘은 PSA 10 표본은 배수 칸을 "—" 로 — 카드 상세의 "Premium … —"·홈(packs.js psa10Stale)과 같은 기준(사실 파일 psa10.stale, 2026-10-15).
       // 종전엔 상세가 배수를 내지 않는 카드(OP13-118 등)를 허브만 1.7x 로 보여 한 사실이 두 값이었다.
-      const pAge = p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : NaN;
       const setFile = code.toLowerCase() + ".html";
       rows.push({
-        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult: Number.isFinite(pAge) && pAge > PSA10_STALE_DAYS ? null : mult, n: p10.n, psaDate: p10.date, nmDate: c.nmUpdated || null,
-        slug: cardMap[c.number + "|" + norm(c.name)] || null,
+        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult: c.psa10.stale ? null : mult, n: p10.n, psaDate: p10.date, nmDate: c.nm.date,
+        slug: cardMap[c.key] || null,
         setHref: fs.existsSync(path.join(ROOT, "sets", setFile)) ? `../sets/${setFile}` : null,
       });
     }

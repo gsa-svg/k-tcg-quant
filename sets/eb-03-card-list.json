@@ -1605,7 +1605,13 @@
    "features": "Straw Hat Crew",
    "trigger": true,
    "nm": null,
-   "auction": null,
+   "auction": {
+    "print": "Japanese",
+    "medianUsd": 29,
+    "sold": 4,
+    "windowDays": 45,
+    "through": "2026-10-15"
+   },
    "auctionEnglishPrint": {
     "print": "English",
     "medianUsd": 43,

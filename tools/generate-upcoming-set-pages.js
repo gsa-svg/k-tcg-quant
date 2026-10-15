@@ -120,22 +120,20 @@ function releaseBox(page) {
 // 2026-10-14: 발매 전 판매(예약판매)를 "Sold median" 으로 내던 것을 고쳤다 — 같은 날 사실 표는 "no completed sale" 이었고,
 //   다른 7개 페이지는 그 값을 실거래 중앙값으로 썼다. 이제 판매 원천은 box-sold-series 의 preRelease(발매일 이전 판매 요약)와
 //   current(발매 후 현재가)이고, 발매 전 판은 반드시 "presale" 라벨을 단다(가드 D16). 매물 3개 미만이면 값은 "—".
-const PREORDER = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", "preorder-series.json"), "utf8")); } catch { return null; } })();
-const SOLD_SERIES = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8")); } catch { return null; } })();
+// 2026-10-15(F4): 판별 발매 여부·예약판매 호가·표 유무·페이지 수정일·원장 기준일(through)은 사실 파일 upcoming[code](tools/build-site-facts.js),
+//   발매 후 현재가·발매 후 판매 건수·발매 전 판매 요약은 sets[code].current·sinceRelease·preRelease. 원장(preorder-series·box-sold-series) 직접 읽기 없음.
+const F = require("./build-site-facts").load();
+const U = (page) => F.upcoming[page.code];
+const S = (page) => F.sets[page.code] || null;
 const usd = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
 const mmdd = (iso) => `${iso.slice(5, 7)}/${iso.slice(8, 10)}`;
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
-// 판(jp/en)의 발매 여부 — 데이터 기준일(asOf) 기준. 시계열과 같은 날짜(series.release, 없으면 이 페이지의 공식 날짜)를 쓴다.
-function edRelease(page, ed) {
-  const s = SOLD_SERIES?.sets?.[page.code];
-  return s?.release?.[ed] || (ed === "jp" ? page.releaseJp : page.releaseEn);
-}
+// 판(jp/en)의 발매 여부 — 데이터 기준일(asOf) 기준. 시계열과 같은 날짜(series.release, 없으면 이 페이지의 공식 날짜) — 사실 파일 upcoming[code].released.
 function edReleased(page, ed) {
-  const asOf = SOLD_SERIES?.asOf;
-  return !!(asOf && edRelease(page, ed) <= asOf);
+  return U(page).released[ed];
 }
 function salesCell(page, ed) {
-  const s = SOLD_SERIES?.sets?.[page.code];
+  const s = S(page);
   if (edReleased(page, ed)) {
     const cur = s?.current?.[ed];
     const since = s?.sinceRelease?.[ed] || 0;
@@ -149,10 +147,10 @@ function salesCell(page, ed) {
   return `${pre.median != null ? usd(pre.median) : "—"}<small data-ko="예약판매 · ${pre.sales}건 · 매물 ${pre.listings}개 · ${escapeHtml(span)}">presale · ${plural(pre.sales, "sale")} · ${plural(pre.listings, "listing")} · ${escapeHtml(span)}</small>`;
 }
 function preorderTable(page) {
-  const ask = PREORDER?.sets?.[page.code];
-  const sold = SOLD_SERIES?.sets?.[page.code];
+  const u = U(page);
+  const sold = S(page);
   const rows = [["Japanese", "jp", "일본판"], ["English", "en", "영문판"]].map(([label, ed, ko]) => {
-    const a = (ask?.[ed] || []).slice(-1)[0] || null;
+    const a = u.ask[ed];
     if (!a && !sold?.preRelease?.[ed] && !sold?.current?.[ed] && !edReleased(page, ed)) return null;
     // 모바일 390px 에서 4열은 마지막 열이 잘린다(실측) — 3열로 두고 보조 수치는 셀 안 둘째 줄(small)에.
     const bestHtml = a?.best ? `<a href="${escapeHtml(epnUrl(a.best.url + (a.best.url.includes("?") ? "&" : "?") + `customid=preorder-${page.slug}-${ed}`))}" target="_blank" rel="noopener noreferrer sponsored">${usd(a.best.total)}</a>` : "—";
@@ -160,24 +158,24 @@ function preorderTable(page) {
     return `<tr><td data-ko="${ko} 박스">${label} box</td><td>${askHtml}</td><td>${salesCell(page, ed)}</td></tr>`;
   }).filter(Boolean);
   if (!rows.length) return "";
-  const asOf = ask?.jp?.slice(-1)[0]?.d || ask?.en?.slice(-1)[0]?.d || PREORDER?.updated || "";
+  const asOf = u.askAsOf;
   const allPre = !edReleased(page, "jp") && !edReleased(page, "en");
   const soldTh = allPre ? `<th data-ko="예약판매 거래 중앙값">Presale sold median</th>` : `<th data-ko="거래 중앙값">Sold median</th>`;
-  const through = SOLD_SERIES?.builtFrom?.updated || SOLD_SERIES?.asOf || "";
+  const through = u.through;
   return `
       <h2 data-ko="${escapeHtml(page.code)} 예약판매 박스 가격(이베이)">${escapeHtml(page.code)} pre-order box prices on eBay</h2>
       <table class="factTable preTbl text"><thead><tr><th data-ko="판">Edition</th><th data-ko="최저 호가">Cheapest ask</th>${soldTh}</tr></thead><tbody>
           ${rows.join("\n          ")}
       </tbody></table>
-      <p class="sourceNoteA">Cheapest ask: eBay fixed-price sealed-box listings, incl. shipping${asOf ? `, as of ${escapeHtml(asOf)}` : ""} · Presale: completed eBay sales before the official release date${through ? `, through ${escapeHtml(through)}` : ""} · median = ${SOLD_SERIES?.preReleaseMinListings || 3}+ different listings sold</p>`;
+      <p class="sourceNoteA">Cheapest ask: eBay fixed-price sealed-box listings, incl. shipping${asOf ? `, as of ${escapeHtml(asOf)}` : ""} · Presale: completed eBay sales before the official release date${through ? `, through ${escapeHtml(through)}` : ""} · median = ${F.series.preReleaseMinListings}+ different listings sold</p>`;
 }
 
 // 사실 표의 "Market-data status" 줄 — 2026-10-14 부터 데이터에서 만든다(손으로 쓴 "no completed sale" 이 예약판매 실거래와 어긋났다).
 // 라벨과 숫자만. 판별 발매 여부·발매 후 판매 건수·예약판매 건수/매물 수·원장 기준일.
 const MARKET_STATUS_LABEL = "Market-data status";
 function marketStatusRow(page) {
-  const s = SOLD_SERIES?.sets?.[page.code];
-  const through = SOLD_SERIES?.builtFrom?.updated || SOLD_SERIES?.asOf || "";
+  const s = S(page);
+  const through = U(page).through;
   const anyReleased = edReleased(page, "jp") || edReleased(page, "en");
   const since = ["jp", "en"].map((ed) => `${ed.toUpperCase()} ${s?.sinceRelease?.[ed] || 0}`).join(" · ");
   const pre = ["jp", "en"].map((ed) => {
@@ -189,17 +187,10 @@ function marketStatusRow(page) {
 }
 
 // 페이지 수정일 — 2026-10-15. Article dateModified·article:modified_time·바이라인 "Updated" = 사실 확인일(page.modified)과
-// 화면에 찍힌 시세 날짜(판매 원장 기준일 "through" · 예약판매 호가 기준일 · 판매 칸 날짜) 가운데 가장 늦은 날.
+// 화면에 찍힌 시세 날짜(판매 원장 기준일 "through" · 예약판매 호가 기준일 · 판매 칸 날짜) 가운데 가장 늦은 날 — 사실 파일 upcoming[code].pageDate.
 // 종전엔 page.modified(10-14)만 써서 같은 페이지의 "Presale … through 2026-10-15" 보다 수정일이 일렀다. "facts checked" 는 그대로 page.modified.
 function pageModified(page) {
-  const s = SOLD_SERIES?.sets?.[page.code];
-  const dates = [page.modified, SOLD_SERIES?.builtFrom?.updated || SOLD_SERIES?.asOf];
-  if (preorderTable(page)) {
-    const ask = PREORDER?.sets?.[page.code];
-    dates.push(ask?.jp?.slice(-1)[0]?.d || ask?.en?.slice(-1)[0]?.d || PREORDER?.updated);
-    for (const ed of ["jp", "en"]) dates.push(edReleased(page, ed) ? s?.current?.[ed]?.d : s?.preRelease?.[ed]?.last);
-  }
-  return dates.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort().pop();
+  return U(page).pageDate;
 }
 
 // Product + releaseDate — sets/op-17 과 같은 꼴(이름·브랜드·분류·발매일). 2026-10-14.
@@ -208,7 +199,7 @@ function pageModified(page) {
 function productSchemas(page, canonical) {
   const name = seoName(page);
   return [["Japanese", "jp", page.releaseJp], ["English", "en", page.releaseEn]].map(([label, ed, releaseDate]) => {
-    const a = (PREORDER?.sets?.[page.code]?.[ed] || []).slice(-1)[0] || null;
+    const a = U(page).ask[ed];
     const low = a?.best?.total ?? null;
     return {
       "@context": "https://schema.org",

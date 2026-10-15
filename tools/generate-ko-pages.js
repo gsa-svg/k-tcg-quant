@@ -6,53 +6,41 @@ const fs = require("fs");
 const { variant } = require("./image-variants");
 const { detailRobotsMeta } = require("./adsense-review-gate");
 const { syncDetailUrls } = require("./sitemap-detail-urls");
-// 세트별 공식 카드리스트(ko/<code>-card-list.html — generate-card-list-pages.js). 링크는 공식 목록 데이터로 정한다(2026-10-14, W7).
-const CARD_LIST = require("./card-list-shared");
-// NM 을 써도 되는가(값·읽은 날 있음·숨김 표시 없음) — 카드 상세·영문 세트·AI 피드와 같은 술어(2026-10-15).
-const { nmUsable, priciest, psa10Usd } = require("./market-data-normalizers");
-// 상단 Key facts 표 — 영문 세트 페이지와 같은 함수에서 같은 사실을 읽는다(2026-10-14, W5a). 한국어로 그린다.
-const { keyFactsModel, keyFactsHtml, KF_CSS, latestSets, setPageDate, splitReprints, usd } = require("./set-page-shared");
+// 세트별 공식 카드리스트(ko/<code>-card-list.html — generate-card-list-pages.js). 링크는 공식 목록 데이터(사실 파일 cardLists)로 정한다(2026-10-14, W7).
+// 상단 Key facts 표 — 영문 세트 페이지와 같은 값(사실 파일 keyFacts.jp)을 한국어로 그린다(2026-10-14, W5a).
+const { keyFactsHtml, KF_CSS, usd } = require("./set-page-shared");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
-// 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 영문 세트 페이지와 같은 원본을 쓴다.
-let KO_AUCTION = { sets: {}, window: {}, updated: "" };
-try { KO_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-auction-stats.json"), "utf8")); } catch { /* 없으면 생략 */ }
+// 사실 한 벌(data/derived/site-facts.json, tools/build-site-facts.js) — 2026-10-15. 시세판(board)·재판 분류·경매 요약·NM 사용 술어·PSA 10 원화·
+// 가장 비싼 카드·레어도·Key facts·수정일·최신 세트가 전부 여기서 온다. 원장은 주간 점(box-sold-series — 시세 흐름)만 직접 읽는다.
+const F = require("./build-site-facts").load();
+const CARD_LISTS = Object.fromEntries(F.cardLists.map((p) => [p.code, p]));
 const { navHtmlKo } = require("./site-nav");
 const NAV_KO = navHtmlKo();
 const SITE = "https://opboxindex.com";
 const CACHE = CSS_VER;  // packs.js DATA_VERSION 를 읽는다 — 하드코딩하면 범프 때 가드 V1 이 막는다(2026-07-27)
 
-const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-// marketIndex 는 이제 '지수 화면'이 아니라 세트별 시세판(board) 공급원으로만 쓴다.
-// 지수/개봉미터 표시는 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
-const mi = d.marketIndex;
-// 재판 기록은 영문 세트 페이지(generate-set-pages.js)와 같은 원천 data/set-facts.json 에서 직접 읽는다(2026-10-15 QA).
-// marketIndex.reprints 는 build-market-index 가 복사해 둔 사본이라, 분류를 고친 날 순서가 어긋나면 한국어만 옛 분류로 나간다.
-let FACTS = { sets: {} };
-try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch { /* 없으면 재판 기록 없음으로 */ }
-const fx = d.fx || {};
+// 세트별 시세판(board) — 사실 파일 board(= packs.marketIndex.board 와 같은 값). 지수/개봉미터 표시는 2026-07-29 소유자 지시로 전부 삭제됨.
+// 재판 기록 분류도 사실 파일 sets[code].reprint — 영문 세트 페이지·홈 배지와 같은 값(종전엔 marketIndex.reprints 사본이라 순서가 어긋나면 한국어만 옛 분류로 나갔다).
+const fx = F.fx;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const won = (n) => (n == null ? "—" : Math.round(n).toLocaleString("ko-KR") + "원");
 const pct = (n) => (n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(1) + "%");
-const DATA_DATE = d.updated || "";
-// 허브 "기준일"·"마지막 갱신" = 허브 표에 보이는 가장 늦은 중앙값 날짜 — 2026-10-15(5차): 표의 OP-07 행은 10-15 인데 둘 다 10-14(데이터 갱신일)였다.
+const DATA_DATE = F.dataDate;
+// 허브 "기준일"·"마지막 갱신" = 허브 표에 보이는 가장 늦은 중앙값 날짜(사실 파일 koHub.date) — 2026-10-15(5차): 표의 OP-07 행은 10-15 인데 둘 다 10-14(데이터 갱신일)였다.
 // <title>·og:title 의 날짜는 그대로 둔다(SEO 민감 요소).
-const HUB_DATE = [...((d.marketIndex && d.marketIndex.board) || []).map((b) => b.nowDate)].filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "")).sort().pop() || DATA_DATE;
+const HUB_DATE = F.koHub.date;
 
-// 세트번호 자연정렬(OP-01..OP-16, EB-01..EB-03, PRB-01..PRB-02)
-function orderKey(code) {
-  const m = code.match(/^([A-Z]+)-?(\d+)/);
-  const fam = { OP: 0, EB: 1, PRB: 2 }[m ? m[1] : "OP"] ?? 9;
-  return fam * 1000 + (m ? parseInt(m[2], 10) : 0);
-}
-const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
-// 최신 세트(계열별 가장 늦은 발매·120일 이내·공식 카드 리스트 있음) — 영문 생성기와 같은 함수.
-const LATEST_KO = latestSets(rows.map((b) => b.code), DATA_DATE);
+// 세트번호 자연정렬(OP-01..OP-16, EB-01..EB-03, PRB-01..PRB-02) — 사실 파일 order.board.
+const BOARD = Object.fromEntries(F.board.map((b) => [b.code, b]));
+const rows = F.order.board.map((code) => BOARD[code]);
+// 최신 세트(계열별 가장 늦은 발매·120일 이내·공식 카드 리스트 있음) — 영문 생성기와 같은 목록(사실 파일 latestSets).
+const LATEST_KO = new Set(F.latestSets);
 
-// 박스 시세(원): board.nowUsd(우리 실판매 중앙값)×환율.
+// 박스 시세(원): board.nowUsd(우리 실판매 중앙값)×환율 — 사실 파일 sets[code].priceKrw.
 // 종전엔 sets.boxSeries KRW 를 우선했는데 그 외부 시세가 07-12 에 멈춘 것을 아무도 몰랐다 — 2026-08-21 제거.
-function boxKrw(code, nowUsd) {
-  return nowUsd != null && fx.usdKrw ? nowUsd * fx.usdKrw : null;
+function boxKrw(code) {
+  return F.sets[code] ? F.sets[code].priceKrw : null;
 }
 // 산문용 시세 시리즈 — 히어로(boxKrw)와 **같은 소스**를 쓴다. 2026-08-25.
 // 종전엔 이 아래 산문만 sets.boxSeries(외부 KRW 시세)를 계속 썼는데 그게 2026-07-12 에 멈춰 있었다.
@@ -67,25 +55,17 @@ function soldKrwPts(code) {
   return arr.filter((p) => p && p.median != null).map((p) => ({ d: p.d, p: Math.round(p.median * fx.usdKrw) }));
 }
 
-// PSA 10 실거래 중앙값 → 원화. psa10Ebay.middle 은 세트마다 통화가 다르다(신규 수집 USD / 옛 값 KRW).
-// 확인 없이 원화로 찍어 "PSA 10 실거래 중앙값은 921원 … 약 0.0배"가 세트 페이지 본문에 나갔다(2026-09-16).
-// 통화를 모르면 null — 그 문장 자체를 싣지 않는다(빈칸 > 틀린값).
-// 표본 하한 3건은 ko/cards.html 과 같은 기준이다 — 한쪽만 느슨하면 같은 카드가 페이지마다 다르게 나온다(2026-09-16).
-// 원화 = 영문 페이지가 내는 달러 값(market-data-normalizers.psa10Usd) × 다른 원화 환산과 같은 fx.usdKrw — 2026-10-15(5차). 옛 KRW 저장값을 그대로 쓰지 않는다.
-function psa10Krw(p) {
-  if (!p || p.middle == null || (p.sampleSize || 0) < 3) return null;
-  const u = psa10Usd(p, fx);
-  return u != null && fx.usdKrw ? u * fx.usdKrw : null;
-}
+// PSA 10 실거래 중앙값(원화) = 사실 파일 cards[i].psa10.krw — 표본 3건 이상, 영문 페이지가 내는 달러 값(psa10Usd) × 다른 원화 환산과 같은 fx.usdKrw(2026-10-15, 5차).
+// 통화를 모르면 null — 그 문장 자체를 싣지 않는다(빈칸 > 틀린값). 2026-09-16: 확인 없이 원화로 찍어 "921원 … 약 0.0배"가 나갔다.
 
-function nameKo(code) { const s = d.sets[code]; return (s && s.nameKo) || code; }
-// 재판 기록 분류 = set-page-shared.splitReprints — 영문 세트 페이지·홈 배지와 같은 함수(2026-10-15, 4차).
+function nameKo(code) { const s = F.sets[code]; return (s && s.nameKo) || code; }
+// 재판 기록 분류 = 사실 파일 sets[code].reprint(market-data-normalizers.splitReprints) — 영문 세트 페이지·홈 배지와 같은 값(2026-10-15, 4차).
 //   restock = 재판 횟수(리테일러·유통사 재입고 + "再販"이라 적힌 추첨 — OP-09 반다이남코샵 2024-10) · lottery = 再販 표기 없는 발매 후 추첨(재판 아님)
 //   · unverified = 발매 전후 미확인 추첨. 발매 전 추첨(pre-release-lottery)은 초판 배정이라 어디에도 싣지 않는다.
 // 3차는 반다이 추첨을 전부 빼서 OP-09 가 허브에서 "재판 1회" → "재판 기록 없음"이 됐다(원장 메모는 再販).
 function reprintSplit(code) {
-  const { reprint, lottery, unverified } = splitReprints(((FACTS.sets || {})[code] || {}).reprintRecords);
-  return { restock: reprint, lottery, unverified };
+  const r = F.sets[code] ? F.sets[code].reprint : { restock: [], lottery: [], unverified: [] };
+  return { restock: r.restock, lottery: r.lottery, unverified: r.unverified };
 }
 // 툴팁·본문에 note 원문(영어 내부 검증 메모)을 넣지 않는다 — 2026-08-26. 시기 + 유형(한국어)만.
 const RESTOCK_KO = { retailer: "리테일러 재입고", distributor: "유통사 재입고", "official-reprint-lottery": "반다이남코샵 재판(再販) 추첨판매" };
@@ -111,25 +91,22 @@ function topic(value) {
   return `${text}${hasBatchim ? "은" : "는"}`;
 }
 
-// 급등/급락
-const movers = [...mi.board].sort((a, b) => b.changePct - a.changePct);
-const topUp = movers.slice(0, 3);
-const topDn = movers.slice(-3).reverse();
+// 급등/급락 — 사실 파일 koHub.topUp·topDn(board 순서 = 등락 내림차순, 값 없는 세트는 맨 뒤)
+const topUp = F.koHub.topUp.map((c) => BOARD[c]);
+const topDn = F.koHub.topDn.map((c) => BOARD[c]);
 
 // 허브 해설 산문("지금 일본판 박스 시장 읽는 법" 3문단)은 2026-10-15 소유자 결정으로 지웠다 — 데이터 페이지엔 숫자·표·라벨만.
 // 상승·하락 세트 수, 최고·최저 박스, 1위 등락은 위 시세표·급등락 표가 그대로 보여 주는 값의 되풀이였고,
 // "시세를 움직이는 힘은 셋"·"추정치가 아니라 …"·"읽으면 안 됩니다" 는 해석·방법 설명이었다.
 // 설명문(meta·og) = 같은 페이지 표에 보이는 값만 — 최고·최저 박스(화면 원화 반올림 기준, 같은 금액이면 모두 — 2026-10-15 5차 규칙)와 급등락 1위.
 const hubDesc = (() => {
-  const priced = rows.filter((b) => boxKrw(b.code, b.nowUsd) != null);
-  const shown = (b) => Math.round(boxKrw(b.code, b.nowUsd));
-  const pick = (v) => `${priced.filter((b) => shown(b) === v).map((b) => b.code).join("·")} ${won(v)}`;
+  const pick = (x) => `${x.codes.join("·")} ${won(x.krw)}`;   // 사실 파일 koHub.max·min(화면 원화 반올림 기준, 같은 금액이면 모두)
   const u0 = topUp[0], d0 = topDn[0];
   return [
     `일판 원피스 부스터박스 ${rows.length}세트 원화 시세`,
     `기준일 ${HUB_DATE}`,
-    priced.length ? `최고 ${pick(Math.max(...priced.map(shown)))}` : "",
-    priced.length ? `최저 ${pick(Math.min(...priced.map(shown)))}` : "",
+    F.koHub.max ? `최고 ${pick(F.koHub.max)}` : "",
+    F.koHub.min ? `최저 ${pick(F.koHub.min)}` : "",
     u0 && u0.changePct > 0 ? `4주 급등 ${u0.code} ${pct(u0.changePct)}` : "",
     d0 && d0.changePct < 0 ? `급락 ${d0.code} ${pct(d0.changePct)}` : "",
   ].filter(Boolean).join(" · ");
@@ -151,7 +128,7 @@ function ownCardImage(c) {
 // (종전 주석의 "2026-01-07 대비·OP-16 발매추적"은 옛 정의다 — 2026-10-14 부터 build-market-index 가 4주 기준으로 낸다.)
 const koSlug = (code) => code.toLowerCase();
 const tableRows = rows.map((b) => {
-  const krw = boxKrw(b.code, b.nowUsd);
+  const krw = boxKrw(b.code);
   const rs = reprintSplit(b.code);
   // 재판 칸 = 재입고 횟수. 반다이 추첨판매는 재판으로 세지 않고 아래 작은 글씨로 따로(영문 세트 페이지와 같은 분류, 2026-10-15).
   // 칸이 좁아(390px) 작은 글씨는 짧게, 시기·유형은 툴팁에.
@@ -196,7 +173,7 @@ const datasetLd = JSON.stringify({
   // 표에 실린 값의 마지막 판매일 범위·라이선스·내려받기 — 비어 있었다(2026-10-14 W6b). 영문 홈 Dataset 과 같은 기준.
   // 기간 = 배포 파일(opbox-set-prices.csv)의 관측일 범위 — free-data 의 같은 Dataset 과 한 함수(2026-10-14 QA).
   // 수정일 ≥ 기간 끝 — 2026-10-15 감사(#4): dateModified 10-14(DATA_DATE) · 기간 …/10-15 였다.
-  ...(() => { const sp = require("./dataset-coverage").boxCsvSpan(d); return sp ? { temporalCoverage: sp.coverage, dateModified: [DATA_DATE, sp.to].filter(Boolean).sort().pop() } : { dateModified: DATA_DATE }; })(),
+  ...(() => { const sp = F.coverage.boxCsv; return sp ? { temporalCoverage: sp.coverage, dateModified: [DATA_DATE, sp.to].filter(Boolean).sort().pop() } : { dateModified: DATA_DATE }; })(),
   url: `${SITE}/ko/`,
   license: "https://creativecommons.org/licenses/by/4.0/",
   distribution: [{ "@type": "DataDownload", encodingFormat: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }],
@@ -353,10 +330,10 @@ fs.writeFileSync(path.join(ROOT, "ko", "index.html"), html, "utf8");
 
 function setPageKo(b) {
   const code = b.code;
-  const s = d.sets[code] || {};
+  const s = F.sets[code];   // 세트 사실(cards·grading·auction·keyFacts·pageDate)
   const nKo = nameKo(code);
   const slug = koSlug(code);
-  const krw = boxKrw(code, b.nowUsd);
+  const krw = boxKrw(code);
   const rs = reprintSplit(code);
   const rr = rs.restock;   // 재판 횟수 = 재입고 기록만(반다이 추첨판매 제외 — 2026-10-15)
   const draws = drawText(rs);
@@ -368,30 +345,30 @@ function setPageKo(b) {
   // 인기 카드(쓸 수 있는 NM 보유분만, 원화). 값 없으면 섹션 자체를 숨김.
   // 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도(CARD_LIST.rarityCode — 영문 세트·카드 상세·AI 피드와 같은 함수·같은 코드, 2026-10-15).
   // 1차 수정은 이 파일에만 함수를 둬서 한국어 SP · 영문 Super Rare 로 갈렸다(72행).
-  // 2026-10-15: 읽은 날이 없는 NM·숨김 표시 NM 은 싣지 않는다(nmUsable) — 영문 세트·카드 상세·AI 피드가 비우는 값을 여기만 원화로 보였다.
-  const topCards = (s.cards || []).filter((c) => nmUsable(c) && c.number).slice(0, 8);
+  // 2026-10-15: 읽은 날이 없는 NM·숨김 표시 NM 은 싣지 않는다(nm.usable) — 영문 세트·카드 상세·AI 피드가 비우는 값을 여기만 원화로 보였다.
+  const topCards = s.cards.filter((c) => c.nm.usable && c.number).slice(0, 8);
   // 자체 호스팅 이미지가 한 장도 없는 세트는 썸네일 열 자체를 넣지 않는다(빈 열 방지).
   const cardThumbs = topCards.map((c) => ownCardImage(c));
   const hasThumb = cardThumbs.some(Boolean);
   const thumbCell = (i, c) => (hasThumb
     ? `<td class="thumb">${cardThumbs[i] ? `<img src="${esc((variant("../" + cardThumbs[i], "thumb") || { src: "../" + cardThumbs[i] }).src)}" alt="${esc(c.number)} ${esc(c.name)}" width="40" height="56" loading="lazy" decoding="async" />` : ""}</td>`
     : "");
-  const cardRows = topCards.map((c, i) => `<tr>${thumbCell(i, c)}<td class="nm">${esc(c.name)}</td><td class="code">${esc(c.number)}</td><td>${esc(CARD_LIST.rarityCode(code, c) || "—")}</td><td class="num">${won(c.nmJpy * fx.jpyKrw)}</td></tr>`).join("\n");
+  const cardRows = topCards.map((c, i) => `<tr>${thumbCell(i, c)}<td class="nm">${esc(c.name)}</td><td class="code">${esc(c.number)}</td><td>${esc(c.rarity || "—")}</td><td class="num">${won(c.nm.krw)}</td></tr>`).join("\n");
   // 경매 실적 — 종료 후 재조회해 쌓은 원장(set-auction-stats)의 숫자. 2026-10-15 소유자 결정: 문장 대신 표·라벨.
   // 지운 문장: "우리가 종료 후 다시 조회해 결과를 확인했습니다"·"호가가 아니라 실제 낙찰 결과입니다"·"낙찰 여부가 확인된 건이 적어 비율은 싣지 않습니다"
   // ·"경매만 집계합니다 — 즉시구매는 따로 셉니다. 유찰된 경매도 분모에 그대로 둡니다"(→ 라벨 "이베이 경매(즉시구매 제외)"·"낙찰률 = 낙찰 ÷ 종료(유찰 포함)").
   // 총계(종료·낙찰·낙찰률)는 유형별 표의 "전체" 행으로 — 유찰률은 100 − 낙찰률이라 따로 싣지 않는다.
   const koAuctionSection = (() => {
-    const a = KO_AUCTION.sets && KO_AUCTION.sets[code];
+    const a = s.auction;
     if (!a || a.ended < 30) return "";
-    const w = KO_AUCTION.window || {};
+    const w = F.auctionWindow;
     // carton(박스 케이스 묶음) 키가 빠져 영문 내부 키가 한국어 표에 그대로 나갔다(2026-10-15 QA). 분류기(auction-classify.js)의 키와 맞춘다.
     const catKo = { card: "싱글카드", box: "미개봉 박스", pack: "낱개 팩", carton: "카톤(박스 묶음)", graded: "등급카드", lot: "묶음" };
     const cnt = (n) => (n == null ? "—" : Number(n).toLocaleString("ko-KR"));
     const rate = (v) => (v == null ? "—" : `${v}%`);   // 비율이 없으면 "null%" 대신 "—"
-    const cats = Object.entries(a.byCat || {}).sort((x, y) => y[1].ended - x[1].ended).slice(0, 4);
+    const cats = a.byCat.slice(0, 4);   // 종료 건수 내림차순(사실 파일)
     const tr = (label, e, strong) => `<tr><td class="l">${strong ? `<strong>${esc(label)}</strong>` : esc(label)}</td><td>${cnt(e.ended)}</td><td>${cnt(e.sold)}</td><td>${rate(e.sellThrough)}</td></tr>`;
-    const rows = [tr("전체", a, true), ...cats.map((e) => tr(catKo[e[0]] || e[0], e[1]))].join("");
+    const rows = [tr("전체", a, true), ...cats.map((e) => tr(catKo[e.cat] || e.cat, e))].join("");
     // 거래액·중앙 낙찰가는 달러(set-auction-stats amount·medPrice = USD). 2026-10-15 QA: 통화 없이 "182,037" 로 나가
     // 원화 위주 페이지에서 원으로 읽혔다(약 1,340배 차이). 영문 세트 페이지와 같은 값·같은 표기("$" + 원값).
     const money = [
@@ -401,7 +378,7 @@ function setPageKo(b) {
     return `
       <section aria-label="경매 실적">
         <h2>${esc(code)} 경매는 실제로 어떻게 팔리나</h2>
-        <p class="koNote">최근 ${w.days || 30}일 · ${esc(KO_AUCTION.updated || "")} 기준 · ${esc(code)} 카드 이베이 경매(즉시구매 제외) · 낙찰률 = 낙찰 ÷ 종료(유찰 포함)</p>
+        <p class="koNote">최근 ${w.days || 30}일 · ${esc(w.updated || "")} 기준 · ${esc(code)} 카드 이베이 경매(즉시구매 제외) · 낙찰률 = 낙찰 ÷ 종료(유찰 포함)</p>
         ${money ? `<ul class="koFacts">${money}</ul>` : ""}
         <div style="overflow-x:auto"><table class="koBoard tblFit"><thead><tr><th class="l">유형</th><th>종료</th><th>낙찰</th><th>낙찰률</th></tr></thead><tbody>${rows}</tbody></table></div>
       </section>`;
@@ -409,7 +386,7 @@ function setPageKo(b) {
 
   // NM 관측일 = 그 변형을 읽은 날(nmUpdated) — 2026-10-15 감사(#10): 종전엔 "DATA_DATE(10-14) 기준으로 비교합니다"라 10-11 에 읽은 값을
   // 10-14 값처럼 말했다(카드리스트·카드 상세·AI 피드는 10-11). 원화 값은 오늘 환율 환산이라 환율 날짜를 따로 적는다.
-  const nmDays = topCards.map((c) => c.nmUpdated).filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "")).sort();
+  const nmDays = topCards.map((c) => c.nm.date).filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "")).sort();
   const nmSpan = nmDays.length ? (nmDays[0] === nmDays.at(-1) ? nmDays[0] : `${nmDays[0]}~${nmDays.at(-1)}`) : "";
 
   // 2026-10-15 소유자 결정 — 데이터 페이지엔 숫자·표·라벨만. 세트 해설 산문 4절(2026-07-30 애드센스 대응으로 넣은 것)을 지우고
@@ -418,27 +395,27 @@ function setPageKo(b) {
   // 영문 페이지 안내 문장(아래 버튼 "영문 상세(차트·PSA)"가 같은 링크), 팩트 줄과 같은 재판 횟수를 되풀이하던 "재판(재발매) 이력" 절 전체,
   // 이름 패턴으로 센 "상위 카드 구성(망가 N장·SP N장 …)"(표에 없는 카드까지 센 추정 분류라 라벨로 옮기지 않았다).
 
-  // 가장 비싼 카드 = market-data-normalizers.priciest(검증된 NM 최댓값) — 영문 세트 Key facts·비교표와 같은 카드·같은 값(가드 PC1).
+  // 가장 비싼 카드 = 사실 파일 top10.priciest(market-data-normalizers.priciest — 검증된 NM 최댓값) — 영문 세트 Key facts·비교표와 같은 카드·같은 값(가드 PC1).
   // 종전엔 1순위 카드(s.cards[0])라 OP-05 가 "Monkey D. Luffy(OP05-119) 약 4,203,120원" 인데 바로 아래 표 2행은 6,735,120원이었다.
   // 모르면(검증 안 된 값이 1위 값 이상 — OP-08·OP-15·PRB-01·PRB-02·EB-02(5차)) 줄을 만들지 않는다. 라벨은 NM 하나(4차부터 TCG 값은 1위가 될 수 없다).
-  const pc = priciest(s.cards || [], fx);
+  const pc = s.top10.priciest;
   const cardFacts = [];
   if (pc) {
-    const t0 = pc.card;
+    const t0 = s.cards[pc.i];
     // 금액 뒤에 NM 관측일 — 영문 세트 Key facts 와 같은 날짜(2026-10-15, 5차: OP-12 09-07 값이 날짜 없이 나갔다).
-    const pcWhen = pc.price.date ? `(${esc(pc.price.date)})` : "";
+    const pcWhen = pc.date ? `(${esc(pc.date)})` : "";
     cardFacts.push(pc.ties.length > 1
-      ? `최고가 카드 (일본판 NM) <strong>${pc.ties.map((c) => esc(c.name)).join(" · ")}</strong> · 각 <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>${pcWhen}`
-      : `최고가 카드 (일본판 NM) <strong>${esc(t0.name)}</strong>(${esc(t0.number)}) · <strong>${won(t0.nmJpy * fx.jpyKrw)}</strong>${pcWhen}`);
-    // PSA 10 관측일·표본·배수 — 2026-10-15(4차). NM 원본 대비 배수는 카드 상세의 PSA-원본 비교와 같은 신선도 규칙(관측일이 데이터일 기준 35일 이내)일 때만.
-    // 종전엔 10-11 NM 을 07-09 PSA 표본으로 나눠 ko/eb-02 "약 1.4배"(영문 기준 1.23배)가 나갔다. 통화를 모르는 값이면 줄을 싣지 않는다(psa10Krw → null).
-    const sold = t0.psa10Ebay && t0.psa10Ebay.soldBased && t0.psa10Ebay.middle != null ? t0.psa10Ebay : null;
-    const soldKrw = psa10Krw(sold);
-    const nmKrw = t0.nmJpy != null && fx.jpyKrw ? t0.nmJpy * fx.jpyKrw : null;
-    const soldAge = sold && /^\d{4}-\d{2}-\d{2}$/.test(sold.updated || "") && DATA_DATE ? (Date.parse(DATA_DATE) - Date.parse(sold.updated)) / 864e5 : null;
-    const mult = soldKrw != null && nmKrw && soldAge != null && soldAge <= 35 ? soldKrw / nmKrw : null;
+      ? `최고가 카드 (일본판 NM) <strong>${pc.ties.map((c) => esc(c.name)).join(" · ")}</strong> · 각 <strong>${won(t0.nm.krw)}</strong>${pcWhen}`
+      : `최고가 카드 (일본판 NM) <strong>${esc(t0.name)}</strong>(${esc(t0.number)}) · <strong>${won(t0.nm.krw)}</strong>${pcWhen}`);
+    // PSA 10 관측일·표본·배수 — 2026-10-15(4차). NM 원본 대비 배수는 카드 상세의 PSA-원본 비교와 같은 신선도 규칙(관측일이 데이터일 기준 35일 이내 — psa10.stale)일 때만.
+    // 종전엔 10-11 NM 을 07-09 PSA 표본으로 나눠 ko/eb-02 "약 1.4배"(영문 기준 1.23배)가 나갔다. 통화를 모르는 값이면 줄을 싣지 않는다(psa10 → null).
+    // 배수는 원화끼리(psa10.krw ÷ nm.krw) — 달러 기준 배수(psa10.multiple, NM 을 센트로 반올림)와 둘째 자리에서 갈릴 수 있어 종전 표기를 지킨다.
+    const sold = t0.psa10;
+    const soldKrw = sold ? sold.krw : null;
+    const nmKrw = t0.nm.krw;
+    const mult = soldKrw != null && nmKrw && sold.ageDays != null && !sold.stale ? soldKrw / nmKrw : null;
     if (soldKrw != null) {
-      const soldWhen = [sold.updated, `표본 ${sold.sampleSize}건`].filter(Boolean).join(", ");
+      const soldWhen = [sold.date, `표본 ${sold.n}건`].filter(Boolean).join(", ");
       cardFacts.push(`PSA 10 실거래 중앙값 (${esc(t0.name)}) <strong>${won(soldKrw)}</strong>(${esc(soldWhen)})${mult != null ? ` · NM 대비 ×${mult.toFixed(1)}` : ""}`);
     }
   }
@@ -492,15 +469,16 @@ ${cardRows}
   const gradingSection = (() => {
     const n = (v) => Number(v).toLocaleString("ko-KR");
     const g = [];
-    if (s.psaFull && s.psaFull.total) g.push(["PSA", "일본판", `${n(s.psaFull.total)}장${s.psaFull.wowAdd != null ? `<small>최근 한 주 +${n(s.psaFull.wowAdd)}장</small>` : ""}`, s.psaFull.gemRate != null ? `PSA 10 ${s.psaFull.gemRate}%` : "—"]);
-    if (s.psaFullEn && s.psaFullEn.total) g.push(["PSA", "영문판", `${n(s.psaFullEn.total)}장`, s.psaFullEn.gemRate != null ? `PSA 10 ${s.psaFullEn.gemRate}%` : "—"]);
+    const G = s.grading;   // 사실 파일: psa {jp,en}(total·gemRate·wowAdd) · cgc {jp,en} · tag {jp,en}
+    if (G.psa.jp && G.psa.jp.total) g.push(["PSA", "일본판", `${n(G.psa.jp.total)}장${G.psa.jp.wowAdd != null ? `<small>최근 한 주 +${n(G.psa.jp.wowAdd)}장</small>` : ""}`, G.psa.jp.gemRate != null ? `PSA 10 ${G.psa.jp.gemRate}%` : "—"]);
+    if (G.psa.en && G.psa.en.total) g.push(["PSA", "영문판", `${n(G.psa.en.total)}장`, G.psa.en.gemRate != null ? `PSA 10 ${G.psa.en.gemRate}%` : "—"]);
     const one = (x) => x && (x.jp ? ["일본판", x.jp] : x.en ? ["영문판", x.en] : null);
-    const cgc = one(s.graders && s.graders.cgc);
+    const cgc = one(G.cgc);
     if (cgc && cgc[1].total) {
       const e = cgc[1];
       g.push(["CGC", cgc[0], `${n(e.total)}장`, e.pristine10 != null && e.gemMint10 != null ? `프리스틴 10 ${n(e.pristine10)}장 · 젬 민트 10 ${n(e.gemMint10)}장` : "—"]);
     }
-    const tag = one(s.graders && s.graders.tag);
+    const tag = one(G.tag);
     if (tag && tag[1].total) {
       const e = tag[1];
       g.push(["TAG", tag[0], `${n(e.total)}장`, e.g10 != null ? `10 ${n(e.g10)}장 · 10P ${e.g10p != null ? n(e.g10p) + "장" : "—"}` : "—"]);
@@ -529,8 +507,8 @@ ${cardRows}
   if (draws) facts.push(`${esc(draws)} — 재판 아님`);
   // "PSA 누적 감정" 줄(s.psaTotal)은 지웠다 — 데이터에 그 키가 없어 한 번도 나간 적 없는 죽은 경로이고, PSA 값은 아래 그레이딩 표(psaFull) 한 곳만(2026-10-15).
 
-  // Key facts 표와 같은 모델(상단 표).
-  const kf = keyFactsModel(code, "jp");
+  // Key facts 표와 같은 모델(상단 표) — 사실 파일 keyFacts.jp.
+  const kf = s.keyFacts.jp;
   // 시세 문답의 날짜 = 그 중앙값의 날짜(b.nowDate — Key facts 기준일·설명문과 같은 값). 2026-10-15 QA: 데이터 갱신일(DATA_DATE)을 적어
   // 09-23 값(OP-06)이 "2026-10-14 기준"으로 FAQPage 에 나갔고, 값이 없는 세트(OP-02·OP-04·EB-01)는 "추적가는 약 —이며"가 됐다.
   const priceQ = `${code} ${nKo} 박스 시세는 지금 얼마인가요?`;
@@ -612,8 +590,8 @@ ${cardRows}
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${setFaqLd}</script>
     <script type="application/ld+json">${crumbLd}</script>
-    ${/* 수정일 = 영문·일본판 세트 페이지와 같은 함수(setPageDate) — 2026-10-15 감사(#4): DATA_DATE(10-14)라 같은 세트의 영문판(10-15)과 하루 어긋났다 */ ""}
-    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: title, url: canonical, inLanguage: "ko", dateModified: setPageDate(code) })}</script>
+    ${/* 수정일 = 영문·일본판 세트 페이지와 같은 값(사실 파일 pageDate) — 2026-10-15 감사(#4): DATA_DATE(10-14)라 같은 세트의 영문판(10-15)과 하루 어긋났다 */ ""}
+    <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: title, url: canonical, inLanguage: "ko", dateModified: s.pageDate })}</script>
     <link rel="stylesheet" href="../styles.css?v=${CACHE}" />
     <meta name="theme-color" content="#0a0c10" />
     <style>
@@ -667,14 +645,14 @@ ${cardsSection}
       <div class="koCta">
         <a class="primary" href="./">전 세트 시세표 →</a>
         ${enHref ? `<a class="ghost" href="${enHref}">영문 상세(차트·PSA) →</a>` : ""}
-        ${CARD_LIST.has(code) ? `<a class="ghost" href="${slug}-card-list.html">카드 리스트 ${CARD_LIST.productOf(code).counts.cards}장 →</a>` : ""}
+        ${CARD_LISTS[code] ? `<a class="ghost" href="${slug}-card-list.html">카드 리스트 ${CARD_LISTS[code].counts.cards}장 →</a>` : ""}
         <a class="ghost" href="amazon-lottery.html">아마존 응모 안내 →</a>
       </div>
       <section aria-label="자주 묻는 질문">
         <h2>${esc(code)} 자주 묻는 질문</h2>
         ${setFaqs.map((f) => `<details class="faqItem"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n")}
       </section>
-      <p class="koNote">${esc(code)} ${esc(nKo)} 데이터 기준: 검증된 이베이 시장 관측, PSA 인구 리포트, 반다이 발매 정보 · 환율 ₩${fx.usdKrw}/$ (${esc(fx.date)}) · 갱신 ${esc(setPageDate(code))}.</p>
+      <p class="koNote">${esc(code)} ${esc(nKo)} 데이터 기준: 검증된 이베이 시장 관측, PSA 인구 리포트, 반다이 발매 정보 · 환율 ₩${fx.usdKrw}/$ (${esc(fx.date)}) · 갱신 ${esc(s.pageDate)}.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>

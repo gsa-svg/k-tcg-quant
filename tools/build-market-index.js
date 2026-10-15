@@ -7,54 +7,24 @@
 //  - 지수(2026-01-07=100)는 소비처가 없어서 전환 때 삭제했다. 화면 표시는 2026-07-29 에
 //    이미 빠졌고 남은 건 방문자 페이로드 속 죽은 시계열뿐이었다.
 //  - 개봉 미터: 전세트 psaWeekly 합산(최근 주) + 전주대비. 누적은 psaFull.total 합.
+// 2026-10-15: 성적표(board)·개봉 미터 합산은 사실 빌더(tools/build-site-facts.js — data/derived/site-facts.json board · psaWeekly)에서 온다.
+//   여기는 그 값을 packs.marketIndex 에 옮겨 쓰고, 오늘 기준 경과일(ageDays·isStale)만 더한다(오늘 날짜는 사실 파일에 넣지 않는다).
+//   재판 횟수(board.reprints)·4주 변동률·current 규칙은 빌더가 market-data-normalizers(splitReprints·boxChange28)로 한 번 센다.
 // Run: node tools/build-market-index.js
 const fs = require("fs");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
+const F = require("./build-site-facts").load();
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const FX = d.fx || {};
-const usd = (krw) => (FX.usdKrw ? krw / FX.usdKrw : null);
-const yenUsd = (yen) => (FX.jpyKrw && FX.usdKrw ? (yen * FX.jpyKrw) / FX.usdKrw : null);
-// 검증된 세트 팩트(정가·재판) — 나이틀리에 안 지워지는 소스 파일
+// 검증된 세트 팩트(정가·재판) — marketIndex.reprints 는 이 원본의 사본(packs.js 홈 배지가 읽는다). 나이틀리에 안 지워지는 소스 파일.
 let FACTS = { sets: {}, bandaiAnnouncesReprints: false };
 try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
-// 재판 횟수 = 세트 페이지(영문·한국어)와 같은 분류(set-page-shared.splitReprints) — 2026-10-15(4차). 종전엔 기록 수를 그대로 세어
-// 발매 전 추첨·再販 표기 없는 추첨까지 재판으로 쳤다(board.reprints OP-13 3 · OP-16 2 · OP-17 1, 세트 페이지는 2 · 0 · 0).
-// 4주 변동률 = market-data-normalizers.boxChange28 — 세트 페이지·비교표와 같은 함수.
-const { splitReprints } = require("./set-page-shared");
-const { boxChange28 } = require("./market-data-normalizers");
-const reprintCount = (f) => splitReprints(f.reprintRecords).reprint.length;
-// 발매 시점부터 실제 추적한 세트만(감사 결과). 나머지는 중간 시작이라 "발매 대비" 주장 금지.
-const LAUNCH_TRACKED = new Set(["OP-16", "OP-17"]);
-const codes = [...d.jp.list, ...d.extra.list];
 
-const SOLD = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8"));
-// 세트별 일본판 주간 판매 중앙값(USD). 값 없는 주는 건너뛴다 — 추정 금지.
-function ptsOf(c) {
-  const arr = (SOLD.sets[c] && SOLD.sets[c].jp) || [];
-  return arr.filter((p) => p && p.median != null).map((p) => ({ d: p.d, p: p.median, n: p.n }));
-}
-
-// ── 개봉 미터(psaWeekly 전세트 합산)
-const weekTotals = {};
-const weekCoverage = {};
-for (const c of codes) {
-  const wk = (d.sets[c] && d.sets[c].psaWeekly && d.sets[c].psaWeekly.points) || [];
-  for (const p of wk) {
-    weekTotals[p.d] = (weekTotals[p.d] || 0) + p.v;
-    weekCoverage[p.d] = (weekCoverage[p.d] || 0) + 1;
-  }
-}
-const wkDates = Object.keys(weekTotals).sort();
-const meterWeeks = wkDates.map((t) => ({ d: t, v: weekTotals[t], n: weekCoverage[t] }));
-const meterLatest = meterWeeks[meterWeeks.length - 1] || null;
-const meterPrev = meterWeeks[meterWeeks.length - 2] || null;
-const meterWoW = meterLatest && meterPrev ? Math.round((meterLatest.v / meterPrev.v - 1) * 1000) / 10 : null;
-const meterUpdated = codes
-  .map((c) => d.sets[c]?.psaWeekly?.updated)
-  .filter(Boolean)
-  .sort()
-  .at(-1) || meterLatest?.d || null;
+// ── 개봉 미터(psaWeekly 전세트 합산) — 합산은 사실 파일, 경과일만 오늘 기준.
+const meterWeeks = F.psaWeekly.weeks;
+const meterLatest = F.psaWeekly.latestWeek;
+const meterWoW = F.psaWeekly.wowPct;
+const meterUpdated = F.psaWeekly.updated;
 const todayIso = new Date().toISOString().slice(0, 10);
 const meterAgeDays = meterLatest
   ? Math.max(0, Math.floor((Date.parse(`${todayIso}T00:00:00Z`) - Date.parse(`${meterLatest.d}T00:00:00Z`)) / 864e5))
@@ -62,63 +32,18 @@ const meterAgeDays = meterLatest
 // PSA weekly figures are manually verified snapshots. Once they trail the live
 // market index by more than ten days, the UI must present them as historical.
 const meterIsStale = meterAgeDays == null || meterAgeDays > 10;
-let allTimeGraded = 0;
-for (const c of codes) { const s = d.sets[c]; if (s && s.psaFull && s.psaFull.total) allTimeGraded += s.psaFull.total; }
+const allTimeGraded = F.psaWeekly.allTimeGraded;
 
-// ── 성적표(전세트). 변화율은 **최근 4주** — "추적 시작 대비"를 버렸다(2026-08-24).
+// ── 성적표(전세트) = 사실 파일 board. 변화율은 **최근 4주** — "추적 시작 대비"를 버렸다(2026-08-24).
 // 시리즈는 원장에서 매번 다시 만드는데, 새 수집이 과거 판매를 되메우면 초기 희소 구간의
 // 중앙값이 통째로 바뀐다. 실측: OP-13 기준가가 하루 사이 \$149(05-24) → \$277(05-29) 로 튀어
 // 같은 세트가 +2.7% 에서 -51.6% 가 됐다. 시장이 아니라 우리 표본이 움직인 것이다.
 // 최근 4주는 양끝이 다 두꺼운 구간이라 되메움에 둔감하고, 세트 페이지의 4-week change 와 기준이 같다.
-const board = [];
-for (const c of codes) {
-  const p = ptsOf(c);
-  // 실거래 점이 없어도 **행은 남긴다** — 2026-08-24.
-  // 추적하는 세트가 표에서 통째로 사라지면 "우리가 안 다루는 세트"로 읽힌다.
-  // 실제로 OP-02 는 일본판 실거래가 얇아(3개월 14건, 마지막 8/04) 최근 창이 MIN_N 을 못 채운다.
-  // 값을 지어내지 않고 가격을 비워 둔다 — 빈칸은 눈에 띄고, 틀린 숫자는 안 띈다.
-  const f = (FACTS.sets && FACTS.sets[c]) || {};
-  if (!p.length) {
-    board.push({
-      code: c, nameEn: d.sets[c].nameEn || c,
-      nowUsd: null, nowDate: null, changePct: null, changeBasis: null,
-      launchTracked: LAUNCH_TRACKED.has(c),
-      msrpYen: f.jpMsrpYen || null,
-      msrpUsd: f.jpMsrpYen ? Math.round(yenUsd(f.jpMsrpYen)) : null,
-      vsMsrp: null,
-      reprints: reprintCount(f),
-    });
-    continue;
-  }
-  // 현재가는 box-sold-series 의 current.jp 하나만 읽는다(2026-10-14 QA). 종전엔 마지막 점을 그대로 써서
-  // 98일 전 값(OP-02 $147, 07-07)이 홈·box-prices·ko 설명문에 "현재 시세"로 나갔고, 다른 표(발매일 글 등)는 같은 세트를 "—"로 냈다.
-  // current 가 없으면(마지막 중앙값 점이 asOf 로부터 28일 밖) 행은 남기고 값·날짜·등락을 비운다 — 모든 표가 같은 규칙.
-  const cur = (SOLD.sets[c] && SOLD.sets[c].current && SOLD.sets[c].current.jp) || null;
-  const lastV = cur ? cur.median : null;
-  const lastD = cur ? cur.d : null;
-  const change = boxChange28((SOLD.sets[c] && SOLD.sets[c].jp) || [], cur);
-  const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
-  const nowUsd = lastV;   // 이미 USD
-  board.push({
-    code: c,
-    nameEn: d.sets[c].nameEn || c,
-    nowUsd: nowUsd != null ? Math.round(nowUsd) : null,
-    nowDate: lastD,   // 그 중앙값 점의 날짜(마지막 판매일이 아니다) — 표가 "오늘 값"으로 읽히지 않게
-    n: cur ? cur.n ?? null : null,   // 그 점의 평균 창(windowDays, 28~56일) 안 판매 건수 — 그 주 건수가 아니다(2026-10-14 QA)
-    windowDays: cur ? ((SOLD.sets[c].windowDays || {}).jp || null) : null,
-    changePct: change ? change.pct : null,   // 최근 4주(boxChange28)
-    changeBasis: change ? change.basis : null,
-    launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
-    msrpYen: f.jpMsrpYen || null,
-    msrpUsd: msrpUsd != null ? Math.round(msrpUsd) : null,
-    vsMsrp: msrpUsd && nowUsd ? Math.round((nowUsd / msrpUsd) * 10) / 10 : null, // 정가 대비 배수
-    reprints: reprintCount(f),
-  });
-}
-board.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity));
+// 실거래 점이 없어도 **행은 남긴다**(2026-08-24) — 값을 지어내지 않고 비워 둔다. current 가 없으면(마지막 중앙값 점이 asOf 로부터 28일 밖) 값·날짜·등락을 비운다.
+const board = F.board;
 
 const out = {
-  updated: d.updated || SOLD.updated || todayIso,
+  updated: d.updated || F.series.updated || todayIso,
   method: "Per-set current price: the latest rolling median of completed eBay sales of sealed Japanese booster boxes (our own ledger) when that median point is dated within 28 days of the series asOf, otherwise null. n = sales inside that point's rolling window (windowDays, 28-56 days). 4-week change: that median vs the median point 28 days earlier.",
   meter: {
     latestWeek: meterLatest,

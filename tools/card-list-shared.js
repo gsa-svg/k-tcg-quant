@@ -112,6 +112,9 @@ function orderIds(code, ids) {
   return [...ids.filter((id) => id.startsWith(own)), ...ids.filter((id) => !id.startsWith(own))];
 }
 
+// ── 레어도 — 2026-10-15: 세트 Top 카드의 레어도는 사실 빌더(tools/build-site-facts.js)가 아래 rarityCode 로 한 번 정해 사실 파일
+//    (data/derived/site-facts.json sets[code].cards[i].rarity · rarityEn)에 둔다. 세트(영문·한국어)·PSA 10 랭킹·AI 피드는 그 값을 읽는다.
+//    카드리스트 페이지(공식 ID 전체)와 카드 상세는 공식 목록 행을 직접 읽으므로 여기 함수를 그대로 쓴다.
 // 레어도 코드 — 공식 표기를 줄인 것 하나: SPカード / SP CARD → "SP", 나머지(L·C·UC·R·SR·SEC·TR·P)는 공식 그대로.
 const rarityShow = (r) => (/^SP/i.test(String(r || "")) ? "SP" : String(r || ""));
 

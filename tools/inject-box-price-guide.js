@@ -18,19 +18,19 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/one-piece-booster-box-price-guide.html");
-const SERIES = path.join(ROOT, "data/box-sold-series.json");
 const THIN_N = 6; // 표본이 이보다 적으면 "얇다"고 밝힌다
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
 const usd = (v) => "$" + Math.round(v).toLocaleString("en-US");
 
-if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) {
+if (!fs.existsSync(ART)) {
   console.log(JSON.stringify({ status: "skip", reason: "file missing" }));
   process.exit(0);
 }
-const STORE = JSON.parse(fs.readFileSync(SERIES, "utf8"));
-const S = STORE.sets || {};
-const STALE_DAYS = STORE.staleDays || 28;
+// 현재가(current)·기준일(asOf)·세트 이름은 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15.
+const F = require("./build-site-facts").load();
+const S = Object.fromEntries(F.order.series.map((c) => [c, F.sets[c]]));
+const STALE_DAYS = F.series.staleDays || 28;
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
@@ -47,22 +47,19 @@ if (!order.length) { console.log(JSON.stringify({ status: "skip", reason: "표 �
 // 새 세트가 나오면 표에 자동으로 들어오게 한다(2026-09-29: OP-17 이 8월 출시인데 표가 7월에 멈춰 빠져 있었다).
 // 이름은 packs.json 의 nameEn 을 쓰고, 없으면 코드만 쓴다 — 지어내지 않는다.
 const ord = (c) => { const [m, n] = c.split("-"); return ({ OP: 1, EB: 2, PRB: 3 }[m] || 9) * 100 + Number(n); };
-let PACKS = {};
-try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")); PACKS = p.sets || p; } catch {}
 for (const code of Object.keys(S)) {
   if (names[code]) continue;
-  const a = (S[code] && (S[code].jp || [])).concat((S[code] && S[code].en) || []);
-  if (!a.length) continue;                        // 관측이 아예 없으면 넣지 않는다
-  const en = PACKS[code] && PACKS[code].nameEn;
+  if (!(S[code].hasPoints.jp || S[code].hasPoints.en)) continue;   // 관측이 아예 없으면 넣지 않는다
+  const en = S[code].nameEn;
   names[code] = en ? `${code} ${en}` : code;
   order.push(code);
 }
 order.sort((a, b) => ord(a) - ord(b));
 
-const dataDate = STORE.asOf || "";
+const dataDate = F.series.asOf || "";
 if (!dataDate) { console.log(JSON.stringify({ status: "skip", reason: "no series dates" })); process.exit(0); }
 // 현재가 = 시계열의 current(발매 후·28일 이내). 모든 페이지 표가 같은 칸을 읽는다(가드 D17).
-const fresh = (c, ed) => (S[c] && S[c].current && S[c].current[ed]) || null;
+const fresh = (c, ed) => (S[c] && S[c].current[ed]) || null;
 
 const rows = [];
 const ratios = [];

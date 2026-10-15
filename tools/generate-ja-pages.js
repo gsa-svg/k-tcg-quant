@@ -4,8 +4,9 @@
 //
 // 왜: "ワンピースカード 発売日 一覧" 류 일본어 질의(AI 인용 점유 48.7%)에 우리 일본어 페이지가 아예 없었다.
 //     영문 발매일 글(articles/one-piece-set-list-release-dates.html)과 같은 사실을 일본어 라벨로 한 장에 싣는다.
-// 원칙(공개 문구 규칙): 표와 라벨만, 문장 없음. 값은 data/set-facts.json(반다이 공식 상품 페이지에서 확인한 일본판 발매일·정가)과
-//     data/official-cardlist.json(공식 상품명)·data/upcoming-set-pages.json(발매 전 세트의 공식 상품명)에서만. 없으면 "—".
+// 원칙(공개 문구 규칙): 표와 라벨만, 문장 없음. 값은 사실 파일 data/derived/site-facts.json 의 releaseFacts(반다이 공식 상품 페이지에서 확인한
+//     일본판 발매일·정가·출처·확인일, 원천 data/set-facts.json)·cardLists[].nameJa(공식 상품명)·upcoming[code].nameJa(발매 전 세트의 공식 상품명)에서만.
+//     없으면 "—". 원장 직접 읽기 없음 — 2026-10-15(F4).
 //     "あとN日" 은 일본 시간 기준으로 구운 뒤, 방문자 날짜로 스크립트가 다시 센다(발매 예정 세트 페이지와 같은 방식).
 // 노출: 새 URL 추가만 — 사이트맵 추가, hreflang 은 이 페이지와 영문 발매일 글에 서로 추가만 한다(기존 태그는 건드리지 않는다).
 // ko/ 정적판처럼 생성기가 HTML 전체를 쓰고, 메뉴·푸터 가이드 줄·GA 로더는 inject-nav 가 맞춘다.
@@ -23,24 +24,19 @@ const URL_JA = `${SITE}/${FILE}`;
 const EN_REL = "articles/one-piece-set-list-release-dates.html";
 const URL_EN = `${SITE}/${EN_REL}`;
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
-const readJson = (rel) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return null; } };
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const isDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || "");
 
-const FACTS = (readJson("data/set-facts.json") || {}).sets || {};
-const UPCOMING = (readJson("data/upcoming-set-pages.json") || {}).pages || [];
-const LISTS = Object.fromEntries(CL.products().map((p) => [p.code, p]));
+const F = require("./build-site-facts").load();
+const LISTS = Object.fromEntries(F.cardLists.map((p) => [p.code, p]));
 // 일본 시간 오늘 — 발매일은 일본 날짜다.
 const TODAY_JST = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);
 
-// 공식 상품명: 카드리스트 상품명 → 없으면(발매 전) 예정 세트 페이지의 "Product" 사실 칸 앞쪽(일본어 공식명, 【코드】 제외).
+// 공식 상품명: 카드리스트 상품명 → 없으면(발매 전) 예정 세트 페이지의 "Product" 사실 칸 앞쪽(일본어 공식명, 【코드】 제외) — 사실 파일 upcoming[code].nameJa.
 function jpName(code) {
   const p = LISTS[code];
-  if (p && p.name) return p.name;
-  const up = UPCOMING.find((x) => x.code === code);
-  const prod = up && (up.facts || []).find((f) => f[0] === "Product");
-  if (!prod) return "";
-  return String(prod[1]).split(" · ")[0].replace(/【[^】]*】/g, "").trim();
+  if (p && p.nameJa) return p.nameJa;
+  return (F.upcoming[code] && F.upcoming[code].nameJa) || "";
 }
 // 상품 종류(ブースターパック 등)와 이름을 나눈다 — 좁은 화면에서 이름을 크게, 종류는 작게.
 const KINDS = ["ブースターパック", "エクストラブースター", "プレミアムブースター"];
@@ -49,17 +45,14 @@ function splitName(name) {
   return k ? { kind: k, title: name.slice(k.length + 1) } : { kind: "", title: name };
 }
 
-const codes = [...new Set([...Object.keys(FACTS), ...Object.keys(LISTS)])];
-const rows = codes.map((code) => {
-  const f = FACTS[code] || {};
-  const rel = isDate(f.jpRelease && f.jpRelease.date) ? f.jpRelease.date : null;
-  const box = Number.isFinite(f.jpMsrpYen) ? f.jpMsrpYen : null;
-  const pack = Number.isFinite(f.jpMsrpYenPerPack) ? f.jpMsrpYenPerPack : box && f.packsPerBox ? Math.round(box / f.packsPerBox) : null;
-  const src = (f.jpSpecSource && f.jpSpecSource.source) || (f.jpRelease && f.jpRelease.source) || null;
-  const checked = [f.jpRelease && f.jpRelease.verifiedOn, f.jpSpecSource && f.jpSpecSource.verifiedOn].filter(isDate).sort().pop() || null;
+// 행 = 사실 파일 releaseFacts(set-facts 와 공식 카드리스트에 있는 세트 전부) — 일본판 발매일·BOX 정가(공식에 박스 구성이 없는 세트는 팩 가격×팩 수, basis 로 표시)·
+// 팩 정가(공식 팩 가격, 없으면 박스÷팩 수)·출처(사양 페이지, 없으면 발매 페이지)·확인일(둘 중 늦은 날).
+const RF = Object.fromEntries(F.releaseFacts.map((r) => [r.setCode, r]));
+const rows = F.releaseFacts.map((rf) => {
+  const j = rf.japanese;
   // 박스 구성이 공식 페이지에 없는 세트(OP-17)의 BOX定価 는 "24×팩 가격" 라벨 — 2026-10-14 QA: 'バンダイ公式' 캡션 아래 공식에 없는 값이 있었다.
-  const boxCalc = !!(f.boxConfig && f.boxConfig.stated === false);
-  return { code, rel, box, pack, boxCalc, packs: f.packsPerBox || null, name: jpName(code), src, checked };
+  return { code: rf.setCode, rel: j.releaseDate, box: j.msrpYenPerBox, pack: j.msrpYenPerPack, boxCalc: j.msrpYenPerBoxBasis != null, packs: j.packsPerBox, name: jpName(rf.setCode),
+    src: j.specSource || j.releaseSource || null, checked: [j.releaseCheckedOn, j.specCheckedOn].filter(isDate).sort().pop() || null };
 }).sort((a, b) => (a.rel && b.rel ? (a.rel < b.rel ? 1 : a.rel > b.rel ? -1 : CL.naturalCode(a.code, b.code)) : a.rel ? -1 : b.rel ? 1 : CL.naturalCode(a.code, b.code)));
 
 const WD = ["日", "月", "火", "水", "木", "金", "土"];
@@ -102,8 +95,10 @@ const desc = `ワンピースカードゲーム日本版の発売日一覧。${u
 
 // 출처·각 세트 페이지 링크 — 표 안이 아니라 표 아래 라벨 줄에 둔다(좁은 화면에서 표 끝 열 링크가 화면 밖으로 밀리지 않게).
 const srcLinks = rows.filter((r) => r.src).map((r) => `<a href="${esc(r.src)}" rel="noopener noreferrer" target="_blank">${esc(r.code)}</a>`).join(" · ");
+// 각 세트의 영문 페이지 — 세트 페이지가 있으면 그것, 없으면 카드리스트 페이지(사실 파일 releaseFacts[].pages — 파일 존재 기준).
 const pageLinks = rows.map((r) => {
-  const own = fs.existsSync(path.join(ROOT, "sets", `${r.code.toLowerCase()}.html`)) ? `../sets/${r.code.toLowerCase()}.html` : LISTS[r.code] ? `../${CL.pagePath(r.code)}` : null;
+  const pg = RF[r.code].pages;
+  const own = pg.set ? `../sets/${r.code.toLowerCase()}.html` : pg.cardList ? `../${CL.pagePath(r.code)}` : null;
   return own ? `<a href="${own}" hreflang="en">${esc(r.code)}</a>` : null;
 }).filter(Boolean).join(" · ");
 
@@ -113,7 +108,8 @@ const itemLd = {
   numberOfItems: rows.filter((r) => r.rel).length,
   // ListItem(이름·주소)만 — offers 없는 Product 는 GSC 무효 항목이 된다(2026-10-14 QA). 발매일은 이름과 화면 표에.
   itemListElement: rows.filter((r) => r.rel).map((r, i) => {
-    const own = fs.existsSync(path.join(ROOT, "sets", `${r.code.toLowerCase()}.html`)) ? `${SITE}/sets/${r.code.toLowerCase()}.html` : LISTS[r.code] ? `${SITE}/${CL.pagePath(r.code)}` : null;
+    const pg = RF[r.code].pages;
+    const own = pg.set || pg.cardList || null;
     return { "@type": "ListItem", position: i + 1, name: `ONE PIECEカードゲーム ${r.name}【${r.code}】 ${jaDate(r.rel)}発売`, ...(own ? { url: own } : {}) };
   }),
 };

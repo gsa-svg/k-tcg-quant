@@ -14,14 +14,16 @@ const SITE = "https://opboxindex.com";
 const { navHtmlKo } = require("./site-nav");   // 메뉴는 한 곳에서만 정의한다 — 여기 베껴두면 어긋난다
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
-const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const fx = d.fx || {};
-const DATA_DATE = d.updated || "";
+// 사실 한 벌(data/derived/site-facts.json, tools/build-site-facts.js) — 2026-10-15. 카드 NM 사용 술어·원화·PSA 10 원화(관측일 환율로 되돌린 달러 × fx.usdKrw)·
+// 등급 인구·세트 이름이 전부 여기서 온다. 경매 페이지(③)는 auction-page-model(별도 계산 한 벌)을 그대로 쓴다.
+const F = require("./build-site-facts").load();
+const fx = F.fx;
+const DATA_DATE = F.dataDate;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const won = (n) => (n == null || !isFinite(n) ? "—" : Math.round(n).toLocaleString("ko-KR") + "원");
 const num = (n) => (n == null ? "—" : Number(n).toLocaleString("ko-KR"));
-const codes = [...(d.jp?.list || []), ...(d.extra?.list || [])];
-const nameKo = (c) => (d.sets[c] && d.sets[c].nameKo) || c;
+const codes = F.order.all;
+const nameKo = (c) => (F.sets[c] && F.sets[c].nameKo) || c;
 
 // ── 카드 썸네일 — 자체 호스팅 경로만 쓴다(가드 I1: 외부 CDN 핫링크 금지).
 //    ko/ 는 루트보다 한 단계 아래라 상대경로에 ../ 를 붙인다. 맵에도 없고 자체호스팅 이미지도 없으면 이미지 없이 간다.
@@ -42,17 +44,12 @@ const thumbHtml = (c) => {
   return src ? `<img class="cardThumb" src="${esc(src)}" alt="${esc(c.name)} 일판 카드" width="40" height="56" loading="lazy" decoding="async" />` : "";
 };
 
-// ── PSA 10 실낙찰(원화) — psa10Ebay.middle 은 통화가 섞여 저장된다(USD 90건 / KRW 18건).
-//    통화를 안 보고 won() 으로 찍으면 USD 값이 원화로 둔갑해 1/1,300 로 표시된다(2026-09-16 수정).
-//    표본 3건 미만은 값을 내지 않는다 — 표 아래 주석이 "3건 이상"이라고 말하고 있다.
+// ── PSA 10 실낙찰(원화) = 사실 파일 cards[i].psa10 — psa10Ebay.middle 은 통화가 섞여 저장된다(USD 90건 / KRW 18건).
+//    통화를 안 보고 won() 으로 찍으면 USD 값이 원화로 둔갑해 1/1,300 로 표시된다(2026-09-16 수정). 표본 3건 미만은 값을 내지 않는다.
+//    원화 = 영문 페이지 달러 값(psa10Usd — 옛 KRW 저장값은 관측일 환율로 되돌림) × fx.usdKrw(2026-10-15, 5차). 통화 불명이면 빈칸.
 function psa10Krw(c) {
-  const p = c.psa10Ebay;
-  if (!p || !p.soldBased || p.middle == null || (p.sampleSize || 0) < 3) return null;
-  // fx.usdKrw 가 없으면 NaN 이 흘러 배수칸이 "×NaN" 이 되고 정렬까지 깨진다 — 아예 빈칸으로 둔다(2026-09-16 정합성 검사).
-  // 원화 = 영문 페이지 달러 값(psa10Usd — 옛 KRW 저장값은 관측일 환율로 되돌림) × fx.usdKrw. 2026-10-15(5차): KRW 저장값을 그대로 써 영문과 12~15% 갈렸다.
-  const u = psa10Usd(p, fx);
-  const krw = u != null && fx.usdKrw ? u * fx.usdKrw : null;
-  return krw == null ? null : { krw, n: p.sampleSize, d: String(p.updated || "").slice(0, 10) || null };   // 통화 불명이면 빈칸
+  const p = c.psa10;
+  return p && p.krw != null ? { krw: p.krw, n: p.n, d: String(p.date || "").slice(0, 10) || null } : null;
 }
 // PSA 10 표본 낡음 — 카드 상세·카드 허브(generate-card-pages.js)·홈(packs.js PSA10_STALE_DAYS)과 같은 35일. 넘으면 배수 "—".
 // 28일 넘은 값은 관측일을 붙인다(묵은 중앙값을 지금 값처럼 쓰지 않는다 — 카드 상세 설명문 CX3 와 같은 기준). 2026-10-15:
@@ -65,8 +62,7 @@ const multCell = (r) => (r.p10Krw != null && !(p10AgeOf(r) > PSA10_STALE_DAYS) ?
 // ── 카드명 한글 병기 — 사전은 tools/ko-labels.js 한 곳(영문 auction.html 의 토글 data-ko 와 같은 사전). 2026-10-13 분리.
 //    캐릭터명만 매핑하고(변형 접미사는 영문 그대로), 확신 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
 const { koCharOf } = require("./ko-labels");
-// NM 을 써도 되는가(값·읽은 날 있음·숨김 표시 없음) — 세트·카드 상세·AI 피드와 같은 술어(2026-10-15).
-const { nmUsable, psa10Usd } = require("./market-data-normalizers");
+// NM 을 써도 되는가(값·읽은 날 있음·숨김 표시 없음) — 사실 파일 cards[i].nm.usable(세트·카드 상세·AI 피드와 같은 술어, 2026-10-15).
 
 // <head> 공통 태그 — 네 장이 같은 노출 상태(robots·canonical·hreflang·og·빵부스러기)를 공유한다. 페이지별 <style> 은 호출 쪽에서 붙인다.
 function koHeadTags({ file, title, desc, breadcrumbName, enHref }) {
@@ -177,11 +173,11 @@ ${body}
 function cardsPage() {
   const rows = [];
   for (const code of codes) {
-    for (const c of d.sets[code].cards || []) {
-      if (!nmUsable(c) || !c.number) continue;   // 읽은 날 없는 NM·숨김 표시 NM 은 싣지 않는다(2026-10-15)
+    for (const c of F.sets[code].cards) {
+      if (!c.nm.usable || !c.number) continue;   // 읽은 날 없는 NM·숨김 표시 NM 은 싣지 않는다(2026-10-15)
       const p10 = psa10Krw(c);
       rows.push({
-        code, name: c.name, number: String(c.number), nmKrw: c.nmJpy * fx.jpyKrw,
+        code, name: c.name, number: String(c.number), nmKrw: c.nm.krw,
         p10Krw: p10 ? p10.krw : null, n: p10 ? p10.n : null, p10Date: p10 ? p10.d : null,
         thumb: thumbHtml(c), ko: koCharOf(c.name),
       });
@@ -282,14 +278,13 @@ ${tr}
 // ── ② ko/grading.html — 원피스 그레이딩 ────────────────────────────────────
 function gradingPage() {
   const rows = codes.map((code) => {
-    const s = d.sets[code];
-    const g = s.graders || {};
+    const g = F.sets[code].grading;   // 사실 파일: psa {jp,en} · cgc {jp,en} · tag {jp,en}
     return {
       code, nk: nameKo(code),
-      jp: s.psaFull ? { t: s.psaFull.total, gem: s.psaFull.gemRate } : null,
-      en: s.psaFullEn ? { t: s.psaFullEn.total, gem: s.psaFullEn.gemRate } : null,
-      cgc: g.cgc && (g.cgc.jp || g.cgc.en) ? (g.cgc.jp || g.cgc.en) : null,
-      tag: g.tag && (g.tag.jp || g.tag.en) ? (g.tag.jp || g.tag.en) : null,
+      jp: g.psa.jp ? { t: g.psa.jp.total, gem: g.psa.jp.gemRate } : null,
+      en: g.psa.en ? { t: g.psa.en.total, gem: g.psa.en.gemRate } : null,
+      cgc: g.cgc.jp || g.cgc.en || null,
+      tag: g.tag.jp || g.tag.en || null,
     };
   }).sort((a, b) => ((b.jp?.t || 0) + (b.en?.t || 0)) - ((a.jp?.t || 0) + (a.en?.t || 0)));
 

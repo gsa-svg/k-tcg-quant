@@ -18,7 +18,8 @@ const core = readJson("opbox-ai-data.json");
 const extraAuctions = readJson("opbox-ai-auctions.json");
 // 핵심 파일 + 확장 파일 3개를 한 객체로 본다(파일 분리는 크기 때문이지 계약이 다른 게 아니다)
 const ai = { ...core, cardPages: readJson("opbox-ai-cards.json"), grading: readJson("opbox-ai-grading.json"), auctions: extraAuctions.onePiece, tcgAuctions: extraAuctions.tcg };
-const packs = readJson("data/onepiece-packs.json");
+// 한국어 세트 이름·공식 카드리스트 요약은 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15.
+const F = require("./build-site-facts").load();
 
 const usd = (v) => (Number.isFinite(v) ? `$${Math.round(v).toLocaleString("en-US")}` : "n/a");
 const n = (v) => (Number.isFinite(v) ? v.toLocaleString("en-US") : "n/a");
@@ -32,10 +33,10 @@ const opLast7 = opDaily.slice(-7);
 const opEnded7 = opLast7.reduce((s, d) => s + (d.ended || 0), 0);
 const opSold7 = opLast7.reduce((s, d) => s + (d.sold || 0), 0);
 const opSell7 = opEnded7 >= 20 ? Math.round((opSold7 / opEnded7) * 1000) / 10 : null;
-const koName = (code) => packs.sets?.[code]?.nameKo || "";
-// 세트별 공식 카드리스트(2026-10-14, W7) — "op 17 set list" 류 질문에 답할 주소. 개수는 공식 목록 데이터 그대로.
+const koName = (code) => F.sets[code]?.nameKo || "";
+// 세트별 공식 카드리스트(2026-10-14, W7) — "op 17 set list" 류 질문에 답할 주소. 개수는 공식 목록 데이터 그대로(사실 파일 cardLists). 주소 규칙은 card-list-shared.
 const CL = require("./card-list-shared");
-const cardLists = CL.products().map((p) => ({ ...p, name: CL.nameEnOf(p.code) }));
+const cardLists = F.cardLists;
 const cardListLine = (p) => `${p.code}${p.name ? " " + p.name : ""}: ${p.counts.cards} cards, ${p.counts.numbers} card numbers (base ${p.counts.base} · parallel ${p.counts.parallel}${p.counts.reprint ? ` · reprint ${p.counts.reprint}` : ""} · SP ${p.counts.sp} · TR ${p.counts.tr} · leaders ${p.counts.leaders}), official list checked ${p.checked}`;
 
 // 발매·제품 사실(2026-10-14, W4) — opbox-ai-data.json 의 releaseFacts 그대로(원천 set-facts.json·공식 카드리스트). 가드 RF1 이 대조한다.

@@ -7,14 +7,14 @@
 //     op11/op09 japanese pack price per pack 등). 팩당 실거래가는 박스 실낙찰가와 팩 수를
 //     둘 다 가진 곳만 낼 수 있다.
 //
-// 규칙
-//  · 박스 시세는 box-sold-series 의 current.jp(USD) — 발매됐고 마지막 점이 asOf 로부터 28일 이내일 때만 값, 아니면 "—".
+// 규칙 — 값은 전부 사실 파일 data/derived/site-facts.json(tools/build-site-facts.js)에서 읽는다(2026-10-15, F4). 원장 직접 읽기 없음.
+//  · 박스 시세는 sets[code].current.jp(USD, box-sold-series 의 current) — 발매됐고 마지막 점이 asOf 로부터 28일 이내일 때만 값, 아니면 "—".
 //    미발매 세트(OP-18·EB-05)의 예약판매는 시계열에 없다 — 2026-10-14 전엔 여기 "Box sold" 칸에 $110·$132 로 섞여 있었다.
-//  · 정가는 set-facts.json 의 jpMsrpYen / packsPerBox. 둘 중 하나라도 없으면 그 행의 정가 열은 "—".
-//    단 팩당 정가(jpMsrpYenPerPack)가 공식 페이지로 확인된 세트는 박스 구성이 미공개여도 팩당 칸만 채운다
-//    (OP-18·EB-05: 반다이 JP 페이지에 240円·6장은 있고 박스당 팩 수는 없다 — 2026-09-30).
-//  · 세트 코드는 sets/<code>.html 이 있을 때만 링크한다.
-//  · 엔 → USD 는 data/fx.json 의 jpyKrw / usdKrw (사이트 공통 방식), 환율과 날짜를 표에 적는다.
+//  · 정가는 releaseFacts[].japanese(set-facts 의 jpMsrpYen / packsPerBox). 둘 중 하나라도 없으면 그 행의 정가 열은 "—".
+//    단 팩당 정가(msrpYenPerPack)가 공식 페이지로 확인된 세트는 박스 구성이 미공개여도 팩당 칸만 채운다
+//    (OP-18·EB-05: 반다이 JP 페이지에 240円·6장은 있고 박스당 팩 수는 없다 — 2026-09-30). 박스 구성 미공개(basis) 세트는 박스 정가에 * 표시.
+//  · 세트 코드는 sets/<code>.html 이 있을 때만 링크한다(releaseFacts[].pages.set).
+//  · 엔 → USD 는 F.fx 의 jpyKrw / usdKrw (사이트 공통 방식, packs.fx = data/fx.json), 환율과 날짜를 표에 적는다.
 //  · 값을 만들어내지 않는다. 데이터가 없으면 비운다.
 "use strict";
 const fs = require("fs");
@@ -28,54 +28,48 @@ const longDate = (iso) => {
   return `${MONTH_LONG[m - 1]} ${d}, ${y}`;
 };
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const readJson = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), "utf8"));
 
 if (!fs.existsSync(ART)) {
   console.log(JSON.stringify({ status: "skip", reason: "article missing" }));
   process.exit(0);
 }
 
-let FX, FACTS, SERIES, STORE;
+let F;
 try {
-  FX = readJson("data/fx.json");
-  const f = readJson("data/set-facts.json");
-  FACTS = f.sets || f;
-  STORE = readJson("data/box-sold-series.json");
-  SERIES = STORE.sets || {};
+  F = require("./build-site-facts").load();
 } catch (e) {
   console.log(JSON.stringify({ status: "skip", reason: "data missing: " + e.message }));
   process.exit(0);
 }
+const FX = F.fx;
 if (!FX.jpyKrw || !FX.usdKrw) {
   console.log(JSON.stringify({ status: "skip", reason: "fx incomplete" }));
   process.exit(0);
 }
 const jpyUsd = (yen) => (yen * FX.jpyKrw) / FX.usdKrw;
 const rate = jpyUsd(1);
-
-const ord = (c) => {
-  const [m, n] = c.split("-");
-  return ({ OP: 1, EB: 2, PRB: 3 }[m] || 9) * 1000 + Number(n);
-};
+// 세트 코드 → 발매·제품 사실(releaseFacts 는 OP → EB → PRB 번호순으로 이미 정렬돼 있다)
+const RF = Object.fromEntries(F.releaseFacts.map((r) => [r.setCode, r]));
 
 // 데이터 기준일 — 시계열 전체의 마지막 관측일(build-box-sold-series.js asOf, 다른 표들과 같은 기준)
-const dataDate = STORE.asOf || "";
-const STALE_DAYS = STORE.staleDays || 28;
+const dataDate = F.series.asOf || "";
+const STALE_DAYS = F.series.staleDays;
 if (!dataDate) {
   console.log(JSON.stringify({ status: "skip", reason: "no series dates" }));
   process.exit(0);
 }
 
 const rows = [];
-const starSets = Object.keys(FACTS).filter((c) => FACTS[c].boxConfig && FACTS[c].boxConfig.stated === false && FACTS[c].jpMsrpYen);
+const starSets = F.releaseFacts.filter((r) => r.japanese.msrpYenPerBoxBasis != null).map((r) => r.setCode);
 let liveCount = 0, cheapest = null, dearest = null;
-for (const code of Object.keys(FACTS).sort((a, b) => ord(a) - ord(b))) {
-  const f = FACTS[code];
-  const packs = f.packsPerBox;
-  const msrpBox = f.jpMsrpYen;
-  const cur = (SERIES[code] && SERIES[code].current && SERIES[code].current.jp) || null;
+for (const rf of F.releaseFacts) {
+  const code = rf.setCode;
+  const j = rf.japanese;
+  const packs = j.packsPerBox;
+  const msrpBox = j.msrpYenPerBox;
+  const cur = (F.sets[code] && F.sets[code].current && F.sets[code].current.jp) || null;
 
-  const msrpPack = f.jpMsrpYenPerPack || (msrpBox && packs ? msrpBox / packs : null);
+  const msrpPack = j.msrpYenPerPack;
   const boxUsd = cur ? cur.median : null;
   const packUsd = boxUsd && packs ? boxUsd / packs : null;
   const mult = packUsd && msrpPack ? packUsd / jpyUsd(msrpPack) : null;
@@ -87,14 +81,14 @@ for (const code of Object.keys(FACTS).sort((a, b) => ord(a) - ord(b))) {
   }
 
   const slug = code.toLowerCase();
-  const setCell = fs.existsSync(path.join(ROOT, "sets", slug + ".html"))
+  const setCell = rf.pages.set
     ? `<a href="/sets/${slug}.html">${esc(code)}</a>`
     : esc(code);
   rows.push(
     `          <tr><td>${setCell}</td>` +
       `<td class="num">${packs || "—"}</td>` +
       `<td class="num">${msrpPack ? "¥" + Math.round(msrpPack) : "—"}</td>` +
-      `<td class="num">${msrpBox ? "¥" + msrpBox.toLocaleString("en-US") + (f.boxConfig && f.boxConfig.stated === false ? "*" : "") : "—"}</td>` +
+      `<td class="num">${msrpBox ? "¥" + msrpBox.toLocaleString("en-US") + (j.msrpYenPerBoxBasis != null ? "*" : "") : "—"}</td>` +
       `<td class="num">${boxUsd ? "$" + Math.round(boxUsd).toLocaleString("en-US") : "—"}</td>` +
       `<td class="num">${packUsd ? "$" + packUsd.toFixed(2) : "—"}</td>` +
       `<td class="num">${mult ? mult.toFixed(1) + "×" : "—"}</td></tr>`
@@ -128,22 +122,23 @@ const tableRe = /<div class="tblWrap" data-pack-math>[\s\S]*?<p class="srcNoteA"
 
 let wrote = [];
 {
-  const newest = Object.keys(FACTS).filter((c) => /^OP-\d+$/.test(c) && FACTS[c].jpRelease && FACTS[c].jpRelease.date && FACTS[c].jpRelease.date <= dataDate)
-    .sort((a, b) => FACTS[a].jpRelease.date.localeCompare(FACTS[b].jpRelease.date)).pop();
-  const nf = newest ? FACTS[newest] : null;
-  const nameEn = (() => { try { return (JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")).sets[newest] || {}).nameEn || ""; } catch { return ""; } })();
+  // 가장 최근 발매된 OP 세트(판매 원장 asOf 기준) — 사실 파일 releases.newestOp. 그 세트의 정가·출처는 releaseFacts, 이름은 sets[code].nameEn.
+  const newest = F.releases.newestOp;
+  const nf = newest ? RF[newest].japanese : null;
+  const nameEn = (newest && F.sets[newest] && F.sets[newest].nameEn) || "";
   const yen = (v) => "¥" + Number(v).toLocaleString("en-US");
   let jpLi = "";
-  if (nf && nf.jpMsrpYenPerPack) {
+  if (nf && nf.msrpYenPerPack) {
     const packs = nf.packsPerBox || 24;
-    const boxYen = nf.jpMsrpYen || nf.jpMsrpYenPerPack * packs;
-    const stated = !(nf.boxConfig && nf.boxConfig.stated === false) && nf.jpMsrpYen;
-    const src = (nf.jpSpecSource && nf.jpSpecSource.source) || (nf.jpRelease && nf.jpRelease.source);
-    jpLi = `<li><strong>Japanese booster pack:</strong> 6 cards per pack (Bandai official). A 24-pack box holds <strong>144 cards</strong>. For the newest set, ${esc(newest)}${nameEn ? ` ${esc(nameEn)}` : ""}, <a href="${esc(src)}" rel="noopener noreferrer" target="_blank">Bandai lists</a> an MSRP of <strong>${yen(nf.jpMsrpYenPerPack)} per pack</strong> (tax included)${stated ? ` — <strong>${yen(boxYen)} per box</strong>` : `; its page states no box configuration — at the standard ${packs} packs that is <strong>${yen(boxYen)}</strong>`}, about <strong>$${jpyUsd(boxYen).toFixed(2)}</strong> at ¥1 = $${rate.toFixed(5)} (${longDate(FX.date)}). Earlier sets launched at lower pack prices, so check the official product page for a specific set's original MSRP.</li>`;
+    const boxYen = nf.msrpYenPerBox || nf.msrpYenPerPack * packs;
+    const stated = nf.msrpYenPerBoxBasis == null && nf.msrpYenPerBox;
+    const src = nf.specSource || nf.releaseSource;
+    jpLi = `<li><strong>Japanese booster pack:</strong> 6 cards per pack (Bandai official). A 24-pack box holds <strong>144 cards</strong>. For the newest set, ${esc(newest)}${nameEn ? ` ${esc(nameEn)}` : ""}, <a href="${esc(src)}" rel="noopener noreferrer" target="_blank">Bandai lists</a> an MSRP of <strong>${yen(nf.msrpYenPerPack)} per pack</strong> (tax included)${stated ? ` — <strong>${yen(boxYen)} per box</strong>` : `; its page states no box configuration — at the standard ${packs} packs that is <strong>${yen(boxYen)}</strong>`}, about <strong>$${jpyUsd(boxYen).toFixed(2)}</strong> at ¥1 = $${rate.toFixed(5)} (${longDate(FX.date)}). Earlier sets launched at lower pack prices, so check the official product page for a specific set's original MSRP.</li>`;
   }
-  const enFacts = Object.keys(FACTS).filter((c) => FACTS[c].enPackContents).sort((a, b) => ord(a) - ord(b));
-  const enBits = enFacts.map((c) => { const e = FACTS[c].enPackContents; return e.cardsPerPack ? `the <a href="${esc(e.source)}" rel="noopener noreferrer" target="_blank">${esc(c)}</a> page lists <strong>${e.cardsPerPack} cards per pack</strong>` : `the <a href="${esc(e.source)}" rel="noopener noreferrer" target="_blank">${esc(c)}</a> page states no per-pack card count`; });
-  const enOn = enFacts.map((c) => FACTS[c].enPackContents.verifiedOn).filter(Boolean).sort().pop();
+  // 영문판 팩 구성(반다이 영문 상품 페이지) — 사실 파일 enPackContents(자연 정렬).
+  const enFacts = Object.keys(F.enPackContents);
+  const enBits = enFacts.map((c) => { const e = F.enPackContents[c]; return e.cardsPerPack ? `the <a href="${esc(e.source)}" rel="noopener noreferrer" target="_blank">${esc(c)}</a> page lists <strong>${e.cardsPerPack} cards per pack</strong>` : `the <a href="${esc(e.source)}" rel="noopener noreferrer" target="_blank">${esc(c)}</a> page states no per-pack card count`; });
+  const enOn = enFacts.map((c) => F.enPackContents[c].verifiedOn).filter(Boolean).sort().pop();
   const enLi = `<li><strong>English booster pack:</strong> Bandai's US site lists current English boosters at <strong>USD $4.99 MSRP per pack</strong> — about <strong>$119.76 per 24-pack box</strong>.${enBits.length ? ` On Bandai's English product pages, ${enBits.join("; ")}${enOn ? ` (checked ${longDate(enOn)})` : ""}; the English main-set pages give no per-pack card count.` : ""}</li>`;
   const block = `<!-- PACK-FACTS:START -->\n        ${jpLi}\n        ${enLi}\n        <!-- PACK-FACTS:END -->`;
   const reBlock = /<!-- PACK-FACTS:START -->[\s\S]*?<!-- PACK-FACTS:END -->/;

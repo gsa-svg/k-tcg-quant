@@ -16,7 +16,6 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/one-piece-set-list-release-dates.html");
-const SERIES = path.join(ROOT, "data/box-sold-series.json");
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTH_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -25,27 +24,24 @@ function longDate(iso) {
   return `${MONTH_LONG[m - 1]} ${d}, ${y}`;
 }
 
-if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) {
+if (!fs.existsSync(ART)) {
   console.log(JSON.stringify({ status: "skip", reason: "file missing" }));
   process.exit(0);
 }
 
-const store = JSON.parse(fs.readFileSync(SERIES, "utf8"));
-const series = store.sets || {};
+// 현재가(current.jp)·기준일(판매 원장 asOf)·최신 발매 세트·다음 발매·공식 카드리스트 목록은 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15.
+const F = require("./build-site-facts").load();
+const series = Object.fromEntries(F.order.series.map((c) => [c, F.sets[c]]));
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 
 // 데이터 기준일 = 시계열 전체의 마지막 관측일(build-box-sold-series.js asOf — 다른 표들과 같은 기준일)
-const dataDate = store.asOf || "";
+const dataDate = F.series.asOf || "";
 if (!dataDate) {
   console.log(JSON.stringify({ status: "skip", reason: "no series dates" }));
   process.exit(0);
 }
-const curJp = (code) => (series[code] && series[code].current && series[code].current.jp) || null;
-const releasedJp = (code) => {
-  const r = series[code] && series[code].release && series[code].release.jp;
-  return !!r && r <= dataDate;
-};
+const curJp = (code) => (series[code] && series[code].current.jp) || null;
 
 let updated = 0, staled = 0, untouched = 0;
 const SHORT = (iso) => { const [, m, d] = iso.split("-").map(Number); return `${MON[m - 1]} ${d}`; };
@@ -69,17 +65,12 @@ html = html.replace(trRe, (whole, code, rest) => {
 //   표시 구간 이름의 세트(OP-17)에서 가져온다. 최신 발매 세트가 바뀌면 글 문장부터 고쳐야 한다 — 출력에 알린다.
 // 2026-10-14 QA: "OP-17 latest" 배지·"Newest main set (OP-17)"·"Next booster (EB-05…)" 가 손으로 박혀 있어 EB-05(10/31)·OP-18(11/21)
 //   발매 뒤에도 그대로 남을 구조였다(주입기는 경고만). 이제 최신·다음 세트는 set-facts 발매일에서 정한다 — 가드 RD1 이 같은 규칙으로 대조한다.
-const FACTS0 = JSON.parse(fs.readFileSync(path.join(ROOT, "data/set-facts.json"), "utf8")).sets || {};
-const jpRelOf = (c) => (FACTS0[c] && FACTS0[c].jpRelease && FACTS0[c].jpRelease.date) || null;
-const newest = Object.keys(FACTS0)
-  .filter((c) => /^OP-\d+$/.test(c) && jpRelOf(c) && jpRelOf(c) <= dataDate)
-  .sort((a, b) => jpRelOf(a).localeCompare(jpRelOf(b)) || +a.slice(3) - +b.slice(3))
-  .pop() || null;
+// 최신 발매 OP 세트·다음 발매 = 사실 파일 releases(newestOp·nextUp — 기준일은 같은 판매 원장 asOf).
+const newest = F.releases.newestOp;
 if (!newest) throw new Error("set-facts 에 발매된 OP 세트가 없다 — 최신 세트를 정할 수 없다");
 const spanCode = newest;
 // 다음 발매(어느 계열이든) — 일본판·영문판 중 이른 날이 데이터일 뒤인 세트 가운데 가장 이른 것
-const firstRel = (c) => [jpRelOf(c), FACTS0[c] && FACTS0[c].enRelease && FACTS0[c].enRelease.date].filter(Boolean).sort()[0] || null;
-const nextUp = Object.keys(FACTS0).filter((c) => firstRel(c) && firstRel(c) > dataDate).sort((a, b) => firstRel(a).localeCompare(firstRel(b)))[0] || null;
+const nextUp = F.releases.nextUp;
 
 // ── 발매일 사실(2026-10-14, W3) — 원천은 data/set-facts.json(공식 페이지에서 확인한 값·확인일)과
 //    data/upcoming-set-pages.json(발매 전 세트 목록·공개 카드). 글에 손으로 적힌 날짜·가격·종수는 낡는다
@@ -89,8 +80,9 @@ const nextUp = Object.keys(FACTS0).filter((c) => firstRel(c) && firstRel(c) > da
 //    ③ 세트 목록 표의 영문 발매일 칸 → sets/<코드>-english.html 링크, 표 전체를 ItemList(Product+releaseDate) JSON-LD 로
 //    글의 dateModified·바이라인·eyebrow 날짜는 여기서 쓰지 않는다 — tools/sync-article-dates.js 한 곳(본문이 바뀐 날).
 const FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data/set-facts.json"), "utf8")).sets || {};
-// 세트별 공식 카드리스트(sets/<코드>-card-list.html) — 2026-10-14(W7). 있는 세트만 링크한다(공식 목록 데이터 기준).
-const CARD_LIST = require("./card-list-shared");
+// 세트별 공식 카드리스트(sets/<코드>-card-list.html) — 2026-10-14(W7). 있는 세트만 링크한다(공식 목록 데이터 기준 — 사실 파일 cardLists, 주소 규칙은 card-list-shared).
+const CL_PATH = require("./card-list-shared");
+const CARD_LIST = { has: (code) => F.cardLists.some((p) => p.code === code), products: () => F.cardLists, pagePath: CL_PATH.pagePath };
 const UPCOMING = JSON.parse(fs.readFileSync(path.join(ROOT, "data/upcoming-set-pages.json"), "utf8")).pages || [];
 const fileExists = (rel) => fs.existsSync(path.join(ROOT, rel));
 const shortDay = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MON[m - 1]} ${d}, ${y}`; };
@@ -241,6 +233,7 @@ const spanTxt = spanCur ? `$${Math.round(spanCur.median).toLocaleString("en-US")
 {
   const sf = FACTS[spanCode];
   const nm = nameOf(spanCode);
+  const firstRel = (c) => [FACTS[c] && FACTS[c].jpRelease && FACTS[c].jpRelease.date, FACTS[c] && FACTS[c].enRelease && FACTS[c].enRelease.date].filter(Boolean).sort()[0] || null;
   const ups = UPCOMING.map((p) => p.code).filter((c) => FACTS[c] && firstRel(c) > dataDate).sort((a, b) => FACTS[a].jpRelease.date.localeCompare(FACTS[b].jpRelease.date));
   const upBits = ups.map((c) => { const f = FACTS[c]; return `<strong>${c}</strong> ${esc(nameOf(c))}: Bandai's product pages list <strong>${longDate(f.jpRelease.date)}</strong> in Japan and <strong>${longDate(f.enRelease.date)}</strong> in English, ${esc(f.cardTypes)} card types (<a href="#${slugOf(c)}">${c} table</a>).`; });
   const lead = `<!-- RELEASE-LEAD:START -->

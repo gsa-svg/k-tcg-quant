@@ -17,14 +17,15 @@ const {
   AUCTION_HEAD, BOX_HEAD, GRADE_HEAD,
   buildAuctionRecords, buildBoxRecords, buildGradeRecords,
 } = require("./free-data-records");
-const { buildAiData } = require("./ai-data-model");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
 const CACHE = (require("fs").readFileSync(require("path").join(__dirname, "..", "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";  // 하드코딩 금지 — 범프 때 가드 V1 이 배포를 막는다(2026-07-27)
 
+// 사실(데이터일·환율·Dataset 기간/수정일·카드리스트 목록)은 사실 파일에서 — 2026-10-15(F4). packs 는 CSV 행 생성(free-data-records.js — 행 생성기는 packs 를 받는다)에만 쓴다.
+const F = require("./build-site-facts").load();
 const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const fx = d.fx || {};
-const DATA_DATE = d.updated || "";
+const fx = F.fx;
+const DATA_DATE = F.dataDate || "";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 // CSV 셀: 쉼표/따옴표/개행 있으면 인용부호 처리
 const cell = (v) => {
@@ -49,12 +50,9 @@ const readJson = (p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT
 const { records: priceRecords, dates: priceDates } = buildBoxRecords(d);
 const { records: gradeRecords, dates: gradeDates } = buildGradeRecords(d, readJson("cgc-grading-history.json"), readJson("tag-grading-history.json"));
 const { records: auctionRecords, dates: auctionDates } = buildAuctionRecords(readJson("auction-sold.json"), readJson("auction-series.json"));
-const aiData = buildAiData(d);
-const aiDates = [];
-for (const set of aiData.sets) {
-  for (const market of Object.values(set.boxMarket)) aiDates.push(market.sold?.sampleCollectedOn, market.activeAsk?.observedOn);
-  for (const hit of set.topHits) aiDates.push(hit.rawNmAsk?.observedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
-}
+// Dataset 기간·수정일은 사실 파일 coverage(aiData·grading·boxCsv·cardLists — tools/dataset-coverage.js 와 같은 값)에서. span → dataset() 인수(modified·dates) 꼴로.
+//   aiData.modified = datasetUpdatedOn 이상(파일에 실린 관측일 중 가장 늦은 날) · CSV = 행 관측일의 첫날/마지막 날(없으면 데이터일).
+const fromSpan = (sp, fallback) => (sp ? { modified: sp.modified || sp.to, dates: [sp.from, sp.to] } : { modified: fallback, dates: [] });
 // AI 확장 파일(카드·등급·경매) Dataset 의 수정일·기간 = 그 파일 자체 — 2026-10-15(3차).
 //   수정일 = 파일 datasetUpdatedOn, 기간 = 파일 안 관측 행 날짜의 처음~끝(tools/dataset-coverage.extraSpan — psa-grading 의 같은 파일과 한 함수).
 //   종전엔 CSV·핵심 피드 날짜로 셈해 #ai-grading-json·#ai-auctions-json 이 dateModified 10-14, 파일 datasetUpdatedOn 은 10-15 였다(가드 DS1).
@@ -87,31 +85,22 @@ const dataset = ({ id, name, description, modified, dates, variables, format, co
   distribution: { "@type": "DataDownload", encodingFormat: format, contentUrl },
 });
 const datasets = [
-  dataset({ id: "ai-json", name: "One Piece TCG box markets and Top 7 hits", description: `Compact AI-ready JSON for ${nPrices} tracked sets, with completed sales and active asking prices separated and field-level freshness and sample sizes.`, modified: aiData.datasetUpdatedOn, dates: aiDates, variables: ["setCode", "boxMarket", "topHits", "rawNmAsk", "psa10Sold", "psaPopulation", "citationUrl"], format: "application/json", contentUrl: `${SITE}/opbox-ai-data.json` }),
+  dataset({ id: "ai-json", name: "One Piece TCG box markets and Top 7 hits", description: `Compact AI-ready JSON for ${nPrices} tracked sets, with completed sales and active asking prices separated and field-level freshness and sample sizes.`, ...fromSpan(F.coverage.aiData, F.ai.datasetUpdatedOn), variables: ["setCode", "boxMarket", "topHits", "rawNmAsk", "psa10Sold", "psaPopulation", "citationUrl"], format: "application/json", contentUrl: `${SITE}/opbox-ai-data.json` }),
   // 확장 AI 파일 3개 — 2026-09-08. 핵심 JSON 은 200KB 규칙이라 카드 전체·등급·경매는 따로 낸다(답변 엔진·Dataset 검색용).
   dataset({ id: "ai-cards-json", name: "Every tracked One Piece card variant with raw NM and PSA 10 prices", description: "One entry per published card price page: card number, variant name, container set, Japanese retail NM asking price, verified PSA 10 sold median with sample size, PSA population and the citation URL.", ...extraDates("opbox-ai-cards.json"), variables: ["cardNumber", "name", "containerSetCode", "rawNmAsk", "psa10Sold", "psaPopulation", "url"], format: "application/json", contentUrl: `${SITE}/opbox-ai-cards.json` }),
   dataset({ id: "ai-grading-json", name: "Graded population per set (PSA, CGC, TAG) as JSON", description: "Latest graded counts and gem rates per set and printing for PSA, CGC and TAG, each with its own observation date; PSA, CGC and TAG counted separately.", ...extraDates("opbox-ai-grading.json"), variables: ["setCode", "japanese", "english", "psa", "cgc", "tag", "gemRatePct", "observedOn"], format: "application/json", contentUrl: `${SITE}/opbox-ai-grading.json` }),
   dataset({ id: "ai-auctions-json", name: "Settled eBay auction results as JSON — One Piece and 13 trading card games", description: "Settled One Piece auctions (daily, weekly, by set: ended, sold, sell-through, winning-bid totals and medians) plus daily sell-through and winning-bid medians for 13 trading card games.", ...extraDates("opbox-ai-auctions.json"), variables: ["date", "ended", "sold", "sellThroughPct", "amountUsd", "medianWinningBidUsd", "byCategory", "games"], format: "application/json", contentUrl: `${SITE}/opbox-ai-auctions.json` }),
-  dataset({ id: "grading-csv", name: "Grading population by set, printing and grader", description: `${nGrades} set-edition rows. PSA, CGC and TAG counts remain separate and each grader keeps its own observation date.`, modified: maxDate(gradeDates) || DATA_DATE, dates: gradeDates, variables: GRADE_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-grading-population.csv` }),
+  dataset({ id: "grading-csv", name: "Grading population by set, printing and grader", description: `${nGrades} set-edition rows. PSA, CGC and TAG counts remain separate and each grader keeps its own observation date.`, ...fromSpan(F.coverage.grading, DATA_DATE), variables: GRADE_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-grading-population.csv` }),
   dataset({ id: "auction-csv", name: "Completed auction results by day", description: "Settled auction counts, sold counts, sell-through, median winning bids and bid counts by product type.", modified: maxDate(auctionDates) || DATA_DATE, dates: auctionDates, variables: AUCTION_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` }),
-  dataset({ id: "box-csv", name: "Japanese and English booster box market snapshots", description: `${nPrices} sets with completed-sale medians and active asking-price medians kept separate, including sample sizes and observation dates.`, modified: maxDate(priceDates) || DATA_DATE, dates: priceDates, variables: BOX_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }),
+  dataset({ id: "box-csv", name: "Japanese and English booster box market snapshots", description: `${nPrices} sets with completed-sale medians and active asking-price medians kept separate, including sample sizes and observation dates.`, ...fromSpan(F.coverage.boxCsv, DATA_DATE), variables: BOX_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }),
 ];
 // 세트별 공식 카드리스트 CSV·JSON(generate-card-list-pages.js 산출) — 2026-10-14(W7). 카드 사실은 반다이 공식 목록이라
 // CC BY 를 붙이지 않는다(우리 숫자 열만 CC BY — 파일 안 notes 에 적혀 있다). 그래서 dataset() 헬퍼를 쓰지 않는다.
-const CARD_LISTS = require("./card-list-shared").products();
-// 카드리스트 기간 = 공식 목록 확인일과 우리 숫자 관측일(NM·경매·PSA 10)의 범위 — 각 세트 JSON 에서
-const CARD_LIST_SPAN = (() => {
-  const dates = [];
-  for (const p of CARD_LISTS) {
-    let j = null;
-    try { j = JSON.parse(fs.readFileSync(path.join(ROOT, "sets", `${p.slug}-card-list.json`), "utf8")); } catch { continue; }
-    dates.push(j.officialList && j.officialList.checked);
-    for (const c of j.cards || []) dates.push(c.nm && c.nm.observedOn, c.auction && c.auction.through, c.auctionEnglishPrint && c.auctionEnglishPrint.through, c.psa10 && c.psa10.observedOn);
-  }
-  return temporalCoverage(dates);
-})();
-// 카드리스트 Dataset 수정일 = 세트 JSON "updated"(= 그 페이지 dateModified)의 최댓값 — 2026-10-15(4차). 종전엔 데이터일·기간 끝으로 셈해 10-15, JSON 은 10-14 였다.
-const CARD_LIST_UPDATED = maxDate(CARD_LISTS.map((p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "sets", `${p.slug}-card-list.json`), "utf8")).updated; } catch { return null; } }));
+const CARD_LISTS = F.cardLists;
+// 카드리스트 기간 = 공식 목록 확인일과 우리 숫자 관측일(NM·경매 through·PSA 10)의 범위, 수정일 = 세트 페이지 날짜(= JSON "updated")의 최댓값 —
+// 사실 파일 coverage.cardLists(카드리스트 페이지·JSON 과 같은 값, 2026-10-15). 종전엔 세트 JSON 을 다시 읽어 셌다.
+const CARD_LIST_SPAN = F.coverage.cardLists ? F.coverage.cardLists.coverage : null;
+const CARD_LIST_UPDATED = F.coverage.cardLists ? F.coverage.cardLists.modified : "";
 if (CARD_LISTS.length) {
   datasets.push({
     "@type": "Dataset", "@id": `${SITE}/free-data.html#card-lists`,

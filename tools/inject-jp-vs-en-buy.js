@@ -24,7 +24,6 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/japan-vs-english.html");
-const SERIES = path.join(ROOT, "data/box-sold-series.json");
 const STALE_DAYS = 28;   // 표시용(설명 줄) — 실제 거름은 box-sold-series current 가 같은 28일로 한다
 const NEWER_SMALLER_RHO = -0.5;
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -34,14 +33,13 @@ const usd = (v) => "$" + Math.round(v).toLocaleString("en-US");
 const pctTxt = (p) => (p >= 0 ? "+" : "-") + Math.abs(p) + "%";
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) {
+if (!fs.existsSync(ART)) {
   console.log(JSON.stringify({ status: "skip", reason: "file missing" }));
   process.exit(0);
 }
-const STORE = JSON.parse(fs.readFileSync(SERIES, "utf8"));
-const S = STORE.sets || {};
-let PACKS = {};
-try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")); PACKS = p.sets || p; } catch {}
+// 현재가(current)·기준일(asOf)·세트 이름·영문판 재판 판정은 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15.
+const F = require("./build-site-facts").load();
+const S = Object.fromEntries(F.order.series.map((c) => [c, F.sets[c]]));
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
@@ -60,14 +58,14 @@ if (missing.length) {
 }
 
 // 기준일·현재가는 box-sold-series 의 asOf·current — 모든 페이지 표가 같은 칸을 읽는다(2026-10-14, 가드 D17).
-const dataDate = STORE.asOf || "";
+const dataDate = F.series.asOf || "";
 if (!dataDate) { console.log(JSON.stringify({ status: "skip", reason: "no series dates" })); process.exit(0); }
-const fresh = (c, ed) => (S[c] && S[c].current && S[c].current[ed]) || null;
+const fresh = (c, ed) => (S[c] && S[c].current[ed]) || null;
 
 const ord = (c) => { const [m, n] = c.split("-"); return ({ OP: 1, EB: 2, PRB: 3 }[m] || 9) * 100 + Number(n); };
 const codes = Object.keys(S).filter((c) => /^(OP|EB|PRB)-\d{2}$/.test(c)).sort((a, b) => ord(a) - ord(b));
 // 우리가 추적하는 쌍 = 두 판 모두 관측이 한 번이라도 있는 세트
-const tracked = codes.filter((c) => ((S[c].jp || []).length > 0) && ((S[c].en || []).length > 0)).length;
+const tracked = codes.filter((c) => S[c].hasPoints.jp && S[c].hasPoints.en).length;
 
 const pairs = [];
 for (const code of codes) {
@@ -80,12 +78,12 @@ if (!pairs.length) { console.log(JSON.stringify({ status: "skip", reason: "신�
 const TD = 'style="padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.06);"';
 const TDR = 'style="text-align:right;padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.06);"';
 const rows = pairs.map(({ code, j, e, pct }) => {
-  const en = PACKS[code] && PACKS[code].nameEn;
+  const en = S[code].nameEn;
   const label = esc(en ? `${code} ${en}` : code);
   const file = `sets/${code.toLowerCase()}.html`;
   const cell = fs.existsSync(path.join(ROOT, file)) ? `<a href="../${file}">${label}</a>` : label;
-  // 영문 값이 재판(White) 박스면 라벨을 붙인다 — 세트 페이지와 같은 판정(set-page-shared enIsReprint, 2026-09-30).
-  const rp = require("./set-page-shared").enIsReprint(S[code]) ? " <small>reprint (White)</small>" : "";
+  // 영문 값이 재판(White) 박스면 라벨을 붙인다 — 세트 페이지와 같은 판정(사실 파일 reprint.enIsReprint, 2026-09-30).
+  const rp = S[code].reprint.enIsReprint ? " <small>reprint (White)</small>" : "";
   return `          <tr><td ${TD}>${cell}</td><td ${TDR}>${usd(j)}</td><td ${TDR}>${usd(e)}${rp}</td><td ${TDR}>${pctTxt(pct)}</td></tr>`;
 });
 

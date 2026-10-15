@@ -10,14 +10,14 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { SITE } = require("./market-data-normalizers");
-const { rawNmAsk, psa10Sold, psaPopulation, buildReleaseFacts, datasetAsOf } = require("./ai-data-model");
 const extras = require("./ai-data-extras");
 
 const ROOT = path.resolve(__dirname, "..");
-const packs = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+// 사실 한 벌(data/derived/site-facts.json) — 카드 페이지 블록·세트별 등급 인구·발매 사실·데이터 기준일은 빌더가 셌다. 경매 시계열만 원장에서 옮긴다.
+const F = require("./build-site-facts").load();
 const src = extras.loadExtraSources();
-// 기준일은 핵심 파일(opbox-ai-data.json)과 같은 함수 — 실린 관측일 가운데 가장 늦은 날(2026-10-15 QA: packs.updated 10-14 안에 10-15 값).
-const datasetUpdatedOn = datasetAsOf(packs);
+// 기준일은 핵심 파일(opbox-ai-data.json)과 같은 값 — 실린 관측일 가운데 가장 늦은 날(2026-10-15 QA: packs.updated 10-14 안에 10-15 값).
+const datasetUpdatedOn = F.ai.datasetUpdatedOn;
 
 const header = (id, name, canonicalPage) => ({
   schemaVersion: "1.0.0",
@@ -42,9 +42,9 @@ function write(file, obj) {
 // 왜: free-data 는 CSV 날짜로 셈해 #ai-grading-json·#ai-auctions-json 이 dateModified 10-14 인데 파일 datasetUpdatedOn 은 10-15 였다
 //     (생성 순서상 이 파일들은 free-data 뒤에 써져서 파일을 읽으면 하루 전 것을 읽는다 — 같은 함수로 같은 객체를 만든다).
 function buildExtraDocs() {
-  const cards = extras.buildCardPages(packs, src.cardMap, packs.fx || {}, datasetUpdatedOn, { rawNmAsk, psa10Sold, psaPopulation });
-  const grading = extras.buildGrading(src.gradingSeries, packs);   // PSA 총량은 페이지와 같은 packs 값
-  const onePiece = extras.buildAuctions(src.auctionSeries, src.setAuctionStats, buildReleaseFacts(packs, datasetUpdatedOn));   // 세트별 행은 발매된 세트만
+  const cards = extras.buildCardPages(F);
+  const grading = F.aiGrading;   // PSA 총량은 페이지와 같은 packs 값(빌더가 ai-data-extras.buildGrading 으로 셌다)
+  const onePiece = extras.buildAuctions(src.auctionSeries, src.setAuctionStats, F.releaseFacts);   // 세트별 행은 발매된 세트만
   const tcg = extras.buildTcgAuctions(src.tcgSeries);
   if (!cards || !grading || !onePiece || !tcg) throw new Error("확장 데이터 원장 누락 — 아무것도 쓰지 않음");
   return {

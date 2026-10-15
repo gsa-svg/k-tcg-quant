@@ -16,3 +16,7 @@ node_modules/
 _draft-*.html
 _chart-demo.html
 _auction-demo.html
+
+# 2026-10-15: 사이트 사실 캐시(tools/build-site-facts.js). 입력 해시가 다르면 load() 가 그 자리에서 다시 굽는다 —
+# 커밋하면 하루 1.5MB 씩 이력이 붓고, daily.ps1 의 git add -A 가 매일 실어 나른다. 워크플로 커밋 범위에도 없다.
+data/derived/

@@ -16,8 +16,9 @@ const { navHtml } = require("./site-nav");
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
 
-// eBay 파트너 네트워크(EPN) 추적 파라미터. 모든 eBay 링크 끝에 붙는다 — 빠지면 수수료가 잡히지 않는다.
-const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
+// eBay 파트너 네트워크(EPN) 추적 파라미터·링크 검증(epnUrl)은 market-data-normalizers.js 한 곳 — 2026-10-15: 사실 빌더(build-site-facts)도
+// 최저 실매물 판정에 쓴다. 여기서는 가져와 다시 내보낸다(경매·예정 세트 페이지가 이 파일에서 epnUrl 을 받는다).
+const { EPN, epnUrl } = require("./market-data-normalizers");
 
 // 정적 자산(styles.css 등)의 캐시 버전. packs.js 의 DATA_VERSION 과 같아야 한다(가드 V1).
 // 값을 하드코딩하면 범프할 때마다 어긋난다(2026-07-27 실사고: 가드 V1 21건).
@@ -37,23 +38,8 @@ const monthYear = (iso) => {
   return Number.isNaN(d.getTime()) ? iso : `${m[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 };
 
-// 재판 기록 분류 — 2026-10-15(4차). 영문 세트 페이지·한국어 세트 페이지·한국어 허브·홈 배지(build-market-index → marketIndex.board)가 이 함수 하나를 쓴다.
-// 기준은 반다이 측 문구 하나: "再販"이라 적힌 추첨(kind official-reprint-lottery — OP-09 반다이남코샵 2024-10)은 재판으로 세고,
-// 그 말이 없는 발매 후 추첨(official-lottery — OP-13 2025-12·OP-16 2026-06)은 재판 횟수에 넣지 않는다. 발매 전 추첨(pre-release-lottery)은 초판 배정이라 싣지 않는다.
-// 3차는 반다이 추첨을 전부 재판에서 빼서, 원장 메모가 "Bandai Namco shop 再販 pre-order lottery" 인 OP-09 가 "재판 기록 없음"이 됐다.
-//   reprint = 리테일러·유통사 재입고 + 再販 추첨(= 재판 횟수) · lottery = 再販 표기 없는 발매 후 추첨 · unverified = 발매 전후 미확인 추첨
-function splitReprints(records) {
-  const kind = (r) => String((r && r.kind) || "");
-  const recs = (records || []).filter((r) => r && !/pre-release/i.test(kind(r)));
-  const unverified = recs.filter((r) => /unverified-timing/i.test(kind(r)));
-  const lottery = recs.filter((r) => kind(r) === "official-lottery");
-  const reprint = recs.filter((r) => !unverified.includes(r) && !lottery.includes(r));
-  return { reprint, lottery, unverified };
-}
-
-// 영문판 값이 재판(White) 위주인가 — 그래프 배지(box-chart.js badgeFor)와 같은 기준(reprintPct.en ≥ 60).
-// 2026-09-30: OP-01 영문판 $1,487 은 재판만의 값인데 배지는 그래프에만 있고 지표칸·Key facts·FAQ·설명에는 없었다.
-const enIsReprint = (series) => (((series && series.reprintPct) || {}).en || 0) >= 60;
+// 재판 기록 분류(splitReprints)·영문판 재판 판정(enIsReprint)은 2026-10-15 에 market-data-normalizers.js 로 옮겼다 — 부르는 곳은 사실 빌더
+// (tools/build-site-facts.js) 하나이고, 생성기는 data/derived/site-facts.json sets[code].reprint(restock·lottery·unverified·count·enIsReprint)를 읽는다.
 
 // EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게" 있어야 한다.
 // 2026-08-10 EPN 위반 통지: 문구는 적절하나 푸터에 있어 잘 보이지 않는다. 그래서 본문 상단에도 넣는다.
@@ -172,21 +158,6 @@ function upsertSitemap(urls, { priority = "0.8", changefreq = "weekly" } = {}) {
 // 47건이 값이 찍힌 홈 버튼에서 났고, 나머지 영어 페이지(세트 22·카드 223)는 값 없는 회색 링크뿐이었다.
 // 값이나 URL 이 없으면 빈 문자열을 돌려준다 — 호출부는 기존 검색 링크만 남기면 된다(빈 값 > 틀린 값).
 
-// eBay 호스트·https 를 검증하고 EPN 추적 파라미터를 붙인다. 하나라도 어긋나면 null(링크를 만들지 않는다).
-function epnUrl(raw) {
-  if (!raw) return null;
-  let u;
-  try { u = new URL(String(raw)); } catch { return null; }
-  if (u.protocol !== "https:") return null;
-  if (!/(^|[.])ebay[.][a-z.]+$/i.test(u.hostname)) return null;
-  if (u.searchParams.get("campid")) return u.href; // 이미 붙어 있음
-  for (const kv of EPN.split("&")) {
-    const i = kv.indexOf("=");
-    u.searchParams.set(kv.slice(0, i), kv.slice(i + 1));
-  }
-  return u.href;
-}
-
 // label   : 무엇의 최저가인지 (예: "sealed OP-01 box", "PSA 10 copy")
 // price   : 배송비 포함 총액(USD)
 // mid     : 같은 물건의 중간 호가(USD). 있으면 몇 % 싼지 배지를 붙인다(3% 미만 차이는 생략).
@@ -210,78 +181,9 @@ function buyCta({ url, price, mid, updated, label }) {
 //           · 최저 실매물(구매 버튼과 같은 값, 매물 수 표시)
 //   사실  : data/set-facts.json(반다이 공식 — 발매일·정가·팩 수·카드 종류, 확인일 포함) · data/official-cardlist.json(공식 카드 리스트)
 // 문장·해설 없이 라벨과 값만 쓴다. 표 안의 링크는 첫 칸(카드 리스트)뿐이다 — 출처 링크는 표 아래 한 줄로.
-const readData = (rel, fallback) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; } };
-let KF_SRC = null;
-const kfSrc = () => (KF_SRC || (KF_SRC = {
-  packs: readData("data/onepiece-packs.json", { sets: {} }),
-  sold: readData("data/box-sold-series.json", { sets: {} }),
-  facts: readData("data/set-facts.json", { sets: {} }),
-  auction: readData("data/set-auction-stats.json", {}),
-}));
-
-// ── 페이지 수정일 — 2026-10-15(감사 #4) ─────────────────────────────────────────
-// 세트·영문판 페이지의 JSON-LD dateModified 와 화면 "Data updated" 가 packs.updated(10-14)만 따라가, 같은 페이지에
-// 박스 판매 원장의 "as of 2026-10-15" 값(박스 판매 원장은 10-15 아침 수집)이 있는데도 하루 이른 날짜를 냈다. 수정일이 화면 숫자의
-// 가장 늦은 날짜보다 이르면 검색엔진이 받는 신선도가 내용·사이트맵 lastmod 보다 낡는다(글·비교표는 가드 U1 이 같은 규칙을 지킨다).
-// 그래서 이 페이지가 읽는 원장 기준일 중 가장 늦은 날: packs.updated · box-sold-series.asOf · 경매 집계 창 끝 ·
-// 그 세트의 호가 수집일(일본판·영문판) · Key facts 출처 확인일. 미래 날짜인 발매일은 데이터 날짜가 아니라 넣지 않는다.
-const latestDate = (...ds) => ds.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort().pop() || null;
-function setPageDate(code) {
-  const { packs, sold, auction } = kfSrc();
-  const bm = ((packs.sets || {})[code] || {}).boxMarket || {};
-  const checked = keyFactsModel(code, "jp").sources.map((x) => x.checked);
-  return latestDate(packs.updated, sold.asOf, (auction.window || {}).to, bm.jp && bm.jp.ebayActive && bm.jp.ebayActive.updated, bm.en && bm.en.ebayActive && bm.en.ebayActive.updated, ...checked)
-    || new Date().toISOString().slice(0, 10);
-}
-
-// 최저 실매물 — 미개봉 새 제품이고 제목이 개봉·빈 박스·재밀봉·손상을 말하지 않는 검증된 최저 총액(가격+배송).
-// 세트 페이지 구매 버튼(buyCta)과 Key facts 표가 이 함수 하나를 쓴다 — 표의 값과 버튼의 값이 늘 같다.
-function lowestAsk(set, ed) {
-  const a = set && set.boxMarket && set.boxMarket[ed] && set.boxMarket[ed].ebayActive;
-  const bl = a && a.bestListing;
-  if (!bl || bl.total == null || !epnUrl(bl.url)) return null;
-  if (!/new/i.test(bl.condition || "")) return null;
-  if (/unseal|open|empty|no packs|reseal|damaged/i.test(bl.title || "")) return null;
-  const fx = (kfSrc().packs.fx || {}).usdKrw;
-  const toU = (v, cur) => (v == null ? null : cur === "USD" ? v : cur === "KRW" && fx ? v / fx : null);
-  const total = toU(bl.total, bl.currency || a.currency);
-  if (total == null) return null;
-  return { total, url: bl.url, updated: a.updated || null, mid: a.middle != null ? toU(a.middle, a.currency) : null, listings: Number.isInteger(a.sampleSize) ? a.sampleSize : null };
-}
-
-// 세트·판 하나의 사실 묶음. ed = "jp" | "en" — 가격 두 줄만 판을 따르고 나머지는 세트 단위 사실이다.
-function keyFactsModel(code, ed) {
-  const { packs, sold, facts } = kfSrc();
-  const s = (packs.sets || {})[code] || {};
-  const sf = (facts.sets || {})[code] || {};
-  const ser = (sold.sets || {})[code] || {};
-  // 현재가 = current[ed] — 2026-10-14 QA: 마지막 점(98일 전 값 포함)을 그대로 써서 표("—")와 Key facts($147, 07-07)가 같은 사실을 두 방식으로 냈다.
-  const last = (ser.current && ser.current[ed]) || null;
-  const CL = require("./card-list-shared");
-  const cl = CL.productOf(code);
-  const jpPack = sf.jpMsrpYenPerPack || (sf.jpMsrpYen && sf.packsPerBox && Number.isInteger(sf.jpMsrpYen / sf.packsPerBox) ? sf.jpMsrpYen / sf.packsPerBox : null);
-  const en = sf.enRelease || {};
-  const sources = [];
-  if (sf.jpRelease && sf.jpRelease.source) sources.push({ key: "jpRelease", en: "JP release", ko: "일본판 발매일", url: sf.jpRelease.source, checked: sf.jpRelease.verifiedOn || null, archived: /web\.archive\.org/.test(sf.jpRelease.source) });
-  if (sf.jpSpecSource && sf.jpSpecSource.source) sources.push({ key: "jpSpec", en: "JP MSRP & card types", ko: "일본판 정가·카드 종류", url: sf.jpSpecSource.source, checked: sf.jpSpecSource.verifiedOn || null });
-  if (en.source) sources.push({ key: "en", en: "EN release & MSRP", ko: "영문판 발매일·정가", url: en.source, checked: en.verifiedOn || null });
-  if (cl) sources.push({ key: "cardList", en: "card list", ko: "카드 리스트", url: cl.url, checked: cl.checked || null });
-  return {
-    code, ed,
-    sold: last ? { median: last.median, n: last.n ?? null, d: last.d, windowDays: (ser.windowDays || {})[ed] || null, reprint: ed === "en" && enIsReprint(ser) } : null,
-    soldReleased: !!(ser.release && ser.release[ed] && (!sold.asOf || ser.release[ed] <= sold.asOf)),
-    boxConfigStated: sf.boxConfig ? sf.boxConfig.stated !== false : null,
-    ask: lowestAsk(s, ed),
-    jpRelease: (sf.jpRelease && sf.jpRelease.date) || null,
-    enRelease: en.date || s.release || null,
-    msrp: { jpBox: sf.jpMsrpYen || null, jpPack, enPack: en.msrpUsdPerPack ?? null },
-    packsPerBox: sf.packsPerBox || null,
-    cardsPerPack: sf.cardsPerPack || null,
-    cardTypes: sf.cardTypes ? { official: true, value: String(sf.cardTypes) } : cl ? { official: false, numbers: cl.counts.numbers } : null,
-    cardList: cl ? { href: `${CL.slugOf(code)}-card-list.html`, cards: cl.counts.cards, numbers: cl.counts.numbers, checked: cl.checked || null } : null,
-    sources,
-  };
-}
+// 모델(keyFactsModel)·최저 실매물(lowestAsk)·페이지 수정일(setPageDate)·최신 세트(latestSets)는 2026-10-15 에 사실 빌더
+// (tools/build-site-facts.js)로 옮겼다 — 값은 data/derived/site-facts.json sets[code].keyFacts[ed] · ask[ed] · pageDate · latestSets.
+// 여기는 그 모델(m)을 그리기만 한다(keyFactsHtml · dataDesc).
 
 // ── 검색 설명(meta description · og:description) — 2026-10-15 소유자 결정: 데이터 페이지엔 숫자·표·라벨만.
 // 종전 일본판 설명은 수기 해설(set-commentary desc · priority-set-seo description)이나 "…and a buy-or-skip verdict" 같은 사이트 소개 문장,
@@ -304,22 +206,6 @@ function dataDesc(m, nameEn, extras = [], max = 155) {
   while (parts.length > 1 && text(parts).length > max) parts.pop();
   for (const x of more) if (text([...parts, x]).length <= max) parts.push(x);
   return text(parts);
-}
-
-// 최신 세트 — 계열(OP·EB·PRB)마다 일본판 발매일이 가장 늦은 추적 세트 중, 발매 후 120일 이내이고 공식 카드 리스트가 있는 것.
-// "op 17 release date"·"op 17 set list" 질의는 발매 전후 몇 달에 몰린다(2026-10-14 Bing 실측). 그 세트의 제목·H1 에
-// Release Date·Card List 를 넣는다. 손목록이 아니라 데이터로 정하므로 EB-05·OP-18 이 추적 세트가 되는 날 자동으로 넘어간다.
-function latestSets(codes, asOf) {
-  const { facts } = kfSrc();
-  const CL = require("./card-list-shared");
-  const best = {};
-  for (const c of codes) {
-    const d = (((facts.sets || {})[c] || {}).jpRelease || {}).date;
-    if (!d || d > asOf) continue;
-    const fam = c.split("-")[0];
-    if (!best[fam] || d > best[fam].d) best[fam] = { c, d };
-  }
-  return new Set(Object.values(best).filter(({ c, d }) => (Date.parse(asOf) - Date.parse(d)) / 864e5 <= 120 && CL.has(c)).map(({ c }) => c));
 }
 
 // 표 그리기. lang = "en"(영어 페이지 — data-ko 로 제자리 번역) | "ko"(정적 한국어 페이지).
@@ -396,4 +282,4 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11.5px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, splitReprints, enIsReprint, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate, dataDesc };
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, keyFactsHtml, KF_CSS, withChartCss, dataDesc };

@@ -5,58 +5,38 @@
 // 주소 하나가 매주 새 표로 바뀌는 쪽이 낫다 — 단골이 "이번 주엔 뭐가 움직였나"를 보러 올 자리가 생기고
 // 색인 대상은 한 장뿐이다.
 //
-// 숫자는 전부 data/box-sold-series.json(주간 실거래 중앙값·그 주 판매수·매물 수)과 onepiece-packs.json 의
-// 이름(nameEn)에서 그대로 온다. 4주 변화는 market-data-normalizers.boxChange28(홈·세트 페이지와 같은 함수). 추정 없음, 문단 없음(표·라벨만).
+// 숫자는 전부 사실 파일(data/derived/site-facts.json — tools/build-site-facts.js 가 box-sold-series 의 주간 실거래 중앙값·그 주 판매수·매물 수와
+// onepiece-packs 의 이름·psaWeekly 에서 센다: sets[code].weekly[ed] · psaWeekly · weekly.weekEnd)에서 온다. 4주 변화는 market-data-normalizers.boxChange28
+// (홈·세트 페이지와 같은 함수 — 2026-10-15 5차 전엔 여기만 따로 계산해 OP-04·EB-01 이 갈렸다). 추정 없음, 문단 없음(표·라벨만).
 // WoW = 이번 주 점 ÷ 정확히 7일 전 점. 그 점이 없으면(창 미달로 빠짐) "—".
 // Run: node tools/generate-weekly.js
 const fs = require("node:fs");
 const path = require("node:path");
 const { navHtml } = require("./site-nav");
-const { boxChange28 } = require("./market-data-normalizers");
 
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
 
-const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const S = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8"));
-const DATA_DATE = S.updated || d.updated || new Date().toISOString().slice(0, 10);
-const ORDER = [...(d.jp?.list || []), ...(d.extra?.list || [])];
+const F = require("./build-site-facts").load();
+const DATA_DATE = F.weekly.dataDate;   // 시리즈 갱신일(box-sold-series.updated)
+const ORDER = F.order.all;
 
 const esc = (x) => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const usd = (n) => (n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US"));
-const DAY = 864e5;
-const addDays = (iso, n) => new Date(Date.parse(iso) + n * DAY).toISOString().slice(0, 10);
 const pctCell = (v) => v == null ? `<td class="num">—</td>`
   : `<td class="num ${v > 0 ? "up" : v < 0 ? "down" : "flat"}">${v > 0 ? "+" : ""}${v.toFixed(1)}%</td>`;
 
-// 이번 주 = 시리즈 전체에서 가장 늦은 주간 점 날짜. 세트마다 마지막 점이 다를 수 있으니 "그 주"를 기준으로 맞춘다.
-const weekEnd = ORDER.map((c) => ((S.sets[c] || {}).jp || []).concat((S.sets[c] || {}).en || []).map((p) => p.d)).flat().sort().pop();
-const weekStart = weekEnd ? addDays(weekEnd, -6) : null;
+// 이번 주 = 시리즈 전체에서 가장 늦은 주간 점 날짜. 세트마다 마지막 점이 다를 수 있으니 "그 주"를 기준으로 맞춘다(사실 파일 weekly.weekEnd).
+const weekEnd = F.weekly.weekEnd;
+const weekStart = F.weekly.weekStart;
 
 function rowsFor(ed) {
   const rows = [];
   for (const code of ORDER) {
-    const set = S.sets[code] || {};
-    const pts = (set[ed] || []).filter((p) => p && p.median != null);
-    if (!pts.length) continue;
-    const last = pts[pts.length - 1];
-    // 시리즈마다 7일 격자의 기준일이 달라(JP 09-21, EN 09-22) 마지막 점이 같은 주에 있으면 "이번 주"로 본다.
-    const isThisWeek = !!(weekStart && last.d >= weekStart && last.d <= weekEnd);
-    const prev = pts.find((p) => p.d === addDays(last.d, -7)) || null;
-    const wow = prev ? (last.median / prev.median - 1) * 100 : null;
-    // 4주 변화 = market-data-normalizers.boxChange28(current vs 28일 이상 앞선 마지막 점) — 세트 페이지(일본판·영문판)·비교표·홈 board 와 같은 함수.
-    // 2026-10-15(5차): 여기만 current 대신 마지막 점을 기준으로 따로 계산해, current 가 없는(28일 밖) OP-04 -5.4% · EB-01 +6.3% 가
-    // 세트 페이지·비교표·홈·ko 의 "—" 와 갈렸다.
-    const ch = boxChange28(pts, (set.current || {})[ed] || null);
-    const c4 = ch ? ch.pct : null;
-    const sup = (set.supply || []).filter((p) => p && p[ed] != null);
-    const supNow = sup.length ? sup[sup.length - 1] : null;
-    const supPrev = supNow ? sup.filter((p) => p.d <= addDays(supNow.d, -7)).pop() : null;
-    rows.push({
-      code, name: (d.sets[code] || {}).nameEn || code, last, prev, wow, c4, isThisWeek,
-      listed: supNow ? supNow[ed] : null, listedPrev: supPrev ? supPrev[ed] : null,
-    });
+    const w = F.sets[code].weekly[ed];   // 마지막 점·7일 전 점·WoW·4주·이번 주 여부·매물 수(Δ 7일)
+    if (!w) continue;
+    rows.push({ code, name: F.sets[code].nameEn || code, last: w.last, prev: w.prev, wow: w.wow, c4: w.c4, isThisWeek: w.isThisWeek, listed: w.listed, listedPrev: w.listedPrev });
   }
   // 이번 주 점이 있는 세트를 WoW 순으로, 그 뒤에 이번 주 점이 없는 세트(마지막 판매 주 표기)
   rows.sort((a, b) => (b.isThisWeek ? 1 : 0) - (a.isThisWeek ? 1 : 0) || (b.wow ?? -Infinity) - (a.wow ?? -Infinity));
@@ -85,16 +65,12 @@ let gradeTable = "", gradeWeek = null;
 {
   const rows = [];
   for (const code of ORDER) {
-    const w = (d.sets[code] || {}).psaWeekly;
-    const pts = (w && w.points) || [];
-    if (!pts.length) continue;
-    const last = pts[pts.length - 1];
-    const prev = pts[pts.length - 2] || null;
-    rows.push({ code, name: (d.sets[code] || {}).nameEn || code, d: last.d, v: last.v, prev: prev ? prev.v : null });
+    const w = F.sets[code].psaWeekly;   // 사실 파일: last·prev
+    if (!w) continue;
+    rows.push({ code, name: F.sets[code].nameEn || code, d: w.last.d, v: w.last.v, prev: w.prev ? w.prev.v : null });
   }
-  const latest = rows.map((r) => r.d).sort().pop();
-  const age = latest ? Math.round((Date.parse(DATA_DATE) - Date.parse(latest)) / DAY) : null;
-  if (rows.length && age != null && age <= 10) {
+  const latest = F.psaWeekly.gradeWeek;   // 가장 늦은 주 — 시리즈 갱신일 기준 10일 넘게 낡았으면 null(빌더)
+  if (rows.length && latest) {
     gradeWeek = latest;
     const cur = rows.filter((r) => r.d === latest).sort((a, b) => b.v - a.v);
     const total = cur.reduce((a, r) => a + r.v, 0);

@@ -5,9 +5,10 @@
 //   경매 페이지 문법(숫자 카드 · 세트별 누적 막대 · 박스 이미지 표), 설명문·FAQ 없음, 모바일은 표 4열.
 //   9/15 이전엔 PSA 한 회사 + 보고서식 산문 + 카드별 3사 표였다 — 소유자: "이미지 없이 카드명만 있으면 못 읽는다, 다른 그레이딩도 같이 보여줘라".
 //
-// 데이터: data/grading-series.json (세트×판×회사 누적 시계열 — build-grading-series.js)
-//        data/onepiece-packs.json (psaFull / psaFullEn 최신 PSA 총량·젬 수 — 시계열보다 새롭다)
-//        data/psa-edition-weekly.json (PSA 주간 증감)
+// 데이터(2026-10-15, F4): 세트 행은 사실 파일 data/derived/site-facts.json(tools/build-site-facts.js gradingPageRows) 에서 읽는다 —
+//        sets[code].gradingPage = 판(jp/en) × 등급사(psa/cgc/tag) {total, gem, add, from, to}. 원천은 data/grading-series.json(세트×판×회사 누적 시계열),
+//        packs 의 psaFull / psaFullEn(최신 PSA 총량·젬 수 — 시계열보다 새롭다), data/psa-edition-weekly.json(PSA 주간 증감, 비교 창 = F.psaEditionWeeks).
+//        여기서는 페이지 합계(K)·정렬·그리기만 한다. 원장 직접 읽기 없음(박스 이미지 파일 존재 확인만).
 // 합산 금지: 일본판+영문판을 더하면 어느 쪽도 설명하지 못하는 값이 된다. 같은 판 안에서 회사별 합계는 낸다(누적 막대).
 // 이미지: 세트 박스(/card-img/box/*.webp) 자체 호스팅만.
 // Run: node tools/generate-psa-grading-page.js
@@ -17,14 +18,11 @@ const { navHtml } = require("./site-nav");
 
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.join(ROOT, "psa-grading.html");
-const pk = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const gs = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "grading-series.json"), "utf8"));
-const led = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "psa-edition-weekly.json"), "utf8"));
+const F = require("./build-site-facts").load();
 const ver = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1];
 
-const weeks = led.weeks.slice(-2);
-if (weeks.length < 2) { console.error("주간 비교에 두 점이 필요 — 페이지 미생성"); process.exit(1); }
-const [wPrev, wNow] = weeks;
+if (!F.psaEditionWeeks) { console.error("주간 비교에 두 점이 필요 — 페이지 미생성"); process.exit(1); }
+const { prev: wPrev, now: wNow } = F.psaEditionWeeks;
 const n = (v) => (v == null ? "—" : Math.round(v).toLocaleString("en-US"));
 const sn = (v) => (v == null ? "—" : (v >= 0 ? "+" : "−") + Math.abs(Math.round(v)).toLocaleString("en-US"));
 const pct = (a, b) => (a != null && b ? (a / b * 100).toFixed(1) + "%" : "—");
@@ -34,33 +32,11 @@ const GRN = { psa: "PSA", cgc: "CGC", tag: "TAG" };
 // 최상위 등급의 정의가 회사마다 다르다 — 하나로 뭉뚱그리지 않는다. CGC 는 세트 단위 등급 분포를 수집하지 않아 비율이 없다.
 const TOP = { psa: "PSA 10", cgc: "Pristine 10 + Gem Mint 10", tag: "10 + 10P" };
 
-const codes = [...(pk.jp?.list || []), ...(pk.extra?.list || [])];
-const last = (arr) => (Array.isArray(arr) && arr.length ? arr[arr.length - 1] : null);
-const prev = (arr) => (Array.isArray(arr) && arr.length > 1 ? arr[arr.length - 2] : null);
-const rows = codes.map((code) => {
-  const set = pk.sets[code];
+// 세트 행 — 사실 파일 sets[code].gradingPage(PSA 는 최신 전체 스냅샷, 주간 증감은 판별 원장의 마지막 두 주). 박스 이미지는 파일이 있을 때만.
+const rows = F.order.all.map((code) => {
+  const set = F.sets[code];
   const box = set.box && fs.existsSync(path.join(ROOT, set.box.replace(/^\//, ""))) ? set.box.replace(/^\//, "") : null;
-  const ed = (e) => {
-    const g = (gs.sets[code] || {})[e] || {};
-    const out = {};
-    for (const k of GR) {
-      const l = last(g[k]), p = prev(g[k]);
-      let total = l ? l.total : (g.latestTotal && g.latestTotal.by ? g.latestTotal.by[k] : null);
-      let gem = l && l.gem != null ? l.gem : null;
-      let add = l && l.add != null ? l.add : null, from = p ? p.d : null, to = l ? l.d : null;
-      if (k === "psa") {
-        // PSA 는 최신 전체 스냅샷(psaFull·psaFullEn)이 시계열보다 새롭고, 주간 증감은 판별 원장(psa-edition-weekly)에서 온다.
-        const ps = e === "jp" ? set.psaFull : set.psaFullEn;
-        if (ps) { total = ps.total; gem = ps.gems; }
-        const arr = (led.sets[code] || {})[e] || [];
-        const a = arr.find((x) => x.d === wPrev), b = arr.find((x) => x.d === wNow);
-        if (a && b) { add = b.g - a.g; from = wPrev; to = wNow; } else if (e === "en") { add = null; }
-      }
-      out[k] = total == null ? null : { total, gem, add, from, to };
-    }
-    return out;
-  };
-  return { code, name: set.nameEn || code, box, jp: ed("jp"), en: ed("en") };
+  return { code, name: set.nameEn || code, box, jp: set.gradingPage.jp, en: set.gradingPage.en };
 });
 const tot = (r, e) => GR.reduce((t, k) => t + ((r[e][k] && r[e][k].total) || 0), 0);
 rows.sort((a, b) => (tot(b, "jp") + tot(b, "en")) - (tot(a, "jp") + tot(a, "en")));
@@ -73,7 +49,7 @@ const win = (k, e) => { const r = rows.find((x) => x[e][k] && x[e][k].from); ret
 // 종전엔 CSV 날짜만 써서 같이 내려주는 opbox-ai-grading.json(datasetUpdatedOn 10-15, 10-15 행)보다 하루 이른 10-14 였다.
 const GRADE_SPAN = (() => {
   const DC = require("./dataset-coverage");
-  const csv = DC.gradingSpan(JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "data", "onepiece-packs.json"), "utf8")));
+  const csv = DC.gradingSpan();   // 사실 파일 coverage.grading
   const json = DC.extraSpan("opbox-ai-grading.json");
   const sp = DC.span([csv && csv.from, csv && csv.to, json && json.from, json && json.to]);
   return sp && { ...sp, to: DC.latestDate(sp.to, json && json.modified) };

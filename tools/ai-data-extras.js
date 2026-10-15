@@ -4,10 +4,12 @@
 // (4) 카드 페이지 전체(108장) 색인을 한 파일에 싣는다. 값은 전부 우리 원장에서 그대로 옮기고, 없는 값은 null 이다.
 //
 // 규칙: 추정 금지 · 라벨 보존(sold/ask/NM/PSA) · 날짜 동반 · 내부 필드(검색어·매물 id·판매자) 비공개.
+// 2026-10-15: 카드 페이지 블록(buildCardPages)은 사실 파일(data/derived/site-facts.json — cardPages 색인 + cards[i].ai)에서 조립한다.
+//   등급 인구(buildGrading)·경매(buildAuctions·buildTcgAuctions)는 원장 시계열을 그대로 옮기는 순수 함수로 남긴다 — 사실 빌더가 데이터 기준일을
+//   셀 때와 generate-ai-extras 가 파일을 쓸 때 같은 함수를 부른다. 이 파일은 build-site-facts 를 require 하지 않는다(순환 방지).
 const fs = require("node:fs");
 const path = require("node:path");
-const { SITE, isDate, isPositive, fxAt } = require("./market-data-normalizers");
-const CL = require("./card-list-shared");   // 카드 레어도(공식 카드 리스트) — 세트·카드 상세와 같은 함수
+const { SITE, isDate, isPositive } = require("./market-data-normalizers");
 
 const ROOT = path.resolve(__dirname, "..");
 const readJson = (rel) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return null; } };
@@ -183,47 +185,24 @@ function buildGrading(series, packs) {
   };
 }
 
-// PSA 10 sold 는 원장 통화(KRW/JPY/USD) 그대로 실린다 — 답변 AI 가 KRW 를 달러로 읽는 사고(2026-09-08 llms-full 실측)를 막기 위해
-// 같은 날 환율로 USD 환산값을 병기한다. 원본 필드는 손대지 않는다.
-function withUsd(p, fx) {
-  if (!p) return null;
-  // KRW 로 저장된 실거래는 **관측일(sampleCollectedOn) 환율**로 되돌린다 — 오늘 환율이면 환율 변동만큼 틀어진다(2026-09-09 감사).
-  const histKrw = p.currency === "KRW" ? fxAt(p.sampleCollectedOn) : null;
-  const rate = p.currency === "USD" ? 1 : p.currency === "KRW" && (histKrw || fx?.usdKrw) ? 1 / (histKrw || fx.usdKrw) : p.currency === "JPY" && fx?.usdKrw && fx?.jpyKrw ? fx.jpyKrw / fx.usdKrw : null;
-  if (!rate) return p;
-  const usd = (v) => (Number.isFinite(v) ? Math.round(v * rate * 100) / 100 : null);
-  return { ...p, medianUsd: usd(p.median), rangeLowUsd: usd(p.rangeLow), rangeHighUsd: usd(p.rangeHigh), fxObservedOn: histKrw ? p.sampleCollectedOn : (fx?.date || null) };
-}
-
 /** Every published card price page, with the same numbers the page shows. */
-function buildCardPages(data, cardMap, fx, datasetUpdatedOn, helpers) {
-  if (!cardMap || !data?.sets) return null;
-  const index = new Map();
-  for (const [code, set] of Object.entries(data.sets)) {
-    for (const card of set.cards || []) {
-      if (!card.number) continue;
-      const key = `${card.number}|${norm(card.name)}`;
-      const isHome = card.number.replace("-", "").toUpperCase().startsWith(code.replace("-", "").toUpperCase());
-      const prev = index.get(key);
-      if (!prev || (isHome && !prev.isHome)) index.set(key, { code, card, isHome });
-    }
-  }
-  const pages = [];
-  for (const [key, file] of Object.entries(cardMap)) {
-    const hit = index.get(key);
-    if (!hit) continue;
-    const { code, card } = hit;
-    pages.push({
+// 색인(같은 카드가 두 세트에 있으면 번호가 그 세트 것인 쪽)은 사실 빌더(cardPageIndex → facts.cardPages). PSA 10 sold 는 원장 통화 그대로 + 관측일
+// 환율의 USD 환산 병기(market-data-normalizers.withUsd → cards[i].ai.psa10SoldUsd) — 답변 AI 가 KRW 를 달러로 읽는 사고(2026-09-08)를 막는다.
+function buildCardPages(facts) {
+  if (!facts || !facts.cardPages) return null;
+  const pages = facts.cardPages.map(({ code, i, file }) => {
+    const card = facts.sets[code].cards[i];
+    return {
       // 레어도 = 공식 카드 리스트의 그 인쇄 레어도(card-list-shared.rarityCode — 세트·카드 상세와 같은 코드, 2026-10-15).
-      cardNumber: card.number, name: card.name || null, rarity: CL.rarityCode(code, card) || null,
+      cardNumber: card.number, name: card.name || null, rarity: card.rarity || null,
       containerSetCode: code,
       url: `${SITE}/cards/${file}`,
       exactVariantRequired: true,
-      rawNmAsk: helpers.rawNmAsk(card, fx, datasetUpdatedOn),
-      psa10Sold: withUsd(helpers.psa10Sold(card, datasetUpdatedOn), fx),
-      psaPopulation: helpers.psaPopulation(card, datasetUpdatedOn),
-    });
-  }
+      rawNmAsk: card.ai.rawNmAsk,
+      psa10Sold: card.ai.psa10SoldUsd,
+      psaPopulation: card.ai.psaPopulation,
+    };
+  });
   pages.sort((a, b) => (b.rawNmAsk?.usdEquivalent || 0) - (a.rawNmAsk?.usdEquivalent || 0));
   return {
     note: "One page per tracked card variant. Numbers match the page; rawNmAsk is a Japanese retail asking price, psa10Sold a verified eBay sold median.",

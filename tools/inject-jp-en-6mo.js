@@ -17,7 +17,6 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/japanese-vs-english-box-price-data-2026.html");
-const SERIES = path.join(ROOT, "data/box-sold-series.json");
 // STALE_DAYS(28) 는 box-sold-series 의 staleDays — current 가 이미 그 기준으로 걸러져 있다.
 const NOW_TH = ["JP now", "EN now", "EN/JP now"];
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -26,9 +25,10 @@ const usd = (v) => "$" + Math.round(v).toLocaleString("en-US");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const skip = (reason) => { console.log(JSON.stringify({ status: "skip", reason })); process.exit(0); };
 
-if (!fs.existsSync(ART) || !fs.existsSync(SERIES)) skip("file missing");
-const STORE = JSON.parse(fs.readFileSync(SERIES, "utf8"));
-const S = STORE.sets || {};
+if (!fs.existsSync(ART)) skip("file missing");
+// 현재가(current)·기준일(asOf)·세트 이름은 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15.
+const F = require("./build-site-facts").load();
+const S = Object.fromEntries(F.order.series.map((c) => [c, F.sets[c]]));
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
 const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
@@ -58,13 +58,11 @@ for (const tr of tbody[0].matchAll(/<tr>([\s\S]*?)<\/tr>/g)) {
 if (!Object.keys(hist).length) skip("표 행을 못 찾음");
 
 // 표에 없던 세트(관측이 하나라도 있는 것)는 행을 추가한다. 과거 열은 "—".
-let PACKS = {};
-try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")); PACKS = p.sets || p; } catch {}
 const added = [];
 for (const code of Object.keys(S)) {
   if (hist[code]) continue;
-  if (!((S[code].jp || []).length || (S[code].en || []).length)) continue;
-  const en = PACKS[code] && PACKS[code].nameEn;
+  if (!(S[code].hasPoints.jp || S[code].hasPoints.en)) continue;
+  const en = S[code].nameEn;
   hist[code] = [`<td>${esc(en ? `${code} ${en}` : code)}</td>`].concat(Array(H - 1).fill("<td>—</td>"));
   added.push(code);
 }
@@ -73,9 +71,9 @@ const order = Object.keys(hist).sort((a, b) => ord(a) - ord(b));
 
 // 기준일·현재가는 box-sold-series 의 asOf·current — 모든 페이지 표가 같은 칸을 읽는다(2026-10-14, 가드 D17).
 // current 는 발매 후·28일 이내만 값. 미발매 세트의 예약판매는 시계열에 없다(전엔 OP-18 $110 이 "JP now" 에 섞였다).
-const dataDate = STORE.asOf || "";
+const dataDate = F.series.asOf || "";
 if (!dataDate) skip("no series dates");
-const fresh = (c, ed) => (S[c] && S[c].current && S[c].current[ed]) || null;
+const fresh = (c, ed) => (S[c] && S[c].current[ed]) || null;
 
 const rows = [];
 let jpN = 0, enN = 0, pairs = 0;

@@ -60,14 +60,14 @@ const RE = {
 const missing = Object.keys(RE).filter((k) => !RE[k].test(html));
 if (missing.length) fail("필수 자리 못 찾음", { missing });
 
-let S, FX, PACKS = {};
+// 마지막 주간 점·세트 이름·OP-17 정가(팩 수 × 팩 정가의 달러 환산)는 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15.
+// 현지 통화(sea) 환율은 data/fx.json 에만 있어 그대로 읽는다(날짜·jpyKrw·usdKrw 는 packs.fx 와 같은 값 — update-fx 가 둘 다 쓴다).
+const F = require("./build-site-facts").load();
+const S = Object.fromEntries(F.order.series.map((c) => [c, F.sets[c]]));
+let FX;
 try {
-  S = JSON.parse(fs.readFileSync(path.join(ROOT, "data/box-sold-series.json"), "utf8")).sets || {};
   FX = JSON.parse(fs.readFileSync(path.join(ROOT, "data/fx.json"), "utf8"));
 } catch (e) { skip("data missing: " + e.message); }
-try { const p = JSON.parse(fs.readFileSync(path.join(ROOT, "data/onepiece-packs.json"), "utf8")); PACKS = p.sets || p; } catch {}
-let FACTS = {};
-try { const f = JSON.parse(fs.readFileSync(path.join(ROOT, "data/set-facts.json"), "utf8")); FACTS = f.sets || f; } catch {}
 const SEA = FX.sea || {};
 if (!FX.date || !CUR.every((c) => Number.isFinite(SEA[c.code]))) skip("fx.json sea 환율 없음");
 
@@ -75,7 +75,7 @@ const tbody = html.match(RE.tbody)[0];
 const names = {};
 const order = [];
 for (const m of tbody.matchAll(/<tr><td>((?:OP|EB|PRB)-\d{2})([^<]*)<\/td>/g)) {
-  const en = PACKS[m[1]] && PACKS[m[1]].nameEn;
+  const en = F.sets[m[1]] && F.sets[m[1]].nameEn;
   names[m[1]] = m[2].trim() ? m[1] + " " + m[2].trim() : en ? `${m[1]} ${en}` : m[1];
   order.push(m[1]);
 }
@@ -84,14 +84,13 @@ const msrp = tbody.match(/<tr><td>(<em>[^<]*MSRP[^<]*<\/em>)<\/td>/);
 
 let dataDate = "";
 for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) {
-  const a = (S[c] && S[c][ed]) || [];
-  if (a.length && a[a.length - 1].d > dataDate) dataDate = a[a.length - 1].d;
+  const l = S[c].lastPoint[ed];
+  if (l && l.d > dataDate) dataDate = l.d;
 }
 if (!dataDate) skip("no series dates");
 const now = Date.parse(dataDate);
 const fresh = (c) => {
-  const a = (S[c] && S[c].jp) || [];
-  const l = a.length ? a[a.length - 1] : null;
+  const l = S[c] ? S[c].lastPoint.jp : null;
   return l && Date.parse(l.d) >= now - STALE_DAYS * 86400000 ? l : null;
 };
 const local = (u) => CUR.map((c) => `<td>${u == null ? "—" : c.cell(u * SEA[c.code])}</td>`).join("");
@@ -104,12 +103,11 @@ for (const code of order) {
   rows.push(`          <tr><td>${names[code]}</td><td>${j ? usd(j.median) : "—"}</td>${local(j ? j.median : null)}</tr>`);
 }
 if (!freshRows) skip("신선한 JP 관측이 없다");
-// 정가 행 — OP-17 packsPerBox × jpMsrpYenPerPack(엔) → USD(jpyKrw / usdKrw). 현지 통화는 반올림 전 USD 에서. 못 읽으면 "—".
+// 정가 행 — OP-17 packsPerBox × jpMsrpYenPerPack(엔) → USD(jpyKrw / usdKrw) = 사실 파일 msrpUsd.jpBoxFromPack. 현지 통화는 반올림 전 USD 에서. 못 읽으면 "—".
 const MSRP_SET = "OP-17";
-const mf = FACTS[MSRP_SET] || {};
-const msrpUsd = mf.packsPerBox && mf.jpMsrpYenPerPack && FX.jpyKrw && FX.usdKrw
-  ? (mf.packsPerBox * mf.jpMsrpYenPerPack * FX.jpyKrw) / FX.usdKrw
-  : null;
+const mfs = F.sets[MSRP_SET] || null;
+const mf = mfs ? { packsPerBox: mfs.keyFacts.jp.packsPerBox, jpMsrpYenPerPack: mfs.keyFacts.jp.msrp.jpPack } : {};
+const msrpUsd = mfs ? mfs.msrpUsd.jpBoxFromPack : null;
 if (msrp) rows.push(`          <tr><td>${msrp[1]}</td><td>${msrpUsd == null ? "—" : "~" + usd(msrpUsd)}</td>${local(msrpUsd)}</tr>`);
 
 const before = html;

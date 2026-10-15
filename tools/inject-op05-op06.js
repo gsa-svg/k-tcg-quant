@@ -24,8 +24,6 @@ const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
 const ART = path.join(ROOT, "articles/op-05-vs-op-06.html");
-const SERIES = path.join(ROOT, "data/box-sold-series.json");
-const PACKS_FILE = path.join(ROOT, "data/onepiece-packs.json");
 const STALE_DAYS = 28;
 const MISMATCH_PCT = 10;
 const [A, B] = ["OP-05", "OP-06"];
@@ -39,10 +37,12 @@ const sales = (n) => `${n} ${n === 1 ? "sale" : "sales"}`;
 const DASH = "—";
 
 const skip = (reason) => { console.log(JSON.stringify({ status: "skip", reason })); process.exit(0); };
-if (!fs.existsSync(ART) || !fs.existsSync(SERIES) || !fs.existsSync(PACKS_FILE)) skip("file missing");
-const S = JSON.parse(fs.readFileSync(SERIES, "utf8")).sets || {};
-const packsRaw = JSON.parse(fs.readFileSync(PACKS_FILE, "utf8"));
-const P = packsRaw.sets || packsRaw;
+if (!fs.existsSync(ART)) skip("file missing");
+// 마지막 주간 점·호가 관측·PSA 집계·발매일·세트 이름은 사실 파일(data/derived/site-facts.json)에서 — 2026-10-15. 이 글의 신선도 규칙(기준일 = 아래 날짜 중 가장 늦은 날,
+// 그로부터 28일)은 글 고유라 여기 둔다(다른 표는 판매 원장 asOf 기준 current 를 쓴다).
+const F = require("./build-site-facts").load();
+const S = Object.fromEntries(F.order.series.map((c) => [c, F.sets[c]]));
+const P = Object.fromEntries(F.order.all.map((c) => [c, F.sets[c]]));
 if (!P[A] || !P[B]) skip("packs.json 에 세트 없음");
 let html = fs.readFileSync(ART, "utf8");
 const crlf = html.includes("\r\n");
@@ -61,14 +61,14 @@ if (missing.length) {
 }
 
 // 기준일
-const lastObs = (c, ed) => { const a = (S[c] && S[c][ed]) || []; return a.length ? a[a.length - 1] : null; };
-const active = (c, ed) => (P[c].boxMarket && P[c].boxMarket[ed] && P[c].boxMarket[ed].ebayActive) || null;
+const lastObs = (c, ed) => (S[c] && S[c].lastPoint[ed]) || null;
+const active = (c, ed) => P[c].ebayActive[ed] || null;
 let dataDate = "";
 const bump = (d) => { if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d) && d > dataDate) dataDate = d; };
 for (const c of Object.keys(S)) for (const ed of ["jp", "en"]) { const l = lastObs(c, ed); if (l) bump(l.d); }
 for (const c of [A, B]) {
   for (const ed of ["jp", "en"]) { const m = active(c, ed); if (m) bump(m.updated); }
-  if (P[c].psaFull) bump(P[c].psaFull.updated);
+  if (P[c].grading.psa.jp) bump(P[c].grading.psa.jp.updated);
 }
 if (!dataDate) skip("no data dates");
 const now = Date.parse(dataDate);
@@ -82,7 +82,7 @@ const listing = (c, ed) => {
   return m && isFresh(m.updated) && bl && bl.currency === "USD" && bl.total > 0 ? bl.total : null;
 };
 const psa = (c) => {
-  const f = P[c].psaFull;
+  const f = P[c].grading.psa.jp;
   if (!f || !isFresh(f.updated)) return null;
   return { total: f.total > 0 ? f.total : null, gem: Number.isFinite(f.gemRate) ? f.gemRate : null };
 };

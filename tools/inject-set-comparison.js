@@ -21,61 +21,24 @@
 // Run: node tools/inject-set-comparison.js
 const fs = require("fs");
 const path = require("path");
-const { priciest, boxChange28 } = require("./market-data-normalizers");
 
 const ROOT = path.join(__dirname, "..");
 const MARK_START = "<!-- SET-COMPARISON:START -->";
 const MARK_END = "<!-- SET-COMPARISON:END -->";
 
-const packs = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
-const series = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8"));
-const fx = packs.fx || {};
+// 행은 사실 파일(data/derived/site-facts.json compare.rows — tools/build-site-facts.js) — 2026-10-15.
+//   현재가 칸은 box-sold-series 의 current(발매됐고 마지막 점이 asOf 로부터 28일 이내일 때만 값, 아니면 "—").
+//   2026-09-30 발견: OP-02 일본판이 84일 전(7/8) 값을 표시 없이 현재가처럼 보여주고 있었다.
+//   2026-10-14: 미발매 EB-05·OP-18 의 예약판매가 실거래 중앙값으로 들어가 EB-05 "−42%" 같은 숫자가 나왔다 → 예약판매는 시계열에서 빠졌고(preRelease),
+//   미발매 세트 행은 남기되 값 칸은 전부 "—".
+//   가장 비싼 카드 = market-data-normalizers.priciest(검증된 NM 최댓값, 동가 전부) — 세트 페이지 Key facts·한국어 문단과 같은 값. 모르면 칸을 비운다.
+//   4-wk = boxChange28(current vs 28일 이상 앞선 마지막 점) — 세트 페이지·홈 board 와 같은 값(종전 "5점 전"은 OP-06 이 +7% / -6.5% 로 갈렸다).
+const F = require("./build-site-facts").load();
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const money = (v) => (v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"));
 
-// 현재가 칸은 box-sold-series 의 current — 발매됐고 마지막 점이 asOf 로부터 28일 이내일 때만 값, 아니면 "—".
-// 2026-09-30 발견: OP-02 일본판이 84일 전(7/8) 값을 표시 없이 현재가처럼 보여주고 있었다.
-// 2026-10-14: 미발매 EB-05·OP-18 의 예약판매가 실거래 중앙값으로 들어가 EB-05 "−42%" 같은 숫자가 나왔다 →
-//   예약판매는 시계열에서 빠졌고(preRelease), 미발매 세트 행은 남기되 값 칸은 전부 "—".
-function buildRows() {
-  const rows = [];
-  for (const [code, eds] of Object.entries(series.sets || {})) {
-    const jp = (eds.jp || []).filter((x) => Number.isFinite(x.median));
-    const unreleased = !!(eds.release && eds.release.jp && series.asOf && eds.release.jp > series.asOf);
-    if (!jp.length && !unreleased) continue;
-    const cur = eds.current || {};
-    const now = cur.jp || { median: null, n: null };
-    const enNow = cur.en || null;
-    const set = packs.sets?.[code] || {};
-
-    // 그 세트에서 가장 비싼 카드 = market-data-normalizers.priciest(검증된 NM 최댓값) — 세트 페이지 Key facts·추적 문단·한국어 문단과 같은 함수.
-    // 모르면(검증 안 된 값이 1위 값 이상 — OP-08·OP-15·PRB-01·PRB-02·EB-02(5차)) 칸을 비운다. 다음 카드를 1위로 올리지 않는다(2026-10-15, 4차).
-    // 동가는 전부 적는다 — 세트 페이지와 같은 목록(2026-10-15, 4차: OP-16 이 "Kuzan (Manga)" 하나, 세트 페이지는 망가 3장).
-    const top = priciest(set.cards || [], fx);
-
-    // 4-wk = 세트 페이지 "4-week change"·홈 board 와 같은 값(boxChange28 — current vs 28일 이상 앞선 마지막 점) — 2026-10-15(4차).
-    // 종전 "5점 전(jp[len-5])"은 빈 주가 있으면 4주가 아니어서 OP-06 이 비교표 +7% · 세트 페이지 -6.5% 였다.
-    const change = boxChange28(jp, eds.current && eds.current.jp);
-    const chg = change ? change.pct : null;
-    rows.push({
-      code,
-      name: set.nameEn || "",
-      jp: now.median,
-      jpN: now.n,
-      en: enNow ? enNow.median : null,
-      enN: enNow ? enNow.n : null,
-      chg,
-      ratio: enNow && now.median ? enNow.median / now.median : null,
-      topNames: top ? top.ties.map((c) => c.name) : null,
-      topUsd: top ? top.price.usd : null,   // 카드 상세·세트 Top 10·AI 피드와 같은 환산(2026-10-15)
-      topDate: top ? top.price.date : null,   // NM 관측일 — 표의 "As of" 와 다를 때만 칸에 붙인다(2026-10-15, 5차: OP-12 09-07 값이 10-15 값처럼 읽혔다)
-      gem: set.psaFull?.gemRate ?? null,
-    });
-  }
-  rows.sort((a, b) => a.code.localeCompare(b.code));
-  return rows;
-}
+const buildRows = () => F.compare.rows;
 
 function tableHtml(rows, updated) {
   const body = rows.map((r) => {
@@ -117,14 +80,14 @@ function inject(file, html) {
 
 const rows = buildRows();
 if (rows.length < 10) throw new Error(`세트가 ${rows.length}개뿐 — 시계열 로딩 실패 의심`);
-const html = tableHtml(rows, series.asOf || series.updated || packs.updated || "");
+const html = tableHtml(rows, F.compare.asOf || "");
 const out = ["compare.html", "articles/best-one-piece-booster-box.html"].map((f) => inject(f, html));
 
 // 글의 수정일(JSON-LD dateModified·화면 Updated)을 표의 "As of" 날짜에 맞춘다.
 // 2026-09-30 발견: 표는 매일 바뀌는데 수정일이 2026-08-10 에 멈춰 있었다(가드 U1).
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
-const asOf = series.asOf || series.updated || packs.updated || "";
+const asOf = F.compare.asOf || "";
 if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
   const p = path.join(ROOT, "articles/best-one-piece-booster-box.html");
   let s = fs.readFileSync(p, "utf8");

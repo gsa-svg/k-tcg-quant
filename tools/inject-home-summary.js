@@ -14,25 +14,21 @@ const START = "<!-- HOME_SUMMARY:START -->";
 const END = "<!-- HOME_SUMMARY:END -->";
 
 const CACHE = (fs.readFileSync(path.join(ROOT, "packs.js"), "utf8").match(/DATA_VERSION = "([^"]+)"/) || [])[1] || "dev";
-const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
+// 사실 한 벌(data/derived/site-facts.json, tools/build-site-facts.js) — 2026-10-15. 시세판(board)·최저/최고 박스(동가 전부)·4주 등락 집계·Dataset 기간이 여기서 온다.
+const F = require("./build-site-facts").load();
 // 홈에서 영문판 세트 페이지·상위 카드 페이지로 가는 링크가 0 이었다(2026-09-09 SEO 감사: 신규 154 URL 의 내부링크가 얕아 크롤 우선순위가 낮다).
 // 시세표 행마다 영문판 페이지(있을 때)와 1위 카드 페이지(있을 때) 링크를 단다. 카드 슬러그는 generate-card-pages 산출물(card-map.json)에서 온다.
 const CARD_MAP = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8")); } catch { return {}; } })();
 const cardSlug = (c) => (c && c.number ? CARD_MAP[c.number + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")] : null);
-// marketIndex 는 세트별 시세판(board) 공급원으로만 쓴다 — 지수 숫자·개봉미터 표시는
+// board 는 세트별 시세판 공급원으로만 쓴다 — 지수 숫자·개봉미터 표시는
 // 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
-const mi = d.marketIndex;
-const fx = d.fx || {};
-const DATA_DATE = d.updated || "";
+const DATA_DATE = F.dataDate;
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const usd = (n) => (n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US"));
 
-function orderKey(code) {
-  const m = code.match(/^([A-Z]+)-?(\d+)/);
-  const fam = { OP: 0, EB: 1, PRB: 2 }[m ? m[1] : "OP"] ?? 9;
-  return fam * 1000 + (m ? parseInt(m[2], 10) : 0);
-}
-const rows = [...mi.board].sort((a, b) => orderKey(a.code) - orderKey(b.code));
+// 세트번호 자연정렬(OP → EB → PRB) — 사실 파일 order.board.
+const BOARD = Object.fromEntries(F.board.map((b) => [b.code, b]));
+const rows = F.order.board.map((code) => BOARD[code]);
 
 // 현재가 = board(= box-sold-series current.jp) — 2026-10-14 QA. 마지막 중앙값 점이 asOf 로부터 28일 밖이면 board 가 값·날짜·등락을
 // 비워 둔다(build-market-index). 그 행은 "—" 로 남긴다 — 모든 표가 같은 규칙(값+그 날짜 / "—"). 날짜 칸은 그 중앙값 점의 날짜이고,
@@ -42,7 +38,7 @@ const mmdd = (iso) => (iso ? iso.slice(5) : "—");
 const NO_MEDIAN = `No sold median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window)`;
 const nCell = (b) => (b.n != null ? `<small> n=${b.n}${b.windowDays ? `/${b.windowDays}d` : ""}</small>` : "");
 const tr = rows.map((b) => {
-  const s = d.sets[b.code] || {};
+  const s = F.sets[b.code] || { cards: [] };
   const none = b.nowUsd == null;
   const chg = none ? null : b.changePct;
   const slug = b.code.toLowerCase();
@@ -59,24 +55,24 @@ const tr = rows.map((b) => {
 
 
 // ── 홈은 현재 사실상 유일하게 색인된 페이지 → 검색어 표면적을 최대한 넓힌다.
-// 답변은 전부 검증된 데이터에서 파생(추정 금지). 값이 없으면 그 항목을 만들지 않는다.
-const byPrice = [...rows].filter((b) => b.nowUsd != null).sort((a, b) => b.nowUsd - a.nowUsd);
-const cheapest = byPrice[byPrice.length - 1];
+// 답변은 전부 검증된 데이터에서 파생(추정 금지, 사실 파일 home). 값이 없으면 그 항목을 만들지 않는다.
+const H = F.home;
+const cheapest = H.cheapest ? { nowUsd: H.cheapest.usd } : null;
 // 최저가가 같은(화면 금액 기준) 세트는 표 순서대로 모두 적는다 — 2026-10-15(5차): OP-07·OP-08 이 둘 다 $80 인데 FAQ 는 OP-08 하나,
-// 한국어 허브는 OP-07 하나였다. 한국어 허브(generate-ko-pages)와 같은 규칙.
-const cheapAll = rows.filter((b) => b.nowUsd != null && usd(b.nowUsd) === usd(cheapest.nowUsd));
+// 한국어 허브는 OP-07 하나였다. 한국어 허브(generate-ko-pages)와 같은 규칙(사실 파일 home.cheapest.codes).
+const cheapAll = H.cheapest ? H.cheapest.codes.map((c) => BOARD[c]) : [];
 const andList = (xs) => (xs.length <= 2 ? xs.join(" and ") : `${xs.slice(0, -1).join(", ")}, and ${xs[xs.length - 1]}`);
-const priciest = byPrice[0];
-const nameOf = (c) => (d.sets[c] || {}).nameEn || c;
+const priciest = H.priciest ? { code: H.priciest.code, nowUsd: H.priciest.usd } : null;
+const byPrice = [priciest, H.runnerUp ? { code: H.runnerUp.code, nowUsd: H.runnerUp.usd } : null];
+const nameOf = (c) => (F.sets[c] || {}).nameEn || c;
 
 // 상승/하락은 세트별로만 말한다 — 시장 전체를 숫자 하나로 요약하던 지수는 삭제됨(2026-07-29).
 // 28일 넘게 거래 없는 세트는 4주 등락 집계에서도 뺀다 — 표에서 "—" 로 비운 값을 문장에서 세면 안 된다.
-const withChg = rows.filter((b) => b.changePct != null && b.nowUsd != null);
-const byChg = [...withChg].sort((a, b) => b.changePct - a.changePct);
-const nUp = withChg.filter((b) => b.changePct > 0).length;
-const nDn = withChg.filter((b) => b.changePct < 0).length;
-const topUp = byChg[0];
-const topDn = byChg[byChg.length - 1];
+const withChg = { length: H.withChg };
+const nUp = H.nUp;
+const nDn = H.nDn;
+const topUp = H.topUp ? { code: H.topUp.code, changePct: H.topUp.pct } : null;
+const topDn = H.topDn ? { code: H.topDn.code, changePct: H.topDn.pct } : null;
 
 // 2026-10-15 소유자 결정(데이터 페이지 = 숫자·표·라벨만): 답이 데이터 사실인 문항만 남긴다.
 //   "worth buying sealed?"(해석)·"Where can I check … for free?"(사이트 소개) 문항과, 답 안의 사이트 설명
@@ -101,9 +97,9 @@ const faqLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "FAQPage",
   mainEntity: faqs.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
 });
-// temporalCoverage = 배포 파일(opbox-ai-data.json)에 실린 관측일 범위 — free-data 의 같은 Dataset 과 한 함수(tools/dataset-coverage.js).
+// temporalCoverage = 배포 파일(opbox-ai-data.json)에 실린 관측일 범위 — free-data 의 같은 Dataset 과 같은 값(사실 파일 coverage.aiData).
 // 2026-10-14 QA: 홈은 표의 날짜로, free-data 는 파일의 날짜로 따로 세서 같은 파일의 기간이 페이지마다 달랐다.
-const AI_SPAN = require("./dataset-coverage").aiDataSpan(d);
+const AI_SPAN = F.coverage.aiData;
 const dsLd = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
   name: "One Piece TCG box markets and Top 7 card data",
@@ -160,10 +156,9 @@ ${tr}
 // ── 가장 싼 일본판 박스 5개 — 2026-10-14(W6a). "cheapest one piece booster box" 질의는 AI 인용 70건인데 일반검색은 10위 밖이었다.
 //    같은 board 값(= current)을 가격 오름차순으로 다섯 줄. 정렬 라벨일 뿐 결론 문장은 없다. current 가 없는 세트는 넣지 않는다.
 //    n 칸은 그 점의 평균 창 안 판매 건수(창 길이 함께) — 2026-10-14 QA: "n (week)" 라벨이 창 전체 건수를 주간 건수처럼 보이게 했다.
-const CHEAP_N = 5;
-const cheapRows = [...rows].filter((b) => b.nowUsd != null).sort((a, b) => a.nowUsd - b.nowUsd || orderKey(a.code) - orderKey(b.code)).slice(0, CHEAP_N);
+const cheapRows = H.cheapRows.map((c) => BOARD[c]);   // 가격 오름차순 5개(사실 파일 home.cheapRows)
 const cheapTr = cheapRows.map((b) => {
-  const s = d.sets[b.code] || {};
+  const s = F.sets[b.code] || {};
   const slug = b.code.toLowerCase();
   return `<tr><td><a href="sets/${slug}.html">${esc(b.code)}</a><br><small>${esc(s.nameEn || "")}</small></td><td class="num">${usd(b.nowUsd)}</td><td class="num when">${esc(b.nowDate || "—")}</td><td class="num">${b.n != null ? b.n : "—"}${b.windowDays ? `<small> / ${b.windowDays}d</small>` : ""}</td></tr>`;
 }).join("\n");

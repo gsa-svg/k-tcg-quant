@@ -218,4 +218,116 @@ function boxChange28(points, cur) {
   return prior ? { pct: Math.round((cur.median / prior.median - 1) * 1000) / 10, basis: prior.d } : null;
 }
 
-module.exports = { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd, fxAt, psa10Usd, nmUsable, nmUsd, rawPrice, tcgSpikes, rawValues, priciest, countedValues, boxChange28 };
+// ── 아래 함수들은 2026-10-15 에 set-page-shared.js·ai-data-model.js·ai-data-extras.js 에서 옮겨 왔다.
+//    이 파일의 함수는 순수 함수이고, 부르는 곳은 tools/build-site-facts.js(사실 빌더) 하나다 — 생성기는 data/derived/site-facts.json 을 읽는다.
+
+// 날짜 목록 중 가장 늦은 ISO 날짜(없으면 null) — 페이지 수정일·허브 기준일·Dataset 수정일이 쓴다.
+const latestDate = (...ds) => ds.filter((d) => isDate(d)).sort().pop() || null;
+
+// eBay 파트너 네트워크(EPN) 추적 파라미터. 모든 eBay 링크 끝에 붙는다 — 빠지면 수수료가 잡히지 않는다.
+const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
+// eBay 호스트·https 를 검증하고 EPN 추적 파라미터를 붙인다. 하나라도 어긋나면 null(링크를 만들지 않는다).
+function epnUrl(raw) {
+  if (!raw) return null;
+  let u;
+  try { u = new URL(String(raw)); } catch { return null; }
+  if (u.protocol !== "https:") return null;
+  if (!/(^|[.])ebay[.][a-z.]+$/i.test(u.hostname)) return null;
+  if (u.searchParams.get("campid")) return u.href; // 이미 붙어 있음
+  for (const kv of EPN.split("&")) {
+    const i = kv.indexOf("=");
+    u.searchParams.set(kv.slice(0, i), kv.slice(i + 1));
+  }
+  return u.href;
+}
+
+// 재판 기록 분류 — 2026-10-15(4차). 영문 세트·한국어 세트·한국어 허브·홈 배지(board.reprints)가 이 함수 하나를 쓴다.
+// 기준은 반다이 측 문구 하나: "再販"이라 적힌 추첨(kind official-reprint-lottery — OP-09 반다이남코샵 2024-10)은 재판으로 세고,
+// 그 말이 없는 발매 후 추첨(official-lottery — OP-13 2025-12·OP-16 2026-06)은 재판 횟수에 넣지 않는다. 발매 전 추첨(pre-release-lottery)은 초판 배정이라 싣지 않는다.
+//   reprint = 리테일러·유통사 재입고 + 再販 추첨(= 재판 횟수) · lottery = 再販 표기 없는 발매 후 추첨 · unverified = 발매 전후 미확인 추첨
+function splitReprints(records) {
+  const kind = (r) => String((r && r.kind) || "");
+  const recs = (records || []).filter((r) => r && !/pre-release/i.test(kind(r)));
+  const unverified = recs.filter((r) => /unverified-timing/i.test(kind(r)));
+  const lottery = recs.filter((r) => kind(r) === "official-lottery");
+  const reprint = recs.filter((r) => !unverified.includes(r) && !lottery.includes(r));
+  return { reprint, lottery, unverified };
+}
+
+// 영문판 값이 재판(White) 위주인가 — 그래프 배지(box-chart.js badgeFor)와 같은 기준(reprintPct.en ≥ 60).
+// 2026-09-30: OP-01 영문판 $1,487 은 재판만의 값인데 배지는 그래프에만 있고 지표칸·Key facts·FAQ·설명에는 없었다.
+const enIsReprint = (series) => (((series && series.reprintPct) || {}).en || 0) >= 60;
+
+// ── AI 피드(opbox-ai-data.json·opbox-ai-cards.json)의 카드 블록 — 2026-10-15 ai-data-model.js 에서 옮김.
+// NM 관측일 = 그 변형을 실제로 다시 읽은 날(card.nmUpdated). 읽은 날이 없는 값은 날짜를 지어내지 않고 싣지 않는다(null).
+// 싣는 조건은 페이지와 같은 술어 하나(nmUsable) — 종전엔 피드만 따로 걸러 피드 null · 페이지 $1,250 이었다.
+function rawNmAsk(card, fx, datasetUpdatedOn) {
+  if (!nmUsable(card)) return null;
+  const observedOn = card.nmUpdated;
+  return {
+    basis: "japanese_retail_asking_price",
+    currency: "JPY",
+    priceJpy: card.nmJpy,
+    usdEquivalent: toUsd(card.nmJpy, "JPY", fx),
+    fxObservedOn: isDate(fx.date) ? fx.date : null,
+    // 외부 소스명은 공개하지 않는다(소유자 규칙 S1 — "Weekly ungraded market" 식 중립 라벨만). 업체명이 여기로 새어 나갔었다(2026-09-09 감사).
+    sourceName: "Japanese retailer",
+    stockStatus: stockStatus(card.nmStock),
+    observedOn,
+    ageDaysAtDatasetUpdate: ageDays(datasetUpdatedOn, observedOn),
+  };
+}
+
+function psa10Sold(card, datasetUpdatedOn) {
+  const sold = card.psa10Ebay;
+  if (!sold?.soldBased || !Number.isInteger(sold.sampleSize) || sold.sampleSize < 3 || !isDate(sold.updated)) return null;
+  if (![sold.low, sold.middle, sold.high].every(isPositive) || !(sold.low <= sold.middle && sold.middle <= sold.high)) return null;
+  if (!["USD", "KRW", "JPY"].includes(sold.currency)) return null;
+  const rangePercentiles = /manual, variant-matched/i.test(sold.source || "")
+    ? [25, 75]
+    : /completed search/i.test(sold.source || "") ? [15, 85] : null;
+  if (!rangePercentiles) return null;
+  return {
+    basis: "completed_sales",
+    grade: "PSA 10",
+    market: "eBay",
+    currency: sold.currency,
+    median: sold.middle,
+    rangeLow: sold.low,
+    rangeHigh: sold.high,
+    rangePercentiles,
+    sampleSize: sold.sampleSize,
+    sampleCollectedOn: sold.updated,
+    ageDaysAtDatasetUpdate: ageDays(datasetUpdatedOn, sold.updated),
+  };
+}
+
+function psaPopulation(card, datasetUpdatedOn) {
+  const pop = card.graderPop?.psa?.jp;
+  if (!pop || !isDate(pop.d) || !Number.isInteger(pop.total) || pop.total < 0) return null;
+  const validGrade = (value) => Number.isInteger(value) && value >= 0 && value <= pop.total;
+  let grade10 = validGrade(pop.g10) ? pop.g10 : null;
+  let grade9 = validGrade(pop.g9) ? pop.g9 : null;
+  if ((grade10 ?? 0) + (grade9 ?? 0) > pop.total) grade10 = grade9 = null;
+  return {
+    printing: "japanese",
+    total: pop.total,
+    grade10,
+    grade9,
+    observedOn: pop.d,
+    ageDaysAtDatasetUpdate: ageDays(datasetUpdatedOn, pop.d),
+  };
+}
+
+// PSA 10 sold 는 원장 통화(KRW/JPY/USD) 그대로 실린다 — 답변 AI 가 KRW 를 달러로 읽는 사고(2026-09-08 llms-full 실측)를 막기 위해
+// 같은 날 환율로 USD 환산값을 병기한다. KRW 저장값은 **관측일(sampleCollectedOn) 환율**로 되돌린다(2026-09-09 감사). 원본 필드는 손대지 않는다.
+function withUsd(p, fx) {
+  if (!p) return null;
+  const histKrw = p.currency === "KRW" ? fxAt(p.sampleCollectedOn) : null;
+  const rate = p.currency === "USD" ? 1 : p.currency === "KRW" && (histKrw || fx?.usdKrw) ? 1 / (histKrw || fx.usdKrw) : p.currency === "JPY" && fx?.usdKrw && fx?.jpyKrw ? fx.jpyKrw / fx.usdKrw : null;
+  if (!rate) return p;
+  const usd = (v) => (Number.isFinite(v) ? Math.round(v * rate * 100) / 100 : null);
+  return { ...p, medianUsd: usd(p.median), rangeLowUsd: usd(p.rangeLow), rangeHighUsd: usd(p.rangeHigh), fxObservedOn: histKrw ? p.sampleCollectedOn : (fx?.date || null) };
+}
+
+module.exports = { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd, fxAt, psa10Usd, nmUsable, nmUsd, rawPrice, tcgSpikes, rawValues, priciest, countedValues, boxChange28, latestDate, EPN, epnUrl, splitReprints, enIsReprint, rawNmAsk, psa10Sold, psaPopulation, withUsd };
