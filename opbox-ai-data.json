@@ -59,7 +59,7 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 299,
-            "p25Usd": 274,
+            "p25Usd": 282,
             "p75Usd": 305,
             "sampleSize": 13,
             "sampleCollectedOn": "2026-10-04",
@@ -95,12 +95,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 1419,
-            "p25Usd": 1391,
-            "p75Usd": 1489,
-            "sampleSize": 12,
-            "sampleCollectedOn": "2026-10-07",
-            "ageDaysAtDatasetUpdate": 7
+            "medianUsd": 1424,
+            "p25Usd": 1395,
+            "p75Usd": 1495,
+            "sampleSize": 13,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -867,12 +867,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 554,
-            "p25Usd": 525,
-            "p75Usd": 578,
-            "sampleSize": 12,
-            "sampleCollectedOn": "2026-10-11",
-            "ageDaysAtDatasetUpdate": 3
+            "medianUsd": 546,
+            "p25Usd": 518,
+            "p75Usd": 559,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-10-15",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -896,7 +896,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.92,
+          "soldToActiveMedianRatio": 0.91,
           "qualityFlags": []
         }
       },
@@ -1239,12 +1239,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 488,
-            "p25Usd": 474,
-            "p75Usd": 500,
-            "sampleSize": 12,
-            "sampleCollectedOn": "2026-10-11",
-            "ageDaysAtDatasetUpdate": 3
+            "medianUsd": 481,
+            "p25Usd": 461,
+            "p75Usd": 499,
+            "sampleSize": 11,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1268,7 +1268,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.81,
+          "soldToActiveMedianRatio": 0.8,
           "qualityFlags": []
         }
       },
@@ -1557,10 +1557,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 174,
-            "p25Usd": 156,
-            "p75Usd": 199,
-            "sampleSize": 10,
+            "medianUsd": 175,
+            "p25Usd": 161,
+            "p75Usd": 210,
+            "sampleSize": 11,
             "sampleCollectedOn": "2026-10-11",
             "ageDaysAtDatasetUpdate": 3
           },
@@ -1596,12 +1596,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 1001,
-            "p25Usd": 923,
-            "p75Usd": 1064,
-            "sampleSize": 25,
-            "sampleCollectedOn": "2026-10-12",
-            "ageDaysAtDatasetUpdate": 2
+            "medianUsd": 997,
+            "p25Usd": 916,
+            "p75Usd": 1091,
+            "sampleSize": 24,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1916,12 +1916,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 169,
-            "p25Usd": 135,
-            "p75Usd": 204,
+            "medianUsd": 159,
+            "p25Usd": 148,
+            "p75Usd": 207,
             "sampleSize": 6,
-            "sampleCollectedOn": "2026-08-26",
-            "ageDaysAtDatasetUpdate": 49
+            "sampleCollectedOn": "2026-09-23",
+            "ageDaysAtDatasetUpdate": 21
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1945,22 +1945,20 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.77,
-          "qualityFlags": [
-            "stale_over_28_days"
-          ]
+          "soldToActiveMedianRatio": 0.72,
+          "qualityFlags": []
         },
         "english": {
           "sold": {
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 381,
+            "medianUsd": 380,
             "p25Usd": 303,
             "p75Usd": 398,
             "sampleSize": 21,
-            "sampleCollectedOn": "2026-10-12",
-            "ageDaysAtDatasetUpdate": 2
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -1984,7 +1982,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.85,
+          "soldToActiveMedianRatio": 0.84,
           "qualityFlags": []
         }
       },
@@ -2262,8 +2260,8 @@
             "p25Usd": 79,
             "p75Usd": 80,
             "sampleSize": 16,
-            "sampleCollectedOn": "2026-10-13",
-            "ageDaysAtDatasetUpdate": 1
+            "sampleCollectedOn": "2026-10-15",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": null,
           "soldToActiveMedianRatio": null,
@@ -2592,12 +2590,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 79,
-            "p25Usd": 75,
-            "p75Usd": 91,
-            "sampleSize": 12,
-            "sampleCollectedOn": "2026-09-23",
-            "ageDaysAtDatasetUpdate": 21
+            "medianUsd": 80,
+            "p25Usd": 76,
+            "p75Usd": 89,
+            "sampleSize": 10,
+            "sampleCollectedOn": "2026-10-09",
+            "ageDaysAtDatasetUpdate": 5
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -2621,7 +2619,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.75,
+          "soldToActiveMedianRatio": 0.76,
           "qualityFlags": []
         },
         "english": {
@@ -2630,11 +2628,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 258,
-            "p25Usd": 252,
+            "p25Usd": 247,
             "p75Usd": 260,
-            "sampleSize": 11,
-            "sampleCollectedOn": "2026-10-13",
-            "ageDaysAtDatasetUpdate": 1
+            "sampleSize": 12,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3347,10 +3345,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 88,
-            "p25Usd": 78,
-            "p75Usd": 94,
-            "sampleSize": 7,
+            "medianUsd": 87,
+            "p25Usd": 80,
+            "p75Usd": 91,
+            "sampleSize": 8,
             "sampleCollectedOn": "2026-10-07",
             "ageDaysAtDatasetUpdate": 7
           },
@@ -3376,7 +3374,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.77,
+          "soldToActiveMedianRatio": 0.76,
           "qualityFlags": []
         },
         "english": {
@@ -3388,8 +3386,8 @@
             "p25Usd": 245,
             "p75Usd": 266,
             "sampleSize": 24,
-            "sampleCollectedOn": "2026-10-12",
-            "ageDaysAtDatasetUpdate": 2
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -3740,9 +3738,9 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 594,
-            "p25Usd": 544,
-            "p75Usd": 627,
-            "sampleSize": 18,
+            "p25Usd": 533,
+            "p75Usd": 620,
+            "sampleSize": 19,
             "sampleCollectedOn": "2026-10-13",
             "ageDaysAtDatasetUpdate": 1
           },
@@ -4125,11 +4123,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 275,
-            "p25Usd": 268,
-            "p75Usd": 285,
-            "sampleSize": 22,
-            "sampleCollectedOn": "2026-10-10",
-            "ageDaysAtDatasetUpdate": 4
+            "p25Usd": 267,
+            "p75Usd": 286,
+            "sampleSize": 20,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4443,11 +4441,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 129,
-            "p25Usd": 128,
-            "p75Usd": 162,
-            "sampleSize": 27,
-            "sampleCollectedOn": "2026-10-10",
-            "ageDaysAtDatasetUpdate": 4
+            "p25Usd": 127,
+            "p75Usd": 164,
+            "sampleSize": 25,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -4479,11 +4477,11 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 465,
-            "p25Usd": 449,
-            "p75Usd": 485,
-            "sampleSize": 71,
-            "sampleCollectedOn": "2026-10-14",
+            "medianUsd": 464,
+            "p25Usd": 447,
+            "p75Usd": 482,
+            "sampleSize": 69,
+            "sampleCollectedOn": "2026-10-15",
             "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
@@ -4767,10 +4765,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 90,
-            "p25Usd": 87,
-            "p75Usd": 97,
-            "sampleSize": 14,
+            "medianUsd": 89,
+            "p25Usd": 85,
+            "p75Usd": 98,
+            "sampleSize": 16,
             "sampleCollectedOn": "2026-10-13",
             "ageDaysAtDatasetUpdate": 1
           },
@@ -4796,7 +4794,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.78,
+          "soldToActiveMedianRatio": 0.77,
           "qualityFlags": []
         },
         "english": {
@@ -4805,11 +4803,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 270,
-            "p25Usd": 262,
+            "p25Usd": 259,
             "p75Usd": 284,
             "sampleSize": 27,
-            "sampleCollectedOn": "2026-10-13",
-            "ageDaysAtDatasetUpdate": 1
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5137,10 +5135,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 96,
-            "p25Usd": 93,
-            "p75Usd": 99,
-            "sampleSize": 11,
+            "medianUsd": 97,
+            "p25Usd": 94,
+            "p75Usd": 100,
+            "sampleSize": 12,
             "sampleCollectedOn": "2026-10-07",
             "ageDaysAtDatasetUpdate": 7
           },
@@ -5166,7 +5164,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.96,
+          "soldToActiveMedianRatio": 0.97,
           "qualityFlags": []
         },
         "english": {
@@ -5178,8 +5176,8 @@
             "p25Usd": 258,
             "p75Usd": 277,
             "sampleSize": 29,
-            "sampleCollectedOn": "2026-10-13",
-            "ageDaysAtDatasetUpdate": 1
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5490,12 +5488,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 233,
-            "p25Usd": 225,
+            "medianUsd": 235,
+            "p25Usd": 224,
             "p75Usd": 251,
             "sampleSize": 60,
-            "sampleCollectedOn": "2026-10-13",
-            "ageDaysAtDatasetUpdate": 1
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -5519,7 +5517,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.93,
+          "soldToActiveMedianRatio": 0.94,
           "qualityFlags": []
         }
       },
@@ -5818,8 +5816,8 @@
             "medianUsd": 315,
             "p25Usd": 297,
             "p75Usd": 340,
-            "sampleSize": 261,
-            "sampleCollectedOn": "2026-10-14",
+            "sampleSize": 274,
+            "sampleCollectedOn": "2026-10-15",
             "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
@@ -6446,10 +6444,10 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 159,
-            "p25Usd": 135,
-            "p75Usd": 200,
-            "sampleSize": 9,
+            "medianUsd": 135,
+            "p25Usd": 100,
+            "p75Usd": 163,
+            "sampleSize": 13,
             "sampleCollectedOn": "2026-10-09",
             "ageDaysAtDatasetUpdate": 5
           },
@@ -6475,8 +6473,10 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.55,
-          "qualityFlags": []
+          "soldToActiveMedianRatio": 0.47,
+          "qualityFlags": [
+            "sold_active_median_divergence_over_2x"
+          ]
         },
         "english": {
           "sold": {
@@ -6750,11 +6750,11 @@
             "market": "eBay",
             "currency": "USD",
             "medianUsd": 115,
-            "p25Usd": 114,
+            "p25Usd": 110,
             "p75Usd": 115,
-            "sampleSize": 13,
-            "sampleCollectedOn": "2026-10-13",
-            "ageDaysAtDatasetUpdate": 1
+            "sampleSize": 12,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -6788,10 +6788,10 @@
             "currency": "USD",
             "medianUsd": 331,
             "p25Usd": 325,
-            "p75Usd": 342,
-            "sampleSize": 13,
-            "sampleCollectedOn": "2026-10-12",
-            "ageDaysAtDatasetUpdate": 2
+            "p75Usd": 343,
+            "sampleSize": 15,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -7405,12 +7405,12 @@
             "basis": "completed_sales",
             "market": "eBay",
             "currency": "USD",
-            "medianUsd": 374,
-            "p25Usd": 344,
+            "medianUsd": 379,
+            "p25Usd": 366,
             "p75Usd": 398,
-            "sampleSize": 22,
-            "sampleCollectedOn": "2026-10-09",
-            "ageDaysAtDatasetUpdate": 5
+            "sampleSize": 15,
+            "sampleCollectedOn": "2026-10-14",
+            "ageDaysAtDatasetUpdate": 0
           },
           "activeAsk": {
             "basis": "active_asking_prices",
@@ -7434,7 +7434,7 @@
               "note": "Lowest verified total (item price + shipping to the US) among active eBay listings on observedOn. The live link to this listing is on liveLinkPage, which is refreshed daily; listings sell out, so send people there rather than quoting a link."
             }
           },
-          "soldToActiveMedianRatio": 0.94,
+          "soldToActiveMedianRatio": 0.95,
           "qualityFlags": []
         }
       },
