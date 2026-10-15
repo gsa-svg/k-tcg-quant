@@ -18,6 +18,12 @@ const yenUsd = (yen) => (FX.jpyKrw && FX.usdKrw ? (yen * FX.jpyKrw) / FX.usdKrw 
 // 검증된 세트 팩트(정가·재판) — 나이틀리에 안 지워지는 소스 파일
 let FACTS = { sets: {}, bandaiAnnouncesReprints: false };
 try { FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
+// 재판 횟수 = 세트 페이지(영문·한국어)와 같은 분류(set-page-shared.splitReprints) — 2026-10-15(4차). 종전엔 기록 수를 그대로 세어
+// 발매 전 추첨·再販 표기 없는 추첨까지 재판으로 쳤다(board.reprints OP-13 3 · OP-16 2 · OP-17 1, 세트 페이지는 2 · 0 · 0).
+// 4주 변동률 = market-data-normalizers.boxChange28 — 세트 페이지·비교표와 같은 함수.
+const { splitReprints } = require("./set-page-shared");
+const { boxChange28 } = require("./market-data-normalizers");
+const reprintCount = (f) => splitReprints(f.reprintRecords).reprint.length;
 // 발매 시점부터 실제 추적한 세트만(감사 결과). 나머지는 중간 시작이라 "발매 대비" 주장 금지.
 const LAUNCH_TRACKED = new Set(["OP-16", "OP-17"]);
 const codes = [...d.jp.list, ...d.extra.list];
@@ -80,7 +86,7 @@ for (const c of codes) {
       msrpYen: f.jpMsrpYen || null,
       msrpUsd: f.jpMsrpYen ? Math.round(yenUsd(f.jpMsrpYen)) : null,
       vsMsrp: null,
-      reprints: (f.reprintRecords || []).length,
+      reprints: reprintCount(f),
     });
     continue;
   }
@@ -90,11 +96,7 @@ for (const c of codes) {
   const cur = (SOLD.sets[c] && SOLD.sets[c].current && SOLD.sets[c].current.jp) || null;
   const lastV = cur ? cur.median : null;
   const lastD = cur ? cur.d : null;
-  let ref = null;
-  if (cur) {
-    const cut = new Date(Date.parse(lastD) - 28 * 864e5).toISOString().slice(0, 10);
-    for (const pt of p) { if (pt.d <= cut) ref = pt; else break; }
-  }
+  const change = boxChange28((SOLD.sets[c] && SOLD.sets[c].jp) || [], cur);
   const msrpUsd = f.jpMsrpYen ? yenUsd(f.jpMsrpYen) : null;
   const nowUsd = lastV;   // 이미 USD
   board.push({
@@ -104,13 +106,13 @@ for (const c of codes) {
     nowDate: lastD,   // 그 중앙값 점의 날짜(마지막 판매일이 아니다) — 표가 "오늘 값"으로 읽히지 않게
     n: cur ? cur.n ?? null : null,   // 그 점의 평균 창(windowDays, 28~56일) 안 판매 건수 — 그 주 건수가 아니다(2026-10-14 QA)
     windowDays: cur ? ((SOLD.sets[c].windowDays || {}).jp || null) : null,
-    changePct: ref ? Math.round((lastV / ref.p - 1) * 1000) / 10 : null,   // 최근 4주
-    changeBasis: ref ? ref.d : null,
+    changePct: change ? change.pct : null,   // 최근 4주(boxChange28)
+    changeBasis: change ? change.basis : null,
     launchTracked: LAUNCH_TRACKED.has(c), // true면 "발매 대비"라고 말해도 됨
     msrpYen: f.jpMsrpYen || null,
     msrpUsd: msrpUsd != null ? Math.round(msrpUsd) : null,
     vsMsrp: msrpUsd && nowUsd ? Math.round((nowUsd / msrpUsd) * 10) / 10 : null, // 정가 대비 배수
-    reprints: (f.reprintRecords || []).length,
+    reprints: reprintCount(f),
   });
 }
 board.sort((a, b) => (b.changePct ?? -Infinity) - (a.changePct ?? -Infinity));

@@ -2,22 +2,19 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { SITE, ageDays, buildBoxMarket, isDate, isPositive, stockStatus, toUsd } = require("./market-data-normalizers");
-const { readCardSeries, seriesOf } = require("./card-series-store");
+const { SITE, ageDays, buildBoxMarket, isDate, isPositive, nmUsable, stockStatus, toUsd } = require("./market-data-normalizers");
+const extras = require("./ai-data-extras");
 
 const ROOT = path.resolve(__dirname, "..");
 
-// 카드별 시세 이력 — data/card-series.json(2026-10-14 packs.json 에서 분리). NM 관측일을 여기서 읽는다.
-let CARD_SERIES = null;
-const cardSeriesOf = (code, card) => seriesOf((CARD_SERIES ??= readCardSeries()), code, card);
-
-// code = 그 카드가 들어 있는 packs.json 의 세트 코드(이력 키가 세트별이다).
-function rawNmAsk(card, fx, datasetUpdatedOn, code) {
-  if (card.nmHiddenReason || !isPositive(card.nmJpy)) return null;
-  const series = cardSeriesOf(code, card);
-  const points = (series?.points || []).filter((point) => isDate(point.d) && point.nm != null);
-  const observedOn = points.at(-1)?.d || (isDate(series?.updated) ? series.updated : null);
-  if (!observedOn) return null;
+// NM 관측일 = 그 변형을 실제로 다시 읽은 날(card.nmUpdated — update-yuyutei-nm-prices 가 읽은 날에만 찍는다). 2026-10-15 QA.
+// 종전엔 card-series 의 마지막 점을 썼다. 그 이력은 엔화 호가를 원화로 바꿔 쌓아서 환율만 움직여도 점이 생긴다 —
+// 10-11 에 읽은 ¥1,280,000 이 피드에선 10-14 관측·경과 0일로 나갔고(카드리스트는 10-11), 09-07 값도 10-14 로 나갔다.
+// 읽은 날이 없는 값(매칭 실패로 nmUpdated 가 없는 카드)은 날짜를 지어내지 않고 싣지 않는다(null).
+// 싣는 조건은 페이지와 같은 술어 하나(market-data-normalizers.nmUsable) — 2026-10-15. 종전엔 이 함수만 따로 걸러 피드 null · 페이지 $1,250 이었다.
+function rawNmAsk(card, fx, datasetUpdatedOn) {
+  if (!nmUsable(card)) return null;
+  const observedOn = card.nmUpdated;
   return {
     basis: "japanese_retail_asking_price",
     currency: "JPY",
@@ -94,15 +91,16 @@ function buildTopHits(code, set, fx, datasetUpdatedOn) {
       name: card.name || null,
       cardNumber: card.number || null,
       originalCardSetCode: originalSetCode(card.number),
-      rarity: card.rarity || null,
+      // 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도(세트·한국어·카드 상세와 같은 함수·같은 코드, 2026-10-15). 종전 원본 값은 SP 인쇄를 SR 로 냈다.
+      rarity: CL.rarityCode(code, card) || null,
       exactVariantRequired: true,
-      rawNmAsk: rawNmAsk(card, fx, datasetUpdatedOn, code),
+      rawNmAsk: rawNmAsk(card, fx, datasetUpdatedOn),
       psa10Sold: psa10Sold(card, datasetUpdatedOn),
       psaPopulation: psaPopulation(card, datasetUpdatedOn),
       qualityFlags: [
         ...(card.nmHiddenReason ? [card.nmHiddenReason] : []),
         ...(!card.number ? ["incomplete_card_number"] : []),
-        ...(!card.rarity ? ["missing_rarity"] : []),
+        ...(!CL.rarityCode(code, card) ? ["missing_rarity"] : []),
       ],
       citationUrl,
     }));
@@ -165,11 +163,41 @@ function buildReleaseFacts(data, datasetUpdatedOn) {
   });
 }
 
+// 데이터 기준일(datasetUpdatedOn) — 2026-10-15 QA. 종전엔 packs.updated(10-14)를 그대로 써서 "data as of 2026-10-14" 파일 안에
+// 10-15 박스 판매 표본(KST 수집)·경매 일별·TCG 일별 값이 들어 있었고, 경과일 -1 은 0 으로 잘려 나갔다.
+// 기준일 = packs.updated 와 AI 파일 4개(핵심·카드·등급·경매)에 실리는 관측일 가운데 가장 늦은 날.
+// 네 파일과 llms 가 한 날을 써야 같은 값의 경과일(ageDaysAtDatasetUpdate)이 파일마다 같다. 발매일(releaseDate)은 관측일이 아니라 넣지 않는다.
+const OBSERVED_KEYS = new Set(["observedOn", "sampleCollectedOn", "fxObservedOn", "checkedOn", "releaseCheckedOn", "specCheckedOn", "date", "to"]);
+function newestObserved(node, best) {
+  if (Array.isArray(node)) return node.reduce((b, x) => newestObserved(x, b), best);
+  if (!node || typeof node !== "object") return best;
+  for (const [key, value] of Object.entries(node)) {
+    if (OBSERVED_KEYS.has(key) && isDate(value)) best = !best || value > best ? value : best;
+    else if (value && typeof value === "object") best = newestObserved(value, best);
+  }
+  return best;
+}
+function datasetAsOf(data) {
+  const base = isDate(data.updated) ? data.updated : null;
+  const src = extras.loadExtraSources();
+  const drafts = [
+    buildAiDataAt(data, base),
+    extras.buildCardPages(data, src.cardMap, data.fx || {}, base, { rawNmAsk, psa10Sold, psaPopulation }),
+    extras.buildGrading(src.gradingSeries, data),
+    extras.buildAuctions(src.auctionSeries, src.setAuctionStats, buildReleaseFacts(data, base)),
+    extras.buildTcgAuctions(src.tcgSeries),
+  ];
+  return drafts.reduce((best, part) => newestObserved(part, best), base);
+}
+
 /** Build the compact, citation-oriented public contract without network access. */
 // 확장 데이터(카드 페이지 전부·등급 인구·경매)는 별도 파일 3개 — generate-ai-extras.js (2026-09-08).
 // 이 핵심 파일은 답변 엔진이 한 번에 읽도록 200KB 아래를 지킨다(test-ai-data). related 로 길만 안내한다.
 function buildAiData(data) {
-  const datasetUpdatedOn = isDate(data.updated) ? data.updated : null;
+  return buildAiDataAt(data, datasetAsOf(data));
+}
+
+function buildAiDataAt(data, datasetUpdatedOn) {
   const codes = [...(data.jp?.list || []), ...(data.extra?.list || [])];
   const sets = codes.filter((code) => data.sets?.[code]).map((code) => {
     const set = data.sets[code];
@@ -224,4 +252,4 @@ function buildAiData(data) {
   };
 }
 
-module.exports = { buildAiData, buildBoxMarket, buildReleaseFacts, rawNmAsk, psa10Sold, psaPopulation };
+module.exports = { buildAiData, buildBoxMarket, buildReleaseFacts, datasetAsOf, rawNmAsk, psa10Sold, psaPopulation };

@@ -49,13 +49,17 @@ function psa10Krw(c) {
   const p = c.psa10Ebay;
   if (!p || !p.soldBased || p.middle == null || (p.sampleSize || 0) < 3) return null;
   // fx.usdKrw 가 없으면 NaN 이 흘러 배수칸이 "×NaN" 이 되고 정렬까지 깨진다 — 아예 빈칸으로 둔다(2026-09-16 정합성 검사).
-  const krw = p.currency === "USD" ? (fx.usdKrw ? p.middle * fx.usdKrw : null) : p.currency === "KRW" ? p.middle : null;
+  // 원화 = 영문 페이지 달러 값(psa10Usd — 옛 KRW 저장값은 관측일 환율로 되돌림) × fx.usdKrw. 2026-10-15(5차): KRW 저장값을 그대로 써 영문과 12~15% 갈렸다.
+  const u = psa10Usd(p, fx);
+  const krw = u != null && fx.usdKrw ? u * fx.usdKrw : null;
   return krw == null ? null : { krw, n: p.sampleSize };   // 통화 불명이면 빈칸
 }
 
 // ── 카드명 한글 병기 — 사전은 tools/ko-labels.js 한 곳(영문 auction.html 의 토글 data-ko 와 같은 사전). 2026-10-13 분리.
 //    캐릭터명만 매핑하고(변형 접미사는 영문 그대로), 확신 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
 const { koCharOf } = require("./ko-labels");
+// NM 을 써도 되는가(값·읽은 날 있음·숨김 표시 없음) — 세트·카드 상세·AI 피드와 같은 술어(2026-10-15).
+const { nmUsable, psa10Usd } = require("./market-data-normalizers");
 
 // <head> 공통 태그 — 네 장이 같은 노출 상태(robots·canonical·hreflang·og·빵부스러기)를 공유한다. 페이지별 <style> 은 호출 쪽에서 붙인다.
 function koHeadTags({ file, title, desc, breadcrumbName, enHref }) {
@@ -166,7 +170,7 @@ function cardsPage() {
   const rows = [];
   for (const code of codes) {
     for (const c of d.sets[code].cards || []) {
-      if (c.nmJpy == null || !c.number) continue;
+      if (!nmUsable(c) || !c.number) continue;   // 읽은 날 없는 NM·숨김 표시 NM 은 싣지 않는다(2026-10-15)
       const p10 = psa10Krw(c);
       rows.push({
         code, name: c.name, number: String(c.number), nmKrw: c.nmJpy * fx.jpyKrw,

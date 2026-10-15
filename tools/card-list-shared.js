@@ -112,4 +112,29 @@ function orderIds(code, ids) {
   return [...ids.filter((id) => id.startsWith(own)), ...ids.filter((id) => !id.startsWith(own))];
 }
 
-module.exports = { orderIds, FILE, SITE, doc, products, has, productOf, enProductsFor, countsOf, kindOf, nameEnOf, slugOf, pagePath, koPath, csvPath, jsonPath, naturalCode };
+// 레어도 코드 — 공식 표기를 줄인 것 하나: SPカード / SP CARD → "SP", 나머지(L·C·UC·R·SR·SEC·TR·P)는 공식 그대로.
+const rarityShow = (r) => (/^SP/i.test(String(r || "")) ? "SP" : String(r || ""));
+
+// 세트 Top 카드(onepiece-packs.json 의 카드 한 변형)의 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도 — 2026-10-15.
+// 왜: 한국어 세트 페이지만 공식 레어도로 바꿔(1차) ST31-004 SP 인쇄가 ko/op-17 은 SP, sets/op-17·카드 상세·AI JSON 은 SR(Super Rare),
+//     ST02-007 SP 인쇄는 한국어 SP · 영문 Common 이었다(72행). 세트(영문·한국어)·PSA 10 랭킹·카드 상세·카드리스트·AI 피드가 모두 이 함수를 쓴다.
+//   1) 사람이 확인한 변형(_imgSuffix)이 가리키는 공식 ID(번호+접미어, "base" = 접미어 없는 기본 ID)의 레어도
+//   2) 없으면 이 세트 상품(code) 안 같은 번호 인쇄들의 공식 레어도가 하나뿐일 때 그 값(OP-11 의 OP05-119 SP 금·은 = _p6·_p7 둘 다 SP)
+//   3) 공식 목록에 그 번호 행이 없을 때만 원본(packs) 레어도(TR·DON!! 등). 공식 행이 있는데 갈리면 원본 값 — 지어내지 않는다.
+function rarityCode(code, card) {
+  if (!card) return "";
+  const J = doc().jp || {};
+  const cards = J.cards || {};
+  const suf = card._imgSuffix === "base" ? "" : card._imgSuffix;
+  const byId = typeof suf === "string" && card.number ? cards[card.number + suf] : null;
+  if (byId && byId.rarity) return rarityShow(byId.rarity);
+  const ids = (((J.products || {})[code] || {}).ids || []).filter((id) => (cards[id] || {}).num === card.number);
+  const rs = new Set(ids.map((id) => rarityShow(cards[id].rarity)));
+  return rs.size === 1 ? [...rs][0] : rarityShow(card.rarity);
+}
+// 영문 페이지 표기 — 같은 코드의 낱말(반다이 영문 표기: SP CARD → "SP Card"). 사전에 없는 코드(DON!!)는 코드 그대로.
+// TR → "Treasure Rare" — 2026-10-15(4차): 사전에 없어 추적 문단이 "Monkey D. Luffy TR (TR)" 로 나갔다.
+const RARITY_EN = { L: "Leader", SEC: "Secret Rare", SR: "Super Rare", R: "Rare", UC: "Uncommon", C: "Common", SP: "SP Card", TR: "Treasure Rare", P: "Promo" };
+const rarityEn = (r) => RARITY_EN[r] || r || "";
+
+module.exports = { orderIds, FILE, SITE, doc, products, has, productOf, enProductsFor, countsOf, kindOf, nameEnOf, slugOf, pagePath, koPath, csvPath, jsonPath, naturalCode, rarityShow, rarityCode, RARITY_EN, rarityEn };

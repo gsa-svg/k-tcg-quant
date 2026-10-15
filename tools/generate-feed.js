@@ -85,7 +85,10 @@ if (fs.existsSync(koDir)) {
 koItems.sort((a, b) => (a.pub < b.pub ? 1 : a.pub > b.pub ? -1 : a.url < b.url ? -1 : 1));
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const rfc822 = (iso) => new Date(iso + "T09:00:00Z").toUTCString();
+// 항목 시각은 그날 09:00Z, 단 빌드 시각을 넘지 않는다 — 2026-10-15(3차). 오늘 날짜 항목이 "Thu, 15 Oct 2026 09:00:00 GMT" 인데
+// lastBuildDate 는 02:26 GMT 라 발행 시각이 빌드보다 미래였다. 지난 날짜 항목은 09:00Z 그대로(옛 항목 값이 바뀌지 않게).
+const BUILT = new Date();
+const rfc822 = (iso) => new Date(Math.min(Date.parse(iso + "T09:00:00Z"), BUILT.getTime())).toUTCString();
 const renderItem = (it) =>
   [
     "  <item>",
@@ -104,7 +107,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <link>${SITE}/</link>
   <description>Data reports and guides on One Piece Card Game sealed booster boxes: prices, PSA grading data and market analysis.</description>
   <language>en-us</language>
-  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+  <lastBuildDate>${BUILT.toUTCString()}</lastBuildDate>
   <atom:link href="${SITE}/feed.xml" rel="self" type="application/rss+xml" />
 ${items.map(renderItem).join("\n")}
 </channel>
@@ -121,7 +124,7 @@ const koXml = `<?xml version="1.0" encoding="UTF-8"?>
   <link>${SITE}/ko/</link>
   <description>원피스 카드게임 부스터박스·카드 시세, 이베이 경매 낙찰 데이터, PSA·CGC·TAG 그레이딩 통계.</description>
   <language>ko-kr</language>
-  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+  <lastBuildDate>${BUILT.toUTCString()}</lastBuildDate>
   <atom:link href="${SITE}/ko/feed.xml" rel="self" type="application/rss+xml" />
 ${koItems.map(renderItem).join("\n")}
 </channel>

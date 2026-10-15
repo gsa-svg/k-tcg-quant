@@ -127,7 +127,8 @@ function main() {
     name: "One Piece Card Game completed eBay auction results",
     description: `Daily completed-auction results for One Piece Card Game items: auctions tracked to close, how many sold, sell-through rate, median final winning bid and bid counts, split by sealed box, single card and pack. ${num(totN)} auctions tracked over ${fullDays} full days${skippedDays ? ` (${skippedDays} incomplete days excluded)` : ""}.`,
     url: `${SITE}/auction.html`, license: "https://creativecommons.org/licenses/by/4.0/",
-    isAccessibleForFree: true, dateModified: DATA_DATE,
+    // 수정일 ≥ 집계 구간 끝(DATA_THROUGH) — Dataset 은 기간 끝보다 이른 수정일을 내지 않는다(2026-10-15 감사 #4, 가드 DS1).
+    isAccessibleForFree: true, dateModified: [DATA_DATE, DATA_THROUGH].filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "")).sort().pop(),
     // 집계 구간(첫 집계일~마지막 집계일) — temporalCoverage 가 비어 있었다(2026-10-14 W6b).
     ...(/^\d{4}-\d{2}-\d{2}$/.test(aggFrom || "") && /^\d{4}-\d{2}-\d{2}$/.test(DATA_THROUGH || "") ? { temporalCoverage: `${aggFrom}/${DATA_THROUGH}` } : {}),
     creator: { "@type": "Organization", name: "OP Box Index", url: `${SITE}/` },

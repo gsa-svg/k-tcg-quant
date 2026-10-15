@@ -23,7 +23,7 @@ const { SITE, CSS_VER, esc, usd, pageHead, foot } = require("./set-page-shared")
 const CL = require("./card-list-shared");
 const { addUrls } = require("./sitemap-detail-urls");
 const { ourTier } = require("./cgc-card-pop-ingest.js");
-const { fxAt } = require("./market-data-normalizers");
+const { fxAt, nmUsd } = require("./market-data-normalizers");
 const { navHtmlKo } = require("./site-nav");
 
 const ROOT = path.join(__dirname, "..");
@@ -47,7 +47,6 @@ const COLOR_EN = { 赤: "Red", 緑: "Green", 青: "Blue", 紫: "Purple", 黒: "B
 const COLOR_KO = { Red: "빨강", Green: "초록", Blue: "파랑", Purple: "보라", Black: "검정", Yellow: "노랑" };
 const KIND_EN = { base: "", parallel: "Parallel", reprint: "Reprint", sp: "SP", tr: "TR", other: "" };
 const KIND_KO = { base: "", parallel: "패러렐", reprint: "재수록", sp: "SP", tr: "TR", other: "" };
-const rarityShow = (r) => (/^SP/i.test(String(r || "")) ? "SP" : String(r || ""));
 
 // 영문 공식 이름·색·특징은 번호 단위(같은 번호는 같은 카드). 영문판 목록 전체에서 찾는다(EB-04 는 OP14-EB04·OP15-EB04 안에 있다).
 const EN_BY_NUM = {};
@@ -66,7 +65,6 @@ const setNameEn = (code) => CL.nameEnOf(code);   // 추적 세트 → 예정 세
 const setNameKo = (code, nameEn) => (packs.sets && packs.sets[code] && packs.sets[code].nameKo) || nameEn;
 
 // ── 우리 숫자
-const jpyUsd = (jpy) => (Number.isFinite(jpy) && FX.jpyKrw && FX.usdKrw ? (jpy * FX.jpyKrw) / FX.usdKrw : null);
 const toUsdAt = (val, cur, date) => (val == null ? null : cur === "USD" ? val : cur === "KRW" ? val / (fxAt(date) || FX.usdKrw) : null);
 
 // 세트 Top 10 의 사람 확인 변형(이미지 접미어) → 공식 ID. 같은 ID 를 두 카드가 가리키면 쓰지 않는다.
@@ -158,8 +156,10 @@ function numbersFor(id) {
   const ver = VERIFIED[id] ? VERIFIED[id].card : null;
   let nm = null, psa10 = null, href = null;
   if (ver) {
-    const u = jpyUsd(ver.nmJpy);
-    if (u != null) nm = { usd: u, date: ver.nmUpdated || DATA_DATE };
+    // NM = 쓸 수 있는 값만(nmUsable — 값·읽은 날 있음·숨김 표시 없음), 환산은 AI 피드와 같은 함수 — 2026-10-15.
+    // 1차 수정은 읽은 날이 없는 값의 날짜만 비워 "$31<small></small>"·JSON nm {usd, observedOn:null} 로 나갔다(피드는 null). 이제 값째 "—".
+    const u = nmUsd(ver, FX);
+    if (u != null) nm = { usd: u, date: ver.nmUpdated };
     const s = ver.psa10Ebay;
     if (s && s.soldBased && s.middle != null && (s.sampleSize || 0) >= MIN_N) {
       const u10 = toUsdAt(s.middle, s.currency, s.updated);
@@ -193,7 +193,7 @@ function rowsOf(product) {
     const kind = CL.kindOf(id, c);
     const color = en.color || String(c.color || "").split("/").map((x) => COLOR_EN[x] || x).join("/");
     return {
-      id, num: c.num, kind, rarity: rarityShow(c.rarity), type: c.type,
+      id, num: c.num, kind, rarity: CL.rarityShow(c.rarity), type: c.type,   // SPカード → SP — 세트·카드 상세·AI 피드와 같은 함수(2026-10-15)
       nameEn: en.name || "", nameJa: c.name || "", color,
       cost: c.cost, costKind: c.costKind, power: c.power, counter: c.counter,
       attribute: en.attribute || c.attribute || null, feature: en.feature || c.feature || "", trigger: !!c.trigger,
@@ -212,9 +212,17 @@ function sources(code, product) {
   return { jp: { url: product.url, checked: product.checked, changed: product.changed }, en: ens.map((p) => ({ code: p.code, url: p.url, checked: p.checked })) };
 }
 
-// 페이지 날짜 = 공식 목록 확인일·변경일과 데이터일 중 늦은 날 — 2026-10-14 QA: CollectionPage dateModified(데이터일 10-13)와
+// 페이지 날짜 = 공식 목록 확인일·변경일과 데이터일 중 늦은 날 — 화면 "Data"·CollectionPage dateModified·JSON updated 가 이 값 하나(2026-10-15, 4차). 2026-10-14 QA: CollectionPage dateModified(데이터일 10-13)와
 // 화면 "checked 2026-10-14"·사이트맵(10-14)이 달랐다. 피드(generate-feed)는 이 dateModified 를 읽는다.
-const pageDate = (src) => [src.jp.checked, src.jp.changed, DATA_DATE].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort().pop();
+// 2026-10-15 감사(#4): 그래도 화면의 경매 "last 45 days to 2026-10-15"·영문판 박스 "(2026-10-15, …)" 보다 이른 10-14 였다 —
+// 경매 원장·박스 시리즈는 packs 데이터일(DATA_DATE)보다 늦게 돈다. 그래서 **화면에 찍히는 날짜 전부**(영문 목록 확인일·경매 기준일·
+// 박스 관측일·행별 NM/PSA 10 관측일)를 같이 넣고 가장 늦은 날을 쓴다. 수정일이 본문보다 이르면 안 된다(가드 U1 과 같은 규칙).
+const pageDate = (src, box, rows) => [
+  src.jp.checked, src.jp.changed, DATA_DATE, AUCTION_DAY,
+  ...src.en.map((e) => e.checked),
+  box.jp && box.jp.date, box.en && box.en.date,
+  ...rows.flatMap((r) => [r.nm && r.nm.date, r.psa10 && r.psa10.date]),
+].filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort().pop();
 // ── 영문 페이지
 const TITLE_MAX = 60, DESC_MAX = 155;
 const fit = (cands, max, what) => {
@@ -284,7 +292,7 @@ function pageEn(p, rows, nameEn, src, box, links) {
     name: h1,
     url: canonical,
     inLanguage: "en",
-    dateModified: pageDate(src),
+    dateModified: pageDate(src, box, rows),
     isBasedOn: src.jp.url,
     isPartOf: { "@type": "WebSite", name: "OP Box Index", url: `${SITE}/` },
     mainEntity: {
@@ -324,7 +332,7 @@ function pageEn(p, rows, nameEn, src, box, links) {
     `<a href="index.html#card-lists" data-ko="전체 카드 리스트">All card lists</a>`,
   ].filter(Boolean);
 
-  const LEGEND_EN = `<p class="clLegend">Base = official card ID without suffix · Parallel = ID ending _p · Reprint = ID ending _r · SP = rarity SP CARD · TR = rarity TR · Leaders = base-print Leader cards · Leaders show Life in the cost column · cards from other sets' numbers follow this set's own numbers.<br />NM = Japanese raw near-mint retail ask, ¥ → USD (MM-DD = observed). Auction JP / EN = median winning bid for the Japanese / English print of that card, ungraded, last 45 days to ${esc(AUCTION_DAY || "—")} (n = sales); prints are never combined. PSA 10 = median of completed sales (n ≥ ${MIN_N}). Numbers appear only where the card ID matches by rule; otherwise —. Effect text and card images are not reproduced. <a href="../methodology.html">Methodology</a> · Data ${esc(DATA_DATE)}</p>`;
+  const LEGEND_EN = `<p class="clLegend">Base = official card ID without suffix · Parallel = ID ending _p · Reprint = ID ending _r · SP = rarity SP CARD · TR = rarity TR · Leaders = base-print Leader cards · Leaders show Life in the cost column · cards from other sets' numbers follow this set's own numbers.<br />NM = Japanese raw near-mint retail ask, ¥ → USD (MM-DD = observed). Auction JP / EN = median winning bid for the Japanese / English print of that card, ungraded, last 45 days to ${esc(AUCTION_DAY || "—")} (n = sales); prints are never combined. PSA 10 = median of completed sales (n ≥ ${MIN_N}). Numbers appear only where the card ID matches by rule; otherwise —. Effect text and card images are not reproduced. <a href="../methodology.html">Methodology</a> · Data ${esc(pageDate(src, box, rows))}</p>`;
   const html = `${pageHead({ title, desc, canonical, koHref, extraLd, extraCss: CSS, chart: false })}
       <p class="eyebrow" data-ko="공식 카드 리스트 · 일본판">Official card list · Japanese edition</p>
       <h1>${esc(h1)}</h1>
@@ -361,7 +369,7 @@ function pageKo(p, rows, nameEn, nameKo, src, box, links) {
     { "@type": "ListItem", position: 3, name: `${code} 카드 리스트`, item: canonical },
   ] });
   const ld = JSON.stringify({
-    "@context": "https://schema.org", "@type": "CollectionPage", name: h1, url: canonical, inLanguage: "ko", dateModified: pageDate(src), isBasedOn: src.jp.url,
+    "@context": "https://schema.org", "@type": "CollectionPage", name: h1, url: canonical, inLanguage: "ko", dateModified: pageDate(src, box, rows), isBasedOn: src.jp.url,
     isPartOf: { "@type": "WebSite", name: "OP Box Index", url: `${SITE}/` },
     mainEntity: { "@type": "ItemList", name: `${label} 공식 카드 리스트(일본판)`, numberOfItems: rows.length,
       itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.id} ${r.nameEn || r.nameJa}`, url: `${canonical}#${anchorOf(r.id)}` })) },
@@ -438,7 +446,7 @@ ${CSS}
       <p class="clSummary">${sum.map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join("")}</p>
       <p class="clMeta">공식 목록(일본판): <a href="${esc(src.jp.url)}" target="_blank" rel="noopener noreferrer">반다이 카드 리스트</a> 확인 <time datetime="${src.jp.checked}">${src.jp.checked}</time><br />영문 이름: 반다이 영문 카드 리스트 ${enSrc}<br />${boxBit("jp", "일본판 박스 판매 중앙값")} · ${boxBit("en", "영문판 박스")}</p>
       <p class="clLinks">${linkBits.join("")}</p>
-      <p class="clLegend">기본 = 접미어 없는 공식 카드 ID · 패러렐 = _p 로 끝나는 ID · 재수록 = _r 로 끝나는 ID · SP = 레어도 SP CARD · TR = 레어도 TR · 리더 = 기본 인쇄 리더 카드 · 리더는 코스트 칸에 라이프 · 다른 세트 번호 카드는 이 세트 번호 뒤에.<br />금액은 달러(USD). NM = 일본판 미개봉급 낱장 소매 호가, 엔 → 달러(MM-DD = 관측일). 경매 일본판/영문판 = 그 카드의 일본판/영문판 인쇄·미감정 낙찰가 중앙값, ${esc(AUCTION_DAY || "—")}까지 45일(n = 낙찰 수), 두 판을 합치지 않음. PSA 10 = 판매 완료 중앙값(n ≥ ${MIN_N}). 카드 ID 가 규칙으로 맞을 때만 숫자를 싣고, 아니면 —. 효과 텍스트·카드 이미지는 싣지 않습니다. 데이터 ${esc(DATA_DATE)}</p>
+      <p class="clLegend">기본 = 접미어 없는 공식 카드 ID · 패러렐 = _p 로 끝나는 ID · 재수록 = _r 로 끝나는 ID · SP = 레어도 SP CARD · TR = 레어도 TR · 리더 = 기본 인쇄 리더 카드 · 리더는 코스트 칸에 라이프 · 다른 세트 번호 카드는 이 세트 번호 뒤에.<br />금액은 달러(USD). NM = 일본판 미개봉급 낱장 소매 호가, 엔 → 달러(MM-DD = 관측일). 경매 일본판/영문판 = 그 카드의 일본판/영문판 인쇄·미감정 낙찰가 중앙값, ${esc(AUCTION_DAY || "—")}까지 45일(n = 낙찰 수), 두 판을 합치지 않음. PSA 10 = 판매 완료 중앙값(n ≥ ${MIN_N}). 카드 ID 가 규칙으로 맞을 때만 숫자를 싣고, 아니면 —. 효과 텍스트·카드 이미지는 싣지 않습니다. 데이터 ${esc(pageDate(src, box, rows))}</p>
       <table class="clTable text">
         <thead><tr><th>카드</th><th class="wide">레어도</th><th class="wide">종류</th><th class="wide">색</th><th class="num wide">코스트/라이프</th><th class="num wide">파워</th><th class="num wide">NM</th><th class="num wide">경매 일본판</th><th class="num wide">경매 영문판</th><th class="num wide">PSA 10</th></tr></thead>
         <tbody>
@@ -474,7 +482,9 @@ function cardJson(r) {
 }
 function machineFiles(p, rows, nameEn, src, box) {
   const doc = {
-    set: p.code, name: nameEn || null, edition: "Japanese", page: `${SITE}/${CL.pagePath(p.code)}`, updated: DATA_DATE,
+    // updated = 페이지 날짜(pageDate — 화면 "Data"·CollectionPage dateModified 와 같은 값, 2026-10-15 4차). 종전 DATA_DATE(10-14)는
+    // 파일 안 경매 through(10-15)보다 일렀고, free-data #card-lists Dataset(10-15)과도 달랐다.
+    set: p.code, name: nameEn || null, edition: "Japanese", page: `${SITE}/${CL.pagePath(p.code)}`, updated: pageDate(src, box, rows),
     officialList: { url: src.jp.url, checked: src.jp.checked, changed: src.jp.changed },
     englishNames: src.en.map((e) => ({ product: e.code, url: e.url, checked: e.checked })),
     counts: { cards: p.counts.cards, cardNumbers: p.counts.numbers, base: p.counts.base, parallel: p.counts.parallel, reprint: p.counts.reprint, sp: p.counts.sp, tr: p.counts.tr, leaders: p.counts.leaders },

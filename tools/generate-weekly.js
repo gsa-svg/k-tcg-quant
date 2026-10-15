@@ -6,12 +6,13 @@
 // 색인 대상은 한 장뿐이다.
 //
 // 숫자는 전부 data/box-sold-series.json(주간 실거래 중앙값·그 주 판매수·매물 수)과 onepiece-packs.json 의
-// marketIndex.board(4주 변화 — 홈 티커·표와 같은 값)에서 그대로 온다. 추정 없음, 문단 없음(표·라벨만).
+// 이름(nameEn)에서 그대로 온다. 4주 변화는 market-data-normalizers.boxChange28(홈·세트 페이지와 같은 함수). 추정 없음, 문단 없음(표·라벨만).
 // WoW = 이번 주 점 ÷ 정확히 7일 전 점. 그 점이 없으면(창 미달로 빠짐) "—".
 // Run: node tools/generate-weekly.js
 const fs = require("node:fs");
 const path = require("node:path");
 const { navHtml } = require("./site-nav");
+const { boxChange28 } = require("./market-data-normalizers");
 
 const ROOT = path.join(__dirname, "..");
 const SITE = "https://opboxindex.com";
@@ -21,8 +22,6 @@ const d = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.jso
 const S = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8"));
 const DATA_DATE = S.updated || d.updated || new Date().toISOString().slice(0, 10);
 const ORDER = [...(d.jp?.list || []), ...(d.extra?.list || [])];
-const board = {};
-for (const b of (d.marketIndex && d.marketIndex.board) || []) board[b.code] = b;
 
 const esc = (x) => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const usd = (n) => (n == null ? "—" : "$" + Math.round(n).toLocaleString("en-US"));
@@ -46,13 +45,11 @@ function rowsFor(ed) {
     const isThisWeek = !!(weekStart && last.d >= weekStart && last.d <= weekEnd);
     const prev = pts.find((p) => p.d === addDays(last.d, -7)) || null;
     const wow = prev ? (last.median / prev.median - 1) * 100 : null;
-    // 4주 변화: 일본판은 board(홈 티커·표와 같은 값), 영문판은 같은 규칙(28일 이상 전 마지막 점)으로 여기서 계산
-    let c4 = null;
-    if (ed === "jp" && board[code] && board[code].changePct != null && board[code].nowDate === last.d) c4 = board[code].changePct;
-    else {
-      const base = pts.filter((p) => Date.parse(p.d) <= Date.parse(last.d) - 28 * DAY).pop();
-      if (base) c4 = Math.round((last.median / base.median - 1) * 1000) / 10;
-    }
+    // 4주 변화 = market-data-normalizers.boxChange28(current vs 28일 이상 앞선 마지막 점) — 세트 페이지(일본판·영문판)·비교표·홈 board 와 같은 함수.
+    // 2026-10-15(5차): 여기만 current 대신 마지막 점을 기준으로 따로 계산해, current 가 없는(28일 밖) OP-04 -5.4% · EB-01 +6.3% 가
+    // 세트 페이지·비교표·홈·ko 의 "—" 와 갈렸다.
+    const ch = boxChange28(pts, (set.current || {})[ed] || null);
+    const c4 = ch ? ch.pct : null;
     const sup = (set.supply || []).filter((p) => p && p[ed] != null);
     const supNow = sup.length ? sup[sup.length - 1] : null;
     const supPrev = supNow ? sup.filter((p) => p.d <= addDays(supNow.d, -7)).pop() : null;
@@ -116,7 +113,8 @@ const desc = `Week ending ${weekEnd}: ${up} Japanese boxes up, ${down} down week
 const ld = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
   name: "One Piece booster box prices — weekly table", description: desc, url: `${SITE}/weekly.html`,
-  temporalCoverage: `${weekStart}/${weekEnd}`, dateModified: DATA_DATE, license: "https://creativecommons.org/licenses/by/4.0/",
+  // 수정일 ≥ 기간 끝(weekEnd) — 2026-10-15 감사(#4): 기간 …/10-15 인데 dateModified 10-14 였다.
+  temporalCoverage: `${weekStart}/${weekEnd}`, dateModified: [DATA_DATE, weekEnd].filter(Boolean).sort().pop(), license: "https://creativecommons.org/licenses/by/4.0/",
   creator: { "@type": "Organization", name: "OP Box Index", url: SITE },
   // 내려받기 파일을 걸지 않는다 — opbox-set-prices.csv 는 이 주간 표가 아니라 세트별 현재 시세 스냅샷이다(기간이 다르다, 2026-10-14 QA).
 });

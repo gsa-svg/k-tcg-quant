@@ -55,6 +55,10 @@ for (const set of aiData.sets) {
   for (const market of Object.values(set.boxMarket)) aiDates.push(market.sold?.sampleCollectedOn, market.activeAsk?.observedOn);
   for (const hit of set.topHits) aiDates.push(hit.rawNmAsk?.observedOn, hit.psa10Sold?.sampleCollectedOn, hit.psaPopulation?.observedOn);
 }
+// AI 확장 파일(카드·등급·경매) Dataset 의 수정일·기간 = 그 파일 자체 — 2026-10-15(3차).
+//   수정일 = 파일 datasetUpdatedOn, 기간 = 파일 안 관측 행 날짜의 처음~끝(tools/dataset-coverage.extraSpan — psa-grading 의 같은 파일과 한 함수).
+//   종전엔 CSV·핵심 피드 날짜로 셈해 #ai-grading-json·#ai-auctions-json 이 dateModified 10-14, 파일 datasetUpdatedOn 은 10-15 였다(가드 DS1).
+const extraDates = (file) => { const sp = require("./dataset-coverage").extraSpan(file); return sp ? { modified: sp.modified, dates: [sp.from, sp.to] } : { modified: DATA_DATE, dates: [] }; };
 const nPrices = writeCsv("opbox-set-prices.csv", BOX_HEAD, priceRecords);
 const nGrades = writeCsv("opbox-grading-population.csv", GRADE_HEAD, gradeRecords);
 const nAuctions = writeCsv("opbox-auction-daily.csv", AUCTION_HEAD, auctionRecords);
@@ -75,18 +79,19 @@ const dataset = ({ id, name, description, modified, dates, variables, format, co
   url: `${SITE}/free-data.html#${id}`,
   license: "https://creativecommons.org/licenses/by/4.0/",
   isAccessibleForFree: true,
-  dateModified: modified,
+  // 수정일은 기간 끝보다 이를 수 없다 — 2026-10-15 감사(#4): ai-json 등이 dateModified 10-14 · 기간 …/10-15 였다.
+  dateModified: maxDate([modified, ...dates]),
   ...(temporalCoverage(dates) ? { temporalCoverage: temporalCoverage(dates) } : {}),
   creator: publisher,
   variableMeasured: variables,
   distribution: { "@type": "DataDownload", encodingFormat: format, contentUrl },
 });
 const datasets = [
-  dataset({ id: "ai-json", name: "One Piece TCG box markets and Top 7 hits", description: `Compact AI-ready JSON for ${nPrices} tracked sets, with completed sales and active asking prices separated and field-level freshness and sample sizes.`, modified: DATA_DATE, dates: aiDates, variables: ["setCode", "boxMarket", "topHits", "rawNmAsk", "psa10Sold", "psaPopulation", "citationUrl"], format: "application/json", contentUrl: `${SITE}/opbox-ai-data.json` }),
+  dataset({ id: "ai-json", name: "One Piece TCG box markets and Top 7 hits", description: `Compact AI-ready JSON for ${nPrices} tracked sets, with completed sales and active asking prices separated and field-level freshness and sample sizes.`, modified: aiData.datasetUpdatedOn, dates: aiDates, variables: ["setCode", "boxMarket", "topHits", "rawNmAsk", "psa10Sold", "psaPopulation", "citationUrl"], format: "application/json", contentUrl: `${SITE}/opbox-ai-data.json` }),
   // 확장 AI 파일 3개 — 2026-09-08. 핵심 JSON 은 200KB 규칙이라 카드 전체·등급·경매는 따로 낸다(답변 엔진·Dataset 검색용).
-  dataset({ id: "ai-cards-json", name: "Every tracked One Piece card variant with raw NM and PSA 10 prices", description: "One entry per published card price page: card number, variant name, container set, Japanese retail NM asking price, verified PSA 10 sold median with sample size, PSA population and the citation URL.", modified: DATA_DATE, dates: aiDates, variables: ["cardNumber", "name", "containerSetCode", "rawNmAsk", "psa10Sold", "psaPopulation", "url"], format: "application/json", contentUrl: `${SITE}/opbox-ai-cards.json` }),
-  dataset({ id: "ai-grading-json", name: "Graded population per set (PSA, CGC, TAG) as JSON", description: "Latest graded counts and gem rates per set and printing for PSA, CGC and TAG, each with its own observation date. Graders are never summed.", modified: maxDate(gradeDates) || DATA_DATE, dates: gradeDates, variables: ["setCode", "japanese", "english", "psa", "cgc", "tag", "gemRatePct", "observedOn"], format: "application/json", contentUrl: `${SITE}/opbox-ai-grading.json` }),
-  dataset({ id: "ai-auctions-json", name: "Settled eBay auction results as JSON — One Piece and 13 trading card games", description: "One Piece auctions re-read after close (daily, weekly, by set: ended, sold, sell-through, winning-bid totals and medians) plus daily sell-through and winning-bid medians for 13 trading card games.", modified: maxDate(auctionDates) || DATA_DATE, dates: auctionDates, variables: ["date", "ended", "sold", "sellThroughPct", "amountUsd", "medianWinningBidUsd", "byCategory", "games"], format: "application/json", contentUrl: `${SITE}/opbox-ai-auctions.json` }),
+  dataset({ id: "ai-cards-json", name: "Every tracked One Piece card variant with raw NM and PSA 10 prices", description: "One entry per published card price page: card number, variant name, container set, Japanese retail NM asking price, verified PSA 10 sold median with sample size, PSA population and the citation URL.", ...extraDates("opbox-ai-cards.json"), variables: ["cardNumber", "name", "containerSetCode", "rawNmAsk", "psa10Sold", "psaPopulation", "url"], format: "application/json", contentUrl: `${SITE}/opbox-ai-cards.json` }),
+  dataset({ id: "ai-grading-json", name: "Graded population per set (PSA, CGC, TAG) as JSON", description: "Latest graded counts and gem rates per set and printing for PSA, CGC and TAG, each with its own observation date. Graders are never summed.", ...extraDates("opbox-ai-grading.json"), variables: ["setCode", "japanese", "english", "psa", "cgc", "tag", "gemRatePct", "observedOn"], format: "application/json", contentUrl: `${SITE}/opbox-ai-grading.json` }),
+  dataset({ id: "ai-auctions-json", name: "Settled eBay auction results as JSON — One Piece and 13 trading card games", description: "One Piece auctions re-read after close (daily, weekly, by set: ended, sold, sell-through, winning-bid totals and medians) plus daily sell-through and winning-bid medians for 13 trading card games.", ...extraDates("opbox-ai-auctions.json"), variables: ["date", "ended", "sold", "sellThroughPct", "amountUsd", "medianWinningBidUsd", "byCategory", "games"], format: "application/json", contentUrl: `${SITE}/opbox-ai-auctions.json` }),
   dataset({ id: "grading-csv", name: "Grading population by set, printing and grader", description: `${nGrades} set-edition rows. PSA, CGC and TAG counts remain separate and each grader keeps its own observation date.`, modified: maxDate(gradeDates) || DATA_DATE, dates: gradeDates, variables: GRADE_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-grading-population.csv` }),
   dataset({ id: "auction-csv", name: "Completed auction results by day", description: "Settled auction counts, sold counts, sell-through, median winning bids and bid counts by product type.", modified: maxDate(auctionDates) || DATA_DATE, dates: auctionDates, variables: AUCTION_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` }),
   dataset({ id: "box-csv", name: "Japanese and English booster box market snapshots", description: `${nPrices} sets with completed-sale medians and active asking-price medians kept separate, including sample sizes and observation dates.`, modified: maxDate(priceDates) || DATA_DATE, dates: priceDates, variables: BOX_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }),
@@ -105,12 +110,14 @@ const CARD_LIST_SPAN = (() => {
   }
   return temporalCoverage(dates);
 })();
+// 카드리스트 Dataset 수정일 = 세트 JSON "updated"(= 그 페이지 dateModified)의 최댓값 — 2026-10-15(4차). 종전엔 데이터일·기간 끝으로 셈해 10-15, JSON 은 10-14 였다.
+const CARD_LIST_UPDATED = maxDate(CARD_LISTS.map((p) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "sets", `${p.slug}-card-list.json`), "utf8")).updated; } catch { return null; } }));
 if (CARD_LISTS.length) {
   datasets.push({
     "@type": "Dataset", "@id": `${SITE}/free-data.html#card-lists`,
     name: "One Piece Card Game official card lists by set (Japanese edition) with matched prices",
     description: `${CARD_LISTS.length} sets, one row per official card ID (${CARD_LISTS.reduce((s, p) => s + p.counts.cards, 0)} cards): number, English and Japanese names, rarity, type, color, cost or life, power and counter from Bandai's official card lists, plus OP Box Index raw NM, auction and PSA 10 prices where the card ID matches by rule.`,
-    url: `${SITE}/free-data.html#card-lists`, isAccessibleForFree: true, dateModified: DATA_DATE, creator: publisher,
+    url: `${SITE}/free-data.html#card-lists`, isAccessibleForFree: true, dateModified: CARD_LIST_UPDATED || maxDate([DATA_DATE, ...String(CARD_LIST_SPAN || "").split("/")]), creator: publisher,
     // 라이선스는 둘로 나뉜다 — 우리 숫자 열(nm·auction·psa10)은 CC BY 4.0, 카드 사실 열은 반다이 공식 목록(출처 링크) — 2026-10-14 QA.
     license: { "@type": "CreativeWork", name: "OP Box Index numbers (nm, auction, psa10 columns): CC BY 4.0. Card facts: Bandai official card list (see isBasedOn), not relicensed.", url: `${SITE}/free-data.html#card-lists` },
     ...(CARD_LIST_SPAN ? { temporalCoverage: CARD_LIST_SPAN } : {}),
@@ -122,10 +129,12 @@ if (CARD_LISTS.length) {
     ]),
   });
 }
+// 카탈로그 수정일 — 화면 "Page regenerated" 와 같은 값(2026-10-15, 4차: 화면 10-14 · DataCatalog 10-15 였다).
+const CATALOG_DATE = maxDate([DATA_DATE, ...datasets.map((item) => item.dateModified)]);
 const datasetLd = JSON.stringify({
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "DataCatalog", "@id": `${SITE}/free-data.html#catalog`, name: "OP Box Index free One Piece TCG datasets", description: "Citable box-market, Top 7 card, grading-population and completed-auction aggregates.", url: `${SITE}/free-data.html`, dateModified: DATA_DATE, publisher, dataset: datasets.map((item) => ({ "@id": item["@id"] })) },
+    { "@type": "DataCatalog", "@id": `${SITE}/free-data.html#catalog`, name: "OP Box Index free One Piece TCG datasets", description: "Citable box-market, Top 7 card, grading-population and completed-auction aggregates.", url: `${SITE}/free-data.html`, dateModified: CATALOG_DATE, publisher, dataset: datasets.map((item) => ({ "@id": item["@id"] })) },
     ...datasets,
   ],
 });
@@ -188,7 +197,7 @@ const html = `<!doctype html>
         <a class="ghost" href="opbox-set-prices.csv" download>Box market snapshots (${nPrices} sets)</a>
       </div>
       <p class="note">For answer engines and crawlers: <a href="llms.txt">llms.txt</a> · <a href="llms-full.txt">llms-full.txt</a> · <a href="opbox-ai-cards.json">opbox-ai-cards.json</a> · <a href="opbox-ai-grading.json">opbox-ai-grading.json</a> · <a href="opbox-ai-auctions.json">opbox-ai-auctions.json</a> · <a href="feed.xml">RSS</a></p>
-      <p class="note">Page regenerated ${esc(DATA_DATE)} · every value keeps its own observation date · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
+      <p class="note">Page regenerated ${esc(CATALOG_DATE)} · every value keeps its own observation date · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
 
       <h2 id="ai-json">1. AI-ready box and Top 7 data — <code>opbox-ai-data.json</code></h2>
       <p data-ko-html="답변 엔진과 연구자를 위한 간결한 공개 규격입니다. 추적 중인 상품 ${nPrices}종과 세트별 상위 7개 카드 변형을 담습니다. 모든 세트 레코드는 사람이 읽는 가이드로 되돌아가는 링크를 갖습니다. 박스의 <code>sold</code>는 실거래 표본이고 <code>activeAsk</code>는 아직 판매 중인 매물입니다. 판매자 이름, 매물 ID, 제휴 URL, 마켓플레이스 원본 덤프는 넣지 않습니다.">A compact public contract for answer engines and researchers. It covers ${nPrices} tracked products and the Top 7 exact card variants in each set. Every set record links back to its human-readable guide. Box <code>sold</code> values are completed-sale samples; <code>activeAsk</code> values are listings still for sale. The feed excludes seller names, listing IDs, affiliate URLs and raw marketplace dumps.</p>

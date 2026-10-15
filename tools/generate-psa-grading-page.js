@@ -69,7 +69,15 @@ const K = {};
 for (const e of ["jp", "en"]) for (const k of GR) K[e + k] = { total: sumBy(e, k, "total"), add: sumBy(e, k, "add"), gem: sumBy(e, k, "gem") };
 const win = (k, e) => { const r = rows.find((x) => x[e][k] && x[e][k].from); return r ? `${r[e][k].from.slice(5)} → ${r[e][k].to.slice(5)}` : ""; };
 // Dataset 기간·수정일 = 배포 파일(등급 CSV·JSON)의 관측일 범위 — free-data 의 같은 Dataset 과 한 함수(tools/dataset-coverage.js, 2026-10-14 QA).
-const GRADE_SPAN = require("./dataset-coverage").gradingSpan(JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "data", "onepiece-packs.json"), "utf8")));
+// 이 Dataset 은 CSV·JSON 두 파일을 내려주므로 기간 = 두 파일 기간의 합(첫날~마지막 날), 수정일 = 둘 중 늦은 날 — 2026-10-15(3차).
+// 종전엔 CSV 날짜만 써서 같이 내려주는 opbox-ai-grading.json(datasetUpdatedOn 10-15, 10-15 행)보다 하루 이른 10-14 였다.
+const GRADE_SPAN = (() => {
+  const DC = require("./dataset-coverage");
+  const csv = DC.gradingSpan(JSON.parse(require("fs").readFileSync(require("path").join(__dirname, "..", "data", "onepiece-packs.json"), "utf8")));
+  const json = DC.extraSpan("opbox-ai-grading.json");
+  const sp = DC.span([csv && csv.from, csv && csv.to, json && json.from, json && json.to]);
+  return sp && { ...sp, to: DC.latestDate(sp.to, json && json.modified) };
+})();
 const updated = rows.flatMap((r) => ["jp", "en"].flatMap((e) => GR.map((k) => (r[e][k] && r[e][k].to) || ""))).sort().pop() || wNow;
 
 // ── 세트별 누적 막대(회사별 색), 일본판·영문판 두 줄, 같은 눈금

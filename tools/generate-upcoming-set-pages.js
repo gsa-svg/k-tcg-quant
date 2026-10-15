@@ -181,6 +181,20 @@ function marketStatusRow(page) {
   return [MARKET_STATUS_LABEL, value];
 }
 
+// 페이지 수정일 — 2026-10-15. Article dateModified·article:modified_time·바이라인 "Updated" = 사실 확인일(page.modified)과
+// 화면에 찍힌 시세 날짜(판매 원장 기준일 "through" · 예약판매 호가 기준일 · 판매 칸 날짜) 가운데 가장 늦은 날.
+// 종전엔 page.modified(10-14)만 써서 같은 페이지의 "Presale … through 2026-10-15" 보다 수정일이 일렀다. "facts checked" 는 그대로 page.modified.
+function pageModified(page) {
+  const s = SOLD_SERIES?.sets?.[page.code];
+  const dates = [page.modified, SOLD_SERIES?.builtFrom?.updated || SOLD_SERIES?.asOf];
+  if (preorderTable(page)) {
+    const ask = PREORDER?.sets?.[page.code];
+    dates.push(ask?.jp?.slice(-1)[0]?.d || ask?.en?.slice(-1)[0]?.d || PREORDER?.updated);
+    for (const ed of ["jp", "en"]) dates.push(edReleased(page, ed) ? s?.current?.[ed]?.d : s?.preRelease?.[ed]?.last);
+  }
+  return dates.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort().pop();
+}
+
 // Product + releaseDate — sets/op-17 과 같은 꼴(이름·브랜드·분류·발매일). 2026-10-14.
 // 판(일본판·영문판)마다 하나. 발매일 검색("op 18 release date")에 구조화된 날짜로 답한다.
 // offers 는 화면의 예약판매 호가 표에 보이는 값만(최저 호가·매물 수) — 호가가 없으면 넣지 않는다.
@@ -235,6 +249,19 @@ function renderSections(sections) {
       </section>`).join("\n");
 }
 
+// 산문은 전부 접는다 — 2026-10-15. 이 두 장(OP-18·EB-05)만 도입 문단과 해설 섹션 5개("What is confirmed and what is
+//   still open", "Update policy" …)가 펼쳐진 채 보였다. 일반 세트 페이지는 2026-08-12 부터 같은 종류의 글을 접힌
+//   "Set notes"(details.setMore)에 넣는다. 화면에는 발매일·예약판매·제품 정보·공개 카드 표만 남긴다.
+//   지우지는 않는다: "op 18 release date" 로 들어오는 페이지라 글은 HTML 에 그대로 있어야 하고, 구글은 접힌 것도 읽는다.
+//   틀·CSS 는 generate-set-pages.js 의 setMore 와 같다(한쪽만 바꾸면 세트 페이지끼리 접기 모양이 달라진다).
+function notesHtml(page) {
+  return `      <details class="setMore">
+        <summary data-ko="세트 해설 — 확정·미정 항목, 이전 세트 비교, 갱신 기준">Set notes — confirmed and open fields, earlier-set comparison, update policy</summary>
+        <p>${page.introHtml}</p>
+${renderSections(page.sections)}
+      </details>`;
+}
+
 // 검색 제목·설명(2026-09-17): 구글은 제목 60자·설명 155자를 넘기면 잘라내거나 다시 쓴다(OP-18 은 82자/185자였다).
 // JSON 의 title·description 은 편집용 긴 문장이라 그대로 못 쓴다 — <title> 은 코드 + 세트명(title 에서 " (" / " — " 앞까지)
 // + "Booster Box Release Date", 설명은 코드 + 세트명 + 발매일 FAQ(faq[0]) 답의 앞 문장들로 만든다. 넘치면 생성을 멈춘다.
@@ -274,13 +301,14 @@ function renderPage(page) {
   const canonical = `https://opboxindex.com/sets/${page.slug}.html`;
   const title = seoTitle(page);
   const description = seoDescription(page);
+  const modified = pageModified(page);
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: page.headline,
     description,
     datePublished: page.published,
-    dateModified: page.modified,
+    dateModified: modified,   // 사실 확인일과 화면 시세 날짜 중 늦은 날(pageModified, 2026-10-15)
     inLanguage: "en-US",
     mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
     // og:image 와 같은 그림 — Article 의 image 가 비어 있었다(2026-10-14 W6b).
@@ -310,6 +338,7 @@ function renderPage(page) {
   const factRows = [...page.facts, marketStatusRow(page)]
     .map(([label, value]) => `<tr><th scope="row"${FACT_KO[label] ? ` data-ko="${FACT_KO[label]}"` : ""}>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`)
     .join("\n          ");
+  // FAQ 는 일반 세트 페이지와 같은 틀(질문만 보이고 답은 <details>) — 머리말도 "<코드> <세트명> — frequently asked questions" 로 맞춘다. 2026-10-15.
   const faqHtml = page.faq
     .map(([question, answer]) => `<details><summary>${escapeHtml(question)}</summary><p>${escapeHtml(answer)}</p></details>`)
     .join("\n        ");
@@ -337,7 +366,7 @@ function renderPage(page) {
     <meta property="og:description" content="${escapeHtml(description)}" />
     <meta property="og:url" content="${canonical}" />
     <meta property="article:published_time" content="${page.published}" />
-    <meta property="article:modified_time" content="${page.modified}" />
+    <meta property="article:modified_time" content="${modified}" />
     <meta property="og:image" content="https://opboxindex.com/og/og-set-list.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${JSON.stringify(articleSchema)}</script>
@@ -364,6 +393,7 @@ function renderPage(page) {
       .revCount{margin:4px 0 0;color:var(--muted);font-size:13px}.revCount b{color:var(--ink);font-family:var(--font-display);font-size:17px}
       @media (max-width:720px){.bodyPage table.factTable,.revTbl{display:table;width:100%;-webkit-mask-image:none;mask-image:none}}
       @media (max-width:420px){.revTbl{font-size:13px}.revTbl th,.revTbl td{padding:6px 4px}}
+      .setMore{margin:22px 0 0;border-top:1px solid var(--line)}.setMore>summary{cursor:pointer;padding:12px 0;font-size:14px;font-weight:700;color:var(--muted);list-style:none}.setMore>summary::-webkit-details-marker{display:none}.setMore>summary::before{content:"▸ ";color:var(--accent)}.setMore[open]>summary::before{content:"▾ "}.setMore>summary:hover{color:var(--ink)}.setMore>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     </style>
   </head>
   <body>
@@ -377,8 +407,7 @@ function renderPage(page) {
       <h1>${escapeHtml(page.headline)}</h1>
       ${releaseBox(page)}
       ${preorderTable(page)}
-      <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Updated <time datetime="${page.modified}">${displayDate(page.modified)}</time> · Published <time datetime="${page.published}">${displayDate(page.published)}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>
-      <p>${page.introHtml}</p>
+      <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Updated <time datetime="${modified}">${displayDate(modified)}</time> · Published <time datetime="${page.published}">${displayDate(page.published)}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>
       <h2 data-ko="제품 정보">Product facts</h2>
       <table class="factTable text"><tbody>
           ${factRows}
@@ -387,9 +416,9 @@ function renderPage(page) {
         const p = CARD_LIST.productOf(page.code);
         return p ? `\n      <p class="revCount"><a href="${escapeHtml(page.slug)}-card-list.html" data-ko="${escapeHtml(page.code)} 공식 카드 리스트">${escapeHtml(page.code)} official card list</a> · <b>${p.counts.cards}</b> <span data-ko="장">cards</span> · <span data-ko="확인">checked</span> <time datetime="${p.checked}">${p.checked}</time></p>` : "";
       })()}
-${renderSections(page.sections)}
-      <section class="setFaq" aria-label="${escapeHtml(page.code)} frequently asked questions">
-        <h2>Frequently asked questions</h2>
+${notesHtml(page)}
+      <section class="setFaq" aria-label="${escapeHtml(`${page.code} ${seoName(page)} frequently asked questions`)}">
+        <h2>${escapeHtml(`${page.code} ${seoName(page)} — frequently asked questions`)}</h2>
         ${faqHtml}
       </section>
     </main>

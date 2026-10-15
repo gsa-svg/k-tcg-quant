@@ -14,6 +14,16 @@
 //  [2026-10-14 AI 사실 공급(llms·AI JSON)에 발매일·정가·카드 종수가 없고 라벨이 낡음] → RF1
 //  [2026-10-14 사이트맵 lastmod 205/222 가 매일 오늘(얕은 checkout·메뉴 커밋) · 피드 이중 이스케이프·noindex·정렬] → SM1, FD1
 //  [2026-10-14 cheapest·MSRP 질의 라벨 부재 · 홈 제목 브랜드 없음 · JSON-LD 누락(WebPage.name·Dataset·Article image)] → SE1
+//  [2026-10-15 외부 감사 확정 22건: FAQ 묵은 현재가 · 수정일 < 화면 날짜 · Product 숨은 가격 · 업체명 · NM 관측일 · 한국어 문답·재판·통화·레어도 ·
+//   AI 경매 없는/미발매 세트 · AI 기준일 · llms PSA 인구 날짜 · 카드 Product 에 sold 중앙값 · 예정 세트 펼친 해설 · Dataset 수정일]
+//   → SF1, U2, PL1, S4, NM1, KO1, KO2, KO3, KO4, AB1, AS1, LP1, PO1, CL2, UP2, DS1 (+ R2 일 단위 추첨 비교)
+//  [2026-10-15 2차: 1차 수정이 한 생성기에만 들어가 레어도(한국어 SP · 영문 Super Rare)와 NM(피드 null · 페이지 $1,250)이 페이지마다 갈림 ·
+//   예정 세트 수정일 < 화면 예약판매 날짜] → RY1, NM2 (+ UP1 수정일 = 사실 확인일·화면 시세 날짜 중 늦은 날)
+//  [2026-10-15 3차: 카드 H1 레어도 ≠ 같은 페이지 Rarity label · 못 쓰는 NM 을 빼고 낸 세트 지표 · "가장 비싼 카드"가 페이지마다 다른 규칙 ·
+//   free-data AI 확장 Dataset 날짜 ≠ 파일 · 피드 발행 시각 > 빌드 시각] → CM1, PC1 (+ RY1 H1 · DS1 free-data 전부 · FD1 발행 ≤ 빌드)
+//  [2026-10-15 5차: KO PSA 10 원화가 옛 KRW 저장값(영문과 12~15% 차) · 일본판 박스 문답에 영문판 값 · NM 없는 카드의 spread 문장 · "a 80%" ·
+//   같은 값끼리 비교 · 빈 링크 글자 · 최저가 동가 누락 · ko 허브 기준일 < 표 날짜 · how-many-packs FAQPage ≠ 화면 · weekly 4-wk 별도 계산]
+//   → PK1, FQ1, SP1, AN1, EQ1, EL1, CH1, KD1, FQ2, WK1 (+ PC1 숨김 카드 최고 raw 값·NM 관측일)
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
@@ -603,7 +613,16 @@ if (exists("data/box-sold-series.json")) {
       // 추첨판매는 **발매 전에도** 열린다(초회 물량 선판매). 발매일과 대조하지 않고 "발매 후 추가 공급" 이라
       // 부르면 공급이 늘지도 않았는데 늘었다고 쓰는 셈이다(2026-08-13: OP-17 은 발매 8/22 인데 추첨이 7/30 이었다).
       for (const r of sf.reprintRecords || []) {
-        const isPost = /^official-lottery$/.test(r.kind || "");
+        // 반다이 문구 = 분류 — 2026-10-15(4차). 메모가 "再販"이라 적은 추첨(부정형 "no 再販" 제외)은 official-reprint-lottery(재판으로 셈),
+        // 그 말이 없는 추첨은 official-lottery 여야 한다. 3차는 OP-09("Bandai Namco shop 再販 pre-order lottery")를 재판 밖으로 뺐다.
+        const saysSaihan = /再販/.test(String(r.note || "").replace(/no 再販/gi, "")) || /reprint lottery/i.test(String(r.kindWas || ""));
+        if (/lottery/i.test(r.kind || "") && !/pre-release|unverified-timing/i.test(r.kind || "")) {
+          if (saysSaihan && r.kind !== "official-reprint-lottery") errors.push(`R2: ${code} 의 ${r.date} 추첨 메모가 "再販"인데 kind=${r.kind} — official-reprint-lottery(재판)여야 한다`);
+          if (!saysSaihan && r.kind === "official-reprint-lottery") errors.push(`R2: ${code} 의 ${r.date} 추첨을 재판(official-reprint-lottery)으로 분류했는데 메모에 "再販" 문구가 없다`);
+        }
+      }
+      for (const r of sf.reprintRecords || []) {
+        const isPost = /^official-(?:reprint-)?lottery$/.test(r.kind || "");
         if (!isPost) continue;
         if (!sf.jpRelease || !sf.jpRelease.date) {
           errors.push(`R2: ${code} 의 ${r.date} 추첨을 "발매 후" 로 분류했는데 발매일이 확인돼 있지 않다 — official-lottery-unverified-timing 으로 두거나 발매일을 먼저 확인할 것`);
@@ -613,6 +632,13 @@ if (exists("data/box-sold-series.json")) {
         const rel = sf.jpRelease.date.slice(0, 7);
         if (String(r.date).slice(0, 7) < rel) {
           errors.push(`R2: ${code} 의 ${r.date} 추첨이 발매(${sf.jpRelease.date}) 이전인데 "발매 후" 로 분류돼 있다 — pre-release-lottery 여야 한다`);
+        }
+        // 일(YYYY-MM-DD) 단위 — 2026-10-15(감사 #8): 기록 날짜가 월 단위라 같은 달 발매(05-30) 하루 전에 응모가 열린 OP-16 1차 추첨
+        // (메모 "entries opened 2026-05-29")이 위 월 비교를 통과해 "발매 후" 로 남았고, 한국어 페이지가 그걸 재판으로 셌다.
+        // 메모에 적힌 응모 시작일이 일본판 발매일보다 앞서면 발매 전 추첨(초판 배정)이다.
+        const open = (String(r.note || "").match(/entries (?:opened )?(\d{4}-\d{2}-\d{2})/) || [])[1];
+        if (open && open < sf.jpRelease.date) {
+          errors.push(`R2: ${code} 의 ${r.date} 추첨 응모 시작 ${open} 이 발매(${sf.jpRelease.date}) 전인데 kind=${r.kind} — pre-release-lottery 여야 한다`);
         }
       }
     }
@@ -627,7 +653,21 @@ if (exists("data/box-sold-series.json")) {
     if (/Retailer\/distributor reprint records/.test(html)) {
       errors.push(`R2: ${f} 옛 문구(Retailer/distributor reprint records)가 남아 있다 — 출처가 뭉뚱그려진다`);
     }
+    // 방법 설명 문장 금지(2026-10-15, 4차) — "Bandai does not call these reprints, so we do not either"
+    if (/does not call these reprints|we do not either/.test(html)) errors.push(`R2: ${f} 에 방법 설명 문장("Bandai does not call these reprints…")이 남아 있다 — 줄은 라벨·날짜만`);
   }
+  // 영문 세트 페이지의 再販 추첨 줄 = 원장의 official-reprint-lottery(4차). 홈 배지 툴팁(packs.js)에도 방법 설명 문장이 없어야 한다.
+  if (exists(factsPath)) {
+    const F = JSON.parse(read(factsPath));
+    for (const [code, sf] of Object.entries(F.sets || {})) {
+      const f = `sets/${code.toLowerCase()}.html`;
+      if (!exists(f) || !sf.jpMsrpYen) continue;
+      const n = (sf.reprintRecords || []).filter((r) => r.kind === "official-reprint-lottery").length;
+      const has = /<li>Bandai Namco shop reprint [(]再販[)] lottery:/.test(read(f));
+      if (!!n !== has) errors.push(`R2: ${f} 再販 추첨 줄 ${has ? "있음" : "없음"} ≠ 원장 official-reprint-lottery ${n}건`);
+    }
+  }
+  if (/does not call these reprints|'재판'이라 부르지 않습니다/.test(read("packs.js"))) errors.push("R2: packs.js 배지 툴팁에 방법 설명 문장(Bandai does not call these reprints)이 남아 있다");
 }
 
 // ── R3. sold 수집 URL 에 카테고리를 걸지 않는다 — 2026-08-13 신설.
@@ -2395,10 +2435,18 @@ for (const test of [
       const pr = prods.find((j) => new RegExp(`\\(${label}\\)$`).test(j.name || ""));
       if (!pr || pr.releaseDate !== want) errors.push(`UP1: ${f} Product(${label}) releaseDate ${pr ? pr.releaseDate : "없음"} ≠ ${want}`);
     }
+    // 수정일 = 사실 확인일(modified)과 화면에 찍힌 시세 날짜("as of/through YYYY-MM-DD", "through Month D, YYYY") 중 가장 늦은 날 — 2026-10-15(2차).
+    // 종전엔 modified 로 잠가 "Presale … through 2026-10-15" 인 페이지의 수정일이 10-14 였다. 화면 날짜에서 다시 계산하므로
+    // 그보다 이른 날(백데이트)도, 화면 어디에도 없는 늦은 날(지어낸 날)도 실패한다.
+    const isoLong = (t) => { const m = String(t).match(/^([A-Z][a-z]+) (\d{1,2}), (\d{4})$/); const i = m ? MONTHS.indexOf(m[1]) : -1; return i >= 0 ? `${m[3]}-${String(i + 1).padStart(2, "0")}-${m[2].padStart(2, "0")}` : null; };
+    const vis = html.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    const dataDays = [...vis.matchAll(/\b(?:as of|through) (\d{4}-\d{2}-\d{2})\b/g)].map((m) => m[1])
+      .concat([...vis.matchAll(/\bthrough ([A-Z][a-z]+ \d{1,2}, \d{4})/g)].map((m) => isoLong(m[1])).filter(Boolean));
+    const wantMod = [p.modified, ...dataDays].sort().pop();
     const art = lds.find((j) => j["@type"] === "Article");
-    if (!art || art.dateModified !== p.modified) errors.push(`UP1: ${f} Article dateModified ≠ upcoming modified ${p.modified}`);
-    if (!html.includes(`<meta property="article:modified_time" content="${p.modified}" />`)) errors.push(`UP1: ${f} article:modified_time ≠ ${p.modified}`);
-    if (!new RegExp(`Updated <time datetime="${p.modified}">[^<]*</time> · Published <time datetime="${p.published}">`).test(html)) errors.push(`UP1: ${f} 바이라인이 "Updated ${p.modified} · Published" 순서가 아니다`);
+    if (!art || art.dateModified !== wantMod) errors.push(`UP1: ${f} Article dateModified ${art ? art.dateModified : "없음"} ≠ ${wantMod}(사실 확인일 ${p.modified}·화면 시세 날짜 중 늦은 날)`);
+    if (!html.includes(`<meta property="article:modified_time" content="${wantMod}" />`)) errors.push(`UP1: ${f} article:modified_time ≠ ${wantMod}`);
+    if (!new RegExp(`Updated <time datetime="${wantMod}">[^<]*</time> · Published <time datetime="${p.published}">`).test(html)) errors.push(`UP1: ${f} 바이라인이 "Updated ${wantMod} · Published" 순서가 아니다`);
     if ((p.revealedCards || []).length) {
       const tbl = html.match(/<table class="factTable revTbl[^"]*">[\s\S]*?<\/table>/);
       const rows = tbl ? [...tbl[0].matchAll(/<tr><td><a href="([^"]+)"[^>]*>([^<]+)<\/a><\/td>/g)] : [];
@@ -2846,7 +2894,7 @@ const PUBLISH_TOUCHED = (() => {
   // 같은 배포 파일(contentUrl)을 가리키는 Dataset 은 페이지가 달라도 기간이 같아야 한다(tools/dataset-coverage.js 한 곳) — 2026-10-14 QA:
   // opbox-ai-data.json 이 free-data 2026-06-29/10-14 · 홈 2026-07-07/10-13 이었다. 카드리스트 Dataset 은 license·temporalCoverage 필수.
   {
-    const cov = new Map();
+    const cov = new Map(), multi = [];
     for (const f of ["index.html", "packs.html", "box-prices.html", "free-data.html", "psa-grading.html", "ko/index.html", "auction.html", "tcg-auction.html", "weekly.html"]) {
       if (!exists(f)) continue;
       const nodes = lds(read(f)).flatMap((j) => (j["@graph"] ? j["@graph"] : [j])).filter((j) => j && j["@type"] === "Dataset");
@@ -2854,15 +2902,24 @@ const PUBLISH_TOUCHED = (() => {
         const dist = [].concat(ds.distribution || []);
         if (/card-lists$/.test(ds["@id"] || "") && (!ds.license || !ds.temporalCoverage)) errors.push(`SE1: ${f} 카드리스트 Dataset 에 license·temporalCoverage 가 없다`);
         if (!ds.temporalCoverage) continue;
-        for (const { contentUrl: u } of dist) {
-          // 같은 파일 전체를 설명하는 Dataset 끼리만 — 경매 JSON 은 페이지(One Piece / TCG)마다 그 파일의 한 부분을 설명한다.
-          if (!u || !/\/(?:opbox-ai-data\.json|opbox-set-prices\.csv|opbox-grading-population\.csv|opbox-ai-grading\.json)$/.test(u)) continue;
+        // 같은 파일 전체를 설명하는 Dataset 끼리만 — 경매 JSON 은 페이지(One Piece / TCG)마다 그 파일의 한 부분을 설명한다.
+        const urls = dist.map((x) => x && x.contentUrl).filter((u) => u && /\/(?:opbox-ai-data\.json|opbox-set-prices\.csv|opbox-grading-population\.csv|opbox-ai-grading\.json)$/.test(u));
+        // 두 파일을 함께 내려주는 Dataset(psa-grading: 등급 CSV + JSON)의 기간은 두 파일 기간의 합 — 아래에서 따로 대조한다(2026-10-15, 3차).
+        if (urls.length > 1) { multi.push({ f, urls, tc: ds.temporalCoverage }); continue; }
+        for (const u of urls) {
           if (!cov.has(u)) cov.set(u, new Map());
           cov.get(u).set(ds.temporalCoverage, (cov.get(u).get(ds.temporalCoverage) || []).concat(f));
         }
       }
     }
     for (const [u, m] of cov) if (m.size > 1) errors.push(`SE1: ${u} 를 가리키는 Dataset 기간이 페이지마다 다르다 — ${[...m].map(([c, fs]) => `${c}: ${fs.join(", ")}`).join(" / ")}`);
+    for (const x of multi) {
+      const parts = x.urls.map((u) => (cov.has(u) && cov.get(u).size === 1 ? [...cov.get(u).keys()][0] : null));
+      if (parts.some((p) => !p)) continue;
+      const ds = parts.flatMap((p) => p.split("/")).sort();
+      const want = `${ds[0]}/${ds[ds.length - 1]}`;
+      if (x.tc !== want) errors.push(`SE1: ${x.f} 두 파일(${x.urls.map((u) => u.split("/").pop()).join(" + ")}) Dataset 기간 ${x.tc} ≠ 각 파일 기간의 합 ${want}`);
+    }
   }
   for (const f of PUBLIC_HTML.filter((x) => x.startsWith("articles/") && x !== "articles/index.html")) {
     const h = read(f);
@@ -2913,10 +2970,1176 @@ const PUBLISH_TOUCHED = (() => {
     try { for (const p of require("./card-list-shared").products()) must.push(`https://opboxindex.com/${require("./card-list-shared").pagePath(p.code)}`); } catch {}
     for (const u of must) if (exists(u.replace("https://opboxindex.com/", "")) && !links.has(u)) sink.push(`${FD} feed.xml 에 ${u} 가 없다`);
   }
+  // 발행 시각 ≤ 빌드 시각 — 2026-10-15(3차): 오늘 날짜 항목 13개가 pubDate 09:00 GMT 인데 lastBuildDate 는 02:26 GMT 였다(발행이 빌드보다 미래).
+  for (const f of ["feed.xml", "ko/feed.xml"].filter(exists)) {
+    const x = read(f);
+    const built = Date.parse((x.match(/<lastBuildDate>([^<]+)<\/lastBuildDate>/) || [])[1] || "");
+    if (!built) { sink.push(`${FD} ${f} lastBuildDate 를 못 읽었다`); continue; }
+    const late = [...x.matchAll(/<item>[\s\S]*?<\/item>/g)].filter((m) => Date.parse((m[0].match(/<pubDate>([^<]+)<\/pubDate>/) || [])[1] || "") > built);
+    if (late.length) sink.push(`${FD} ${f} pubDate ${late.length}건이 lastBuildDate 보다 늦다(${(late[0][0].match(/<link>([^<]+)<\/link>/) || [])[1] || ""})`);
+  }
+}
+
+// ════ 2026-10-15 외부 감사(확정 22건) 재발 방지 — SF1·U2·PL1·S4·NM1·KO1~KO4·AB1·AS1·LP1·PO1·CL2·UP2·DS1 ════
+// 공용: JSON-LD 읽기·보이는 글자 뽑기. 각 검사는 생성기를 부르지 않고 원천 파일(data/·AI JSON)과 산출물을 직접 대조한다.
+const ldOf15 = (h) => [...h.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map((m) => { try { return JSON.parse(m[1]); } catch { return null; } }).filter(Boolean);
+const shownText15 = (h) => h.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ").replace(/<svg[\s\S]*?<\/svg>/g, " ")
+  .replace(/<[^>]+>/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ");
+const money15 = (v) => "$" + Math.round(v).toLocaleString("en-US");
+const ISO15 = /^\d{4}-\d{2}-\d{2}$/;
+let UPC15 = new Set();
+try { UPC15 = new Set((JSON.parse(read("data/upcoming-set-pages.json")).pages || []).map((p) => `${p.slug}.html`)); } catch {}
+// 일본판·영문판 세트 페이지(발매 전 세트 페이지는 UP1·UP2 가 본다)
+const SET_PAGES15 = PUBLIC_HTML.filter((p) => /^sets\/(?:op|eb|prb)-\d+(?:-english)?\.html$/.test(p) && !UPC15.has(p.slice(5)));
+const KO_SET_PAGES15 = PUBLIC_HTML.filter((p) => /^ko\/(?:op|eb|prb)-\d+\.html$/.test(p));
+// NM 을 써도 되는가(값·읽은 날 있음·숨김 표시 없음) — 생성기 전부가 쓰는 술어 그대로(2026-10-15, 2차). 화면·피드 값의 유무 규칙이 이것 하나다.
+const { nmUsable: nmUsable15 } = require("./market-data-normalizers");
+
+// ── SF1. 세트 페이지 FAQ 의 박스 가격 = Key facts 표의 판매 중앙값(28일 규칙) — 2026-10-15 신설(감사 #0).
+//    OP-02·OP-04·EB-01 의 FAQ(화면·FAQPage JSON-LD)가 "As of 2026-07-07 … about $147" 과 그 값으로 낸 "3.8x" 를 현재가처럼 냈다.
+//    같은 페이지 Key facts 는 "— no median dated within 28 days" 였다. 가격 문답 = 표와 같은 값·날짜(표가 "—" 면 가격을 내지 않음),
+//    배수 문답과 접힌 해설의 "현재" 문장(verdict·배수) = 두 판(해설은 일본판) current 가 있을 때만. 같은 값을 다른 꼴로 쓰는 것($1424 · $1,424)도 잡는다.
+if (exists("data/box-sold-series.json")) {
+  const SS = JSON.parse(read("data/box-sold-series.json")).sets || {};
+  let n = 0;
+  for (const f of SET_PAGES15) {
+    const html = read(f);
+    const code = f.slice(5).replace(/(?:-english)?\.html$/, "").toUpperCase();
+    const cur = (SS[code] && SS[code].current) || {};
+    const faq = ldOf15(html).find((o) => o["@type"] === "FAQPage");
+    const kf = (html.match(/<tr data-k="sold">[\s\S]*?<\/tr>/) || [""])[0];
+    const kfVal = (kf.match(/<b>(\$[\d,]+)<\/b>/) || [])[1] || null;
+    const kfDate = kfVal ? (kf.match(/<time datetime="(\d{4}-\d{2}-\d{2})"/) || [])[1] : null;
+    for (const q of (faq && faq.mainEntity) || []) {
+      const a = (q.acceptedAnswer && q.acceptedAnswer.text) || "";
+      if (/^How much is a sealed /.test(q.name)) {
+        n++;
+        const m = a.match(/^As of (\d{4}-\d{2}-\d{2}), completed eBay sales[^.]*?median at about (\$[\d,]+)/);
+        if (!kfVal && m) errors.push(`SF1: ${f} FAQ 가 ${m[2]}(${m[1]})를 현재가로 낸다 — Key facts 는 "—"(28일 안의 중앙값 없음)`);
+        if (kfVal && (!m || m[2] !== kfVal || m[1] !== kfDate)) errors.push(`SF1: ${f} FAQ 가격 "${m ? `${m[2]} ${m[1]}` : "없음"}" ≠ Key facts ${kfVal} ${kfDate}`);
+      }
+      if (/compare with the Japanese box\?$/.test(q.name)) {
+        if (!(cur.jp && cur.en)) errors.push(`SF1: ${f} 배수 문답이 있는데 ${cur.jp ? "영문판" : "일본판"} current 가 없다 — 28일 넘은 값으로 배수를 냈다`);
+        else if (!a.includes(money15(cur.jp.median)) || !a.includes(money15(cur.en.median))) errors.push(`SF1: ${f} 배수 문답 값 ≠ current(JP ${money15(cur.jp.median)} · EN ${money15(cur.en.median)})`);
+      }
+    }
+    if (!/-english\.html$/.test(f) && !cur.jp && /compares with its tracked range|x<\/strong> the Japanese box/.test(html))
+      errors.push(`SF1: ${f} 일본판 current 가 없는데 현재가 해설(verdict·배수)이 남아 있다`);
+  }
+  if (!n) errors.push("SF1: 가격 FAQ 를 읽은 세트 페이지가 0장이다 — 문답 구조가 바뀌었으면 이 검사도 같이 고칠 것");
+}
+
+// ── U2. 세트·영문판·한국어 세트·카드 상세 페이지 수정일 ≥ 화면에 찍힌 가장 늦은 데이터 날짜 — 2026-10-15 신설(감사 #4).
+//    op-17-english 의 WebPage dateModified 가 2026-10-14(packs.updated)인데 화면·FAQ 엔 "as of 2026-10-15" 판매 중앙값이 있었다.
+//    카드 상세 21장도 등급사 표에 "2026-10-15" TAG 값이 있는데 Article dateModified 10-14 였다. U1 은 글·비교표만 본다.
+//    발매일 행(data-k="release")은 미래일 수 있는 사실이라 뺀다. 화면 "Data updated"(한국어 "갱신") · 카드 설명의 "Updated" 도 같은 날이어야 한다.
+{
+  let n = 0;
+  const pages = [...SET_PAGES15, ...KO_SET_PAGES15, ...PUBLIC_HTML.filter((p) => /^cards\/(?!index\.html$)[^/]+\.html$/.test(p))];
+  for (const f of pages) {
+    const html = read(f);
+    if (/name="robots" content="[^"]*noindex/i.test(html)) continue;   // 리다이렉트 스텁(C2 예외)
+    const ld = ldOf15(html);
+    const node = ld.find((o) => o["@type"] === "WebPage" && o.dateModified) || ld.find((o) => o["@type"] === "Article" && o.dateModified);
+    const dm = node && node.dateModified;
+    if (!dm) { errors.push(`U2: ${f} WebPage/Article dateModified 가 없다`); continue; }
+    n++;
+    // 보이는 글자만 — 차트 SVG 의 data-e(구간 끝, 배타적 = 다음 날)는 화면 날짜가 아니다. meta description 은 검색결과에 보이므로 넣는다.
+    const desc = (html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || "";
+    const shown = shownText15(html.replace(/<tr data-k="release">[\s\S]*?<\/tr>/, " ")) + " " + desc;
+    let latest = "";
+    for (const m of shown.matchAll(/\b(20\d\d-\d\d-\d\d)\b/g)) if (m[1] > latest) latest = m[1];
+    if (latest > dm) errors.push(`U2: ${f} 화면에 ${latest} 데이터가 있는데 dateModified 가 ${dm} — 수정일은 화면 날짜 중 가장 늦은 날 이상(set-page-shared.setPageDate)`);
+    const upd = f.startsWith("cards/") ? (desc.match(/Updated (\d{4}-\d{2}-\d{2})\.$/) || [])[1]
+      : f.startsWith("ko/") ? (html.match(/· 갱신 (\d{4}-\d{2}-\d{2})\.<\/p>/) || [])[1]
+        : (html.match(/Data updated <time datetime="(\d{4}-\d{2}-\d{2})"/) || [])[1];
+    if (upd !== dm) errors.push(`U2: ${f} 화면 갱신일 "${upd || "없음"}" ≠ dateModified ${dm}`);
+  }
+  if (!n) errors.push("U2: 검사한 세트·카드 페이지가 0장이다");
+}
+
+// ── PL1. 세트 페이지 Product 구조화데이터의 가격·매물 수는 화면에 있어야 한다 — 2026-10-15 신설(감사 #6).
+//    op-07(매물 2건)은 호가 위젯·Range 줄이 숨는데 AggregateOffer highPrice 157 이 JSON-LD 에만 있었다(영문판은 SD4 로 고친 같은 결함).
+//    차트 SVG 의 눈금 글자는 가격 표시가 아니라 뺀다. 예정 세트 페이지(예약 호가)는 UP1 이 본다.
+{
+  let n = 0;
+  for (const f of SET_PAGES15) {
+    const html = read(f);
+    const text = shownText15(html);
+    for (const p of ldOf15(html).filter((o) => o["@type"] === "Product" && o.offers)) {
+      n++;
+      const o = p.offers;
+      for (const v of o["@type"] === "AggregateOffer" ? [o.lowPrice, o.highPrice] : [o.price]) {
+        if (v == null) { errors.push(`PL1: ${f} Product ${o["@type"]} 에 가격이 비어 있다`); continue; }
+        if (!text.includes(money15(v))) errors.push(`PL1: ${f} Product ${o["@type"]} 가격 ${money15(v)} 이 화면에 없다 — 구조화데이터에만 있는 값`);
+      }
+      if (o.offerCount != null && !new RegExp(`(^|\\D)${o.offerCount} (?:active )?listings`).test(text)) errors.push(`PL1: ${f} offerCount ${o.offerCount} 가 화면 매물 수에 없다`);
+    }
+  }
+  if (!n) errors.push("PL1: Product 구조화데이터를 읽은 세트 페이지가 0장이다");
+}
+
+// ── S4. 외부 시세 업체명 공개 금지(S1 확장) — 2026-10-15 신설(감사 #20).
+//    PRB-01 본문에 "with a TCGplayer market price around $4,250" 이 나갔다(S1 은 collectr 만 본다). 표의 중립 라벨은 "TCG".
+//    생성기가 만드는 세트·카드·한국어·일본어 페이지와 llms 파일 전부. 소문자 gemRatePct 같은 필드명은 업체명이 아니라 \b 로 끊는다.
+//    CSP meta 의 이미지 CDN 도메인은 보이는 글자가 아니라 뺀다. (about·methodology·weekly·글 3장의 기존 표기는 범위 밖 — 남은 일)
+{
+  const VENDOR = /tcgplayer|yuyu-?tei|遊々亭|pricecharting|cardmarket|cardrush|snkrdunk|\bgemrate\b|collectr/i;
+  for (const f of [...PUBLIC_HTML.filter((x) => /^(?:sets|cards|ko|ja)\//.test(x)), "llms.txt", "llms-full.txt"]) {
+    if (!exists(f)) continue;
+    const m = read(f).replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/i, " ").match(VENDOR);
+    if (m) errors.push(`S4: ${f} 에 외부 시세 업체명 "${m[0]}" — 중립 라벨(TCG · Weekly ungraded market)을 쓸 것`);
+  }
+}
+
+// ── NM1. NM 호가 관측일 = 그 변형을 실제로 읽은 날(packs card.nmUpdated) — 2026-10-15 신설(감사 #10).
+//    피드·카드 상세가 card-series 마지막 점(환율만 움직여도 생기는 점)·페이지 빌드일을 관측일로 내보내, 10-11 에 읽은 ¥1,280,000 이
+//    "observedOn 2026-10-14 · 경과 0일"·"Japanese retail · as of 2026-10-14" 로 나갔다(카드리스트는 10-11). 09-07 값(OP09-093 SP Gold)도 10-14.
+//    (a) AI 핵심 topHits·카드 파일 pages: rawNmAsk.observedOn === nmUpdated, nmUpdated 가 없으면 rawNmAsk 는 null
+//    (b) 카드 상세 "Japanese retail · as of X" = nmUpdated(없으면 날짜 없음) (c) 카드리스트 JSON nm.observedOn = 같은 번호 변형의 nmUpdated 중 하나(지어낸 날 금지)
+//    (d) 한국어 세트 페이지 인기 카드 문단 — "DATA_DATE 기준으로 비교" 금지, 관측일 = 표 카드들의 nmUpdated 범위
+//    (e) 일본판 세트 페이지 Top 10 NM 칸 — 지금은 날짜를 싣지 않는다. 싣게 되면 nmUpdated 여야 한다(행 순서 = packs cards 앞 10장)
+//    (f) 카드 허브 "Raw NM as of <빌드일>" 금지
+{
+  try {
+    const PK = JSON.parse(read("data/onepiece-packs.json"));
+    const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const want = (c) => (c.nmHiddenReason || !(c.nmJpy > 0) || !ISO15.test(c.nmUpdated || "") ? null : c.nmUpdated);
+    const byKey = new Map(), byNum = new Map();
+    for (const [code, s] of Object.entries(PK.sets || {})) for (const c of s.cards || []) {
+      byKey.set(`${code}|${c.number}|${norm(c.name)}`, c);
+      if (!byNum.has(c.number)) byNum.set(c.number, new Set());
+      if (ISO15.test(c.nmUpdated || "")) byNum.get(c.number).add(c.nmUpdated);
+    }
+    let bad = 0;
+    const push = (msg) => { if (bad++ < 12) errors.push(msg); };
+    // (a)
+    const CORE = JSON.parse(read("opbox-ai-data.json")), CARDS = JSON.parse(read("opbox-ai-cards.json"));
+    const checkOne = (where, code, number, name, nm) => {
+      const c = byKey.get(`${code}|${number}|${norm(name)}`);
+      if (!c) return;
+      const got = nm ? nm.observedOn : null;
+      if (got !== want(c)) push(`NM1: ${where} ${code} ${number} ${name} NM 관측일 ${got} ≠ 원천 nmUpdated ${want(c)}`);
+    };
+    for (const s of CORE.sets || []) for (const h of s.topHits || []) checkOne("opbox-ai-data.json", s.setCode, h.cardNumber, h.name, h.rawNmAsk);
+    for (const p of CARDS.pages || []) checkOne("opbox-ai-cards.json", p.containerSetCode, p.cardNumber, p.name, p.rawNmAsk);
+    // (b) — 카드 페이지 파일명 = 번호+이름 슬러그(C4 와 같은 규칙)
+    const slug = (s) => String(s).toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").replace(/[\s_]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    let pagesSeen = 0;
+    for (const s of Object.values(PK.sets || {})) for (const c of s.cards || []) {
+      const f = `cards/${slug(c.number + "-" + c.name)}.html`;
+      if (!exists(f)) continue;
+      const m = read(f).match(/<span>Japanese NM \(raw\)<\/span><b>[^<]*<\/b><small>([^<]*)<\/small>/);
+      if (!m) continue;
+      pagesSeen++;
+      const shown = (m[1].match(/as of (\d{4}-\d{2}-\d{2})/) || [])[1] || null;
+      // 숨김 표시 NM 은 읽은 날이 있어도 화면에 값·날짜가 없다(nmUsable, 2026-10-15 2차)
+      if (shown !== (nmUsable15(c) ? c.nmUpdated : null)) push(`NM1: ${f} NM "as of ${shown}" ≠ nmUpdated ${nmUsable15(c) ? c.nmUpdated : "없음(쓸 수 없는 NM)"} — 빌드일을 관측일로 쓰지 말 것`);
+    }
+    if (!pagesSeen) errors.push("NM1: 카드 상세의 NM 칸을 한 장도 못 읽었다 — 칸 구조가 바뀌었으면 이 검사도 같이 고칠 것");
+    // (c)
+    for (const f of fs.readdirSync(path.join(ROOT, "sets")).filter((x) => /-card-list\.json$/.test(x))) {
+      for (const r of JSON.parse(read("sets/" + f)).cards || []) {
+        const d = r.nm && r.nm.observedOn;
+        if (d && !(byNum.get(r.number) || new Set()).has(d)) push(`NM1: sets/${f} ${r.id} NM 관측일 ${d} — 같은 번호 변형의 nmUpdated(${[...(byNum.get(r.number) || [])].join(",") || "없음"})가 아니다`);
+      }
+    }
+    // (d)
+    for (const f of KO_SET_PAGES15) {
+      const html = read(f);
+      if (/NM 카드 \d+장을 \d{4}-\d{2}-\d{2} 기준으로 비교합니다/.test(html)) push(`NM1: ${f} 인기 카드 문단이 데이터일을 NM 기준일로 쓴다 — 관측일(nmUpdated)을 따로 적을 것`);
+      const m = html.match(/NM 카드 (\d+)장을 비교합니다\((?:관측일 ([\d~-]+), )?환율/);
+      if (!m) continue;
+      const cards = ((PK.sets || {})[f.slice(3, -5).toUpperCase()] || {}).cards || [];
+      const days = cards.filter((c) => nmUsable15(c) && c.number).slice(0, Number(m[1])).map((c) => c.nmUpdated).filter((x) => ISO15.test(x || "")).sort();
+      const span = days.length ? (days[0] === days.at(-1) ? days[0] : `${days[0]}~${days.at(-1)}`) : undefined;
+      if (m[2] !== span) push(`NM1: ${f} 인기 카드 관측일 "${m[2] || "없음"}" ≠ nmUpdated 범위 ${span || "없음"}`);
+    }
+    // (e)
+    for (const [code, s] of Object.entries(PK.sets || {})) {
+      const f = `sets/${code.toLowerCase()}.html`;
+      if (!exists(f) || !(s.cards || []).length) continue;
+      const tbl = (read(f).match(/<table class="chaseTable">[\s\S]*?<\/table>/) || [""])[0];
+      for (const r of tbl.matchAll(/<tr><td>(\d+)<\/td>[\s\S]*?<\/tr>/g)) {
+        const c = s.cards[Number(r[1]) - 1];
+        const nmCell = ([...r[0].matchAll(/<td class="num[^"]*"[^>]*>([\s\S]*?)<\/td>/g)][0] || [])[1] || "";
+        const shown = (nmCell.match(/\b(\d{4}-)?(\d{2}-\d{2})\b/) || [])[0];
+        if (!shown) continue;
+        const w = c && c.nmUpdated ? (shown.length === 10 ? c.nmUpdated : c.nmUpdated.slice(5)) : null;
+        if (shown !== w) push(`NM1: ${f} ${c ? c.number : "?"} NM 칸 날짜 ${shown} ≠ nmUpdated ${c && c.nmUpdated ? c.nmUpdated : "없음"}`);
+      }
+    }
+    // (f)
+    if (exists("cards/index.html") && /Raw NM as of \d{4}-\d{2}-\d{2}/.test(read("cards/index.html"))) push("NM1: cards/index.html \"Raw NM as of <날짜>\" — NM 은 행마다 읽은 날이 다르다(관측일 범위로)");
+    if (bad > 12) errors.push(`NM1: 그 밖에 ${bad - 12}건 더`);
+  } catch (e) { errors.push("NM1: NM 관측일 검사 실패 — " + e.message); }
+}
+
+// ── KO1. 한국어 세트·허브 문답 = 같은 페이지 Key facts 정의 — 2026-10-15 신설(감사 #1·#2·#3·#7·#12·#14).
+//    시세 문답이 데이터 갱신일(10-14)을 09-23 값(OP-06)에 붙였고, 값이 없는 세트(OP-02·OP-04·EB-01)는 "추적가는 약 —이며".
+//    변동률 문답이 4주 비교 기준일(09-15)을 "발매 시점"으로 적어 OP-17(발매 08-22)·OP-16 페이지 안에 발매일이 둘.
+//    허브 문답·Dataset 은 "2026년 1월 대비·OP-16만 발매 시점부터" 옛 정의를 들고 있었다. FAQPage 구조화데이터도 같은 문장이다.
+{
+  let SS = {}, FX = null;
+  try { SS = JSON.parse(read("data/box-sold-series.json")).sets || {}; FX = (JSON.parse(read("data/onepiece-packs.json")).fx || {}).usdKrw || null; } catch (e) { errors.push("KO1: 원천 읽기 실패 — " + e.message); }
+  const faqOf = (h) => (ldOf15(h).find((j) => j["@type"] === "FAQPage") || {}).mainEntity || [];
+  const ansOf = (faq, re) => ((faq.find((q) => re.test(q.name)) || {}).acceptedAnswer || {}).text || null;
+  const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  let n = 0;
+  for (const f of KO_SET_PAGES15) {
+    const code = f.slice(3, -5).toUpperCase(), html = read(f), faq = faqOf(html);
+    n++;
+    if (/약 —/.test(html)) errors.push(`KO1: ${f} 에 "약 —" — 값이 없으면 금액 문장 대신 사유("28일 안에 날짜가 찍힌 판매 중앙값이 없어")`);
+    if (/발매 시점|발매 초기 대비/.test(html)) errors.push(`KO1: ${f} 에 "발매 시점/발매 초기 대비" — 변동률은 28일 전 중앙값 대비다(발매일과 무관)`);
+    // 시세 문답 날짜·값 = Key facts sold 행 = box-sold-series current(없으면 금액 없이)
+    const sold = (html.match(/<tr data-k="sold">[\s\S]*?<\/tr>/) || [""])[0];
+    const cur = (SS[code] && SS[code].current && SS[code].current.jp) || null;
+    const pa = ansOf(faq, /박스 시세는 지금 얼마/);
+    if (cur) {
+      const w = FX ? Math.round(cur.median * FX).toLocaleString("ko-KR") + "원" : null;
+      if (!sold.includes(`<time datetime="${cur.d}">`)) errors.push(`KO1: ${f} Key facts 기준일 ≠ current ${cur.d}`);
+      if (!pa || !pa.startsWith(`${cur.d} 기준 `)) errors.push(`KO1: ${f} 시세 문답 날짜 "${(pa || "없음").slice(0, 12)}" ≠ 그 중앙값의 날짜 ${cur.d}(데이터 갱신일이 아니다)`);
+      // 원화 금액은 환율(packs.fx)에 따라 바뀐다 — 환율 워크플로(update-fx)는 페이지를 다시 굽지 않으므로, 이번 실행이 페이지를 바꿨을 때만 FAIL
+      // (아니면 경고 — 다음 페이지 생성이 바로잡는다. 수집·환율 커밋을 막지 않는다, SM1 과 같은 기준).
+      if (pa && w && !pa.includes(`약 ${w}`)) (PUBLISH_TOUCHED ? errors : warnings).push(`KO1${PUBLISH_TOUCHED ? ":" : "(경고)"} ${f} 시세 문답 금액 ≠ Key facts ${w}`);
+    } else if (pa && /[\d,]+원/.test(pa)) errors.push(`KO1: ${f} current 가 없는데 시세 문답에 금액 "${pa.slice(0, 40)}"`);
+    // 변동률 문답 = 팩트 줄의 기준일("YYYY-MM-DD 대비 … — 발매일 대비가 아님")
+    const basis = (html.match(/<li>(\d{4}-\d{2}-\d{2}) 대비 <strong>[^<]*<\/strong> — 발매일 대비가 아님<\/li>/) || [])[1] || null;
+    const ca = ansOf(faq, /변동률은/);
+    // 4차(2026-10-15): 답은 정의 문장 하나 — "변동률(x%)은 <값 날짜> 판매 중앙값을 N일 전(<기준일>) 중앙값과 비교한 값입니다." "발매일 대비가 아닙니다" 꼬리는 뺐다.
+    if (basis && (!ca || !ca.includes(`(${basis}) 중앙값과 비교한 값입니다.`))) errors.push(`KO1: ${f} 변동률 문답 "${(ca || "없음").slice(0, 50)}" — 팩트 줄 기준일 ${basis} 과 같은 정의 문장이어야 한다`);
+    // 값이 없으면 문답이 없다 — 사유 문장("…표시하지 않습니다")·방어 꼬리("발매일 대비가 아닙니다")를 싣지 않는다(4차).
+    if (!basis && ca) errors.push(`KO1: ${f} 변동률이 없는데 변동률 문답 "${ca.slice(0, 40)}" 이 있다 — 문답을 싣지 않는다`);
+    if (!cur && pa) errors.push(`KO1: ${f} current 가 없는데 시세 문답 "${pa.slice(0, 40)}" 이 있다 — 문답을 싣지 않는다`);
+    for (const q of faq) if (/표시하지 않습니다|대비가 아닙니다|포함하지 않습니다/.test(q.acceptedAnswer.text)) errors.push(`KO1: ${f} 문답 "${q.name}" 에 사유·방어 문장 "${q.acceptedAnswer.text.slice(0, 40)}"`);
+    // 보이는 FAQ = 구조화데이터(L2 는 질문만 본다 — 답도 같아야 한다)
+    for (const q of faq) if (!html.includes(`<p>${escH(q.acceptedAnswer.text)}</p>`)) errors.push(`KO1: ${f} FAQPage 답 "${q.name}" 이 본문 FAQ 와 다르다`);
+  }
+  if (!n) errors.push("KO1: 한국어 세트 페이지를 0장 읽었다");
+  if (exists("ko/index.html")) {
+    const h = read("ko/index.html"), a = ansOf(faqOf(h), /변동률은 발매일 대비/);
+    if (!a || /1월 대비|발매 시점/.test(a) || !/28일 전 중앙값/.test(a)) errors.push(`KO1: ko/index.html 변동률 문답 "${(a || "없음").slice(0, 60)}" — 범례와 같은 정의(28일 전 중앙값 대비)여야 한다`);
+    if (/1월 대비 변동률/.test(h)) errors.push("KO1: ko/index.html 에 \"1월 대비 변동률\"(옛 정의)이 남아 있다 — Dataset 설명 확인");
+  }
+}
+
+// ── KO2. 재판 분류 = 영문 세트 페이지 분류 — 2026-10-15 신설(감사 #8). (원장의 일 단위 발매 전후 비교는 R2 가 본다)
+//    한국어 페이지가 반다이 공식 추첨판매(OP-16 2건·OP-13 2025-12)를 "유통사·리테일러 재입고 기준 재판"으로 세어
+//    영문("Bandai does not call these reprints")과 횟수가 갈렸다(OP-16 KO 2회 / EN 0회).
+//    재판 횟수 = 재입고(리테일러·유통사)만, 발매 후 추첨은 따로 "재판 아님", 발매 전 추첨은 싣지 않는다 — 세트 페이지·허브 행 모두.
+{
+  let SF = {};
+  try { SF = JSON.parse(read("data/set-facts.json")).sets || {}; } catch (e) { errors.push("KO2: set-facts 읽기 실패 — " + e.message); }
+  const kind = (r) => String(r.kind || "");
+  // 4차(2026-10-15): 재판 = 재입고(리테일러·유통사) + "再販"이라 적힌 추첨(official-reprint-lottery), 재판 밖 = 그 말이 없는 발매 후 추첨(official-lottery).
+  const pre = (r) => /pre-release/i.test(kind(r)), unver = (r) => /unverified-timing/i.test(kind(r)), official = (r) => kind(r) === "official-lottery";
+  const hub = exists("ko/index.html") ? read("ko/index.html") : null;
+  // 이유 설명 꼬리 금지 — "…반다이가 재판이라 부르지 않아 재판 횟수에 포함하지 않습니다"(ko 세트)·"…재판으로 세지 않고 …따로 적습니다"(ko 허브)
+  for (const f of [...KO_SET_PAGES15, "ko/index.html"].filter(exists)) if (/재판이라 부르지 않|재판 횟수에 포함하지 않|재판으로 세지 않고/.test(read(f))) errors.push(`KO2: ${f} 에 재판 분류를 설명하는 문장이 남아 있다 — 팩트 줄 라벨("— 재판 아님")만`);
+  for (const [code, sf] of Object.entries(SF)) {
+    const recs = sf.reprintRecords || [];
+    const restock = recs.filter((r) => !pre(r) && !unver(r) && !official(r)).length;
+    const lottery = recs.filter((r) => !pre(r) && !unver(r) && official(r)).length;
+    const f = `ko/${code.toLowerCase()}.html`;
+    if (exists(f)) {
+      const html = read(f);
+      const got = (html.match(/<li>재판 기록 <strong>(\d+)회<\/strong>/) || [])[1];
+      if (restock ? Number(got) !== restock : !/<li><strong>재판 기록 없음<\/strong>/.test(html)) errors.push(`KO2: ${f} 재판 기록 ${got || "없음"}회 ≠ 재입고 기록 ${restock}회(영문 분류 — 반다이 추첨판매는 재판이 아니다)`);
+      if (lottery && !html.includes(`<li>발매 후 반다이 공식 추첨판매 ${lottery}회(`)) errors.push(`KO2: ${f} 발매 후 반다이 추첨 ${lottery}회 줄("— 재판 아님")이 없다`);
+      if (!lottery && /발매 후 반다이 공식 추첨판매/.test(html)) errors.push(`KO2: ${f} 발매 후 추첨 기록이 없는데 추첨판매 문장이 있다`);
+      const lst = (html.match(/재판이 \d+회<\/strong> 확인됐습니다\(([^)]*)\)/) || [])[1];
+      if (lst && /추첨/.test(lst)) errors.push(`KO2: ${f} 재판 목록 "(${lst})" 에 추첨판매가 섞였다`);
+    }
+    if (hub) {
+      const row = (hub.match(new RegExp(`<a href="${code.toLowerCase()}\\.html">${code}</a>[\\s\\S]*?<td class="rp">([\\s\\S]*?)</td>`)) || [])[1];
+      if (row != null) {
+        const hn = (row.match(/재판 (\d+)회/) || [])[1];
+        if (restock ? Number(hn) !== restock : !/재판 기록 없음/.test(row)) errors.push(`KO2: ko/index.html ${code} 재판 칸 "${row.replace(/<[^>]+>/g, "")}" ≠ 재입고 ${restock}회`);
+        if (lottery && !row.includes(`발매 후 추첨 ${lottery}회`)) errors.push(`KO2: ko/index.html ${code} 발매 후 추첨 ${lottery}회 표기가 없다`);
+      }
+    }
+  }
+}
+
+// ── KO3. 한국어 경매 문단 — 통화·유형 라벨 — 2026-10-15 신설(감사 #13·#15).
+//    거래액·중앙 낙찰가(달러)가 "182,037"·"9.99" 로 통화 없이 나가 원화 페이지에서 원으로 읽혔다(약 1,340배).
+//    경매 유형 표엔 내부 키 "carton" 이 번역 없이 나갔다.
+if (exists("data/set-auction-stats.json")) {
+  const AS = JSON.parse(read("data/set-auction-stats.json")).sets || {};
+  for (const f of KO_SET_PAGES15) {
+    const sec = (read(f).match(/<section aria-label="경매 실적">[\s\S]*?<\/section>/) || [])[0];
+    if (!sec) continue;
+    const a = AS[f.slice(3, -5).toUpperCase()] || {};
+    const amt = (sec.match(/거래액은 <strong>([^<]*)<\/strong>/) || [])[1], med = (sec.match(/중앙 낙찰가는 <strong>([^<]*)<\/strong>/) || [])[1];
+    if (amt != null && amt !== `$${Number(a.amount).toLocaleString("en-US")}`) errors.push(`KO3: ${f} 거래액 "${amt}" ≠ $${Number(a.amount).toLocaleString("en-US")}(달러 표기 — 영문 세트 페이지와 같은 값)`);
+    if (med != null && med !== `$${a.medPrice}`) errors.push(`KO3: ${f} 중앙 낙찰가 "${med}" ≠ $${a.medPrice}`);
+    for (const m of sec.matchAll(/<td class="l">([^<]*)<\/td>/g)) if (/^[a-z_-]+$/.test(m[1])) errors.push(`KO3: ${f} 경매 유형 칸에 내부 키 "${m[1]}" — 한국어 라벨(catKo)에 추가할 것`);
+  }
+}
+
+// ── KO4. 한국어 세트 페이지 인기 카드 레어도 = 공식 카드 리스트 — 2026-10-15 신설(감사 #16).
+//    원본 카드 레어도를 그대로 써서 SP 판(ST31-004_p1)이 세트 페이지는 SR, ko/op-17-card-list.html 은 SP 였다.
+//    사람 확인 변형(_imgSuffix)이 가리키는 공식 ID 의 레어도와 같아야 한다(SPカード → "SP").
+try {
+  const P = JSON.parse(read("data/onepiece-packs.json")).sets || {};
+  const OFFC = ((JSON.parse(read("data/official-cardlist.json")).jp) || {}).cards || {};
+  const show = (r) => (/^SP/i.test(String(r || "")) ? "SP" : String(r || ""));
+  const unH = (s) => s.replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  let n = 0;
+  for (const f of KO_SET_PAGES15) {
+    const cards = (P[f.slice(3, -5).toUpperCase()] || {}).cards || [];
+    const sec = (read(f).match(/<section aria-label="인기 카드 시세">[\s\S]*?<\/section>/) || [""])[0];
+    for (const m of sec.matchAll(/<td class="nm">([^<]*)<\/td><td class="code">([^<]*)<\/td><td>([^<]*)<\/td>/g)) {
+      const c = cards.find((x) => x.number === unH(m[2]) && x.name === unH(m[1]));
+      const off = c && typeof c._imgSuffix === "string" ? OFFC[c.number + c._imgSuffix] : null;
+      if (!off || !off.rarity) continue;
+      n++;
+      if (unH(m[3]) !== show(off.rarity)) errors.push(`KO4: ${f} ${m[2]} ${unH(m[1])} 레어도 "${unH(m[3])}" ≠ 공식 ${c.number + c._imgSuffix} "${show(off.rarity)}"(카드 리스트 페이지와 같은 값)`);
+    }
+  }
+  if (!n) errors.push("KO4: 공식 ID 로 대조한 인기 카드가 0장이다 — 표 구조·_imgSuffix 확인");
+} catch (e) { errors.push("KO4: 원천 읽기 실패 — " + e.message); }
+
+// ── AB1. AI 경매 세트별 행 = 알려진·발매된 세트만 — 2026-10-15 신설(감사 #9·#17·#18).
+//    opbox-ai-auctions.json onePiece.bySet 에 제목 파싱이 만든 없는 코드 12개(OP-53·EB-09·PRB-06 …)와 발매 전 OP-18(낙찰 2건 $18)이
+//    실려 llms-full 표까지 나갔다. OP/EB/PRB 는 set-facts·공식 카드리스트에 있고 일본 발매일 ≤ 창 끝(to), ST 는 경매 페이지 최소 건수 이상.
+//    llms-full 표 행은 피드 행과 같아야 하고, 피드에 있는 세트는 경매 페이지 세트 표에도 있어야 한다(페이지·피드 세트 목록 일치).
+{
+  try {
+    const AU = JSON.parse(read("opbox-ai-auctions.json")).onePiece.bySet;
+    const SF = JSON.parse(read("data/set-facts.json")).sets || {};
+    let OCL = {};
+    try { OCL = JSON.parse(read("data/official-cardlist.json")).jp.products || {}; } catch { OCL = {}; }
+    const rel = (c) => (SF[c] && SF[c].jpRelease && SF[c].jpRelease.date) || (SF[c] && SF[c].enRelease && SF[c].enRelease.date) || null;
+    const min = Number(AU.minEnded) || 30;
+    for (const s of AU.sets || []) {
+      const c = s.setCode;
+      if (/^ST-\d{2}$/.test(c)) { if (!(s.ended >= min)) errors.push(`AB1: AI 경매 bySet ${c} 종료 ${s.ended}건 < 경매 페이지 기준 ${min}`); continue; }
+      if (!(c in SF) && !(c in OCL)) { errors.push(`AB1: AI 경매 bySet 에 없는 세트 코드 ${c}(set-facts·공식 카드리스트에 없음)`); continue; }
+      const d = rel(c);
+      if (!d || d > AU.to) errors.push(`AB1: AI 경매 bySet 에 미발매 세트 ${c}(발매 ${d || "—"} > 창 끝 ${AU.to}) — sold ${s.sold}, amountUsd ${s.amountUsd}`);
+    }
+    const full = read("llms-full.txt");
+    const sect = (full.match(/\nPer set, last \d+ days[^\n]*\n([\s\S]*?)\n\n/) || [null, ""])[1];
+    const llmsCodes = sect.split("\n").map((l) => l.split(" | ")[0]).filter(Boolean);
+    const feedCodes = (AU.sets || []).map((s) => s.setCode);
+    if (llmsCodes.join(",") !== feedCodes.join(",")) errors.push(`AB1: llms-full 세트별 경매 표(${llmsCodes.length}행)가 AI 피드 bySet(${feedCodes.length}행)과 다르다`);
+    const h = read("auction.html"), i = h.indexOf('id="setBody"');
+    const page = new Set([...h.slice(i, h.indexOf("</tbody>", i)).matchAll(/\b(?:OP|EB|PRB|ST)-\d{2}\b/g)].map((m) => m[0]));
+    for (const c of feedCodes) if (!page.has(c)) errors.push(`AB1: AI 피드 bySet 의 ${c} 가 auction.html 세트 표에 없다(페이지·피드 세트 목록 불일치)`);
+    // 경매 페이지 표 자체도 같은 규칙 — auction-page-model 은 30건 기준만 본다(발매 전 OP-18 이 30건을 넘기면 표에 오른다).
+    for (const c of page) if (!/^ST-/.test(c) && (!(c in SF || c in OCL) || !rel(c) || rel(c) > AU.to)) errors.push(`AB1: auction.html 세트 표에 없는/미발매 세트 ${c}(발매 ${rel(c) || "—"})`);
+  } catch (e) { errors.push("AB1: AI 경매 세트별 검사 실패 — " + e.message); }
+}
+
+// ── AS1. 데이터 기준일 ≥ 실린 값의 관측일 — 2026-10-15 신설(감사 #11).
+//    "data as of 2026-10-14" 파일 안에 10-15 판매 표본·경매 일별 값이 있었고 경과일 -1 이 0 으로 잘렸다.
+//    AI 파일 4개의 datasetUpdatedOn 은 한 날이어야 하고(같은 값의 경과일이 파일마다 같게), 어느 관측일도 그 뒤일 수 없으며,
+//    경과일은 기준일 − 관측일 그대로여야 한다. llms.txt·llms-full.txt 의 "as of" 도 같은 날.
+{
+  try {
+    const files = ["opbox-ai-data.json", "opbox-ai-cards.json", "opbox-ai-grading.json", "opbox-ai-auctions.json"];
+    const objs = files.map((f) => [f, JSON.parse(read(f))]);
+    const asOf = objs[0][1].datasetUpdatedOn;
+    // 파일 사이 일치(기준일·llms "as of")는 네 파일을 함께 굽는 페이지 생성 실행에서만 FAIL — 환율 워크플로는 핵심 파일 하나만 다시 굽는다
+    // (그때 어긋남은 경고, 다음 전체 생성이 바로잡는다 — SM1 과 같은 기준). 파일 안 규칙(늦은 관측일·경과일)은 늘 FAIL.
+    const sinkX = PUBLISH_TOUCHED ? errors : warnings, tagX = PUBLISH_TOUCHED ? "AS1:" : "AS1(경고)";
+    for (const [f, o] of objs) if (o.datasetUpdatedOn !== asOf) sinkX.push(`${tagX} ${f} datasetUpdatedOn ${o.datasetUpdatedOn} ≠ opbox-ai-data.json ${asOf}`);
+    const KEYS = new Set(["observedOn", "sampleCollectedOn", "fxObservedOn", "checkedOn", "releaseCheckedOn", "specCheckedOn", "date", "to"]);
+    for (const [f, o] of objs) {
+      let late = 0, badAge = 0, first = "";
+      const walk = (nd) => {
+        if (Array.isArray(nd)) return nd.forEach(walk);
+        if (!nd || typeof nd !== "object") return;
+        for (const [k, v] of Object.entries(nd)) {
+          if (KEYS.has(k) && ISO15.test(v || "") && v > o.datasetUpdatedOn) { late++; first = first || `${k}=${v}`; }
+          else if (v && typeof v === "object") walk(v);
+        }
+        const d = nd.observedOn || nd.sampleCollectedOn;
+        if (ISO15.test(d || "") && "ageDaysAtDatasetUpdate" in nd && nd.ageDaysAtDatasetUpdate !== Math.round((Date.parse(o.datasetUpdatedOn) - Date.parse(d)) / 864e5)) badAge++;
+      };
+      walk(o);
+      if (late) errors.push(`AS1: ${f} 에 기준일 ${o.datasetUpdatedOn} 보다 늦은 관측일 ${late}건(예: ${first})`);
+      if (badAge) errors.push(`AS1: ${f} 경과일(ageDaysAtDatasetUpdate) ${badAge}건이 기준일 − 관측일과 다르다(음수를 0 으로 자른 흔적)`);
+    }
+    const llms = read("llms.txt"), full = read("llms-full.txt");
+    if (!llms.includes(`Data as of ${asOf}.`)) sinkX.push(`${tagX} llms.txt "Data as of" 가 ${asOf} 가 아니다`);
+    if (!full.startsWith(`# OP Box Index — full facts file (data as of ${asOf})`)) sinkX.push(`${tagX} llms-full.txt 제목 "data as of" 가 ${asOf} 가 아니다`);
+  } catch (e) { errors.push("AS1: 데이터 기준일 검사 실패 — " + e.message); }
+}
+
+// ── LP1. llms-full 카드 표의 PSA 인구 칸에 관측일 — 2026-10-15 신설(감사 #19).
+//    누적값(매주 증가)인데 이 칸만 날짜가 없었다. 칸 = "total / PSA 10 (observedOn)" 이고 값·날짜는 opbox-ai-cards.json 과 같다.
+{
+  try {
+    const CARDS = JSON.parse(read("opbox-ai-cards.json"));
+    const full = read("llms-full.txt");
+    const rows = new Map(full.split("\n").filter((l) => l.includes("https://opboxindex.com/cards/")).map((l) => { const c = l.split(" | "); return [c[c.length - 1], c]; }));
+    const nf = (v) => (Number.isFinite(v) ? v.toLocaleString("en-US") : "n/a");
+    let bad = 0;
+    for (const p of CARDS.pages || []) {
+      const row = rows.get(p.url);
+      if (!row) { if (bad++ < 5) errors.push(`LP1: llms-full 카드 표에 ${p.url} 행이 없다`); continue; }
+      const w = p.psaPopulation ? `${nf(p.psaPopulation.total)} / ${nf(p.psaPopulation.grade10)} (${p.psaPopulation.observedOn})` : "n/a";
+      if (row[5] !== w && bad++ < 5) errors.push(`LP1: llms-full ${p.cardNumber} ${p.name} PSA 인구 칸 "${row[5]}" ≠ "${w}"`);
+    }
+    if (bad > 5) errors.push(`LP1: 그 밖에 ${bad - 5}행 더`);
+  } catch (e) { errors.push("LP1: llms-full PSA 인구 칸 검사 실패 — " + e.message); }
+}
+
+// ── PO1. 카드 페이지 Product offers = 화면에 보이는 지금 호가만 — 2026-10-15 신설(감사 #5).
+//    generate-card-pages.js 가 PSA 10 sold 중앙값(최대 3달 묵은 값)을 AggregateOffer 범위에 InStock 으로 넣고 offerCount 를
+//    판매 건수+1 로 적었다(115장 중 92장). Offer 는 화면의 NM 호가 또는 "Cheapest PSA 10" 버튼 값과 같아야 하고 AggregateOffer·offerCount 는 쓰지 않는다.
+{
+  const numPO = (s) => (s == null ? null : Number(String(s).replace(/[$,]/g, "")));
+  let bad = 0;
+  for (const f of PUBLIC_HTML.filter((p) => /^cards\/(?!index\.html$)[^/]+\.html$/.test(p))) {
+    const html = read(f);
+    const prod = ldOf15(html).find((j) => j["@type"] === "Product");
+    if (!prod) continue;
+    const offers = [].concat(prod.offers || []);
+    const push = (msg) => { if (bad++ < 10) errors.push(msg); };
+    if (!offers.length) { push(`PO1: ${f} Product 에 offers 가 없다 — 지금 나와 있는 호가가 없으면 Product 를 내지 않는다`); continue; }
+    const shown = {
+      "Japanese NM (raw)": numPO((html.match(/<span>Japanese NM \(raw\)<\/span><b>([^<]+)<\/b>/) || [])[1]),
+      "PSA 10 (lowest listing)": numPO((html.match(/class="buyLine">Cheapest PSA 10 [^<]*<b>([^<]+)<\/b>/) || [])[1]),
+    };
+    for (const o of offers) {
+      if (o["@type"] !== "Offer") { push(`PO1: ${f} offers 에 ${o["@type"]} — 호가 Offer 만 싣는다(AggregateOffer 범위에 PSA 10 sold 중앙값이 섞였었다)`); continue; }
+      if ("offerCount" in o) push(`PO1: ${f} offerCount — 매물 수를 세지 않으므로 쓰지 않는다`);
+      if (!Number.isFinite(o.price) || o.priceCurrency !== "USD" || !/^https:\/\/schema\.org\/(?:InStock|OutOfStock)$/.test(o.availability || "")) push(`PO1: ${f} Offer "${o.name}" 에 price·priceCurrency·availability 가 다 있지 않다`);
+      if (!(o.name in shown)) { push(`PO1: ${f} 알 수 없는 Offer "${o.name}" — NM 호가·PSA 10 최저 매물만`); continue; }
+      if (shown[o.name] == null || shown[o.name] !== o.price) push(`PO1: ${f} Offer "${o.name}" ${o.price} ≠ 화면 값 ${shown[o.name]} — 지난 판매가가 아니라 화면의 호가여야 한다`);
+    }
+  }
+  if (bad > 10) errors.push(`PO1: 그 밖에 ${bad - 10}건 더`);
+}
+
+// ── CL2. 카드리스트 페이지 수정일 ≥ 화면에 찍힌 가장 늦은 날짜 — 2026-10-15 신설(감사 #4).
+//    CollectionPage dateModified 가 packs 데이터일(10-14)이었는데 화면은 경매 "last 45 days to 2026-10-15"·영문판 박스 "(2026-10-15, n=274)".
+//    카드리스트는 "as of" 문구가 없어 U1 이 못 본다 — 본문(script 제외)의 YYYY-MM-DD 전부와 비교한다.
+for (const f of PUBLIC_HTML.filter((p) => /^(?:sets|ko)\/[^/]+-card-list\.html$/.test(p))) {
+  const html = read(f);
+  const dms = [...html.matchAll(/"dateModified":\s*"(\d{4}-\d{2}-\d{2})/g)].map((m) => m[1]);
+  if (!dms.length) { errors.push(`CL2: ${f} dateModified 가 없다`); continue; }
+  const body = html.replace(/<script[\s\S]*?<\/script>/g, " ");
+  const latest = [...body.matchAll(/\b(20\d{2}-\d{2}-\d{2})\b/g)].map((m) => m[1]).sort().pop() || "";
+  const stale = dms.find((dm) => latest > dm);
+  if (stale) errors.push(`CL2: ${f} 화면엔 ${latest} 가 있는데 dateModified 가 ${stale} — generate-card-list-pages.js pageDate 에 화면 날짜를 다 넣을 것`);
+}
+
+// ── UP2. 발매 전 세트 페이지는 표·라벨만 보인다 — 2026-10-15 신설(감사 #21).
+//    sets/op-18·eb-05 만 도입 문단과 해설 섹션 5개("What is confirmed and what is still open", "Update policy" …)가
+//    펼쳐진 채 보였다. 일반 세트 페이지는 2026-08-12 부터 같은 글을 접힌 "Set notes"(details.setMore)에 넣는다.
+//    (a) main 에서 <details> 를 중첩까지 걷어낸 나머지: <p> 는 라벨·출처 줄(eyebrow·articleMeta·sourceNoteA·revCount·affTop·relBuy)만,
+//        <section> 은 발매일 상자(relBox)·FAQ(setFaq)만 — 클래스 없는 산문 p·해설 section 이 하나라도 펼쳐져 있으면 실패
+//    (b) 지우지 않고 접었다: introHtml·섹션 머리·문단이 전부 details.setMore 안에 있다(구글은 접힌 글도 읽는다 — R1 과 같은 원칙)
+{
+  let UP = { pages: [] };
+  try { UP = JSON.parse(read("data/upcoming-set-pages.json")); } catch (e) { errors.push("UP2: upcoming 읽기 실패 — " + e.message); }
+  const stripDetails = (h) => {
+    let out = "", depth = 0, i = 0;
+    for (const m of h.matchAll(/<details\b[^>]*>|<\/details>/g)) {
+      if (depth === 0) out += h.slice(i, m.index);
+      depth += m[0][1] === "/" ? -1 : 1;
+      i = m.index + m[0].length;
+    }
+    return out + (depth === 0 ? h.slice(i) : "");
+  };
+  const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const OPEN_P = /^(?:eyebrow|articleMeta|sourceNoteA|revCount|affTop|relBuy)$/;
+  for (const p of UP.pages || []) {
+    const f = `sets/${p.slug}.html`;
+    if (!exists(f)) continue;
+    const main = (read(f).match(/<main\b[^>]*>([\s\S]*?)<\/main>/) || [])[1] || "";
+    const open = stripDetails(main);
+    for (const m of open.matchAll(/<p(?:\s+class="([^"]*)")?[^>]*>([\s\S]{0,80})/g)) {
+      if (OPEN_P.test(m[1] || "")) continue;
+      errors.push(`UP2: ${f} 펼쳐진 산문 <p${m[1] ? ` class="${m[1]}"` : ""}> "${m[2].replace(/<[^>]+>/g, "").slice(0, 60)}…" — 해설은 details.setMore 안으로`);
+      break;
+    }
+    for (const m of open.matchAll(/<section(?:\s+class="([^"]*)")?[^>]*>\s*(?:<h2[^>]*>([^<]*))?/g)) {
+      if (!/^(?:relBox|setFaq)$/.test(m[1] || "")) errors.push(`UP2: ${f} 펼쳐진 해설 섹션 "${m[2] || m[1] || "?"}" — details.setMore 안으로`);
+    }
+    const notes = (main.match(/<details class="setMore">([\s\S]*?)<\/details>\s*<section class="setFaq"/) || [])[1] || "";
+    const keep = [p.introHtml, ...(p.sections || []).flatMap((s) => [`<h2>${escH(s.heading)}</h2>`, ...s.paragraphsHtml])].filter(Boolean);
+    const lost = keep.filter((t) => !notes.includes(t));
+    if (lost.length) errors.push(`UP2: ${f} 접힌 Set notes 에 해설 ${lost.length}개가 없다("${lost[0].replace(/<[^>]+>/g, "").slice(0, 50)}…") — 글은 지우지 말고 접는다`);
+  }
+}
+
+// ── DS1. Dataset 수정일 ≥ 기간 끝, 같은 파일의 Dataset 은 같은 날 — 2026-10-15 신설(감사 #4).
+//    /·box-prices·free-data·ko/·weekly 의 Dataset 이 dateModified 2026-10-14 인데 temporalCoverage 는 …/2026-10-15 였고,
+//    free-data 한 페이지 안에서도 8개 10-14 · 1개 10-15 로 갈렸다. 수정일보다 늦은 관측이 기간 안에 있을 수 없다.
+//    opbox-ai-data.json 을 가리키는 Dataset(홈·box-prices·free-data#ai-json)은 그 파일의 datasetUpdatedOn·같은 기간을 쓴다(한 사실 = 한 값).
+{
+  let aiAsOf = null;
+  try { aiAsOf = JSON.parse(read("opbox-ai-data.json")).datasetUpdatedOn; } catch {}
+  const flat = (o) => (Array.isArray(o) ? o.flatMap(flat) : o && o["@graph"] ? flat(o["@graph"]) : o ? [o] : []);
+  const aiNodes = [];
+  let n = 0;
+  for (const f of PUBLIC_HTML) {
+    const html = read(f);
+    if (!html.includes('"Dataset"')) continue;
+    for (const node of ldOf15(html).flatMap(flat).filter((x) => x["@type"] === "Dataset")) {
+      n++;
+      const dm = node.dateModified, end = String(node.temporalCoverage || "").split("/")[1] || "";
+      if (!ISO15.test(dm || "")) { errors.push(`DS1: ${f} Dataset "${node.name}" dateModified 가 없다`); continue; }
+      if (ISO15.test(end) && end > dm) errors.push(`DS1: ${f} Dataset "${node.name}" dateModified ${dm} < 기간 끝 ${end} — 수정일은 기간 끝 이상`);
+      const urls = [].concat(node.distribution || []).map((x) => x && x.contentUrl);
+      if (urls.includes("https://opboxindex.com/opbox-ai-data.json")) aiNodes.push({ f, dm, tc: node.temporalCoverage || "" });
+    }
+  }
+  // 파일 기준일과의 일치는 페이지를 굽는 실행에서만 FAIL — 환율 워크플로는 opbox-ai-data.json 만 다시 굽고 페이지는 그대로 둔다(경고, AS1 과 같은 기준).
+  for (const a of aiNodes) {
+    if (aiAsOf && a.dm !== aiAsOf) (PUBLISH_TOUCHED ? errors : warnings).push(`DS1${PUBLISH_TOUCHED ? ":" : "(경고)"} ${a.f} opbox-ai-data.json Dataset dateModified ${a.dm} ≠ 파일 datasetUpdatedOn ${aiAsOf}`);
+    if (a.tc !== aiNodes[0].tc) errors.push(`DS1: ${a.f} opbox-ai-data.json Dataset 기간 ${a.tc} ≠ ${aiNodes[0].f} ${aiNodes[0].tc}`);
+  }
+  if (!n) errors.push("DS1: Dataset 구조화데이터를 하나도 못 읽었다");
+  // free-data Dataset 하나하나 = 그 Dataset 이 내려주는 파일 — 2026-10-15(3차). #ai-grading-json·#ai-auctions-json 이 dateModified 10-14(기간 …/10-14)인데
+  // 가리키는 opbox-ai-grading.json·opbox-ai-auctions.json 은 datasetUpdatedOn 10-15 에 10-15 행이 있었다. 위 검사는 opbox-ai-data.json 을 가리키는 것만 봤다.
+  //   JSON(datasetUpdatedOn 있음): dateModified = datasetUpdatedOn, 기간 끝 = 파일 안 관측 행 날짜(observedOn·sampleCollectedOn·date) 최댓값.
+  //   CSV: dateModified = 기간 끝 = 파일 안 날짜 칸 최댓값. 카드리스트(JSON 여러 개): 기간 끝 = 공식 목록 확인일·행 관측일(nm·auction·psa10) 최댓값, dateModified ≥ 각 파일 updated.
+  if (exists("free-data.html")) {
+    const maxD = (arr) => arr.filter((d) => ISO15.test(d || "")).sort().at(-1) || "";
+    const ROW_KEYS = new Set(["observedOn", "sampleCollectedOn", "date"]);
+    const rowMax = (doc) => { const out = []; const walk = (o, k) => { if (Array.isArray(o)) o.forEach((v) => walk(v, k)); else if (o && typeof o === "object") for (const [kk, v] of Object.entries(o)) walk(v, kk); else if (ROW_KEYS.has(k)) out.push(o); }; walk(doc, ""); return maxD(out); };
+    let fdN = 0;
+    for (const node of ldOf15(read("free-data.html")).flatMap(flat).filter((x) => x["@type"] === "Dataset")) {
+      const files = [].concat(node.distribution || []).map((x) => String((x && x.contentUrl) || "").replace("https://opboxindex.com/", "")).filter((p) => p && exists(p));
+      const dm = node.dateModified, end = String(node.temporalCoverage || "").split("/")[1] || "";
+      const who = `free-data.html Dataset "${node.name}"`;
+      if (!files.length) { errors.push(`DS1: ${who} 가 내려주는 파일을 못 찾았다`); continue; }
+      fdN++;
+      if (files.length === 1 && files[0].endsWith(".json")) {
+        let doc = {};
+        try { doc = JSON.parse(read(files[0])); } catch (e) { errors.push(`DS1: ${files[0]} 읽기 실패 — ${e.message}`); continue; }
+        const want = rowMax(doc);
+        if (ISO15.test(doc.datasetUpdatedOn || "") && dm !== doc.datasetUpdatedOn) errors.push(`DS1: ${who} dateModified ${dm} ≠ ${files[0]} datasetUpdatedOn ${doc.datasetUpdatedOn}`);
+        if (want && end !== want) errors.push(`DS1: ${who} 기간 끝 ${end || "(없음)"} ≠ ${files[0]} 가장 늦은 관측 행 ${want}`);
+      } else if (files.length === 1 && files[0].endsWith(".csv")) {
+        const want = maxD(read(files[0]).match(/\b\d{4}-\d{2}-\d{2}\b/g) || []);
+        if (dm !== want || end !== want) errors.push(`DS1: ${who} dateModified ${dm} · 기간 끝 ${end || "(없음)"} ≠ ${files[0]} 가장 늦은 날짜 ${want}`);
+      } else {
+        const ends = [], ups = [];
+        for (const p of files.filter((x) => x.endsWith(".json"))) {
+          let j = {};
+          try { j = JSON.parse(read(p)); } catch { continue; }
+          ups.push(j.updated);
+          ends.push(j.officialList && j.officialList.checked);
+          for (const c of j.cards || []) ends.push(c.nm && c.nm.observedOn, c.auction && c.auction.through, c.auctionEnglishPrint && c.auctionEnglishPrint.through, c.psa10 && c.psa10.observedOn);
+        }
+        if (end !== maxD(ends)) errors.push(`DS1: ${who} 기간 끝 ${end || "(없음)"} ≠ 카드리스트 파일 가장 늦은 날짜 ${maxD(ends)}`);
+        if (!(dm >= maxD(ups))) errors.push(`DS1: ${who} dateModified ${dm} < 카드리스트 파일 updated ${maxD(ups)}`);
+      }
+    }
+    if (!fdN) errors.push("DS1: free-data.html Dataset 을 파일과 하나도 대조하지 못했다");
+  }
+}
+
+// ════ 2026-10-15 2차 — 1차 수정이 남긴 "한 사실 두 값" (RY1·NM2) ════
+// 원천 카드 열쇠 = 번호|정규화 이름(카드 상세·AI 카드 파일·card-map.json 과 같은 열쇠).
+const cardKey15 = (num, name) => `${num}|${String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+const unH15 = (s) => String(s).replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+let CMAP15 = {}, AIC15 = [], AID15 = [], PK15 = {};
+try { CMAP15 = JSON.parse(read("cards/card-map.json")); AIC15 = JSON.parse(read("opbox-ai-cards.json")).pages || []; AID15 = JSON.parse(read("opbox-ai-data.json")).sets || []; PK15 = JSON.parse(read("data/onepiece-packs.json")).sets || {}; }
+catch (e) { errors.push("RY1: 원천(card-map·AI 피드·packs) 읽기 실패 — " + e.message); }
+
+// ── RY1. 한 카드 한 레어도 — 2026-10-15 신설(2차).
+//    1차 수정이 한국어 세트 페이지만 공식 레어도로 바꿔 ST31-004 SP 인쇄가 ko/op-17 은 SP, sets/op-17 은 Super Rare, 카드 상세·AI JSON 은 SR 이었다
+//    (한국어 인기 카드 168행 중 72행이 영문과 달랐다). 같은 카드(번호|이름)의 레어도 코드가 세트 Top 10(영문 낱말)·한국어 인기 카드·PSA 10 랭킹·
+//    카드 상세 "Rarity label"·opbox-ai-cards.json·opbox-ai-data.json topHits 에서 하나여야 한다(없으면 모두 없음).
+//    카드 상세 <title> 은 보지 않는다(SEO 민감 요소). H1 의 작은 "번호 · 레어도" 표기는 3차(2026-10-15)부터 같이 본다.
+{
+  // 영문 낱말 → 코드. 생성기 사전(card-list-shared.RARITY_EN)을 읽지 않고 여기 따로 둔다 — 사전이 바뀌면 이 검사가 먼저 깨져 알린다.
+  const EN2CODE = { Leader: "L", "Secret Rare": "SEC", "Super Rare": "SR", Rare: "R", Uncommon: "UC", Common: "C", "SP Card": "SP", Special: "SP", "Treasure Rare": "TR", Promo: "P" };   // TR 낱말(2026-10-15, 4차)
+  const absent = (r) => (r == null || r === "" || r === "—" || r === "not supplied" ? "" : r);
+  const seen = new Map();
+  const add = (num, name, where, r) => { const k = cardKey15(num, name); if (!seen.has(k)) seen.set(k, []); seen.get(k).push({ where, r: absent(r) }); };
+  try {
+    for (const code of Object.keys(PK15)) {
+      const f = `sets/${code.toLowerCase()}.html`;
+      if (exists(f)) {
+        const tbl = (read(f).match(/<table class="chaseTable">[\s\S]*?<\/table>/) || [""])[0];
+        for (const m of tbl.matchAll(/<td class="cn">(?:<a [^>]*>)?<strong>([^<]*)<\/strong>(?:<\/a>)?<span class="cNum">([^<]*)<\/span>/g)) {
+          const [num, label] = unH15(m[2]).split(" · ");
+          add(num, unH15(m[1]), f, label ? EN2CODE[label] || label : "");
+        }
+      }
+      const k = `ko/${code.toLowerCase()}.html`;
+      if (exists(k)) {
+        const sec = (read(k).match(/<section aria-label="인기 카드 시세">[\s\S]*?<\/section>/) || [""])[0];
+        for (const m of sec.matchAll(/<td class="nm">([^<]*)<\/td><td class="code">([^<]*)<\/td><td>([^<]*)<\/td>/g)) add(unH15(m[2]), unH15(m[1]), k, unH15(m[3]));
+      }
+    }
+    if (exists("psa10-ranking.html")) {
+      for (const m of read("psa10-ranking.html").matchAll(/<span><b>([^<]*)<\/b><small>([^<]*)<\/small><\/span>/g)) {
+        const parts = unH15(m[2]).split(" · ");   // 세트 · 번호 · 레어도
+        if (parts.length >= 2) add(parts[1], unH15(m[1]), "psa10-ranking.html", parts[2] ? EN2CODE[parts[2]] || parts[2] : "");
+      }
+    }
+    for (const [key, file] of Object.entries(CMAP15)) {
+      const f = `cards/${file}`;
+      if (!exists(f)) continue;
+      const html = read(f);
+      const m = html.match(/<li>Rarity label: ([^<]*)<\/li>/);
+      if (!m) { errors.push(`RY1: ${f} 변형 기록에 "Rarity label" 줄이 없다 — 칸 구조가 바뀌었으면 이 검사도 고칠 것`); continue; }
+      if (!seen.has(key)) seen.set(key, []);
+      seen.get(key).push({ where: f, r: absent(unH15(m[1])) });
+      // H1 의 작은 표기("번호 · 레어도")도 같은 코드 — 2026-10-15(3차). H1 은 원본 c.rarity, "Rarity label" 은 공식 코드라
+      // EB03-026 Boa Hancock SP 가 한 페이지에서 H1 "· SR" · label "SP" 였다(52장). label 이 없으면 H1 에도 없다.
+      const h1 = html.match(/<h1>[^<]*<small[^>]*>([^<]*)<\/small><\/h1>/);
+      if (!h1) { errors.push(`RY1: ${f} H1 의 <small> 표기를 못 읽었다 — 구조가 바뀌었으면 이 검사도 고칠 것`); continue; }
+      seen.get(key).push({ where: `${f} H1`, r: absent(unH15(h1[1]).split(" · ")[1] || "") });
+    }
+    for (const p of AIC15) add(p.cardNumber, p.name, "opbox-ai-cards.json", p.rarity);
+    for (const s of AID15) for (const h of s.topHits || []) add(h.cardNumber, h.name, `opbox-ai-data.json ${s.setCode}`, h.rarity);
+  } catch (e) { errors.push("RY1: 산출물 읽기 실패 — " + e.message); }
+  let compared = 0, bad = 0;
+  for (const [key, list] of seen) {
+    if (list.length < 2) continue;
+    compared++;
+    const vals = [...new Set(list.map((x) => x.r))];
+    if (vals.length > 1 && bad++ < 15) errors.push(`RY1: ${key} 레어도가 갈린다 — ${list.map((x) => `${x.where} ${x.r || "(없음)"}`).join(" · ")} (공식 카드 리스트의 그 인쇄 레어도 하나로)`);
+  }
+  if (bad > 15) errors.push(`RY1: 그 밖에 ${bad - 15}장 더`);
+  if (!compared) errors.push("RY1: 두 곳 이상에 나온 카드가 0장 — 표 구조 확인");
+}
+
+// ── NM2. NM 호가 하나 = 어디서나 같은 값(또는 어디서나 없음) — 2026-10-15 신설(2차).
+//    1차 수정 뒤 AI 피드만 읽은 날 없는 NM 5장·숨김 표시 NM 5장을 null 로 냈다. 같은 카드가 카드 상세엔 $1,250·$31·$38(날짜 없이), Product 엔 숨김 표시 2장의
+//    NM Offer($157·$630), sets/prb-02 Key facts 엔 "most valuable PRB-02 card … $1,250 raw NM", 카드리스트엔 "$31<small></small>"·nm {usd, observedOn:null}.
+//    (a) 카드 상세 화면 NM = opbox-ai-cards.json 같은 url 의 rawNmAsk(달러 반올림) — 둘 다 있고 같거나 둘 다 없음.
+//        Product 의 NM Offer·설명(meta·Article·Product)·FAQ 금액도 화면 값과 같고, 화면에 없으면 없다. 형제 카드 표·카드 허브 칸도 그 카드의 피드 값.
+//    (b) 세트 Top 10 NM 칸 — 원천 카드의 NM 을 못 쓰면(nmJpy 는 있는데 nmUsable 거짓) "—", 쓸 수 있으면 값. topHits 에 있으면 rawNmAsk 와 같은 값.
+//    (c) 세트 "most valuable … raw NM"·"raw Japanese NM copy runs about" 금액 — 3차(2026-10-15)부터 PC1 이 가장 비싼 카드(priciest) 기준으로 본다.
+//    (d) 카드리스트 JSON nm.usd 는 nm.observedOn 이 있을 때만(CSV·HTML 은 같은 행 모델). (e) 한국어 세트 인기 카드 표의 카드는 모두 쓸 수 있는 NM.
+{
+  let bad = 0;
+  const push = (msg) => { if (bad++ < 15) errors.push(msg); };
+  const feedUsd = (ask) => (ask && Number.isFinite(ask.usdEquivalent) ? money15(ask.usdEquivalent) : null);
+  const byUrl = new Map(AIC15.map((p) => [p.url, p]));
+  const fileFeed = (file) => { const p = byUrl.get(`https://opboxindex.com/cards/${file}`); return p ? feedUsd(p.rawNmAsk) : undefined; };
+  // (a)
+  let pages = 0;
+  for (const f of PUBLIC_HTML.filter((p) => /^cards\/(?!index\.html$)[^/]+\.html$/.test(p))) {
+    const html = read(f);
+    if (/http-equiv="refresh"/i.test(html)) continue;
+    const box = html.match(/<span>Japanese NM \(raw\)<\/span><b>([^<]*)<\/b>/);
+    if (!box) continue;
+    pages++;
+    const shown = /^\$[\d,]+$/.test(box[1]) ? box[1] : null;
+    const feed = fileFeed(f.slice(6));
+    if (feed === undefined) { if (shown) push(`NM2: ${f} 화면 NM ${shown} — opbox-ai-cards.json 에 이 페이지가 없다`); continue; }
+    if (shown !== feed) push(`NM2: ${f} 화면 NM ${shown || "없음"} ≠ AI 피드 rawNmAsk ${feed || "null"} — 둘 다 같은 값이거나 둘 다 없어야 한다`);
+    const lds = ldOf15(html);
+    const prod = lds.find((j) => j["@type"] === "Product");
+    const nmOffer = prod ? [].concat(prod.offers || []).find((o) => o && o.name === "Japanese NM (raw)") : null;
+    if (nmOffer && (!shown || money15(nmOffer.price) !== shown)) push(`NM2: ${f} Product NM Offer ${nmOffer.price} — 화면 NM ${shown || "없음"} 과 다르다(숨김·날짜 없는 NM 은 Offer 도 없다)`);
+    const descs = [(html.match(/<meta name="description" content="([^"]*)"/) || [])[1], ...lds.filter((j) => j.description).map((j) => j.description)].filter(Boolean).map(unH15);
+    for (const d of descs) {
+      const m = d.match(/\bNM (\$\d{1,3}(?:,\d{3})*)/);
+      if ((m ? m[1] : null) !== shown) push(`NM2: ${f} 설명의 NM ${m ? m[1] : "없음"} ≠ 화면 ${shown || "없음"} — "${d.slice(0, 60)}"`);
+    }
+    const faq = (lds.find((j) => j["@type"] === "FAQPage") || {}).mainEntity || [];
+    for (const q of faq) {
+      const m = ((q.acceptedAnswer || {}).text || "").match(/tracked near (\$\d{1,3}(?:,\d{3})*) in Japanese near-mint/);
+      if (m && m[1] !== shown) push(`NM2: ${f} FAQ NM ${m[1]} ≠ 화면 ${shown || "없음"}`);
+      if (!m && shown && /worth\?$/.test(q.name || "")) push(`NM2: ${f} 시세 문답에 화면 NM ${shown} 이 없다`);
+    }
+    // 같은 세트 형제 카드 표 — 각 칸 = 링크된 카드의 피드 값
+    const sib = (html.match(/<h2>More [^<]* cards tracked here<\/h2>[\s\S]*?<\/table>/) || [""])[0];
+    for (const r of sib.matchAll(/<tr><td><a href="([^"]+\.html)">[^<]*<\/a><\/td><td class="num">([^<]*)<\/td>/g)) {
+      const fv = fileFeed(r[1]);
+      if (fv === undefined) continue;
+      const cell = /^\$[\d,]+$/.test(r[2]) ? r[2] : null;
+      if (cell !== fv) push(`NM2: ${f} 형제 카드 표 ${r[1]} NM ${cell || "—"} ≠ AI 피드 ${fv || "null"}`);
+    }
+  }
+  if (!pages) errors.push("NM2: 카드 상세의 NM 칸을 한 장도 못 읽었다 — 칸 구조가 바뀌었으면 이 검사도 고칠 것");
+  if (exists("cards/index.html")) {
+    for (const m of read("cards/index.html").matchAll(/<a href="([^"]+\.html)">(?:<img [^>]*>)?<b>[^<]*<\/b><small>[^<]*<\/small><span class="pr">([^<]*)<\/span><\/a>/g)) {
+      const fv = fileFeed(m[1]);
+      if (fv === undefined) continue;
+      const cell = /^\$[\d,]+$/.test(m[2]) ? m[2] : null;
+      if (cell !== fv) push(`NM2: cards/index.html ${m[1]} NM ${cell || "—"} ≠ AI 피드 ${fv || "null"}`);
+    }
+  }
+  // (b)(c)
+  const topHitOf = (code, c) => { const s = AID15.find((x) => x.setCode === code); return s ? (s.topHits || []).find((h) => h.cardNumber === c.number && h.name === c.name) : null; };
+  for (const [code, s] of Object.entries(PK15)) {
+    const f = `sets/${code.toLowerCase()}.html`;
+    const cards = s.cards || [];
+    if (!exists(f) || !cards.length) continue;
+    const html = read(f);
+    const tbl = (html.match(/<table class="chaseTable">[\s\S]*?<\/table>/) || [""])[0];
+    for (const r of tbl.matchAll(/<tr><td>(\d+)<\/td>[\s\S]*?<\/tr>/g)) {
+      const c = cards[Number(r[1]) - 1];
+      if (!c || !(c.nmJpy > 0)) continue;   // NM 조사 전 카드(TCG 폴백)는 이 검사 밖
+      const cellHtml = ([...r[0].matchAll(/<td class="num[^"]*"[^>]*>([\s\S]*?)<\/td>/g)][0] || [])[1] || "";
+      const cell = (cellHtml.match(/^\$\d{1,3}(?:,\d{3})*/) || [])[0] || null;
+      const th = topHitOf(code, c);
+      if (!nmUsable15(c)) { if (cell) push(`NM2: ${f} ${c.number} ${c.name} NM 칸 ${cell} — 읽은 날 없음·숨김 표시 NM 은 "—"(피드 null)`); continue; }
+      if (!cell) push(`NM2: ${f} ${c.number} ${c.name} NM 칸이 비었다 — 쓸 수 있는 NM 이 있다`);
+      // topHits 는 환율 워크플로가 opbox-ai-data.json 만 다시 구울 때 새 환율로 바뀐다 — 페이지를 굽는 실행에서만 FAIL(2026-10-15, 3차: 그 워크플로가 막히지 않게)
+      else if (th && feedUsd(th.rawNmAsk) !== cell) { if (PUBLISH_TOUCHED) push(`NM2: ${f} ${c.number} NM 칸 ${cell} ≠ AI topHits ${feedUsd(th.rawNmAsk) || "null"}`); else warnings.push(`NM2(경고) ${f} ${c.number} NM 칸 ${cell} ≠ AI topHits ${feedUsd(th.rawNmAsk) || "null"}`); }
+    }
+    // (c) 는 3차(2026-10-15)에 PC1 로 옮겼다 — 기준이 1순위 카드(cards[0])에서 가장 비싼 카드(priciest)로 바뀌었다.
+  }
+  // (d)
+  for (const f of fs.readdirSync(path.join(ROOT, "sets")).filter((x) => /-card-list\.json$/.test(x))) {
+    for (const r of JSON.parse(read("sets/" + f)).cards || []) {
+      if (r.nm && (r.nm.usd != null) !== ISO15.test(r.nm.observedOn || "")) push(`NM2: sets/${f} ${r.id} nm ${JSON.stringify(r.nm)} — 값은 관측일과 함께만`);
+    }
+  }
+  for (const f of PUBLIC_HTML.filter((p) => /-card-list\.html$/.test(p))) if (read(f).includes("<small></small>")) push(`NM2: ${f} 빈 <small></small> 칸 — 날짜 없는 값`);
+  // (e)
+  for (const k of KO_SET_PAGES15) {
+    const cards = (PK15[k.slice(3, -5).toUpperCase()] || {}).cards || [];
+    const sec = (read(k).match(/<section aria-label="인기 카드 시세">[\s\S]*?<\/section>/) || [""])[0];
+    for (const m of sec.matchAll(/<td class="nm">([^<]*)<\/td><td class="code">([^<]*)<\/td>/g)) {
+      const c = cards.find((x) => x.number === unH15(m[2]) && x.name === unH15(m[1]));
+      if (c && !nmUsable15(c)) push(`NM2: ${k} 인기 카드 ${c.number} ${c.name} — 읽은 날 없음·숨김 표시 NM 을 원화로 보인다(피드 null)`);
+    }
+  }
+  if (bad > 15) errors.push(`NM2: 그 밖에 ${bad - 15}건 더`);
+}
+
+// ════ 2026-10-15 3차 — 지표·가장 비싼 카드가 페이지마다 다른 규칙으로 셈 (CM1·PC1) ════
+const { priciest: priciest15, tcgSpikes: tcgSpikes15, toUsd: toUsd15 } = require("./market-data-normalizers");
+const FX15 = (() => { try { return JSON.parse(read("data/onepiece-packs.json")).fx || {}; } catch { return {}; } })();
+// 검증된 값 / 검증 안 된 값 — 2026-10-15(4차). 생성기 함수(market-data-normalizers.rawValues)를 읽지 않고 여기서 따로 셈한다 — 함수가 틀리면 이 검사가 먼저 깨진다.
+//   verified = 쓸 수 있는 NM(값·읽은 날 있음·숨김 표시 없음)의 달러(높은 순). unverified = 못 쓰는 NM 의 NM 값 · NM 없는 카드의 1회성 TCG 값(숨김 표시 포함, 스파이크 제외).
+const rawSplit15 = (cards) => {
+  const list = (cards || []).filter(Boolean);
+  const spikes = tcgSpikes15(list);
+  const verified = list.filter((c) => nmUsable15(c)).map((c) => ({ c, usd: toUsd15(c.nmJpy, "JPY", FX15) })).filter((x) => x.usd > 0).sort((a, b) => b.usd - a.usd);
+  // 2026-10-15(5차): 못 쓰는 카드마다 가진 raw 값 중 큰 것 하나(NM 값·날짜 없는 TCG 값, 스파이크 제외). 4차는 NM 이 남은 숨김 카드의 NM 만 세서
+  //   EB-02 Boa SP(NM $630·TCG $6,970)·Chopper SP(TCG $2,856)가 Luffy 061 $2,197 아래로 잡혔다(같은 숨김 표시 OP-08 Luffy TR 은 TCG $455 로 빈칸).
+  const unverified = list.filter((c) => !nmUsable15(c)).map((c) => {
+    const v = [c.nmJpy > 0 ? toUsd15(c.nmJpy, "JPY", FX15) : null, c.priceUsd > 0 && !spikes.has(c.priceUsd) ? c.priceUsd : null].filter((x) => x != null);
+    return v.length ? Math.max(...v) : null;
+  }).filter((v) => v != null);
+  return { verified, unverified };
+};
+
+// ── CM1. 세트 지표(Value density · Chase concentration · Floor of the top N) — 2026-10-15 신설(3차), 4차에 규칙 교체.
+//    2차가 못 쓰는 NM 카드를 빼고 계산해 sets/prb-02 Chase concentration 이 50% → 20%(#1 카드가 표 1위 산지가 아니라 $251 카드),
+//    sets/eb-02 는 10장 중 5장으로 셌다. 3차는 날짜 없는 TCG 값을 같이 세어 OP-08 Chase concentration 35% 의 #1 이 숨김 표시 Luffy TR TCG $455 였다.
+//    4차 규칙: 검증된 값(쓸 수 있는 NM)만 센다. 검증 안 된 값이 센 값 중 가장 낮은 값 이상이면 세 칸 모두 "—"(raw 값이 있는 카드 5장 이상일 때 칸은 둔다).
+{
+  let bad = 0, sets = 0;
+  // 값 대조는 페이지를 굽는 실행에서만 FAIL — 환율 워크플로는 packs.fx 만 바꾸고 세트 페이지는 그대로 둔다(경고, DS1·AS1 과 같은 기준).
+  const push = (msg) => { if (bad++ < 15) (PUBLISH_TOUCHED ? errors : warnings).push(PUBLISH_TOUCHED ? msg : msg.replace(/^CM1:/, "CM1(경고)")); };
+  const strip = (h) => unH15(String(h).replace(/<[^>]+>/g, "")).trim();
+  for (const [code, s] of Object.entries(PK15)) {
+    const f = `sets/${code.toLowerCase()}.html`;
+    if (!exists(f)) continue;
+    const grid = {};
+    for (const m of read(f).matchAll(/<div class="statLabel">([\s\S]*?)<\/div><div class="statValue">([\s\S]*?)<\/div>/g)) grid[strip(m[1])] = strip(m[2]);
+    const floorKey = Object.keys(grid).find((k) => /^Floor of the top \d+$/.test(k));
+    const shown = { dens: grid["Value density"], conc: grid["Chase concentration"], floor: floorKey ? grid[floorKey] : undefined };
+    const list = (s.cards || []).slice(0, 10);
+    const { verified, unverified } = rawSplit15(list);
+    const vals = verified.map((x) => x.usd);
+    const floorV = vals.length ? vals[vals.length - 1] : 0;
+    const blockers = unverified.filter((v) => v >= floorV);
+    if (blockers.length) {
+      sets++;
+      for (const [k, v] of Object.entries(shown)) if (v !== undefined && v !== "—") push(`CM1: ${f} ${k === "floor" ? floorKey : k === "conc" ? "Chase concentration" : "Value density"} ${v} — 검증 안 된 값 ${blockers.map((v) => money15(v)).join("·")} 이 센 값의 바닥 ${money15(floorV)} 이상이면 "—"`);
+      if (vals.length + unverified.length >= 5 && Object.values(shown).some((v) => v === undefined)) push(`CM1: ${f} 지표 칸이 빠졌다 — 검증 안 된 값 때문이면 칸은 두고 값만 "—"`);
+      continue;
+    }
+    if (vals.length < 5) { if (Object.values(shown).some((v) => v !== undefined)) push(`CM1: ${f} raw 값 ${vals.length}장으로 지표를 냈다(5장 미만이면 칸 없음)`); continue; }
+    sets++;
+    const total = vals.reduce((a, v) => a + v, 0);
+    const want = { dens: `${vals.filter((v) => v >= 25).length} / ${vals.length}`, conc: `${Math.round((vals[0] / total) * 100)}%`, floor: money15(Math.round(vals[vals.length - 1])) };
+    if (floorKey !== `Floor of the top ${vals.length}`) push(`CM1: ${f} 지표 이름 "${floorKey || "(없음)"}" ≠ "Floor of the top ${vals.length}"`);
+    for (const k of Object.keys(want)) if (shown[k] !== want[k]) push(`CM1: ${f} ${k === "floor" ? "Floor" : k === "conc" ? "Chase concentration" : "Value density"} ${shown[k] || "(없음)"} ≠ ${want[k]}(Top 10 검증된 NM ${vals.length}장으로 다시 셈)`);
+  }
+  if (bad > 15) (PUBLISH_TOUCHED ? errors : warnings).push(`CM1${PUBLISH_TOUCHED ? ":" : "(경고)"} 그 밖에 ${bad - 15}건 더`);
+  if (!sets) errors.push("CM1: 지표를 대조한 세트가 0개 — 칸 구조 확인");
+}
+
+// ── PC1. 가장 비싼 카드 하나 = 어디서나 같은 카드·같은 값·같은 라벨 — 2026-10-15 신설(3차).
+//    세트 Key facts·추적 문단·한국어 문단은 소유자 순위 1위, 비교표 2곳은 nmJpy 최댓값을 써서 OP-05 가 세트 페이지 "$3,144 Monkey D. Luffy (OP05-119)" ·
+//    비교표 "$5,038 Monkey D. Luffy 012 …"(같은 페이지 Top 10 2행도 $5,038) · ko/op-05 "4,203,120원" 이었다. PRB-01 은 세트 페이지 $4,250(TCG) · 비교표 $1,250.
+//    기대값(4차, 2026-10-15) = 검증된 값(쓸 수 있는 NM) 최댓값, 검증 안 된 값(못 쓰는 NM·날짜 없는 1회성 TCG·숨김 표시 카드의 TCG) 중 그 값 이상이 있으면 없음.
+//    여기서 따로 셈하고(rawSplit15) 모듈 priciest 와도 맞춘다 — 3차 모듈은 TCG 값도 1위로 올려 OP-08(숨김 Luffy TR TCG $455)·OP-15(Koby TCG $652)·
+//    PRB-01(TCG $4,250)이 "가장 비싼 카드"가 됐다. 라벨은 NM 하나 — "raw TCG market price"/"TCG 시세"/칸의 "TCG" 가 보이면 실패.
+//    (a) sets/<code>.html·<code>-english.html "The most valuable …" · "The chase in … is led by" · 박스 대비 배수("The top card alone (…)" 등)
+//    (b) ko/<code>.html "이 박스의 가치를 끌고 가는 카드는"(원화 ÷ 환율 = 달러 ±1)  (c) compare.html·articles/best-one-piece-booster-box.html "Priciest card (raw)" 칸
+//    가장 비싼 카드가 없으면(null) 세 곳 모두 그 문장·값이 없다.
+{
+  let bad = 0, said = 0;
+  // 값 대조는 페이지를 굽는 실행에서만 FAIL — 환율 워크플로는 packs.fx 만 바꾸고 페이지는 그대로 둔다(경고, DS1·AS1 과 같은 기준).
+  const push = (msg) => { if (bad++ < 15) (PUBLISH_TOUCHED ? errors : warnings).push(PUBLISH_TOUCHED ? msg : msg.replace(/^PC1:/, "PC1(경고)")); };
+  const nm = (h) => unH15(String(h)).trim();
+  const namesOk = (got, pc) => pc.ties.every((c) => got.includes(c.name)) && (pc.ties.length > 1 || got === pc.card.name);
+  // 따로 셈한 가장 비싼 카드 — { card, price: { usd }, ties } | null
+  const expect = (cards) => {
+    const { verified, unverified } = rawSplit15(cards);
+    if (!verified.length || unverified.some((v) => v >= verified[0].usd)) return null;
+    const ties = verified.filter((x) => x.usd === verified[0].usd).map((x) => x.c);
+    return { card: ties[0], price: { usd: verified[0].usd }, ties };
+  };
+  const cmpBlocks = ["compare.html", "articles/best-one-piece-booster-box.html"].filter(exists).map((f) => [f, (read(f).match(/<!-- SET-COMPARISON:START -->[\s\S]*?<!-- SET-COMPARISON:END -->/) || [""])[0]]);
+  if (cmpBlocks.length < 2 || cmpBlocks.some(([, b]) => !b)) errors.push("PC1: 비교표(compare.html·best-one-piece-booster-box.html) 블록을 못 읽었다");
+  for (const [code, s] of Object.entries(PK15)) {
+    const pc = expect(s.cards || []);
+    const mod = priciest15(s.cards || [], FX15);
+    if (!!pc !== !!mod || (pc && (mod.price.usd !== pc.price.usd || mod.ties.map((c) => c.name).join("|") !== pc.ties.map((c) => c.name).join("|"))))
+      push(`PC1: ${code} market-data-normalizers.priciest "${mod ? `${mod.ties.map((c) => c.name).join(" · ")} ${money15(mod.price.usd)}${mod.price.kind === "TCG" ? " TCG" : ""}` : "없음"}" ≠ 검증된 NM 규칙 "${pc ? `${pc.ties.map((c) => c.name).join(" · ")} ${money15(pc.price.usd)}` : "없음(검증 안 된 값이 1위 이상)"}"`);
+    const want = pc ? { usd: money15(pc.price.usd), tcg: false } : null;
+    const tag = pc ? `${pc.card.name} ${want.usd}${want.tcg ? " TCG" : ""}` : "없음";
+    // (a)
+    for (const f of [`sets/${code.toLowerCase()}.html`, `sets/${code.toLowerCase()}-english.html`].filter(exists)) {
+      const html = read(f);
+      const found = [];
+      // 금액 뒤 "(YYYY-MM-DD)" = 그 카드 NM 관측일(nmUpdated) — 2026-10-15(5차): OP-12 Teach SP Gold $1,566(09-07 값)이 날짜 없이 나갔다.
+      for (const m of html.matchAll(/The most valuable \S+ card is <strong>([^<]*)<\/strong>(?: \([^)]*\))? at about <strong>(\$[\d,]+)<\/strong> (raw NM|raw TCG market price)(?: \((\d{4}-\d{2}-\d{2})\))?/g)) found.push({ k: "Key facts", n: nm(m[1]), v: m[2], tcg: m[3] !== "raw NM", d: m[4] || null });
+      for (const m of html.matchAll(/The most valuable \S+ cards are <strong>([^<]*)<\/strong>, tied at about <strong>(\$[\d,]+)<\/strong> (raw NM|raw TCG market price) each(?: \((\d{4}-\d{2}-\d{2})\))?/g)) found.push({ k: "Key facts(동가)", n: nm(m[1]), v: m[2], tcg: m[3] !== "raw NM", d: m[4] || null });
+      for (const m of html.matchAll(/The chase in \S+ is led by <strong>([^<]*)<\/strong>(?: \([^)]*\))?, whose (raw Japanese NM copy|raw TCG market price) runs about (\$[\d,]+)(?: \((\d{4}-\d{2}-\d{2})\))?/g)) found.push({ k: "추적 문단", n: nm(m[1]), v: m[3], tcg: m[2] !== "raw Japanese NM copy", d: m[4] || null });
+      for (const m of html.matchAll(/The chase in \S+ is led by <strong>([^<]*)<\/strong>, tied at about (\$[\d,]+) (raw Japanese NM|raw TCG market price) each(?: \((\d{4}-\d{2}-\d{2})\))?/g)) found.push({ k: "추적 문단(동가)", n: nm(m[1]), v: m[2], tcg: m[3] !== "raw Japanese NM", d: m[4] || null });
+      for (const m of html.matchAll(/The top (?:card alone|chase|\d+ cards) \((.*?)\) (?:is worth|runs about|are each worth)/g)) found.push({ k: "박스 대비 배수", n: nm(m[1]), v: null });
+      const ledBy = (html.match(/The chase in \S+ is led by/g) || []).length;
+      const ledParsed = found.filter((x) => x.k.startsWith("추적 문단")).length;
+      if (ledBy !== ledParsed) push(`PC1: ${f} "The chase in … is led by" 문장 ${ledBy}개 중 ${ledParsed}개만 raw 값과 함께 읽힘 — 값 없는 1순위 카드 문장이 남았다`);
+      if (!pc) { for (const x of found) push(`PC1: ${f} ${x.k} "${x.n}${x.v ? " " + x.v : ""}" — 가장 비싼 카드를 모른다(검증 안 된 값이 1위 값 이상)면 문장이 없어야 한다`); continue; }
+      if (f.endsWith(`${code.toLowerCase()}.html`) && !found.some((x) => x.v)) push(`PC1: ${f} 가장 비싼 카드(${tag}) 문장이 없다`);
+      for (const x of found) {
+        said++;
+        if (!namesOk(x.n, pc)) push(`PC1: ${f} ${x.k} 카드 "${x.n}" ≠ 가장 비싼 카드 ${pc.ties.map((c) => c.name).join(" · ")}`);
+        if (x.v && x.v !== want.usd) push(`PC1: ${f} ${x.k} 금액 ${x.v} ≠ ${want.usd}(${pc.card.name})`);
+        if (x.v && x.tcg !== want.tcg) push(`PC1: ${f} ${x.k} 라벨 ${x.tcg ? "TCG" : "NM"} ≠ ${want.tcg ? "TCG" : "NM"}`);
+        if (x.v && x.d !== (pc.card.nmUpdated || null)) push(`PC1: ${f} ${x.k} 금액 뒤 NM 관측일 ${x.d || "(없음)"} ≠ ${pc.card.nmUpdated}(${pc.card.name})`);
+      }
+    }
+    // (b)
+    const k = `ko/${code.toLowerCase()}.html`;
+    if (exists(k)) {
+      const html = read(k);
+      const m = html.match(/이 박스의 가치를 끌고 가는 카드는 <strong>([^<]*)<\/strong>(?:\(([^)]*)\))?로, (일본판 NM 시세|TCG 시세)가 (?:모두 )?약 <strong>([\d,]+)원<\/strong>(?:\((\d{4}-\d{2}-\d{2})\))?/);
+      if (m && pc && (m[5] || null) !== (pc.card.nmUpdated || null)) push(`PC1: ${k} 원화 뒤 NM 관측일 ${m[5] || "(없음)"} ≠ ${pc.card.nmUpdated}(${pc.card.name}) — 2026-10-15(5차)`);
+      if (/이 박스의 가치를 끌고 가는 카드는/.test(html) && !m) push(`PC1: ${k} "가치를 끌고 가는 카드" 문장을 못 읽었다 — 문장 구조가 바뀌었으면 이 검사도 고칠 것`);
+      if (m && !pc) push(`PC1: ${k} "${nm(m[1])}" ${m[4]}원 — 가장 비싼 카드를 모르면 문장이 없어야 한다`);
+      if (m && pc) {
+        said++;
+        const names = nm(m[1]).split(" · ");
+        if (!(names.length === pc.ties.length && pc.ties.every((c) => names.includes(c.name)))) push(`PC1: ${k} 카드 "${nm(m[1])}" ≠ 가장 비싼 카드 ${pc.ties.map((c) => c.name).join(" · ")}`);
+        if (m[2] && m[2] !== pc.card.number) push(`PC1: ${k} 카드 번호 ${m[2]} ≠ ${pc.card.number}`);
+        if ((m[3] === "TCG 시세") !== want.tcg) push(`PC1: ${k} 라벨 "${m[3]}" ≠ ${want.tcg ? "TCG 시세" : "일본판 NM 시세"}`);
+        const usdOfKrw = Number(m[4].replace(/,/g, "")) / FX15.usdKrw;
+        if (!(Math.abs(usdOfKrw - pc.price.usd) < 1)) push(`PC1: ${k} ${m[4]}원(≈$${usdOfKrw.toFixed(2)}) ≠ ${want.usd}(${pc.card.name})`);
+      }
+    }
+    // (c)
+    for (const [f, blk] of cmpBlocks) {
+      const row = blk.match(new RegExp(`<a href="/sets/${code.toLowerCase()}\\.html"><b>${code}</b>[\\s\\S]*?</tr>`));
+      if (!row) continue;
+      const cell = ([...row[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)][4] || [])[1];   // JP box · EN box · 4-wk · EN/JP · Priciest card (raw) · PSA 10 rate
+      if (cell == null) { push(`PC1: ${f} ${code} 행의 Priciest 칸을 못 읽었다`); continue; }
+      // 금액 뒤 "(YYYY-MM-DD)" = NM 관측일 — 표의 "As of" 날짜와 다를 때만 붙는다(2026-10-15, 5차).
+      const c = cell.match(/^(\$[\d,]+)(?: \((\d{4}-\d{2}-\d{2})\))?( TCG)? <small[^>]*>([^<]*)<\/small>$/);
+      if (!pc) { if (cell !== "—") push(`PC1: ${f} ${code} Priciest "${nm(cell.replace(/<[^>]+>/g, ""))}" — 가장 비싼 카드를 모르면 "—"`); continue; }
+      said++;
+      if (!c) { push(`PC1: ${f} ${code} Priciest 칸 "${nm(cell.replace(/<[^>]+>/g, ""))}" ≠ ${tag}`); continue; }
+      // 동가는 전부(세트 페이지와 같은 목록 — 2026-10-15 4차: OP-16 이 "Kuzan (Manga)" 하나뿐이었다)
+      const tieNames = pc.ties.map((t) => t.name).join(", ");
+      if (c[1] !== want.usd || !!c[3] !== want.tcg || nm(c[4]) !== tieNames) push(`PC1: ${f} ${code} Priciest "${c[1]}${c[3] || ""} ${nm(c[4])}" ≠ "${want.usd} ${tieNames}"`);
+      const asOfT = (blk.match(/As of (\d{4}-\d{2}-\d{2})\./) || [])[1] || null;
+      const wantD = pc.card.nmUpdated && pc.card.nmUpdated !== asOfT ? pc.card.nmUpdated : null;
+      if ((c[2] || null) !== wantD) push(`PC1: ${f} ${code} Priciest 날짜 ${c[2] || "(없음)"} ≠ ${wantD || "(없음 — As of 와 같은 날)"}(NM 관측일 ${pc.card.nmUpdated}, 표 As of ${asOfT})`);
+    }
+  }
+  if (bad > 15) (PUBLISH_TOUCHED ? errors : warnings).push(`PC1${PUBLISH_TOUCHED ? ":" : "(경고)"} 그 밖에 ${bad - 15}건 더`);
+  if (!said) errors.push("PC1: 가장 비싼 카드 문장을 한 곳도 못 읽었다 — 문장 구조 확인");
+}
+
+// ════ 2026-10-15 4차 — 4주 변동률 한 값(CW1)·사유/방어 문장 재발(DF1) ════
+// ── CW1. "4주 변동률" 한 사실 = 한 값 — 2026-10-15 신설(4차).
+//    비교표(compare.html·best-one-piece-booster-box.html)의 4-wk 만 "5점 전(jp[len-5])"을 써서, 빈 주가 있는 세트가
+//    OP-06 비교표 +7% · 세트 페이지 -6.5%(부호 반대) · OP-07 +0% · -40.3% 였다. 기대값은 여기서 따로 셈한다:
+//    current.jp vs 그 날짜에서 28일 이상 앞선 마지막 중앙값 점, 소수 한 자리. 세트 페이지 "4-week change" 칸·한국어 팩트 줄·비교표 칸이 모두 이 값(없으면 모두 없음/"—").
+{
+  let SS = {};
+  try { SS = JSON.parse(read("data/box-sold-series.json")).sets || {}; } catch (e) { errors.push("CW1: box-sold-series 읽기 실패 — " + e.message); }
+  const want = (code, ed = "jp") => {
+    const e = SS[code] || {}, cur = e.current && e.current[ed];
+    if (!cur || !(cur.median > 0)) return null;
+    const cut = Date.parse(cur.d) - 28 * 864e5;
+    const prior = (e[ed] || []).filter((p) => p && p.median > 0 && Date.parse(p.d) <= cut).pop();
+    return prior ? Math.round((cur.median / prior.median - 1) * 1000) / 10 : null;
+  };
+  // 영문판 페이지의 "4-week change" 도 같은 정의(영문판 시계열) — 4차에 en[len-5] 를 같은 함수로 바꿨다.
+  for (const code of Object.keys(SS)) {
+    const ep = `sets/${code.toLowerCase()}-english.html`;
+    if (!exists(ep)) continue;
+    const cell = (read(ep).match(/4-week change(?:<\/a>)?<\/div><div class="statValue">([\s\S]*?)<\/div>/) || [])[1];
+    const got = cell == null ? null : Number(cell.replace(/<[^>]+>/g, "").replace(/[+%\s]/g, ""));
+    const w = want(code, "en");
+    if (got !== w) errors.push(`CW1: ${ep} 4-week change ${got == null ? "(없음)" : got + "%"} ≠ ${w == null ? "(없음)" : w + "%"}(영문판 current vs 28일 전 점)`);
+  }
+  const num = (t) => (t == null || t === "—" ? null : Number(String(t).replace(/[+%\s]/g, "")));
+  const cmp = ["compare.html", "articles/best-one-piece-booster-box.html"].filter(exists).map((f) => [f, (read(f).match(/<!-- SET-COMPARISON:START -->[\s\S]*?<!-- SET-COMPARISON:END -->/) || [""])[0]]);
+  let rowsRead = 0;
+  for (const code of Object.keys(SS)) {
+    const w = want(code);
+    const sp = `sets/${code.toLowerCase()}.html`;
+    if (exists(sp)) {
+      const cell = (read(sp).match(/4-week change<\/a><\/div><div class="statValue">([\s\S]*?)<\/div>/) || [])[1];
+      const got = cell == null ? null : num(cell.replace(/<[^>]+>/g, ""));
+      if (got !== w) errors.push(`CW1: ${sp} 4-week change ${got == null ? "(없음)" : got + "%"} ≠ ${w == null ? "(없음)" : w + "%"}(current vs 28일 전 점)`);
+    }
+    const kp = `ko/${code.toLowerCase()}.html`;
+    if (exists(kp)) {
+      const li = (read(kp).match(/<li>\d{4}-\d{2}-\d{2} 대비 <strong>([^<]*)<\/strong>/) || [])[1];
+      const got = li == null ? null : num(li);
+      if (got !== w) errors.push(`CW1: ${kp} 변동률 ${li || "(없음)"} ≠ ${w == null ? "(없음)" : w + "%"}`);
+    }
+    for (const [f, blk] of cmp) {
+      const row = blk.match(new RegExp(`<a href="/sets/${code.toLowerCase()}\\.html"><b>${code}</b>[\\s\\S]*?</tr>`));
+      if (!row) continue;
+      rowsRead++;
+      const cell = ([...row[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)][2] || [])[1];   // JP box · EN box · 4-wk
+      const got = num(cell);
+      if (got !== w) errors.push(`CW1: ${f} ${code} 4-wk "${cell}" ≠ ${w == null ? "—" : (w > 0 ? "+" : "") + w + "%"}(세트 페이지 4-week change 와 같은 값)`);
+    }
+  }
+  if (cmp.length && !rowsRead) errors.push("CW1: 비교표 행을 하나도 못 읽었다 — 표 구조 확인");
+}
+
+// ── CL3. 날짜 한 값 — 카드리스트 화면 "Data"/"데이터" = CollectionPage dateModified = 세트 JSON "updated", free-data #card-lists = 그 updated 최댓값,
+//    free-data 화면 "Page regenerated" = DataCatalog dateModified — 2026-10-15 신설(4차). 3차 결과가 화면 10-14 · dateModified 10-15 · JSON 10-14 였다.
+{
+  const ups = [];
+  for (const f of PUBLIC_HTML.filter((p) => /^(?:sets|ko)\/[a-z]+-\d+-card-list\.html$/.test(p))) {
+    const h = read(f);
+    const shown = (h.match(/(?:Data|데이터) (\d{4}-\d{2}-\d{2})<\/p>/) || [])[1] || null;
+    const dm = ((ldOf15(h).find((j) => j["@type"] === "CollectionPage") || {}).dateModified) || null;
+    const jf = `sets/${f.replace(/^(?:sets|ko)\//, "").replace(/\.html$/, "")}.json`;
+    let up = null;
+    try { up = JSON.parse(read(jf)).updated || null; } catch { /* JSON 없음 */ }
+    if (up) ups.push(up);
+    if (!shown || shown !== dm || (up && up !== dm)) errors.push(`CL3: ${f} 화면 날짜 ${shown || "(없음)"} · CollectionPage dateModified ${dm || "(없음)"} · ${jf} updated ${up || "(없음)"} — 한 값이어야 한다`);
+  }
+  if (exists("free-data.html")) {
+    const h = read("free-data.html");
+    const graph = ldOf15(h).flatMap((j) => j["@graph"] || [j]);
+    const cat = graph.find((n) => /#catalog$/.test(n["@id"] || "")), cl = graph.find((n) => /#card-lists$/.test(n["@id"] || ""));
+    const regen = (h.match(/Page regenerated (\d{4}-\d{2}-\d{2})/) || [])[1] || null;
+    if (cat && regen !== cat.dateModified) errors.push(`CL3: free-data.html 화면 "Page regenerated ${regen}" ≠ DataCatalog dateModified ${cat.dateModified}`);
+    const maxUp = ups.sort().at(-1) || null;
+    if (cl && maxUp && cl.dateModified !== maxUp) errors.push(`CL3: free-data.html #card-lists dateModified ${cl.dateModified} ≠ 카드리스트 JSON updated 최댓값 ${maxUp}`);
+  }
+}
+
+// ── DF1. 사유·방어·방법 설명 문장 재발 금지 — 2026-10-15 신설(4차). 화면엔 숫자·표·라벨만(소유자 지시).
+//    1~3차가 덧붙였다가 4차에 뺀 문장들: ko 세트 FAQ "…표시하지 않습니다"·"발매일 대비가 아닙니다"·"…재판 횟수에 포함하지 않습니다",
+//    영문 세트 FAQ "…has no completed eBay sales median dated within 28 days", 카드 상세 "No dated Japanese near-mint price is shown for …",
+//    세트 재판 줄 "Bandai does not call these reprints, so we do not either". 값이 없으면 문장 대신 문답을 빼거나 칸에 "—".
+//    화면 텍스트와 JSON-LD(FAQPage 등) 모두 본다 — HTML 원문 전체를 검사한다.
+{
+  const BAN = [/표시하지 않습니다/, /포함하지 않습니다/, /대비가 아닙니다/, /재판이라 부르지 않/, /has no completed eBay sales median/, /No dated Japanese near-mint price is shown/, /does not call these reprints/, /we do not either/];
+  let bad = 0;
+  for (const f of PUBLIC_HTML.filter((p) => /^(?:ko|sets|cards)\//.test(p))) {
+    const h = read(f);
+    for (const re of BAN) {
+      const m = h.match(re);
+      if (m && bad++ < 20) errors.push(`DF1: ${f} 에 사유·방어 문장 "${m[0]}" — 값이 없으면 문장 대신 문답을 빼거나 "—"`);
+    }
+  }
+  if (bad > 20) errors.push(`DF1: 그 밖에 ${bad - 20}건 더`);
+}
+
+// ════ 2026-10-15 5차 — 4차 검증에서 나온 모순·문구 결함 재발 방지 (PK1·FQ1·SP1·AN1·EQ1·EL1·CH1·KD1·FQ2·WK1) ════
+// 값 대조(PK1·CH1·KD1·WK1)는 페이지를 굽는 실행에서만 FAIL — 환율·수집 워크플로는 데이터만 바꾸고 페이지는 그대로 둔다(PC1·CM1 과 같은 기준).
+const esc15 = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");   // 생성기 esc 와 같은 이스케이프
+const sink5 = (code) => (msg) => (PUBLISH_TOUCHED ? errors : warnings).push(PUBLISH_TOUCHED ? `${code}: ${msg}` : `${code}(경고) ${msg}`);
+
+// ── PK1. PSA 10 실거래 중앙값 하나 = 한국어·영문 같은 값(±1%) — 2026-10-15 신설(5차).
+//    ko 생성기가 옛 KRW 저장값을 그대로 써서 같은 관측(2026-06-29, n=10)이 ko/op-03 1,147,931원(= $859) · sets/op-03 $744 였다(ko/eb-02·op-13 도 12~15%).
+//    기대값은 여기서 따로 셈한다: USD 저장값 그대로, KRW 저장값은 관측일(그 날 또는 직전 영업일) 환율로 되돌린 달러. 원화 = 그 달러 × packs.fx.usdKrw.
+{
+  const push = sink5("PK1");
+  let FXH = {};
+  try { FXH = JSON.parse(read("data/fx-history.json")).rates || {}; } catch { /* 없으면 오늘 환율 */ }
+  const fxOn = (d) => { const k = Object.keys(FXH).filter((x) => x <= d).sort().pop(); return k ? FXH[k] : null; };
+  const p10Usd = (c) => {
+    const s = c && c.psa10Ebay;
+    if (!s || !s.soldBased || !(s.middle > 0) || (s.sampleSize || 0) < 3) return null;
+    if (s.currency === "USD") return s.middle;
+    if (s.currency === "KRW") { const r = fxOn(String(s.updated || "").slice(0, 10)) || FX15.usdKrw; return r ? s.middle / r : null; }
+    return null;
+  };
+  const off = (krw, usd) => Math.abs(krw / FX15.usdKrw / usd - 1);
+  let seen = 0;
+  for (const [code, s] of Object.entries(PK15)) {
+    const k = `ko/${code.toLowerCase()}.html`;
+    if (!exists(k)) continue;
+    const m = read(k).match(/([^>]*)의 <strong>PSA 10 실거래 중앙값은 ([\d,]+)원<\/strong>/);
+    if (!m) continue;
+    seen++;
+    const pc = priciest15(s.cards || [], FX15);
+    const card = pc && pc.card;
+    const exp = p10Usd(card);
+    if (!card || unH15(m[1]).trim() !== card.name || exp == null) { push(`${k} PSA 10 문장 "${unH15(m[1]).trim()}" — 가장 비싼 카드의 PSA 10 실거래 중앙값이 없다`); continue; }
+    const krw = Number(m[2].replace(/,/g, ""));
+    if (off(krw, exp) > 0.01) push(`${k} PSA 10 ${m[2]}원(≈${money15(krw / FX15.usdKrw)}) ≠ 영문 ${money15(exp)}(${card.name}, ${card.psa10Ebay.updated}) — ±1% 밖`);
+    // 영문 세트 Top 10 의 PSA 10 칸(같은 카드)도 같은 달러
+    const sp = `sets/${code.toLowerCase()}.html`;
+    if (exists(sp)) {
+      const nameRe = esc15(card.name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const row = read(sp).match(new RegExp(`<tr><td>\\d+</td><td class="cn">(?:(?!</tr>)[\\s\\S])*?<strong>${nameRe}</strong>[\\s\\S]*?</tr>`));
+      const cell = row ? ([...row[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)][3] || [])[1] : null;
+      const usdShown = cell ? (cell.match(/\$[\d,]+/) || [])[0] : null;
+      if (usdShown && usdShown !== money15(exp)) push(`${sp} Top 10 ${card.name} PSA 10 ${usdShown} ≠ ${money15(exp)}`);
+      if (usdShown && off(krw, Number(usdShown.replace(/[$,]/g, ""))) > 0.01) push(`${k} ${m[2]}원 vs ${sp} ${usdShown} — ±1% 밖`);
+    }
+  }
+  // ko/cards.html "PSA 10 실낙찰" 칸 — 같은 규칙(카드 = 행의 영문명 + 번호 + 세트 코드)
+  if (exists("ko/cards.html")) {
+    for (const r of read("ko/cards.html").matchAll(/<small>([^<]+)<\/small><small>([A-Z0-9]+-\d+) · ([A-Z]+-\d+) [^<]*<\/small>(?:(?!<\/tr>)[\s\S])*?<\/td><td class="hideM">[^<]*<\/td><td>([\d,]+)원<\/td>/g)) {
+      const card = ((PK15[r[3]] || {}).cards || []).find((c) => c.name === unH15(r[1]) && String(c.number) === r[2]);
+      const exp = p10Usd(card);
+      seen++;
+      if (exp == null) { push(`ko/cards.html ${r[3]} ${unH15(r[1])} PSA 10 ${r[4]}원 — 데이터에 실거래 중앙값이 없다`); continue; }
+      const krw = Number(r[4].replace(/,/g, ""));
+      if (off(krw, exp) > 0.01) push(`ko/cards.html ${r[3]} ${unH15(r[1])} PSA 10 ${r[4]}원(≈${money15(krw / FX15.usdKrw)}) ≠ 영문 ${money15(exp)} — ±1% 밖`);
+    }
+  }
+  if (!seen) errors.push("PK1: 한국어 PSA 10 금액을 한 곳도 못 읽었다 — 문장·표 구조 확인");
+}
+
+// ── FQ1. "How much is a sealed … Japanese/English booster box?" 의 답 = 그 판 박스의 판매 중앙값(28일 규칙) — 2026-10-15 신설(5차).
+//    4차가 일본판 중앙값이 없는 OP-02·OP-04·EB-01 에 "The English … box runs about $559" 로 답했다. 값이 없으면 문답을 뺀다.
+{
+  for (const f of SET_PAGES15) {
+    const fq = ldOf15(read(f)).find((j) => j["@type"] === "FAQPage");
+    for (const q of (fq && fq.mainEntity) || []) {
+      const a = String((q.acceptedAnswer || {}).text || "");
+      const ed = (String(q.name).match(/ (Japanese|English) booster box\?$/) || [])[1];
+      if (/^How much is a sealed /.test(q.name) && ed && !new RegExp(`^As of \\d{4}-\\d{2}-\\d{2}, completed eBay sales ${ed === "Japanese" ? "of the Japanese " : ""}`).test(a))
+        errors.push(`FQ1: ${f} "${q.name}" 의 답이 그 판 판매 중앙값이 아니다: "${a.slice(0, 90)}…" — 값이 없으면 문답을 뺀다`);
+    }
+  }
+}
+
+// ── SP1. 카드 상세의 raw 대 PSA 차이 문장 = NM 칸에 값이 있을 때만 — 2026-10-15 신설(5차).
+//    NM 칸이 "—"인 eb01-061·op07-038 에 "…which helps explain its raw-to-slab spread" 가 남아 화면에 없는 차이를 가리켰다.
+{
+  for (const f of PUBLIC_HTML.filter((p) => /^cards\/[^/]+\.html$/.test(p) && p !== "cards/index.html")) {
+    const h = read(f);
+    const nmCell = (h.match(/<span>Japanese NM \(raw\)<\/span><b>([^<]*)<\/b>/) || [])[1];
+    if (nmCell !== "—") continue;
+    const m = shownText15(h).match(/raw-to-slab spread|slab premium|raw (?:NM )?reference/);
+    if (m) errors.push(`SP1: ${f} NM 칸이 "—" 인데 "${m[0]}" 문장이 있다`);
+  }
+}
+
+// ── AN1. 숫자 앞 부정관사 — 읽는 소리가 모음으로 시작하면 "an"(8·80~89·11·18 …) — 2026-10-15 신설(5차). 카드 42장에 "a 80%"·"a 89%"가 나갔다.
+{
+  let bad = 0;
+  const re = /\b[Aa] \$?(?:8[\d,]*|11|18)(?:\.\d+)?(?:%|-[a-z]|x\b| percent\b)/;
+  for (const f of PUBLIC_HTML) {
+    const m = read(f).match(re);
+    if (m && bad++ < 10) errors.push(`AN1: ${f} "${m[0]}" — "an"`);
+  }
+  if (bad > 10) errors.push(`AN1: 그 밖에 ${bad - 10}건 더`);
+}
+
+// ── EQ1. 같은 값끼리의 비교 절 금지 — 2026-10-15 신설(5차): "($134 vs peak $134, …)" · ko "고점 대비 +0.0%"·"저점 대비 +0.0%".
+{
+  for (const f of PUBLIC_HTML.filter((p) => /^(?:sets|ko)\//.test(p))) {
+    const m = read(f).match(/\((\$[\d,]+) vs peak \1[,)]|\b0% under its tracked peak|(?:저점|고점) 대비 [+-]?0\.0%/);
+    if (m) errors.push(`EQ1: ${f} "${m[0]}" — 두 쪽이 같은 값이면 비교 절을 뺀다`);
+  }
+}
+
+// ── EL1. 글자 없는 링크 금지 — 2026-10-15 신설(5차): sets/prb-01 "Distributor reprint: <a …></a>." (날짜 없는 기록의 날짜 칸).
+{
+  for (const f of PUBLIC_HTML) {
+    const m = read(f).match(/<a\b[^>]*>\s*<\/a>/);
+    if (m) errors.push(`EL1: ${f} 글자 없는 링크 ${m[0].slice(0, 100)}`);
+  }
+}
+
+// ── CH1. 가장 싼 박스 = 최저가가 같은 세트 전부 — 2026-10-15 신설(5차). OP-07·OP-08 이 둘 다 $80(106,943원)인데
+//    index.html FAQ 는 OP-08 하나, ko/index.html 은 OP-07 하나였다. 기대값 = marketIndex.board 의 nowUsd 최솟값(화면 반올림 기준)인 세트 전부.
+{
+  const push = sink5("CH1");
+  let board = [];
+  try { board = (JSON.parse(read("data/onepiece-packs.json")).marketIndex || {}).board || []; } catch { /* 아래에서 0건 */ }
+  const priced = board.filter((b) => b.nowUsd != null);
+  const min = Math.min(...priced.map((b) => Math.round(b.nowUsd)));
+  const ties = priced.filter((b) => Math.round(b.nowUsd) === min).map((b) => b.code);
+  if (!ties.length) errors.push("CH1: board 에 현재가가 있는 세트가 없다");
+  if (exists("index.html") && ties.length) {
+    const fq = ldOf15(read("index.html")).find((j) => j["@type"] === "FAQPage");
+    const a = String((((fq && fq.mainEntity) || []).find((q) => q.name === "How much is a One Piece booster box?") || {}).acceptedAnswer?.text || "");
+    const seg = (a.match(/range from about \$[\d,]+ \(([^)]*)\)/) || [])[1];
+    if (seg == null) push(`index.html FAQ "How much is a One Piece booster box?" 의 최저가 구절을 못 읽었다`);
+    else for (const c of ties) if (!seg.includes(c)) push(`index.html FAQ 최저가 "${seg}" 에 같은 값 세트 ${c} 가 없다(${ties.join("·")})`);
+  }
+  if (exists("ko/index.html") && ties.length) {
+    const seg = (read("ko/index.html").match(/가장 싼 박스는 ([\s\S]*?)\([\d,]+원\)/) || [])[1];
+    if (seg == null) push(`ko/index.html "가장 싼 박스는" 문장을 못 읽었다`);
+    else for (const c of ties) if (!seg.includes(c)) push(`ko/index.html 가장 싼 박스 "${unH15(seg.replace(/<[^>]+>/g, ""))}" 에 같은 값 세트 ${c} 가 없다(${ties.join("·")})`);
+  }
+}
+
+// ── KD1. ko/index.html "기준일"·"마지막 갱신" = 그 표에 보이는 가장 늦은 중앙값 날짜 — 2026-10-15 신설(5차). 표의 OP-07 행은 10-15, 두 날짜는 10-14 였다.
+if (exists("ko/index.html")) {
+  const push = sink5("KD1");
+  const h = read("ko/index.html");
+  const newest = [...h.matchAll(/<small class="fromDate">(\d{4}-\d{2}-\d{2})<\/small>/g)].map((m) => m[1]).sort().pop() || null;
+  const base = (h.match(/기준일 (\d{4}-\d{2}-\d{2})\./) || [])[1] || null;
+  const last = (h.match(/마지막 갱신 (\d{4}-\d{2}-\d{2})\./) || [])[1] || null;
+  if (!newest || base !== newest || last !== newest) push(`ko/index.html 기준일 ${base || "(없음)"} · 마지막 갱신 ${last || "(없음)"} ≠ 표의 가장 늦은 날짜 ${newest || "(없음)"}`);
+}
+
+// ── FQ2. articles/how-many-packs FAQPage = 화면 FAQ(문항·답) — 2026-10-15 신설(5차). JSON-LD 는 화면에 없는 1문항, 화면은 JSON-LD 에 없는 4문항이었다.
+{
+  const f = "articles/how-many-packs-one-piece-booster-box.html";
+  if (exists(f)) {
+    const h = read(f);
+    const blk = (h.match(/<!-- PACK-FAQ:START -->([\s\S]*?)<!-- PACK-FAQ:END -->/) || [])[1];
+    const shown = blk ? [...blk.matchAll(/<h3>([\s\S]*?)<\/h3>\s*<p>([\s\S]*?)<\/p>/g)].map((m) => [unH15(m[1]).trim(), unH15(m[2].replace(/<[^>]+>/g, "")).trim()]) : [];
+    const fq = ldOf15(h).find((j) => j["@type"] === "FAQPage");
+    const ld = ((fq && fq.mainEntity) || []).map((q) => [q.name, String((q.acceptedAnswer || {}).text || "").trim()]);
+    if (!shown.length) errors.push(`FQ2: ${f} 화면 FAQ 블록(PACK-FAQ)을 못 읽었다 — node tools/inject-pack-math.js`);
+    else if (JSON.stringify(shown) !== JSON.stringify(ld)) errors.push(`FQ2: ${f} FAQPage ${ld.length}문항 ≠ 화면 FAQ ${shown.length}문항(문항·답이 같아야 한다)`);
+  }
+}
+
+// ── WK1. weekly.html 4-wk = 세트 페이지 "4-week change"(boxChange28 — current vs 28일 이상 앞선 마지막 점) — 2026-10-15 신설(5차).
+//    weekly 만 current 대신 마지막 점으로 따로 계산해 current 가 없는 OP-04 -5.4% · EB-01 +6.3% 가 다른 표의 "—" 와 갈렸다.
+if (exists("weekly.html")) {
+  const push = sink5("WK1");
+  let SS = {};
+  try { SS = JSON.parse(read("data/box-sold-series.json")).sets || {}; } catch { /* 아래에서 0행 */ }
+  const want = (code, ed) => {
+    const e = SS[code] || {}, cur = e.current && e.current[ed];
+    if (!cur || !(cur.median > 0)) return null;
+    const cut = Date.parse(cur.d) - 28 * 864e5;
+    const prior = (e[ed] || []).filter((p) => p && p.median > 0 && Date.parse(p.d) <= cut).pop();
+    return prior ? Math.round((cur.median / prior.median - 1) * 1000) / 10 : null;
+  };
+  let n = 0;
+  for (const r of read("weekly.html").matchAll(/<tr[^>]*><td><a href="sets\/([a-z]+-\d+)(-english)?\.html">[\s\S]*?<\/tr>/g)) {
+    const tds = [...r[0].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map((m) => m[1].replace(/<[^>]+>/g, "").trim());
+    if (tds.length < 8) continue;   // 매물 수 표(5칸)는 건너뛴다
+    n++;
+    const code = r[1].toUpperCase(), ed = r[2] ? "en" : "jp";
+    const got = tds[5] === "—" ? null : Number(tds[5].replace(/[+%]/g, ""));
+    const w = want(code, ed);
+    if (got !== w) push(`weekly.html ${code} ${ed.toUpperCase()} 4-wk ${tds[5]} ≠ ${w == null ? "—" : w + "%"}(세트 페이지 4-week change 와 같은 값)`);
+  }
+  if (!n) errors.push("WK1: weekly.html 표 행을 하나도 못 읽었다 — 표 구조 확인");
 }
 
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors, ...(warnings.length ? { warnings } : {}) }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, ...(warnings.length ? { warnings } : {}), checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "A5", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2", "GA1", "GA2", "UP1", "RD1", "AD1", "CL1", "KF1", "RF1", "SM1", "SE1", "FD1"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, ...(warnings.length ? { warnings } : {}), checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "A5", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2", "GA1", "GA2", "UP1", "RD1", "AD1", "CL1", "KF1", "RF1", "SM1", "SE1", "FD1", "SF1", "U2", "PL1", "S4", "NM1", "KO1", "KO2", "KO3", "KO4", "AB1", "AS1", "LP1", "PO1", "CL2", "UP2", "DS1", "RY1", "NM2", "CM1", "PC1", "CW1", "CL3", "DF1", "PK1", "FQ1", "SP1", "AN1", "EQ1", "EL1", "CH1", "KD1", "FQ2", "WK1"] }));

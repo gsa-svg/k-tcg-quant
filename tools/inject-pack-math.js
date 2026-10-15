@@ -179,5 +179,24 @@ if (/Updated <time datetime="/.test(html)) {
 } else {
   html = html.replace(/(Published <time datetime="[^"]*">[^<]*<\/time>)/, (_m, a) => `${a} · Updated <time datetime="${dataDate}">${longDate(dataDate)}</time>`);
 }
+// FAQ — 화면 FAQ 와 FAQPage JSON-LD 를 이 배열 하나에서 쓴다(가드 L2) — 2026-10-15(5차).
+// 종전엔 손 HTML 이라 JSON-LD 는 화면에 없는 1문항("How many packs …"), 화면은 JSON-LD 에 없는 4문항이었다.
+// 답은 그대로 옮겼다(새 문장 없음). JSON-LD 답 = 화면 답에서 태그를 걷어 낸 글자.
+const FAQ = [
+  ["How many packs are in a One Piece booster box?", "A standard One Piece Card Game booster box contains <strong>24 booster packs</strong>. This applies to Japanese and English main-set boxes (OP-01 onward)."],
+  ["How many cards are in a full Japanese booster box?", "24 packs × 6 cards = <strong>144 cards</strong> per Japanese box."],
+  ["Is a case the same as a box?", "No. A <em>case</em> is a sealed carton of boxes shipped to retailers. A retailer source lists 12 boxes per case for the Japanese OP-01 display; Bandai does not publish case configurations. This site tracks single sealed boxes only — case listings are excluded from the price data."],
+  ["Do all boxes guarantee a Secret Rare or manga rare?", "No. Bandai does not guarantee a manga-art card in each box, and the relevant pull rates are not published. Card demand, sealed supply and that uncertainty can all affect secondary-market prices."],
+  ["Where can I see what each box is worth right now?", `The <a href="../">live tracker</a> shows current market prices, weekly price history and top-card values for every Japanese set, updated continuously.`],
+];
+const faqText = (h) => h.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+const faqBlock = `<!-- PACK-FAQ:START -->\n      <h2>FAQ</h2>\n${FAQ.map(([q, a]) => `      <h3>${esc(q)}</h3>\n      <p>${a}</p>`).join("\n")}\n      <!-- PACK-FAQ:END -->`;
+const faqLd = `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: faqText(a) } })) })}</script>`;
+const reFaq = /<!-- PACK-FAQ:START -->[\s\S]*?<!-- PACK-FAQ:END -->/;
+const reFaqOld = /<h2>FAQ<\/h2>[\s\S]*?(?=\s*<\/main>)/;   // 첫 실행(마커 없는 손 HTML) — FAQ 제목부터 </main> 앞까지
+const reFaqLd = /<script type="application\/ld\+json">\{"@context":"https:\/\/schema\.org","@type":"FAQPage"[\s\S]*?<\/script>/;
+if (reFaq.test(html)) html = html.replace(reFaq, () => nl(faqBlock));
+else if (reFaqOld.test(html)) html = html.replace(reFaqOld, () => nl(faqBlock));
+if (reFaqLd.test(html)) html = html.replace(reFaqLd, () => faqLd);
 fs.writeFileSync(ART, html);
 console.log(JSON.stringify({ status: "ok", dataDate, rows: rows.length, live: liveCount, wrote }));

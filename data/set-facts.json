@@ -106,10 +106,10 @@
       "reprintRecords": [
         {
           "date": "2024-10",
-          "kind": "official-lottery",
+          "kind": "official-reprint-lottery",
           "source": "https://bandainamco-am.co.jp/official_shop/onepiece-cardgame/topics/20241015.html",
           "sourceDead": true,
-          "note": "Bandai Namco shop 再販 pre-order lottery; original announcement page now 404, no Wayback snapshot (medium confidence) Reclassified 2026-08-13 against the verified Japanese release date 2024-08-31.",
+          "note": "Bandai Namco shop 再販 pre-order lottery; original announcement page now 404, no Wayback snapshot (medium confidence) Reclassified 2026-08-13 against the verified Japanese release date 2024-08-31. Reclassified 2026-10-15 to official-reprint-lottery: the shop labelled this lottery 再販, so it counts as a reprint (lotteries without 再販 wording stay official-lottery and are not counted).",
           "kindWas": "Bandai Namco official-shop reprint lottery"
         }
       ],
@@ -233,9 +233,10 @@
       "reprintRecords": [
         {
           "date": "2026-05",
-          "kind": "official-lottery",
+          "kind": "pre-release-lottery",
           "source": "https://www.onepiece-cardgame.com/news/",
-          "note": "Premium Bandai official lottery sale, 1st round, entries opened 2026-05-29. Announced on Bandai's official news feed. Bandai does not describe it as a reprint. Verified 2026-08-13. Reclassified 2026-08-13 against the verified Japanese release date 2026-05-30."
+          "note": "Premium Bandai official lottery sale, 1st round, entries opened 2026-05-29. Announced on Bandai's official news feed. Bandai does not describe it as a reprint. Verified 2026-08-13. Reclassified 2026-08-13 against the verified Japanese release date 2026-05-30. Reclassified 2026-10-15 to pre-release-lottery: entries opened 2026-05-29, the day before the 2026-05-30 Japanese release, so under reprintAudit.rule this is initial-run allocation, not extra supply (the 2026-08-13 pass compared months only).",
+          "kindWas": "official-lottery"
         },
         {
           "date": "2026-06",

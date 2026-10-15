@@ -37,6 +37,20 @@ const monthYear = (iso) => {
   return Number.isNaN(d.getTime()) ? iso : `${m[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 };
 
+// 재판 기록 분류 — 2026-10-15(4차). 영문 세트 페이지·한국어 세트 페이지·한국어 허브·홈 배지(build-market-index → marketIndex.board)가 이 함수 하나를 쓴다.
+// 기준은 반다이 측 문구 하나: "再販"이라 적힌 추첨(kind official-reprint-lottery — OP-09 반다이남코샵 2024-10)은 재판으로 세고,
+// 그 말이 없는 발매 후 추첨(official-lottery — OP-13 2025-12·OP-16 2026-06)은 재판 횟수에 넣지 않는다. 발매 전 추첨(pre-release-lottery)은 초판 배정이라 싣지 않는다.
+// 3차는 반다이 추첨을 전부 재판에서 빼서, 원장 메모가 "Bandai Namco shop 再販 pre-order lottery" 인 OP-09 가 "재판 기록 없음"이 됐다.
+//   reprint = 리테일러·유통사 재입고 + 再販 추첨(= 재판 횟수) · lottery = 再販 표기 없는 발매 후 추첨 · unverified = 발매 전후 미확인 추첨
+function splitReprints(records) {
+  const kind = (r) => String((r && r.kind) || "");
+  const recs = (records || []).filter((r) => r && !/pre-release/i.test(kind(r)));
+  const unverified = recs.filter((r) => /unverified-timing/i.test(kind(r)));
+  const lottery = recs.filter((r) => kind(r) === "official-lottery");
+  const reprint = recs.filter((r) => !unverified.includes(r) && !lottery.includes(r));
+  return { reprint, lottery, unverified };
+}
+
 // 영문판 값이 재판(White) 위주인가 — 그래프 배지(box-chart.js badgeFor)와 같은 기준(reprintPct.en ≥ 60).
 // 2026-09-30: OP-01 영문판 $1,487 은 재판만의 값인데 배지는 그래프에만 있고 지표칸·Key facts·FAQ·설명에는 없었다.
 const enIsReprint = (series) => (((series && series.reprintPct) || {}).en || 0) >= 60;
@@ -202,7 +216,23 @@ const kfSrc = () => (KF_SRC || (KF_SRC = {
   packs: readData("data/onepiece-packs.json", { sets: {} }),
   sold: readData("data/box-sold-series.json", { sets: {} }),
   facts: readData("data/set-facts.json", { sets: {} }),
+  auction: readData("data/set-auction-stats.json", {}),
 }));
+
+// ── 페이지 수정일 — 2026-10-15(감사 #4) ─────────────────────────────────────────
+// 세트·영문판 페이지의 JSON-LD dateModified 와 화면 "Data updated" 가 packs.updated(10-14)만 따라가, 같은 페이지에
+// 박스 판매 원장의 "as of 2026-10-15" 값(박스 판매 원장은 10-15 아침 수집)이 있는데도 하루 이른 날짜를 냈다. 수정일이 화면 숫자의
+// 가장 늦은 날짜보다 이르면 검색엔진이 받는 신선도가 내용·사이트맵 lastmod 보다 낡는다(글·비교표는 가드 U1 이 같은 규칙을 지킨다).
+// 그래서 이 페이지가 읽는 원장 기준일 중 가장 늦은 날: packs.updated · box-sold-series.asOf · 경매 집계 창 끝 ·
+// 그 세트의 호가 수집일(일본판·영문판) · Key facts 출처 확인일. 미래 날짜인 발매일은 데이터 날짜가 아니라 넣지 않는다.
+const latestDate = (...ds) => ds.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort().pop() || null;
+function setPageDate(code) {
+  const { packs, sold, auction } = kfSrc();
+  const bm = ((packs.sets || {})[code] || {}).boxMarket || {};
+  const checked = keyFactsModel(code, "jp").sources.map((x) => x.checked);
+  return latestDate(packs.updated, sold.asOf, (auction.window || {}).to, bm.jp && bm.jp.ebayActive && bm.jp.ebayActive.updated, bm.en && bm.en.ebayActive && bm.en.ebayActive.updated, ...checked)
+    || new Date().toISOString().slice(0, 10);
+}
 
 // 최저 실매물 — 미개봉 새 제품이고 제목이 개봉·빈 박스·재밀봉·손상을 말하지 않는 검증된 최저 총액(가격+배송).
 // 세트 페이지 구매 버튼(buyCta)과 Key facts 표가 이 함수 하나를 쓴다 — 표의 값과 버튼의 값이 늘 같다.
@@ -343,4 +373,4 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11.5px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, enIsReprint, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss };
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, splitReprints, enIsReprint, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate };

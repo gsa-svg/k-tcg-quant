@@ -7,6 +7,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { SITE, isDate, isPositive, fxAt } = require("./market-data-normalizers");
+const CL = require("./card-list-shared");   // 카드 레어도(공식 카드 리스트) — 세트·카드 상세와 같은 함수
 
 const ROOT = path.resolve(__dirname, "..");
 const readJson = (rel) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return null; } };
@@ -34,7 +35,8 @@ function catBlock(byCat) {
 }
 
 /** One Piece auctions settled after close: last 30 days, last 8 weeks, and 30-day totals per set. */
-function buildAuctions(series, setStats) {
+// releaseFacts = ai-data-model buildReleaseFacts() — 세트별 행을 발매된 세트로 거르는 데 쓴다(아래).
+function buildAuctions(series, setStats, releaseFacts) {
   if (!series || !Array.isArray(series.daily)) return null;
   const daily = series.daily.slice(-30).map((d) => ({
     date: d.d,
@@ -58,7 +60,17 @@ function buildAuctions(series, setStats) {
     for (const rel of [`sets/${slug}.html`, `sets/${slug}-card-list.html`]) if (fs.existsSync(path.join(ROOT, rel))) return `${SITE}/${rel}`;
     return `${SITE}/auction.html`;
   };
+  // 싣는 세트 = 경매 페이지 세트 표(auction-page-model)와 같은 행 — 2026-10-15 QA. 종전엔 set-auction-stats 의 코드 72개를 전부 실어
+  // 제목 파싱이 만든 없는 코드 12개(OP-22·OP-53·EB-09·PRB-06 …)와 발매 전 OP-18(낙찰 2건 $18)이 AI 피드·llms-full 에 세트로 나갔다.
+  //   · 종료 건수가 경매 페이지 기준(window.minDecided, 30) 이상
+  //   · OP/EB/PRB 는 반다이 공식 사실(releaseFacts — set-facts·공식 카드리스트)에 있고 일본 발매일이 집계 창 끝(to) 이전인 세트만 —
+  //     발매 전 세트(OP-18·EB-05)의 낙찰 건수·금액은 싣지 않는다. ST(스타트 덱)는 목록 원천이 따로 없어 경매 페이지 기준만 본다.
+  const minEnded = Number(setStats?.window?.minDecided) || 30;
+  const windowEnd = setStats?.window?.to || null;
+  const jpRelease = new Map((releaseFacts || []).map((r) => [r.setCode, r.japanese.releaseDate || r.english.releaseDate]));
+  const released = (code) => /^ST-\d{2}$/.test(code) || (isDate(jpRelease.get(code)) && isDate(windowEnd) && jpRelease.get(code) <= windowEnd);
   for (const [code, s] of Object.entries(setStats?.sets || {})) {
+    if (!(Number(s.ended) >= minEnded && released(code))) continue;
     bySet.push({
       setCode: code, canonicalUrl: pageFor(code),
       ended: num(s.ended), sold: num(s.sold), sellThroughPct: num(s.sellThrough),
@@ -80,10 +92,11 @@ function buildAuctions(series, setStats) {
       partialDay: "true when part of that day's auctions could not be read back (a gap, not zero activity)",
       byCategory: "box = sealed booster boxes, graded = PSA/CGC/TAG slabs, raw = ungraded singles, pack = booster packs, lot = multi-card lots",
       byPrinting: "jp = Japanese, en = English, other = unidentified or other languages; per set, byPrinting.japanese / byPrinting.english split that set's auctions and leave unidentified printings out",
+      bySet: "sets with at least minEnded ended auctions in the window (the canonical page's set-table minimum); OP/EB/PRB sets only when their Japanese release date is on or before the window end",
     },
     canonicalPage: `${SITE}/auction.html`,
     daily, weekly,
-    bySet: { windowDays: num(setStats?.window?.days), from: setStats?.window?.from || null, to: setStats?.window?.to || null, observedOn: setStats?.updated || null, sets: bySet },
+    bySet: { windowDays: num(setStats?.window?.days), from: setStats?.window?.from || null, to: windowEnd, observedOn: setStats?.updated || null, minEnded, sets: bySet },
   };
 }
 
@@ -201,11 +214,12 @@ function buildCardPages(data, cardMap, fx, datasetUpdatedOn, helpers) {
     if (!hit) continue;
     const { code, card } = hit;
     pages.push({
-      cardNumber: card.number, name: card.name || null, rarity: card.rarity || null,
+      // 레어도 = 공식 카드 리스트의 그 인쇄 레어도(card-list-shared.rarityCode — 세트·카드 상세와 같은 코드, 2026-10-15).
+      cardNumber: card.number, name: card.name || null, rarity: CL.rarityCode(code, card) || null,
       containerSetCode: code,
       url: `${SITE}/cards/${file}`,
       exactVariantRequired: true,
-      rawNmAsk: helpers.rawNmAsk(card, fx, datasetUpdatedOn, code),
+      rawNmAsk: helpers.rawNmAsk(card, fx, datasetUpdatedOn),
       psa10Sold: withUsd(helpers.psa10Sold(card, datasetUpdatedOn), fx),
       psaPopulation: helpers.psaPopulation(card, datasetUpdatedOn),
     });

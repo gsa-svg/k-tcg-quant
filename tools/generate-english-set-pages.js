@@ -22,7 +22,7 @@
 // Run: node tools/generate-english-set-pages.js   (generate-set-pages.js 보다 먼저 — 허브·일본판 페이지가 이 파일 존재를 보고 링크를 건다)
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss } = require("./set-page-shared");
+const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate } = require("./set-page-shared");
 
 const readJson = (rel, fallback) => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; }
@@ -46,7 +46,7 @@ const uniqueTitle = (t) => { if (seenTitles.has(t)) throw new Error(`타이틀 �
 
 const slug = (code) => code.toLowerCase();
 const fileOf = (code) => `${slug(code)}-english.html`;
-const pct1 = (a, b) => (a != null && b ? Math.round((a / b - 1) * 1000) / 10 : null);   // 변화율 %, 소수 1자리
+const { boxChange28 } = require("./market-data-normalizers");
 const lastWith = (arr, key) => { const f = (arr || []).filter((p) => p && p[key] != null); return f.length ? f[f.length - 1] : null; };
 
 // ── 세트별 영문판 지표 한 묶음. 페이지 본문과 기준선(중앙값)이 같은 숫자를 쓰도록 한 곳에서 만든다.
@@ -58,17 +58,22 @@ function englishMetrics(code) {
   //   큰 숫자·배수·설명문 모두 current 가 있을 때만. 배수는 JP·EN current 가 둘 다 있을 때만.
   const cur = ser.current || {};
   const last = cur.en || null;
-  const prior = en.length >= 5 ? en[en.length - 5] : null;         // 4주 전(점 하나 = 7일)
+  // 4주 변동률 = market-data-normalizers.boxChange28(current vs 28일 이상 앞선 마지막 점) — 일본판 세트 페이지·비교표와 같은 함수(2026-10-15, 4차).
+  // 종전 "5점 전(en[len-5])"은 빈 주가 있으면 4주가 아니었다(일본판 비교표 OP-06 +7% vs 세트 페이지 -6.5% 와 같은 결함).
+  const change = boxChange28(en, last);
   const supply = lastWith(ser.supply, "en");
   const windowDays = ser.windowDays?.en || null;
-  const sold = s.boxMarket?.en?.ebaySold || null;
+  // 판매 중앙값 문장(접힌 Key facts·FAQ·비교표)도 current 에서 — 2026-10-15(감사 #0). 종전 boxMarket.en.ebaySold 는 날짜 검사가 없어
+  // 영문판 판매가 28일 넘게 끊기면 Key facts 표는 "—" 인데 FAQ 는 묵은 값을 현재가로 낼 수 있었다(일본판 OP-02 에서 실제로 난 결함).
+  // current 에는 같은 값·건수·P25/P75 가 있다(boxMarket.en.ebaySold 와 22세트 전부 일치 확인, 2026-10-15).
+  const sold = last ? { median: last.median, low: last.low, high: last.high, sampleSize: last.n, updated: last.d, windowDays } : null;
   const ask = s.boxMarket?.en?.ebayActive || null;
   const jpLast = cur.jp || null;
   return {
     price: last ? last.median : null,
     priceD: last ? last.d : null,
     priceN: last ? last.n ?? null : null,
-    chg: last && prior && prior.median ? pct1(last.median, prior.median) : null,
+    chg: change ? change.pct : null,
     stock: supply ? supply.en : null,
     stockD: supply ? supply.d : null,
     // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. n 은 평균 창(windowDays, 28~56일) 안의 판매 건수라 창 길이로 나눈다.
@@ -215,7 +220,7 @@ function weeklyTable(code) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">Completed eBay sales of sealed English boxes, dated by sale date. Each row's median uses the sales inside its averaging window (${SOLD.sets?.[code]?.windowDays?.en || 28}+ days), so thin weeks borrow neighbours. <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`;
+      <p class="priceNote">Completed eBay sales of sealed English boxes, dated by sale date. Each row's median uses the sales inside its averaging window (${SOLD.sets?.[code]?.windowDays?.en || 28}+ days), so thin weeks borrow neighbours. <a href="../methodology.html">Source rules</a> · ${esc(latestDate(DATA_DATE, SOLD.asOf))}</p>`;   // 표의 첫 행은 판매 원장 기준일(asOf)까지 간다 — 그보다 이른 날짜를 찍지 않는다(2026-10-15)
 }
 
 function compareTable(code, m, s) {
@@ -275,16 +280,20 @@ function auctionSection(code) {
 function faqItems(code, nameEn, m) {
   const items = [];
   const rp = m.reprint ? " reprint (White)" : "";
+  // 금액 표기는 화면 표·지표 칸과 같은 usd()(천 단위 쉼표) — 2026-10-15: FAQ 만 "$1424" 로 나가 같은 값이 두 꼴이었다(OP-01).
+  const askBit = m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3 ? ` Active asking prices center near ${usd(m.ask.middle)} across ${m.ask.sampleSize} listings.` : "";
   if (m.sold && m.sold.median != null) {
     items.push({
       q: `How much is a sealed ${code} ${nameEn} English booster box?`,
-      a: `As of ${m.sold.updated}, completed eBay sales${m.reprint ? " of the reprint (White) box" : ""} put the median at about $${Math.round(m.sold.median)} (${m.sold.sampleSize} sales in the trailing ${m.sold.windowDays || 28} days, from $${Math.round(m.sold.low)} to $${Math.round(m.sold.high)}).${m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3 ? ` Active asking prices center near $${Math.round(m.ask.middle)} across ${m.ask.sampleSize} listings.` : ""}`,
+      a: `As of ${m.sold.updated}, completed eBay sales${m.reprint ? " of the reprint (White) box" : ""} put the median at about ${usd(m.sold.median)} (${m.sold.sampleSize} sales in the trailing ${m.sold.windowDays || 28} days, from ${usd(m.sold.low)} to ${usd(m.sold.high)}).${askBit}`,
     });
   }
+  // 28일 안의 판매 중앙값이 없으면 이 문답을 싣지 않는다 — 2026-10-15(5차): 일본판 세트 페이지와 같은 규칙. 4차는 호가 중앙값으로 답해
+  // "박스 얼마?"에 판매가가 아닌 값이 나갔다.
   if (m.multiple != null) {
     items.push({
       q: `How does the English ${code} box price compare with the Japanese box?`,
-      a: `English${rp} $${Math.round(m.price)} (as of ${m.priceD}) versus Japanese $${Math.round(m.jpPrice)} (as of ${m.jpPriceD}): the English box trades at about ${m.multiple}x the Japanese box.`,
+      a: `English${rp} ${usd(m.price)} (as of ${m.priceD}) versus Japanese ${usd(m.jpPrice)} (as of ${m.jpPriceD}): the English box trades at about ${m.multiple}x the Japanese box.`,
     });
   }
   if (m.psa != null && m.gem != null) {
@@ -305,7 +314,9 @@ function faqHtml(code, nameEn, items) {
       </section>`;
 }
 
-function jsonLd(code, nameEn, m, s, items, canonical, pageName) {
+// pageDate = set-page-shared.setPageDate(code) — 화면 "Data updated" 와 같은 날(2026-10-15, 감사 #4: 종전 packs.updated 10-14 라
+// 같은 페이지의 "as of 2026-10-15" 판매 중앙값보다 이른 수정일을 냈다).
+function jsonLd(code, nameEn, m, s, items, canonical, pageName, pageDate) {
   const ld = [];
   if (items.length) ld.push({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: items.map((x) => ({ "@type": "Question", name: x.q, acceptedAnswer: { "@type": "Answer", text: x.a } })) });
   ld.push({
@@ -318,14 +329,17 @@ function jsonLd(code, nameEn, m, s, items, canonical, pageName) {
     ],
   });
   // name = 이 페이지 <title> — WebPage.name 이 비어 있었다(2026-10-14 W6b).
-  ld.push({ "@context": "https://schema.org", "@type": "WebPage", ...(pageName ? { name: pageName } : {}), url: canonical, dateModified: DATA_DATE });
+  ld.push({ "@context": "https://schema.org", "@type": "WebPage", ...(pageName ? { name: pageName } : {}), url: canonical, dateModified: pageDate });
   // Product 스키마는 유효한 호가 구간이 있을 때만 — 불완전한 Product 는 서치콘솔 경고가 된다.
   const a = m.ask;
   if (a && a.middle != null && (a.sampleSize || 0) >= 3) {
     // lowPrice = 화면 Key facts 의 "Lowest live ask"(검증된 최저 실매물 총액) — 2026-10-14(W5a). 실매물이 없을 때만 호가 하위 15% 값.
     const best = lowestAsk(s, "en");
     const lowV = best ? best.total : a.low;
-    const offers = lowV != null && a.high != null && (best || a.high >= lowV)
+    // AggregateOffer 는 지표 칸에 "Range $low – $high" 가 그려질 때만(statGrid 와 같은 조건) — 2026-10-15(감사 #6, 일본판 OP-07 과 같은 결함):
+    // 실매물만 있고 a.low 가 비면 Range 는 안 보이는데 highPrice 가 a.high 로 나갈 수 있었다. 그때는 화면의 중간 호가 하나(Offer).
+    const rangeShown = a.low != null && a.high != null && a.high >= a.low;
+    const offers = rangeShown && (best || a.high >= lowV)
       ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(lowV), highPrice: Math.round(Math.max(a.high, lowV)), offerCount: a.sampleSize, availability: "https://schema.org/InStock", url: canonical }
       : { "@type": "Offer", priceCurrency: "USD", price: Math.round(a.middle), availability: "https://schema.org/InStock", url: canonical };
     ld.push({
@@ -417,17 +431,19 @@ function englishPage(code, prev, next) {
   ], DESC_MAX, code);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box English sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   const enBuy = cheapestBoxCta(code);
+  // 수정일 — JSON-LD dateModified·화면 "Data updated" 가 같은 날(일본판 생성기와 같은 함수, 2026-10-15 감사 #4).
+  const pageDate = setPageDate(code);
 
   // 머리 요약 줄(dataSummary)은 H1 아래 Key facts 표로 바뀌었다 — 2026-10-14(W5a). 일본판·한국어 페이지와 같은 함수에서 같은 사실을 읽는다.
   // chart:false — 박스 차트 CSS 는 차트 바로 앞(withChartCss)에 둔다. 머리를 가볍게 해 Key facts 표를 HTML 앞쪽에(2026-10-14, W5a).
-  return `${pageHead({ title, desc, canonical, extraLd: jsonLd(code, nameEn, m, s, items, canonical, title), extraCss: PAGE_CSS, chart: false })}
+  return `${pageHead({ title, desc, canonical, extraLd: jsonLd(code, nameEn, m, s, items, canonical, title, pageDate), extraCss: PAGE_CSS, chart: false })}
       <p class="eyebrow">Set Guide · English edition</p>
       <div class="setHero">
         <div>
           <h1>One Piece ${code} ${esc(nameEn)} — English booster box price${rel ? " &amp; release date" : ""}</h1>
           ${keyFactsHtml(keyFactsModel(code, "en"))}
           <p class="eyebrow"><span data-ko="영문판">English edition</span> · <a href="${slug(code)}.html" data-ko="일본판 박스 가이드">Japanese box guide</a></p>
-          <p class="pageUpdated">Data updated <time datetime="${DATA_DATE}">${DATA_DATE}</time> · refreshed daily</p>
+          <p class="pageUpdated">Data updated <time datetime="${pageDate}">${pageDate}</time> · refreshed daily</p>
         </div>
       </div>
       ${AFF_TOP}

@@ -62,6 +62,10 @@ const tr = rows.map((b) => {
 // 답변은 전부 검증된 데이터에서 파생(추정 금지). 값이 없으면 그 항목을 만들지 않는다.
 const byPrice = [...rows].filter((b) => b.nowUsd != null).sort((a, b) => b.nowUsd - a.nowUsd);
 const cheapest = byPrice[byPrice.length - 1];
+// 최저가가 같은(화면 금액 기준) 세트는 표 순서대로 모두 적는다 — 2026-10-15(5차): OP-07·OP-08 이 둘 다 $80 인데 FAQ 는 OP-08 하나,
+// 한국어 허브는 OP-07 하나였다. 한국어 허브(generate-ko-pages)와 같은 규칙.
+const cheapAll = rows.filter((b) => b.nowUsd != null && usd(b.nowUsd) === usd(cheapest.nowUsd));
+const andList = (xs) => (xs.length <= 2 ? xs.join(" and ") : `${xs.slice(0, -1).join(", ")}, and ${xs[xs.length - 1]}`);
 const priciest = byPrice[0];
 const nameOf = (c) => (d.sets[c] || {}).nameEn || c;
 
@@ -77,7 +81,7 @@ const topDn = byChg[byChg.length - 1];
 const faqs = [
   {
     q: "How much is a One Piece booster box?",
-    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${cheapest.code} ${nameOf(cheapest.code)}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}), as of ${DATA_DATE}. Each price is the median of completed eBay sales we collect ourselves, updated daily. The table above lists all ${rows.length} sets.`,
+    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${andList(cheapAll.map((b) => `${b.code} ${nameOf(b.code)}`))}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}), as of ${DATA_DATE}. Each price is the median of completed eBay sales we collect ourselves, updated daily. The table above lists all ${rows.length} sets.`,
   },
   {
     q: "Which One Piece booster box is the most valuable?",
@@ -109,7 +113,8 @@ const dsLd = JSON.stringify({
   description: `Citable data for ${rows.length} tracked One Piece Card Game products: Japanese and English completed-sale and active-ask box markets, Top 7 exact card variants, and field-level observation dates and sample sizes.`,
   url: "https://opboxindex.com/free-data.html",
   license: "https://creativecommons.org/licenses/by/4.0/",
-  isAccessibleForFree: true, dateModified: DATA_DATE,
+  // 수정일 = 그 파일(opbox-ai-data.json)의 기준일 — 기간 끝(10-15)보다 이른 DATA_DATE(10-14)를 내던 것(2026-10-15 감사 #4).
+  isAccessibleForFree: true, dateModified: AI_SPAN ? AI_SPAN.modified : DATA_DATE,
   ...(AI_SPAN ? { temporalCoverage: AI_SPAN.coverage } : {}),
   creator: { "@type": "Organization", name: "OP Box Index", url: "https://opboxindex.com/" },
   // 배포 파일은 하나(opbox-ai-data.json) — 기간이 그 파일 기준이라 CSV(기간이 다르다)는 free-data 의 자기 Dataset 이 맡는다.
@@ -124,11 +129,11 @@ const faqHtml = faqs.map((f) => `<details class="homeFaq"><summary>${esc(f.q)}</
 //    홈 마커 구간: 한 줄 + 링크 + **접힌 정적 표** — 표를 아예 빼면 R1(봇용 정적 시세)이
 //    무너져 노출 불가침 위반이다. 접힌 표는 화면 ~40px 이고 봇은 정상 색인한다(7월 원설계).
 // 한국어 토글(packs.js 가 data-ko·data-ko-html 을 바꾼다) — 2026-10-13 QA: 한국어로 바꿔도 이 블록이 통째로 영어로 남았다.
-const summaryKo = `${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), eBay 실거래 중앙값, 매일 갱신. 4주간 <strong>${nUp}</strong> 상승 · <strong>${nDn}</strong> 하락. <a href="box-prices.html"><strong>전체 표 — ${rows.length}개 세트 →</strong></a>`;
+const summaryKo = `${usd(cheapest.nowUsd)} (${cheapAll.map((b) => esc(b.code)).join(", ")}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), eBay 실거래 중앙값, 매일 갱신. 4주간 <strong>${nUp}</strong> 상승 · <strong>${nDn}</strong> 하락. <a href="box-prices.html"><strong>전체 표 — ${rows.length}개 세트 →</strong></a>`;
 const block = `${START}
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
           <h2><span data-ko="일본판 부스터 박스 시세 — 전체 ${rows.length}개 세트">Japanese booster box prices — all ${rows.length} sets</span> <small data-ko="데이터 ${esc(DATA_DATE)} · 행마다 그 중앙값의 날짜">data ${esc(DATA_DATE)} · each row dated by its median point</small></h2>
-          <p data-ko-html="${esc(summaryKo)}">${usd(cheapest.nowUsd)} (${esc(cheapest.code)}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
+          <p data-ko-html="${esc(summaryKo)}">${usd(cheapest.nowUsd)} (${cheapAll.map((b) => esc(b.code)).join(", ")}) – ${usd(priciest.nowUsd)} (${esc(priciest.code)}), median of completed eBay sales, updated daily. <strong>${nUp}</strong> up · <strong>${nDn}</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all ${rows.length} sets →</strong></a></p>
           <details class="homeCollapse">
           <summary data-ko="빠른 표(전체 페이지와 같은 데이터)">Quick table (same data as the full page)</summary>
           <div style="overflow-x:auto">

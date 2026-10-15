@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261014seo";
+const DATA_VERSION = "20261015seo";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -232,6 +232,13 @@ function psa10Stale(g) {
   if (!g || !g.updated) return true;
   const days = (Date.now() - Date.parse(g.updated)) / 864e5;
   return !(days <= PSA10_STALE_DAYS);
+}
+
+// 일본판 NM 을 써도 되는가 — tools/market-data-normalizers.js 의 nmUsable 과 같은 규칙(2026-10-15).
+// 값이 있고, 그 변형을 실제로 다시 읽은 날(nmUpdated)이 있고, 가격 감사 숨김 표시(nmHiddenReason)가 없을 때만.
+// 세트·카드 상세·AI 피드는 비우는 값(읽은 날 없는 5장·숨김 표시 5장)을 이 화면만 "확인일 미상"으로 보여 한 카드가 두 값이었다.
+function nmUsable(c) {
+  return !!c && Number.isFinite(c.nmJpy) && c.nmJpy > 0 && /^\d{4}-\d{2}-\d{2}$/.test(c.nmUpdated || "") && !c.nmHiddenReason;
 }
 
 // 검수에서 뺀 매물(중국·홍콩 판매자)의 최저가. 링크는 걸지 않는다 — 우리가 위험하다고 판단해 뺀
@@ -436,8 +443,32 @@ function recentSoldBoxKrw(set) {
   return last ? { value: last.p, date: last.d, sampleSize: last.n || 0 } : null;
 }
 
+// TCG 폴백의 고립 스파이크 — tools/market-data-normalizers.js tcgSpikes 와 같은 판정(위에서부터 다음 값의 2배 초과 & $3,000 초과).
+function tcgSpikeSet(cards) {
+  const vals = (cards || []).filter((c) => c && c.nmJpy == null && typeof c.priceUsd === "number").map((c) => c.priceUsd).sort((a, b) => b - a);
+  const bad = new Set();
+  for (let i = 0; i < vals.length; i++) {
+    const next = vals.find((v) => v < vals[i]);
+    if (next != null && vals[i] > 3000 && vals[i] > next * 2) bad.add(vals[i]);
+    else break;
+  }
+  return bad;
+}
+
+// 검증 안 된 raw 값(원화) — 못 쓰는 NM(읽은 날 없음·숨김 표시)의 NM, NM 이 없는 카드의 날짜 없는 1회성 TCG 값(스파이크 제외).
+// tools/market-data-normalizers.js rawValues 의 unverified 와 같은 규칙 — 2026-10-15(5차): NM 값과 TCG 값 중 큰 쪽.
+// 4차 규칙(NM 이 있으면 NM 만)이 클라이언트에 남아 서버와 갈렸다(EB-02 숨김 Boa SP NM $630·TCG $6,970).
+function unverifiedKrw(card, spikes) {
+  if (!card || nmUsable(card)) return null;
+  const fx = (state.data && state.data.fx) || {};
+  const vals = [];
+  if (Number.isFinite(card.nmJpy) && card.nmJpy > 0) vals.push(card.nmJpy * (fx.jpyKrw || 9.1));
+  if (Number.isFinite(card.priceUsd) && card.priceUsd > 0 && !spikes.has(card.priceUsd)) vals.push(marketKrw(card.priceUsd, "USD"));
+  return vals.length ? Math.max(...vals) : null;
+}
+
 function cardComparableKrw(card) {
-  if (card.nmJpy != null) {
+  if (nmUsable(card)) {
     const fx = (state.data && state.data.fx) || {};
     return {
       value: card.nmJpy * (fx.jpyKrw || 9.1),
@@ -458,12 +489,18 @@ function setAnalytics(set) {
     .map((card) => ({ card, market: cardComparableKrw(card) }))
     .filter((row) => row.market?.value != null)
     .sort((a, b) => b.market.value - a.market.value);
+  // 검증 안 된 값이 센 값 중 가장 낮은 값 이상이면 "Card support" 를 비운다 — 다음 카드를 1위로 올려 계산하지 않는다(2026-10-15, 4차).
+  // 세트 지표(Value density·Chase concentration·Floor)·가장 비싼 카드와 같은 판정(market-data-normalizers countedValues). 종전엔 PRB-02 가
+  // 읽은 날 없는 산지 망가(¥198,000)를 빼고 $251 카드를 1위로 셌다.
+  const spikes = tcgSpikeSet(cards);
+  const floorKrw = pricedCards.length ? pricedCards[pricedCards.length - 1].market.value : 0;
+  const cardsUnknown = cards.some((card) => { const v = unverifiedKrw(card, spikes); return v != null && v >= floorKrw; });
 
   const top1 = pricedCards[0]?.market.value || 0;
   const top3Avg = pricedCards.slice(0, 3).reduce((sum, row) => sum + row.market.value, 0) / Math.max(1, Math.min(3, pricedCards.length));
   const top10Avg = pricedCards.reduce((sum, row) => sum + row.market.value, 0) / Math.max(1, pricedCards.length);
   const hitPower = top1 * 0.4 + top3Avg * 0.3 + top10Avg * 0.3;
-  const supportRatio = box?.value ? hitPower / box.value : null;
+  const supportRatio = box?.value && !cardsUnknown ? hitPower / box.value : null;
 
   const boxMarket = set.boxMarket?.jp?.ebayActive;
   const spreadRatio = boxMarket?.high != null && boxMarket?.low != null && boxMarket.middle
@@ -471,7 +508,8 @@ function setAnalytics(set) {
     : null;
 
   const liquidityScore = Math.min(100, Math.round(((box?.sampleSize || 0) / 10) * 55 + (pricedCards.length / 10) * 45));
-  const cardPowerScore = supportRatio == null ? 0 : Math.min(100, Math.round(supportRatio * 24));
+  // 카드 값을 모르면(cardsUnknown) 카드 지지력 점수도, 그 점수를 42% 넣는 투자 매력도도 비운다 — 0점으로 세면 틀린 낮은 점수가 된다(2026-10-15, 4차).
+  const cardPowerScore = cardsUnknown ? null : supportRatio == null ? 0 : Math.min(100, Math.round(supportRatio * 24));
   const demand = soldDemandStats(set);
   const supply = supplyPressureStats(set);
   const valuation = valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRatio });
@@ -479,7 +517,7 @@ function setAnalytics(set) {
   const riskPenalty = (spreadRatio != null && spreadRatio > 0.45 ? 12 : 0) + (!box?.soldBased ? 8 : 0) + confidencePenalty;
   // Missing sold history must stay neutral. It must never turn into a false demand signal.
   const demandScore = demand.available ? demand.score : 50;
-  const investmentScore = Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.42 + liquidityScore * 0.24 + demandScore * 0.2 + supply.score * 0.14 - riskPenalty)));
+  const investmentScore = cardPowerScore == null ? null : Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.42 + liquidityScore * 0.24 + demandScore * 0.2 + supply.score * 0.14 - riskPenalty)));
 
   const risks = [];
   if (supply.score >= 82) risks.push(supply.label);
@@ -775,20 +813,21 @@ function priceVenueLabel(venue) {
 function priceLines(c) {
   let h = "";
   // 일본 NM 리서치 전 세트(예: OP-16 신작)는 TCGplayer USD 시세를 폴백 표시. 소스 라벨은 정직하게 TCGplayer 명시.
-  if (c.nmJpy == null && c.priceUsd != null) {
+  // 숨김 표시(nmHiddenReason — 변형 매칭 불확실) 카드의 TCG 값은 싣지 않는다 — 세트 Top 10 NM 칸(market-data-normalizers.rawPrice)과 같은 규칙(2026-10-15, 4차).
+  if (c.nmJpy == null && c.priceUsd != null && !c.nmHiddenReason) {
     const p = triMain(c.priceUsd, "USD");
     // priceUsd 는 일회성 캡처라 관측일 필드가 없다(2026-08-26 확인 — 마지막 갱신 7월 말).
     // 날짜 없이 두면 매일 갱신되는 다른 줄들 틈에서 오늘 값처럼 읽힌다 — 스냅샷임을 밝힌다.
     return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small class="plStale">${t("스냅샷 · 일일 갱신 아님", "snapshot · not refreshed daily")} <em>TCGplayer</em></small></span></div>`;
   }
-  if (c.nmJpy != null) {
+  if (nmUsable(c)) {
     const p = triMain(c.nmJpy, "JPY");
     // 관측일을 값 옆에 붙인다 — PSA10 줄과 같은 형식. 날짜 없이 보여주면 언제 값인지 알 수 없다.
     // 2026-08-25 실측: 175장 중 80장이 오래된 값이었고 최대 -53% 차이였는데 화면엔 아무 표시가 없었다.
-    // 갱신일이 없는 카드(유유테이 매칭 실패로 옛값이 남은 경우)는 날짜 자리에 "확인일 미상"을 쓴다.
-    const nmD = c.nmUpdated ? c.nmUpdated.slice(2).replace(/-/g, ".") : "";
-    const nmStale = !c.nmUpdated || (Date.now() - Date.parse(c.nmUpdated)) > 21 * 864e5;
-    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small${nmStale ? ' class="plStale"' : ""}>${nmD ? nmD + " " : `${t("확인일 미상", "date unknown")} `}<em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
+    // 갱신일이 없는 카드는 "확인일 미상"으로 보이던 것을 2026-10-15 부터 싣지 않는다(nmUsable — 세트·카드 상세·AI 피드와 같은 규칙).
+    const nmD = c.nmUpdated.slice(2).replace(/-/g, ".");
+    const nmStale = (Date.now() - Date.parse(c.nmUpdated)) > 21 * 864e5;
+    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small${nmStale ? ' class="plStale"' : ""}>${nmD} <em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const p = triMain(c.psa10Usd, "USD");
@@ -805,7 +844,7 @@ function priceLines(c) {
   // PSA10 프리미엄: 같은 카드 PSA10 실거래(Sold) ÷ NM 시세. 실측 나눗셈만 — 표본 3건 미만·비정상 배율은 숨김(정확도 원칙).
   // 낡은 PSA10(35일 초과)을 최신 NM 으로 나누면 배율이 거짓이 된다 — 2026-09-22 실측: DON Nami Gold 가 ×0.9 로
   // "감정품이 생카드보다 싸다"처럼 보였는데, PSA10 은 6월 값이고 NM 만 9월 값이었다. 그런 건 아예 안 보인다.
-  if (c.nmJpy != null && c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3 && !psa10Stale(c.psa10Ebay)) {
+  if (nmUsable(c) && c.psa10Ebay?.soldBased && c.psa10Ebay.middle != null && (c.psa10Ebay.sampleSize || 0) >= 3 && !psa10Stale(c.psa10Ebay)) {
     const nmK = marketKrw(c.nmJpy, "JPY");
     const p10K = marketKrw(c.psa10Ebay.middle, c.psa10Ebay.currency || "KRW");
     if (nmK > 0 && p10K > 0) {
@@ -908,13 +947,13 @@ function renderSetAnalytics(set) {
   const valuationSentence = a.valuation.soldGap == null ? t("최근 Sold 자료가 부족해 카드값·공급·수요 중심으로 봅니다.", "Recent sold data is limited, so the signal leans on card value, supply and demand.") : t(`현재 박스가는 ${a.valuation.gapDirectionText} 수준입니다.`, `The current box price is ${a.valuation.gapDirectionText}.`);
   return `<div class="quantPanel">
     <div class="valuationBanner ${a.valuation.tone}"><span>${t("밸류 구간", "Valuation range")}</span><strong>${a.valuation.label}<small>${a.valuation.score}/100</small></strong><p>${valuationSentence}</p><small>${t("현재", "Current")} ${a.valuation.current ? triMain(a.valuation.current, "KRW").main : "-"} · ${t("최근 Sold", "Recent sold")} ${a.valuation.sold ? triMain(a.valuation.sold, "KRW").main : "-"}</small></div>
-    <div class="quantMetric ${scoreClass(a.investmentScore)}"><span>${t("투자 매력도", "Investment appeal")}</span><strong>${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small></strong><small>${t("카드값·수요·공급·위험 종합", "Card value, demand, supply and risk")}</small></div>
-    <div class="quantMetric ${scoreClass(a.cardPowerScore)}"><span>${t("카드 지지력", "Card support")}</span><strong>${support}</strong><small>${t("박스값 대비 TOP10 카드 시세", "Top 10 card value vs. box price")}</small></div>
+    <div class="quantMetric ${a.investmentScore == null ? "watch" : scoreClass(a.investmentScore)}"><span>${t("투자 매력도", "Investment appeal")}</span><strong>${a.investmentScore == null ? "-" : `${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small>`}</strong><small>${t("카드값·수요·공급·위험 종합", "Card value, demand, supply and risk")}</small></div>
+    <div class="quantMetric ${a.cardPowerScore == null ? "watch" : scoreClass(a.cardPowerScore)}"><span>${t("카드 지지력", "Card support")}</span><strong>${support}</strong><small>${t("박스값 대비 TOP10 카드 시세", "Top 10 card value vs. box price")}</small></div>
     <div class="quantMetric ${scoreClass(a.liquidityScore)}"><span>${t("데이터 신뢰도", "Data confidence")}</span><strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong><small>${t(`표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장`, `Samples: ${a.box?.sampleSize || 0} boxes · ${a.pricedCards.length} cards`)}</small></div>
     <div class="quantMetric ${pressureClass(a.supply.score)}"><span>${t("매물 희소성", "Scarcity")}</span><strong>${a.supply.score}<small>/100 · ${a.supply.label}</small></strong><small>${t(`현재 매물 ${a.supply.activeCount}건`, `${a.supply.activeCount} active listings`)}</small></div>
     <div class="quantMetric ${demandClass}"><span>${t("수요 강도", "Demand")}</span><strong>${demandScore}<small>${a.demand.available ? `/100 · ${a.demand.label}` : `· ${a.demand.label}`}</small></strong><small>${demandDetail}</small></div>
     <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}"><span>${t("가격 편차", "Price spread")}</span><strong>${spread}</strong><small>${t("동일 박스 최고·최저가 차이", "High-low gap for the same box")}</small></div>
-    <div class="analysisSummary"><h3>${t("분석 요약", "Analysis summary")}</h3><p>${valuationSentence}</p><p>${demandDetail}</p><p>${t(`현재 매물 ${a.supply.activeCount}건으로 ${a.supply.label} 상태입니다.`, `${a.supply.activeCount} active listings: ${a.supply.label}.`)}</p><p>${t(`카드 지지력은 박스값의 ${support}입니다.`, `Card support is ${support} of the box price.`)}</p></div>
+    <div class="analysisSummary"><h3>${t("분석 요약", "Analysis summary")}</h3><p>${valuationSentence}</p><p>${demandDetail}</p><p>${t(`현재 매물 ${a.supply.activeCount}건으로 ${a.supply.label} 상태입니다.`, `${a.supply.activeCount} active listings: ${a.supply.label}.`)}</p>${a.supportRatio == null ? "" : `<p>${t(`카드 지지력은 박스값의 ${support}입니다.`, `Card support is ${support} of the box price.`)}</p>`}</div>
     <div class="analysisBreakdown"><span><b>${t("매물", "Supply")}</b><small>${t(`현재 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건`, `${a.supply.activeCount} listed · ${a.supply.excludedCount} excluded`)}</small></span><span><b>${t("수요", "Demand")}</b><small>${a.demand.available ? t(`eBay Sold 4주 ${a.demand.recentSales}건`, `eBay Sold 4wk ${a.demand.recentSales}`) : t("판매완료 표본 대기", "Sold sample pending")}</small></span><span><b>${t("주의", "Watch")}</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span></div>
     <p class="quantNote">${t("모든 지표는 투자 참고용입니다. 가격 표본이 적거나 Active 호가 비중이 크면 보수적으로 해석하세요.", "All signals are for reference only. Treat them conservatively when samples are thin or listings dominate.")}</p>
   </div>`;
@@ -1723,17 +1762,25 @@ function setBadges(code) {
     out.push(`<a class="setBadge relDate" href="${href}" title="${tipRel}">${t("일본판 발매", "JP release")} ${rel}</a>`);
   }
 
-  // 2) **발매 후** 공식 추첨판매만. 사전추첨(초회 물량 선배분)과 매장 재입고는 뺀다.
+  // 2) **발매 후** 반다이 추첨판매만. 사전추첨(초회 물량 선배분)과 매장 재입고는 뺀다.
+  //    "再販"이라 적힌 추첨(official-reprint-lottery — OP-09 반다이남코샵 2024-10)은 재판 배지, 그 말이 없는 추첨(official-lottery)은 추첨 배지 —
+  //    세트 페이지(영문·한국어)와 같은 분류(tools/set-page-shared.js splitReprints, 2026-10-15 4차). 툴팁의 방법 설명 문장(반다이가 재판이라 부르지 않는다는 꼬리)은 뺐다.
   const recs = bySet.reprintRecords || [];
+  const shopReprint = recs.filter((r) => r.kind === "official-reprint-lottery");
   const post = recs.filter((r) => r.kind === "official-lottery");
+  if (shopReprint.length) {
+    const dates = shopReprint.map((r) => ym(r.date)).filter(Boolean).join(", ");
+    const tipRp = t(`반다이남코샵 재판(再販) 추첨판매 ${shopReprint.length}회: ${dates}`, `Bandai Namco shop reprint (再販) lottery: ${dates}`).replace(/"/g, "'");
+    out.push(`<a class="setBadge lottery" href="${href}" title="${tipRp}">${t("재판 추첨", "Reprint draw")} ${dates}</a>`);
+  }
   if (post.length) {
     const dates = post.map((r) => ym(r.date)).filter(Boolean).join(", ");
     const tipPost = t(
-      `발매 후 반다이 공식 추첨판매 ${post.length}회: ${dates}. 프리미엄 반다이·반다이남코샵 추첨입니다. 반다이는 이를 '재판'이라 부르지 않습니다.`,
-      `${post.length} Bandai official lottery sale(s) after release: ${dates}. Premium Bandai / Bandai Namco shop draws. Bandai does not call these reprints.`
+      `발매 후 반다이 공식 추첨판매 ${post.length}회: ${dates} · 프리미엄 반다이·반다이남코샵`,
+      `${post.length} Bandai official lottery sale(s) after release: ${dates} · Premium Bandai / Bandai Namco shop`
     ).replace(/"/g, "'");
     out.push(`<a class="setBadge lottery" href="${href}" title="${tipPost}">${t("공식 추첨", "Official draw")} ${dates}</a>`);
-  } else if (rel) {
+  } else if (rel && !shopReprint.length) {
     // 발매일은 아는데 발매 후 추첨이 없다 — 조사했고 없었다는 뜻이라 빈칸으로 두지 않는다.
     const tipNone = t(
       `발매 후 반다이 공식 추첨판매 기록을 찾지 못했습니다. 매장 재입고는 세트 페이지에 따로 적어 둡니다.`,

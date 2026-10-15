@@ -225,7 +225,8 @@ if (opLast7.length) {
 const bySet = ai.auctions?.bySet;
 if (bySet?.sets?.length) {
   lines.push(``);
-  lines.push(`Per set, last ${bySet.windowDays} days (${bySet.from} to ${bySet.to}): SET | ended | sold | sell-through | median winning bid | box sell-through`);
+  // 행 = AI 피드 bySet 그대로(경매 페이지 세트 표 기준: 종료 minEnded 건 이상, 발매된 세트만 — ai-data-extras, 2026-10-15)
+  lines.push(`Per set, last ${bySet.windowDays} days (${bySet.from} to ${bySet.to}; sets with ${n(bySet.minEnded)}+ ended auctions, released sets only): SET | ended | sold | sell-through | median winning bid | box sell-through`);
   for (const s of bySet.sets) lines.push(`${s.setCode} | ${n(s.ended)} | ${n(s.sold)} | ${pctS(s.sellThroughPct)} | ${usd(s.medianWinningBidUsd)} | ${pctS(s.byCategory?.box?.sellThroughPct)}${s.thinSample ? " | thin sample" : ""}`);
 }
 lines.push(``);
@@ -245,11 +246,13 @@ if (tcgLast.length) {
 }
 lines.push(``);
 lines.push(`## Card prices (${cardCount} tracked card variants) — ${SITE}/cards/`);
-lines.push(`Format: CARD# | name | set | raw NM (JPY, USD equiv., date) | PSA 10 sold median (n, date) | PSA population total / PSA 10 | page`);
+lines.push(`Format: CARD# | name | set | raw NM (JPY, USD equiv., date) | PSA 10 sold median (n, date) | PSA population total / PSA 10 (date) | page`);
 for (const c of ai.cardPages?.pages || []) {
-  const nm = c.rawNmAsk ? `¥${n(c.rawNmAsk.priceJpy)} ≈ ${usd(c.rawNmAsk.usdEquivalent)} (${c.rawNmAsk.observedOn || c.rawNmAsk.fxObservedOn || ""})` : "n/a";
+  // NM 날짜 = 그 변형을 읽은 날(rawNmAsk.observedOn). 날짜 없는 값은 피드에서 이미 null 이다(2026-10-15) — 환율일로 메우지 않는다.
+  const nm = c.rawNmAsk ? `¥${n(c.rawNmAsk.priceJpy)} ≈ ${usd(c.rawNmAsk.usdEquivalent)} (${c.rawNmAsk.observedOn})` : "n/a";
   const p10 = c.psa10Sold && Number.isFinite(c.psa10Sold.medianUsd) ? `${usd(c.psa10Sold.medianUsd)} (n=${c.psa10Sold.sampleSize}, ${c.psa10Sold.sampleCollectedOn || ""})` : "n/a";
-  const pop = c.psaPopulation ? `${n(c.psaPopulation.total)} / ${n(c.psaPopulation.grade10)}` : "n/a";
+  // PSA 인구는 매주 늘어나는 누적값이라 관측일이 붙어야 한다 — 이 칸만 날짜가 없었다(2026-10-15 QA). 세트별 등급 표와 같은 꼴.
+  const pop = c.psaPopulation ? `${n(c.psaPopulation.total)} / ${n(c.psaPopulation.grade10)} (${c.psaPopulation.observedOn})` : "n/a";
   lines.push(`${c.cardNumber} | ${c.name} | ${c.containerSetCode} | ${nm} | ${p10} | ${pop} | ${c.url}`);
 }
 lines.push(``);

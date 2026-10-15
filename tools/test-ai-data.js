@@ -58,7 +58,10 @@ assert.equal(actual.schemaVersion, "1.0.3");
     assert.ok(Buffer.byteLength(serialized) < 400_000, `${name}: extra file must stay small enough to fetch in one request`);
   }
 }
-assert.equal(actual.datasetUpdatedOn, source.updated);
+// 기준일 = packs.updated 와 AI 파일 4개에 실린 관측일 중 가장 늦은 날(ai-data-model.datasetAsOf) — 2026-10-15.
+// packs.updated(활성 매물 UTC 날짜)보다 박스 판매 원장(KST 수집)이 하루 늦게 돌면 10-15 값이 "as of 10-14" 파일에 실렸다.
+// 그래서 packs.updated 와 같을 필요는 없고 그보다 이를 수만 없다. 정확한 값은 위 deepEqual(buildAiData) 이 고정한다.
+assert.ok(actual.datasetUpdatedOn >= source.updated, "dataset date must not be earlier than the packs data date");
 assert.equal(actual.sets.length, [...source.jp.list, ...source.extra.list].length);
 assert.equal(new Set(actual.sets.map((set) => set.setCode)).size, actual.sets.length, "set codes must be unique");
 

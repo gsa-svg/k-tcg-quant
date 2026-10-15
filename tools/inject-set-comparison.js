@@ -21,6 +21,7 @@
 // Run: node tools/inject-set-comparison.js
 const fs = require("fs");
 const path = require("path");
+const { priciest, boxChange28 } = require("./market-data-normalizers");
 
 const ROOT = path.join(__dirname, "..");
 const MARK_START = "<!-- SET-COMPARISON:START -->";
@@ -29,8 +30,6 @@ const MARK_END = "<!-- SET-COMPARISON:END -->";
 const packs = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 const series = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "box-sold-series.json"), "utf8"));
 const fx = packs.fx || {};
-const usdKrw = fx.usdKrw || 1374;
-const jpyKrw = fx.jpyKrw || 8.7;
 
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const money = (v) => (v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"));
@@ -48,17 +47,17 @@ function buildRows() {
     const cur = eds.current || {};
     const now = cur.jp || { median: null, n: null };
     const enNow = cur.en || null;
-    const prev = now.median ? jp[Math.max(0, jp.length - 5)] : null;   // 약 4주 전 점
     const set = packs.sets?.[code] || {};
 
-    // 그 세트에서 raw 가 가장 비싼 카드. 없으면 비운다 — 지어내지 않는다.
-    let top = null;
-    for (const c of set.cards || []) {
-      if (c.nmJpy == null) continue;
-      if (!top || c.nmJpy > top.nmJpy) top = c;
-    }
+    // 그 세트에서 가장 비싼 카드 = market-data-normalizers.priciest(검증된 NM 최댓값) — 세트 페이지 Key facts·추적 문단·한국어 문단과 같은 함수.
+    // 모르면(검증 안 된 값이 1위 값 이상 — OP-08·OP-15·PRB-01·PRB-02·EB-02(5차)) 칸을 비운다. 다음 카드를 1위로 올리지 않는다(2026-10-15, 4차).
+    // 동가는 전부 적는다 — 세트 페이지와 같은 목록(2026-10-15, 4차: OP-16 이 "Kuzan (Manga)" 하나, 세트 페이지는 망가 3장).
+    const top = priciest(set.cards || [], fx);
 
-    const chg = prev && prev.median ? (now.median / prev.median - 1) * 100 : null;
+    // 4-wk = 세트 페이지 "4-week change"·홈 board 와 같은 값(boxChange28 — current vs 28일 이상 앞선 마지막 점) — 2026-10-15(4차).
+    // 종전 "5점 전(jp[len-5])"은 빈 주가 있으면 4주가 아니어서 OP-06 이 비교표 +7% · 세트 페이지 -6.5% 였다.
+    const change = boxChange28(jp, eds.current && eds.current.jp);
+    const chg = change ? change.pct : null;
     rows.push({
       code,
       name: set.nameEn || "",
@@ -68,8 +67,9 @@ function buildRows() {
       enN: enNow ? enNow.n : null,
       chg,
       ratio: enNow && now.median ? enNow.median / now.median : null,
-      topName: top ? top.name : null,
-      topUsd: top ? (top.nmJpy * jpyKrw) / usdKrw : null,
+      topNames: top ? top.ties.map((c) => c.name) : null,
+      topUsd: top ? top.price.usd : null,   // 카드 상세·세트 Top 10·AI 피드와 같은 환산(2026-10-15)
+      topDate: top ? top.price.date : null,   // NM 관측일 — 표의 "As of" 와 다를 때만 칸에 붙인다(2026-10-15, 5차: OP-12 09-07 값이 10-15 값처럼 읽혔다)
       gem: set.psaFull?.gemRate ?? null,
     });
   }
@@ -79,7 +79,7 @@ function buildRows() {
 
 function tableHtml(rows, updated) {
   const body = rows.map((r) => {
-    const chgTxt = r.chg == null ? "—" : `${r.chg >= 0 ? "+" : ""}${r.chg.toFixed(0)}%`;
+    const chgTxt = r.chg == null ? "—" : `${r.chg > 0 ? "+" : ""}${r.chg}%`;   // 세트 페이지 "4-week change" 와 같은 표기(소수 한 자리)
     const chgColor = r.chg == null ? "#7d8698" : r.chg >= 0 ? "#26d07c" : "#ff6b6b";
     return `            <tr>` +
       `<th scope="row" class="ctSet"><a href="/sets/${esc(r.code.toLowerCase())}.html"><b>${esc(r.code)}</b><span>${esc(r.name)}</span></a></th>` +
@@ -87,7 +87,7 @@ function tableHtml(rows, updated) {
       `<td>${money(r.en)}${r.enN ? `<small style="color:#7d8698"> n${r.enN}</small>` : ""}</td>` +
       `<td style="color:${chgColor}">${chgTxt}</td>` +
       `<td>${r.ratio ? r.ratio.toFixed(1) + "x" : "—"}</td>` +
-      `<td>${r.topName ? `${money(r.topUsd)} <small style="color:#7d8698">${esc(r.topName.slice(0, 26))}</small>` : "—"}</td>` +
+      `<td>${r.topNames ? `${money(r.topUsd)}${r.topDate && r.topDate !== updated ? ` (${esc(r.topDate)})` : ""} <small style="color:#7d8698">${r.topNames.map((n) => esc(n)).join(", ")}</small>` : "—"}</td>` +
       `<td>${r.gem == null ? "—" : r.gem + "%"}</td>` +
       `</tr>`;
   }).join("\n");
@@ -99,7 +99,7 @@ function tableHtml(rows, updated) {
 ${body}
           </tbody>
         </table></div>
-        <p style="color:#7d8698;font-size:12.5px;margin-top:10px;">Box prices are medians of completed eBay buy-it-now sales we collect ourselves; n is the sample behind each figure. 4-wk compares the latest point with roughly four weeks earlier. Priciest card is the raw near-mint single at Japanese retail — not a graded price. PSA 10 rate is the share of that set's PSA submissions that came back 10. As of ${esc(updated)}.</p>
+        <p style="color:#7d8698;font-size:12.5px;margin-top:10px;">Box prices are medians of completed eBay buy-it-now sales we collect ourselves; n is the sample behind each figure. 4-wk compares the latest median with the median 28 days earlier, as on each set page. Priciest card is the raw single at Japanese retail near-mint — not a graded price. PSA 10 rate is the share of that set's PSA submissions that came back 10. As of ${esc(updated)}.</p>
         ${MARK_END}`;
 }
 

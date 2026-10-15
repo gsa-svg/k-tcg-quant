@@ -6,15 +6,15 @@
 const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
-const { SITE, EPN, CSS_VER, esc, usd, intl, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss } = require("./set-page-shared");
+const { SITE, EPN, CSS_VER, esc, usd, intl, splitReprints, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate } = require("./set-page-shared");
 // 화면 크기에 맞는 이미지 파생본(2026-10-08): 머리 박스 사진 670px→264px, 랭킹 썸네일 100KB→5KB. 없으면 원본.
 const { variant } = require("./image-variants");
 
-// 1위 카드와 일본판 NM 이 같은 카드들(동가). 2026-09-30: OP-16 망가 3장이 모두 ¥148,000 인데
+// 가장 비싼 카드와 같은 값의 카드들(동가)은 priciest().ties 로 받는다. 2026-09-30: OP-16 망가 3장이 모두 ¥148,000 인데
 // 소유자 순서상 1위인 한 장을 "가장 비싸다"고 써서 데이터보다 센 문장이 나갔다.
-const tieOf = (cards) => (cards && cards[0] && cards[0].nmJpy != null ? cards.filter((c) => c.nmJpy === cards[0].nmJpy) : []);
+// 2026-10-15(3차): "가장 비싼 카드"는 소유자 순위 1위가 아니라 market-data-normalizers.priciest(raw 값 최댓값) 하나 — 비교표·한국어 페이지와 같은 함수.
 const joinNames = (cs) => { const n = cs.map((c) => esc(c.name)); return n.length <= 2 ? n.join(" and ") : `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}`; };
-const { fxAt } = require("./market-data-normalizers");   // 관측일 환율(PSA10 실거래 KRW 되돌리기)
+const { fxAt, nmUsd, rawPrice, tcgSpikes, rawValues, priciest, countedValues, boxChange28 } = require("./market-data-normalizers");   // 관측일 환율(PSA10 실거래 KRW 되돌리기) · NM 사용 술어·가장 비싼 카드(카드 상세·AI 피드·비교표와 공용)
 
 const ROOT = path.join(__dirname, "..");
 // 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 없으면 섹션을 그리지 않는다.
@@ -121,7 +121,6 @@ const uniqueTitle = (t) => { if (seenTitles.has(t)) throw new Error(`타이틀 �
 // ---- 실데이터 구워넣기용 헬퍼 (가격은 항상 "as of 날짜"로 정직하게, 매일 재생성으로 최신 유지)
 const FX = data.fx || {};
 const DATA_DATE = data.updated || new Date().toISOString().slice(0, 10);
-const jpyUsd = (jpy) => (Number.isFinite(jpy) && FX.jpyKrw && FX.usdKrw ? (jpy * FX.jpyKrw) / FX.usdKrw : null);
 const krwUsd = (krw) => (Number.isFinite(krw) && FX.usdKrw ? krw / FX.usdKrw : null);
 // 서술 블록(궤적·verdict·keyFacts)의 가격 소스 = 차트와 같은 sold 시리즈(USD, 판매일 기준) — 2026-08-21.
 // 종전 boxSeries(외부 KRW 주간시세)는 20/21 세트가 07-11~13 에 멈춰 "as of 2026-07-12" 가
@@ -131,25 +130,17 @@ const soldPts = (code, ed) => (((SOLD_SERIES.sets || {})[code] || {})[ed] || [])
 const toUsd = (val, cur) => (val == null ? null : cur === "USD" ? val : krwUsd(val));
 // PSA10 실거래는 수집일 환율로 KRW 저장 → 오늘 환율로 되돌리면 환율 변동만큼 틀어진다(2026-09-09 감사: 12% 부풀림). 관측일 환율로 되돌린다.
 const toUsdAt = (val, cur, date) => (val == null ? null : cur === "USD" ? val : cur === "KRW" ? val / (fxAt(date) || FX.usdKrw) : null);
-const RARITY = { L: "Leader", SEC: "Secret Rare", SR: "Super Rare", R: "Rare", UC: "Uncommon", C: "Common", SP: "Special", P: "Promo" };
-const rarityLabel = (r) => RARITY[r] || r || "";
+// 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도(CARD_LIST.rarityCode — 한국어 세트·카드 상세·AI 피드와 같은 코드, 2026-10-15).
+// 표기는 영문 낱말(Super Rare·SP Card …), 코드는 공식 카드 리스트에서 — 원본 레어도(c.rarity)를 그대로 쓰면 SP 인쇄(ST31-004_p1)가 "Super Rare" 로 나갔다(2026-10-15).
+const rarityOf = (code, c) => CARD_LIST.rarityEn(CARD_LIST.rarityCode(code, c));
 // TCGplayer 단일 리스팅 폴백가(priceUsd)의 이상치 표시.
 // 왜: priceUsd 는 변형매칭 미확정(variantOK undefined) 단일 호가라 트롤/오매칭 값이 섞인다.
 // 실제 라이브 사고(2026-07-21 감사): EB-02 Boa Hancock $6,969.69(69 밈), OP-09 Gol D. Roger $6,720.
 // 세트 안에서 혼자 튀는 스파이크(2등의 2배 초과 & $3,000 초과)만 억제한다 — 정상 체이스카드는 보존.
 // 원칙: "빈 칸이 틀린 숫자보다 낫다". 억제된 카드는 NM 열이 "—" 로 나간다.
 function markTcgOutliers(cards) {
-  const vals = cards
-    .filter((c) => c.nmJpy == null && typeof c.priceUsd === "number")
-    .map((c) => c.priceUsd)
-    .sort((a, b) => b - a);
-  const bad = new Set();
-  // 위에서부터: 현재 최고가가 (다음 서로 다른 값의 2배 & $3,000) 을 넘으면 고립 스파이크로 판정하고 계속.
-  for (let i = 0; i < vals.length; i++) {
-    const next = vals.find((v) => v < vals[i]);
-    if (next != null && vals[i] > 3000 && vals[i] > next * 2) bad.add(vals[i]);
-    else break;
-  }
+  // 판정은 market-data-normalizers.tcgSpikes 하나 — priciest(가장 비싼 카드)도 같은 값을 뺀다(2026-10-15, 3차).
+  const bad = tcgSpikes(cards);
   for (const c of cards) {
     if (c.nmJpy == null && typeof c.priceUsd === "number" && bad.has(c.priceUsd)) c._tcgOutlier = true;
   }
@@ -157,10 +148,12 @@ function markTcgOutliers(cards) {
 
 // 카드별 표시가: NM(생) + PSA10(sold 우선, 없으면 ask). 불확실하면 null → 표에 "—"
 function cardPrices(c) {
-  let nm = jpyUsd(c.nmJpy);
-  let nmSrc = c.nmJpy != null ? "jp" : null;
+  // NM 칸 = market-data-normalizers.rawPrice 하나 — 쓸 수 있는 NM, 아니면 NM 조사 전·숨김 표시 없는 카드의 TCG 값(2026-10-15, 4차).
+  // 값은 있는데 못 쓰는 카드(읽은 날 없음·숨김 표시)는 "—" — 숨김 표시 카드의 TCG 값도 싣지 않는다(OP07-109 Luffy TR $455 TCG, 같은 카드 PSA 10 $185).
   // priceUsd 폴백은 이상치(트롤/오매칭)면 버린다 — markTcgOutliers 가 세트 단위로 표시해 둔다.
-  if (nm == null && typeof c.priceUsd === "number" && !c._tcgOutlier) { nm = c.priceUsd; nmSrc = "tcg"; } // 일본 NM 리서치 전(예: OP-16): TCGplayer USD 시세 폴백, 라벨은 TCG로 정직 표기
+  const rp = rawPrice(c, FX);
+  const nm = rp && !(rp.kind === "TCG" && c._tcgOutlier) ? rp.usd : null;
+  const nmSrc = nm == null ? null : rp.kind === "TCG" ? "tcg" : "jp";
   let psa = null, psaKind = "", psaDate = null, psaStale = false, psaN = null;
   const sold = c.psa10Ebay;
   if (sold && sold.soldBased && sold.middle != null && (sold.sampleSize || 0) >= 3) {
@@ -288,19 +281,30 @@ ${KF_CSS}
 const head = (opts) => pageHead({ ...opts, extraCss: SET_PAGE_CSS, chart: false });
 
 
+// 일본판 호가 위젯에 실리는 값 — 화면(liveWidget)과 Product 구조화데이터(productLd)가 이 함수 하나로 같은 규칙을 쓴다(2026-10-15, 감사 #6).
+// 종전엔 위젯은 표본 3건 미만이면 숨는데 productLd 는 표본 수를 안 봐서, OP-07(매물 2건)의 highPrice 157 이 화면 어디에도 없었다
+// (영문판은 2026-09-29 감사 SD4 로 같은 결함을 고쳤다). range = 화면에 "Range $lo – $hi" 줄이 실제로 그려지는가.
+function liveAsk(s) {
+  // 표본 3건 미만은 시장값이 아니라 싣지 않는다(2026-08-26 감사).
+  const m = s.boxMarket?.jp?.ebayActive;
+  if (!m || m.middle == null || !m.sampleSize || m.sampleSize < 3) return null;
+  const mid = toUsd(m.middle, m.currency);
+  if (mid == null) return null;
+  const lo = m.low != null ? toUsd(m.low, m.currency) : null;
+  const hi = m.high != null ? toUsd(m.high, m.currency) : null;
+  return { m, mid, lo, hi, range: lo != null && hi != null };
+}
+
 // 라이브 가격 위젯: 데이터 fetch 실패/부재 시 위젯 자체를 숨김(불확실하면 숨김 원칙)
 function liveWidget(code) {
   // 종전엔 브라우저가 data/onepiece-packs.json(원본 830KB, gzip 150KB)을 통째로 받아 숫자 하나를 채웠다(2026-09-10 성능 감사).
-  // 페이지는 매일 재생성되므로 생성 시점 값을 박아도 신선도는 같다. 표본 3건 미만은 시장값이 아니라 싣지 않는다(2026-08-26 감사).
+  // 페이지는 매일 재생성되므로 생성 시점 값을 박아도 신선도는 같다.
   const s = data.sets[code] || {};
-  const m = s.boxMarket?.jp?.ebayActive;
-  if (!m || m.middle == null || !m.sampleSize || m.sampleSize < 3) return "";
-  const mid = toUsd(m.middle, m.currency);
-  if (mid == null) return "";
-  const lo = m.low != null ? toUsd(m.low, m.currency) : null;
-  const hi = m.high != null ? toUsd(m.high, m.currency) : null;
+  const live = liveAsk(s);
+  if (!live) return "";
+  const { m, mid, lo, hi } = live;
   const meta = [];
-  if (lo != null && hi != null) meta.push(`Range ${usd(lo)} – ${usd(hi)}`);
+  if (live.range) meta.push(`Range ${usd(lo)} – ${usd(hi)}`);
   meta.push(`${m.sampleSize} listings`, `Updated ${esc(m.updated || DATA_DATE)}`);
   if (s.psaFull?.gemRate != null) meta.push(`Full-set PSA10 rate ${s.psaFull.gemRate}%`);
   return `
@@ -321,23 +325,32 @@ function faqItems(code, nameEn) {
   // 값·날짜·표본은 페이지 재생성 때마다 갱신된다. 해설이 순위("1위 카드")를 단정하면 표와 어긋나므로 해설엔 순위를 쓰지 않는다.
   const s = data.sets[code] || {};
   const story = COMMENTARY.sets?.[code];
-  const jp = s.boxMarket?.jp?.ebaySold, en = s.boxMarket?.en?.ebaySold;
+  // 현재가 = box-sold-series 의 current(마지막 중앙값 점이 asOf 로부터 28일 이내)만 — Key facts 표·지표 격자·허브 표와 같은 원천(2026-10-15, 감사 #0).
+  // 종전엔 boxMarket.ebaySold 를 날짜 검사 없이 써서, Key facts 가 "— no median dated within 28 days" 인 OP-02·OP-04·EB-01 의
+  // FAQ(화면·FAQPage JSON-LD)가 "As of 2026-07-07 … about $147" 과 그 값으로 낸 "3.8x" 를 현재가처럼 말했다.
+  const ser = SOLD_SERIES.sets?.[code] || {};
+  const jp = ser.current?.jp || null, en = ser.current?.en || null;
+  const wd = ser.windowDays || {};
   // 통화 기호를 붙인다 — 2026-09-30: Math.round 만 써서 22장 전부 "median at about 95" 처럼 $ 없이 나갔다(FAQPage JSON-LD 도 같은 문장).
-  const jpU = jp && jp.median != null ? toUsd(jp.median, jp.currency) : null;
-  const enU = en && en.median != null ? toUsd(en.median, en.currency) : null;
+  const jpU = jp ? jp.median : null;
+  const enU = en ? en.median : null;
   const enTag = enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : "";   // 영문판 값이 재판만일 때(OP-01) — 그래프 배지와 같은 기준
+  const enBit = enU != null ? ` The English ${nameEn}${enTag} box runs about ${usd(enU)} (as of ${en.d}).` : "";
   const items = [];
   if (story) items.push({ q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`, a: story.desc });
   if (jpU != null) {
     items.push({
       q: `How much is a sealed ${code} ${nameEn} Japanese booster box?`,
-      a: `As of ${jp.updated}, completed eBay sales of the Japanese ${nameEn} box put the median at about ${usd(jpU)} (${jp.sampleSize} sales in the trailing ${jp.windowDays || 28} days).${enU != null ? ` The English ${nameEn}${enTag} box runs about ${usd(enU)}.` : ""}`,
+      a: `As of ${jp.d}, completed eBay sales of the Japanese ${nameEn} box put the median at about ${usd(jpU)} (${jp.n} sales in the trailing ${wd.jp || 28} days).${enBit}`,
     });
   }
+  // 일본판에 28일 안 중앙값이 없으면 이 문답을 싣지 않는다 — 2026-10-15(5차): 4차는 영문판 값으로 답해 "일본판 박스 얼마?"에
+  // "영문판은 $559"가 나갔다(OP-02·OP-04·EB-01). 묻는 것과 다른 상품의 값으로 답하지 않는다.
+  // 배수는 두 판 모두 current 일 때만 — Key facts 문단·영문판 페이지(multiple)와 같은 조건.
   if (jpU != null && enU != null && jpU > 0) {
     items.push({
       q: `How does the English ${code} ${nameEn} box compare with the Japanese box?`,
-      a: `English ${nameEn}${enTag} ${usd(enU)} (as of ${en.updated}) versus Japanese ${nameEn} ${usd(jpU)} (as of ${jp.updated}): the English box trades at about ${(enU / jpU).toFixed(1)}x the Japanese box.`,
+      a: `English ${nameEn}${enTag} ${usd(enU)} (as of ${en.d}) versus Japanese ${nameEn} ${usd(jpU)} (as of ${jp.d}): the English box trades at about ${(enU / jpU).toFixed(1)}x the Japanese box.`,
     });
   }
   return items;
@@ -355,7 +368,8 @@ function faqHtml(code, nameEn) {
 }
 
 // pageName = 이 페이지 <title> — WebPage.name 이 비어 있었다(2026-10-14 W6b, 구조화데이터 감사 44장).
-function faqLd(code, nameEn, pageName) {
+// pageDate = set-page-shared.setPageDate(code) — 화면 "Data updated" 와 같은 날(2026-10-15, 감사 #4).
+function faqLd(code, nameEn, pageName, pageDate) {
   const q = faqItems(code, nameEn);
   // FAQ 가 없으면 FAQPage 구조화데이터도 내지 않는다 — 빈 mainEntity 는 스팸 신호다.
   return `${q.length ? `<script type="application/ld+json">${JSON.stringify({
@@ -377,18 +391,12 @@ function faqLd(code, nameEn, pageName) {
     "@type": "WebPage",
     ...(pageName ? { name: pageName } : {}),
     url: `${SITE}/sets/${slug(code)}.html`,
-    dateModified: DATA_DATE,
+    dateModified: pageDate,
   })}</script>`;
 }
 
 // 박스 Product 스키마 (리치결과용). 유효한 가격 있을 때만 방출 — 불완전 Product로 서치콘솔 경고 안 나게.
 function productLd(code, nameEn, s) {
-  const bm = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
-  if (!bm) return "";
-  const lo = bm.low != null ? toUsd(bm.low, bm.currency) : null;
-  const hi = bm.high != null ? toUsd(bm.high, bm.currency) : null;
-  const mid = bm.middle != null ? toUsd(bm.middle, bm.currency) : null;
-  if (mid == null) return "";
   const img = s.box ? (String(s.box).startsWith("http") ? s.box : SITE + s.box) : `${SITE}/og-image.png`;
   // 이 Product 는 일본판 박스다 — 발매일도 일본판(set-facts.json, 반다이 공식 출처). 없으면 싣지 않는다.
   // 2026-09-30: 종전엔 s.release(영문판 날짜)가 들어가 op-16 이 2026-06-12(일본판 05-30)로 나갔다.
@@ -396,11 +404,18 @@ function productLd(code, nameEn, s) {
   // lowPrice = 화면 Key facts 의 "Lowest live ask"(검증된 최저 실매물 총액, 구매 버튼과 같은 값) — 2026-10-14(W5a).
   // 종전엔 호가 분포의 하위 15% 값이라 화면의 최저 매물가와 달랐다(OP-01 $292 vs 최저 매물 $200). 실매물이 없을 때만 그 값.
   const ask = lowestAsk(s, "jp");
-  const lowV = ask ? ask.total : lo;
+  // 구조화데이터의 가격은 전부 화면에 있는 값이어야 한다(2026-10-15, 감사 #6):
+  //   Range 줄이 보이면 → AggregateOffer(lowPrice = 최저 실매물 또는 Range 하단, highPrice = Range 상단, offerCount = 위젯의 매물 수)
+  //   Range 가 없으면 → Offer 하나: 최저 실매물(Key facts "Lowest live ask"·구매 버튼) → 없으면 위젯 중간값 → 둘 다 없으면 Product 를 내지 않는다.
+  const live = liveAsk(s);
+  const url = `${SITE}/sets/${slug(code)}.html`;
+  const lowV = live && live.range ? (ask ? ask.total : live.lo) : null;
+  const one = ask ? ask.total : live ? live.mid : null;
   const offers =
-    lowV != null && hi != null && (ask || hi >= lowV)
-      ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(lowV), highPrice: Math.round(Math.max(hi, lowV)), offerCount: bm.sampleSize || 1, availability: "https://schema.org/InStock", url: `${SITE}/sets/${slug(code)}.html` }
-      : { "@type": "Offer", priceCurrency: "USD", price: Math.round(mid), availability: "https://schema.org/InStock", url: `${SITE}/sets/${slug(code)}.html` };
+    lowV != null && (ask || live.hi >= lowV)
+      ? { "@type": "AggregateOffer", priceCurrency: "USD", lowPrice: Math.round(lowV), highPrice: Math.round(Math.max(live.hi, lowV)), offerCount: live.m.sampleSize, availability: "https://schema.org/InStock", url }
+      : one != null ? { "@type": "Offer", priceCurrency: "USD", price: Math.round(one), availability: "https://schema.org/InStock", url } : null;
+  if (!offers) return "";   // 화면에 박스 가격이 하나도 없으면 Product 도 없다(불완전 Product 는 서치콘솔 경고)
   const prod = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -471,9 +486,9 @@ const SET_METRICS = (() => {
     const cur = v.current && v.current.jp;
     if (!cur) { out[code] = { price: null, priceD: null, chg: null, stock: null, days: null, psa: (data.sets[code] || {}).psaFull?.total ?? null, gem: (data.sets[code] || {}).psaFull?.gemRate ?? null, noCurrent: true }; continue; }
     const last = jp[jp.length - 1];
-    // 4주 전 = 마지막 점에서 28일 이상 전의 마지막 점 — 홈 board·그래프 배지와 같은 규칙(2026-09-24, 전엔 "점 4개 뒤"라 주가 비면 어긋났다)
-    const tLast = Date.parse(last.d);
-    const prior = jp.filter((p) => Date.parse(p.d) <= tLast - 28 * 864e5).pop() || null;
+    // 4주 변동률 = market-data-normalizers.boxChange28(current vs 28일 이상 앞선 마지막 점) — 홈·한국어 board·비교표와 같은 함수(2026-10-15, 4차).
+    // 2026-09-24 에 "점 4개 뒤"를 28일 규칙으로 바꿨는데 비교표만 5점 전으로 남아 OP-06 이 여기 -6.5% · 비교표 +7% 였다.
+    const change = boxChange28(jp, cur);
     const sup = (v.supply || []).slice(-1)[0];
     const set = data.sets[code] || {};
     const weekN = last.n || 0;
@@ -482,7 +497,7 @@ const SET_METRICS = (() => {
     out[code] = {
       price: last.median != null ? Math.round(last.median) : null,
       priceD: last.d || null,   // 이 값의 관측일 — 큰 숫자에 날짜 없이 두면 25일 묵은 세트도 오늘 값처럼 보인다(2026-08-26 감사)
-      chg: prior && prior.median ? Number(((last.median / prior.median - 1) * 100).toFixed(1)) : null,
+      chg: change ? change.pct : null,
       stock,
       days: stock != null && weekN && windowDays ? Number((stock / (weekN / windowDays)).toFixed(1)) : null,
       psa: set.psaFull?.total ?? null,
@@ -515,6 +530,8 @@ function setPage(code, prev, next) {
   const fullPsaRate = s.psaFull?.gemRate;
   const fullPsaTotal = s.psaFull?.total;
   const nameEn = s.nameEn || code;
+  // 이 페이지의 수정일 — JSON-LD dateModified·화면 "Data updated"·verdict 제목이 같은 날을 쓴다(set-page-shared.setPageDate, 2026-10-15 감사 #4).
+  const pageDate = setPageDate(code);
   const cards = (s.cards || []).slice(0, 10);
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
   const canonical = `${SITE}/sets/${slug(code)}.html`;
@@ -569,16 +586,24 @@ function setPage(code, prev, next) {
     // 모바일(≤640px)은 등급 열(gCol)을 숨기고 같은 값을 카드명 아래 줄(gSub)로 접는다 — 2026-10-13 QA: 390px 에서 표가 458px 로
     // 가로 스크롤되고 카드명이 4~5줄로 접혔다(경매 페이지 표와 같은 방식).
     const grade = gradeCell(code, c.number, c.name);
-    return `<tr><td>${i + 1}</td><td class="cn">${nameCell}<span class="cNum">${esc(c.number || "")}${c.rarity ? ` · ${esc(rarityLabel(c.rarity))}` : ""}</span>${grade !== "—" ? `<span class="gSub">PSA / CGC / TAG ${grade}</span>` : ""}</td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num${p.psaStale ? " psaStale" : ""}"${p.psaStale ? ` title="Last PSA 10 sales observed ${esc(p.psaDate || "")} (n=${p.psaN || "?"}) — older than 35 days"` : ""}>${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? `sold${p.psaDate ? " · " + esc(p.psaDate.slice(5)) : ""}` : "ask"}</span>` : "—"}</td><td class="num gCol">${grade}</td></tr>`;
+    return `<tr><td>${i + 1}</td><td class="cn">${nameCell}<span class="cNum">${esc(c.number || "")}${rarityOf(code, c) ? ` · ${esc(rarityOf(code, c))}` : ""}</span>${grade !== "—" ? `<span class="gSub">PSA / CGC / TAG ${grade}</span>` : ""}</td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? ` <span class="psaKind">TCG</span>` : ""}` : "—"}</td><td class="num${p.psaStale ? " psaStale" : ""}"${p.psaStale ? ` title="Last PSA 10 sales observed ${esc(p.psaDate || "")} (n=${p.psaN || "?"}) — older than 35 days"` : ""}>${p.psa != null ? `${usd(p.psa)} <span class="psaKind">${p.psaKind === "sold" ? `sold${p.psaDate ? " · " + esc(p.psaDate.slice(5)) : ""}` : "ask"}</span>` : "—"}</td><td class="num gCol">${grade}</td></tr>`;
   }).join("\n            ");
 
   // 세트 요약 줄(dataSummary)은 Key facts 표로 바뀌었다 — 2026-10-14(W5a). 그 줄의 카드 수(s.cardCount)는 공식 목록과 달랐고
   // (OP-01 "106 cards" — 공식 121종·154장), 발매일은 월 단위였다. 카드 수는 이제 공식 값만(set-facts cardTypes · 공식 카드 리스트).
 
   // 데이터 기반 분석 문단 (세트마다 고유)
-  const top = cards[0], tp = top ? cardPrices(top) : {};
-  const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCGplayer 시세만 있는 세트: NM 설명 문구를 정직하게 교체
-  const analysis = top && tp.nm != null && tieOf(cards).length > 1 ? `The chase in ${code} is led by <strong>${joinNames(tieOf(cards))}</strong>, tied at about ${usd(tp.nm)} raw Japanese NM each.` : top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${top.rarity ? ` (${esc(rarityLabel(top.rarity))})` : ""}${tp.nm != null ? `, ${tp.nmSrc === "tcg" ? `with a TCGplayer market price around ${usd(tp.nm)}` : `whose raw Japanese NM copy runs about ${usd(tp.nm)}`}` : ""}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? (tp.psaStale ? `whose PSA 10 examples last sold near ${usd(tp.psa)} (${esc(tp.psaDate || "")}, n=${tp.psaN || "?"})` : `whose PSA 10 examples have sold near ${usd(tp.psa)}`) : `whose PSA 10 copies list near ${usd(tp.psa)}`}` : ""}.` : "";
+  // 이끄는 카드 = 가장 비싼 카드(priciest — 검증된 NM 최댓값, 4차) — 2026-10-15. 종전엔 소유자 순위 1위(cards[0])라 OP-05 가 "$3,144 OP05-119" 인데
+  // 같은 페이지 Top 10 2행은 $5,038, 비교표도 $5,038 이었다. Key facts·박스 대비 배수·한국어 문단·비교표가 같은 카드·같은 값을 쓴다. 모르면(null) 문단 없음.
+  const pc = priciest(cards, FX);
+  const top = pc ? pc.card : null, tp = top ? cardPrices(top) : {};
+  const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCG 폴백 시세만 있는 세트: NM 설명 문구를 정직하게 교체
+  // 이끄는 카드는 늘 검증된 NM 이 있는 카드라(pc) PSA 10 절은 " and whose …" 로 잇는다 — 값 없는 1순위 카드로 문단을 만들지 않는다(2026-10-15, 3차).
+  // 4차부터 TCG 값은 가장 비싼 카드가 될 수 없다(검증 안 된 값) — 라벨은 NM 하나.
+  // 금액 뒤에 NM 관측일(nmUpdated)을 붙인다 — 2026-10-15(5차): OP-12 Teach SP Gold $1,566 은 09-07 에 읽은 값인데(다른 세트 1위는 10-11)
+  // Key facts·이 문단·한국어 문단에 날짜 없이 나가 오늘 값처럼 읽혔다. 카드 상세의 "as of 2026-09-07" 과 같은 날짜.
+  const pcDate = pc && pc.price.date ? ` (${esc(pc.price.date)})` : "";
+  const analysis = pc && pc.ties.length > 1 ? `The chase in ${code} is led by <strong>${joinNames(pc.ties)}</strong>, tied at about ${usd(pc.price.usd)} raw Japanese NM each${pcDate}.` : top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${rarityOf(code, top) ? ` (${esc(rarityOf(code, top))})` : ""}, whose raw Japanese NM copy runs about ${usd(pc.price.usd)}${pcDate}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? (tp.psaStale ? `whose PSA 10 examples last sold near ${usd(tp.psa)} (${esc(tp.psaDate || "")}, n=${tp.psaN || "?"})` : `whose PSA 10 examples have sold near ${usd(tp.psa)}`) : `whose PSA 10 copies list near ${usd(tp.psa)}`}` : ""}.` : "";
 
   // 박스 시세 궤적 (세트별 고유 수치 — 차트와 같은 sold 시리즈 기반)
   let trajectory = "";
@@ -590,19 +615,23 @@ function setPage(code, prev, next) {
     const chg = Math.round((last.p / first.p - 1) * 100);
     const dir = chg >= 3 ? `gained <strong>${chg}%</strong>` : chg <= -3 ? `fell <strong>${Math.abs(chg)}%</strong>` : `held roughly flat (<strong>${chg >= 0 ? "+" : ""}${chg}%</strong>)`;
     const en = soldPts(code, "en");
+    // 마지막 점이 current(28일 규칙)가 아니면 "지금 값"으로 쓰지 않는다 — 2026-10-15(감사 #0 과 같은 결함): OP-04·EB-01 의 이 문단이
+    // 35~57일 묵은 일본판 값을 "stands near" 로 쓰고 그 값으로 영문판 배수(2.7x)를 냈다. 같은 페이지 Key facts·FAQ 는 "—".
+    const cur = SOLD_SERIES.sets?.[code]?.current || {};
     let enBit = "";
-    if (en.length >= 8) {
+    if (en.length >= 8 && cur.en) {
       const enLast = en[en.length - 1], enChg = Math.round((enLast.p / en[0].p - 1) * 100);
       const ratio = (enLast.p / last.p).toFixed(1);
       // 배율은 두 판의 **마지막 관측일이 다를 수 있다**(예: EB-01 은 16일 차이). 그 사실을 숨기면
       // 같은 날 값을 나눈 것처럼 읽힌다 — 관측일이 어긋나면 두 날짜를 함께 밝힌다(2026-08-26 감사).
       const enD = enLast.d, jpD = last.d;
       const ratioNote = enD === jpD ? "" : ` (JP as of ${esc(jpD)}, EN as of ${esc(enD)})`;
-      enBit = ` The English-language ${esc(s.nameEn || code)}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box trades near <strong>${usd(toU(enLast.p))}</strong> as of ${esc(enD)} (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window) — about <strong>${ratio}x</strong> the Japanese box${ratioNote}. This ratio does not explain why.`;
+      const ratioBit = cur.jp ? ` — about <strong>${ratio}x</strong> the Japanese box${ratioNote}. This ratio does not explain why.` : ".";
+      enBit = ` The English-language ${esc(s.nameEn || code)}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box trades near <strong>${usd(toU(enLast.p))}</strong> as of ${esc(enD)} (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window)${ratioBit}`;
     }
     trajectory = `
       <h2>${code} box price: the tracked trajectory</h2>
-      <p>The Japanese ${esc(s.nameEn || code)} sealed box entered our tracking on ${esc(first.d)} around <strong>${usd(toU(first.p))}</strong> and stands near <strong>${usd(toU(last.p))}</strong> as of ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
+      <p>The Japanese ${esc(s.nameEn || code)} sealed box entered our tracking on ${esc(first.d)} around <strong>${usd(toU(first.p))}</strong> and ${cur.jp ? "stands near" : "last stood near"} <strong>${usd(toU(last.p))}</strong> ${cur.jp ? "as of" : "on"} ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
   }
 
   // 주간 PSA 인구 증가 — psaWeekly 기반, 세트별 고유. 실제 개봉량으로 표현하지 않는다.
@@ -651,29 +680,35 @@ function setPage(code, prev, next) {
   }
 
   // 현재 가격 구간 해설 — 실데이터 파생, 미래 가격이나 구매 결론은 만들지 않는다.
+  // "현재" 를 말하는 문단이라 일본판 current(28일 규칙)가 있을 때만 — 2026-10-15: OP-04 가 "(2026-10-14) The box trades at $175"(09-10 값)를 냈다.
   let verdict = "";
   {
     const pts = soldPts(code, "jp");
-    if (pts.length >= 8) {
+    if (pts.length >= 8 && SOLD_SERIES.sets?.[code]?.current?.jp) {
       const vFirst = pts[0].p, vLast = pts[pts.length - 1].p;
       const vPeak = Math.max(...pts.map((p) => p.p));
       const dd = vPeak > 0 ? Math.round(((vPeak - vLast) / vPeak) * 100) : 0;
       const chg = vFirst > 0 ? Math.round(((vLast - vFirst) / vFirst) * 100) : 0;
-      const tp0 = cards.length ? cardPrices(cards[0]) : {};
-      const topNm = tp0.nm != null ? tp0.nm : null;
+      // 박스 대비 배수도 가장 비싼 카드(pc — priciest) 기준. 추적 문단·Key facts 와 같은 카드·같은 값(2026-10-15, 3차).
+      const topNm = pc ? pc.price.usd : null;
       const mult = topNm && vLast ? topNm / vLast : null;
-      const nowLabel = DATA_DATE;
+      const nowLabel = pageDate;   // 마지막 점이 asOf(10-15)일 수 있다 — packs.updated(10-14)를 쓰면 제목 날짜가 값보다 이르다(2026-10-15)
       let priceRead;
       if (dd >= 20) priceRead = `The current value is about <strong>${dd}% below the tracked peak</strong> (${usd(vPeak)} → ${usd(vLast)}). Past peaks do not set future floors.`;
-      else if (chg >= 15 && dd < 10) priceRead = `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`;
-      else priceRead = `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`;
-      const tieN = tieOf(cards).length;
+      // 현재가 = 고점이면(같은 금액) "vs peak" 비교를 빼고 "at" — 2026-10-15(5차): "($134 vs peak $134, …)" 처럼 같은 값끼리 비교했다(OP-09·OP-12·PRB-02).
+      else if (chg >= 15 && dd < 10) priceRead = usd(vLast) === usd(vPeak)
+        ? `The box sits at its tracked high (${usd(vLast)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`
+        : `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`;
+      else priceRead = usd(vLast) === usd(vPeak)
+        ? `The box trades at its tracked peak of ${usd(vPeak)}, ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`
+        : `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`;
+      const tieN = pc ? pc.ties.length : 0;
       const chaseRead = mult != null && tieN > 1
-        ? ` The top ${tieN} cards (${joinNames(tieOf(cards))}) are each worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>. Official pull rates are unpublished. It is not opening expected value.`
+        ? ` The top ${tieN} cards (${joinNames(pc.ties)}) are each worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>. Official pull rates are unpublished. It is not opening expected value.`
         : mult != null
         ? (mult >= 3
-          ? ` The top card alone (${esc(cards[0].name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.`
-          : ` The top chase (${esc(cards[0].name)}) runs about ${mult.toFixed(1)}x the box price. Check the full top-10 distribution. This ratio is not opening EV.`)
+          ? ` The top card alone (${esc(pc.card.name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.`
+          : ` The top chase (${esc(pc.card.name)}) runs about ${mult.toFixed(1)}x the box price. Check the full top-10 distribution. This ratio is not opening EV.`)
         : "";
       verdict = `
       <h2>How the ${code} box price compares with its tracked range (${esc(nowLabel)})</h2>
@@ -691,13 +726,12 @@ function setPage(code, prev, next) {
       const pts2 = soldPts(code, "jp");
       const nowU = pts2.length ? pts2[pts2.length - 1].p : null;
       const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
-      const recs = sf.reprintRecords || [];
       // 기록의 성격을 나눈다. 매장 재입고 공지를 "반다이가 재판을 발표했다" 처럼 읽히게 두면 안 된다.
       // 추첨판매는 **발매 전**에도 열린다(초회 물량 선판매). 그건 물량이 다시 풀린 게 아니므로
       // 재공급으로 세면 안 된다 — OP-17 은 발매 2026-08-22 인데 추첨이 7/30·8/7~18 이었다.
-      const isPre = (r) => /pre-release/i.test(r.kind || "");
-      const isUnverified = (r) => /unverified-timing/i.test(r.kind || "");
-      const isOfficial = (r) => /official/i.test(r.kind || "") && !isUnverified(r);
+      // 분류는 set-page-shared.splitReprints 하나(한국어 페이지·홈 배지와 같은 함수, 2026-10-15 4차) — "再販"이라 적힌 추첨(OP-09)은 재판 줄로.
+      const { reprint, lottery: official, unverified: unver } = splitReprints(sf.reprintRecords);
+      const isShopReprint = (r) => r.kind === "official-reprint-lottery";
       const isDistributor = (r) => /distributor/i.test(r.kind || "");
       // 원장 날짜 그대로(ISO). 월까지만 기록된 건은 "2025-09" 로 남는다 — 일을 지어내지 않는다(2026-10-14, 종전 "Sep 2025").
       const monthOf = (d) => d || "";
@@ -707,19 +741,25 @@ function setPage(code, prev, next) {
         const when = esc(monthOf(r.date));
         return live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${when}</a>` : when;
       };
-      const pre = recs.filter(isPre);
-      const unver = recs.filter(isUnverified);
-      const official = recs.filter(isOfficial), distrib = recs.filter(isDistributor);
-      const retail = recs.filter((r) => !isPre(r) && !isUnverified(r) && !isOfficial(r) && !isDistributor(r));
+      const shopReprint = reprint.filter(isShopReprint), distrib = reprint.filter(isDistributor);
+      const retail = reprint.filter((r) => !isShopReprint(r) && !isDistributor(r));
       const lines = [];
       // 사전추첨(발매 전 초회 물량 선배분)은 이 섹션에 싣지 않는다 — 추가 공급이 아니라서
       // "재판·공급" 맥락에 두면 물량이 늘어난 것처럼 읽힌다. 데이터에는 남아 있다(pre-release-lottery).
-      if (official.length) lines.push(`<li>Post-release lottery sale: ${official.map(item).join(", ")} — a Premium Bandai / Bandai Namco shop draw held after release. Bandai does not call these reprints, so we do not either.</li>`);
-      if (unver.length) lines.push(`<li>Lottery sale: ${unver.map(item).join(", ")} — we could not verify whether this ran before or after the Japanese release, so we do not claim it added supply.</li>`);
-      if (distrib.length) lines.push(`<li>Distributor reprint: ${distrib.map(item).join(", ")}.</li>`);
-      if (retail.length) {
-        lines.push(`<li>Retailer-reported restocks: ${retail.map(item).join(", ")} — store restock notices, not a Bandai reprint announcement.</li>`);
-      }
+      // 방법 설명 꼬리("Bandai does not call these reprints, so we do not either" · "so we do not claim …")는 뺐다 — 줄은 라벨·날짜만(2026-10-15, 4차).
+      // 줄 = 라벨 + 날짜 링크. 날짜가 없는 기록만 있는 줄은 라벨 자체를 출처 링크로 낸다 — 2026-10-15(5차): PRB-01 MediaWorld 기록(date "")이
+      // 링크 글자가 빈 "Distributor reprint: ." 로 나갔다. 날짜를 지어 붙이지 않고, 한국어 페이지("유통사 재입고")처럼 라벨만 남긴다.
+      const row = (label, recs, tail = "") => {
+        const dated = recs.filter((r) => r.date);
+        if (dated.length) return `<li>${label}: ${dated.map(item).join(", ")}${tail}.</li>`;
+        const src = recs.find((r) => typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead);
+        return `<li>${src ? `<a href="${esc(src.source)}" target="_blank" rel="noopener nofollow">${label}</a>` : label}${tail}</li>`;
+      };
+      if (shopReprint.length) lines.push(row("Bandai Namco shop reprint (再販) lottery", shopReprint));
+      if (official.length) lines.push(row("Post-release lottery sale", official, " — a Premium Bandai / Bandai Namco shop draw held after release"));
+      if (unver.length) lines.push(row("Lottery sale, timing vs the Japanese release unverified", unver));
+      if (distrib.length) lines.push(row("Distributor reprint", distrib));
+      if (retail.length) lines.push(row("Retailer-reported restocks", retail, " — store restock notices, not a Bandai reprint announcement"));
       if (!lines.length) lines.push("<li>No reprint or restock record in our source ledger.</li>");
       // 재판은 "최초 발매 대비" 개념이라 기준일이 있어야 읽힌다. 공식 출처로 확인한 일본판 발매일만 싣는다
       // (페이지 상단의 release 는 영문판 날짜라 여기 기준으로 쓸 수 없다).
@@ -817,11 +857,18 @@ function setPage(code, prev, next) {
     // 박스를 뜯는 사람이 실제로 묻는 것: "대박 하나에 몰려 있나, 아니면 두루 값이 나가나".
     // 그쪽과 대조해 보니 OP-01 chase concentration 이 53% 로 정확히 일치했다.
     {
-      const top = (s.cards || []).slice(0, 10)
-        .map((c) => (c.nmJpy != null && FX.jpyKrw && FX.usdKrw ? (c.nmJpy * FX.jpyKrw) / FX.usdKrw : c.priceUsd ?? null))
-        .filter((v) => v != null && v > 0)
-        .sort((a, b) => b - a);
-      if (top.length >= 5) {
+      const list = (s.cards || []).slice(0, 10);
+      // 셀 값 = market-data-normalizers.countedValues — 검증된 값(쓸 수 있는 NM)만, 검증 안 된 값(못 쓰는 NM·날짜 없는 1회성 TCG·숨김 표시 카드)이
+      // 센 값 중 가장 낮은 값 이상이면 null → 세 칸 "—"(2026-10-15, 4차). 가장 비싼 카드(priciest)·홈 "Card support" 와 같은 판정.
+      // 3차는 TCG 값을 같이 셌다 — OP-08 Chase concentration 35% 의 #1 이 숨김 표시 Luffy TR TCG $455 였다.
+      const top = countedValues(list, FX);
+      const rv = rawValues(list, FX);
+      const priced = rv.verified.length + rv.unverified.length;   // 칸을 둘지 — raw 값이 있는 카드(검증 안 된 값 포함) 5장 이상
+      if (!top && priced >= 5) {
+        hintCell("Value density", "—", "", `Cards worth $25+ in the top ${list.length}. More means demand spreads beyond one chase.`);
+        hintCell("Chase concentration", "—", "", `Share of top-${list.length} value held by the #1 card. The higher this runs, the more the set rides on one pull.`);
+        hintCell(`Floor of the top ${list.length}`, "—", "", "What the cheapest tracked chase card is worth — value without hitting the big one.");
+      } else if (top && top.length >= 5) {
         const total = top.reduce((a, v) => a + v, 0);
         const dense = top.filter((v) => v >= 25).length;
         const conc = Math.round((top[0] / total) * 100);
@@ -853,10 +900,12 @@ function setPage(code, prev, next) {
     if (midA != null && (bmA.sampleSize || 0) >= 5) facts.push(`Current eBay asking prices run around <strong>${usd(midA)}</strong> (${bmA.sampleSize} active listings).`);
     const enLastP = curE ? curE.median : null;
     if (enLastP != null && jpVal != null) facts.push(`The English ${code}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box runs about <strong>${usd(enLastP)}</strong> — ${(enLastP / jpVal).toFixed(1)}x the Japanese box${englishHref ? ` (<a href="${englishHref}">English box guide</a>)` : ""}.`);
-    if (cards.length) {
-      const tf = cardPrices(cards[0]);
-      if (tf.nm != null && tieOf(cards).length > 1) facts.push(`The most valuable ${code} cards are <strong>${joinNames(tieOf(cards))}</strong>, tied at about <strong>${usd(tf.nm)}</strong> raw NM each.`);
-      else if (tf.nm != null) facts.push(`The most valuable ${code} card is <strong>${esc(cards[0].name)}</strong>${cards[0].number ? ` (${esc(cards[0].number)})` : ""} at about <strong>${usd(tf.nm)}</strong> raw NM${tf.psa != null ? (tf.psaKind === "sold" && tf.psaStale ? `, with PSA 10 copies last selling near ${usd(tf.psa)} (${esc(tf.psaDate || "")}, n=${tf.psaN || "?"})` : `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}`) : ""}.`);
+    // 가장 비싼 카드 = pc(priciest) — 추적 문단·한국어 문단·비교표와 같은 카드·같은 값(2026-10-15, 3차). 모르면(null) 문장 없음.
+    if (pc) {
+      const tf = cardPrices(pc.card);
+      // 가장 비싼 카드는 검증된 NM 만(4차, 2026-10-15) — 라벨은 "raw NM" 하나.
+      if (pc.ties.length > 1) facts.push(`The most valuable ${code} cards are <strong>${joinNames(pc.ties)}</strong>, tied at about <strong>${usd(pc.price.usd)}</strong> raw NM each${pcDate}.`);
+      else facts.push(`The most valuable ${code} card is <strong>${esc(pc.card.name)}</strong>${pc.card.number ? ` (${esc(pc.card.number)})` : ""} at about <strong>${usd(pc.price.usd)}</strong> raw NM${pcDate}${tf.psa != null ? (tf.psaKind === "sold" && tf.psaStale ? `, with PSA 10 copies last selling near ${usd(tf.psa)} (${esc(tf.psaDate || "")}, n=${tf.psaN || "?"})` : `, with PSA 10 copies ${tf.psaKind === "sold" ? "selling" : "listed"} near ${usd(tf.psa)}`) : ""}.`);
     }
     if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
     if (s.release) facts.push(`The English edition of ${code} released ${esc(s.release)}${jpRelDate ? ` (Japanese edition ${esc(jpRelDate)})` : ""}.`);
@@ -872,7 +921,7 @@ function setPage(code, prev, next) {
   // ko 짝이 실제로 존재할 때만 hreflang 을 건다(eb-05·op-17 처럼 ko 없는 얼리페이지는 제외).
   const koHref = fs.existsSync(path.join(ROOT, "ko", `${slug(code)}.html`)) ? `${SITE}/ko/${slug(code)}.html` : "";
 
-  return `${head({ title, desc, canonical, koHref, extraLd: faqLd(code, nameEn, title) + cardsLd + productLd(code, nameEn, s) })}
+  return `${head({ title, desc, canonical, koHref, extraLd: faqLd(code, nameEn, title, pageDate) + cardsLd + productLd(code, nameEn, s) })}
       <p class="eyebrow">Set Guide</p>
       <div class="setHero">
         ${s.box ? `<img src="${esc((variant(s.box, "hero") || { src: s.box }).src)}" alt="${esc(`${code} ${nameEn} Japanese booster box`)}" width="132" height="132" loading="eager" fetchpriority="high" decoding="async" />` : ""}
@@ -883,7 +932,7 @@ function setPage(code, prev, next) {
           ${keyFactsHtml(keyFactsModel(code, "jp"))}
           ${/* 갱신일을 정적 HTML 로 — 기존 "Updated" 는 JS 로만 찍혀서 크롤러에겐 날짜 없는
               페이지였다(2026-08-28 외부감사). 페이지는 매일 재생성되므로 이 날짜는 항상 사실. */ ""}
-          <p class="pageUpdated">Data updated <time datetime="${DATA_DATE}">${DATA_DATE}</time> · refreshed daily</p>
+          <p class="pageUpdated">Data updated <time datetime="${pageDate}">${pageDate}</time> · refreshed daily</p>
         </div>
       </div>
       ${AFF_TOP}
@@ -915,7 +964,7 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCGplayer market snapshot (not refreshed daily).` : `<a href="../methodology.html#nm-retail">NM</a> = Japanese near-mint retail, ¥ → USD at ¥1 = $${FX.jpyKrw && FX.usdKrw ? (FX.jpyKrw / FX.usdKrw).toFixed(5) : "?"} (${esc(FX.date || DATA_DATE)}). <a href="../methodology.html#psa10-price">PSA 10</a> = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
+      <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCG market snapshot (not refreshed daily).` : `<a href="../methodology.html#nm-retail">NM</a> = Japanese near-mint retail, ¥ → USD at ¥1 = $${FX.jpyKrw && FX.usdKrw ? (FX.jpyKrw / FX.usdKrw).toFixed(5) : "?"} (${esc(FX.date || DATA_DATE)}). <a href="../methodology.html#psa10-price">PSA 10</a> = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
       : `<p class="priceNote">Top 10 chase cards (${code}): — · <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`}
       ${auctionSection}
       <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
@@ -963,7 +1012,8 @@ function hubPage() {
   // 허브 표(2026-09-24): 홈 요약표와 같은 board 값. 가격 없는 이름 목록은 "어느 세트를 볼지" 고르는 데 도움이 안 됐다.
   const board = {};
   for (const b of (data.marketIndex && data.marketIndex.board) || []) board[b.code] = b;
-  const hubDate = DATA_DATE;
+  // 표의 날짜 칸은 판매 원장 기준일(asOf)까지 간다 — "Data" 날짜가 그보다 이르면 안 된다(2026-10-15, OP-07 행 10-15 · Data 10-14).
+  const hubDate = latestDate(DATA_DATE, SOLD_SERIES.asOf);
   const STALE_DAYS = 28;
   const rows = ORDER.map((code) => {
     const s = data.sets[code];
@@ -1066,13 +1116,13 @@ function rankingRows() {
       const psa = toUsdAt(sold.middle, sold.currency, sold.updated);
       const n = sold.sampleSize || 0;
       if (psa == null || n < 3) continue;
-      const rawUsd = jpyUsd(c.nmJpy);
+      const rawUsd = nmUsd(c, FX);   // 쓸 수 있는 NM 만(2026-10-15) — 카드 상세·세트 Top 10 과 같은 값
       const mult = rawUsd > 0 ? psa / rawUsd : null;
       const pop = c.graderPop && c.graderPop.psa && c.graderPop.psa.jp ? c.graderPop.psa.jp : null;
       // 관측일이 35일 넘은 sold 중앙값은 "지금 값"이 아니다 — 세트·카드 페이지(psaStale)·홈(PSA10_STALE_DAYS)과 같은 기준. 2026-09-30.
       const age = sold.updated ? (Date.parse(DATA_DATE) - Date.parse(sold.updated)) / 864e5 : null;
       rows.push({
-        code, setName: set.nameEn || code, name: c.name, number: c.number, rarity: c.rarity, psa, n,
+        code, setName: set.nameEn || code, name: c.name, number: c.number, rarity: rarityOf(code, c), psa, n,
         low: toUsdAt(sold.low, sold.currency, sold.updated), high: toUsdAt(sold.high, sold.currency, sold.updated), updated: sold.updated,
         stale: Number.isFinite(age) && age > 35,
         rawUsd, mult: mult && mult <= 40 ? mult : null, pop, img: ownImage(c), slug: CARD_MAP[cardKey(c.number, c.name)] || null,
@@ -1106,7 +1156,7 @@ function rankingPage() {
   const maxMult = topMult.length ? topMult[0].mult : 1;
 
   const cardCell = (r) => {
-    const inner = `${r.img ? `<img src="${esc((variant(r.img, "thumb") || { src: r.img }).src)}" alt="" width="40" height="56" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.name)}</b><small>${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(rarityLabel(r.rarity))}` : ""}</small></span>`;
+    const inner = `${r.img ? `<img src="${esc((variant(r.img, "thumb") || { src: r.img }).src)}" alt="" width="40" height="56" loading="lazy" decoding="async" />` : `<span class="noImg" aria-hidden="true"></span>`}<span><b>${esc(r.name)}</b><small>${esc(r.code)}${r.number ? ` · ${esc(r.number)}` : ""}${r.rarity ? ` · ${esc(r.rarity)}` : ""}</small></span>`;
     return `<td class="l cardCell">${r.slug ? `<a href="cards/${esc(r.slug)}">${inner}</a>` : `<span class="cardLink">${inner}</span>`}</td>`;
   };
   const rangeCell = (r) => (r.low != null && r.high != null ? `${usd(r.low)}–${usd(r.high)}` : "—");
