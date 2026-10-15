@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
-const { SITE, EPN, CSS_VER, esc, usd, intl, splitReprints, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate } = require("./set-page-shared");
+const { SITE, EPN, CSS_VER, esc, usd, intl, splitReprints, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate, dataDesc } = require("./set-page-shared");
 // 화면 크기에 맞는 이미지 파생본(2026-10-08): 머리 박스 사진 670px→264px, 랭킹 썸네일 100KB→5KB. 없으면 원본.
 const { variant } = require("./image-variants");
 
@@ -20,9 +20,6 @@ const ROOT = path.join(__dirname, "..");
 // 세트별 경매 실적 — build-set-auction-stats.js 가 굽는다. 없으면 섹션을 그리지 않는다.
 let SET_AUCTION = { sets: {}, window: {}, updated: "" };
 try { SET_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-auction-stats.json"), "utf8")); } catch { /* 아직 안 구웠으면 생략 */ }
-// One Piece cards use standard-size sleeves. This listing has verified high sales,
-// but the copy intentionally avoids a permanent "best-selling" claim.
-const SLEEVE_EBAY = `https://www.ebay.com/itm/136768331994?${EPN}`;
 const data = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "onepiece-packs.json"), "utf8"));
 
 // 세트 허브의 "Upcoming sets" 목록 — data/upcoming-set-pages.json 에서 만든다.
@@ -95,14 +92,11 @@ try { CARD_MAP = JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.j
 // 검증된 세트 팩트(정가·재판) — data/set-facts.json (연구 워크플로 산출, 나이틀리 불변)
 let SET_FACTS = { sets: {} };
 try { SET_FACTS = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-facts.json"), "utf8")); } catch (e) {}
-// 세트별 수기 해설 — data/set-commentary.json (사람이 쓴 문장, 기계 생성 금지).
-// 왜: 2026-08-07 애드센스가 "가치가 별로 없는 콘텐츠"로 거절했다. 실측하니 세트 페이지 21장이
-// 문장 기준 63% 동일(숫자만 교체된 템플릿)이었다 — 정확히 그 정책이 가리키는 형태다.
-// 페이지마다 "그 세트에만 참인 이야기"가 있어야 하고, 그 원문은 이 파일 하나에서 온다(가드 S3).
-let COMMENTARY = { sets: {} };
-try { COMMENTARY = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "set-commentary.json"), "utf8")); } catch (e) {}
-// 자연검색 핵심 랜딩의 검색 의도 원문. 가격은 아래 생성기가 검증 데이터에서 매번 채우고,
-// 이 파일은 세트별 맥락·재판 해석·실링 체크처럼 자동으로 지어내면 안 되는 문장만 보관한다.
+// 세트별 수기 해설(data/set-commentary.json)은 더 읽지 않는다 — 2026-10-15 소유자 결정: 데이터 페이지엔 숫자·표·라벨만.
+// 해설 본문(접힌 "Set notes")·해설에서 온 설명문·"What makes … stand out" 문답·허브 꼬리표가 모두 빠졌다.
+// 파일은 다른 도구(audit-adsense-readiness 의 세트 목록 · collect-status 라벨 · 가드 S3)가 아직 읽어 남겨 둔다.
+// 재판 랜딩 제목 — data/priority-set-seo.json 은 title 만 남았다(제목과 H1 의 ", reprints" 가 이 파일의 세트 목록을 따른다).
+// 같은 파일의 해설 칸(description·heading·marketContext·reprintContext·sealContext)은 2026-10-15 에 지웠다.
 let PRIORITY_SET_SEO = { sets: {} };
 try { PRIORITY_SET_SEO = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "priority-set-seo.json"), "utf8")); } catch (e) {}
 
@@ -122,11 +116,6 @@ const uniqueTitle = (t) => { if (seenTitles.has(t)) throw new Error(`타이틀 �
 const FX = data.fx || {};
 const DATA_DATE = data.updated || new Date().toISOString().slice(0, 10);
 const krwUsd = (krw) => (Number.isFinite(krw) && FX.usdKrw ? krw / FX.usdKrw : null);
-// 서술 블록(궤적·verdict·keyFacts)의 가격 소스 = 차트와 같은 sold 시리즈(USD, 판매일 기준) — 2026-08-21.
-// 종전 boxSeries(외부 KRW 주간시세)는 20/21 세트가 07-11~13 에 멈춰 "as of 2026-07-12" 가
-// 오늘 날짜 페이지에 그대로 나갔고, 환율도 1548.63 하드코딩이었다. 한 페이지에 서로 다른
-// 박스 가격이 3개 공존하는 문제의 근원. 시리즈가 곧 차트이므로 이제 문장과 그림이 같은 숫자를 말한다.
-const soldPts = (code, ed) => (((SOLD_SERIES.sets || {})[code] || {})[ed] || []).filter((pt) => pt && pt.median != null).map((pt) => ({ d: pt.d, p: pt.median }));
 const toUsd = (val, cur) => (val == null ? null : cur === "USD" ? val : krwUsd(val));
 // PSA10 실거래는 수집일 환율로 KRW 저장 → 오늘 환율로 되돌리면 환율 변동만큼 틀어진다(2026-09-09 감사: 12% 부풀림). 관측일 환율로 되돌린다.
 const toUsdAt = (val, cur, date) => (val == null ? null : cur === "USD" ? val : cur === "KRW" ? val / (fxAt(date) || FX.usdKrw) : null);
@@ -198,9 +187,8 @@ const SET_PAGE_CSS = `      /* 제목 블록이 폭을 100% 잡고 있어 박스
       .hubTable td.up { color: var(--green); } .hubTable td.down { color: var(--red); } .hubTable td.flat, .hubTable td.when { color: #9aa4b6; }
       .hubTable td.when small { font-size: 11.5px; color: var(--muted); }
       .hubTable tr.stale td { opacity: .62; } .hubTable tr.stale td.when { opacity: 1; color: #f5c842; }
-      .hubTable .hubTail { display: block; color: #8d95a7; font-size: 12px; margin-top: 2px; }
       .hubTable td.links { font-size: 12.5px; white-space: nowrap; }
-      @media (max-width: 640px) { .hubTable .hubTail { display: none; } .hubTable td.links { white-space: normal; } }
+      @media (max-width: 640px) { .hubTable td.links { white-space: normal; } }
       .ctaRow { display: flex; gap: 10px; flex-wrap: wrap; margin: 18px 0; }
       .ctaRow a { display: inline-flex; align-items: center; min-height: 42px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); font-weight: 800; }
       .ctaRow a.primary { background: rgba(var(--accent-rgb), .14); border-color: rgba(var(--accent-rgb), .5); color: var(--accent); }
@@ -208,15 +196,6 @@ ${BUY_CTA_CSS}
 ${KF_CSS}
       .setNavLinks { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; color: var(--muted); font-size: 14px; }
       .affNote { margin-top: 16px; color: var(--muted); font-size: 11.5px; opacity: .8; }
-      /* 접어둔 설명 묶음 — 눌러야 펴진다. 화면 기본값은 숫자만 보이는 상태다. */
-      .setMore { margin: 22px 0 0; border-top: 1px solid var(--line); }
-      .setMore > summary { cursor: pointer; padding: 12px 0; font-size: 14px; font-weight: 700; color: var(--muted); list-style: none; }
-      .setMore > summary::-webkit-details-marker { display: none; }
-      .setMore > summary::before { content: "▸ "; color: var(--accent); }
-      .setMore[open] > summary::before { content: "▾ "; }
-      .setMore > summary:hover { color: var(--ink); }
-      .setMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      .setMore .searchIntent, .setMore .setStory { margin-top: 4px; }
       /* EPN 제휴 고지 — 접힘선 위. 푸터 고지(11px)만으로는 눈에 안 띈다는 지적을 받았다(2026-08-10).
          작게 줄이거나 opacity 를 낮추지 말 것. */
       .affTop { display: block; margin: 12px 0 0; padding: 0 0 0 10px; border-left: 2px solid var(--line); color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 760px; }
@@ -319,12 +298,10 @@ function liveWidget(code) {
 // 구글은 본문에 없는 FAQPage 구조화데이터를 스팸으로 취급하고(리치결과는 2023년 폐지),
 // 숨긴 FAQ 는 이득 0·리스크만 있다. 그래서 한 소스에서 뽑아 양쪽에 쓴다 — 2026-07-21 감사.
 function faqItems(code, nameEn) {
-  // 첫 문답은 세트별 수기 해설(data/set-commentary.json) — 페이지마다 다른 유일한 문장이다(가드 S3·A4).
-  // 나머지는 원장 숫자로 답한다. 답에 세트 이름을 넣는 이유: 애드센스 감사(A4)는 숫자·세트코드를 지우고 22장에
+  // 문답은 원장 숫자로 답하는 것만 — 2026-10-15 소유자 결정으로 수기 해설 문답("What makes … stand out …?", set-commentary desc)을 뺐다.
+  // 답에 세트 이름을 넣는 이유: 애드센스 감사(A4)는 숫자·세트코드를 지우고 22장에
   // 같은 문장이 반복되는 비율을 재는데, 이름 없는 데이터 문장은 전부 "같은 문장"으로 잡힌다(2026-09-10 실측 31%).
-  // 값·날짜·표본은 페이지 재생성 때마다 갱신된다. 해설이 순위("1위 카드")를 단정하면 표와 어긋나므로 해설엔 순위를 쓰지 않는다.
-  const s = data.sets[code] || {};
-  const story = COMMENTARY.sets?.[code];
+  // 값·날짜·표본은 페이지 재생성 때마다 갱신된다.
   // 현재가 = box-sold-series 의 current(마지막 중앙값 점이 asOf 로부터 28일 이내)만 — Key facts 표·지표 격자·허브 표와 같은 원천(2026-10-15, 감사 #0).
   // 종전엔 boxMarket.ebaySold 를 날짜 검사 없이 써서, Key facts 가 "— no median dated within 28 days" 인 OP-02·OP-04·EB-01 의
   // FAQ(화면·FAQPage JSON-LD)가 "As of 2026-07-07 … about $147" 과 그 값으로 낸 "3.8x" 를 현재가처럼 말했다.
@@ -337,7 +314,6 @@ function faqItems(code, nameEn) {
   const enTag = enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : "";   // 영문판 값이 재판만일 때(OP-01) — 그래프 배지와 같은 기준
   const enBit = enU != null ? ` The English ${nameEn}${enTag} box runs about ${usd(enU)} (as of ${en.d}).` : "";
   const items = [];
-  if (story) items.push({ q: `What makes ${code} ${nameEn} stand out from other One Piece sets?`, a: story.desc });
   if (jpU != null) {
     items.push({
       q: `How much is a sealed ${code} ${nameEn} Japanese booster box?`,
@@ -351,6 +327,16 @@ function faqItems(code, nameEn) {
     items.push({
       q: `How does the English ${code} ${nameEn} box compare with the Japanese box?`,
       a: `English ${nameEn}${enTag} ${usd(enU)} (as of ${en.d}) versus Japanese ${nameEn} ${usd(jpU)} (as of ${jp.d}): the English box trades at about ${(enU / jpU).toFixed(1)}x the Japanese box.`,
+    });
+  }
+  // 일본판 판매 중앙값 문답이 없을 때(28일 안 중앙값 없음 — EB-01·OP-02·OP-04)는 최저 실매물 문답 하나 — 2026-10-15.
+  // 해설 문답을 뺀 뒤 이 세 장은 문답이 0개라 FAQPage 가 사라졌다(가드 L3·audit-seo 는 세트 페이지에 FAQPage 를 요구한다).
+  // 값은 Key facts 표 "Lowest live ask" 와 같은 함수(lowestAsk)·같은 표기 — 판매가 아닌 매물가라는 걸 질문이 말한다(가드 FQ1 의 "How much is a sealed" 꼴이 아니다).
+  const ask = jpU == null ? lowestAsk(data.sets[code] || {}, "jp") : null;
+  if (ask) {
+    items.push({
+      q: `What is the lowest live ask for a sealed ${code} ${nameEn} Japanese booster box?`,
+      a: `${ask.updated ? `As of ${ask.updated}, the` : "The"} lowest verified eBay listing for the Japanese ${nameEn} box is ${usd(ask.total)} including shipping${ask.listings != null ? ` (${ask.listings} listings)` : ""}.`,
     });
   }
   return items;
@@ -530,7 +516,7 @@ function setPage(code, prev, next) {
   const fullPsaRate = s.psaFull?.gemRate;
   const fullPsaTotal = s.psaFull?.total;
   const nameEn = s.nameEn || code;
-  // 이 페이지의 수정일 — JSON-LD dateModified·화면 "Data updated"·verdict 제목이 같은 날을 쓴다(set-page-shared.setPageDate, 2026-10-15 감사 #4).
+  // 이 페이지의 수정일 — JSON-LD dateModified·화면 "Data updated" 가 같은 날을 쓴다(set-page-shared.setPageDate, 2026-10-15 감사 #4).
   const pageDate = setPageDate(code);
   const cards = (s.cards || []).slice(0, 10);
   markTcgOutliers(cards);   // 트롤/오매칭 TCGplayer 폴백가 억제 (cardPrices 호출 전에 표시해 둔다)
@@ -553,11 +539,10 @@ function setPage(code, prev, next) {
     : fit([...latestCands, `One Piece ${code} ${nameEn} Japanese Booster Box Price`, `One Piece ${code} ${nameEn} Japanese Box Price`, `${code} ${nameEn} Japanese Booster Box Price | OP Box Index`, `${code} ${nameEn} Japanese Booster Box Price`, `${code} ${nameEn} Japanese Box Price`], TITLE_MAX, code));
   // 제목이 발매일·카드리스트를 말하면 H1 도 같은 말을 한다(최신 세트에서 한 번에 바뀐다).
   const relHeading = /release date/i.test(title);
-  // 해설의 desc 를 우선 사용 — 57개 페이지가 같은 문장 골격의 description 을 나눠 쓰면
-  // 그것부터 템플릿 신호다. 해설이 없는 세트만 기존 골격으로 떨어진다.
-  const story = COMMENTARY.sets?.[code];
-  if (!story) console.warn(`[set-commentary] ${code} 해설 없음 — 템플릿 문구로 대체됨 (S3 가드가 잡는다)`);
-  const desc = fit([prioritySeo?.description || story?.desc || `${code} ${nameEn} Japanese booster box price from eBay sold + listing data, top chase cards, PSA 10 population, and a buy-or-skip verdict.`], DESC_MAX, code);
+  // 설명 = Key facts 표의 값만(set-page-shared.dataDesc, 영문판과 같은 함수) — 2026-10-15 소유자 결정.
+  // 종전엔 priority-set-seo description → 해설 desc → "…and a buy-or-skip verdict." 순이라 22장 중 21장이 사람이 쓴 소개 문장이었다.
+  // 뒤 조각 = 지표 칸의 PSA 10 비율(세트 전체) — 들어갈 때만.
+  const desc = fit([dataDesc(keyFactsModel(code, "jp"), nameEn, [fullPsaRate != null && fullPsaTotal ? `PSA 10 rate ${fullPsaRate}%` : ""], DESC_MAX)], DESC_MAX, code);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box Japanese sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   // 최저 실매물 버튼 — 검색 링크는 값이 없어 잘 안 눌린다(2026-09-16 실측). 검증된 최저 매물이 있을 때만 낸다.
   // 값은 Key facts 표의 "Lowest live ask" 와 같은 함수(set-page-shared.lowestAsk)에서 — 표와 버튼이 늘 같은 숫자다.
@@ -592,59 +577,34 @@ function setPage(code, prev, next) {
   // 세트 요약 줄(dataSummary)은 Key facts 표로 바뀌었다 — 2026-10-14(W5a). 그 줄의 카드 수(s.cardCount)는 공식 목록과 달랐고
   // (OP-01 "106 cards" — 공식 121종·154장), 발매일은 월 단위였다. 카드 수는 이제 공식 값만(set-facts cardTypes · 공식 카드 리스트).
 
-  // 데이터 기반 분석 문단 (세트마다 고유)
-  // 이끄는 카드 = 가장 비싼 카드(priciest — 검증된 NM 최댓값, 4차) — 2026-10-15. 종전엔 소유자 순위 1위(cards[0])라 OP-05 가 "$3,144 OP05-119" 인데
-  // 같은 페이지 Top 10 2행은 $5,038, 비교표도 $5,038 이었다. Key facts·박스 대비 배수·한국어 문단·비교표가 같은 카드·같은 값을 쓴다. 모르면(null) 문단 없음.
+  // 가장 비싼 카드 = priciest(검증된 NM 최댓값, 4차) — Key facts 문단·한국어 문단·비교표가 같은 카드·같은 값을 쓴다. 모르면(null) 문장 없음.
+  // Top 10 표 위의 "The chase in … is led by …" 문단은 뺐다(2026-10-15 소유자 결정: 숫자·표·라벨만) — 표의 행을 문장으로 되풀이했다.
   const pc = priciest(cards, FX);
-  const top = pc ? pc.card : null, tp = top ? cardPrices(top) : {};
-  const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCG 폴백 시세만 있는 세트: NM 설명 문구를 정직하게 교체
-  // 이끄는 카드는 늘 검증된 NM 이 있는 카드라(pc) PSA 10 절은 " and whose …" 로 잇는다 — 값 없는 1순위 카드로 문단을 만들지 않는다(2026-10-15, 3차).
-  // 4차부터 TCG 값은 가장 비싼 카드가 될 수 없다(검증 안 된 값) — 라벨은 NM 하나.
+  const allTcg = cards.length > 0 && cards.every((c) => cardPrices(c).nmSrc === "tcg"); // OP-16 등 TCG 폴백 시세만 있는 세트: NM 라벨을 바꾼다
   // 금액 뒤에 NM 관측일(nmUpdated)을 붙인다 — 2026-10-15(5차): OP-12 Teach SP Gold $1,566 은 09-07 에 읽은 값인데(다른 세트 1위는 10-11)
-  // Key facts·이 문단·한국어 문단에 날짜 없이 나가 오늘 값처럼 읽혔다. 카드 상세의 "as of 2026-09-07" 과 같은 날짜.
+  // 날짜 없이 나가 오늘 값처럼 읽혔다. 카드 상세의 "as of 2026-09-07" 과 같은 날짜.
   const pcDate = pc && pc.price.date ? ` (${esc(pc.price.date)})` : "";
-  const analysis = pc && pc.ties.length > 1 ? `The chase in ${code} is led by <strong>${joinNames(pc.ties)}</strong>, tied at about ${usd(pc.price.usd)} raw Japanese NM each${pcDate}.` : top ? `The chase in ${code} is led by <strong>${esc(top.name)}</strong>${rarityOf(code, top) ? ` (${esc(rarityOf(code, top))})` : ""}, whose raw Japanese NM copy runs about ${usd(pc.price.usd)}${pcDate}${tp.psa != null ? ` and ${tp.psaKind === "sold" ? (tp.psaStale ? `whose PSA 10 examples last sold near ${usd(tp.psa)} (${esc(tp.psaDate || "")}, n=${tp.psaN || "?"})` : `whose PSA 10 examples have sold near ${usd(tp.psa)}`) : `whose PSA 10 copies list near ${usd(tp.psa)}`}` : ""}.` : "";
 
-  // 박스 시세 궤적 (세트별 고유 수치 — 차트와 같은 sold 시리즈 기반)
-  let trajectory = "";
-  const bs = soldPts(code, "jp");
-  if (bs.length >= 8) {
-    const toU = (v) => Math.round(v);
-    const first = bs[0], last = bs[bs.length - 1];
-    const peak = bs.reduce((a, b) => (b.p > a.p ? b : a), bs[0]);
-    const chg = Math.round((last.p / first.p - 1) * 100);
-    const dir = chg >= 3 ? `gained <strong>${chg}%</strong>` : chg <= -3 ? `fell <strong>${Math.abs(chg)}%</strong>` : `held roughly flat (<strong>${chg >= 0 ? "+" : ""}${chg}%</strong>)`;
-    const en = soldPts(code, "en");
-    // 마지막 점이 current(28일 규칙)가 아니면 "지금 값"으로 쓰지 않는다 — 2026-10-15(감사 #0 과 같은 결함): OP-04·EB-01 의 이 문단이
-    // 35~57일 묵은 일본판 값을 "stands near" 로 쓰고 그 값으로 영문판 배수(2.7x)를 냈다. 같은 페이지 Key facts·FAQ 는 "—".
-    const cur = SOLD_SERIES.sets?.[code]?.current || {};
-    let enBit = "";
-    if (en.length >= 8 && cur.en) {
-      const enLast = en[en.length - 1], enChg = Math.round((enLast.p / en[0].p - 1) * 100);
-      const ratio = (enLast.p / last.p).toFixed(1);
-      // 배율은 두 판의 **마지막 관측일이 다를 수 있다**(예: EB-01 은 16일 차이). 그 사실을 숨기면
-      // 같은 날 값을 나눈 것처럼 읽힌다 — 관측일이 어긋나면 두 날짜를 함께 밝힌다(2026-08-26 감사).
-      const enD = enLast.d, jpD = last.d;
-      const ratioNote = enD === jpD ? "" : ` (JP as of ${esc(jpD)}, EN as of ${esc(enD)})`;
-      const ratioBit = cur.jp ? ` — about <strong>${ratio}x</strong> the Japanese box${ratioNote}. This ratio does not explain why.` : ".";
-      enBit = ` The English-language ${esc(s.nameEn || code)}${enIsReprint(SOLD_SERIES.sets?.[code]) ? " reprint (White)" : ""} box trades near <strong>${usd(toU(enLast.p))}</strong> as of ${esc(enD)} (${enChg >= 0 ? "+" : ""}${enChg}% over its tracked window)${ratioBit}`;
-    }
-    trajectory = `
-      <h2>${code} box price: the tracked trajectory</h2>
-      <p>The Japanese ${esc(s.nameEn || code)} sealed box entered our tracking on ${esc(first.d)} around <strong>${usd(toU(first.p))}</strong> and ${cur.jp ? "stands near" : "last stood near"} <strong>${usd(toU(last.p))}</strong> ${cur.jp ? "as of" : "on"} ${esc(last.d)} — it ${dir} over the window, peaking at <strong>${usd(toU(peak.p))}</strong> in the week of ${esc(peak.d)}.${enBit}</p>`;
-  }
+  // 2026-10-15 소유자 결정(데이터 페이지엔 숫자·표·라벨만)으로 뺀 블록 — 값은 차트·지표 칸·Key facts 표에 그대로 있다:
+  //   박스 시세 궤적("entered our tracking … This ratio does not explain why"), 현재 가격 구간 해설(verdict — "It is a comparison, not a forecast",
+  //   "so the visible chase value is highly concentrated", "It is not opening expected value"), 검색 의도 블록(priority-set-seo
+  //   marketContext·reprintContext·sealContext), 세트 수기 해설(set-commentary body).
 
-  // 주간 PSA 인구 증가 — psaWeekly 기반, 세트별 고유. 실제 개봉량으로 표현하지 않는다.
+  // 주간 PSA 등급 증가 — psaWeekly. 문장("How fast is … growing?" · "(still running near its peak)" · "Grades are not a box-opening count")을
+  // 라벨 줄로 바꿨다(2026-10-15). 세트 누적(psaFull.total)은 지표 칸 "PSA graded" 에 있어 되풀이하지 않는다(한 사실 한 값).
   let momentum = "";
   const wk = s.psaWeekly && Array.isArray(s.psaWeekly.points) ? s.psaWeekly.points : [];
   if (wk.length >= 3) {
     const sum = wk.reduce((a, b) => a + b.v, 0);
     const pk = wk.reduce((a, b) => (b.v > a.v ? b : a), wk[0]);
     const lastW = wk[wk.length - 1];
-    const trend = lastW.v >= pk.v * 0.85 ? "still running near its peak" : lastW.v <= pk.v * 0.55 ? "cooling off from its peak" : "steady";
     momentum = `
-      <h2>How fast is the ${code} PSA population growing?</h2>
-      <p>For ${esc(s.nameEn || code)}, between ${esc(wk[0].d)} and ${esc(lastW.d)}, the recorded PSA population increased by <strong>${intl(sum)}</strong> grades — peaking at <strong>${intl(pk.v)}</strong> in the week of ${esc(pk.d)}, with the latest week at ${intl(lastW.v)} (${trend}). ${s.psaFull && s.psaFull.total ? `The all-time set total is <strong>${intl(s.psaFull.total)}</strong>.` : ""} Grades are not a box-opening count.</p>`;
+      <h2>${code} PSA grades added per week</h2>
+      <ul class="keyFacts">
+        <li>${esc(wk[0].d)} – ${esc(lastW.d)}: <strong>${intl(sum)}</strong> grades added</li>
+        <li>Peak week (${esc(pk.d)}): <strong>${intl(pk.v)}</strong></li>${pk === lastW ? "" : `
+        <li>Latest week (${esc(lastW.d)}): <strong>${intl(lastW.v)}</strong></li>`}
+      </ul>`;   // 고점 주가 마지막 주면 같은 값을 두 줄로 쓰지 않는다(한 사실 한 값)
   }
 
   // ── 경매 실적 — 우리가 직접 종료 후 재조회해 쌓은 원장에서만 나오는 축이다.
@@ -679,53 +639,14 @@ function setPage(code, prev, next) {
     }
   }
 
-  // 현재 가격 구간 해설 — 실데이터 파생, 미래 가격이나 구매 결론은 만들지 않는다.
-  // "현재" 를 말하는 문단이라 일본판 current(28일 규칙)가 있을 때만 — 2026-10-15: OP-04 가 "(2026-10-14) The box trades at $175"(09-10 값)를 냈다.
-  let verdict = "";
-  {
-    const pts = soldPts(code, "jp");
-    if (pts.length >= 8 && SOLD_SERIES.sets?.[code]?.current?.jp) {
-      const vFirst = pts[0].p, vLast = pts[pts.length - 1].p;
-      const vPeak = Math.max(...pts.map((p) => p.p));
-      const dd = vPeak > 0 ? Math.round(((vPeak - vLast) / vPeak) * 100) : 0;
-      const chg = vFirst > 0 ? Math.round(((vLast - vFirst) / vFirst) * 100) : 0;
-      // 박스 대비 배수도 가장 비싼 카드(pc — priciest) 기준. 추적 문단·Key facts 와 같은 카드·같은 값(2026-10-15, 3차).
-      const topNm = pc ? pc.price.usd : null;
-      const mult = topNm && vLast ? topNm / vLast : null;
-      const nowLabel = pageDate;   // 마지막 점이 asOf(10-15)일 수 있다 — packs.updated(10-14)를 쓰면 제목 날짜가 값보다 이르다(2026-10-15)
-      let priceRead;
-      if (dd >= 20) priceRead = `The current value is about <strong>${dd}% below the tracked peak</strong> (${usd(vPeak)} → ${usd(vLast)}). Past peaks do not set future floors.`;
-      // 현재가 = 고점이면(같은 금액) "vs peak" 비교를 빼고 "at" — 2026-10-15(5차): "($134 vs peak $134, …)" 처럼 같은 값끼리 비교했다(OP-09·OP-12·PRB-02).
-      else if (chg >= 15 && dd < 10) priceRead = usd(vLast) === usd(vPeak)
-        ? `The box sits at its tracked high (${usd(vLast)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`
-        : `The box sits near its tracked high (${usd(vLast)} vs peak ${usd(vPeak)}, ${chg >= 0 ? "+" : ""}${chg}% over our window). It is a comparison, not a forecast.`;
-      else priceRead = usd(vLast) === usd(vPeak)
-        ? `The box trades at its tracked peak of ${usd(vPeak)}, ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`
-        : `The box trades at ${usd(vLast)}, ${dd}% under its tracked peak of ${usd(vPeak)} and ${chg >= 0 ? "up " + chg + "%" : "down " + Math.abs(chg) + "%"} over our tracking window.`;
-      const tieN = pc ? pc.ties.length : 0;
-      const chaseRead = mult != null && tieN > 1
-        ? ` The top ${tieN} cards (${joinNames(pc.ties)}) are each worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>. Official pull rates are unpublished. It is not opening expected value.`
-        : mult != null
-        ? (mult >= 3
-          ? ` The top card alone (${esc(pc.card.name)}) is worth about <strong>${mult >= 10 ? Math.round(mult) : mult.toFixed(1)}x the box</strong>, so the visible chase value is highly concentrated. Official pull rates are unpublished. It is not opening expected value.`
-          : ` The top chase (${esc(pc.card.name)}) runs about ${mult.toFixed(1)}x the box price. Check the full top-10 distribution. This ratio is not opening EV.`)
-        : "";
-      verdict = `
-      <h2>How the ${code} box price compares with its tracked range (${esc(nowLabel)})</h2>
-      <p>${priceRead}${chaseRead}</p>`;
-    }
-  }
-
-  // 재판 이력 + 발매 정가 — 검증된 팩트(data/set-facts.json). 반다이는 세트별 재판 미발표.
+  // 재판 기록 — 검증된 팩트(data/set-facts.json). 반다이는 세트별 재판 미발표.
   // 정가 대비 배수는 2026-07-29 소유자 판단으로 사이트 전체에서 제거했다(쓸모없다고 봄).
+  // 2026-10-15: 같은 블록의 "Original Japanese release"·"Original Japanese MSRP … (about $N)" 줄은 H1 아래 Key facts 표의 발매일·정가 행과
+  // 같은 사실이라 뺐다(한 사실 한 값). 블록은 접힌 "Set notes" 에서 나와 라벨·날짜 목록으로 보인다.
   let reprintBlock = "";
   {
     const sf = (SET_FACTS.sets && SET_FACTS.sets[code]) || null;
-    if (sf && sf.jpMsrpYen) {
-      const msrpUsd = FX.jpyKrw && FX.usdKrw ? Math.round((sf.jpMsrpYen * FX.jpyKrw) / FX.usdKrw) : null;
-      const pts2 = soldPts(code, "jp");
-      const nowU = pts2.length ? pts2[pts2.length - 1].p : null;
-      const mult = msrpUsd && nowU ? (nowU / msrpUsd).toFixed(1) : null;
+    if (sf) {
       // 기록의 성격을 나눈다. 매장 재입고 공지를 "반다이가 재판을 발표했다" 처럼 읽히게 두면 안 된다.
       // 추첨판매는 **발매 전**에도 열린다(초회 물량 선판매). 그건 물량이 다시 풀린 게 아니므로
       // 재공급으로 세면 안 된다 — OP-17 은 발매 2026-08-22 인데 추첨이 7/30·8/7~18 이었다.
@@ -734,11 +655,10 @@ function setPage(code, prev, next) {
       const isShopReprint = (r) => r.kind === "official-reprint-lottery";
       const isDistributor = (r) => /distributor/i.test(r.kind || "");
       // 원장 날짜 그대로(ISO). 월까지만 기록된 건은 "2025-09" 로 남는다 — 일을 지어내지 않는다(2026-10-14, 종전 "Sep 2025").
-      const monthOf = (d) => d || "";
       // 소스 URL 이 살아있는 http 링크일 때만 클릭 링크. 죽은/빈 소스는 텍스트로(죽은 링크 노출 방지 — 2026-07-21 감사).
       const item = (r) => {
         const live = typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead;
-        const when = esc(monthOf(r.date));
+        const when = esc(r.date || "");
         return live ? `<a href="${esc(r.source)}" target="_blank" rel="noopener nofollow">${when}</a>` : when;
       };
       const shopReprint = reprint.filter(isShopReprint), distrib = reprint.filter(isDistributor);
@@ -746,65 +666,32 @@ function setPage(code, prev, next) {
       const lines = [];
       // 사전추첨(발매 전 초회 물량 선배분)은 이 섹션에 싣지 않는다 — 추가 공급이 아니라서
       // "재판·공급" 맥락에 두면 물량이 늘어난 것처럼 읽힌다. 데이터에는 남아 있다(pre-release-lottery).
-      // 방법 설명 꼬리("Bandai does not call these reprints, so we do not either" · "so we do not claim …")는 뺐다 — 줄은 라벨·날짜만(2026-10-15, 4차).
       // 줄 = 라벨 + 날짜 링크. 날짜가 없는 기록만 있는 줄은 라벨 자체를 출처 링크로 낸다 — 2026-10-15(5차): PRB-01 MediaWorld 기록(date "")이
       // 링크 글자가 빈 "Distributor reprint: ." 로 나갔다. 날짜를 지어 붙이지 않고, 한국어 페이지("유통사 재입고")처럼 라벨만 남긴다.
+      // 줄 꼬리 설명("— a Premium Bandai / Bandai Namco shop draw held after release" · "store restock notices, …")은 라벨로 줄였다(2026-10-15).
+      // 매장 재입고 줄의 "not a Bandai reprint announcement" 는 그 날짜가 반다이 재판으로 읽히지 않게 하는 라벨이라 남긴다(가드 R2).
       const row = (label, recs, tail = "") => {
         const dated = recs.filter((r) => r.date);
-        if (dated.length) return `<li>${label}: ${dated.map(item).join(", ")}${tail}.</li>`;
+        if (dated.length) return `<li>${label}: ${dated.map(item).join(", ")}${tail}</li>`;
         const src = recs.find((r) => typeof r.source === "string" && /^https?:\/\//.test(r.source) && !r.sourceDead);
         return `<li>${src ? `<a href="${esc(src.source)}" target="_blank" rel="noopener nofollow">${label}</a>` : label}${tail}</li>`;
       };
       if (shopReprint.length) lines.push(row("Bandai Namco shop reprint (再販) lottery", shopReprint));
-      if (official.length) lines.push(row("Post-release lottery sale", official, " — a Premium Bandai / Bandai Namco shop draw held after release"));
+      if (official.length) lines.push(row("Post-release lottery (Premium Bandai / Bandai Namco shop)", official));
       if (unver.length) lines.push(row("Lottery sale, timing vs the Japanese release unverified", unver));
       if (distrib.length) lines.push(row("Distributor reprint", distrib));
-      if (retail.length) lines.push(row("Retailer-reported restocks", retail, " — store restock notices, not a Bandai reprint announcement"));
-      if (!lines.length) lines.push("<li>No reprint or restock record in our source ledger.</li>");
-      // 재판은 "최초 발매 대비" 개념이라 기준일이 있어야 읽힌다. 공식 출처로 확인한 일본판 발매일만 싣는다
-      // (페이지 상단의 release 는 영문판 날짜라 여기 기준으로 쓸 수 없다).
-      const jpRel = sf.jpRelease && sf.jpRelease.date
-        ? `<li>Original Japanese release: <strong>${esc(sf.jpRelease.date)}</strong>${
-            sf.jpRelease.source ? ` (<a href="${esc(sf.jpRelease.source)}" target="_blank" rel="noopener nofollow">Bandai official</a>)` : ""
-          }.</li>`
-        : "";
+      if (retail.length) lines.push(row("Retailer-reported restocks", retail, " — not a Bandai reprint announcement"));
+      if (!lines.length) lines.push("<li>Reprint or restock records: none</li>");
       reprintBlock = `
-      <h2>Reprints &amp; original price</h2>
+      <h2>${code} reprint records</h2>
       <ul class="keyFacts">
-        ${jpRel}
-        <li>Original Japanese MSRP: <strong>¥${sf.jpMsrpYen.toLocaleString()}</strong> per ${sf.packsPerBox}-pack box (about $${msrpUsd}).</li>
         ${lines.join("\n        ")}
       </ul>`;
     }
   }
 
-  // 핵심 자연검색 랜딩: 현재 가격, 재판 근거, factory-seal 판별을 첫 화면 가까이에서 직접 답한다.
-  // 수동 문장과 검증된 가격 데이터를 분리해 야간 재생성 때도 최신값과 고유 해설을 함께 유지한다.
-  let searchIntentBlock = "";
-  if (prioritySeo) {
-    const seriesPoints = soldPts(code, "jp");
-    const latestPoint = seriesPoints.length ? seriesPoints[seriesPoints.length - 1] : null;
-    const latestValue = latestPoint ? latestPoint.p : null;
-    const active = s.boxMarket?.jp?.ebayActive;
-    const activeMiddle = active?.middle != null ? toUsd(active.middle, active.currency) : null;
-    const priceParts = [];
-    if (activeMiddle != null && (active.sampleSize || 0) >= 3) {
-      priceParts.push(`As of ${esc(active.updated || DATA_DATE)}, current eBay asks center near <strong>${usd(activeMiddle)}</strong> across ${active.sampleSize} verified listings.`);
-    }
-    if (latestValue != null) priceParts.push(`Completed eBay sales last put the box near <strong>${usd(latestValue)}</strong> on ${esc(latestPoint.d)}.`);
-    searchIntentBlock = `
-      <section class="searchIntent" aria-label="${esc(`${code} price, reprint and factory-seal summary`)}">
-        <h2>${esc(prioritySeo.heading)}</h2>
-        <p>${priceParts.join(" ")} ${esc(prioritySeo.marketContext)}</p>
-        <p><strong>Reprint record:</strong> ${esc(prioritySeo.reprintContext)}</p>
-        <p><strong>Factory-seal check:</strong> ${esc(prioritySeo.sealContext)}</p>
-      </section>`;
-  }
-
-  const compareLink =
-    code === "OP-05" || code === "OP-06"
-      ? `<li>Comparing this to a nearby set? See <a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>.</li>`
-      : "";
+  // OP-05·OP-06 비교 글 링크 — 종전 "Comparing this to a nearby set? See …" 문장을 아래 내비 링크 하나로 바꿨다(2026-10-15).
+  const compareLink = code === "OP-05" || code === "OP-06" ? `<a href="../articles/op-05-vs-op-06.html">OP-05 vs OP-06</a>` : "";
 
   const cardsLd = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org",
@@ -836,6 +723,8 @@ function setPage(code, prev, next) {
       `<div class="statCard"><div class="statLabel">${lab(label)}</div><div class="statValue">${value}</div><div class="statBase">${baseText}</div></div>`);
     // 지표 정의문은 카드마다 3~4줄을 잡아먹어 격자를 두 배로 늘렸다(2026-08-27 실측 366px).
     // 정의는 한 번만 읽으면 되는 글이라 격자 아래 접힌 용어집으로 모은다 — DOM 에는 그대로 남는다.
+    // 2026-10-15 소유자 결정: 정의는 식 한 조각("listings on sale ÷ daily sales")만. 해석 꼬리("Fewer days means stock is clearing",
+    // "More means demand spreads beyond one chase", "The higher this runs, the more the set rides on one pull", "value without hitting the big one")는 뺐다.
     const hints = [];
     const hintCell = (label, value, baseText, hint) => {
       hints.push([label, hint]);
@@ -850,9 +739,9 @@ function setPage(code, prev, next) {
       cell("4-week change", `<span class="${cls}">${m.chg > 0 ? "+" : ""}${m.chg}%</span>`, `${baseLabel("chg")} ${base.chg > 0 ? "+" : ""}${base.chg}%`);
     }
     // 재고일수 = 지금 걸린 매물 ÷ 하루 판매 속도. 낮을수록 물건이 빨리 빠진다는 뜻이라 higherIsBetter=false.
-    if (m.days != null) hintCell("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${base.days}d ${cmp(m.days, base.days, false)}`, "How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing.");
+    if (m.days != null) hintCell("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${base.days}d ${cmp(m.days, base.days, false)}`, "Listings on sale ÷ sales per day (sold-median window)");
     if (m.psa != null) cell("PSA graded", intl(m.psa), `${baseLabel("psa")} ${intl(base.psa)} ${cmp(m.psa, base.psa)}`);
-    if (m.gem != null) hintCell("PSA 10 rate", `${m.gem}%`, `${baseLabel("gem")} ${base.gem}% ${cmp(m.gem, base.gem)}`, "Share of PSA submissions from this set that came back a 10.");
+    if (m.gem != null) hintCell("PSA 10 rate", `${m.gem}%`, `${baseLabel("gem")} ${base.gem}% ${cmp(m.gem, base.gem)}`, "PSA 10 grades ÷ all PSA grades, full set");
     // ── 싱글카드 구성 — 2026-08-20. TCG 퀀트의 SINGLES INTEL 을 우리 데이터로 낸다.
     // 박스를 뜯는 사람이 실제로 묻는 것: "대박 하나에 몰려 있나, 아니면 두루 값이 나가나".
     // 그쪽과 대조해 보니 OP-01 chase concentration 이 53% 로 정확히 일치했다.
@@ -865,22 +754,22 @@ function setPage(code, prev, next) {
       const rv = rawValues(list, FX);
       const priced = rv.verified.length + rv.unverified.length;   // 칸을 둘지 — raw 값이 있는 카드(검증 안 된 값 포함) 5장 이상
       if (!top && priced >= 5) {
-        hintCell("Value density", "—", "", `Cards worth $25+ in the top ${list.length}. More means demand spreads beyond one chase.`);
-        hintCell("Chase concentration", "—", "", `Share of top-${list.length} value held by the #1 card. The higher this runs, the more the set rides on one pull.`);
-        hintCell(`Floor of the top ${list.length}`, "—", "", "What the cheapest tracked chase card is worth — value without hitting the big one.");
+        hintCell("Value density", "—", "", `Cards worth $25+ in the top ${list.length} (raw NM)`);
+        hintCell("Chase concentration", "—", "", `#1 card ÷ total raw NM value of the top ${list.length}`);
+        hintCell(`Floor of the top ${list.length}`, "—", "", `Lowest raw NM value in the top ${list.length}`);
       } else if (top && top.length >= 5) {
         const total = top.reduce((a, v) => a + v, 0);
         const dense = top.filter((v) => v >= 25).length;
         const conc = Math.round((top[0] / total) * 100);
-        hintCell("Value density", `${dense} / ${top.length}`, "", `Cards worth $25+ in the top ${top.length}. More means demand spreads beyond one chase.`);
-        hintCell("Chase concentration", `${conc}%`, "", `Share of top-${top.length} value held by the #1 card. The higher this runs, the more the set rides on one pull.`);
-        hintCell(`Floor of the top ${top.length}`, usd(Math.round(top[top.length - 1])), "", "What the cheapest tracked chase card is worth — value without hitting the big one.");
+        hintCell("Value density", `${dense} / ${top.length}`, "", `Cards worth $25+ in the top ${top.length} (raw NM)`);
+        hintCell("Chase concentration", `${conc}%`, "", `#1 card ÷ total raw NM value of the top ${top.length}`);
+        hintCell(`Floor of the top ${top.length}`, usd(Math.round(top[top.length - 1])), "", `Lowest raw NM value in the top ${top.length}`);
       }
     }
 
     if (cells.length >= 3) {
       const glossary = hints.length
-        ? `<details class="statGloss"><summary>What these numbers mean</summary><dl>${hints.map(([l, t]) => `<dt>${l}</dt><dd>${t}</dd>`).join("")}</dl></details>`
+        ? `<details class="statGloss"><summary>Definitions</summary><dl>${hints.map(([l, t]) => `<dt>${l}</dt><dd>${t}</dd>`).join("")}</dl></details>`
         : "";
       statGrid = `<section aria-label="Set metrics"><div class="statGrid">${cells.join("")}</div>${glossary}</section>`;
     }
@@ -889,12 +778,13 @@ function setPage(code, prev, next) {
   let keyFacts = "";
   {
     const facts = [];
-    // 주 팩트는 차트와 같은 sold 시리즈 기준 — 페이지 내 다른 수치(궤적·verdict)와 일치해야 함.
+    // 주 팩트는 차트와 같은 sold 시리즈 기준 — Key facts 표·지표 격자와 같은 current 값.
     // 현재가 문장은 current(28일 규칙)일 때만 — 2026-10-14 QA: "As of 2026-07-07 … about $147"·"3.8x the Japanese box" 가 접힌 사실 문단에 남았다.
     const curJ = SOLD_SERIES.sets?.[code]?.current?.jp || null, curE = SOLD_SERIES.sets?.[code]?.current?.en || null;
     const serLast = curJ ? { d: curJ.d, p: curJ.median } : null;
     const jpVal = serLast ? serLast.p : null;
-    if (jpVal != null) facts.push(`As of ${esc(serLast.d)}, a sealed ${code} Japanese booster box has a market value of about <strong>${usd(jpVal)}</strong>.`);
+    // 라벨은 Key facts 표와 같은 "sold median"(2026-10-15 — 종전 "market value" 는 같은 값의 다른 이름이었다).
+    if (jpVal != null) facts.push(`As of ${esc(serLast.d)}, a sealed ${code} Japanese booster box has an eBay sold median of about <strong>${usd(jpVal)}</strong>${curJ.n != null ? ` (${curJ.n} sales)` : ""}.`);
     const bmA = s.boxMarket && s.boxMarket.jp && s.boxMarket.jp.ebayActive;
     const midA = bmA && bmA.middle != null ? toUsd(bmA.middle, bmA.currency) : null;
     if (midA != null && (bmA.sampleSize || 0) >= 5) facts.push(`Current eBay asking prices run around <strong>${usd(midA)}</strong> (${bmA.sampleSize} active listings).`);
@@ -909,8 +799,8 @@ function setPage(code, prev, next) {
     }
     if (fullPsaRate != null && fullPsaTotal) facts.push(`Across the full ${code} set, <strong>${fullPsaRate}%</strong> of PSA-graded cards received PSA 10, across ${intl(fullPsaTotal)} total grades.`);
     if (s.release) facts.push(`The English edition of ${code} released ${esc(s.release)}${jpRelDate ? ` (Japanese edition ${esc(jpRelDate)})` : ""}.`);
-    // 이 문단은 바로 위 지표 격자의 숫자를 문장으로 되풀이한다(AI 인용용 요약이라 문장 형태가 필요).
-    // 화면에서는 접어 두고, 본문은 DOM 에 그대로 둔다.
+    // 이 목록은 날짜 박힌 사실 한 줄씩이다(AI 인용용) — 해석·방법 설명 문장은 넣지 않는다(2026-10-15 소유자 결정).
+    // 화면에서는 접어 두고, 본문은 DOM 에 그대로 둔다. 가드 PC1 이 "The most valuable …" 줄을 원장과 대조한다.
     if (facts.length >= 2) keyFacts = `
       <section id="key-facts" aria-label="Key facts">
         <details class="keyFactsBox"><summary>Key facts in one paragraph</summary>
@@ -953,9 +843,8 @@ function setPage(code, prev, next) {
       ${liveWidget(code)}
       ${/* 갓 나온 세트는 박스 시세만 있고 체이스 카드 목록이 아직 없다. 헤더만 있는 빈 표를
             내보내면 "데이터가 있는데 비어 있다"로 읽힌다 — 섹션을 아예 그리지 않고,
-            왜 없는지 한 줄로 밝힌다. 카드 목록이 생기면 자동으로 다시 나타난다. */""}
+            라벨 한 줄(값 "—")만 남긴다. 카드 목록이 생기면 자동으로 다시 나타난다. */""}
       ${cards.length ? `<h2>Top 10 chase cards in ${code}</h2>
-      <p>${analysis}</p>
       <div class="chaseTableWrap">
         <table class="chaseTable">
           <thead><tr><th>#</th><th class="cn">Card</th><th>NM (raw)</th><th>PSA 10</th><th class="gCol">Graded (PSA / CGC / TAG)</th></tr></thead>
@@ -964,36 +853,20 @@ function setPage(code, prev, next) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">${allTcg ? `NM (raw) uses a one-time TCG market snapshot (not refreshed daily).` : `<a href="../methodology.html#nm-retail">NM</a> = Japanese near-mint retail, ¥ → USD at ¥1 = $${FX.jpyKrw && FX.usdKrw ? (FX.jpyKrw / FX.usdKrw).toFixed(5) : "?"} (${esc(FX.date || DATA_DATE)}). <a href="../methodology.html#psa10-price">PSA 10</a> = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
+      <p class="priceNote">${allTcg ? `NM (raw) = one-time TCG market snapshot.` :`<a href="../methodology.html#nm-retail">NM</a> = Japanese near-mint retail, ¥ → USD at ¥1 = $${FX.jpyKrw && FX.usdKrw ? (FX.jpyKrw / FX.usdKrw).toFixed(5) : "?"} (${esc(FX.date || DATA_DATE)}). <a href="../methodology.html#psa10-price">PSA 10</a> = sold median where marked, otherwise a verified ask.`} <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`
       : `<p class="priceNote">Top 10 chase cards (${code}): — · <a href="../methodology.html">Source rules</a> · ${esc(DATA_DATE)}</p>`}
       ${auctionSection}
-      <!-- 산문은 전부 접는다 — 이 페이지에 오는 사람은 숫자를 보러 온다. 2026-08-12.
-           지우지는 않는다: 세트 해설·재판 이력·밀봉 확인은 이 페이지를 얇지 않게 만드는 실체이고,
-           접어도 HTML 에 그대로 있어 검색·심사에는 똑같이 잡힌다. 화면에서만 물러난다. -->
-      ${(() => {
-        // 내용이 하나도 없으면 접기 자체를 그리지 않는다 — 2026-08-26.
-        // OP-17(신규 세트)에서 열면 아무것도 없는 빈 <details> 가 나갔다. 눌렀는데 비어 있는 UI 는
-        // "데이터가 있는데 안 보이는 건가"라는 의심만 남긴다. 내용이 생기면 자동으로 다시 나타난다.
-        const inner = [searchIntentBlock,
-          story ? `<section class="setStory" aria-label="${esc(`${code} editorial`)}">
-          <h2>${esc(story.heading)}</h2>
-          ${story.body.map((p) => `<p>${esc(p)}</p>`).join("\n          ")}
-        </section>` : "",
-          trajectory, verdict, reprintBlock, momentum,
-          compareLink ? `<p class="priceNote">${compareLink.replace(/^<li>|<\/li>$/g, "")}</p>` : "",
-        ].filter((x) => x && x.trim()).join("\n        ");
-        if (!inner) return "";
-        return `<details class="setMore">
-        <summary>Set notes — price context, reprints, factory-seal check${story ? ", background" : ""}</summary>
-        ${inner}
-      </details>`;
-      })()}
+      ${/* 접힌 "Set notes"(해설·궤적·해석·검색 의도 문단)는 2026-10-15 소유자 결정으로 없앴다. 남은 것은 라벨·날짜 목록인
+            재판 기록과 주간 PSA 등급 증가뿐이라 접지 않는다. */""}
+      ${reprintBlock}
+      ${momentum}
       ${faqHtml(code, nameEn)}
       <div class="setNavLinks">
         ${prev ? `<a href="${slug(prev)}.html">← ${prev} guide</a>` : ""}
         <a href="index.html">All set guides</a>${UPCOMING_NEXT[code] ? `
         <a href="${esc(UPCOMING_NEXT[code].slug)}.html">${esc(UPCOMING_NEXT[code].code)} guide →</a>` : ""}
         ${next ? `<a href="${slug(next)}.html">${next} guide →</a>` : ""}
+        ${compareLink}
       </div>${FOOT}`;
 }
 
@@ -1007,8 +880,7 @@ function hubPage() {
     `${ORDER.length} Japanese One Piece booster box price guides (OP-01 to ${lastOp}, EB, PRB) and ${englishCount} English-print box pages: eBay sold medians, chase cards and PSA 10 data.`,
     `${ORDER.length} Japanese One Piece booster box price guides (OP-01 to ${lastOp}, EB, PRB) and ${englishCount} English-print box pages with eBay sold medians and PSA 10 data.`,
   ], DESC_MAX, "sets/index");
-  // 목록의 꼬리표를 세트별 수기 한 줄로 — "box price, top chase cards & PSA data" 를 21번 반복하면
-  // 허브부터 템플릿으로 읽힌다. 해설 없는 세트만 기존 문구로 떨어진다.
+  // 세트명 아래 수기 해설 꼬리표(set-commentary heading — "The set everything else gets measured against" 등)는 2026-10-15 소유자 결정으로 뺐다.
   // 허브 표(2026-09-24): 홈 요약표와 같은 board 값. 가격 없는 이름 목록은 "어느 세트를 볼지" 고르는 데 도움이 안 됐다.
   const board = {};
   for (const b of (data.marketIndex && data.marketIndex.board) || []) board[b.code] = b;
@@ -1021,13 +893,12 @@ function hubPage() {
     // board = current(28일 규칙, build-market-index). 값이 없으면 행은 남기고 "—".
     const stale = b.nowUsd == null;
     const chg = stale ? null : b.changePct;
-    const tail = COMMENTARY.sets?.[code]?.heading ? `<small class="hubTail">${esc(COMMENTARY.sets[code].heading)}</small>` : "";
     const en = fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)) ? `<a href="${slug(code)}-english.html">EN box</a>` : "";
     const top = (s.cards || [])[0];
     const topHref = top && top.number ? CARD_MAP[top.number + "|" + String(top.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")] : null;
     const topLink = topHref ? `<a href="../cards/${topHref}">${esc(top.name)}</a>` : (top ? esc(top.name) : "");
     const cl = CARD_LIST.has(code) ? `<a href="${slug(code)}-card-list.html">Card list</a>` : "";
-    return `<tr${stale ? ' class="stale"' : ""}><td><a href="${slug(code)}.html"><strong>${code}</strong></a></td><td><a href="${slug(code)}.html">${esc(s.nameEn || "")}</a>${tail}</td><td class="num">${b.nowUsd != null ? "$" + intl(b.nowUsd) : "—"}</td><td class="num when">${b.nowDate ? esc(b.nowDate.slice(5)) : "—"}${b.n != null ? `<small> n=${b.n}${b.windowDays ? `/${b.windowDays}d` : ""}</small>` : ""}</td><td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td><td class="links">${[en, cl, topLink].filter(Boolean).join(" · ")}</td></tr>`;
+    return `<tr${stale ? ' class="stale"' : ""}><td><a href="${slug(code)}.html"><strong>${code}</strong></a></td><td><a href="${slug(code)}.html">${esc(s.nameEn || "")}</a></td><td class="num">${b.nowUsd != null ? "$" + intl(b.nowUsd) : "—"}</td><td class="num when">${b.nowDate ? esc(b.nowDate.slice(5)) : "—"}${b.n != null ? `<small> n=${b.n}${b.windowDays ? `/${b.windowDays}d` : ""}</small>` : ""}</td><td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td><td class="links">${[en, cl, topLink].filter(Boolean).join(" · ")}</td></tr>`;
   }).join("\n        ");
   const items = rows;
   const ld = `<script type="application/ld+json">${JSON.stringify({
@@ -1042,13 +913,15 @@ function hubPage() {
     })),
   })}</script>`;
   // 영문판 박스 페이지가 있는 세트만 — 파일 존재가 기준(generate-english-set-pages.js 가 먼저 돈다).
+  // 줄 꼬리 "— English box: sold median, asking, weekly history, English PSA"(그 페이지에 무엇이 있는지 소개, 22줄 반복)는 뺐다(2026-10-15).
   const englishItems = ORDER.filter((code) => fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)))
-    .map((code) => `<li><a href="${slug(code)}-english.html"><strong>${code}</strong> ${esc(data.sets[code].nameEn || "")}</a> — English box: sold median, asking, weekly history, English PSA</li>`)
+    .map((code) => `<li><a href="${slug(code)}-english.html"><strong>${code}</strong> ${esc(data.sets[code].nameEn || "")}</a></li>`)
     .join("\n        ");
   return `${head({ title, desc, canonical, ogType: "website", extraLd: ld })}
       <p class="eyebrow">Set Guides</p>
       <h1>One Piece booster box price guides — every Japanese set</h1>
-      <p>Japanese sealed booster box — latest rolling median of completed eBay sales, dated per row by its median point (n = sales inside that point's 28–56-day window). "4-wk change" = vs the median 28 days earlier. — = no median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window). Data ${esc(hubDate)}. <a href="../methodology.html#box-median">How these are counted</a>.</p>
+      ${/* 표 머리 설명을 라벨 조각으로(2026-10-15 소유자 결정) — 종전 "dated per row by its median point" 같은 방법 설명 문장을 정의 조각만 남겼다. */ ""}
+      <p class="priceNote">Japanese sealed booster box · Box price = rolling median of completed eBay sales · n = sales in its 28–56-day window · 4-wk change = vs the median 28 days earlier · — = no median dated within ${STALE_DAYS} days (6+ sales) · Data ${esc(hubDate)} · <a href="../methodology.html#box-median">How these are counted</a></p>
       <div style="overflow-x:auto">
       <table class="homeSummaryTable hubTable">
         <thead><tr><th>Set</th><th>Name</th><th>Box price</th><th>As of (n/window)</th><th>4-wk change</th><th>More</th></tr></thead>
@@ -1177,16 +1050,12 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
   const faqQ1 = `What is the most expensive One Piece card in PSA 10${t1.stale ? "" : " right now"}?`;
   // 날짜는 1위 카드 자신의 관측일(asOf 는 표 전체의 최신일이라 1위 값의 날짜가 아닐 수 있다). 35일 넘으면 "recent" 를 쓰지 않는다.
   const faqA1 = `${t1.name} (${t1.code}${t1.number ? ` ${t1.number}` : ""}) — median ${usd(t1.psa)} across ${t1.n} ${t1.stale ? "" : "recent "}completed eBay sales as of ${t1.updated || asOf}.`;
-  const faqQ2 = "Are these asking prices?";
-  const faqA2 = "No. Every figure is a median of completed eBay sales of the PSA 10 graded card, with a minimum of three sales per card.";
-  const faqQ3 = "Why Japanese cards only?";
-  const faqA3 = "Japanese and English are different print runs with different populations and buyers, so they are ranked separately rather than mixed.";
+  // 문답은 데이터로 답하는 1번만 — 2026-10-15 소유자 결정. "Are these asking prices?"(방법 설명 — 머리 줄 "Median of completed eBay sales ·
+  // at least 3 sales per card" 라벨과 같은 말) · "Why Japanese cards only?"(이유 설명)는 뺐다. 화면 = FAQPage(가드 L2).
   const faqLd = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "FAQPage",
     mainEntity: [
       { "@type": "Question", name: faqQ1, acceptedAnswer: { "@type": "Answer", text: faqA1 } },
-      { "@type": "Question", name: faqQ2, acceptedAnswer: { "@type": "Answer", text: faqA2 } },
-      { "@type": "Question", name: faqQ3, acceptedAnswer: { "@type": "Answer", text: faqA3 } },
     ],
   })}</script>`;
   // 랭킹 제목·설명(2026-09-17): 종전 73자 제목은 잘렸다. 브랜드 꼬리를 붙이면 60자를 넘어 뺀다. 설명은 표의 숫자로 쓴다.
@@ -1364,11 +1233,11 @@ ${setTrs}
       <section class="rankFaq" aria-label="Frequently asked questions">
         <h2>PSA 10 ranking — common questions</h2>
         <details class="faqItem"><summary>${esc(faqQ1)}</summary><p>${esc(faqA1)}</p></details>
-        <details class="faqItem"><summary>${esc(faqQ2)}</summary><p>${esc(faqA2)}</p></details>
-        <details class="faqItem"><summary>${esc(faqQ3)}</summary><p>${esc(faqA3)}</p></details>
       </section>
       <div class="setNavLinks"><a href="./">Live price tracker</a><a href="cards/">Individual card price pages</a><a href="sets/index.html">Set guides</a><a href="psa-grading.html">PSA population</a><a href="compare.html">Compare boxes</a></div>
-      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you. Prices change; always confirm on eBay before buying. Not investment advice.</p>
+      ${/* 제휴 고지 문장은 그대로 둔다(EPN 규정 — 지우거나 줄이지 말 것). 뒤에 붙어 있던 "Prices change; always confirm on eBay before buying."(권고)과
+            "Not investment advice."(푸터 고지와 같은 말의 본문 반복)만 뺐다 — 2026-10-15 소유자 결정: 면책 고지는 푸터 한 줄. */ ""}
+      <p class="affNote">As an eBay Partner, we may earn a commission from qualifying purchases made through eBay links on this site — at no extra cost to you.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

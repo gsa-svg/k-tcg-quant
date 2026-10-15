@@ -24,8 +24,8 @@
     <meta property="og:url" content="https://opboxindex.com/methodology.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261015seo" />
-    <script defer src="lang-toggle.js?v=20261015seo"></script>
+    <link rel="stylesheet" href="styles.css?v=20261015seo2" />
+    <script defer src="lang-toggle.js?v=20261015seo2"></script>
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -61,6 +61,7 @@
         <thead><tr><th data-ko="지표">Metric</th><th data-ko="규칙">Rule</th><th data-ko="창">Window</th><th data-ko="최소 표본">Minimum sample</th></tr></thead>
         <tbody>
         <tr id="box-median"><th scope="row" data-ko="박스 시세(일본판/영문판)">Box price (JP / EN)</th><td data-ko="개별 이베이 즉시구매 실거래(밀봉 박스, 박스당 — 다박스 매물은 수량으로 나눔)의 이동 중앙값, 판매일 기준. 7일 간격 주간 점.">Rolling median of individual completed eBay Buy-It-Now sales of sealed boxes, per box (multi-box lots divided by quantity), dated by sale date. Weekly points every 7 days.</td><td data-ko="시리즈별 28~56일, 점당 약 12건이 되도록">28–56 days per series, sized so each point rests on ~12 sales</td><td data-ko="창당 6건, 미만이면 점 없음">6 sales per window; fewer → no point</td></tr>
+        <tr id="box-outliers"><th scope="row" data-ko="박스 이상치">Box outliers</th><td data-ko="판매일 앞 90일·뒤 90일 중앙값 둘 다에서 3.5 × max(1.4826·MAD, 중앙값의 20%)보다 먼 단발 판매는 중앙값·사분위에서 뺌(판매 수에는 포함, 원장은 그대로). 뺀 뒤 표본이 모자라면 창을 7일씩 늘림.">Single sales farther than 3.5 × max(1.4826·MAD, 20% of median) from both the prior and the following 90-day median are left out of medians and quartiles (still counted in volume; the sales record is unchanged). If that leaves too few sales, the window widens 7 days at a time.</td><td data-ko="앞·뒤 각 90일">90 days before and after</td><td data-ko="한쪽 기준 판매 8건 이상일 때만 판정">Judged only with 8+ reference sales on each side</td></tr>
         <tr id="change-4w"><th scope="row" data-ko="4주 변화">4-week change</th><td data-ko="최신 주간 중앙값 ÷ 28일 이상 전의 마지막 주간 점. 홈 티커·홈 표·세트 페이지·비교표·그래프 배지 모두 같은 규칙.">Latest weekly median vs the last weekly point dated 28+ days earlier. Same rule on the home ticker, home table, set page tile, comparison table and chart badge.</td><td data-ko="28일">28 days</td><td data-ko="두 점이 있어야 함, 28일간 판매 없으면 비움">Both points must exist; a set with no sale in 28 days shows no change</td></tr>
         <tr id="ask-median"><th scope="row" data-ko="호가 중간값 · 최저 매물">Asking price (mid ask) · lowest listing</th><td data-ko="현재 이베이 즉시구매 매물(밀봉 박스) 중 검수를 통과한 판매자만의 중간값·최저가(중국·홍콩·마카오 판매자와 수동 차단 목록 제외 — 제외 섹션 참고). 새 상품만.">Median and lowest of current eBay Buy-It-Now listings for sealed boxes from sellers that passed verification (China / Hong Kong / Macau sellers and a manual blocklist excluded — see Exclusions). Condition New only.</td><td data-ko="수집 시점 스냅샷(매일)">Snapshot at collection time (daily)</td><td data-ko="중간값은 3건 이상, 제외 매물 최저가는 링크 없이 따로 표시">3 listings for the median; the excluded floor is shown separately without a link</td></tr>
         <tr id="days-of-inventory"><th scope="row" data-ko="재고일수">Days of inventory</th><td data-ko="현재 매물 수 ÷ (최신 주간 창의 판매 건수 ÷ 창 일수). 지금 속도면 오늘 매물이 며칠 만에 빠지는가.">Listings on sale now ÷ (sales in the latest weekly window ÷ window days). How long today's listings would last at the current selling pace.</td><td data-ko="최신 주간 창">Latest weekly window</td><td data-ko="매물 수와 주간 점 1개 이상">Needs a listing count and at least one weekly point</td></tr>

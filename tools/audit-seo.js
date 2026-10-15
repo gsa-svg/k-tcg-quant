@@ -96,15 +96,16 @@ function checkStaticContent() {
     requireMatch(read(file), /"@type"\s*:\s*"FAQPage"/i, "FAQ schema", file);
   }
 
-  // 자연검색 핵심 랜딩은 일반 세트 템플릿보다 검색 의도를 더 직접 답해야 한다.
+  // 재판 랜딩(priority-set-seo.json 의 세트) — 2026-10-15 소유자 결정(데이터 페이지엔 숫자·표·라벨만)으로 수기 검색 의도 블록
+  // (searchIntent·factory-seal 안내)을 없앴다. 계약 = 데이터 섹션: "<CODE> reprint records" 제목 + 라벨 목록(generate-set-pages.js).
   // 생성 산출물을 직접 고치지 않고 생성기를 통해 이 계약을 만족시킨다.
-  const prioritySetPages = ["op-01", "op-05", "prb-01", "eb-03", "op-13", "op-17"];
+  const prioritySetPages = Object.keys(JSON.parse(read("data/priority-set-seo.json")).sets || {}).map((c) => c.toLowerCase());
+  for (const need of ["op-01", "op-05", "prb-01", "eb-03", "op-13", "op-17"]) {
+    if (!prioritySetPages.includes(need)) errors.push(`data/priority-set-seo.json: 재판 랜딩 ${need} 이 빠졌다`);
+  }
   for (const setSlug of prioritySetPages) {
     const file = `sets/${setSlug}.html`;
-    const content = read(file);
-    requireMatch(content, /<section\s+class="searchIntent"/i, "priority-set search-intent section", file);
-    requireMatch(content, /<h2>[^<]*(?:price|reprint)[^<]*<\/h2>/i, "price or reprint search-intent heading", file);
-    requireMatch(content, /factory (?:seal|sealed)|Bandai security tape/i, "factory-seal guidance", file);
+    requireMatch(read(file), /<h2>(?:OP|EB|PRB)-\d+ reprint records<\/h2>\s*<ul class="keyFacts">/, "priority-set reprint records section", file);
   }
 }
 

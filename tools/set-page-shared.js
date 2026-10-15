@@ -283,6 +283,29 @@ function keyFactsModel(code, ed) {
   };
 }
 
+// ── 검색 설명(meta description · og:description) — 2026-10-15 소유자 결정: 데이터 페이지엔 숫자·표·라벨만.
+// 종전 일본판 설명은 수기 해설(set-commentary desc · priority-set-seo description)이나 "…and a buy-or-skip verdict" 같은 사이트 소개 문장,
+// 영문판은 "Weekly price history and auction results, updated daily" 꼬리였다. 이제 Key facts 표(keyFactsModel)와 같은 값·같은 표기(usd)만 잇는다.
+// 판매 중앙값은 current(28일 규칙)일 때만 — 없으면 조각을 빼고 최저 매물가가 앞에 선다(묵은 중앙값을 현재가로 내지 않는다).
+// 조각은 우선순위 순서: 판매 중앙값 · 최저 매물가 · 그 판 발매일 · 팩 수(일본판) → 들어가는 만큼 extras(페이지 지표 칸에 있는 값)·정가.
+// max 를 넘으면 뒤 조각부터 뺀다. 세트 코드가 들어가므로 페이지마다 다르다.
+function dataDesc(m, nameEn, extras = [], max = 155) {
+  const head = `${m.code} ${nameEn} ${m.ed === "en" ? "English" : "Japanese"} booster box: `;
+  const core = [];
+  if (m.sold) core.push(`${m.sold.reprint ? "reprint (White) " : ""}sold median ${usd(m.sold.median)} (${m.sold.d}${m.sold.n != null ? `, n=${m.sold.n}` : ""})`);
+  if (m.ask) core.push(`lowest live ask ${usd(m.ask.total)}`);
+  const rel = m.ed === "en" ? m.enRelease : m.jpRelease;
+  if (rel) core.push(`${m.ed === "en" ? "EN" : "JP"} release ${rel}`);
+  if (m.ed !== "en" && m.packsPerBox) core.push(`${m.packsPerBox} packs`);   // 팩 수는 일본판 박스 값(Key facts "JP box")이라 영문판 설명엔 싣지 않는다
+  const more = [...extras.filter(Boolean)];
+  if (m.ed !== "en" && m.msrp && m.msrp.jpBox) more.push(`MSRP ¥${Number(m.msrp.jpBox).toLocaleString("en-US")}`);
+  const text = (parts) => `${head}${parts.join(" · ")}.`;
+  const parts = core.slice();
+  while (parts.length > 1 && text(parts).length > max) parts.pop();
+  for (const x of more) if (text([...parts, x]).length <= max) parts.push(x);
+  return text(parts);
+}
+
 // 최신 세트 — 계열(OP·EB·PRB)마다 일본판 발매일이 가장 늦은 추적 세트 중, 발매 후 120일 이내이고 공식 카드 리스트가 있는 것.
 // "op 17 release date"·"op 17 set list" 질의는 발매 전후 몇 달에 몰린다(2026-10-14 Bing 실측). 그 세트의 제목·H1 에
 // Release Date·Card List 를 넣는다. 손목록이 아니라 데이터로 정하므로 EB-05·OP-18 이 추적 세트가 되는 날 자동으로 넘어간다.
@@ -373,4 +396,4 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11.5px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, splitReprints, enIsReprint, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate };
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, splitReprints, enIsReprint, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate, dataDesc };

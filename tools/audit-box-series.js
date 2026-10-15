@@ -64,7 +64,7 @@ function recordsOf(code, ed, wave) {
     .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number(r.unit) > 0 && r.fmt === "bin")
     .filter((r) => !rel || r.d >= rel)
     .filter((r) => (wave === "blue" ? isFirstPrint(r) : wave === "white" ? !isFirstPrint(r) : true))
-    .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit) }))
+    .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit), k: `${r.id}|${r.d}` }))
     .sort((a, b) => a.t - b.t);
 }
 
@@ -106,11 +106,16 @@ for (const [code, node] of Object.entries(SERIES.sets || {})) {
       }
     }
 
-    // 점마다 다시 계산
+    // 점마다 다시 계산. 이상치(2026-10-15): 생성기가 뺀 판매는 node.outliers[ed] 에 원장 id·판매일로 남고, 점에는 out(뺀 건수)·win(늘린 창)이 붙는다.
+    // 판정 규칙은 다시 구현하지 않는다 — 기록된 목록을 원장에서 빼고 세어 본다(n + out = 창 안 판매, 중앙값 = 나머지의 중앙값).
+    const flagged = new Set(((node.outliers || {})[ed] || []).map((o) => `${o.id}|${o.d}`));
     const minN = code === "OP-01" && ed === "jp" ? MIN_N : MIN_N;   // blue/white 분리 계열은 아래에서 건너뛴다
     for (const p of pts) {
-      const t = Date.parse(p.d), lo = t - win * DAY;
-      const u = rs.filter((r) => r.t > lo && r.t <= t).map((r) => r.unit);
+      const t = Date.parse(p.d), lo = t - (p.win || win) * DAY;
+      const inWin = rs.filter((r) => r.t > lo && r.t <= t);
+      const kept = p.out ? inWin.filter((r) => !flagged.has(r.k)) : inWin;
+      if ((p.out || 0) !== inWin.length - kept.length) problems.push(`${code}|${ed} ${p.d} — 뺀 이상치 ${p.out || 0}건 vs 기록된 목록으로 센 ${inWin.length - kept.length}건`);
+      const u = kept.map((r) => r.unit);
       checkedPoints += 1;
       if (u.length !== p.n) {
         // 초판/재판을 나눠 그리는 계열은 이 감사기가 그 분리를 모른다 — 표본 수가 다르면 건너뛰고 알린다.

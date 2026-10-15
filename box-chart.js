@@ -702,13 +702,13 @@
     const missing = (label, g, ed) => {
       const alt = ["week", "day", "month"].find((x) => x !== g && drawableGrain(ed, x));
       const why = g === "month"
-        ? (lang === "ko" ? "월간은 아직 표본이 얇습니다" : "Not enough sales per month yet")
+        ? (lang === "ko" ? "월간: 표본 부족" : "Monthly: too few sales")
         : g === "day"
-        ? (lang === "ko" ? "하루에 3건 넘게 팔리는 날이 거의 없습니다" : "Rarely more than 3 sales on any single day")
-        : (lang === "ko" ? "주간으로 그릴 만큼 쌓이지 않았습니다" : "Not enough weeks of sales to plot yet");
+        ? (lang === "ko" ? "일별: 하루 3건 미만" : "Daily: under 3 sales a day")
+        : (lang === "ko" ? "주간: 표본 부족" : "Weekly: too few sales");
       const hint = alt
-        ? (lang === "ko" ? " — " + grainName(alt) + "으로 보세요." : " — use " + grainName(alt) + ".")
-        : (lang === "ko" ? " — 즉시구매 실거래가 아직 얇습니다." : " — fixed-price sales are still thin.");
+        ? (lang === "ko" ? " · " + grainName(alt) + " 보기" : " · see " + grainName(alt))
+        : "";
       // 거대한 빈 상자로 두지 않는다 — "데이터가 아예 없나?"로 읽힌다(2026-08-28 소유자 지적).
       // 주간 최신값이 있으면 헤드라인으로 채워서, 이 판이 죽은 게 아니라 집계 단위만 다름을 보인다.
       const wk = clean((series && series[ed]) || []);
@@ -835,16 +835,17 @@
     const head = opts.title || tabs
       ? '<div class="opbcTop">' + (opts.title ? '<div class="opbcTitle">' + esc(opts.title) + "</div>" : "<span></span>") + tabs + "</div>"
       : "";
+    // 2026-10-15 소유자 결정: 설명 문장 대신 라벨만(선 정의·빗금 뜻·매물 수 정의는 한 토막 라벨로 남긴다).
     const note = opts.note === false ? "" : '<p class="opbcNote">' + (lang === "ko"
-      ? "선은 우리가 직접 모은 eBay <b>실거래(sold)</b> 중앙값이며, <b>판매된 날</b> 기준입니다. 주간은 거래가 드문 세트일수록 평균 구간을 길게 잡고(위에 표시), 월간은 그 달에 팔린 것 전부를 묶습니다. 표본이 얇은 구간은 빗금으로 두고 추정하지 않습니다."
-      : "The line is the median of <b>completed eBay sales</b> we collect ourselves, plotted by <b>date of sale</b>. The weekly view widens its averaging window for thinly traded sets (shown above); the monthly view groups every sale within a calendar month. Thin periods are hatched rather than estimated.")
+      ? "<b>선</b> = 이베이 실거래(sold) 중앙값 · 판매일 기준 · 빗금 = 표본 부족"
+      : "<b>Line</b> = median of completed eBay sales · by sale date · hatched = thin sample")
       + "</p>";
     // 공급은 집계 단위(주간·월간)와 무관하다 — 매일 세는 "지금 몇 개"라서 탭 밖에 둔다.
     const supply = supplyPanel(series && series.supply, lang, today);
     // 고지는 패널 **위**에 둔다. 아래 두면 다 보고 나서야 "이건 팔린 개수가 아니다"를 읽게 된다.
     const supNote = supply ? '<p class="opbcNote opbcSupNote">' + (lang === "ko"
-      ? "<b>지금 올라와 있는 매물 수</b>입니다 — 팔린 개수가 아닙니다."
-      : "Counts <b>listings currently on sale</b> — not units sold.") + "</p>" : "";
+      ? "<b>현재 매물 수</b> (판매 수 아님)"
+      : "<b>Listings on sale now</b> (not units sold)") + "</p>" : "";
     const supWrap = supply ? '<div class="opbcGridWrap opbcSupWrap">' + supNote + supply + "</div>" : "";
     return '<div class="opbcWrap">' + head + compare + day + week + month + note + supWrap + "</div>";
   }

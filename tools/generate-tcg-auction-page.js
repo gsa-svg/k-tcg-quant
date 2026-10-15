@@ -346,7 +346,7 @@ const ld = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Dataset",
   name: "Trading card game auction results by game",
-  description: `eBay auction results across ${GAME_COUNT} trading card games, re-read after close: sell rate, median sold price and auctions closing per day, last 7 days and week by week.`,
+  description: `eBay auction results across ${GAME_COUNT} trading card games: sell rate, median sold price and auctions closing per day, last 7 days and week by week.`,
   isAccessibleForFree: true,
   // url·license·내려받기(같은 값의 JSON) — 비어 있었다(2026-10-14 W6b).
   url: `${SITE}/tcg-auction.html`,
@@ -358,6 +358,7 @@ const ld = JSON.stringify({
   variableMeasured: ["Sell rate", "Median sold price", "Auctions closing per day", "Sell rate by week"],
 });
 
+// 2026-10-15 소유자 결정: "Mixed items and grades; not a same-item price index." 문장을 뺐다 — 같은 뜻을 낙찰가 정의 라벨("mixed items and grades")에 붙였다.
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -368,9 +369,9 @@ const html = `<!doctype html>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
     <link rel="canonical" href="${SITE}/tcg-auction.html" />
     <title>TCG Auction Results by Card Game — eBay Sold Data</title>
-    <meta name="description" content="eBay auction results across ${GAME_COUNT} trading card games: sell rate, median sold price and auctions closing per day, last 7 days and week by week, each re-read after close." />
+    <meta name="description" content="eBay auction results across ${GAME_COUNT} trading card games: sell rate, median sold price and auctions closing per day, last 7 days and week by week." />
     <meta property="og:title" content="TCG Auction Results by Card Game — eBay Sold Data" />
-    <meta property="og:description" content="Sell rate, median sold price and auctions closing per day across ${GAME_COUNT} card games, from auctions we settle ourselves." />
+    <meta property="og:description" content="Sell rate, median sold price and auctions closing per day across ${GAME_COUNT} card games." />
     <meta property="og:url" content="${SITE}/tcg-auction.html" />
     <meta property="og:image" content="${SITE}/og-image.png" />
     <script type="application/ld+json">${ld}</script>
@@ -499,8 +500,7 @@ const html = `<!doctype html>
         </div>
         <p class="sampleNote" data-ko="낙찰률·낙찰가 = 수집 표본 · ${esc(num(L.ended))}건 중 ${esc(num(L.sold))}건 낙찰">Sell rate &amp; price = observed sample · ${esc(num(L.sold))} sold / ${esc(num(L.ended))} sampled</p>
         <details class="marketDetails"><summary data-ko="지표·표본 기준">Metrics &amp; sample rules</summary>
-          <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span> · <b data-ko="집계한 날">Days counted</b> = <span data-ko="정해진 수집 시각에 표본을 고른 날(n/7 · n/28)">days with a sample picked at the usual hour (n/7 · n/28)</span>${EXCL_DEF}</p>
-          <p class="def" data-ko="서로 다른 상품·등급의 낙찰 표본. 같은 상품의 가격 변동률이 아닙니다.">Mixed items and grades; not a same-item price index.</p>
+          <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값 · 상품·등급 혼합">winning bid, middle value · mixed items and grades</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span> · <b data-ko="집계한 날">Days counted</b> = <span data-ko="정해진 수집 시각에 표본을 고른 날(n/7 · n/28)">days with a sample picked at the usual hour (n/7 · n/28)</span>${EXCL_DEF}</p>
         </details>
       </section>
 

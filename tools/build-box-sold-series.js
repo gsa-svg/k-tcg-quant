@@ -57,13 +57,60 @@ const quant = (arr, p) => {
   return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (i - lo);
 };
 
-function seriesFor(records, wave) {
-  const rs = (records || [])
+// ── 개별 판매 이상치 — 2026-10-15. 원장은 그대로 두고, 가격 중앙값(주간·월간·일별)을 낼 때만 뺀다.
+// 사고: OP-07 일본판 4주 변화가 -40.3% 로 나왔다. 9/17·9/24 점이 $134(n=6)였는데 42일 창 6건 중 3건이
+// $162~181(8/20 147348308001 · 8/25 168451186418 · 9/17 306678438253)이었고, 앞뒤 8~10월 나머지 판매는 전부 ~$80 이다.
+// 중앙값은 절반까지 오염을 견디지만 6건짜리 창에선 3건이면 무너진다.
+// 판정은 Hampel 식별자(중앙값 ± K × 1.4826·MAD — 1.4826·MAD 는 정규분포의 표준편차 추정치)를
+// **판매일 앞 90일과 뒤 90일에 각각** 적용해 **양쪽 모두에서 벗어난 판매만** 이상치로 본다(그날 다른 판매는 어느 쪽에도 안 넣는다).
+//  · 진짜 수준 이동(시세가 실제로 오르거나 내림)은 뒤쪽 시장이 그 값과 맞으므로 남는다.
+//  · 신규 세트 발매 주는 앞쪽(발매일 이후) 판매가 OUT_REF_MIN 건 모이기 전까지 판정하지 않는다 — 발매 수준은 그 판매들이 정한다.
+//  · 가장 최근 판매는 뒤쪽 판매가 쌓이기 전까지 판정하지 않는다 — 확인되지 않은 것을 빼지 않는다.
+// K=3.5 는 Iglewicz·Hoaglin 의 수정 z 점수 기준(3.5)이다. Hampel 기본값 3 으로 전 계열을 시험하면(2026-10-15 원장)
+// OP-17 영문판 발매 이틀째 $567·$600 과 OP-13 일본판 $198~263 묶음 속 $235 까지 빠졌다 — 발매 프리미엄·분산이지 오류가 아니다.
+// 척도 하한(OUT_FLOOR × 중앙값): 매물이 한 값에 몰리면(OP-07 10월: $79.5~80.1) MAD 가 0 에 가까워 $87 도 이상치가 된다.
+// 하한 20% × K 3.5 = 중앙값 ±70% 안쪽은 언제나 정상이다. 하한 10% 로 시험하면 이상치가 33 → 91건으로 늘었다.
+const OUT_K = 3.5;
+const OUT_REF_DAYS = 90;
+const OUT_REF_MIN = 8;      // 한쪽 기준 판매가 이보다 적으면 판정 근거가 없다 → 이상치로 보지 않는다
+const OUT_FLOOR = 0.2;
+const MAD_TO_SIGMA = 1.4826;
+function farFrom(x, ref) {
+  if (ref.length < OUT_REF_MIN) return false;
+  const med = quant(ref, 0.5);
+  const mad = quant(ref.map((v) => Math.abs(v - med)), 0.5);
+  return Math.abs(x - med) > OUT_K * Math.max(MAD_TO_SIGMA * mad, OUT_FLOOR * med);
+}
+// rs: 판매일 순으로 정렬된 한 계열(세트·판·차수)의 판매. 각 판매에 out(true/false)을 단다.
+function markOutliers(rs) {
+  const span = OUT_REF_DAYS * DAY;
+  for (const r of rs) {
+    const before = [], after = [];
+    for (const x of rs) {
+      if (x.t >= r.t - span && x.t < r.t) before.push(x.unit);
+      else if (x.t > r.t && x.t <= r.t + span) after.push(x.unit);
+    }
+    r.out = farFrom(r.unit, before) && farFrom(r.unit, after);
+  }
+  return rs;
+}
+// 원장 레코드 → 한 계열의 즉시구매 판매(판매일 순, 이상치 표시). 주간·월간·일별이 같은 판정을 쓴다 — 한 판매가
+// 한 보기에선 시세, 다른 보기에선 이상치가 되지 않게.
+function salesOf(records, wave) {
+  return markOutliers((records || [])
     .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number.isFinite(Number(r.unit)) && Number(r.unit) > 0)
     .filter((r) => !BIN_ONLY || r.fmt === "bin")
     .filter((r) => (wave === "blue" ? isFirstPrint(r) : wave === "white" ? !isFirstPrint(r) : true))
-    .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit) }))
-    .sort((a, b) => a.t - b.t);
+    .map((r) => ({ d: r.d, t: Date.parse(r.d), unit: Number(r.unit), id: String(r.id || "") }))
+    .sort((a, b) => a.t - b.t));
+}
+// 버킷(월·일) 하나의 중앙값 표본 — 이상치를 빼도 문턱(minN) 이상이면 뺀 것, 아니면 그대로(빈 칸을 새로 만들지 않는다).
+function bucketSample(all, minN) {
+  const clean = all.filter((r) => !r.out);
+  return clean.length < all.length && clean.length >= minN ? { use: clean, out: all.length - clean.length } : { use: all, out: 0 };
+}
+
+function seriesFor(rs, wave) {
   // 초판(Blue)은 몇 달에 4건뿐이라 일반 기준(6건)으로는 아무것도 안 나온다.
   // 이 계열만 3건으로 낮춘다 — 얇은 건 사실이라, 화면에 n 과 창 길이를 그대로 실어 보낸다.
   const minN = wave === "blue" ? 3 : MIN_N;
@@ -78,20 +125,36 @@ function seriesFor(records, wave) {
   const spanDays = Math.max(1, Math.min(56, (last - first) / DAY));
   const perDay = recent / spanDays;
   const need = perDay > 0 ? Math.ceil(TARGET_N / perDay / 7) * 7 : MAX_WINDOW;
-  const cap = wave === "blue" ? RARE_MAX_WINDOW : MAX_WINDOW;
+  const cap = wave === "blue" ? RARE_MAX_WINDOW : MAX_WINDOW;   // 이상치를 뺀 점의 창도 여기까지만 늘린다(아래 at)
   const windowDays = Math.max(MIN_WINDOW, Math.min(cap, need));
 
+  const inWindow = (t, days) => rs.filter((r) => r.t > t - days * DAY && r.t <= t);
   const at = (t) => {
-    const lo = t - windowDays * DAY;
-    const u = [];
-    for (const r of rs) { if (r.t > lo && r.t <= t) u.push(r.unit); }
-    if (u.length < minN) return null;
+    const raw = inWindow(t, windowDays);
+    if (raw.length < minN) return null;
+    // 이상치(salesOf)를 뺀다. 빼고 나서 minN 이 안 되면 그 점만 창을 7일씩 cap 까지 늘려 깨끗한 판매 minN 건을 모은다 —
+    // 점을 지우면 새 공백이 생기고(OP-07 9/17·9/24 는 6건 중 3건이 이상치였다), 그대로 두면 틀린 값이 남는다.
+    // cap 까지 늘려도 모자라면 원래 창의 판매를 그대로 쓴다(종전 값). out = 그 점에서 뺀 건수, win = 늘린 창(일).
+    // 점마다 n + out = (t - win, t] 의 즉시구매 판매 수 — 원장과 sets[*].outliers 만으로 다시 셀 수 있다.
+    let use = raw, out = 0, win = windowDays;
+    if (raw.some((r) => r.out)) {
+      for (let w = windowDays; w <= cap; w += STEP_DAYS) {
+        const all = w === windowDays ? raw : inWindow(t, w);
+        const clean = all.filter((r) => !r.out);
+        if (clean.length >= minN) { use = clean; out = all.length - clean.length; win = w; break; }
+      }
+    }
+    const u = use.map((r) => r.unit);
     // vol = 그 점 **직전 한 주**에 실제로 팔린 건수. 중앙값을 만든 n(창 전체, 28~56일)과 다르다.
     // n 을 막대로 쓰면 창이 겹쳐 같은 판매를 여러 번 세게 되고, 막대 높이가 창 길이만 반영한다.
+    // 이상치도 실제로 팔린 건이라 vol 에는 그대로 센다.
     let vol = 0;
     const volLo = t - STEP_DAYS * DAY;
     for (const r of rs) { if (r.t > volLo && r.t <= t) vol++; }
-    return { d: iso(t), median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)), high: Math.round(quant(u, 0.75)), n: u.length, vol };
+    return {
+      d: iso(t), median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)), high: Math.round(quant(u, 0.75)), n: u.length, vol,
+      ...(out ? { out } : {}), ...(win !== windowDays ? { win } : {}),
+    };
   };
 
   // 격자는 **마지막 판매일에서 거꾸로** 잡는다. 앞에서부터 7일씩 세면 마지막 점이 격자에 안 걸려
@@ -129,16 +192,12 @@ function seriesFor(records, wave) {
 // $395 까지 팔린다(상태·경매 종료가 차이). 표본 13건짜리 주간 중앙값은 그 안에서 계속 흔들린다.
 // 달 단위로 묶으면 표본이 두세 배가 되어 흔들림이 줄고, 대신 반응은 느려진다 — 둘 다 보여주고 고르게 한다.
 const MONTH_MIN_N = 6;
-function monthlyFor(records, wave) {
+function monthlyFor(rs) {
   const buckets = new Map();
-  for (const r of records || []) {
-    if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
-    if (BIN_ONLY && r.fmt !== "bin") continue;
-    if (wave === "blue" && !isFirstPrint(r)) continue;
-    if (wave === "white" && isFirstPrint(r)) continue;
+  for (const r of rs) {
     const k = r.d.slice(0, 7);
     if (!buckets.has(k)) buckets.set(k, []);
-    buckets.get(k).push(Number(r.unit));
+    buckets.get(k).push(r);
   }
   // 진행 중인 달은 아직 다 안 팔렸으니 문턱을 낮춰 넣는다 — 안 그러면 8월 중순에 7월이 최신으로 보인다.
   // 다만 한 단계만 낮춘다 — 3건짜리 중앙값을 넣었더니 OP-01 일본판 8월이 $275 → $176 으로
@@ -149,12 +208,16 @@ function monthlyFor(records, wave) {
     return (by * 12 + bm) - (ay * 12 + am);
   };
   const rows = [...buckets.entries()].sort((a, b) => a[0].localeCompare(b[0]))
-    .filter(([k, u]) => u.length >= (k === thisMonth ? MONTH_MIN_N - 1 : MONTH_MIN_N))
-    .map(([k, u]) => ({
-      // 월간은 겹치지 않는 버킷이라 n 이 곧 그 달 거래량이다.
-      d: k + "-01", median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
-      high: Math.round(quant(u, 0.75)), n: u.length, vol: u.length,
-    }));
+    .map(([k, all]) => [k, all, k === thisMonth ? MONTH_MIN_N - 1 : MONTH_MIN_N])
+    .filter(([, all, minN]) => all.length >= minN)
+    .map(([k, all, minN]) => {
+      // 월간은 겹치지 않는 버킷이라 vol(그 달 거래량)은 이상치까지 센 전체 건수, n 은 중앙값 표본(이상치 뺀 건수)이다.
+      const { use, out } = bucketSample(all, minN), u = use.map((r) => r.unit);
+      return {
+        d: k + "-01", median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
+        high: Math.round(quant(u, 0.75)), n: u.length, vol: all.length, ...(out ? { out } : {}),
+      };
+    });
   // 달이 두 칸 이상 비면 그 앞은 버린다 — 주간과 같은 이유다(고립된 옛 점이 가짜 추세를 만든다).
   let cut = 0;
   for (let i = rows.length - 1; i > 0; i--) {
@@ -167,22 +230,21 @@ function monthlyFor(records, wave) {
 // 박스는 하루 0.45건(중앙값 계열)이라 대부분의 날이 비어 있다. 그게 사실이므로 억지로 채우지 않는다:
 // **3건 이상 팔린 날만** 점을 찍고, 나머지는 비운다. 1~2건짜리 "중앙값" 은 그날 팔린 한 건의 가격일 뿐이다.
 const DAY_MIN_N = 3;
-function dailyFor(records, wave) {
+function dailyFor(rs) {
   const buckets = new Map();
-  for (const r of records || []) {
-    if (!r || !/^\d{4}-\d{2}-\d{2}$/.test(r.d) || !(Number(r.unit) > 0)) continue;
-    if (BIN_ONLY && r.fmt !== "bin") continue;
-    if (wave === "blue" && !isFirstPrint(r)) continue;
-    if (wave === "white" && isFirstPrint(r)) continue;
+  for (const r of rs) {
     if (!buckets.has(r.d)) buckets.set(r.d, []);
-    buckets.get(r.d).push(Number(r.unit));
+    buckets.get(r.d).push(r);
   }
   const rows = [...buckets.entries()].sort((a, b) => a[0].localeCompare(b[0]))
-    .filter(([, u]) => u.length >= DAY_MIN_N)
-    .map(([d, u]) => ({
-      d, median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
-      high: Math.round(quant(u, 0.75)), n: u.length, vol: u.length,
-    }));
+    .filter(([, all]) => all.length >= DAY_MIN_N)
+    .map(([d, all]) => {
+      const { use, out } = bucketSample(all, DAY_MIN_N), u = use.map((r) => r.unit);
+      return {
+        d, median: Math.round(quant(u, 0.5)), low: Math.round(quant(u, 0.25)),
+        high: Math.round(quant(u, 0.75)), n: u.length, vol: all.length, ...(out ? { out } : {}),
+      };
+    });
   // 앞쪽에 뚝 떨어진 점 하나가 남으면 선이 그 사이를 곧게 이어 없던 추세를 만든다(주간·월간과 같은 이유).
   let cut = 0;
   for (let i = rows.length - 1; i > 0; i--) {
@@ -260,6 +322,12 @@ function reprintShare(records) {
   return white ? Math.round((white / rs.length) * 100) : null;
 }
 
+// 테스트(test-box-sold-filters.js 6절)는 판정·집계 함수만 쓴다 — require 할 때는 원장을 읽거나 파일을 쓰지 않는다.
+if (require.main !== module) {
+  module.exports = { salesOf, markOutliers, seriesFor, monthlyFor, dailyFor, OUTLIER: { k: OUT_K, refDays: OUT_REF_DAYS, refMinSales: OUT_REF_MIN, scaleFloor: OUT_FLOOR }, MIN_N };
+  return;
+}
+
 const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8"));
 const today = new Date().toISOString().slice(0, 10);
 // 그래프에 표시할 사건 — 검증된 발매일만(data/set-facts.json, 반다이 공식 페이지 출처). 2026-09-24.
@@ -324,17 +392,25 @@ const windowsUsed = {};
 let monthPoints = 0;
 let dayPoints = 0;
 const preReleaseExcluded = {};
+let outlierSales = 0, outlierPoints = 0, widenedPoints = 0;
 for (const [code, all] of Object.entries(ledger.sets || {})) {
   const release = releaseFor(code);
   const sJp = splitAtRelease(all.jp, release.jp), sEn = splitAtRelease(all.en, release.en);
   const eds = { jp: sJp.post, en: sEn.post };   // 아래는 전부 발매일 당일부터의 판매만 본다
   const preRelease = { jp: preReleaseFor(sJp.pre, release.jp), en: preReleaseFor(sEn.pre, release.en) };
   for (const ed of ["jp", "en"]) if (preRelease[ed]) preReleaseExcluded[`${code}.${ed}`] = preRelease[ed].sales;
-  const jp = seriesFor(eds.jp), en = seriesFor(eds.en, "white"), enBlue = seriesFor(eds.en, "blue");
+  const sales = { jp: salesOf(eds.jp), en: salesOf(eds.en, "white"), enBlue: salesOf(eds.en, "blue") };
+  const jp = seriesFor(sales.jp), en = seriesFor(sales.en, "white"), enBlue = seriesFor(sales.enBlue, "blue");
   // 발매 전 세트(점이 없고 예약판매만 있는 세트)도 남긴다 — 예약판매 요약과 발매일을 실어 보내야 화면이 "—" 와 건수를 낼 수 있다.
   if (!jp.points.length && !en.points.length && !preRelease.jp && !preRelease.en) continue;
-  const mJp = monthlyFor(eds.jp), mEn = monthlyFor(eds.en, "white"), mEnBlue = monthlyFor(eds.en, "blue");
-  const dJp = dailyFor(eds.jp), dEn = dailyFor(eds.en, "white"), dEnBlue = dailyFor(eds.en, "blue");
+  const mJp = monthlyFor(sales.jp), mEn = monthlyFor(sales.en), mEnBlue = monthlyFor(sales.enBlue);
+  const dJp = dailyFor(sales.jp), dEn = dailyFor(sales.en), dEnBlue = dailyFor(sales.enBlue);
+  // 이상치로 판정된 판매(원장 id·판매일·개당가) — 점의 out 을 원장에서 다시 셀 수 있게 남긴다. 없는 판은 키가 없다.
+  const outliers = {};
+  for (const [k, rs] of Object.entries(sales)) {
+    const o = rs.filter((r) => r.out).map((r) => ({ d: r.d, id: r.id, unit: Math.round(r.unit * 100) / 100 }));
+    if (o.length) { outliers[k] = o; outlierSales += o.length; }
+  }
   const fJp = countsFrom(jp.points, mJp, dJp), fEn = countsFrom(en.points, mEn, dEn), fBlue = countsFrom(enBlue.points, mEnBlue, dEnBlue);
   sets[code] = {
     // 기존 키(jp/en)는 그대로 둔다 — 주간이 기본 보기이고, 이 키를 읽는 곳이 여럿이다.
@@ -357,7 +433,9 @@ for (const [code, all] of Object.entries(ledger.sets || {})) {
     release,
     preRelease,
     sinceRelease: { jp: eds.jp.filter(isBinSale).length, en: eds.en.filter(isBinSale).length },
+    ...(Object.keys(outliers).length ? { outliers } : {}),
   };
+  for (const p of [...jp.points, ...en.points, ...enBlue.points]) if (p.out) { outlierPoints++; if (p.win) widenedPoints++; }
   points += jp.points.length + en.points.length;
   monthPoints += mJp.length + mEn.length;
   dayPoints += dJp.length + dEn.length;
@@ -388,8 +466,10 @@ for (const node of Object.values(sets)) {
 }
 
 const store = {
-  note: `Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every ${STEP_DAYS} days and dated by SALE date (not collection date). The averaging window is chosen per series (${MIN_WINDOW}-${MAX_WINDOW} days) so that each point rests on roughly ${TARGET_N} sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than ${MIN_N} sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Sales dated before an edition's official release date (pre-orders) are excluded from the sold series and summarized separately per set under preRelease (median only when at least ${PRE_MIN_LISTINGS} different listings sold). current is the latest point when the edition is released and that point is within ${STALE_DAYS} days of asOf, otherwise null. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum ${MONTH_MIN_N} sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.`,
+  note: `Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every ${STEP_DAYS} days and dated by SALE date (not collection date). The averaging window is chosen per series (${MIN_WINDOW}-${MAX_WINDOW} days) so that each point rests on roughly ${TARGET_N} sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than ${MIN_N} sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Sales dated before an edition's official release date (pre-orders) are excluded from the sold series and summarized separately per set under preRelease (median only when at least ${PRE_MIN_LISTINGS} different listings sold). current is the latest point when the edition is released and that point is within ${STALE_DAYS} days of asOf, otherwise null. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum ${MONTH_MIN_N} sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month. Outlier sales (listed per set under outliers) are left out of medians: a sale is an outlier when it lies more than ${OUT_K} x max(1.4826 x MAD, ${OUT_FLOOR * 100}% of median) from the median of both the ${OUT_REF_DAYS} days before and the ${OUT_REF_DAYS} days after its sale date, each side holding at least ${OUT_REF_MIN} sales. out = sales left out of that point; win = that point's window in days when it was lengthened (up to ${MAX_WINDOW} days, ${RARE_MAX_WINDOW} for the first-print series) to keep ${MIN_N} sales after leaving outliers out; when even that falls short, the point keeps all sales. vol and counts include outliers.`,
   window: { targetSales: TARGET_N, minDays: MIN_WINDOW, maxDays: MAX_WINDOW, stepDays: STEP_DAYS, minSales: MIN_N, basis: "sold", datedBy: "saleDate", fromRelease: true },
+  // 2026-10-15 — 판정 기준은 markOutliers 주석 참고. 숫자를 바꾸면 test-box-sold-filters.js 6절이 OP-07·발매 주 사례로 다시 검증한다.
+  outlierRule: { method: "two-sided Hampel", k: OUT_K, madToSigma: MAD_TO_SIGMA, scaleFloor: OUT_FLOOR, refDays: OUT_REF_DAYS, refMinSales: OUT_REF_MIN },
   builtFrom: { ledger: "data/box-sold-ledger.json", updated: ledger.updated || today },
   updated: today,
   asOf: asOf || null,
@@ -446,5 +526,6 @@ const out = {
   range: dates.length ? `${dates[0]} ~ ${dates[dates.length - 1]}` : null,
   asOf,
   preReleaseExcluded,
+  outliers: { sales: outlierSales, weeklyPoints: outlierPoints, widened: widenedPoints },
 };
 console.log(JSON.stringify(out, null, process.argv.includes("--json") ? 0 : 1));

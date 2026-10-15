@@ -6,6 +6,7 @@
 // 3) 팰월드 원장 중복 키는 id + 판매일이다(palworld-sold-ingest.js mergeDump).
 // 4) 합본 제품코드 OP14-EB04·OP15-EB04 는 영문 OP-14·OP-15 박스다(combined-set-codes.js).
 // 5) 판매일은 eBay 표시일 그대로, 실행 머신 TZ 와 무관(box-sold-ingest.js soldDateOf, 2026-10-01).
+// 6) 시계열 이상치 판정 — OP-07 일본판 9/17·9/24 $134 사고, 발매 주·수준 이동은 남긴다(build-box-sold-series.js, 2026-10-15).
 //
 // 제목·가격·날짜는 C:/Users/kimtt/opbox-heartbeat/box-sold-cdp/box-2026-09-18~30.json 덤프 원문이다.
 // "(합성)" 표시가 붙은 것만 위험 경계를 막으려고 만든 제목이다.
@@ -175,4 +176,111 @@ for (const [code, ed, t, k, want] of COMBINED_CASES) {
   if (origTZ === undefined) delete process.env.TZ; else process.env.TZ = origTZ;
 }
 
-console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length, combined: COMBINED_CASES.length, dates: 9 }));
+// ── 6. 시계열 이상치 판정(build-box-sold-series.js markOutliers) — 2026-10-15.
+//    OP-07 일본판 4주 변화 -40.3% 사고: 9/17·9/24 점이 $134(n=6)였는데 6건 중 3건이 $162~181, 앞뒤 판매는 ~$80.
+//    판매 행은 원장(box-sold-ledger.json) 원문이다. [MM-DD, 개당가, 매물 id]
+const { salesOf, seriesFor, monthlyFor, OUTLIER, MIN_N: SERIES_MIN_N } = require("./build-box-sold-series");
+let outlierCases = 0;
+{
+  const rows = (yr, arr) => arr.map(([md, unit, id]) => ({ id: id || `x${md}${unit}`, d: `${yr}-${md}`, unit, fmt: "bin" }));
+  // 이상치 판정을 끈 기준값 — 같은 판매에서 out 만 지운다.
+  const plain = (rs) => rs.map((r) => ({ ...r, out: false }));
+  const byD = (pts) => Object.fromEntries(pts.map((p) => [p.d, p]));
+  // 세트 페이지 "4-week change" 정의: 마지막 점 vs 그 날짜에서 28일 이상 앞선 마지막 점(소수 한 자리 %).
+  const chg28 = (pts) => {
+    const last = pts[pts.length - 1], cut = Date.parse(last.d) - 28 * 86400000;
+    const base = pts.filter((p) => Date.parse(p.d) <= cut).pop();
+    return base ? Math.round((last.median / base.median - 1) * 1000) / 10 : null;
+  };
+
+  // 6-a. OP-07 일본판(2026-05-16 ~ 10-15 즉시구매 전부)
+  const OP07 = rows("2026", [
+    ["05-16", 135.13, "388112743116"], ["05-18", 113.79, "297999865745"], ["05-20", 78.93, "335926683943"], ["05-22", 80.07, "157902790858"],
+    ["05-22", 79.36, "377170420287"], ["05-23", 84.45, "226345934769"], ["05-24", 119.96, "166736027236"], ["05-24", 90.16, "325956118609"],
+    ["05-26", 75.06, "135970757205"], ["05-27", 87.03, "358030419934"], ["05-28", 90.04, "406709753799"], ["06-06", 95.65, "398004170256"],
+    ["06-17", 97.89, "386831616058"], ["06-18", 80.07, "336426857259"], ["06-19", 99.09, "127899445637"], ["06-21", 65.05, "298117862964"],
+    ["06-25", 124.11, "389921404439"], ["06-25", 100.09, "405071464613"], ["06-28", 94.58, "386799840347"], ["07-01", 79.45, "406982231386"],
+    ["07-03", 107.09, "147251079351"], ["07-06", 107.05, "377261420117"], ["07-13", 93.72, "287300952098"], ["07-13", 79.57, "377332790782"],
+    ["07-21", 98.10, "398187842463"], ["07-22", 70.07, "147450913259"], ["07-25", 78.69, "377341552748"], ["07-26", 80.04, "226028686106"],
+    ["07-26", 81.37, "407089894386"], ["07-29", 104.88, "236801283164"], ["07-29", 99.94, "405071464613"], ["07-31", 65.03, "298117862964"],
+    ["08-03", 79.90, "377341552748"], ["08-13", 74.50, "398276133345"], ["08-20", 165.69, "147348308001"], ["08-25", 162.52, "168451186418"],
+    ["09-03", 104.66, "236801283164"], ["09-06", 79.75, "227506385511"], ["09-17", 181.12, "306678438253"], ["09-18", 78.99, "318870988588"],
+    ["10-02", 79.76, "377341552748"], ["10-03", 79.47, "377332790782"], ["10-03", 79.48, "377341552748"], ["10-04", 79.48, "377341552748"],
+    ["10-05", 79.48, "377341552748"], ["10-06", 79.79, "377332790782"], ["10-09", 79.87, "377341552748"], ["10-11", 79.88, "377341552748"],
+    ["10-12", 79.88, "377341552748"], ["10-13", 80.03, "377341552748"], ["10-13", 112.37, "398451227775"], ["10-13", 80.06, "407128102071"],
+    ["10-15", 87.06, "318870989644"],
+  ]);
+  const s07 = salesOf(OP07);
+  // 이상치는 정확히 그 세 건 — $104.66·$112.37 처럼 ±70% 안쪽 판매는 남는다.
+  assert.deepEqual(s07.filter((r) => r.out).map((r) => `${r.d} ${r.id}`),
+    ["2026-08-20 147348308001", "2026-08-25 168451186418", "2026-09-17 306678438253"], "OP-07 이상치 판정이 바뀌었다");
+  const before = seriesFor(plain(s07)), after = seriesFor(s07);
+  assert.equal(after.windowDays, 42, "OP-07 계열 창");
+  const b07 = byD(before.points), a07 = byD(after.points);
+  assert.equal(b07["2026-09-17"].median, 134, "사고 재현(규칙 없이) 9/17");
+  assert.equal(b07["2026-09-24"].median, 134, "사고 재현(규칙 없이) 9/24");
+  assert.equal(chg28(before.points), -40.3, "사고 재현(규칙 없이) 4주 변화");
+  // 9/17·9/24 는 42일 창에 깨끗한 판매가 3건뿐 → 창을 56일까지 늘려 6건 이상을 모은다(점을 지우지 않는다).
+  assert.deepEqual(["median", "n", "out", "win"].map((k) => a07["2026-09-17"][k]), [80, 10, 3, 56], "OP-07 9/17");
+  assert.deepEqual(["median", "n", "out", "win"].map((k) => a07["2026-09-24"][k]), [79, 6, 3, 56], "OP-07 9/24");
+  assert.ok(Math.abs(chg28(after.points)) < 5, `OP-07 4주 변화가 여전히 튄다: ${chg28(after.points)}%`);
+  // 점은 하나도 사라지거나 새로 생기지 않는다(새 공백 금지). 모든 점 n ≥ MIN_N, n + out = 그 창의 실제 판매 수.
+  assert.deepEqual(after.points.map((p) => p.d), before.points.map((p) => p.d), "이상치 때문에 점 목록이 바뀌었다");
+  for (const p of after.points) {
+    assert.ok(p.n >= SERIES_MIN_N, `${p.d} n=${p.n}`);
+    const t = Date.parse(p.d), w = p.win || after.windowDays;
+    const raw = s07.filter((r) => r.t > t - w * 86400000 && r.t <= t).length;
+    assert.equal(p.n + (p.out || 0), raw, `${p.d} n+out ≠ 창 안 판매`);
+    assert.equal(p.vol, b07[p.d].vol, `${p.d} 거래량 막대는 이상치도 센다`);
+  }
+  outlierCases++;
+
+  // 6-b. 발매 주 — OP-17 일본판(발매 2026-08-22) 첫 4주 즉시구매 전부. 발매 프리미엄($142~330)은 이상치가 아니다.
+  const OP17 = [];
+  for (const [md, us] of Object.entries({
+    "08-22": [142.16, 200.22], "08-23": [168.19, 170.19, 175.65, 180.2, 221.13, 330.38], "08-24": [152.79, 156.47, 224.95],
+    "08-25": [127.43, 134.91, 154.9, 156.47], "08-26": [139.07], "08-27": [135.17], "08-28": [169.22],
+    "08-29": [120.16, 130.16, 130.17, 145.18, 177.11], "08-30": [135.17, 161.21], "08-31": [130.16, 135.18, 150.19],
+    "09-01": [130.86, 134.88, 134.89, 168.86], "09-02": [134.88, 134.89, 139.87], "09-03": [108.66, 123.56, 123.85], "09-05": [124.85],
+    "09-06": [124.85, 134.57, 134.58, 142.71, 149.52], "09-07": [121.17, 168.67], "09-08": [129.73, 134.72, 149.69],
+    "09-10": [120.56, 121.26, 136.42, 136.42], "09-11": [151.58], "09-12": [127.91, 129.87, 132.87, 134.87, 149.86],
+    "09-13": [114.6, 129.54, 134.52], "09-14": [129.54], "09-16": [129.45, 130.44, 135.84], "09-17": [115.72, 125.79, 130.81],
+    "09-18": [161.01], "09-19": [113.8],
+  })) us.forEach((u, i) => OP17.push({ id: `op17-${md}-${i}`, d: `2026-${md}`, unit: u, fmt: "bin" }));
+  const s17 = salesOf(OP17);
+  assert.deepEqual(s17.filter((r) => r.out).map((r) => `${r.d} $${r.unit}`), [], "발매 주 판매가 이상치로 빠졌다");
+  const p17 = seriesFor(s17).points, q17 = seriesFor(plain(s17)).points;
+  assert.deepEqual(p17, q17, "발매 주 점이 규칙 때문에 바뀌었다");
+  assert.ok(p17[0].median >= 150, `발매 주 첫 점이 발매 프리미엄을 잃었다: $${p17[0].median}`);
+  outlierCases++;
+
+  // 6-c. 진짜 수준 이동(합성): $80 대 60일 → $160 대 60일. 뒤쪽 시장이 새 값과 맞으므로 아무것도 빼지 않는다.
+  const shift = [];
+  for (let i = 0; i < 60; i++) shift.push({ id: `s${i}`, d: new Date(Date.UTC(2026, 3, 1) + i * 2 * 86400000).toISOString().slice(0, 10), unit: i < 30 ? 80 + (i % 5) : 160 + (i % 7), fmt: "bin" });
+  const sShift = salesOf(shift);
+  assert.equal(sShift.filter((r) => r.out).length, 0, "수준 이동이 이상치로 지워졌다");
+  const lastShift = seriesFor(sShift).points.pop();
+  assert.ok(lastShift.median >= 160, `수준 이동 뒤 마지막 점 $${lastShift.median}`);
+  outlierCases++;
+
+  // 6-d. 고립된 튀는 값(합성): $80 대 180일 중 하루 $170 → 이상치. $130(+62%)은 ±70% 하한 안이라 남는다.
+  //      마지막 판매 $200 은 뒤쪽 판매가 없어 판정하지 않는다(확인 전에는 빼지 않는다).
+  const spike = [];
+  for (let i = 0; i < 90; i++) spike.push({ id: `p${i}`, d: new Date(Date.UTC(2026, 3, 1) + i * 2 * 86400000).toISOString().slice(0, 10), unit: i === 45 ? 170 : i === 50 ? 130 : i === 89 ? 200 : 79 + (i % 3), fmt: "bin" });
+  const sSpike = salesOf(spike);
+  assert.deepEqual(sSpike.filter((r) => r.out).map((r) => r.unit), [170], "고립된 튀는 값 판정");
+  outlierCases++;
+
+  // 6-e. 빼면 문턱 아래인데 cap 까지 늘려도 못 채우면 원래 창 그대로(빈 칸을 만들지 않는다). 월간도 같다.
+  const thin = salesOf(["06-01", "06-04", "06-08", "06-11", "06-15", "06-20"].map((md, i) => ({ id: `t${i}`, d: `2026-${md}`, unit: i === 2 ? 300 : 80 + i, fmt: "bin" })));
+  thin[2].out = true;   // 표본이 6건뿐이라 판정 자체는 안 되지만, 문턱 처리만 따로 본다
+  const tp = seriesFor(thin).points.pop();
+  assert.deepEqual([tp.n, tp.out, tp.win, tp.median], [6, undefined, undefined, 84], "문턱 아래면 그대로 둔다");   // 80·81·83·84·85·300 의 중앙값(300 포함)
+  const tm = monthlyFor(thin).pop();
+  assert.deepEqual([tm.n, tm.out, tm.vol], [6, undefined, 6], "월간도 문턱 아래면 그대로 둔다");
+  outlierCases++;
+
+  assert.deepEqual(OUTLIER, { k: 3.5, refDays: 90, refMinSales: 8, scaleFloor: 0.2 }, "이상치 기준을 바꾸면 위 사례와 전 계열 시뮬레이션을 다시 볼 것");
+}
+
+console.log(JSON.stringify({ ok: true, keep: KEEP.length, drop: DROP.length, combined: COMBINED_CASES.length, dates: 9, outliers: outlierCases }));

@@ -16,13 +16,16 @@
 // ── 규칙
 //   · 값이 없으면 칸을 비운다. 추정·보간 금지("빈 값이 틀린 값보다 낫다").
 //   · 표·차트 위주. 문장은 날짜가 박힌 사실문(접힌 Key facts·FAQ)만 — 소유자 규칙.
+//     2026-10-15 소유자 결정: 지표 정의는 식 한 조각, 표 아래 방법 설명("so thin weeks borrow neighbours" · "Printings are never averaged
+//     together")·해석("Fewer days means stock is clearing faster" · "The ratio describes the gap; it does not explain it")은 뺐다.
+//     설명문(meta·og)은 Key facts 표 값으로만(set-page-shared.dataDesc, 일본판 생성기와 같은 함수).
 //   · 일본판 페이지와 <head>·푸터·고지·사이트맵 갱신을 공유한다(set-page-shared.js).
 //   · 박스 그림은 싣지 않는다 — 가진 이미지는 반다이 일본판 공식 사진이라 영문판 페이지에 맞지 않는다.
 //
 // Run: node tools/generate-english-set-pages.js   (generate-set-pages.js 보다 먼저 — 허브·일본판 페이지가 이 파일 존재를 보고 링크를 건다)
 const fs = require("fs");
 const path = require("path");
-const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate } = require("./set-page-shared");
+const { ROOT, SITE, EPN, BoxChart, esc, usd, intl, enIsReprint, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, lowestAsk, keyFactsModel, keyFactsHtml, KF_CSS, latestSets, withChartCss, latestDate, setPageDate, dataDesc } = require("./set-page-shared");
 
 const readJson = (rel, fallback) => {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")); } catch { return fallback; }
@@ -134,14 +137,14 @@ function statGrid(code, m) {
   // 구조화 데이터는 화면 내용을 반영해야 하므로, 일본판 세트 페이지처럼 호가 범위를 같은 칸에 보여 준다.
   if (m.ask && m.ask.middle != null && (m.ask.sampleSize || 0) >= 3) {
     const rng = m.ask.low != null && m.ask.high != null && m.ask.high >= m.ask.low ? ` · Range ${usd(m.ask.low)} – ${usd(m.ask.high)}` : "";
-    card("Asking price (mid)", usd(m.ask.middle), `${m.ask.sampleSize} active listings${rng} · ${esc(m.ask.updated || DATA_DATE)}`, "Median asking price of verified active eBay listings — not a completed sale.");
+    card("Asking price (mid)", usd(m.ask.middle), `${m.ask.sampleSize} active listings${rng} · ${esc(m.ask.updated || DATA_DATE)}`, "Median ask of verified active eBay listings (not sales)");
   }
-  if (m.days != null) card("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${BASE.days.v}d ${cmp(m.days, BASE.days.v, false)}`, "How long the listings on sale would last at the current selling pace. Fewer days means stock is clearing faster.");
-  if (m.multiple != null) card("vs Japanese box", `${m.multiple}x`, `${m.reprint ? "EN reprint vs " : ""}JP ${usd(m.jpPrice)} as of ${esc(m.jpPriceD)} · ${baseLabel("multiple")} ${BASE.multiple.v}x`, "English completed-sale median divided by the Japanese one. The ratio describes the gap; it does not explain it.");
+  if (m.days != null) card("Days of inventory", `${m.days}d`, `${m.stock} listed · ${baseLabel("days")} ${BASE.days.v}d ${cmp(m.days, BASE.days.v, false)}`, "Listings on sale ÷ sales per day (sold-median window)");
+  if (m.multiple != null) card("vs Japanese box", `${m.multiple}x`, `${m.reprint ? "EN reprint vs " : ""}JP ${usd(m.jpPrice)} as of ${esc(m.jpPriceD)} · ${baseLabel("multiple")} ${BASE.multiple.v}x`, "English sold median ÷ Japanese sold median");
   if (m.psa != null) card("PSA graded (EN)", intl(m.psa), `${baseLabel("psa")} ${intl(BASE.psa.v)} ${cmp(m.psa, BASE.psa.v)}`);
-  if (m.gem != null) card("PSA 10 rate (EN)", `${m.gem}%`, `${baseLabel("gem")} ${BASE.gem.v}% ${cmp(m.gem, BASE.gem.v)}`, "Share of PSA submissions from the English printing that came back a 10.");
+  if (m.gem != null) card("PSA 10 rate (EN)", `${m.gem}%`, `${baseLabel("gem")} ${BASE.gem.v}% ${cmp(m.gem, BASE.gem.v)}`, "PSA 10 grades ÷ all PSA grades, English printing");
   if (cells.length < 3) return "";
-  const gloss = hints.length ? `<details class="statGloss"><summary>What these numbers mean</summary><dl>${hints.map(([l, t]) => `<dt>${l}</dt><dd>${t}</dd>`).join("")}</dl></details>` : "";
+  const gloss = hints.length ? `<details class="statGloss"><summary>Definitions</summary><dl>${hints.map(([l, t]) => `<dt>${l}</dt><dd>${t}</dd>`).join("")}</dl></details>` : "";
   return `<section aria-label="English box metrics"><div class="statGrid">${cells.join("")}</div>${gloss}</section>`;
 }
 
@@ -220,7 +223,7 @@ function weeklyTable(code) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">Completed eBay sales of sealed English boxes, dated by sale date. Each row's median uses the sales inside its averaging window (${SOLD.sets?.[code]?.windowDays?.en || 28}+ days), so thin weeks borrow neighbours. <a href="../methodology.html">Source rules</a> · ${esc(latestDate(DATA_DATE, SOLD.asOf))}</p>`;   // 표의 첫 행은 판매 원장 기준일(asOf)까지 간다 — 그보다 이른 날짜를 찍지 않는다(2026-10-15)
+      <p class="priceNote">Completed eBay sales, sealed English boxes · dated by sale date · median window ${SOLD.sets?.[code]?.windowDays?.en || 28}+ days · <a href="../methodology.html">Source rules</a> · ${esc(latestDate(DATA_DATE, SOLD.asOf))}</p>`;   // 표의 첫 행은 판매 원장 기준일(asOf)까지 간다 — 그보다 이른 날짜를 찍지 않는다(2026-10-15). 문장("…so thin weeks borrow neighbours")은 라벨 조각으로(2026-10-15)
 }
 
 function compareTable(code, m, s) {
@@ -250,7 +253,7 @@ function compareTable(code, m, s) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">Japanese figures come from the <a href="${slug(code)}.html">${code} Japanese box guide</a>. Printings are never averaged together.</p>`;
+      <p class="priceNote">Japanese column: <a href="${slug(code)}.html">${code} Japanese box guide</a></p>`;   // 출처 라벨만 — "Printings are never averaged together."(방법 설명)는 뺐다(2026-10-15)
 }
 
 // 영문판 경매 낙찰 통계 — 종료 후 재조회한 우리 원장에서만 나오는 축. 표본 30건 미만이면 비율을 비운다.
@@ -415,20 +418,10 @@ function englishPage(code, prev, next) {
   const latestCands = rel ? [`One Piece ${code} English Booster Box Price & Release Date`, `One Piece ${code} English Box Price & Release Date`, `${code} English Box Price & Release Date | OP Box Index`] : [];
   // 2026-09-29: 'One Piece' 를 맨 앞 후보로. 다음 후보는 'Booster' 를 빼고 'One Piece' 를 지킨다(일본판 생성기와 같은 규칙).
   const title = uniqueTitle(fit([...latestCands, `One Piece ${core}`, `One Piece ${code} ${nameEn} English Box Price`, `${core} | OP Box Index`, core, `${code} ${nameEn} English Box Price`], TITLE_MAX, code));
-  // 설명은 155자 안에서 문장이 끝나야 한다 — 종전 slice(0,155) 는 단어 중간을 잘랐다. 값 없는 조각은 빠진다.
-  // 넘치면 긴 꼬리를 떼고, 그래도 넘치면 같은 숫자를 짧은 말로 다시 쓴다(숫자는 그대로).
-  const bitsOf = (short) => [
-    m.price != null ? (m.reprint ? "reprint (White) " : "") + (short ? `eBay sold median $${Math.round(m.price)} (${m.priceN} sales, ${m.priceD})` : `completed eBay sale median $${Math.round(m.price)} (${m.priceN} sales to ${m.priceD})`) : "",
-    m.ask?.middle != null && (m.ask.sampleSize || 0) >= 3 ? (short ? `ask $${Math.round(m.ask.middle)}` : `asking mid $${Math.round(m.ask.middle)}`) : "",
-    m.multiple != null ? (short ? `${m.multiple}x the JP box` : `${m.multiple}x the Japanese box`) : "",
-    m.gem != null ? (short ? `PSA 10 rate ${m.gem}%` : `English PSA 10 rate ${m.gem}%`) : "",
-  ].filter(Boolean).join(", ");
-  const desc = fit([
-    `English ${code} ${nameEn} box: ${bitsOf(false)}. Weekly price history and auction results, updated daily.`,
-    `English ${code} ${nameEn} box: ${bitsOf(false)}. Weekly price history and auction results.`,
-    `English ${code} ${nameEn} box: ${bitsOf(true)}. Weekly price history and auction results.`,
-    `English ${code} ${nameEn} box: ${bitsOf(true)}.`,
-  ], DESC_MAX, code);
+  // 설명 = Key facts 표의 값만(set-page-shared.dataDesc — 일본판 생성기와 같은 함수, 2026-10-15 소유자 결정).
+  // 종전 꼬리 "Weekly price history and auction results, updated daily."(페이지 소개)는 뺐고, 금액 표기는 표와 같은 usd()("$1,424") 하나.
+  // 뒤 조각 = 지표 칸의 배수·영문판 PSA 10 비율 — 들어갈 때만. 배수는 JP·EN current 가 둘 다 있을 때만(m.multiple, 가드 D17 8c).
+  const desc = fit([dataDesc(keyFactsModel(code, "en"), nameEn, [m.multiple != null ? `${m.multiple}x the JP box` : "", m.gem != null ? `English PSA 10 rate ${m.gem}%` : ""], DESC_MAX)], DESC_MAX, code);
   const ebaySearch = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece Card Game ${code} ${nameEn} Booster Box English sealed`)}&LH_BIN=1&_sop=15&${EPN}`;
   const enBuy = cheapestBoxCta(code);
   // 수정일 — JSON-LD dateModified·화면 "Data updated" 가 같은 날(일본판 생성기와 같은 함수, 2026-10-15 감사 #4).

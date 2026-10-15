@@ -78,10 +78,15 @@ const nDn = withChg.filter((b) => b.changePct < 0).length;
 const topUp = byChg[0];
 const topDn = byChg[byChg.length - 1];
 
+// 2026-10-15 소유자 결정(데이터 페이지 = 숫자·표·라벨만): 답이 데이터 사실인 문항만 남긴다.
+//   "worth buying sealed?"(해석)·"Where can I check … for free?"(사이트 소개) 문항과, 답 안의 사이트 설명
+//   ("we collect ourselves"·"The table above lists …"·"They move set by set …"·"See the change column …")을 뺐다.
+//   "median of completed eBay sales" 는 숫자의 뜻이라 라벨 토막으로 남긴다. 화면 FAQ 와 FAQPage 는 같은 배열이다(L2).
+//   CH1 가드가 첫 답의 "range from about $X (…)" 구절을 읽는다 — 그 꼴은 그대로 둔다.
 const faqs = [
   {
     q: "How much is a One Piece booster box?",
-    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${andList(cheapAll.map((b) => `${b.code} ${nameOf(b.code)}`))}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}), as of ${DATA_DATE}. Each price is the median of completed eBay sales we collect ourselves, updated daily. The table above lists all ${rows.length} sets.`,
+    a: `Sealed Japanese One Piece booster boxes currently range from about ${usd(cheapest.nowUsd)} (${andList(cheapAll.map((b) => `${b.code} ${nameOf(b.code)}`))}) to ${usd(priciest.nowUsd)} (${priciest.code} ${nameOf(priciest.code)}) — median of completed eBay sales, as of ${DATA_DATE}.`,
   },
   {
     q: "Which One Piece booster box is the most valuable?",
@@ -89,15 +94,7 @@ const faqs = [
   },
   {
     q: "Are One Piece booster boxes going up or down in price?",
-    a: `They move set by set, not as one block. Of the ${withChg.length} Japanese sets with a 4-week reference point, ${nUp} are up and ${nDn} are down over the last 4 weeks (latest weekly sold median vs 4 weeks earlier)${topUp ? `; the largest gain is ${topUp.code} at ${topUp.changePct >= 0 ? "+" : ""}${topUp.changePct}%` : ""}${topDn && topDn.changePct < 0 ? ` and the largest fall is ${topDn.code} at ${topDn.changePct}%` : ""}. See the change column above for each set.`,
-  },
-  {
-    q: "Is a One Piece booster box worth buying sealed?",
-    a: `It depends on the set. Older sets have had years for sealed supply to thin out, while recently released sets are still being opened. We publish each set's latest sold median with its date and its 4-week change, alongside how many copies of its cards have been graded, so you can judge rather than guess. Reprints matter too — a distributor reprint adds supply and has historically pressured prices.`,
-  },
-  {
-    q: "Where can I check One Piece card and booster box prices for free?",
-    a: `This site is free and updated daily. You can browse per-set guides, the top PSA 10 card ranking, and PSA / CGC / TAG grading population by set and edition, or download citable JSON and CSV datasets under a CC BY 4.0 licence at /free-data.html.`,
+    a: `Of the ${withChg.length} Japanese sets with a 4-week reference point, ${nUp} are up and ${nDn} are down over the last 4 weeks (latest weekly sold median vs 4 weeks earlier)${topUp ? `; the largest gain is ${topUp.code} at ${topUp.changePct >= 0 ? "+" : ""}${topUp.changePct}%` : ""}${topDn && topDn.changePct < 0 ? ` and the largest fall is ${topDn.code} at ${topDn.changePct}%` : ""}.`,
   },
 ];
 const faqLd = JSON.stringify({

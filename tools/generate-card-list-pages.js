@@ -332,7 +332,10 @@ function pageEn(p, rows, nameEn, src, box, links) {
     `<a href="index.html#card-lists" data-ko="전체 카드 리스트">All card lists</a>`,
   ].filter(Boolean);
 
-  const LEGEND_EN = `<p class="clLegend">Base = official card ID without suffix · Parallel = ID ending _p · Reprint = ID ending _r · SP = rarity SP CARD · TR = rarity TR · Leaders = base-print Leader cards · Leaders show Life in the cost column · cards from other sets' numbers follow this set's own numbers.<br />NM = Japanese raw near-mint retail ask, ¥ → USD (MM-DD = observed). Auction JP / EN = median winning bid for the Japanese / English print of that card, ungraded, last 45 days to ${esc(AUCTION_DAY || "—")} (n = sales); prints are never combined. PSA 10 = median of completed sales (n ≥ ${MIN_N}). Numbers appear only where the card ID matches by rule; otherwise —. Effect text and card images are not reproduced. <a href="../methodology.html">Methodology</a> · Data ${esc(pageDate(src, box, rows))}</p>`;
+  // 범례 = 정의 라벨만 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). 설명 문장("Leaders show Life in the cost column"·
+  // "cards from other sets' numbers follow …"·"prints are never combined"·"Numbers appear only where … otherwise —"·
+  // "Effect text and card images are not reproduced")은 지웠다 — 칸 자체가 "Life 5"·JP/EN 열·"—" 로 보인다. 한국어 범례도 같은 규칙.
+  const LEGEND_EN = `<p class="clLegend">Base = official card ID without suffix · Parallel = ID ending _p · Reprint = ID ending _r · SP = rarity SP CARD · TR = rarity TR · Leaders = base-print Leader cards<br />NM = Japanese raw near-mint retail ask, ¥ → USD (MM-DD = observed) · Auction JP / EN = median winning bid for the Japanese / English print of that card, ungraded, last 45 days to ${esc(AUCTION_DAY || "—")} (n = sales) · PSA 10 = median of completed sales (n ≥ ${MIN_N}) · — = no rule-matched value · <a href="../methodology.html">Methodology</a> · Data ${esc(pageDate(src, box, rows))}</p>`;
   const html = `${pageHead({ title, desc, canonical, koHref, extraLd, extraCss: CSS, chart: false })}
       <p class="eyebrow" data-ko="공식 카드 리스트 · 일본판">Official card list · Japanese edition</p>
       <h1>${esc(h1)}</h1>
@@ -446,7 +449,7 @@ ${CSS}
       <p class="clSummary">${sum.map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join("")}</p>
       <p class="clMeta">공식 목록(일본판): <a href="${esc(src.jp.url)}" target="_blank" rel="noopener noreferrer">반다이 카드 리스트</a> 확인 <time datetime="${src.jp.checked}">${src.jp.checked}</time><br />영문 이름: 반다이 영문 카드 리스트 ${enSrc}<br />${boxBit("jp", "일본판 박스 판매 중앙값")} · ${boxBit("en", "영문판 박스")}</p>
       <p class="clLinks">${linkBits.join("")}</p>
-      <p class="clLegend">기본 = 접미어 없는 공식 카드 ID · 패러렐 = _p 로 끝나는 ID · 재수록 = _r 로 끝나는 ID · SP = 레어도 SP CARD · TR = 레어도 TR · 리더 = 기본 인쇄 리더 카드 · 리더는 코스트 칸에 라이프 · 다른 세트 번호 카드는 이 세트 번호 뒤에.<br />금액은 달러(USD). NM = 일본판 미개봉급 낱장 소매 호가, 엔 → 달러(MM-DD = 관측일). 경매 일본판/영문판 = 그 카드의 일본판/영문판 인쇄·미감정 낙찰가 중앙값, ${esc(AUCTION_DAY || "—")}까지 45일(n = 낙찰 수), 두 판을 합치지 않음. PSA 10 = 판매 완료 중앙값(n ≥ ${MIN_N}). 카드 ID 가 규칙으로 맞을 때만 숫자를 싣고, 아니면 —. 효과 텍스트·카드 이미지는 싣지 않습니다. 데이터 ${esc(pageDate(src, box, rows))}</p>
+      <p class="clLegend">기본 = 접미어 없는 공식 카드 ID · 패러렐 = _p 로 끝나는 ID · 재수록 = _r 로 끝나는 ID · SP = 레어도 SP CARD · TR = 레어도 TR · 리더 = 기본 인쇄 리더 카드<br />금액 = 달러(USD) · NM = 일본판 미개봉급 낱장 소매 호가, 엔 → 달러(MM-DD = 관측일) · 경매 일본판/영문판 = 그 카드의 일본판/영문판 인쇄·미감정 낙찰가 중앙값, ${esc(AUCTION_DAY || "—")}까지 45일(n = 낙찰 수) · PSA 10 = 판매 완료 중앙값(n ≥ ${MIN_N}) · — = 규칙에 맞는 값 없음 · 데이터 ${esc(pageDate(src, box, rows))}</p>
       <table class="clTable text">
         <thead><tr><th>카드</th><th class="wide">레어도</th><th class="wide">종류</th><th class="wide">색</th><th class="num wide">코스트/라이프</th><th class="num wide">파워</th><th class="num wide">NM</th><th class="num wide">경매 일본판</th><th class="num wide">경매 영문판</th><th class="num wide">PSA 10</th></tr></thead>
         <tbody>

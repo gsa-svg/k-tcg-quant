@@ -15,9 +15,13 @@ const ROOT = path.join(__dirname, "..");
 //    섹션이 조용히 0개가 된다(2026-09-01 세트 페이지에서 그렇게 당했다).
 let CARD_AUCTION = { cards: {}, window: "", updated: "" };
 try { CARD_AUCTION = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "auction-card-stats.json"), "utf8")); } catch { /* 없으면 생략 */ }
+// 경매 집계 기준일 — 경매 표 라벨 "last 45 days to <날짜>" 와 수정일(pageDate)이 같이 쓴다. 카드리스트(AUCTION_DAY)와 같은 값 — 2026-10-15.
+const AUC_DAY = String(CARD_AUCTION.updated || "").slice(0, 10);
 const SITE = "https://opboxindex.com";
 const EPN = "mkcid=1&mkrid=711-53200-19255-0&siteid=0&campid=5339163744&toolid=10001&mkevt=1";
 const TOP_N = 24;
+// PSA 10 sold 표본 낡음 기준(일) — 홈 packs.js PSA10_STALE_DAYS 와 같은 값. 넘으면 원본 대비 배수(Premium)를 내지 않는다(상세·허브 공통, 2026-10-15).
+const PSA10_STALE_DAYS = 35;
 // EPN 규정(Participation Requirements I.G.) — 제휴 고지는 "명확하고 눈에 띄게".
 // 2026-08-10 EPN 위반 통지: 문구 자체는 적절하나 푸터에 있어 잘 보이지 않는다는 지적.
 // 그래서 본문 상단(접힘선 위)에도 넣는다. 푸터의 affNote 는 그대로 둔다 — 둘 중 하나를 지우지 말 것.
@@ -53,8 +57,6 @@ const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").
 const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 const slugify = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 70);
 const DATA_DATE = d.updated || new Date().toISOString().slice(0, 10);
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const MON_LABEL = (() => { const dt = new Date(DATA_DATE); return Number.isNaN(dt.getTime()) ? "" : `${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`; })();
 
 // ---- 후보 수집 + 중복 변형 제거(번호+정규화이름 기준; 홈세트 우선)
 const seen = new Map();
@@ -161,12 +163,14 @@ function psaHistorySection(card, boxCode) {
     .join("\n        ");
   const first = pts[0], last = pts[pts.length - 1];
   const grew = last.total - first.total;
+  // 캡션은 라벨만 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). "intervals are uneven"·"a smaller total … is shown without a change figure"·
+  // "Japanese … only" 설명 문장은 지웠다(판은 제목 "(Japanese)", 음수 증감은 표의 "—"). 관측일 정의와 기간 증가분만 라벨로 남긴다.
   return `
       <h2>${esc(card.name)} PSA population by observation date (Japanese)</h2>
       <table class="dataTable"><thead><tr><th>Observed</th><th class="num">Graded</th><th class="num">PSA 10</th><th class="num">PSA 9</th><th class="num">New since previous</th></tr></thead><tbody>
         ${rows}
       </tbody></table>
-      <p class="srcNoteA">${intl(grew > 0 ? grew : 0)} copies added between ${esc(first.d)} and ${esc(last.d)} across ${pts.length} observations. Dates are when PSA's published report was recorded, so intervals are uneven; a smaller total than the previous row (regrade or correction) is shown without a change figure. Japanese ${esc(card.name)} ${esc(card.number || "")} only.</p>`;
+      <p class="srcNoteA">Observed = date PSA's report was recorded · ${esc(first.d)} to ${esc(last.d)}: +${intl(grew > 0 ? grew : 0)} graded, ${pts.length} observations · — = no increase or first observation</p>`;
 }
 
 function graderSection(card) {
@@ -175,12 +179,14 @@ function graderSection(card) {
   const body = rows
     .map((r) => `<tr><td>${r.grader}</td><td>${r.ed}</td><td class="num">${intl(r.total)}</td><td>${r.topLabel}</td><td class="num">${intl(r.top)}</td><td class="num">${r.share}%</td><td>${esc(r.d || "—")}</td></tr>`)
     .join("\n        ");
+  // 캡션은 라벨 하나 — 2026-10-15 소유자 결정. "other printings … are not included"·"counted separately and never summed" 설명 문장은 지웠다
+  // (등급사·판은 표의 열로 이미 갈린다). 숫자가 어느 인쇄의 것인지만 라벨로 남긴다.
   return `
       <h2>${esc(card.name)} grading population by grader</h2>
       <table class="dataTable"><thead><tr><th>Grader</th><th>Edition</th><th>Graded</th><th>Top grade</th><th>Top-grade copies</th><th>Share</th><th>As of</th></tr></thead><tbody>
         ${body}
       </tbody></table>
-      <p class="srcNoteA">Exact-printing counts for ${esc(card.name)} ${esc(card.number || "")} only; other printings of the same card number are not included. Each grader and edition is counted separately and never summed.</p>`;
+      <p class="srcNoteA">Counts = exact printing ${esc(card.number || "")} ${esc(card.name)}</p>`;
 }
 // PSA10 표시가(세트 페이지와 동일 규칙: sold n>=3 우선, 아니면 최저 ask)
 function psa10Of(card) {
@@ -257,6 +263,9 @@ for (const { code, set: s, card: c } of cands) {
   const boxAsOf = boxUsd ? jpLast.d : null;
   const boxMult = boxUsd && nmUsd ? (nmUsd / boxUsd) : null;
   const rank = c.rank || null;
+  // 가격 카드 아래 머리 줄 = 라벨만 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). 종전 문장 "… is the #1 chase card in …"·
+  // "One raw … is currently worth about 63x a sealed … box" 는 라벨(세트·체이스 순위·박스 배수)로 바꾸고,
+  // 해석 절("…which helps explain its raw-to-slab spread"·"…so PSA 10 supply is materially smaller …")은 지웠다 — 젬률은 위 가격 카드에 있다.
   const ebayRaw = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} ${c.name} Japanese`)}&_sop=15&${EPN}`;
   const ebayPsa = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${c.number} PSA 10 Japanese`)}&_sop=15&${EPN}`;
   // PSA 10 최저 실매물 버튼. 검색 링크는 값이 없어 잘 안 눌린다(2026-09-16 실측).
@@ -282,12 +291,12 @@ for (const { code, set: s, card: c } of cands) {
   const g10 = c.psa10Ebay && c.psa10Ebay.soldBased && c.psa10Ebay.middle != null ? c.psa10Ebay : null;
   const g10Usd = g10 ? toUsdAt(g10.middle, g10.currency, g10.updated) : null;
   const serPsaUsd = (p) => (g10Usd != null && g10.updated && p.d > g10.updated ? g10Usd : toUsdAt(p.psa, "KRW", p.d));
+  // 체크포인트 캡션 = 열 정의만(2026-10-15 소유자 결정) — "… checkpoints use …; missing cells remain unestimated" 설명 절은 지웠다.
   const serRows = ser.length >= 2 ? ser.slice(-6).map((p) => `<tr><td>${esc(p.d)}</td><td class="num">${p.nm != null ? usd(toUsdAt(p.nm, "KRW", p.d)) : "—"}</td><td class="num">${p.psa != null ? usd(serPsaUsd(p)) : "—"}</td></tr>`).join("") : "";   // NM 은 각 시점의 환율(fx-history)
 
   // PSA10 sold 값의 나이. 홈(packs.js PSA10_STALE_DAYS=35)과 같은 기준 — 35일 넘은 sold 중앙값으로는 프리미엄을 계산하지 않는다.
   const p10Age = p10 && p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : null;
-  const p10Stale = !!(p10 && p10.kind === "sold" && Number.isFinite(p10Age) && p10Age > 35);
-  const p10Mon = p10Stale ? (() => { const dt = new Date(p10.date); return Number.isNaN(dt.getTime()) ? "" : ` (${MONTHS[dt.getUTCMonth()]} ${dt.getUTCFullYear()})`; })() : "";
+  const p10Stale = !!(p10 && p10.kind === "sold" && Number.isFinite(p10Age) && p10Age > PSA10_STALE_DAYS);
 
   // 그레이딩 경제성(전부 실데이터 파생 — 추정치 없음)
   // PSA 등급 분포 표(10 / 9 / 8 이하) — 아래 세 갈래가 같은 표를 쓴다(2026-10-15, NM 없는 갈래를 더하며 하나로 묶음).
@@ -297,42 +306,38 @@ for (const { code, set: s, card: c } of cands) {
         <tr><td>PSA 8 or lower</td><td class="num">${intl(Math.max(0, (pop.total || 0) - (pop.psa10 || 0) - (pop.psa9 || 0)))}</td><td class="num">${pop.total ? Math.max(0, 100 - Math.round((pop.psa10 / pop.total) * 100) - Math.round((pop.psa9 / pop.total) * 100)) : 0}%</td></tr>
       </tbody></table>` : "";
   let gradeSection = "";
+  // 원본 대 PSA 10 = 라벨 한 줄 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). 종전 판정 문장("no measurable slab premium"·
+  // "a narrow … premium … before grading fees"·"this is a market spread, not a guaranteed grading return"·"A current premium is not computed until …")을
+  // 지우고, 숫자는 허브(cards/index.html)와 같은 정의 "Premium = PSA 10 ÷ raw NM"(소수 1자리 x) + 차액으로 남긴다. 가격·표본·젬률은 위 가격 카드에 있다.
+  // 35일 넘은 sold 중앙값으로는 배수를 내지 않는다(홈 PSA10_STALE_DAYS 와 같은 기준) — 값 대신 "—" 와 그 표본 날짜.
+  const premiumLbl = p10 && p10.kind === "ask" ? "PSA 10 lowest listing ÷ raw NM" : "PSA 10 sold median ÷ raw NM";
   if (p10 && nmUsd && p10Stale) {
     gradeSection = `
       <h2>Raw vs PSA 10: is grading worth it here?</h2>
-      <p>${esc(c.name)} (${esc(c.number)}): the last PSA 10 sales we observed were in${esc(p10Mon.replace(/[()]/g, ""))} (${p10.n} sales, median ${usd(p10.v)}); the raw NM reference is ${usd(nmUsd)}. A current premium is not computed until fresh PSA 10 sales appear — ${aN(Math.round(p10Age))} ${Math.round(p10Age)}-day-old sample is not a current spread.</p>
+      <p>Premium (${premiumLbl}): <b>—</b> (PSA 10 sample ${esc(p10.date)}, over ${PSA10_STALE_DAYS} days old)</p>
       ${gradeTable}`;
   } else if (p10 && nmUsd) {
     const ratio = p10.v / nmUsd;
-    const premium = p10.v - nmUsd;
-    let verdict;
-    if (ratio <= 1.05) {
-      verdict = `${c.name} (${c.number}) currently has no measurable slab premium: PSA 10 ${p10.kind === "sold" ? "sales center" : "listings start"} near ${usd(p10.v)}, versus ${usd(nmUsd)} for raw NM${pop ? `, with ${intl(pop.psa10)} PSA 10 copies already reported` : ""}.`;
-    } else if (ratio < 1.5) {
-      verdict = `${c.name} (${c.number}) carries a narrow ${usd(premium)} PSA 10 premium (${Math.round((ratio - 1) * 100)}%) over its ${usd(nmUsd)} raw reference, before grading fees, shipping or the risk of a lower grade.`;
-    } else {
-      verdict = `${c.name} (${c.number}) shows ${aN(premium)} ${usd(premium)} PSA 10 premium, or ${ratio.toFixed(1)}x its raw reference${pop ? `, alongside ${aN(pop.gem)} ${pop.gem}% exact-variant gem rate` : ""}; this is a market spread, not a guaranteed grading return.`;
-    }
+    const diff = p10.v - nmUsd;
     gradeSection = `
       <h2>Raw vs PSA 10: is grading worth it here?</h2>
-      <p>${esc(verdict)}</p>
+      <p>Premium (${premiumLbl}): <b>${ratio.toFixed(1)}x</b> · difference <b>${diff < 0 ? "−" : "+"}${usd(Math.abs(diff))}</b></p>
       ${pop ? `${gradeTable}
-      <p class="srcNoteA">Exact-printing PSA report for ${esc(c.name)} ${esc(c.number)}; population is cumulative, while price observations are dated.</p>` : ""}`;
+      <p class="srcNoteA">Population = cumulative PSA report, exact printing ${esc(c.name)} ${esc(c.number)}</p>` : ""}`;
   } else if (p10) {
     // PSA 10 값은 있는데 쓸 수 있는 NM 이 없는 카드 — 원본 대비 배수를 계산하지 않고 등급 분포 표만 둔다(2026-10-15).
     gradeSection = pop ? `
       <h2>${esc(c.name)} PSA grade distribution</h2>
       ${gradeTable}` : "";
   } else {
-    // PSA10 실거래·인구가 아직 없는 변형(금·은 SP 등) — 빈 채로 두면 페이지가 얇아지고,
-    // 추정치를 넣는 건 금지다. 대신 "왜 없는지"와 세트 맥락(검증된 값만)을 설명한다. 2026-07-30.
+    // PSA10 실거래·인구가 아직 없는 변형(금·은 SP 등) — 추정치를 넣는 건 금지다. 세트 맥락(검증된 값만)을 둔다. 2026-07-30.
+    // 2026-10-15 소유자 결정: "No PSA 10 figure is shown … because …" 문장과 "Fallback estimate: none" 을 지우고
+    // 값 칸 라벨 하나("PSA 10 sold median: — (fewer than 3 …)")로 바꿨다.
     const sf = s.psaFull;
     gradeSection = `
       <h2>${esc(c.name)} PSA 10 market status</h2>
-      <p>No PSA 10 figure is shown for ${esc(c.name)} (${esc(c.number)}) because fewer than three completed sales of this exact artwork and label passed our variant check.</p>
       <ul class="factList">
-        <li>Required exact-printing sales: 3</li>
-        <li>Fallback estimate: none</li>
+        <li>PSA 10 sold median: — (fewer than 3 exact-printing sales)</li>
         ${sf && sf.total ? `<li>${esc(code)} Japanese PSA submissions: ${intl(sf.total)} · gem rate: ${sf.gemRate}%${sf.wowAdd != null ? ` · latest recorded week: +${intl(sf.wowAdd)}` : ""}</li>` : ""}
         <li><a href="../sets/${setSlug}.html">Open the ${esc(code)} set-level grading and box record</a></li>
       </ul>`;
@@ -345,17 +350,38 @@ for (const { code, set: s, card: c } of cands) {
   // 본문은 "No PSA 10 figure is shown" 이었다. 그런 카드는 실제로 있는 값(원본 시세·등급 인구)으로 이름 붙인다.
   const tail = p10 ? " PSA 10 Price" : " Price & PSA Population";
   const title = [`One Piece ${sn.short}${tail}`, `${sn.short}${tail}`, `${sn.short} Card Price`].find((t) => t.length <= 60) || `${sn.short}${tail}`;
+  // 이 카드번호가 경매에서 실제로 어떻게 팔렸나 — 종료 후 재조회해 쌓은 원장(auction-card-stats.json)에서만 나온다.
+  // 2026-09-10: 번호 단위 통계는 변형(패러렐·망가·SP)과 기본판이 섞여 "이 카드" 값으로 쓸 수 없었다(109장 중 50장 오표시).
+  // 그래서 판(JP/EN) × 변형(제목에서 읽은 tier, 등급 원장과 같은 ourTier)별로 나눠 표로 보이고 이 카드의 변형 행을 표시한다.
+  // 감정품(PSA/CGC/TAG) 경매는 뺐다(다른 시장). 3건 미만 행은 싣지 않는다 — 빈 값이 틀린 값보다 낫다.
+  // 2026-10-15: 행 계산을 수정일(pageDate) 앞으로 올렸다 — 표 라벨에 집계 기준일("last 45 days to <날짜>")을 찍으므로 수정일도 그 날짜를 본다.
+  const AUC_TIER = { base: "Base print", alt: "Alternate art / parallel", super: "Super alternate art (manga)", red: "Red alt art / red manga", sp: "SP", gold: "SP gold", silver: "SP silver", signature: "Signature / stamped", boxtopper: "Box topper", wanted: "Wanted poster", tr: "Treasure rare" };
+  const aucMine = ourTier(c.name);
+  const aucRows = [];
+  for (const ed of ["jp", "en"]) for (const tier of Object.keys(AUC_TIER)) {
+    const v = (CARD_AUCTION.variants || {})[`${c.number}|${ed}|${tier}`];
+    if (!v || v.sold < 3) continue;
+    aucRows.push({ ed, tier, v });
+  }
   // PSA10 실거래 표본이 드문 카드는 값이 몇 달 묵기도 한다. 그때 페이지 빌드일(DATA_DATE)로 "Updated" 를 달면
-  // 6월 가격이 오늘 값처럼 읽힌다(2026-09-22 실측 18장). 35일 넘으면 그 숫자 옆에 관측 월을 붙인다.
+  // 6월 가격이 오늘 값처럼 읽힌다(2026-09-22 실측 18장). 28일 넘으면 그 숫자 옆에 관측일을 붙인다(아래 p10Dated, 2026-10-15 — 종전 35일·월 표기).
   // 설명은 155자 이하. 넘치면 같은 숫자를 압축 표현으로 다시 쓴다(숫자는 그대로, 말만 줄임).
   // 페이지 수정일(Article dateModified·설명의 "Updated") = 이 페이지에 찍히는 관측일 중 가장 늦은 날 — 2026-10-15 감사(#4).
   // 종전엔 DATA_DATE(packs.updated 10-14)라, 등급사 표에 "2026-10-15" TAG 값이 있는 21장의 수정일이 내용보다 일렀다.
-  const pageDate = [DATA_DATE, nmDate, p10 && p10.date, psaBuy ? pa.updated : null, boxAsOf,
+  const pageDate = [DATA_DATE, nmDate, p10 && p10.date, psaBuy ? pa.updated : null, boxAsOf, aucRows.length ? AUC_DAY : null,
     ...graderRows(c).map((r) => r.d), (psaHistory(c, code).at(-1) || {}).d, (ser.at(-1) || {}).d]
     .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "")).sort().pop();
+  // 설명(meta·og)의 PSA 10 값이 그 설명의 "Updated" 날짜(pageDate)보다 28일(사이트 "현재" 기준, 가드 D17) 넘게 앞서면 관측일을 붙인다 —
+  // 2026-10-15 소유자 결정("묵은 중앙값을 현재처럼 쓰지 않는다"). 종전엔 35일 넘을 때만 월("(Jul 2026)")을 붙여,
+  // 29~35일 된 sold 중앙값 78장이 "Updated 2026-10-14" 옆에서 오늘 값처럼 읽혔다.
+  const p10Dated = p10 && p10.date && (Date.parse(pageDate) - Date.parse(p10.date)) / 864e5 > 28 ? ` (${p10.date})` : "";
+  // 2026-10-15(검증): 28일 넘은 PSA 10 sold 중앙값은 날짜를 붙여도 설명(meta·og)에서 현재가처럼 읽힌다 — 소유자 결정 "묵은 값을 현재가로 쓰지 않는다".
+  // 그때는 지금 걸려 있는 최저 PSA 10 실매물(bestListing)로 바꾸고, 그것도 없으면 설명에서 PSA 10 값을 뺀다. 화면 표·FAQ 는 날짜와 함께 그대로 둔다.
+  const paLow = paBl ? toUsd(paBl.total, paBl.currency) : null;
+  const p10Desc = p10 && !p10Dated ? p10 : (p10Dated && paLow != null ? { kind: "listed", v: paLow } : null);
   // 쓸 수 있는 NM 이 없으면 설명에서 NM 부분을 뺀다(2026-10-15 — "raw Japanese NM $1,250" 이 피드 null 과 갈렸다).
   const descOf = (nmL, p10L, popL, gemL) => {
-    const parts = [nmUsd != null ? `${nmL} ${usd(nmUsd)}` : "", p10 ? `PSA 10 ${p10.kind === "sold" ? "sold" : "listed"} ${p10L}${usd(p10.v)}${p10Mon}` : "", pop ? `${popL} ${intl(pop.total)} (${pop.gem}% ${gemL})` : ""].filter(Boolean);
+    const parts = [nmUsd != null ? `${nmL} ${usd(nmUsd)}` : "", p10Desc ? `PSA 10 ${p10Desc.kind === "sold" ? `sold ${p10L}` : "listed from "}${usd(p10Desc.v)}` : "", pop ? `${popL} ${intl(pop.total)} (${pop.gem}% ${gemL})` : ""].filter(Boolean);
     return `${sn.short}: ${parts.length ? parts.join(", ") : "price and PSA population record"}. Updated ${pageDate}.`;
   };
   let desc = descOf("raw Japanese NM", p10 && p10.kind === "sold" ? "median " : "from ", "PSA population", "gem rate");
@@ -366,14 +392,20 @@ for (const { code, set: s, card: c } of cands) {
 
   // 쓸 수 있는 NM 이 없는 카드 — 값이 없다는 문장("No dated Japanese near-mint price is shown for …")은 2026-10-15(4차)에 뺐다.
   // 있는 사실(PSA 10 값·관측일·표본)만 답하고, PSA 10 도 없으면 문답을 싣지 않는다. 화면 FAQ 와 FAQPage 가 같은 배열이다.
-  const p10Fact = p10 ? `The PSA 10 ${p10.kind === "sold" ? "sold median" : "lowest verified listing"} for ${c.name} ${c.number} was ${usd(p10.v)} (${[p10.date, p10.kind === "sold" && p10.n ? `n=${p10.n}` : ""].filter(Boolean).join(", ")}).` : null;   // n = 판매 건수(sold 일 때만)
+  // PSA 10 값 뒤 괄호 = 관측일·표본(n = 판매 건수, sold 일 때만). 두 답이 같은 괄호를 쓴다 — 2026-10-15: "how much" 답은 35일 넘을 때만
+  // 월("last observed in Jul 2026")을 달아 29~35일 된 값이 날짜 없이 나갔다.
+  const p10Bits = p10 ? [p10.date, p10.kind === "sold" && p10.n ? `n=${p10.n}` : ""].filter(Boolean) : [];
+  const p10Paren = p10Bits.length ? ` (${p10Bits.join(", ")})` : "";
+  const p10Fact = p10 ? `The PSA 10 ${p10.kind === "sold" ? "sold median" : "lowest verified listing"} for ${c.name} ${c.number} was ${usd(p10.v)}${p10Paren}.` : null;
+  // PSA 10 이 없을 때 붙던 "; no PSA 10 figure met the exact-variant sales rule" 은 2026-10-15 소유자 결정으로 뺐다(없는 이유 설명).
   const worthA = nmUsd != null
-    ? `On ${nmDate}, ${c.name} ${c.number} was tracked near ${usd(nmUsd)} in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}${p10Mon ? `, last observed in ${p10Mon.trim().replace(/[()]/g, "")}` : ""}` : "; no PSA 10 figure met the exact-variant sales rule"}.`
+    ? `On ${nmDate}, ${c.name} ${c.number} was tracked near ${usd(nmUsd)} in Japanese near-mint condition${p10 ? `; its PSA 10 ${p10.kind === "sold" ? "sold median was" : "lowest verified listing was"} ${usd(p10.v)}${p10Paren}` : ""}.`
     : p10Fact;
+  // 문답 = 답이 데이터 사실인 것만 — 2026-10-15 소유자 결정. "Which … printing does this page track?"(답이 구매 조언·범위 설명)는 지웠다.
+  // 남는 문답이 없으면 FAQ 제목·FAQPage 를 함께 뺀다(화면 FAQ = FAQPage, 가드 L2). 화면은 세트 페이지와 같은 접힌 꼴(details).
   const faq = [
     ...(worthA ? [{ q: `How much is ${c.name} (${c.number}) worth?`, a: worthA }] : []),
     ...(pop ? [{ q: `How rare is a PSA 10 ${c.name}?`, a: `PSA reports ${intl(pop.total)} graded copies of the tracked ${c.name} ${c.number} printing, including ${intl(pop.psa10)} in PSA 10 for ${aN(pop.gem)} ${pop.gem}% gem rate.` }] : []),
-    { q: `Which ${c.name} printing does this page track?`, a: `The ${c.name} value on this page applies only to the ${c.number} artwork shown above; buyers should match its artwork, finish, card number and graded-label variant.` },
   ];
   const faqLd = JSON.stringify({ "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) });
   const artLd = JSON.stringify({ "@context": "https://schema.org", "@type": "Article", headline: `${c.name} (${c.number}) price guide`, description: desc, image: imgAbs || `${SITE}/og-image.png`, datePublished: "2026-07-17", dateModified: pageDate, inLanguage: "en-US", mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, author: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, publisher: { "@type": "Organization", name: "OP Box Index", url: SITE + "/" }, isAccessibleForFree: true });
@@ -443,7 +475,7 @@ for (const { code, set: s, card: c } of cands) {
     <meta property="og:image" content="${esc(imgAbs || SITE + "/og-image.png")}" />
     <meta name="twitter:card" content="summary_large_image" />
     <script type="application/ld+json">${artLd}</script>
-    <script type="application/ld+json">${faqLd}</script>
+    ${faq.length ? `<script type="application/ld+json">${faqLd}</script>` : ""}
     <script type="application/ld+json">${crumbLd}</script>
     ${prodLd ? `<script type="application/ld+json">${prodLd}</script>` : ""}
     <link rel="stylesheet" href="../styles.css?v=${CSS_VER}" />
@@ -492,7 +524,7 @@ ${BUY_CTA_CSS}
             ${p10 ? `<div class="pc"><span>PSA 10 ${p10.kind === "sold" ? "(sold median)" : "(lowest listing)"}</span><b>${usd(p10.v)}</b><small>${p10.kind === "sold" ? `${p10.n} sales` : "ask, not a sale"} · ${esc(p10.date || "")}</small></div>` : ""}
             ${pop ? `<div class="pc"><span>PSA population</span><b>${intl(pop.total)}</b><small>${intl(pop.psa10)} in PSA 10 · ${pop.gem}% gem rate</small></div>` : ""}
           </div>
-          <p>${esc(c.name)} is ${rank && !((s.cards || []).filter((x) => x.nmJpy != null && x.nmJpy === c.nmJpy).length > 1) ? `the <strong>#${rank} chase card</strong> in` : "one of the top chase cards in"} <a href="../sets/${setSlug}.html">${esc(code)} ${esc(s.nameEn || "")}</a>.${boxMult && boxMult > 0.8 ? ` One raw ${esc(c.name)} is currently worth about <strong>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x a sealed ${esc(code)} box</strong> (${usd(boxUsd)} JP sold median, week of ${esc(boxAsOf)}).` : ""} ${pop && pop.gem >= 85 ? `${esc(c.name)} has ${aN(pop.gem)} ${pop.gem}% exact-variant gem rate${nmUsd != null && p10 ? ", which helps explain its raw-to-slab spread" : ""}.` : pop ? `${esc(c.name)} has ${aN(pop.gem)} ${pop.gem}% exact-variant gem rate, so PSA 10 supply is materially smaller than total submissions.` : ""}</p>
+          <p>Set: <a href="../sets/${setSlug}.html">${esc(`${code} ${s.nameEn || ""}`.trim())}</a>${rank && !((s.cards || []).filter((x) => x.nmJpy != null && x.nmJpy === c.nmJpy).length > 1) ? ` · chase rank <b>#${rank}</b>` : ""}${boxMult && boxMult > 0.8 ? ` · raw NM ÷ sealed ${esc(code)} JP box: <b>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x</b> (${usd(boxUsd)} sold median, week of ${esc(boxAsOf)})` : ""}</p>
           <div class="ctaRow">
             ${psaBuy}
             <a class="${psaBuy ? "" : "primary"}" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
@@ -503,31 +535,21 @@ ${BUY_CTA_CSS}
 
       ${serRows ? `<h2>Recent price checkpoints</h2>
       <table class="dataTable"><thead><tr><th>Date</th><th>NM (raw)</th><th>PSA 10</th></tr></thead><tbody>${serRows}</tbody></table>
-      <p class="srcNoteA">${esc(c.name)} checkpoints use Japanese-retail NM observations and exact-variant eBay sold medians; missing cells remain unestimated.</p>` : ""}
+      <p class="srcNoteA">NM = Japanese retail, raw · PSA 10 = exact-variant eBay sold median</p>` : ""}
 
       ${gradeSection}
       ${graderSection(c)}
       ${psaHistorySection(c, code)}
 
       ${(() => {
-        // 이 카드번호가 경매에서 실제로 어떻게 팔렸나 — 우리가 종료 후 재조회해 쌓은 원장에서만 나온다.
-        // 2026-09-10: 번호 단위 통계는 변형(패러렐·망가·SP)과 기본판이 섞여 "이 카드" 값으로 쓸 수 없었다(109장 중 50장 오표시).
-        // 그래서 판(JP/EN) × 변형(제목에서 읽은 tier, 등급 원장과 같은 ourTier)별로 나눠 표로 보이고 이 카드의 변형 행을 표시한다.
-        // 감정품(PSA/CGC/TAG) 경매는 뺐다(다른 시장). 3건 미만 행은 싣지 않는다 — 빈 값이 틀린 값보다 낫다.
-        const V = CARD_AUCTION.variants || {};
-        const mine = ourTier(c.name);
-        const TIER = { base: "Base print", alt: "Alternate art / parallel", super: "Super alternate art (manga)", red: "Red alt art / red manga", sp: "SP", gold: "SP gold", silver: "SP silver", signature: "Signature / stamped", boxtopper: "Box topper", wanted: "Wanted poster", tr: "Treasure rare" };
-        const rows = [];
-        for (const ed of ["jp", "en"]) for (const tier of Object.keys(TIER)) {
-          const v = V[`${c.number}|${ed}|${tier}`];
-          if (!v || v.sold < 3) continue;
-          rows.push({ ed, tier, v });
-        }
-        if (!rows.length) return "";
-        const tr = rows.map(({ ed, tier, v }) => `<tr${(ed === "jp" && tier === mine) ? ' class="mine"' : ""}><td>${ed === "jp" ? "Japanese" : "English"}</td><td>${TIER[tier]}${ed === "jp" && tier === mine ? " · this card (Japanese print)" : ""}</td><td>${v.n}</td><td>${v.sold}</td><td>${v.sellThrough != null ? v.sellThrough + "%" : "—"}</td><td>${usd(v.medPrice)}</td><td>${v.low != null && v.high != null ? `${usd(v.low)}–${usd(v.high)}` : "—"}</td></tr>`).join("");
+        // 행은 위(aucRows — pageDate 앞)에서 계산한다. 캡션 = 라벨만 — 2026-10-15 소유자 결정: "each read again after it closed"·
+        // "English rows share the card number but can be a different kind of card …" 설명 문장은 지우고,
+        // "Unsold auctions stay in the denominator"·"Rows under 3 sales hidden" 은 정의 라벨(sell-through = sold ÷ ended · rows: 3+ sales)로 바꿨다.
+        if (!aucRows.length) return "";
+        const tr = aucRows.map(({ ed, tier, v }) => `<tr${(ed === "jp" && tier === aucMine) ? ' class="mine"' : ""}><td>${ed === "jp" ? "Japanese" : "English"}</td><td>${AUC_TIER[tier]}${ed === "jp" && tier === aucMine ? " · this card (Japanese print)" : ""}</td><td>${v.n}</td><td>${v.sold}</td><td>${v.sellThrough != null ? v.sellThrough + "%" : "—"}</td><td>${usd(v.medPrice)}</td><td>${v.low != null && v.high != null ? `${usd(v.low)}–${usd(v.high)}` : "—"}</td></tr>`).join("");
         return `      <h2>${esc(c.number)} at auction — by print and variant</h2>
       <table class="cardTable"><thead><tr><th>Print</th><th>Variant (from listing title)</th><th>Ended</th><th>Sold</th><th>Sell-through</th><th>Median winning bid</th><th>P25–P75</th></tr></thead><tbody>${tr}</tbody></table>
-      <p class="priceNote">Settled eBay auctions for ${esc(c.name)} (${esc(c.number)}) over the last 45 days, each read again after it closed. Variant read from listing titles. Graded slabs excluded. Unsold auctions stay in the denominator. Rows under 3 sales hidden. English rows share the card number but can be a different kind of card from the Japanese ${esc(c.name)} tracked here.</p>`;
+      <p class="priceNote">Settled eBay auctions, last 45 days${AUC_DAY ? ` to ${esc(AUC_DAY)}` : ""} · ungraded · English rows = same card number, variant read from title · sell-through = sold ÷ ended · rows: 3+ sales</p>`;
       })()}
       <h2>${esc(c.name)} variant record</h2>
       <ul class="factList">
@@ -547,13 +569,16 @@ ${BUY_CTA_CSS}
           .sort((a, b) => (b.nm || 0) - (a.nm || 0));
         if (!sib.length) return "";
         const rows = sib.map((x) => `<tr><td><a href="${slugify(x.card.number + "-" + x.card.name)}.html">${esc(seoName(x.card).short)}</a></td><td class="num">${x.nm != null ? usd(x.nm) : "—"}</td><td class="num">${x.p10 ? `${usd(x.p10.v)}${x.p10.kind === "ask" ? " ask" : ""}` : "—"}</td></tr>`).join("");
+        // 캡션 = 열 정의만 — 2026-10-15 소유자 결정. "Same figures as the … set guide" 문장은 지웠다(세트 링크는 머리 줄·푸터에 있다).
         return `<h2>More ${esc(code)} cards tracked here</h2>
       <div class="tableWrap" style="overflow-x:auto"><table class="dataTable"><thead><tr><th>Card</th><th class="num">Japanese NM</th><th class="num">PSA 10</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <p class="srcNoteA">NM is the Japanese retail price for a raw copy; PSA 10 is the eBay sold median, or the cheapest listing where marked "ask". Same figures as the <a href="../sets/${setSlug}.html">${esc(code)} set guide</a>.</p>`;
+      <p class="srcNoteA">NM = Japanese retail, raw · PSA 10 = eBay sold median; "ask" = cheapest listing</p>`;
       })()}
 
-      <h2>FAQ</h2>
-      ${faq.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("\n      ")}
+      ${faq.length ? `<section class="setFaq" aria-label="${esc(c.name)} FAQ">
+        <h2>FAQ</h2>
+        ${faq.map((f) => `<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("\n        ")}
+      </section>` : ""}
     </main>
     <footer class="articleFooter">
       <p class="relatedHead">Related</p>
@@ -616,9 +641,12 @@ const gradedRows = (() => {
       // 배수가 비현실적으로 크면 raw 쪽이 잘못 잡힌 것이다(2026-09-01 실측: OP02-059 박스토퍼가
       // raw 가 거의 0 으로 잡혀 557배가 나왔다). 값을 고쳐 쓰지 말고 표에서 뺀다.
       if (mult > 40) continue;
+      // 35일 넘은 PSA 10 표본은 배수 칸을 "—" 로 — 카드 상세의 "Premium … —"·홈(packs.js psa10Stale)과 같은 기준(2026-10-15).
+      // 종전엔 상세가 배수를 내지 않는 카드(OP13-118 등)를 허브만 1.7x 로 보여 한 사실이 두 값이었다.
+      const pAge = p10.date ? (Date.parse(DATA_DATE) - Date.parse(p10.date)) / 864e5 : NaN;
       const setFile = code.toLowerCase() + ".html";
       rows.push({
-        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult, n: p10.n, psaDate: p10.date, nmDate: c.nmUpdated || null,
+        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult: Number.isFinite(pAge) && pAge > PSA10_STALE_DAYS ? null : mult, n: p10.n, psaDate: p10.date, nmDate: c.nmUpdated || null,
         slug: cardMap[c.number + "|" + norm(c.name)] || null,
         setHref: fs.existsSync(path.join(ROOT, "sets", setFile)) ? `../sets/${setFile}` : null,
       });
@@ -639,11 +667,13 @@ const gradedTable = gradedRows.length ? `
       <table class="dataTable">
         <thead><tr><th>Card</th><th>Set</th><th>Raw NM</th><th>PSA 10</th><th>Premium</th><th>Sales</th><th>PSA 10 data</th></tr></thead>
         <tbody>
-          ${gradedRows.map((r) => `<tr><td>${r.slug ? `<a href="${esc(r.slug)}">${esc(r.name)}</a>` : esc(r.name)} <small style="color:var(--muted)">${esc(r.number)}</small></td><td>${r.setHref ? `<a href="${esc(r.setHref)}">${esc(r.code)}</a>` : esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult.toFixed(1)}x</td><td>${r.n}</td><td>${esc(r.psaDate || "—")}</td></tr>`).join("\n          ")}
+          ${gradedRows.map((r) => `<tr><td>${r.slug ? `<a href="${esc(r.slug)}">${esc(r.name)}</a>` : esc(r.name)} <small style="color:var(--muted)">${esc(r.number)}</small></td><td>${r.setHref ? `<a href="${esc(r.setHref)}">${esc(r.code)}</a>` : esc(r.code)}</td><td>${money(r.rawUsd)}</td><td>${money(r.psaUsd)}</td><td>${r.mult != null ? `${r.mult.toFixed(1)}x` : "—"}</td><td>${r.n}</td><td>${esc(r.psaDate || "—")}</td></tr>`).join("\n          ")}
         </tbody>
       </table>
       </div>
-      <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single price. PSA 10 = median of verified eBay completed sales, minimum three matched sales per card. Premium is PSA 10 divided by raw. ${gradedRows.length} cards have both figures. ${nmSpan ? `Raw NM observed ${nmSpan}; ` : ""}PSA 10 sales dated per row (${psaDates[0]} to ${psaDates[psaDates.length - 1]}).</p>` : "";
+      <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:10px;">Raw NM = Japanese retail single · PSA 10 = median of eBay completed sales, n ≥ 3 matched sales · Premium = PSA 10 ÷ raw NM, PSA 10 sample ≤ ${PSA10_STALE_DAYS} days old · ${nmSpan ? `Raw NM observed ${nmSpan} · ` : ""}PSA 10 sales ${psaDates[0]} to ${psaDates[psaDates.length - 1]}</p>` : "";
+// 표 캡션 = 정의 라벨만 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). 문장 꼴 정의를 "A = B" 라벨로 바꾸고,
+// 머리 줄과 겹치던 "N cards have both figures" 는 머리 줄 하나에만 둔다(한 사실 한 값).
 
 const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
 const ebayCardHub = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("One Piece Card Game Japanese")}&_sop=15&${EPN}`;
@@ -668,7 +698,7 @@ const hub = `<!doctype html>
     <link rel="alternate" hreflang="x-default" href="${SITE}/cards/" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>PSA 10 vs Raw Price — One Piece Card List | OP Box Index</title>
-    <meta name="description" content="${gradedRows.length} Japanese One Piece cards with raw NM price, PSA 10 median from completed eBay sales and the grading premium of each, side by side." />
+    <meta name="description" content="${gradedRows.length} Japanese One Piece cards with raw NM price, PSA 10 median from completed eBay sales and the grading premium, side by side." />
     <meta property="og:site_name" content="OP Box Index" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="One Piece Card Prices — Top Tracked Cards" />
@@ -698,16 +728,18 @@ const hub = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Card Prices</p>
       <h1>PSA 10 vs raw price: One Piece card value list</h1>
-      <p>${gradedRows.length} Japanese One Piece cards where we have both prices: the raw near-mint single at Japanese retail, and the PSA 10 median from completed eBay sales. Variant-specific — a manga rare and its plain parallel are separate rows. As of ${DATA_DATE}.</p>
+      <p>Cards with raw NM and PSA 10: <b>${gradedRows.length}</b> · one row per printing variant · as of ${DATA_DATE}</p>
       ${AFF_TOP}
       ${gradedTable}
       <h2 id="tracked-cards">Raw NM price by card</h2>
       <div class="cardGrid">
         ${hubItems.map((it) => `<a href="${it.slug}">${it.img ? (() => { const v = variant(it.img, "thumb"); return `<img src="${esc(v ? v.src : it.img)}" alt="${esc(it.name)}" width="${v ? v.w : 716}" height="${v ? v.h : 1000}" loading="lazy" decoding="async" />`; })() : ""}<b>${esc(it.name)}</b><small>${esc(it.number)} · ${esc(it.code)}</small><span class="pr">${it.usd != null ? "$" + it.usd.toLocaleString("en-US") : "—"}</span></a>`).join("\n        ")}
       </div>
-      <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single at Japanese retail. Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters.</p>
+      <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single, Japanese retail</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>
-      ${/* 설명 3문단은 2026-08-28 소유자 지시로 삭제 — TCG 퀀트처럼 표·그리드만 */ ""}
+      ${/* 설명 3문단은 2026-08-28 소유자 지시로 삭제 — TCG 퀀트처럼 표·그리드만.
+            2026-10-15 소유자 결정: 머리 문단("… where we have both prices: …"·"Variant-specific — …")과 그리드 캡션의
+            "Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters." 도 라벨로 바꾸거나 지웠다. */ ""}
     </main>
     <footer class="articleFooter">
       <p class="relatedHead">Related</p>

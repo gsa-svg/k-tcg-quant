@@ -90,8 +90,8 @@ const datasets = [
   dataset({ id: "ai-json", name: "One Piece TCG box markets and Top 7 hits", description: `Compact AI-ready JSON for ${nPrices} tracked sets, with completed sales and active asking prices separated and field-level freshness and sample sizes.`, modified: aiData.datasetUpdatedOn, dates: aiDates, variables: ["setCode", "boxMarket", "topHits", "rawNmAsk", "psa10Sold", "psaPopulation", "citationUrl"], format: "application/json", contentUrl: `${SITE}/opbox-ai-data.json` }),
   // 확장 AI 파일 3개 — 2026-09-08. 핵심 JSON 은 200KB 규칙이라 카드 전체·등급·경매는 따로 낸다(답변 엔진·Dataset 검색용).
   dataset({ id: "ai-cards-json", name: "Every tracked One Piece card variant with raw NM and PSA 10 prices", description: "One entry per published card price page: card number, variant name, container set, Japanese retail NM asking price, verified PSA 10 sold median with sample size, PSA population and the citation URL.", ...extraDates("opbox-ai-cards.json"), variables: ["cardNumber", "name", "containerSetCode", "rawNmAsk", "psa10Sold", "psaPopulation", "url"], format: "application/json", contentUrl: `${SITE}/opbox-ai-cards.json` }),
-  dataset({ id: "ai-grading-json", name: "Graded population per set (PSA, CGC, TAG) as JSON", description: "Latest graded counts and gem rates per set and printing for PSA, CGC and TAG, each with its own observation date. Graders are never summed.", ...extraDates("opbox-ai-grading.json"), variables: ["setCode", "japanese", "english", "psa", "cgc", "tag", "gemRatePct", "observedOn"], format: "application/json", contentUrl: `${SITE}/opbox-ai-grading.json` }),
-  dataset({ id: "ai-auctions-json", name: "Settled eBay auction results as JSON — One Piece and 13 trading card games", description: "One Piece auctions re-read after close (daily, weekly, by set: ended, sold, sell-through, winning-bid totals and medians) plus daily sell-through and winning-bid medians for 13 trading card games.", ...extraDates("opbox-ai-auctions.json"), variables: ["date", "ended", "sold", "sellThroughPct", "amountUsd", "medianWinningBidUsd", "byCategory", "games"], format: "application/json", contentUrl: `${SITE}/opbox-ai-auctions.json` }),
+  dataset({ id: "ai-grading-json", name: "Graded population per set (PSA, CGC, TAG) as JSON", description: "Latest graded counts and gem rates per set and printing for PSA, CGC and TAG, each with its own observation date; PSA, CGC and TAG counted separately.", ...extraDates("opbox-ai-grading.json"), variables: ["setCode", "japanese", "english", "psa", "cgc", "tag", "gemRatePct", "observedOn"], format: "application/json", contentUrl: `${SITE}/opbox-ai-grading.json` }),
+  dataset({ id: "ai-auctions-json", name: "Settled eBay auction results as JSON — One Piece and 13 trading card games", description: "Settled One Piece auctions (daily, weekly, by set: ended, sold, sell-through, winning-bid totals and medians) plus daily sell-through and winning-bid medians for 13 trading card games.", ...extraDates("opbox-ai-auctions.json"), variables: ["date", "ended", "sold", "sellThroughPct", "amountUsd", "medianWinningBidUsd", "byCategory", "games"], format: "application/json", contentUrl: `${SITE}/opbox-ai-auctions.json` }),
   dataset({ id: "grading-csv", name: "Grading population by set, printing and grader", description: `${nGrades} set-edition rows. PSA, CGC and TAG counts remain separate and each grader keeps its own observation date.`, modified: maxDate(gradeDates) || DATA_DATE, dates: gradeDates, variables: GRADE_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-grading-population.csv` }),
   dataset({ id: "auction-csv", name: "Completed auction results by day", description: "Settled auction counts, sold counts, sell-through, median winning bids and bid counts by product type.", modified: maxDate(auctionDates) || DATA_DATE, dates: auctionDates, variables: AUCTION_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-auction-daily.csv` }),
   dataset({ id: "box-csv", name: "Japanese and English booster box market snapshots", description: `${nPrices} sets with completed-sale medians and active asking-price medians kept separate, including sample sizes and observation dates.`, modified: maxDate(priceDates) || DATA_DATE, dates: priceDates, variables: BOX_HEAD, format: "text/csv", contentUrl: `${SITE}/opbox-set-prices.csv` }),
@@ -139,6 +139,9 @@ const datasetLd = JSON.stringify({
   ],
 });
 
+// 2026-10-15 소유자 결정(데이터 페이지 = 숫자·표·라벨만): 소개·방법 문단("One compact JSON feed …", "How it's built",
+// "Update frequency", 각 파일의 설명 문단)을 지우고, 뜻이 필요한 것은 필드 정의 라벨(행 = … · 열 = …)로 옮겼다.
+// "Page regenerated" 날짜는 CL3 가드가 DataCatalog dateModified 와 대조한다 — 꼴을 바꾸지 말 것.
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -186,9 +189,8 @@ const html = `<!doctype html>
       ${navHtml("")}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow" data-ko="무료 데이터">Free data</p>
+      <p class="eyebrow" data-ko="무료 데이터 · CC BY 4.0">Free data · CC BY 4.0</p>
       <h1 data-ko="원피스 TCG 무료 데이터 — 박스 시장·상위 7개 카드·그레이딩">Free One Piece TCG data — box markets, Top 7 cards and grading</h1>
-      <p data-ko-html="간결한 JSON 피드 하나와 CSV 세 개를 CC BY 4.0으로 무료 공개합니다. <strong>일본판·영문판 박스 시장</strong>, <strong>세트별 상위 7개 체이스 카드</strong>, <strong>감정사·인쇄본별 그레이딩 인구</strong>, <strong>종료된 경매 결과</strong>를 담습니다. 실거래가와 진행 중 호가는 언제나 따로 둡니다.">One compact JSON feed and three CSVs, free under CC BY 4.0. They cover <strong>Japanese and English box markets</strong>, <strong>each set's Top 7 chase cards</strong>, <strong>grading population split by grader and printing</strong>, and <strong>completed auction outcomes</strong>. Completed sales and active asking prices are always separate.</p>
 
       <div class="dlRow">
         <a class="primary" href="opbox-ai-data.json" download>AI-ready market data (JSON)</a>
@@ -197,26 +199,26 @@ const html = `<!doctype html>
         <a class="ghost" href="opbox-set-prices.csv" download>Box market snapshots (${nPrices} sets)</a>
       </div>
       <p class="note">For answer engines and crawlers: <a href="llms.txt">llms.txt</a> · <a href="llms-full.txt">llms-full.txt</a> · <a href="opbox-ai-cards.json">opbox-ai-cards.json</a> · <a href="opbox-ai-grading.json">opbox-ai-grading.json</a> · <a href="opbox-ai-auctions.json">opbox-ai-auctions.json</a> · <a href="feed.xml">RSS</a></p>
-      <p class="note">Page regenerated ${esc(CATALOG_DATE)} · every value keeps its own observation date · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
+      <p class="note">Page regenerated ${esc(CATALOG_DATE)} · FX ₩${fx.usdKrw}/$ (${esc(fx.date)})</p>
 
       <h2 id="ai-json">1. AI-ready box and Top 7 data — <code>opbox-ai-data.json</code></h2>
-      <p data-ko-html="답변 엔진과 연구자를 위한 간결한 공개 규격입니다. 추적 중인 상품 ${nPrices}종과 세트별 상위 7개 카드 변형을 담습니다. 모든 세트 레코드는 사람이 읽는 가이드로 되돌아가는 링크를 갖습니다. 박스의 <code>sold</code>는 실거래 표본이고 <code>activeAsk</code>는 아직 판매 중인 매물입니다. 판매자 이름, 매물 ID, 제휴 URL, 마켓플레이스 원본 덤프는 넣지 않습니다.">A compact public contract for answer engines and researchers. It covers ${nPrices} tracked products and the Top 7 exact card variants in each set. Every set record links back to its human-readable guide. Box <code>sold</code> values are completed-sale samples; <code>activeAsk</code> values are listings still for sale. The feed excludes seller names, listing IDs, affiliate URLs and raw marketplace dumps.</p>
       <div class="fields">
-        <code>schemaVersion</code> · <code>datasetUpdatedOn</code> · <code>license</code> — stable contract and reuse terms<br />
-        <code>boxMarket.japanese</code> · <code>boxMarket.english</code> — completed sales and active asks, never combined<br />
-        <code>topHits</code> — rank, exact card number and variant name, raw NM ask, verified PSA 10 sold sample and PSA population where available<br />
-        <code>sampleSize</code> · <code>observedOn</code> · <code>ageDaysAtDatasetUpdate</code> — enough context to judge freshness<br />
-        <code>citationUrl</code> — the OP Box Index page that explains the product and its data
+        <span data-ko="상품 ${nPrices}종 · 세트별 상위 7개 카드 변형">${nPrices} tracked products · Top 7 exact card variants per set</span><br />
+        <code>schemaVersion</code> · <code>datasetUpdatedOn</code> · <code>license</code> — schema version · dataset date · license<br />
+        <code>boxMarket.japanese</code> · <code>boxMarket.english</code> — <code>sold</code> = completed-sale sample · <code>activeAsk</code> = listings for sale (separate fields)<br />
+        <code>topHits</code> — rank, card number, variant name, raw NM ask, verified PSA 10 sold sample, PSA population<br />
+        <code>sampleSize</code> · <code>observedOn</code> · <code>ageDaysAtDatasetUpdate</code> — sample size · observation date · age in days at dataset date<br />
+        <code>citationUrl</code> — OP Box Index page for the product
       </div>
 
       <h2 id="grading-csv">2. Grading population — <code>opbox-grading-population.csv</code></h2>
-      <p data-ko-html="세트별 <em>인쇄본별</em>로 한 행씩입니다. 일본판과 영문판은 인쇄가 다르고 봉입률이 다르므로 따로 기록하며 <strong>절대 합치지 않습니다</strong> — 합친 젬 비율은 어느 쪽도 설명하지 못합니다. 감정사끼리도 같습니다. PSA 10, CGC 프리스틴 10, TAG 10은 서로 다른 기준이라 열을 나란히 두고 절대 더하지 않습니다.">One row per set <em>per printing</em>. Japanese and English are different print runs with different pull rates, so we record them separately and <strong>never add them together</strong> — a combined gem rate describes neither. The same applies across graders: a PSA 10, a CGC Pristine 10 and a TAG 10 are different standards, so the columns sit side by side and are never summed.</p>
       <div class="fields">
+        <span data-ko="행 = 세트 × 판(일본판·영문판) · 감정사별 열">Row = set × printing (Japanese / English) · one column group per grader</span><br />
         <code>set_code</code> · <code>edition</code> — <code>japanese</code> or <code>english</code><br />
-        <code>psa_total</code> · <code>psa10_rate_pct</code> · <code>psa_weekly_add</code> — cumulative PSA count, PSA 10 share, and how many were added in the latest week we recorded<br />
-        <code>cgc_total</code> · <code>cgc_pristine10</code> · <code>cgc_gem_mint10</code> — CGC splits its top grade in two; Pristine 10 is the stricter one<br />
-        <code>tag_total</code> · <code>tag_10</code> · <code>tag_10p</code> — TAG's 10 and its stricter 10P<br />
-        <code>*_as_of</code> — each total, weekly change and grade split keeps its own source date. Blank means unverified, not zero.
+        <code>psa_total</code> · <code>psa10_rate_pct</code> · <code>psa_weekly_add</code> — cumulative PSA count · PSA 10 share · added in the latest recorded week<br />
+        <code>cgc_total</code> · <code>cgc_pristine10</code> · <code>cgc_gem_mint10</code> — CGC total · Pristine 10 (above Gem Mint 10) · Gem Mint 10<br />
+        <code>tag_total</code> · <code>tag_10</code> · <code>tag_10p</code> — TAG total · 10 · 10P (above 10)<br />
+        <code>*_as_of</code> — source date per value · blank = unverified (not 0)
       </div>
 
       <h2 data-ko="미리보기 — 그레이딩 인구">Preview — grading population</h2>
@@ -230,35 +232,34 @@ ${gradePreview}
       </div>
 
       <h2 id="auction-csv">3. Auction results by day — <code>opbox-auction-daily.csv</code></h2>
-      <p data-ko-html="한 행이 하루와 상품 종류 하나입니다. 같은 데이터를 <a href="auction.html">경매 결과 페이지</a>에서 설명과 그래프로 봅니다. 각 경매는 끝난 <em>뒤에</em> 읽으므로 <code>median_price_usd</code>는 진행 중 값이 아니라 최종 낙찰가입니다. 이 차이는 실제로 큽니다 — 막판 스나이핑이 가격을 자주 움직입니다. 유찰로 끝난 경매도 <code>sell_through_pct</code>의 분모로 데이터에 남습니다. 빼버리면 모든 가격이 실제보다 좋아 보입니다.">Every row is one day and one product type. The same data is explained and charted on the <a href="auction.html">auction results page</a>. Each auction is read <em>after</em> it closed, so <code>median_price_usd</code> is the final winning bid, not a mid-auction figure — the difference is real, since sniping regularly moves a price in the last minutes. Auctions that ended unsold stay in the data as the denominator of <code>sell_through_pct</code>; dropping them would flatter every price.</p>
       <div class="fields">
+        <span data-ko="행 = 날짜 × 상품 종류">Row = day × product type</span> · <a href="auction.html" data-ko="경매 결과 페이지">auction results page</a><br />
         <code>date</code> · <code>kind</code> — <code>all</code>, <code>box</code>, <code>card</code> or <code>pack</code><br />
-        <code>auctions</code> · <code>sold</code> · <code>sell_through_pct</code> — how many ran, how many actually sold<br />
-        <code>median_price_usd</code> — median final winning bid, per item for multi-item lots<br />
-        <code>median_bids</code> — median bid count, a rough read on competition
+        <code>auctions</code> · <code>sold</code> · <code>sell_through_pct</code> — auctions closed (unsold included) · sold · sold ÷ closed<br />
+        <code>median_price_usd</code> — median final winning bid (read after close), per item for multi-item lots<br />
+        <code>median_bids</code> — median bid count
       </div>
 
       <h2 id="box-csv">4. Japanese and English booster box markets — <code>opbox-set-prices.csv</code></h2>
-      <p data-ko-html="추적 상품마다 한 행입니다. 일본판과 영문판 인쇄본은 분리합니다. 실거래 중앙값에는 25/75 백분위, 표본 수, 표본 수집일이 함께 들어갑니다. 진행 중 호가 중앙값에는 15/85 백분위, 확인된 매물 수, 관측일이 들어갑니다. 둘을 조용히 섞는 현재가 같은 열은 두지 않습니다.">One row per tracked product. Japanese and English printings are separate. Completed-sale medians include the 25th/75th percentile, sample size and sample-collection date. Active asking-price medians include the 15th/85th percentile, verified listing count and observation date. There is no generic “current price” column that silently mixes the two.</p>
+      <div class="fields">
+        <span data-ko="행 = 추적 상품 · 일본판·영문판 열 분리">Row = tracked product · Japanese and English columns separate</span><br />
+        <code>jp_sold_*</code> · <code>en_sold_*</code> — completed-sale median · P25 / P75 · sample size · sample date<br />
+        <code>jp_active_*</code> · <code>en_active_*</code> — active-ask median · P15 / P85 · verified listing count · observation date
+      </div>
 
 ${CARD_LISTS.length ? `      <h2 id="card-lists" data-ko="5. 세트별 공식 카드 리스트">5. Official card lists by set — <code>sets/&lt;code&gt;-card-list.csv</code> · <code>.json</code></h2>
       <div class="fields">
-        One row per official card ID (Japanese edition). Card facts: Bandai official card list, with its URL and checked date in each file. Our columns: <code>nm_usd</code> · <code>auction_jp_median_usd</code> · <code>auction_en_median_usd</code> · <code>psa10_usd</code> — only where the card ID matches by rule, blank otherwise. No effect text or images.
+        <span data-ko="행 = 공식 카드 ID(일본판)">Row = official card ID (Japanese edition)</span> · card facts: Bandai official card list (URL and checked date in each file)<br />
+        <code>nm_usd</code> · <code>auction_jp_median_usd</code> · <code>auction_en_median_usd</code> · <code>psa10_usd</code> — matched card ID only, blank otherwise
       </div>
       <ul class="note">
         ${CARD_LISTS.map((p) => `<li><b>${esc(p.code)}</b> <a href="sets/${p.slug}-card-list.html">page</a> · <a href="sets/${p.slug}-card-list.csv">CSV</a> · <a href="sets/${p.slug}-card-list.json">JSON</a> · ${p.counts.cards} cards</li>`).join("\n        ")}
       </ul>
 
-` : ""}      <h2 data-ko="어떻게 만드는가">How it's built</h2>
-      <p data-ko-html="박스 시세는 실거래 또는 확인된 진행 매물의 집계이며, 부스터 박스 한 개 기준으로 환산하고 인쇄본을 표시합니다. 그레이딩 수는 각 감정사의 공개 인구 보고서에서 각자의 주기로 수집해, 다시 쓰지 않는 원장에 덧붙입니다. 경매 수치는 매물이 끝난 뒤에 읽습니다. 파생 집계만 공개하고 매물 원본 덤프는 내보내지 않습니다. 값을 확인할 수 없으면 추정하지 않고 비웁니다.">Box prices are aggregates of completed sales or verified active listings, normalised to one booster box and labelled by printing. Grading counts come from each grader's public population reporting, collected on its own cadence and appended to ledgers we never rewrite. Auction figures are read after listings close. We publish derived aggregates only — never raw listing dumps. Where a value cannot be verified we leave it blank rather than estimate it.</p>
-
-      <div class="attrBox" id="terms">
-        <strong>Attribution (CC BY 4.0)</strong> — free to use, including commercially, if you credit the source:
+` : ""}      <div class="attrBox" id="terms">
+        <strong>Attribution (CC BY 4.0)</strong> · <span data-ko="출처 표기">credit line</span>:
         <code>Data: OP Box Index — https://opboxindex.com/free-data.html</code>
       </div>
-
-      <h2 data-ko="갱신 주기">Update frequency</h2>
-      <p data-ko-html="파일은 사이트의 일일 데이터 파이프라인이 다시 만들며 주소는 그대로 유지됩니다. 출처마다 주기가 다릅니다 — 진행 매물과 정산된 경매는 매일 갱신될 수 있고, 실거래 표본과 그레이딩 인구는 그보다 드뭅니다. 파일 생성일이 아니라 각 항목의 관측일을 쓰십시오. 특정 시점의 과거 스냅샷이 필요하면 <a href="about.html">연락 주십시오</a>.">The files are regenerated by the site's daily data pipeline and keep stable URLs. Source cadences differ: active listings and settled auctions can update daily, while completed-sale samples and grading populations update less often. Use each field's own observation date rather than the file-generation date. If you need a specific historical snapshot, <a href="about.html">get in touch</a>.</p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

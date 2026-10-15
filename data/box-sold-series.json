@@ -1,5 +1,5 @@
 {
- "note": "Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every 7 days and dated by SALE date (not collection date). The averaging window is chosen per series (28-56 days) so that each point rests on roughly 12 sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than 6 sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Sales dated before an edition's official release date (pre-orders) are excluded from the sold series and summarized separately per set under preRelease (median only when at least 3 different listings sold). current is the latest point when the edition is released and that point is within 28 days of asOf, otherwise null. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum 6 sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month.",
+ "note": "Rolling median of individual completed eBay sales of sealed One Piece booster boxes, sampled every 7 days and dated by SALE date (not collection date). The averaging window is chosen per series (28-56 days) so that each point rests on roughly 12 sales, because sales volume differs more than tenfold between sets; each series records the window it used. Rebuilt from data/box-sold-ledger.json on every run, so a change in how listings are collected cannot show up as a price move. Windows with fewer than 6 sales are omitted rather than estimated. Only fixed-price (Buy It Now) sales are included; auction results are collected separately and excluded, because an auction that draws no bidding closes far below the going rate. Sales dated before an edition's official release date (pre-orders) are excluded from the sold series and summarized separately per set under preRelease (median only when at least 3 different listings sold). current is the latest point when the edition is released and that point is within 28 days of asOf, otherwise null. Prices are per box in USD. A monthly view (median of every sale within each calendar month, minimum 6 sales) is included alongside, because sets with wide dispersion between individual sales are steadier when grouped by month. Outlier sales (listed per set under outliers) are left out of medians: a sale is an outlier when it lies more than 3.5 x max(1.4826 x MAD, 20% of median) from the median of both the 90 days before and the 90 days after its sale date, each side holding at least 8 sales. out = sales left out of that point; win = that point's window in days when it was lengthened (up to 56 days, 120 for the first-print series) to keep 6 sales after leaving outliers out; when even that falls short, the point keeps all sales. vol and counts include outliers.",
  "window": {
   "targetSales": 12,
   "minDays": 28,
@@ -9,6 +9,14 @@
   "basis": "sold",
   "datedBy": "saleDate",
   "fromRelease": true
+ },
+ "outlierRule": {
+  "method": "two-sided Hampel",
+  "k": 3.5,
+  "madToSigma": 1.4826,
+  "scaleFloor": 0.2,
+  "refDays": 90,
+  "refMinSales": 8
  },
  "builtFrom": {
   "ledger": "data/box-sold-ledger.json",
@@ -1098,82 +1106,92 @@
     {
      "d": "2026-05-26",
      "median": 601,
-     "low": 547,
-     "high": 607,
-     "n": 12,
-     "vol": 3
+     "low": 543,
+     "high": 601,
+     "n": 11,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-06-02",
-     "median": 601,
-     "low": 568,
+     "median": 598,
+     "low": 559,
      "high": 601,
-     "n": 15,
-     "vol": 3
+     "n": 14,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-06-09",
-     "median": 601,
-     "low": 578,
+     "median": 598,
+     "low": 571,
      "high": 601,
-     "n": 17,
-     "vol": 2
+     "n": 16,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-06-16",
-     "median": 596,
-     "low": 544,
-     "high": 606,
-     "n": 23,
-     "vol": 6
+     "median": 593,
+     "low": 540,
+     "high": 601,
+     "n": 22,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-06-23",
-     "median": 601,
+     "median": 596,
      "low": 551,
-     "high": 619,
-     "n": 27,
-     "vol": 4
+     "high": 611,
+     "n": 25,
+     "vol": 4,
+     "out": 2
     },
     {
      "d": "2026-06-30",
-     "median": 604,
-     "low": 571,
-     "high": 702,
-     "n": 20,
-     "vol": 2
+     "median": 593,
+     "low": 557,
+     "high": 646,
+     "n": 18,
+     "vol": 2,
+     "out": 2
     },
     {
      "d": "2026-07-07",
-     "median": 594,
-     "low": 579,
-     "high": 635,
-     "n": 22,
-     "vol": 5
+     "median": 591,
+     "low": 578,
+     "high": 631,
+     "n": 21,
+     "vol": 5,
+     "out": 1
     },
     {
      "d": "2026-07-14",
-     "median": 605,
-     "low": 566,
-     "high": 635,
-     "n": 22,
-     "vol": 3
+     "median": 600,
+     "low": 561,
+     "high": 631,
+     "n": 21,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-07-21",
-     "median": 600,
-     "low": 556,
-     "high": 631,
-     "n": 23,
-     "vol": 3
+     "median": 595,
+     "low": 553,
+     "high": 627,
+     "n": 22,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-07-28",
-     "median": 595,
-     "low": 565,
-     "high": 633,
-     "n": 24,
-     "vol": 7
+     "median": 591,
+     "low": 564,
+     "high": 631,
+     "n": 23,
+     "vol": 7,
+     "out": 1
     },
     {
      "d": "2026-08-04",
@@ -1276,18 +1294,20 @@
      {
       "d": "2026-05-01",
       "median": 601,
-      "low": 559,
+      "low": 551,
       "high": 601,
-      "n": 14,
-      "vol": 14
+      "n": 13,
+      "vol": 14,
+      "out": 1
      },
      {
       "d": "2026-06-01",
-      "median": 611,
-      "low": 564,
-      "high": 660,
-      "n": 15,
-      "vol": 15
+      "median": 604,
+      "low": 557,
+      "high": 646,
+      "n": 14,
+      "vol": 15,
+      "out": 1
      },
      {
       "d": "2026-07-01",
@@ -1777,6 +1797,20 @@
    "sinceRelease": {
     "jp": 14,
     "en": 80
+   },
+   "outliers": {
+    "en": [
+     {
+      "d": "2026-05-25",
+      "id": "147037772991",
+      "unit": 1052.49
+     },
+     {
+      "d": "2026-06-20",
+      "id": "117068603536",
+      "unit": 1500.41
+     }
+    ]
    },
    "current": {
     "jp": null,
@@ -4532,33 +4566,37 @@
      "d": "2026-06-24",
      "median": 267,
      "low": 267,
-     "high": 363,
-     "n": 37,
-     "vol": 9
+     "high": 351,
+     "n": 36,
+     "vol": 9,
+     "out": 1
     },
     {
      "d": "2026-07-01",
      "median": 267,
      "low": 267,
-     "high": 369,
-     "n": 26,
-     "vol": 2
+     "high": 363,
+     "n": 25,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-07-08",
-     "median": 281,
+     "median": 274,
      "low": 267,
      "high": 380,
-     "n": 25,
-     "vol": 6
+     "n": 24,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-07-15",
-     "median": 286,
+     "median": 281,
      "low": 267,
-     "high": 389,
-     "n": 24,
-     "vol": 7
+     "high": 382,
+     "n": 23,
+     "vol": 7,
+     "out": 1
     },
     {
      "d": "2026-07-22",
@@ -4686,9 +4724,10 @@
       "d": "2026-06-01",
       "median": 267,
       "low": 267,
-      "high": 359,
-      "n": 34,
-      "vol": 34
+      "high": 347,
+      "n": 33,
+      "vol": 34,
+      "out": 1
      },
      {
       "d": "2026-07-01",
@@ -5223,6 +5262,15 @@
     "jp": 22,
     "en": 144
    },
+   "outliers": {
+    "en": [
+     {
+      "d": "2026-06-19",
+      "id": "267703214432",
+      "unit": 645.82
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 159,
@@ -5341,66 +5389,77 @@
     {
      "d": "2026-08-20",
      "median": 80,
-     "low": 79,
-     "high": 98,
-     "n": 13,
-     "vol": 1
+     "low": 78,
+     "high": 95,
+     "n": 12,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-08-27",
-     "median": 81,
-     "low": 78,
-     "high": 101,
-     "n": 12,
-     "vol": 1
+     "median": 80,
+     "low": 76,
+     "high": 94,
+     "n": 10,
+     "vol": 1,
+     "out": 2
     },
     {
      "d": "2026-09-03",
-     "median": 81,
+     "median": 80,
      "low": 79,
-     "high": 105,
-     "n": 11,
-     "vol": 1
+     "high": 100,
+     "n": 9,
+     "vol": 1,
+     "out": 2
     },
     {
      "d": "2026-09-10",
      "median": 80,
-     "low": 77,
-     "high": 134,
-     "n": 7,
-     "vol": 1
+     "low": 79,
+     "high": 95,
+     "n": 10,
+     "vol": 1,
+     "out": 2,
+     "win": 49
     },
     {
      "d": "2026-09-17",
-     "median": 134,
-     "low": 86,
-     "high": 165,
-     "n": 6,
-     "vol": 1
+     "median": 80,
+     "low": 79,
+     "high": 95,
+     "n": 10,
+     "vol": 1,
+     "out": 3,
+     "win": 56
     },
     {
      "d": "2026-09-24",
-     "median": 134,
-     "low": 86,
-     "high": 165,
+     "median": 79,
+     "low": 76,
+     "high": 80,
      "n": 6,
-     "vol": 1
+     "vol": 1,
+     "out": 3,
+     "win": 56
     },
     {
      "d": "2026-10-08",
-     "median": 80,
+     "median": 79,
      "low": 79,
      "high": 80,
-     "n": 10,
-     "vol": 6
+     "n": 9,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-10-15",
      "median": 80,
      "low": 79,
      "high": 80,
-     "n": 16,
-     "vol": 7
+     "n": 15,
+     "vol": 7,
+     "out": 1
     }
    ],
    "en": [
@@ -6315,12 +6374,31 @@
     "jp": 58,
     "en": 174
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-08-20",
+      "id": "147348308001",
+      "unit": 165.69
+     },
+     {
+      "d": "2026-08-25",
+      "id": "168451186418",
+      "unit": 162.52
+     },
+     {
+      "d": "2026-09-17",
+      "id": "306678438253",
+      "unit": 181.12
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 80,
      "low": 79,
      "high": 80,
-     "n": 16,
+     "n": 15,
      "d": "2026-10-15"
     },
     "en": {
@@ -7324,51 +7402,57 @@
     },
     {
      "d": "2026-07-14",
-     "median": 133,
-     "low": 121,
-     "high": 165,
-     "n": 14,
-     "vol": 3
+     "median": 125,
+     "low": 120,
+     "high": 155,
+     "n": 13,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-07-21",
-     "median": 125,
-     "low": 117,
-     "high": 144,
-     "n": 19,
-     "vol": 6
+     "median": 123,
+     "low": 115,
+     "high": 137,
+     "n": 18,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-07-28",
      "median": 125,
-     "low": 118,
-     "high": 138,
-     "n": 24,
-     "vol": 8
+     "low": 116,
+     "high": 134,
+     "n": 23,
+     "vol": 8,
+     "out": 1
     },
     {
      "d": "2026-08-04",
      "median": 125,
-     "low": 120,
-     "high": 139,
-     "n": 23,
-     "vol": 2
+     "low": 119,
+     "high": 135,
+     "n": 22,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-08-11",
-     "median": 125,
+     "median": 123,
      "low": 119,
-     "high": 137,
-     "n": 21,
-     "vol": 1
+     "high": 132,
+     "n": 20,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-08-18",
-     "median": 123,
+     "median": 120,
      "low": 119,
-     "high": 138,
-     "n": 20,
-     "vol": 0
+     "high": 134,
+     "n": 19,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-08-25",
@@ -7454,35 +7538,39 @@
     },
     {
      "d": "2026-06-09",
-     "median": 559,
-     "low": 413,
+     "median": 549,
+     "low": 412,
      "high": 630,
-     "n": 38,
-     "vol": 14
+     "n": 37,
+     "vol": 14,
+     "out": 1
     },
     {
      "d": "2026-06-16",
-     "median": 595,
-     "low": 434,
+     "median": 591,
+     "low": 415,
      "high": 636,
-     "n": 42,
-     "vol": 7
+     "n": 41,
+     "vol": 7,
+     "out": 1
     },
     {
      "d": "2026-06-23",
-     "median": 610,
-     "low": 509,
-     "high": 651,
-     "n": 37,
-     "vol": 5
+     "median": 608,
+     "low": 505,
+     "high": 643,
+     "n": 36,
+     "vol": 5,
+     "out": 1
     },
     {
      "d": "2026-06-30",
-     "median": 631,
-     "low": 542,
-     "high": 658,
-     "n": 39,
-     "vol": 13
+     "median": 630,
+     "low": 539,
+     "high": 654,
+     "n": 38,
+     "vol": 13,
+     "out": 1
     },
     {
      "d": "2026-07-07",
@@ -7631,11 +7719,12 @@
      },
      {
       "d": "2026-07-01",
-      "median": 125,
-      "low": 120,
-      "high": 134,
-      "n": 19,
-      "vol": 19
+      "median": 123,
+      "low": 119,
+      "high": 130,
+      "n": 18,
+      "vol": 19,
+      "out": 1
      },
      {
       "d": "2026-08-01",
@@ -7665,11 +7754,12 @@
      },
      {
       "d": "2026-06-01",
-      "median": 630,
-      "low": 536,
-      "high": 656,
-      "n": 41,
-      "vol": 41
+      "median": 628,
+      "low": 529,
+      "high": 652,
+      "n": 40,
+      "vol": 41,
+      "out": 1
      },
      {
       "d": "2026-07-01",
@@ -8299,6 +8389,32 @@
     "jp": 75,
     "en": 170
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-02-20",
+      "id": "395732644244",
+      "unit": 188.83
+     },
+     {
+      "d": "2026-02-28",
+      "id": "406427041170",
+      "unit": 172.39
+     },
+     {
+      "d": "2026-07-13",
+      "id": "176585400657",
+      "unit": 849.98
+     }
+    ],
+    "en": [
+     {
+      "d": "2026-06-09",
+      "id": "205106513979",
+      "unit": 1501.42
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 134,
@@ -8352,67 +8468,75 @@
     },
     {
      "d": "2026-06-24",
-     "median": 103,
-     "low": 91,
-     "high": 149,
-     "n": 11,
-     "vol": 2
+     "median": 98,
+     "low": 84,
+     "high": 115,
+     "n": 9,
+     "vol": 2,
+     "out": 2
     },
     {
      "d": "2026-07-01",
-     "median": 109,
-     "low": 94,
-     "high": 148,
-     "n": 12,
-     "vol": 1
+     "median": 101,
+     "low": 88,
+     "high": 123,
+     "n": 10,
+     "vol": 1,
+     "out": 2
     },
     {
      "d": "2026-07-08",
-     "median": 109,
-     "low": 94,
-     "high": 148,
-     "n": 12,
-     "vol": 0
+     "median": 101,
+     "low": 88,
+     "high": 123,
+     "n": 10,
+     "vol": 0,
+     "out": 2
     },
     {
      "d": "2026-07-15",
-     "median": 101,
+     "median": 98,
      "low": 84,
-     "high": 121,
-     "n": 12,
-     "vol": 4
+     "high": 108,
+     "n": 10,
+     "vol": 4,
+     "out": 2
     },
     {
      "d": "2026-07-22",
-     "median": 89,
-     "low": 82,
-     "high": 125,
-     "n": 11,
-     "vol": 2
+     "median": 84,
+     "low": 80,
+     "high": 98,
+     "n": 9,
+     "vol": 2,
+     "out": 2
     },
     {
      "d": "2026-07-29",
-     "median": 89,
-     "low": 82,
-     "high": 125,
-     "n": 11,
-     "vol": 0
+     "median": 84,
+     "low": 80,
+     "high": 98,
+     "n": 9,
+     "vol": 0,
+     "out": 2
     },
     {
      "d": "2026-08-05",
-     "median": 97,
-     "low": 83,
-     "high": 118,
-     "n": 12,
-     "vol": 2
+     "median": 87,
+     "low": 81,
+     "high": 108,
+     "n": 10,
+     "vol": 2,
+     "out": 2
     },
     {
      "d": "2026-08-12",
-     "median": 107,
-     "low": 83,
-     "high": 129,
-     "n": 12,
-     "vol": 1
+     "median": 97,
+     "low": 81,
+     "high": 110,
+     "n": 10,
+     "vol": 1,
+     "out": 2
     },
     {
      "d": "2026-08-19",
@@ -9237,6 +9361,20 @@
     "jp": 30,
     "en": 136
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-06-18",
+      "id": "168114809665",
+      "unit": 629.6
+     },
+     {
+      "d": "2026-06-18",
+      "id": "297920835480",
+      "unit": 642.15
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 87,
@@ -9516,35 +9654,39 @@
     },
     {
      "d": "2026-08-11",
-     "median": 630,
-     "low": 597,
-     "high": 653,
-     "n": 24,
-     "vol": 7
+     "median": 636,
+     "low": 604,
+     "high": 659,
+     "n": 23,
+     "vol": 7,
+     "out": 1
     },
     {
      "d": "2026-08-18",
-     "median": 630,
-     "low": 599,
+     "median": 636,
+     "low": 604,
      "high": 646,
-     "n": 22,
-     "vol": 4
+     "n": 21,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-08-25",
-     "median": 615,
-     "low": 582,
+     "median": 619,
+     "low": 598,
      "high": 646,
-     "n": 22,
-     "vol": 3
+     "n": 21,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-09-01",
-     "median": 600,
-     "low": 560,
-     "high": 627,
-     "n": 20,
-     "vol": 6
+     "median": 601,
+     "low": 573,
+     "high": 628,
+     "n": 19,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-09-08",
@@ -9671,11 +9813,12 @@
      },
      {
       "d": "2026-08-01",
-      "median": 612,
-      "low": 576,
+      "median": 615,
+      "low": 587,
       "high": 646,
-      "n": 25,
-      "vol": 25
+      "n": 24,
+      "vol": 25,
+      "out": 1
      },
      {
       "d": "2026-09-01",
@@ -10250,6 +10393,15 @@
     "jp": 53,
     "en": 146
    },
+   "outliers": {
+    "en": [
+     {
+      "d": "2026-08-06",
+      "id": "398117406613",
+      "unit": 64.58
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 104,
@@ -10303,67 +10455,75 @@
     },
     {
      "d": "2026-06-25",
-     "median": 78,
-     "low": 70,
+     "median": 76,
+     "low": 69,
      "high": 85,
-     "n": 16,
-     "vol": 1
+     "n": 15,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-07-02",
-     "median": 81,
-     "low": 73,
-     "high": 94,
-     "n": 19,
-     "vol": 3
-    },
-    {
-     "d": "2026-07-09",
      "median": 80,
      "low": 71,
      "high": 87,
      "n": 18,
-     "vol": 0
+     "vol": 3,
+     "out": 1
+    },
+    {
+     "d": "2026-07-09",
+     "median": 79,
+     "low": 70,
+     "high": 85,
+     "n": 17,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-07-16",
-     "median": 84,
-     "low": 75,
-     "high": 105,
-     "n": 17,
-     "vol": 2
+     "median": 82,
+     "low": 73,
+     "high": 101,
+     "n": 16,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-07-23",
-     "median": 98,
-     "low": 86,
+     "median": 95,
+     "low": 85,
      "high": 105,
-     "n": 14,
-     "vol": 3
+     "n": 13,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-07-30",
-     "median": 98,
+     "median": 95,
      "low": 85,
      "high": 105,
-     "n": 14,
-     "vol": 3
+     "n": 13,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-08-06",
      "median": 105,
-     "low": 88,
-     "high": 108,
-     "n": 16,
-     "vol": 3
+     "low": 87,
+     "high": 105,
+     "n": 15,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-08-13",
      "median": 105,
-     "low": 89,
-     "high": 110,
-     "n": 17,
-     "vol": 2
+     "low": 88,
+     "high": 106,
+     "n": 16,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-08-20",
@@ -10618,11 +10778,12 @@
      },
      {
       "d": "2026-06-01",
-      "median": 94,
+      "median": 88,
       "low": 85,
-      "high": 105,
-      "n": 8,
-      "vol": 8
+      "high": 103,
+      "n": 7,
+      "vol": 8,
+      "out": 1
      },
      {
       "d": "2026-07-01",
@@ -11225,6 +11386,15 @@
     "jp": 40,
     "en": 132
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-06-21",
+      "id": "286706642140",
+      "unit": 205.34
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 110,
@@ -11265,72 +11435,81 @@
      "median": 145,
      "low": 128,
      "high": 149,
-     "n": 14,
-     "vol": 4
+     "n": 13,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-06-17",
      "median": 145,
      "low": 129,
-     "high": 150,
-     "n": 16,
-     "vol": 4
+     "high": 149,
+     "n": 15,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-06-24",
      "median": 129,
      "low": 128,
-     "high": 155,
-     "n": 17,
-     "vol": 7
+     "high": 142,
+     "n": 15,
+     "vol": 7,
+     "out": 2
     },
     {
      "d": "2026-07-01",
-     "median": 131,
+     "median": 130,
      "low": 129,
-     "high": 198,
-     "n": 18,
-     "vol": 3
+     "high": 166,
+     "n": 16,
+     "vol": 3,
+     "out": 2
     },
     {
      "d": "2026-07-08",
-     "median": 132,
+     "median": 131,
      "low": 129,
-     "high": 204,
-     "n": 15,
-     "vol": 1
+     "high": 188,
+     "n": 14,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-07-15",
-     "median": 156,
-     "low": 130,
-     "high": 219,
-     "n": 14,
-     "vol": 3
+     "median": 143,
+     "low": 129,
+     "high": 201,
+     "n": 12,
+     "vol": 3,
+     "out": 2
     },
     {
      "d": "2026-07-22",
-     "median": 158,
-     "low": 149,
-     "high": 214,
-     "n": 13,
-     "vol": 6
+     "median": 157,
+     "low": 146,
+     "high": 202,
+     "n": 12,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-07-29",
      "median": 156,
-     "low": 135,
-     "high": 159,
-     "n": 13,
-     "vol": 3
+     "low": 134,
+     "high": 158,
+     "n": 12,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-08-05",
-     "median": 152,
+     "median": 149,
      "low": 129,
      "high": 158,
-     "n": 16,
-     "vol": 4
+     "n": 15,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-08-12",
@@ -11344,33 +11523,37 @@
      "d": "2026-08-19",
      "median": 130,
      "low": 128,
-     "high": 160,
-     "n": 18,
-     "vol": 5
+     "high": 159,
+     "n": 17,
+     "vol": 5,
+     "out": 1
     },
     {
      "d": "2026-08-26",
      "median": 129,
      "low": 129,
-     "high": 160,
-     "n": 21,
-     "vol": 6
+     "high": 140,
+     "n": 20,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-09-02",
      "median": 130,
      "low": 129,
-     "high": 143,
-     "n": 21,
-     "vol": 4
+     "high": 141,
+     "n": 20,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-09-09",
-     "median": 130,
+     "median": 129,
      "low": 129,
      "high": 143,
-     "n": 18,
-     "vol": 3
+     "n": 17,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-09-16",
@@ -11450,113 +11633,127 @@
      "d": "2026-07-16",
      "median": 497,
      "low": 447,
-     "high": 547,
-     "n": 44,
-     "vol": 25
+     "high": 536,
+     "n": 43,
+     "vol": 25,
+     "out": 1
     },
     {
      "d": "2026-07-23",
-     "median": 450,
+     "median": 449,
      "low": 425,
      "high": 500,
-     "n": 96,
-     "vol": 53
+     "n": 95,
+     "vol": 53,
+     "out": 1
     },
     {
      "d": "2026-07-30",
      "median": 454,
-     "low": 430,
+     "low": 429,
      "high": 500,
-     "n": 136,
-     "vol": 41
+     "n": 135,
+     "vol": 41,
+     "out": 1
     },
     {
      "d": "2026-08-06",
-     "median": 455,
-     "low": 435,
-     "high": 476,
-     "n": 173,
-     "vol": 54
+     "median": 454,
+     "low": 434,
+     "high": 475,
+     "n": 171,
+     "vol": 54,
+     "out": 2
     },
     {
      "d": "2026-08-13",
      "median": 457,
      "low": 440,
      "high": 482,
-     "n": 194,
-     "vol": 46
+     "n": 193,
+     "vol": 46,
+     "out": 1
     },
     {
      "d": "2026-08-20",
      "median": 469,
-     "low": 451,
+     "low": 450,
      "high": 498,
-     "n": 182,
-     "vol": 41
+     "n": 180,
+     "vol": 41,
+     "out": 2
     },
     {
      "d": "2026-08-27",
      "median": 476,
      "low": 456,
-     "high": 501,
-     "n": 168,
-     "vol": 27
+     "high": 500,
+     "n": 166,
+     "vol": 27,
+     "out": 2
     },
     {
      "d": "2026-09-03",
-     "median": 489,
+     "median": 488,
      "low": 471,
-     "high": 509,
-     "n": 144,
-     "vol": 30
+     "high": 506,
+     "n": 142,
+     "vol": 30,
+     "out": 2
     },
     {
      "d": "2026-09-10",
-     "median": 492,
-     "low": 478,
-     "high": 509,
-     "n": 116,
-     "vol": 18
+     "median": 491,
+     "low": 477,
+     "high": 506,
+     "n": 114,
+     "vol": 18,
+     "out": 2
     },
     {
      "d": "2026-09-17",
-     "median": 488,
+     "median": 487,
      "low": 478,
      "high": 504,
-     "n": 97,
-     "vol": 22
+     "n": 96,
+     "vol": 22,
+     "out": 1
     },
     {
      "d": "2026-09-24",
-     "median": 483,
+     "median": 482,
      "low": 477,
-     "high": 500,
-     "n": 86,
-     "vol": 16
+     "high": 499,
+     "n": 85,
+     "vol": 16,
+     "out": 1
     },
     {
      "d": "2026-10-01",
      "median": 479,
      "low": 462,
      "high": 498,
-     "n": 80,
-     "vol": 24
+     "n": 79,
+     "vol": 24,
+     "out": 1
     },
     {
      "d": "2026-10-08",
      "median": 475,
      "low": 453,
-     "high": 486,
-     "n": 76,
-     "vol": 14
+     "high": 485,
+     "n": 75,
+     "vol": 14,
+     "out": 1
     },
     {
      "d": "2026-10-15",
      "median": 464,
      "low": 447,
-     "high": 482,
-     "n": 69,
-     "vol": 15
+     "high": 481,
+     "n": 68,
+     "vol": 15,
+     "out": 1
     }
    ],
    "enBlue": [],
@@ -11577,27 +11774,30 @@
      },
      {
       "d": "2026-06-01",
-      "median": 130,
+      "median": 129,
       "low": 129,
-      "high": 188,
-      "n": 18,
-      "vol": 18
+      "high": 153,
+      "n": 16,
+      "vol": 18,
+      "out": 2
      },
      {
       "d": "2026-07-01",
-      "median": 156,
-      "low": 130,
-      "high": 169,
-      "n": 16,
-      "vol": 16
+      "median": 155,
+      "low": 129,
+      "high": 158,
+      "n": 15,
+      "vol": 16,
+      "out": 1
      },
      {
       "d": "2026-08-01",
       "median": 130,
-      "low": 129,
-      "high": 151,
-      "n": 23,
-      "vol": 23
+      "low": 128,
+      "high": 142,
+      "n": 22,
+      "vol": 23,
+      "out": 1
      },
      {
       "d": "2026-09-01",
@@ -11627,27 +11827,30 @@
      },
      {
       "d": "2026-07-01",
-      "median": 454,
-      "low": 428,
+      "median": 453,
+      "low": 427,
       "high": 500,
-      "n": 138,
-      "vol": 138
+      "n": 136,
+      "vol": 138,
+      "out": 2
      },
      {
       "d": "2026-08-01",
       "median": 478,
       "low": 457,
       "high": 501,
-      "n": 181,
-      "vol": 181
+      "n": 180,
+      "vol": 181,
+      "out": 1
      },
      {
       "d": "2026-09-01",
       "median": 481,
       "low": 465,
-      "high": 499,
-      "n": 91,
-      "vol": 91
+      "high": 498,
+      "n": 89,
+      "vol": 91,
+      "out": 2
      },
      {
       "d": "2026-10-01",
@@ -11722,11 +11925,12 @@
      },
      {
       "d": "2026-07-14",
-      "median": 454,
+      "median": 447,
       "low": 447,
-      "high": 721,
-      "n": 4,
-      "vol": 4
+      "high": 454,
+      "n": 3,
+      "vol": 4,
+      "out": 1
      },
      {
       "d": "2026-07-15",
@@ -11970,11 +12174,12 @@
      },
      {
       "d": "2026-08-16",
-      "median": 524,
-      "low": 507,
-      "high": 539,
-      "n": 6,
-      "vol": 6
+      "median": 522,
+      "low": 502,
+      "high": 527,
+      "n": 5,
+      "vol": 6,
+      "out": 1
      },
      {
       "d": "2026-08-17",
@@ -12066,11 +12271,12 @@
      },
      {
       "d": "2026-09-01",
-      "median": 506,
-      "low": 487,
-      "high": 567,
-      "n": 7,
-      "vol": 7
+      "median": 498,
+      "low": 486,
+      "high": 528,
+      "n": 6,
+      "vol": 7,
+      "out": 1
      },
      {
       "d": "2026-09-02",
@@ -12814,6 +13020,57 @@
     "jp": 114,
     "en": 462
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-06-07",
+      "id": "800015723429",
+      "unit": 263.29
+     },
+     {
+      "d": "2026-06-23",
+      "id": "197677745306",
+      "unit": 263.08
+     },
+     {
+      "d": "2026-07-13",
+      "id": "398130359712",
+      "unit": 2185.85
+     },
+     {
+      "d": "2026-08-16",
+      "id": "206455131541",
+      "unit": 475.31
+     }
+    ],
+    "en": [
+     {
+      "d": "2026-07-14",
+      "id": "298502107080",
+      "unit": 1501.42
+     },
+     {
+      "d": "2026-07-31",
+      "id": "178307921634",
+      "unit": 1006.51
+     },
+     {
+      "d": "2026-08-16",
+      "id": "358620331982",
+      "unit": 2364.78
+     },
+     {
+      "d": "2026-09-01",
+      "id": "178455927054",
+      "unit": 877.81
+     },
+     {
+      "d": "2026-09-28",
+      "id": "117365014925",
+      "unit": 860.43
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 129,
@@ -12825,8 +13082,8 @@
     "en": {
      "median": 464,
      "low": 447,
-     "high": 482,
-     "n": 69,
+     "high": 481,
+     "n": 68,
      "d": "2026-10-15"
     }
    }
@@ -12931,43 +13188,48 @@
     },
     {
      "d": "2026-08-18",
-     "median": 100,
-     "low": 89,
-     "high": 114,
-     "n": 17,
-     "vol": 3
+     "median": 95,
+     "low": 88,
+     "high": 112,
+     "n": 16,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-08-25",
      "median": 90,
-     "low": 82,
-     "high": 106,
-     "n": 15,
-     "vol": 2
+     "low": 81,
+     "high": 100,
+     "n": 14,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-09-01",
      "median": 90,
-     "low": 84,
-     "high": 101,
-     "n": 13,
-     "vol": 0
+     "low": 83,
+     "high": 100,
+     "n": 12,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-09-08",
      "median": 90,
      "low": 80,
-     "high": 96,
-     "n": 11,
-     "vol": 2
+     "high": 91,
+     "n": 10,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-09-15",
-     "median": 90,
-     "low": 82,
-     "high": 101,
-     "n": 10,
-     "vol": 3
+     "median": 88,
+     "low": 80,
+     "high": 100,
+     "n": 9,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-09-22",
@@ -13215,10 +13477,11 @@
      {
       "d": "2026-08-01",
       "median": 90,
-      "low": 83,
-      "high": 104,
-      "n": 12,
-      "vol": 12
+      "low": 82,
+      "high": 100,
+      "n": 11,
+      "vol": 12,
+      "out": 1
      },
      {
       "d": "2026-09-01",
@@ -13851,6 +14114,15 @@
     "jp": 65,
     "en": 204
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-08-13",
+      "id": "358146874944",
+      "unit": 158.49
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 89,
@@ -13960,43 +14232,48 @@
     },
     {
      "d": "2026-08-26",
-     "median": 113,
-     "low": 101,
-     "high": 123,
-     "n": 14,
-     "vol": 4
+     "median": 109,
+     "low": 100,
+     "high": 117,
+     "n": 13,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-09-02",
      "median": 107,
      "low": 89,
-     "high": 117,
-     "n": 16,
-     "vol": 5
+     "high": 113,
+     "n": 15,
+     "vol": 5,
+     "out": 1
     },
     {
      "d": "2026-09-09",
      "median": 107,
-     "low": 91,
+     "low": 88,
      "high": 117,
-     "n": 14,
-     "vol": 0
+     "n": 13,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-09-16",
      "median": 107,
-     "low": 94,
-     "high": 119,
-     "n": 12,
-     "vol": 2
+     "low": 92,
+     "high": 113,
+     "n": 11,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-09-23",
-     "median": 100,
-     "low": 95,
-     "high": 110,
-     "n": 13,
-     "vol": 2
+     "median": 98,
+     "low": 93,
+     "high": 108,
+     "n": 12,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-09-30",
@@ -14211,11 +14488,12 @@
      },
      {
       "d": "2026-08-01",
-      "median": 106,
+      "median": 105,
       "low": 88,
       "high": 117,
-      "n": 14,
-      "vol": 14
+      "n": 13,
+      "vol": 14,
+      "out": 1
      },
      {
       "d": "2026-09-01",
@@ -15070,6 +15348,15 @@
     "jp": 58,
     "en": 210
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-08-23",
+      "id": "188101185912",
+      "unit": 887.48
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 97,
@@ -15263,33 +15550,37 @@
      "d": "2026-07-01",
      "median": 221,
      "low": 214,
-     "high": 236,
-     "n": 155,
-     "vol": 55
+     "high": 235,
+     "n": 154,
+     "vol": 55,
+     "out": 1
     },
     {
      "d": "2026-07-08",
      "median": 219,
      "low": 212,
-     "high": 231,
-     "n": 194,
-     "vol": 39
+     "high": 230,
+     "n": 193,
+     "vol": 39,
+     "out": 1
     },
     {
      "d": "2026-07-15",
      "median": 215,
      "low": 209,
      "high": 225,
-     "n": 185,
-     "vol": 42
+     "n": 184,
+     "vol": 42,
+     "out": 1
     },
     {
      "d": "2026-07-22",
      "median": 214,
      "low": 204,
      "high": 221,
-     "n": 166,
-     "vol": 30
+     "n": 165,
+     "vol": 30,
+     "out": 1
     },
     {
      "d": "2026-07-29",
@@ -15442,9 +15733,10 @@
       "d": "2026-06-01",
       "median": 221,
       "low": 214,
-      "high": 237,
-      "n": 150,
-      "vol": 150
+      "high": 236,
+      "n": 149,
+      "vol": 150,
+      "out": 1
      },
      {
       "d": "2026-07-01",
@@ -15632,10 +15924,11 @@
      {
       "d": "2026-06-29",
       "median": 215,
-      "low": 215,
-      "high": 218,
-      "n": 9,
-      "vol": 9
+      "low": 214,
+      "high": 217,
+      "n": 8,
+      "vol": 9,
+      "out": 1
      },
      {
       "d": "2026-06-30",
@@ -16768,6 +17061,15 @@
     "jp": 86,
     "en": 546
    },
+   "outliers": {
+    "en": [
+     {
+      "d": "2026-06-29",
+      "id": "306995511272",
+      "unit": 381.15
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 97,
@@ -17484,67 +17786,75 @@
     },
     {
      "d": "2026-07-10",
-     "median": 150,
-     "low": 140,
-     "high": 168,
-     "n": 9,
-     "vol": 2
+     "median": 149,
+     "low": 139,
+     "high": 167,
+     "n": 8,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-07-17",
-     "median": 150,
-     "low": 140,
-     "high": 168,
-     "n": 9,
-     "vol": 0
+     "median": 149,
+     "low": 139,
+     "high": 167,
+     "n": 8,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-07-24",
-     "median": 138,
-     "low": 126,
-     "high": 167,
-     "n": 16,
-     "vol": 8
+     "median": 135,
+     "low": 117,
+     "high": 159,
+     "n": 15,
+     "vol": 8,
+     "out": 1
     },
     {
      "d": "2026-07-31",
-     "median": 137,
-     "low": 126,
-     "high": 156,
-     "n": 20,
-     "vol": 5
+     "median": 135,
+     "low": 117,
+     "high": 151,
+     "n": 19,
+     "vol": 5,
+     "out": 1
     },
     {
      "d": "2026-08-07",
-     "median": 137,
+     "median": 135,
      "low": 134,
-     "high": 169,
-     "n": 26,
-     "vol": 6
+     "high": 168,
+     "n": 25,
+     "vol": 6,
+     "out": 1
     },
     {
      "d": "2026-08-14",
      "median": 135,
-     "low": 127,
-     "high": 177,
-     "n": 26,
-     "vol": 3
+     "low": 125,
+     "high": 170,
+     "n": 25,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-08-21",
      "median": 135,
-     "low": 132,
-     "high": 172,
-     "n": 28,
-     "vol": 2
+     "low": 129,
+     "high": 169,
+     "n": 27,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-08-28",
      "median": 135,
-     "low": 134,
-     "high": 170,
-     "n": 29,
-     "vol": 3
+     "low": 132,
+     "high": 165,
+     "n": 28,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-09-04",
@@ -17769,9 +18079,10 @@
       "d": "2026-07-01",
       "median": 135,
       "low": 100,
-      "high": 164,
-      "n": 16,
-      "vol": 16
+      "high": 149,
+      "n": 15,
+      "vol": 16,
+      "out": 1
      },
      {
       "d": "2026-08-01",
@@ -18315,6 +18626,15 @@
     "jp": 51,
     "en": 79
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-07-10",
+      "id": "286102437253",
+      "unit": 366.96
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 135,
@@ -18378,57 +18698,64 @@
      "d": "2026-07-08",
      "median": 127,
      "low": 113,
-     "high": 133,
-     "n": 14,
-     "vol": 1
+     "high": 132,
+     "n": 13,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-07-15",
-     "median": 129,
-     "low": 118,
-     "high": 135,
-     "n": 14,
-     "vol": 1
+     "median": 128,
+     "low": 115,
+     "high": 134,
+     "n": 13,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-07-22",
-     "median": 131,
+     "median": 130,
      "low": 127,
-     "high": 137,
-     "n": 12,
-     "vol": 1
+     "high": 135,
+     "n": 11,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-07-29",
-     "median": 134,
-     "low": 127,
-     "high": 143,
-     "n": 11,
-     "vol": 2
+     "median": 132,
+     "low": 126,
+     "high": 142,
+     "n": 10,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-08-05",
-     "median": 134,
-     "low": 126,
-     "high": 144,
-     "n": 9,
-     "vol": 0
+     "median": 132,
+     "low": 122,
+     "high": 142,
+     "n": 8,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-08-12",
-     "median": 141,
-     "low": 128,
-     "high": 145,
-     "n": 7,
-     "vol": 1
+     "median": 135,
+     "low": 127,
+     "high": 143,
+     "n": 6,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-08-19",
-     "median": 134,
-     "low": 118,
-     "high": 144,
-     "n": 10,
-     "vol": 4
+     "median": 127,
+     "low": 115,
+     "high": 143,
+     "n": 9,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-08-26",
@@ -19241,6 +19568,15 @@
     "jp": 50,
     "en": 106
    },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-07-03",
+      "id": "287041837239",
+      "unit": 220.2
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 115,
@@ -19481,50 +19817,56 @@
     {
      "d": "2026-07-13",
      "median": 971,
-     "low": 926,
-     "high": 1001,
-     "n": 17,
-     "vol": 4
+     "low": 945,
+     "high": 1013,
+     "n": 16,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-07-20",
      "median": 971,
-     "low": 926,
+     "low": 945,
      "high": 1000,
-     "n": 17,
-     "vol": 1
+     "n": 16,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-07-27",
-     "median": 989,
-     "low": 951,
-     "high": 1001,
-     "n": 19,
-     "vol": 4
-    },
-    {
-     "d": "2026-08-03",
-     "median": 993,
+     "median": 991,
      "low": 954,
      "high": 1001,
      "n": 18,
-     "vol": 3
+     "vol": 4,
+     "out": 1
+    },
+    {
+     "d": "2026-08-03",
+     "median": 994,
+     "low": 963,
+     "high": 1002,
+     "n": 17,
+     "vol": 3,
+     "out": 1
     },
     {
      "d": "2026-08-10",
-     "median": 997,
-     "low": 966,
-     "high": 1011,
-     "n": 16,
-     "vol": 0
+     "median": 1000,
+     "low": 980,
+     "high": 1020,
+     "n": 15,
+     "vol": 0,
+     "out": 1
     },
     {
      "d": "2026-08-17",
-     "median": 994,
-     "low": 971,
-     "high": 1002,
-     "n": 13,
-     "vol": 1
+     "median": 997,
+     "low": 984,
+     "high": 1011,
+     "n": 12,
+     "vol": 1,
+     "out": 1
     },
     {
      "d": "2026-08-24",
@@ -19659,11 +20001,12 @@
      },
      {
       "d": "2026-07-01",
-      "median": 993,
-      "low": 956,
-      "high": 1001,
-      "n": 14,
-      "vol": 14
+      "median": 994,
+      "low": 971,
+      "high": 1002,
+      "n": 13,
+      "vol": 14,
+      "out": 1
      },
      {
       "d": "2026-09-01",
@@ -20162,6 +20505,15 @@
     "jp": 70,
     "en": 56
    },
+   "outliers": {
+    "en": [
+     {
+      "d": "2026-07-09",
+      "id": "298491244845",
+      "unit": 110.1
+     }
+    ]
+   },
    "current": {
     "jp": {
      "median": 150,
@@ -20199,91 +20551,102 @@
     },
     {
      "d": "2026-06-16",
-     "median": 70,
-     "low": 66,
+     "median": 69,
+     "low": 65,
      "high": 75,
-     "n": 14,
-     "vol": 4
+     "n": 13,
+     "vol": 4,
+     "out": 1
     },
     {
      "d": "2026-06-23",
      "median": 75,
-     "low": 68,
-     "high": 85,
-     "n": 19,
-     "vol": 5
+     "low": 67,
+     "high": 80,
+     "n": 17,
+     "vol": 5,
+     "out": 2
     },
     {
      "d": "2026-06-30",
-     "median": 72,
+     "median": 70,
      "low": 65,
-     "high": 82,
-     "n": 22,
-     "vol": 4
+     "high": 80,
+     "n": 20,
+     "vol": 4,
+     "out": 2
     },
     {
      "d": "2026-07-07",
      "median": 70,
-     "low": 66,
-     "high": 82,
-     "n": 27,
-     "vol": 8
+     "low": 65,
+     "high": 76,
+     "n": 24,
+     "vol": 8,
+     "out": 3
     },
     {
      "d": "2026-07-14",
-     "median": 74,
-     "low": 67,
-     "high": 87,
-     "n": 28,
-     "vol": 4
+     "median": 70,
+     "low": 66,
+     "high": 83,
+     "n": 25,
+     "vol": 4,
+     "out": 3
     },
     {
      "d": "2026-07-21",
-     "median": 77,
+     "median": 73,
      "low": 67,
-     "high": 91,
-     "n": 29,
-     "vol": 4
+     "high": 87,
+     "n": 25,
+     "vol": 4,
+     "out": 4
     },
     {
      "d": "2026-07-28",
-     "median": 80,
-     "low": 68,
-     "high": 91,
-     "n": 29,
-     "vol": 4
+     "median": 79,
+     "low": 67,
+     "high": 88,
+     "n": 26,
+     "vol": 4,
+     "out": 3
     },
     {
      "d": "2026-08-04",
      "median": 75,
-     "low": 67,
-     "high": 88,
-     "n": 29,
-     "vol": 5
+     "low": 66,
+     "high": 85,
+     "n": 27,
+     "vol": 5,
+     "out": 2
     },
     {
      "d": "2026-08-11",
-     "median": 79,
-     "low": 70,
-     "high": 90,
-     "n": 26,
-     "vol": 1
+     "median": 77,
+     "low": 69,
+     "high": 88,
+     "n": 24,
+     "vol": 1,
+     "out": 2
     },
     {
      "d": "2026-08-18",
      "median": 87,
      "low": 75,
-     "high": 97,
-     "n": 20,
-     "vol": 2
+     "high": 96,
+     "n": 19,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-08-25",
-     "median": 84,
-     "low": 74,
-     "high": 96,
-     "n": 18,
-     "vol": 2
+     "median": 80,
+     "low": 73,
+     "high": 95,
+     "n": 17,
+     "vol": 2,
+     "out": 1
     },
     {
      "d": "2026-09-01",
@@ -20522,19 +20885,21 @@
     "jp": [
      {
       "d": "2026-06-01",
-      "median": 72,
-      "low": 67,
-      "high": 86,
-      "n": 18,
-      "vol": 18
+      "median": 70,
+      "low": 66,
+      "high": 77,
+      "n": 16,
+      "vol": 18,
+      "out": 2
      },
      {
       "d": "2026-07-01",
-      "median": 80,
-      "low": 69,
-      "high": 94,
-      "n": 23,
-      "vol": 23
+      "median": 77,
+      "low": 68,
+      "high": 88,
+      "n": 21,
+      "vol": 23,
+      "out": 2
      },
      {
       "d": "2026-08-01",
@@ -21151,6 +21516,30 @@
    "sinceRelease": {
     "jp": 72,
     "en": 107
+   },
+   "outliers": {
+    "jp": [
+     {
+      "d": "2026-06-15",
+      "id": "318448460012",
+      "unit": 168.9
+     },
+     {
+      "d": "2026-06-17",
+      "id": "227388414540",
+      "unit": 161.46
+     },
+     {
+      "d": "2026-07-06",
+      "id": "227396281223",
+      "unit": 173.88
+     },
+     {
+      "d": "2026-07-21",
+      "id": "389135091757",
+      "unit": 248.38
+     }
+    ]
    },
    "current": {
     "jp": {

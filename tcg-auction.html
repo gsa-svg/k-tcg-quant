@@ -8,15 +8,15 @@
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1" />
     <link rel="canonical" href="https://opboxindex.com/tcg-auction.html" />
     <title>TCG Auction Results by Card Game — eBay Sold Data</title>
-    <meta name="description" content="eBay auction results across 13 trading card games: sell rate, median sold price and auctions closing per day, last 7 days and week by week, each re-read after close." />
+    <meta name="description" content="eBay auction results across 13 trading card games: sell rate, median sold price and auctions closing per day, last 7 days and week by week." />
     <meta property="og:title" content="TCG Auction Results by Card Game — eBay Sold Data" />
-    <meta property="og:description" content="Sell rate, median sold price and auctions closing per day across 13 card games, from auctions we settle ourselves." />
+    <meta property="og:description" content="Sell rate, median sold price and auctions closing per day across 13 card games." />
     <meta property="og:url" content="https://opboxindex.com/tcg-auction.html" />
     <meta property="og:image" content="https://opboxindex.com/og-image.png" />
-    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Trading card game auction results by game","description":"eBay auction results across 13 trading card games, re-read after close: sell rate, median sold price and auctions closing per day, last 7 days and week by week.","isAccessibleForFree":true,"url":"https://opboxindex.com/tcg-auction.html","license":"https://creativecommons.org/licenses/by/4.0/","distribution":[{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://opboxindex.com/opbox-ai-auctions.json"}],"creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"temporalCoverage":"2026-08-07/2026-10-14","dateModified":"2026-10-14","variableMeasured":["Sell rate","Median sold price","Auctions closing per day","Sell rate by week"]}</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"Trading card game auction results by game","description":"eBay auction results across 13 trading card games: sell rate, median sold price and auctions closing per day, last 7 days and week by week.","isAccessibleForFree":true,"url":"https://opboxindex.com/tcg-auction.html","license":"https://creativecommons.org/licenses/by/4.0/","distribution":[{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://opboxindex.com/opbox-ai-auctions.json"}],"creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"temporalCoverage":"2026-08-07/2026-10-14","dateModified":"2026-10-14","variableMeasured":["Sell rate","Median sold price","Auctions closing per day","Sell rate by week"]}</script>
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261015seo" />
-    <script defer src="lang-toggle.js?v=20261015seo"></script>
+    <link rel="stylesheet" href="styles.css?v=20261015seo2" />
+    <script defer src="lang-toggle.js?v=20261015seo2"></script>
     <meta name="theme-color" content="#0a0c10" />
     <style>
       /* 토큰만 쓴다(styles.css :root). 모션 없음(hover 색만). 숫자는 tabular-nums. */
@@ -117,8 +117,8 @@
       .foot { margin: 8px 0 0; font-size: 14px; }
       .foot a { display: inline-block; padding: 7px 0; color: var(--accent); }
     </style>
-    <link rel="stylesheet" href="auction-dashboard.css?v=20261015seo" />
-    <script defer src="auction-dashboard.js?v=20261015seo"></script>
+    <link rel="stylesheet" href="auction-dashboard.css?v=20261015seo2" />
+    <script defer src="auction-dashboard.js?v=20261015seo2"></script>
   </head>
   <body>
     <a class="skipLink" href="#main-content" data-ko="본문 바로가기">Skip to main content</a>
@@ -141,8 +141,7 @@
         </div>
         <p class="sampleNote" data-ko="낙찰률·낙찰가 = 수집 표본 · 5,565건 중 1,995건 낙찰">Sell rate &amp; price = observed sample · 1,995 sold / 5,565 sampled</p>
         <details class="marketDetails"><summary data-ko="지표·표본 기준">Metrics &amp; sample rules</summary>
-          <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값">winning bid, middle value</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span> · <b data-ko="집계한 날">Days counted</b> = <span data-ko="정해진 수집 시각에 표본을 고른 날(n/7 · n/28)">days with a sample picked at the usual hour (n/7 · n/28)</span> · <b data-ko="제외일">Excluded day</b> = <span data-ko="정해진 수집 시각 밖에 표본을 고른 날(낙찰률·낙찰가만 뺌)">sample picked outside the usual hour (dropped from sell rate and sold price only)</span></p>
-          <p class="def" data-ko="서로 다른 상품·등급의 낙찰 표본. 같은 상품의 가격 변동률이 아닙니다.">Mixed items and grades; not a same-item price index.</p>
+          <p class="def"><b data-ko="낙찰률">Sell rate</b> = <span data-ko="종료 경매 중 팔린 비율">share of closed auctions that sold</span> · <b data-ko="낙찰가">Sold price</b> = <span data-ko="낙찰 입찰가, 중앙값 · 상품·등급 혼합">winning bid, middle value · mixed items and grades</span> · <b data-ko="하루 종료 경매">Closing per day</b> = <span data-ko="eBay 가 집계한 24시간 내 종료 경매 수, 일평균">eBay's count of auctions ending within 24 hours, daily average</span> · <b data-ko="집계한 날">Days counted</b> = <span data-ko="정해진 수집 시각에 표본을 고른 날(n/7 · n/28)">days with a sample picked at the usual hour (n/7 · n/28)</span> · <b data-ko="제외일">Excluded day</b> = <span data-ko="정해진 수집 시각 밖에 표본을 고른 날(낙찰률·낙찰가만 뺌)">sample picked outside the usual hour (dropped from sell rate and sold price only)</span></p>
         </details>
       </section>
 

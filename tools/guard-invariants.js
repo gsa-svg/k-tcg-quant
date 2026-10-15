@@ -24,6 +24,9 @@
 //  [2026-10-15 5차: KO PSA 10 원화가 옛 KRW 저장값(영문과 12~15% 차) · 일본판 박스 문답에 영문판 값 · NM 없는 카드의 spread 문장 · "a 80%" ·
 //   같은 값끼리 비교 · 빈 링크 글자 · 최저가 동가 누락 · ko 허브 기준일 < 표 날짜 · how-many-packs FAQPage ≠ 화면 · weekly 4-wk 별도 계산]
 //   → PK1, FQ1, SP1, AN1, EQ1, EL1, CH1, KD1, FQ2, WK1 (+ PC1 숨김 카드 최고 raw 값·NM 관측일)
+//  [2026-10-15 6차: 소유자 결정 "데이터 페이지엔 숫자·표·라벨만"(해설·해석·방법 설명 삭제, EPN 제휴 고지·푸터 면책 한 줄 유지) ·
+//   OP-07 일본판 9/17·9/24 $134(창 안 이상치 3건, 4주 변화 -40.3%) · ko/cards 만 97일 된 PSA 10 표본으로 배수]
+//   → OL1, OL2, NC1, DF2, MD1, KO5, DF3, CX1, CX2, CX3, NP1, UP3, VN1, EP1 (+ S3·UP2·CH1·D17·PC1·PK1·G9·KO3 를 라벨 꼴로 고침)
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
@@ -494,7 +497,8 @@ if (exists("data/box-sold-series.json")) {
       const kf = `ko/${slug}.html`;
       if (exists(kf)) {
         const desc = (read(kf).match(/<meta name="description" content="([^"]*)"/) || [])[1] || "";
-        const m = desc.match(/([\d,]+)원 \((\d{4}-\d{2}-\d{2}) 기준\)/);
+        // 2026-10-15(6차) 설명문 꼴 = Key facts 값만: "일본판 OP-08 … 판매 중앙값 106,943원(2026-10-09, 10건) · 최저 매물 …" (나머지 대조는 KO5)
+        const m = desc.match(/판매 중앙값 ([\d,]+)원\((\d{4}-\d{2}-\d{2})/);
         const cur = curOf(code, "jp");
         if (m && !cur) errors.push(`D17: ${kf} 설명문에 ${m[1]}원 — current 가 없으면 값을 싣지 않는다`);
         else if (m && cur) {
@@ -1086,52 +1090,36 @@ if (exists("data/auction-card-stats.json")) {
   }
 }
 
-// ── S3. 세트 페이지 고유 해설 — 2026-08-07 애드센스 "가치가 별로 없는 콘텐츠" 거절의 재발 방지.
-//    실측: 세트 페이지 21장이 문장 기준 63% 동일(숫자만 교체)이었다. 수기 해설(set-commentary.json)을
-//    도입했고, 이 검사는 그 해설이 (1) 모든 세트에 있고 (2) 세트끼리 문장을 재사용하지 않고
-//    (3) 실제 빌드된 페이지에 주입되어 있는지를 강제한다. 하나라도 무너지면 템플릿으로 되돌아간 것이다.
+// ── S3. 세트 페이지는 템플릿 껍데기가 아니다 — 2026-08-07 애드센스 "가치가 별로 없는 콘텐츠" 거절의 재발 방지.
+//    실측: 세트 페이지 21장이 문장 기준 63% 동일(숫자만 교체)이었다. 2026-08-07~10-14 에는 수기 해설(set-commentary.json)
+//    주입을 강제했지만, 2026-10-15 소유자 결정("데이터 페이지엔 숫자·표·라벨만")으로 해설을 뺐다(재주입 금지는 NC1).
+//    이제 세트마다 다른 것은 데이터다 — 카드가 있는 세트 페이지는 (1) Key facts 표(판매 중앙값 또는 최저 매물가 행)와
+//    (2) 그 세트 카드 이름으로 채운 Top 10 표(카드 수가 10 미만이면 그 수)를 갖고, (3) 설명문이 세트끼리 같지 않다.
+//    문장 반복률 자체는 A4(audit-adsense-readiness)가 잰다.
 {
-  const cmPath = "data/set-commentary.json";
   const packsPath = "data/onepiece-packs.json";
-  if (exists(cmPath) && exists(packsPath)) {
-    const cm = JSON.parse(read(cmPath));
+  if (exists(packsPath)) {
     const packs = JSON.parse(read(packsPath));
     const order = [...(packs.jp?.list || []), ...(packs.extra?.list || [])]
       .filter((c) => (packs.sets?.[c]?.cards || []).length > 0);
-    const fp = (s) => s.replace(/[^a-z0-9]/gi, "").toLowerCase();
-    const seenSent = new Map();   // 정규화 문장 -> 처음 쓴 세트
-    const seenDesc = new Set();
+    const seenDesc = new Map();
+    let n = 0;
     for (const code of order) {
-      const c = cm.sets?.[code];
-      // 해설이 "있어야 함"은 2026-08-28 이전 발매 세트까지만 — 그날 소유자가 "보고서식 설명 문단 금지, 표만"으로 정했다.
-      // 그 뒤 세트(OP-17~)에 새 문단을 요구하면 두 규칙이 부딪혀 top10 을 올릴 수 없다(2026-09-30, OP-17 이 여기서 막혔다).
-      // 해설이 있는 세트는 발매일과 무관하게 아래 길이·중복·주입 검사를 전부 받는다.
-      if (!c) {
-        if (String(packs.sets[code].release || "") < "2026-08-28") errors.push(`S3: ${code} 수기 해설 없음 — 템플릿 문구로 노출된다`);
-        continue;
-      }
-      const body = (c.body || []).join(" ");
-      if (body.length < 350) errors.push(`S3: ${code} 해설이 ${body.length}자 — 350자 미만은 껍데기다`);
-      if (!c.desc || c.desc.length < 60) errors.push(`S3: ${code} desc 부실`);
-      if (seenDesc.has(c.desc)) errors.push(`S3: ${code} desc 가 다른 세트와 동일`);
-      seenDesc.add(c.desc);
-      for (const raw of body.split(/[.!?]/)) {
-        const s = raw.trim().replace(/[0-9,.%$]+/g, "#");
-        if (s.length < 45) continue;
-        if (seenSent.has(s) && seenSent.get(s) !== code) {
-          errors.push(`S3: ${code} 해설 문장이 ${seenSent.get(s)} 와 중복 — "${raw.trim().slice(0, 50)}…"`);
-        }
-        seenSent.set(s, code);
-      }
-      // 빌드 산출물에 주입됐는지 — 생성기가 조용히 주입을 빼먹으면 파일만 있고 화면엔 없다.
       const pagePath = `sets/${code.toLowerCase()}.html`;
-      if (exists(pagePath)) {
-        const html = read(pagePath);
-        if (!fp(html).includes(fp((c.body || [""])[0]).slice(0, 60))) {
-          errors.push(`S3: ${pagePath} 에 해설이 주입되지 않음 — 생성기 재실행 필요`);
-        }
-      }
+      if (!exists(pagePath)) { errors.push(`S3: ${pagePath} 가 없다 — 카드가 있는 세트는 세트 페이지가 있어야 한다`); continue; }
+      const html = read(pagePath);
+      n++;
+      if (!/<tr data-k="(?:sold|ask)">/.test(html)) errors.push(`S3: ${pagePath} 에 Key facts 표(판매 중앙값·최저 매물가 행)가 없다 — 템플릿 껍데기`);
+      const escN = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");   // 생성기 esc 와 같은 이스케이프
+      const names = new Set((packs.sets[code].cards || []).map((c) => escN(c.name)));
+      const top = [...html.matchAll(/<tr><td>\d+<\/td><td class="cn">(?:(?!<\/tr>)[\s\S])*?<strong>([^<]*)<\/strong>/g)].map((m) => m[1]);
+      const own = top.filter((t) => names.has(t)).length, need = Math.min(10, names.size);
+      if (own < need) errors.push(`S3: ${pagePath} Top 10 표에 ${code} 카드가 ${own}장 — ${need}장이어야 한다(세트 고유 데이터가 빠지면 템플릿만 남는다)`);
+      const desc = (html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || "";
+      if (seenDesc.has(desc)) errors.push(`S3: ${pagePath} 설명문이 ${seenDesc.get(desc)} 와 같다`);
+      seenDesc.set(desc, pagePath);
     }
+    if (!n) errors.push("S3: 카드가 있는 세트 페이지를 0장 읽었다");
   }
 }
 
@@ -2149,11 +2137,13 @@ for (const [grader, file] of [["CGC", "data/cgc-grading-history.json"], ["TAG", 
   // (4) 구운 페이지도 같은 규칙 — 없는 분리값을 0 으로 적거나(한국어 세트 페이지 22장이 "프리스틴 10 0장과 젬 민트 10 0장"),
   //     날짜 칸 없는 표에 옛 분리값을 붙이면(free-data 미리보기: 9/29 총량 옆 8/3 Pristine 10) 안 된다.
   //     방향은 하나만 본다: 화면 블록에 분리값이 **없는데** 페이지가 말하면 FAIL. 새 분리값이 생긴 뒤 페이지가 하루 늦는 건 정상이다.
+  //     한국어 세트 페이지는 2026-10-15(6차)에 문장("CGC 일본판 표본은 N장으로, 프리스틴 10 …")을 표 행(등급사·판 | 누적 | 만점 등급)으로 바꿨다.
   for (const f of fs.existsSync(path.join(ROOT, "ko")) ? fs.readdirSync(path.join(ROOT, "ko")).filter((n) => /^(op|eb|prb)-\d{2}\.html$/.test(n)) : []) {
-    const m = read(`ko/${f}`).match(/CGC (일본판|영문판) 표본은 [\d,]+장으로, 프리스틴 10/);
-    if (!m) continue;
-    const e = packsNow.sets?.[f.replace(/\.html$/, "").toUpperCase()]?.graders?.cgc?.[m[1] === "일본판" ? "jp" : "en"];
-    if (!e || e.pristine10 == null) errors.push(`G9: ko/${f} 가 화면 블록에 없는 CGC 만점 수를 적는다 — 분리값이 없는 관측은 말하지 않는다`);
+    for (const m of read(`ko/${f}`).matchAll(/<td class="l"[^>]*>CGC (일본판|영문판)<\/td><td class="num">[\d,]+장<\/td><td class="l">([^<]*)<\/td>/g)) {
+      if (!/프리스틴 10|젬 민트 10/.test(m[2])) continue;
+      const e = packsNow.sets?.[f.replace(/\.html$/, "").toUpperCase()]?.graders?.cgc?.[m[1] === "일본판" ? "jp" : "en"];
+      if (!e || (/프리스틴 10/.test(m[2]) && e.pristine10 == null) || (/젬 민트 10/.test(m[2]) && e.gemMint10 == null)) errors.push(`G9: ko/${f} CGC ${m[1]} 행이 화면 블록에 없는 만점 수("${m[2]}")를 적는다 — 분리값이 없는 관측은 "—"`);
+    }
   }
   if (exists("free-data.html") && exists("opbox-grading-population.csv")) {
     const [head, ...rows] = read("opbox-grading-population.csv").trim().split("\n").map((l) => l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/));
@@ -3270,9 +3260,16 @@ if (exists("data/set-auction-stats.json")) {
     const sec = (read(f).match(/<section aria-label="경매 실적">[\s\S]*?<\/section>/) || [])[0];
     if (!sec) continue;
     const a = AS[f.slice(3, -5).toUpperCase()] || {};
-    const amt = (sec.match(/거래액은 <strong>([^<]*)<\/strong>/) || [])[1], med = (sec.match(/중앙 낙찰가는 <strong>([^<]*)<\/strong>/) || [])[1];
+    // 2026-10-15(6차) 문장("거래액은 $X …")을 라벨 줄("<li>거래액 <strong>$X</strong>")과 표의 "전체" 행으로 바꿨다.
+    if (/거래액은 |중앙 낙찰가는 /.test(sec)) errors.push(`KO3: ${f} 경매 절에 문장형 금액("거래액은 …") — 라벨 줄로`);
+    const amt = (sec.match(/<li>거래액 <strong>([^<]*)<\/strong>/) || [])[1], med = (sec.match(/<li>중앙 낙찰가 <strong>([^<]*)<\/strong>/) || [])[1];
     if (amt != null && amt !== `$${Number(a.amount).toLocaleString("en-US")}`) errors.push(`KO3: ${f} 거래액 "${amt}" ≠ $${Number(a.amount).toLocaleString("en-US")}(달러 표기 — 영문 세트 페이지와 같은 값)`);
     if (med != null && med !== `$${a.medPrice}`) errors.push(`KO3: ${f} 중앙 낙찰가 "${med}" ≠ $${a.medPrice}`);
+    const all = sec.match(/<tr><td class="l"><strong>전체<\/strong><\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><td>([^<]*)<\/td><\/tr>/);
+    const fmt = (v) => (v == null ? "—" : Number(v).toLocaleString("ko-KR"));
+    if (!all) errors.push(`KO3: ${f} 경매 표에 "전체" 행(종료·낙찰·낙찰률)이 없다`);
+    else if (all[1] !== fmt(a.ended) || all[2] !== fmt(a.sold) || all[3] !== (a.sellThrough == null ? "—" : `${a.sellThrough}%`)) errors.push(`KO3: ${f} 경매 전체 행 ${all.slice(1).join("/")} ≠ ${fmt(a.ended)}/${fmt(a.sold)}/${a.sellThrough ?? "—"}%`);
+    if (/null%/.test(sec)) errors.push(`KO3: ${f} 경매 표에 "null%" — 값이 없으면 "—"`);
     for (const m of sec.matchAll(/<td class="l">([^<]*)<\/td>/g)) if (/^[a-z_-]+$/.test(m[1])) errors.push(`KO3: ${f} 경매 유형 칸에 내부 키 "${m[1]}" — 한국어 라벨(catKo)에 추가할 것`);
   }
 }
@@ -3430,10 +3427,11 @@ for (const f of PUBLIC_HTML.filter((p) => /^(?:sets|ko)\/[^/]+-card-list\.html$/
 
 // ── UP2. 발매 전 세트 페이지는 표·라벨만 보인다 — 2026-10-15 신설(감사 #21).
 //    sets/op-18·eb-05 만 도입 문단과 해설 섹션 5개("What is confirmed and what is still open", "Update policy" …)가
-//    펼쳐진 채 보였다. 일반 세트 페이지는 2026-08-12 부터 같은 글을 접힌 "Set notes"(details.setMore)에 넣는다.
+//    펼쳐진 채 보였다(그때는 접힌 "Set notes"(details.setMore)로 옮겼고, 2026-10-15 에 지웠다).
 //    (a) main 에서 <details> 를 중첩까지 걷어낸 나머지: <p> 는 라벨·출처 줄(eyebrow·articleMeta·sourceNoteA·revCount·affTop·relBuy)만,
 //        <section> 은 발매일 상자(relBox)·FAQ(setFaq)만 — 클래스 없는 산문 p·해설 section 이 하나라도 펼쳐져 있으면 실패
-//    (b) 지우지 않고 접었다: introHtml·섹션 머리·문단이 전부 details.setMore 안에 있다(구글은 접힌 글도 읽는다 — R1 과 같은 원칙)
+//    (b) 2026-10-15 소유자 결정("데이터 페이지엔 숫자·표·라벨만")으로 접어 두던 해설도 지웠다 — JSON 에 해설 필드(introHtml·sections·description)가
+//        없고, 화면에 접힌 해설(details.setMore)이 없다. (문답이 데이터 사실만인지는 UP3)
 {
   let UP = { pages: [] };
   try { UP = JSON.parse(read("data/upcoming-set-pages.json")); } catch (e) { errors.push("UP2: upcoming 읽기 실패 — " + e.message); }
@@ -3446,7 +3444,6 @@ for (const f of PUBLIC_HTML.filter((p) => /^(?:sets|ko)\/[^/]+-card-list\.html$/
     }
     return out + (depth === 0 ? h.slice(i) : "");
   };
-  const escH = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const OPEN_P = /^(?:eyebrow|articleMeta|sourceNoteA|revCount|affTop|relBuy)$/;
   for (const p of UP.pages || []) {
     const f = `sets/${p.slug}.html`;
@@ -3461,10 +3458,8 @@ for (const f of PUBLIC_HTML.filter((p) => /^(?:sets|ko)\/[^/]+-card-list\.html$/
     for (const m of open.matchAll(/<section(?:\s+class="([^"]*)")?[^>]*>\s*(?:<h2[^>]*>([^<]*))?/g)) {
       if (!/^(?:relBox|setFaq)$/.test(m[1] || "")) errors.push(`UP2: ${f} 펼쳐진 해설 섹션 "${m[2] || m[1] || "?"}" — details.setMore 안으로`);
     }
-    const notes = (main.match(/<details class="setMore">([\s\S]*?)<\/details>\s*<section class="setFaq"/) || [])[1] || "";
-    const keep = [p.introHtml, ...(p.sections || []).flatMap((s) => [`<h2>${escH(s.heading)}</h2>`, ...s.paragraphsHtml])].filter(Boolean);
-    const lost = keep.filter((t) => !notes.includes(t));
-    if (lost.length) errors.push(`UP2: ${f} 접힌 Set notes 에 해설 ${lost.length}개가 없다("${lost[0].replace(/<[^>]+>/g, "").slice(0, 50)}…") — 글은 지우지 말고 접는다`);
+    for (const k of ["introHtml", "sections", "description"]) if (p[k] != null) errors.push(`UP2: upcoming-set-pages ${p.slug} 에 해설 필드 "${k}" — 쓰지 않는다(2026-10-15 소유자 결정)`);
+    if (/<details class="setMore"/.test(main)) errors.push(`UP2: ${f} 에 접은 해설(details.setMore)이 남아 있다 — 숫자·표·라벨만`);
   }
 }
 
@@ -3768,7 +3763,7 @@ const rawSplit15 = (cards) => {
 //    여기서 따로 셈하고(rawSplit15) 모듈 priciest 와도 맞춘다 — 3차 모듈은 TCG 값도 1위로 올려 OP-08(숨김 Luffy TR TCG $455)·OP-15(Koby TCG $652)·
 //    PRB-01(TCG $4,250)이 "가장 비싼 카드"가 됐다. 라벨은 NM 하나 — "raw TCG market price"/"TCG 시세"/칸의 "TCG" 가 보이면 실패.
 //    (a) sets/<code>.html·<code>-english.html "The most valuable …" · "The chase in … is led by" · 박스 대비 배수("The top card alone (…)" 등)
-//    (b) ko/<code>.html "이 박스의 가치를 끌고 가는 카드는"(원화 ÷ 환율 = 달러 ±1)  (c) compare.html·articles/best-one-piece-booster-box.html "Priciest card (raw)" 칸
+//    (b) ko/<code>.html 라벨 줄 "최고가 카드 (일본판 NM)"(원화 ÷ 환율 = 달러 ±1 — 6차에 해석 문장을 라벨로 바꿈)  (c) compare.html·articles/best-one-piece-booster-box.html "Priciest card (raw)" 칸
 //    가장 비싼 카드가 없으면(null) 세 곳 모두 그 문장·값이 없다.
 {
   let bad = 0, said = 0;
@@ -3815,22 +3810,25 @@ const rawSplit15 = (cards) => {
         if (x.v && x.d !== (pc.card.nmUpdated || null)) push(`PC1: ${f} ${x.k} 금액 뒤 NM 관측일 ${x.d || "(없음)"} ≠ ${pc.card.nmUpdated}(${pc.card.name})`);
       }
     }
-    // (b)
+    // (b) 2026-10-15(6차) 해석 문장("이 박스의 가치를 끌고 가는 카드는 …")을 라벨 줄로 바꿨다:
+    //     "<li>최고가 카드 (일본판 NM) <strong>이름</strong>(번호) · <strong>X원</strong>(관측일)</li>" — 동가면 이름을 " · " 로 잇고 "각".
     const k = `ko/${code.toLowerCase()}.html`;
     if (exists(k)) {
       const html = read(k);
-      const m = html.match(/이 박스의 가치를 끌고 가는 카드는 <strong>([^<]*)<\/strong>(?:\(([^)]*)\))?로, (일본판 NM 시세|TCG 시세)가 (?:모두 )?약 <strong>([\d,]+)원<\/strong>(?:\((\d{4}-\d{2}-\d{2})\))?/);
-      if (m && pc && (m[5] || null) !== (pc.card.nmUpdated || null)) push(`PC1: ${k} 원화 뒤 NM 관측일 ${m[5] || "(없음)"} ≠ ${pc.card.nmUpdated}(${pc.card.name}) — 2026-10-15(5차)`);
-      if (/이 박스의 가치를 끌고 가는 카드는/.test(html) && !m) push(`PC1: ${k} "가치를 끌고 가는 카드" 문장을 못 읽었다 — 문장 구조가 바뀌었으면 이 검사도 고칠 것`);
-      if (m && !pc) push(`PC1: ${k} "${nm(m[1])}" ${m[4]}원 — 가장 비싼 카드를 모르면 문장이 없어야 한다`);
+      const hasLine = /<li>최고가 카드 \(일본판 NM\)/.test(html);
+      const m = html.match(/<li>최고가 카드 \(일본판 NM\) <strong>([^<]*)<\/strong>(?:\(([^)]*)\))? · (?:각 )?<strong>([\d,]+)원<\/strong>(?:\((\d{4}-\d{2}-\d{2})\))?<\/li>/);
+      if (hasLine && !m) push(`PC1: ${k} "최고가 카드" 줄을 못 읽었다 — 라벨 구조가 바뀌었으면 이 검사도 고칠 것`);
+      if (/가치를 끌고 가는 카드는/.test(html)) push(`PC1: ${k} 해석 문장 "가치를 끌고 가는 카드는" — 라벨 줄 "최고가 카드 (일본판 NM)" 로`);
+      if (!m && pc && /<section aria-label="인기 카드 시세">/.test(html)) push(`PC1: ${k} 가장 비싼 카드(${pc.card.name} ${want.usd})가 있는데 "최고가 카드" 줄이 없다`);
+      if (m && pc && (m[4] || null) !== (pc.card.nmUpdated || null)) push(`PC1: ${k} 원화 뒤 NM 관측일 ${m[4] || "(없음)"} ≠ ${pc.card.nmUpdated}(${pc.card.name}) — 2026-10-15(5차)`);
+      if (m && !pc) push(`PC1: ${k} "${nm(m[1])}" ${m[3]}원 — 가장 비싼 카드를 모르면 줄이 없어야 한다`);
       if (m && pc) {
         said++;
         const names = nm(m[1]).split(" · ");
         if (!(names.length === pc.ties.length && pc.ties.every((c) => names.includes(c.name)))) push(`PC1: ${k} 카드 "${nm(m[1])}" ≠ 가장 비싼 카드 ${pc.ties.map((c) => c.name).join(" · ")}`);
-        if (m[2] && m[2] !== pc.card.number) push(`PC1: ${k} 카드 번호 ${m[2]} ≠ ${pc.card.number}`);
-        if ((m[3] === "TCG 시세") !== want.tcg) push(`PC1: ${k} 라벨 "${m[3]}" ≠ ${want.tcg ? "TCG 시세" : "일본판 NM 시세"}`);
-        const usdOfKrw = Number(m[4].replace(/,/g, "")) / FX15.usdKrw;
-        if (!(Math.abs(usdOfKrw - pc.price.usd) < 1)) push(`PC1: ${k} ${m[4]}원(≈$${usdOfKrw.toFixed(2)}) ≠ ${want.usd}(${pc.card.name})`);
+        if (pc.ties.length === 1 && m[2] !== pc.card.number) push(`PC1: ${k} 카드 번호 ${m[2] || "없음"} ≠ ${pc.card.number}`);
+        const usdOfKrw = Number(m[3].replace(/,/g, "")) / FX15.usdKrw;
+        if (!(Math.abs(usdOfKrw - pc.price.usd) < 1)) push(`PC1: ${k} ${m[3]}원(≈$${usdOfKrw.toFixed(2)}) ≠ ${want.usd}(${pc.card.name})`);
       }
     }
     // (c)
@@ -3977,7 +3975,10 @@ const sink5 = (code) => (msg) => (PUBLISH_TOUCHED ? errors : warnings).push(PUBL
   for (const [code, s] of Object.entries(PK15)) {
     const k = `ko/${code.toLowerCase()}.html`;
     if (!exists(k)) continue;
-    const m = read(k).match(/([^>]*)의 <strong>PSA 10 실거래 중앙값은 ([\d,]+)원<\/strong>/);
+    // 2026-10-15(6차) 문장("…의 PSA 10 실거래 중앙값은 X원")을 라벨 줄로 바꿨다: "<li>PSA 10 실거래 중앙값 (카드) <strong>X원</strong>(날짜, 표본 N건)"
+    const kh = read(k);
+    if (/PSA 10 실거래 중앙값은/.test(kh)) push(`${k} 문장형 "PSA 10 실거래 중앙값은 …" — 라벨 줄 "PSA 10 실거래 중앙값 (카드) X원" 으로`);
+    const m = kh.match(/<li>PSA 10 실거래 중앙값 \(([^)]*)\) <strong>([\d,]+)원<\/strong>/);
     if (!m) continue;
     seen++;
     const pc = priciest15(s.cards || [], FX15);
@@ -3999,7 +4000,8 @@ const sink5 = (code) => (msg) => (PUBLISH_TOUCHED ? errors : warnings).push(PUBL
   }
   // ko/cards.html "PSA 10 실낙찰" 칸 — 같은 규칙(카드 = 행의 영문명 + 번호 + 세트 코드)
   if (exists("ko/cards.html")) {
-    for (const r of read("ko/cards.html").matchAll(/<small>([^<]+)<\/small><small>([A-Z0-9]+-\d+) · ([A-Z]+-\d+) [^<]*<\/small>(?:(?!<\/tr>)[\s\S])*?<\/td><td class="hideM">[^<]*<\/td><td>([\d,]+)원<\/td>/g)) {
+    // 28일 넘은 표본은 금액 뒤에 관측일 "(YYYY-MM-DD)" 이 붙는다(2026-10-15).
+    for (const r of read("ko/cards.html").matchAll(/<small>([^<]+)<\/small><small>([A-Z0-9]+-\d+) · ([A-Z]+-\d+) [^<]*<\/small>(?:(?!<\/tr>)[\s\S])*?<\/td><td class="hideM">[^<]*<\/td><td>([\d,]+)원(?:<small>\(\d{4}-\d{2}-\d{2}\)<\/small>)?<\/td>/g)) {
       const card = ((PK15[r[3]] || {}).cards || []).find((c) => c.name === unH15(r[1]) && String(c.number) === r[2]);
       const exp = p10Usd(card);
       seen++;
@@ -4081,10 +4083,22 @@ const sink5 = (code) => (msg) => (PUBLISH_TOUCHED ? errors : warnings).push(PUBL
     if (seg == null) push(`index.html FAQ "How much is a One Piece booster box?" 의 최저가 구절을 못 읽었다`);
     else for (const c of ties) if (!seg.includes(c)) push(`index.html FAQ 최저가 "${seg}" 에 같은 값 세트 ${c} 가 없다(${ties.join("·")})`);
   }
+  // ko/index.html — 2026-10-15(6차) 허브 해설 산문("가장 싼 박스는 …")을 지워, 같은 사실이 남은 곳인 설명문 "최고 <세트> <원> · 최저 <세트> <원>"을 본다.
+  //    기대값 = 화면 원화(nowUsd × 환율 반올림)가 같은 세트 전부·같은 금액(최고도 같은 규칙).
   if (exists("ko/index.html") && ties.length) {
-    const seg = (read("ko/index.html").match(/가장 싼 박스는 ([\s\S]*?)\([\d,]+원\)/) || [])[1];
-    if (seg == null) push(`ko/index.html "가장 싼 박스는" 문장을 못 읽었다`);
-    else for (const c of ties) if (!seg.includes(c)) push(`ko/index.html 가장 싼 박스 "${unH15(seg.replace(/<[^>]+>/g, ""))}" 에 같은 값 세트 ${c} 가 없다(${ties.join("·")})`);
+    let fx = null;
+    try { fx = (JSON.parse(read("data/onepiece-packs.json")).fx || {}).usdKrw || null; } catch { /* 아래에서 건너뜀 */ }
+    const desc = unH15((read("ko/index.html").match(/<meta name="description" content="([^"]*)"/) || [])[1] || "");
+    if (fx) {
+      const krw = (b) => Math.round(b.nowUsd * fx);
+      for (const [lbl, v] of [["최고", Math.max(...priced.map(krw))], ["최저", Math.min(...priced.map(krw))]]) {
+        const want = priced.filter((b) => krw(b) === v).map((b) => b.code).sort();
+        const m = desc.match(new RegExp(`${lbl} ([A-Z0-9·-]+) ([\\d,]+)원`));
+        if (!m) { push(`ko/index.html 설명문에 "${lbl} <세트> <금액>원" 이 없다 — "${desc.slice(0, 60)}"`); continue; }
+        if (m[1].split("·").sort().join("·") !== want.join("·")) push(`ko/index.html 설명문 ${lbl} 박스 "${m[1]}" ≠ 같은 금액 세트 ${want.join("·")}`);
+        if (m[2] !== v.toLocaleString("ko-KR")) push(`ko/index.html 설명문 ${lbl} ${m[2]}원 ≠ 표 ${v.toLocaleString("ko-KR")}원`);
+      }
+    }
   }
 }
 
@@ -4093,7 +4107,7 @@ if (exists("ko/index.html")) {
   const push = sink5("KD1");
   const h = read("ko/index.html");
   const newest = [...h.matchAll(/<small class="fromDate">(\d{4}-\d{2}-\d{2})<\/small>/g)].map((m) => m[1]).sort().pop() || null;
-  const base = (h.match(/기준일 (\d{4}-\d{2}-\d{2})\./) || [])[1] || null;
+  const base = (h.match(/기준일 (\d{4}-\d{2}-\d{2})\b/) || [])[1] || null;   // 라벨 줄 끝 마침표는 2026-10-15 뺐다(라벨이라)
   const last = (h.match(/마지막 갱신 (\d{4}-\d{2}-\d{2})\./) || [])[1] || null;
   if (!newest || base !== newest || last !== newest) push(`ko/index.html 기준일 ${base || "(없음)"} · 마지막 갱신 ${last || "(없음)"} ≠ 표의 가장 늦은 날짜 ${newest || "(없음)"}`);
 }
@@ -4138,8 +4152,346 @@ if (exists("weekly.html")) {
   if (!n) errors.push("WK1: weekly.html 표 행을 하나도 못 읽었다 — 표 구조 확인");
 }
 
+// ════ 2026-10-15 6차 — 소유자 결정 "데이터 페이지엔 숫자·표·라벨만"(해설·해석·방법 설명 삭제, EPN 제휴 고지·푸터 면책 한 줄은 유지) + OP-07 이상치 ════
+//    세트·영문판: NC1·DF2·MD1 · 한국어: KO5·DF3 · 카드·카드리스트: CX1·CX2·CX3 · 홈·루트 데이터·발매 전: NP1·UP3·VN1 · 제휴 고지·면책: EP1 · 박스 sold 이상치: OL1·OL2
+//    지운 문장을 읽던 검사는 지우지 않고 라벨·설명문을 읽게 고쳤다: S3(해설 주입 → 세트 고유 데이터) · UP2(b)(접은 해설 보존 → 해설 필드 없음) ·
+//    CH1 ko(허브 산문 → 설명문) · D17 8c ko(설명문 새 꼴) · PC1(b)·PK1·G9(4)·KO3(한국어 문장 → 라벨 줄·표 행)
+//    대상 아님(소유자 결정): methodology·about·privacy·terms·contact·disclaimer 와 articles/*.html 의 글.
+
+// ── OL1. 박스 sold 시계열 이상치 회계 — 2026-10-15 신설(OP-07 일본판 9/17·9/24 $134 사고).
+//    생성기가 뺀 판매는 sets[*].outliers 에 원장 id·판매일로 남고, 점마다 out(뺀 건수)·win(늘린 창)이 붙는다.
+//    여기서는 생성기 코드를 쓰지 않고 원장만으로 다시 센다: n + out = (t - (win || windowDays), t] 의 즉시구매 판매,
+//    중앙값 = 그중 outliers 를 뺀 판매의 중앙값. win 은 계열 창보다 길고 cap(56, 초판 120) 이하·7일 단위, out 없이 win 만 있으면 FAIL.
+//    outliers 의 각 판매는 원장에 그대로 있어야 한다(원장은 append-only — 원장을 고쳐 값을 맞추지 않는다).
+if (exists("data/box-sold-series.json") && exists("data/box-sold-ledger.json")) {
+  const bs = JSON.parse(read("data/box-sold-series.json")), lg = JSON.parse(read("data/box-sold-ledger.json"));
+  const rule = bs.outlierRule || {};
+  if (!(rule.k > 0 && rule.refDays > 0 && rule.refMinSales > 0 && rule.scaleFloor > 0)) errors.push("OL1: box-sold-series.outlierRule 이 없다 — 이상치 기준을 밝히지 않은 중앙값");
+  const DAYMS = 86400000, BLUE = /\b(blue\s*bottom|wave\s*1)\b/i;
+  const q50 = (a) => { const s = [...a].sort((x, y) => x - y), i = (s.length - 1) / 2; return (s[Math.floor(i)] + s[Math.ceil(i)]) / 2; };
+  let pts = 0;
+  for (const [code, node] of Object.entries(bs.sets || {})) {
+    for (const key of ["jp", "en", "enBlue"]) {
+      const ed = key === "jp" ? "jp" : "en", rel = (node.release || {})[ed] || null;
+      const sales = (((lg.sets || {})[code] || {})[ed] || [])
+        .filter((r) => r && /^\d{4}-\d{2}-\d{2}$/.test(r.d) && Number(r.unit) > 0 && r.fmt === "bin" && (!rel || r.d >= rel))
+        .filter((r) => (key === "enBlue" ? BLUE.test(r.title || "") : key === "en" ? !BLUE.test(r.title || "") : true))
+        .map((r) => ({ t: Date.parse(r.d), unit: Number(r.unit), k: `${r.id}|${r.d}` }));
+      const flagged = new Map(((node.outliers || {})[key] || []).map((o) => [`${o.id}|${o.d}`, o]));
+      for (const [k, o] of flagged) {
+        const hit = sales.find((r) => r.k === k);
+        if (!hit || Math.abs(hit.unit - o.unit) > 0.01) errors.push(`OL1: ${code}.${key} 이상치 ${k} $${o.unit} 가 원장 즉시구매에 없다`);
+      }
+      const win0 = (node.windowDays || {})[key], cap = key === "enBlue" ? 120 : 56, minN = key === "enBlue" ? 3 : 6;
+      for (const p of node[key] || []) {
+        pts++;
+        if (p.win != null && !(p.out > 0 && p.win > win0 && p.win <= cap && (p.win - win0) % 7 === 0)) { errors.push(`OL1: ${code}.${key} ${p.d} win ${p.win}(계열 창 ${win0}, out ${p.out}) — 이상치를 뺄 때만 7일 단위로 cap 까지 늘린다`); continue; }
+        const t = Date.parse(p.d), w = p.win || win0;
+        const raw = sales.filter((r) => r.t > t - w * DAYMS && r.t <= t);
+        const keep = p.out ? raw.filter((r) => !flagged.has(r.k)) : raw;
+        if (keep.length !== p.n || raw.length - keep.length !== (p.out || 0)) { errors.push(`OL1: ${code}.${key} ${p.d} n ${p.n} + out ${p.out || 0} ≠ 원장 ${keep.length} + ${raw.length - keep.length}(창 ${w}일)`); continue; }
+        if (p.n < minN) errors.push(`OL1: ${code}.${key} ${p.d} 이상치를 빼고 n ${p.n} < ${minN} — 빈 칸 대신 창을 늘리거나 그대로 둬야 한다`);
+        if (keep.length && Math.round(q50(keep.map((r) => r.unit))) !== p.median) errors.push(`OL1: ${code}.${key} ${p.d} 중앙값 ${p.median} ≠ 원장 재계산 ${Math.round(q50(keep.map((r) => r.unit)))}`);
+      }
+    }
+  }
+  if (!pts) errors.push("OL1: 검사한 주간 점이 0개다 — 시계열 구조가 바뀌었으면 이 검사도 같이 고칠 것");
+}
+
+// ── OL2. 박스 sold 주간 시계열에 고립된 고원·골짜기 금지 — 2026-10-15 신설(OP-07 일본판 9/17·9/24 $134, 앞뒤 ~$80, 4주 변화 -40.3%).
+//    점 하나가 앞 3점 중앙값과 뒤 3점 중앙값(각 2점 이상) 양쪽보다 같은 방향으로 30% 넘게 다르면, 시세가 아니라 창 안 몇 건이 만든 값이다.
+//    고치는 곳은 원장이 아니라 build-box-sold-series.js 의 이상치 판정(markOutliers)이다. 2026-10-15 원장 기준 HEAD 는 OP-07 두 점만 걸렸다.
+if (exists("data/box-sold-series.json")) {
+  const SS = JSON.parse(read("data/box-sold-series.json")).sets || {};
+  const mid = (a) => { const s = a.map((p) => p.median).sort((x, y) => x - y); return (s[(s.length - 1) >> 1] + s[s.length >> 1]) / 2; };
+  for (const [code, node] of Object.entries(SS)) for (const ed of ["jp", "en"]) {
+    const pts = (node[ed] || []).filter((p) => p && p.median > 0);
+    for (let i = 2; i < pts.length - 2; i++) {
+      const a = mid(pts.slice(Math.max(0, i - 3), i)), b = mid(pts.slice(i + 1, i + 4)), m = pts[i].median;
+      const ra = m / a - 1, rb = m / b - 1;
+      if (Math.abs(ra) > 0.3 && Math.abs(rb) > 0.3 && Math.sign(ra) === Math.sign(rb))
+        errors.push(`OL2: ${code}.${ed} ${pts[i].d} $${m}(n ${pts[i].n}) — 앞 3점 $${a} · 뒤 3점 $${b} 와 같은 방향으로 30% 넘게 다르다(창 안 이상치?)`);
+    }
+  }
+}
+
+// ── NC1. 세트 페이지 수기 해설 금지 — 2026-10-15 소유자 결정(데이터 페이지엔 숫자·표·라벨만). S3 은 "해설 주입"에서 "세트 고유 데이터"로 바꿨다.
+//    생성기가 set-commentary.json 을 다시 읽거나, priority-set-seo.json 에 title 밖 칸(description·heading·marketContext …)이 돌아오거나,
+//    세트·영문판·허브 페이지에 setStory·searchIntent·접힌 Set notes·"What makes … stand out" 문답·hubTail 이 다시 나오면 FAIL.
+{
+  for (const f of ["tools/generate-set-pages.js", "tools/generate-english-set-pages.js", "tools/set-page-shared.js"]) {
+    if (exists(f) && /set-commentary\.json/.test(read(f).replace(/^\s*\/\/.*$/gm, ""))) errors.push(`NC1: ${f} 가 set-commentary.json 을 읽는다 — 세트 페이지에 수기 해설을 싣지 않는다`);
+  }
+  if (exists("data/priority-set-seo.json")) {
+    const P = JSON.parse(read("data/priority-set-seo.json"));
+    for (const [code, v] of Object.entries(P.sets || {})) {
+      const extra = Object.keys(v || {}).filter((k) => k !== "title");
+      if (extra.length) errors.push(`NC1: priority-set-seo.json ${code} 에 해설 칸 ${extra.join("·")} — title 만 둔다`);
+    }
+  }
+  const BAN = [/<section class="setStory"/, /<section class="searchIntent"/, /<details class="setMore"/, /Set notes —/, /stand out from other One Piece sets\?/, /class="hubTail"/];
+  let bad = 0;
+  for (const f of [...SET_PAGES15, "sets/index.html"].filter(exists)) {
+    const h = read(f);
+    for (const re of BAN) if (re.test(h) && bad++ < 20) errors.push(`NC1: ${f} 에 수기 해설 흔적 ${re.source} — 숫자·표·라벨만`);
+  }
+  if (bad > 20) errors.push(`NC1: 그 밖에 ${bad - 20}건 더`);
+}
+
+// ── DF2. 세트·영문판·허브·PSA10 랭킹의 해석·방법 설명 문장 재발 금지 — 2026-10-15 소유자 결정(DF1 은 4차 문장만 본다).
+{
+  const BAN = [/This ratio does not explain why/, /not a forecast/, /not opening (?:expected value|EV)/, /Past peaks do not set future floors/, /highly concentrated/,
+    /Official pull rates are unpublished/, /Grades are not a box-opening count/, /running near its peak|cooling off from its peak/, /entered our tracking/,
+    /The chase in \S+ is led by/, /Fewer days means/, /More means demand/, /rides on one pull/, /without hitting the big one/, /does not explain it/,
+    /thin weeks borrow/, /never averaged together/, /always confirm on eBay/, /Are these asking prices\?/, /Why Japanese cards only\?/];
+  let bad = 0;
+  for (const f of [...SET_PAGES15, "sets/index.html", "psa10-ranking.html"].filter(exists)) {
+    const h = read(f);
+    for (const re of BAN) { const m = h.match(re); if (m && bad++ < 20) errors.push(`DF2: ${f} 에 해석·방법 설명 "${m[0]}" — 숫자·표·라벨만`); }
+  }
+  if (bad > 20) errors.push(`DF2: 그 밖에 ${bad - 20}건 더`);
+}
+
+// ── MD1. 세트·영문판 설명문(meta·og) = Key facts 표 값만 — 2026-10-15 소유자 결정(set-page-shared.dataDesc).
+//    해설·사이트 소개 문장으로 돌아가거나, Key facts 와 다른 판매 중앙값(값·날짜)·최저 매물가를 쓰거나, 28일 지난 중앙값(Key facts 에 없는 값)을 넣거나,
+//    120~160자를 벗어나거나, og 가 다르거나, 페이지끼리 같으면 FAIL.
+{
+  const seen = new Map();
+  for (const f of SET_PAGES15.filter(exists)) {
+    const h = read(f);
+    const d = unH15((h.match(/<meta name="description" content="([^"]*)"/) || [])[1] || "");
+    const og = unH15((h.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || "");
+    const code = f.match(/sets\/((?:op|eb|prb)-\d+)/)[1].toUpperCase();
+    const ed = /-english\.html$/.test(f) ? "English" : "Japanese";
+    if (!d.startsWith(`${code} `) || !d.includes(` ${ed} booster box: `)) errors.push(`MD1: ${f} 설명문이 데이터 꼴이 아니다: "${d.slice(0, 70)}…"`);
+    if (d.length < 120 || d.length > 160) errors.push(`MD1: ${f} 설명문 ${d.length}자 — 120~160자`);
+    if (og !== d) errors.push(`MD1: ${f} og:description ≠ description`);
+    if (seen.has(d)) errors.push(`MD1: ${f} 설명문이 ${seen.get(d)} 와 같다`);
+    seen.set(d, f);
+    const row = (k) => (h.match(new RegExp(`<tr data-k="${k}">[\\s\\S]*?<\\/tr>`)) || [""])[0];
+    const kfSold = (row("sold").match(/<b>(\$[\d,]+)<\/b>/) || [])[1] || null;
+    const kfSoldD = kfSold ? (row("sold").match(/<time datetime="(\d{4}-\d{2}-\d{2})"/) || [])[1] : null;
+    const kfAsk = (row("ask").match(/<b>(\$[\d,]+)<\/b>/) || [])[1] || null;
+    const ds = d.match(/sold median (\$[\d,]+) \((\d{4}-\d{2}-\d{2})/);
+    const da = d.match(/lowest live ask (\$[\d,]+)/);
+    if ((ds ? ds[1] : null) !== kfSold || (ds && ds[2] !== kfSoldD)) errors.push(`MD1: ${f} 설명문 판매 중앙값 ${ds ? `${ds[1]} ${ds[2]}` : "없음"} ≠ Key facts ${kfSold ? `${kfSold} ${kfSoldD}` : "—"}`);
+    if (da && da[1] !== kfAsk) errors.push(`MD1: ${f} 설명문 최저 매물가 ${da[1]} ≠ Key facts ${kfAsk || "—"}`);
+  }
+}
+
+// ── KO5. 한국어 세트 페이지 설명문(meta·og) = 같은 페이지 Key facts 값 — 2026-10-15 신설. (원화 금액·기준일 대조는 D17 8c 가 새 꼴로 본다)
+//    "일본판 <CODE> …" 로 시작, og = description, 페이지끼리 다름, 소개 문구 없음, current 가 없으면 판매 중앙값 없음(묵은 값 금지),
+//    건수 = current n, 최저 매물 = Key facts ask, 발매 = Key facts 일본판 발매일.
+{
+  let SS = {};
+  try { SS = JSON.parse(read("data/box-sold-series.json")).sets || {}; } catch (e) { errors.push("KO5: 원천 읽기 실패 — " + e.message); }
+  const seen = new Set();
+  let n = 0;
+  for (const f of KO_SET_PAGES15) {
+    const html = read(f), code = f.slice(3, -5).toUpperCase();
+    const desc = unH15((html.match(/<meta name="description" content="([^"]*)"/) || [])[1] || "");
+    const og = unH15((html.match(/<meta property="og:description" content="([^"]*)"/) || [])[1] || "");
+    n++;
+    if (!desc.startsWith(`일본판 ${code} `)) errors.push(`KO5: ${f} 설명문이 "일본판 ${code} …" 로 시작하지 않는다 — "${desc.slice(0, 40)}"`);
+    if (og !== desc) errors.push(`KO5: ${f} og:description ≠ description`);
+    if (seen.has(desc)) errors.push(`KO5: ${f} 설명문이 다른 페이지와 같다`);
+    seen.add(desc);
+    const filler = desc.match(/매일 갱신|인기 카드 NM 시세|재판 기록·/);
+    if (filler) errors.push(`KO5: ${f} 설명문에 소개 문구 "${filler[0]}" — 사실만`);
+    const cur = (SS[code] && SS[code].current && SS[code].current.jp) || null;
+    const m = desc.match(/판매 중앙값 ([\d,]+)원\((\d{4}-\d{2}-\d{2})(?:, (\d+)건)?\)/);
+    if (!cur && m) errors.push(`KO5: ${f} current 가 없는데 설명문에 판매 중앙값 ${m[1]}원(${m[2]})`);
+    if (cur && !m) errors.push(`KO5: ${f} 설명문에 판매 중앙값이 없다(current ${cur.d})`);
+    if (cur && m && cur.n != null && m[3] !== String(cur.n)) errors.push(`KO5: ${f} 설명문 건수 ${m[3] || "없음"} ≠ ${cur.n}`);
+    const askCell = (html.match(/<tr data-k="ask">[\s\S]*?<td><b>(\$[\d,]+)<\/b>/) || [])[1] || null;
+    const askDesc = (desc.match(/최저 매물 (\$[\d,]+)/) || [])[1] || null;
+    if (askCell !== askDesc) errors.push(`KO5: ${f} 설명문 최저 매물 ${askDesc || "없음"} ≠ Key facts ${askCell || "없음"}`);
+    const relCell = (html.match(/<tr data-k="release">[\s\S]*?일본판 <time datetime="(\d{4}-\d{2}-\d{2})">/) || [])[1] || null;
+    const relDesc = (desc.match(/발매 (\d{4}-\d{2}-\d{2})/) || [])[1] || null;
+    if (relCell !== relDesc) errors.push(`KO5: ${f} 설명문 발매 ${relDesc || "없음"} ≠ Key facts 일본판 발매일 ${relCell || "없음"}`);
+  }
+  if (!n) errors.push("KO5: 한국어 세트 페이지를 0장 읽었다");
+}
+
+// ── DF3. 한국어 페이지에 지운 해설·방법·면책 문장 재발 금지 — 2026-10-15 신설(소유자 결정: 데이터 페이지엔 숫자·표·라벨만).
+//    면책은 footer 한 줄("투자 권유가 아닌 …")만 — 본문의 "…판단의 책임은 본인에게" 는 금지. 제휴 고지(Paid Link·어소시에이트)는 대상이 아니다.
+{
+  const BAN = [/우리가 종료 후 다시 조회/, /호가가 아니라 실제 낙찰 결과/, /판매처와 밀봉 상태에 따라/, /합산하지 않고 각 표본을 따로/, /일본판과 합산하지 않습니다/,
+    /매수세가 가격을 끌어올리고/, /가치를 끌고 가는 카드/, /박스 기대값의 골격/, /시장 읽는 법/, /시세를 움직이는 힘/, /추정치가 아니라/, /추정치로 채우지 않습니다/,
+    /자체 수집 데이터로/, /판단의 책임은 본인에게/, /반다이 공식 발표가 아닌 유통 기록/, /세트별 공식 발표가 아니라/, /카드 자체로 구분되지 않습니다/,
+    /비율은 싣지 않습니다/, /경매만 집계합니다/, /세트 코드를 누르면/, /세트 이름을 누르면/, /상품 페이지가 기준입니다/, /그레이딩 데이터 읽는 법/, /인기 카드가 말해주는 것/];
+  let bad = 0;
+  for (const f of PUBLIC_HTML.filter((p) => p.startsWith("ko/"))) {
+    const h = read(f);
+    for (const re of BAN) {
+      const m = h.match(re);
+      if (m && bad++ < 20) errors.push(`DF3: ${f} 에 지운 해설·방법 문장 "${m[0]}" — 숫자·표·라벨만(2026-10-15 소유자 결정)`);
+    }
+  }
+  if (bad > 20) errors.push(`DF3: 그 밖에 ${bad - 20}건 더`);
+}
+
+// ── CX1. 카드 상세·카드 허브·카드리스트 = 숫자·표·라벨만 — 2026-10-15 신설(소유자 결정 "데이터 페이지에 해설 불필요").
+//    generate-card-pages.js·generate-card-list-pages.js 에서 지운 설명·해석 문장이 되돌림·복붙으로 돌아오면 막는다.
+//    HTML 주석은 화면 글이 아니라 먼저 지운다(주석에 옛 문장을 인용해 둔 생성기 기록이 있다).
+{
+  const BAN = /which helps explain|materially smaller than|missing cells remain unestimated|A current premium is not computed|not a guaranteed grading return|no measurable slab premium|carries a narrow|No PSA 10 figure is shown|Fallback estimate|never summed|intervals are uneven|each read again after it closed|can be a different kind of card|Same figures as the|printing does this page track|no PSA 10 figure met|cross-set heavy hitters|where we have both prices|prints are never combined|Numbers appear only where|are not reproduced|Leaders show Life|두 판을 합치지 않음|규칙으로 맞을 때만 숫자를|싣지 않습니다|리더는 코스트 칸에/;
+  let bad = 0;
+  for (const f of PUBLIC_HTML.filter((p) => /^cards\/[^/]+\.html$/.test(p) || /^(?:sets|ko)\/[^/]+-card-list\.html$/.test(p))) {
+    const m = shownText15(read(f).replace(/<!--[\s\S]*?-->/g, " ")).match(BAN);
+    if (m && bad++ < 10) errors.push(`CX1: ${f} 설명 문장 "${m[0]}" — 카드·카드리스트 페이지는 숫자·표·라벨만(2026-10-15 소유자 결정)`);
+  }
+  if (bad > 10) errors.push(`CX1: 그 밖에 ${bad - 10}장 더`);
+}
+
+// ── CX2. PSA 10 ÷ raw NM 배수 한 값 — 카드 상세 "Premium (PSA 10 sold median ÷ raw NM): <b>…</b>" = cards/index.html 그 카드 행 Premium 칸 — 2026-10-15 신설.
+//    종전엔 상세가 35일 넘은 표본이라 배수를 내지 않던 12장(OP13-118 1.7x 등)을 허브만 배수로 보여 한 사실이 두 값이었다.
+if (exists("cards/index.html")) {
+  let n = 0;
+  for (const m of read("cards/index.html").matchAll(/<tr><td><a href="([^"]+\.html)">[^<]*<\/a> <small[^>]*>[^<]*<\/small><\/td><td>(?:<a [^>]*>)?[^<]*(?:<\/a>)?<\/td><td>\$[\d,]+<\/td><td>\$[\d,]+<\/td><td>([^<]*)<\/td>/g)) {
+    const f = `cards/${m[1]}`;
+    if (!exists(f)) continue;
+    const card = (read(f).match(/Premium \(PSA 10 sold median ÷ raw NM\): <b>([^<]*)<\/b>/) || [])[1];
+    if (card == null) continue;   // 상세에 sold 배수 줄이 없는 카드(PSA 10 이 호가·NM 없음)
+    n++;
+    if (card !== m[2]) errors.push(`CX2: ${f} Premium ${card} ≠ cards/index.html 행 ${m[2]} — 한 사실 한 값(35일 넘은 표본은 둘 다 "—")`);
+  }
+  if (!n) errors.push("CX2: cards/index.html 과 카드 상세에서 Premium 을 한 쌍도 못 읽었다 — 표·라벨 구조 확인");
+  // ko/cards.html 배수 칸도 같은 값 — 통합 검증(2026-10-15)에서 이 페이지만 97일 된 OP13-118 표본으로 ×1.7 을 냈다(상세·허브는 "—").
+  if (exists("ko/cards.html")) {
+    let k = 0;
+    for (const m of read("ko/cards.html").matchAll(/<tr><td>\d+<\/td><td class="l"><span class="cardCell">(?:<img[^>]*>)?<span>(?:[^<]*<small>([^<]*)<\/small>|([^<]*))<small>([A-Z0-9]+-\d+) · [A-Z]+-\d+[^<]*<\/small><\/span><\/span><\/td>(?:(?!<\/tr>)[\s\S])*?<td>(×[\d.]+|—)<\/td><\/tr>/g)) {
+      const slug = CMAP15[cardKey15(m[3], unH15(m[1] ?? m[2]))];
+      if (!slug || !exists(`cards/${slug}`)) continue;
+      const card = (read(`cards/${slug}`).match(/Premium \(PSA 10 sold median ÷ raw NM\): <b>([^<]*)<\/b>/) || [])[1];
+      if (card == null) continue;
+      k++;
+      const want = card === "—" ? "—" : `×${card.replace(/x$/, "")}`;
+      if (m[4] !== want) errors.push(`CX2: ko/cards.html ${m[3]} ${unH15(m[1] ?? m[2])} 배수 ${m[4]} ≠ 카드 상세 Premium ${card} — 한 사실 한 값`);
+    }
+    if (!k) errors.push("CX2: ko/cards.html 배수 칸을 카드 상세와 한 쌍도 맞춰 보지 못했다 — 표 구조 확인");
+  }
+}
+
+// ── CX3. 카드 상세 설명(meta)의 PSA 10 값이 수정일보다 28일 넘게 앞서면 관측일을 붙인다 — 2026-10-15 신설(소유자 결정 "묵은 중앙값을 현재처럼 쓰지 않는다").
+//    종전엔 29~35일 된 sold 중앙값 78장이 "Updated 2026-10-14" 옆에 날짜 없이 나갔다. 값·날짜는 가격 카드와 같은 것.
+{
+  let n = 0;
+  for (const f of PUBLIC_HTML.filter((p) => /^cards\/[^/]+\.html$/.test(p) && p !== "cards/index.html")) {
+    const h = read(f);
+    const pc = h.match(/<span>PSA 10 \((?:sold median|lowest listing)\)<\/span><b>(\$[\d,]+)<\/b><small>[^<]*· (\d{4}-\d{2}-\d{2})<\/small>/);
+    const dm = (h.match(/"dateModified":"(\d{4}-\d{2}-\d{2})"/) || [])[1];
+    if (!pc || !dm) continue;
+    n++;
+    const desc = (h.match(/<meta name="description" content="([^"]*)"/) || [])[1] || "";
+    const age = (Date.parse(dm) - Date.parse(pc[2])) / 864e5;
+    // 2026-10-15(검증 뒤): 28일 넘은 값은 설명에 아예 싣지 않는다 — 날짜를 붙여도 검색 결과 한 줄에서는 현재가로 읽힌다.
+    // 설명에 남을 수 있는 PSA 10 값은 신선한 가격 카드 값, 또는 지금 걸린 최저 실매물("PSA 10 listed from $X")뿐이다.
+    if (age > 28 && desc.includes(`PSA 10 sold`) ) errors.push(`CX3: ${f} 설명이 ${Math.round(age)}일 지난 PSA 10 sold 중앙값을 싣는다 — 최저 실매물로 바꾸거나 빼야 한다`);
+    if (age > 28 && desc.includes(pc[1]) && !/PSA 10 listed from /.test(desc)) errors.push(`CX3: ${f} 설명의 PSA 10 ${pc[1]}(${pc[2]}) 가 수정일 ${dm} 보다 ${Math.round(age)}일 앞선 값`);
+  }
+  if (!n) errors.push("CX3: 카드 상세에서 PSA 10 가격 카드를 한 장도 못 읽었다 — 가격 카드 구조 확인");
+}
+
+// 홈·루트 데이터 페이지·발매 전 세트 페이지(NP1·UP3·VN1·EP1 공통). HTML 주석·스크립트·스타일은 보이는 글이 아니다.
+// packs.js 는 주석만 걷고 문자열은 남긴다(그 문자열이 화면 글이다).
+const DATA_PAGES16 = ["index.html", "packs.html", "box-prices.html", "weekly.html", "free-data.html", "auction.html", "tcg-auction.html"];
+let UPC16 = [];
+try { UPC16 = JSON.parse(read("data/upcoming-set-pages.json")).pages || []; } catch (e) { errors.push("UP3: upcoming 읽기 실패 — " + e.message); }
+const upcomingFiles16 = UPC16.map((p) => `sets/${p.slug}.html`).filter(exists);
+const shown16 = (h) => h.replace(/<!--[\s\S]*?-->/g, " ").replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ");
+const jsStrings16 = (js) => js.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/(^|[^:"'`])\/\/[^\n]*/g, "$1");
+const pageTexts16 = [
+  ...[...DATA_PAGES16, ...upcomingFiles16].filter(exists).map((f) => [f, shown16(read(f))]),
+  ...(exists("packs.js") ? [["packs.js", jsStrings16(read("packs.js"))]] : []),
+];
+
+// ── NP1. 홈·루트 데이터 페이지·packs.js·발매 전 페이지의 사이트 설명·이유·해석 문장 재발 금지 — 2026-10-15 신설.
+//    지운 문장의 꼬리표를 하나씩 잠근다(뜻이 필요한 것은 라벨로 옮겼다).
+{
+  const BAN = [
+    /we collect ourselves|collected by us/i, /The table above lists/, /They move set by set/, /worth buying sealed\?/,
+    /New sets (?:are reflected|appear) (?:as soon as|once) price data is ready/, /Static guides with each set/, /Use OP Box Index to research/,
+    /measure submission activity/, /not a same-item price index/, /same figure as the home page/, /dropping them would flatter/,
+    /cheap listings sell fast/, /wait signal|대기 신호/, /Across the full set, <b>/, /Neither equals a PSA 10/, /about 3% of all TAG grades/,
+    /Buyers must verify seller/, /Treat them conservatively/, /Retailer listings are not treated as official/, /not counted in sold-price tables/,
+    /Same filters as the <a/, /Prices are references, not offers/, /<h2[^>]*>(?:How it's built|Update frequency)<\/h2>/,
+    /Undervalued|Overvaluation|Investment appeal|저평가|고평가/,
+  ];
+  for (const [f, t] of pageTexts16) {
+    for (const re of BAN) { const m = t.match(re); if (m) { errors.push(`NP1: ${f} 에 설명·해석 문장 "${m[0]}" — 데이터 페이지는 숫자·표·라벨만(2026-10-15 소유자 결정)`); break; } }
+  }
+}
+
+// ── UP3. 발매 전 세트 페이지의 문답 = 데이터 사실만 — 2026-10-15 신설. (해설 필드·접은 해설 금지는 UP2(b))
+//    조언·예측·절차 문항(seal·predict·pre-order now·worth)과 조언·해석 답(should·cannot establish·substitute)은 넣지 않는다.
+{
+  for (const p of UPC16) {
+    for (const [q, a] of p.faq || []) {
+      if (/\bseal\b|predict|pre-order .*now\?|worth/i.test(q)) errors.push(`UP3: ${p.slug} 문답 "${q}" — 조언·예측·절차 문항은 넣지 않는다(데이터 문답만)`);
+      if (/\b(?:should|cannot establish|substitute|is free)\b/i.test(a)) errors.push(`UP3: ${p.slug} 문답 "${q}" 의 답이 조언·해석 문장이다 — 데이터 사실만`);
+    }
+  }
+}
+
+// ── VN1. 외부 시세 업체명 금지(S4 확장) — 루트 데이터 페이지·발매 전 페이지·packs.js 화면 문자열. 2026-10-15 신설.
+//    S4 는 sets·cards·ko·ja·llms 만 본다. 홈 카드 시세 줄이 "Yuyu-tei"·"TCGplayer market", weekly 가 "GemRate" 를 냈다.
+//    HTML 은 body 만 대소문자 무시(head 의 CSP·preconnect 이미지 도메인은 보이는 글이 아니다), packs.js 는 표기 그대로만(필드명 gemRate·함수명 cardMarketPanel 은 업체명이 아니다).
+{
+  const HTML_V = /tcgplayer|yuyu-?tei|遊々亭|pricecharting|cardmarket|cardrush|カードラッシュ|snkrdunk|\bgemrate\b|collectr|tcg quant/i;
+  const JS_V = /TCGplayer|Yuyu-tei|遊々亭|PriceCharting|Cardmarket|Cardrush|カードラッシュ|SNKRDUNK|GemRate|Collectr|TCG Quant|유유테이|카드러시/;
+  for (const [f, t] of pageTexts16) {
+    const m = f === "packs.js" ? t.match(JS_V) : t.replace(/<head>[\s\S]*?<\/head>/i, " ").match(HTML_V);
+    if (m) errors.push(`VN1: ${f} 에 외부 시세 업체명 "${m[0]}" — 중립 라벨(JP retail · TCG market · PSA)`);
+  }
+}
+
+// ── EP1. 남기는 것 — EPN 제휴 고지 원문과 면책 한 줄 — 2026-10-15 신설(소유자 결정: 해설은 지우되 EPN 고지는 법적 요건이라 손대지 않고, 면책은 푸터 한 줄만).
+//    E1 은 고지의 위치·크기·대비만 본다 — 문구를 줄이거나 바꾸면 못 잡는다. 여기서 원문을 잠근다.
+//    (a) 제휴 링크(campid)가 박힌 모든 페이지: 상단 고지 원문(영문/한국어)이 보이는 글에 그대로 있다
+//    (b) 하단 affNote 가 있는 모든 페이지: EPN 문장이 그대로 있다
+//    (c) 데이터 페이지(루트 데이터·세트·영문판·발매 전·허브·PSA10 랭킹·카드 허브·카드리스트·한국어): 면책("not investment advice"/"투자 권유가 아닌")은
+//        푸터 안 정확히 한 번 — 본문 반복은 지웠다. 카드 상세는 원래 푸터 면책이 없어(하단 affNote 의 "not offers" 한 줄) 한 번 이하만 본다.
+//    (d) packs.js 가 런타임에 쓰는 EPN 문장 원문
+{
+  const TOP_EN = "Paid Link: As an eBay Partner Network affiliate, we earn from qualifying purchases.";
+  const TOP_KO = "Paid Link: eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다.";
+  const NOTE = /As an eBay Partner,? we may earn a commission from qualifying purchases (?:made )?through eBay links(?: on this (?:page|site))?(?: —|,) at no extra cost to you\./;
+  const vis = (h) => shown16(h.replace(/<head[\s\S]*?<\/head>/, " ")).replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/\s+/g, " ");
+  const DATA = (p) => DATA_PAGES16.includes(p) || /^sets\/[^/]+\.html$/.test(p) || /^cards\/[^/]+\.html$/.test(p) || /^ko\/[^/]+\.html$/.test(p) || p === "psa10-ranking.html";
+  let checked = 0;
+  for (const f of PUBLIC_HTML) {
+    const h = read(f), t = vis(h);
+    if (/campid=5339163744/.test(h)) {
+      const top = f.startsWith("ko/") ? TOP_KO : TOP_EN;
+      if (!t.includes(top)) errors.push(`EP1: ${f} 에 eBay 제휴 링크가 있는데 상단 고지 원문 "${top.slice(0, 48)}…" 이 없다 — 문구를 바꾸거나 줄이지 않는다`);
+    }
+    // affNote 는 페이지에 따라 면책 한 줄이기도 하다(카드 허브·발매 전 페이지) — eBay 를 말하는 affNote 는 EPN 문장 그대로,
+    // 제휴 링크가 박힌 세트·영문판·카드 상세는 EPN affNote 가 반드시 있다.
+    const notes = [...h.matchAll(/<p class="affNote">([\s\S]*?)<\/p>/g)].map((m) => m[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " "));
+    for (const nt of notes) if (/eBay/.test(nt) && !NOTE.test(nt)) errors.push(`EP1: ${f} 하단 제휴 고지(affNote) EPN 문장이 바뀌었다: "${nt.slice(0, 70)}…"`);
+    const needNote = /campid=5339163744/.test(h) && (SET_PAGES15.includes(f) || (/^cards\/[^/]+\.html$/.test(f) && f !== "cards/index.html"));
+    if (needNote && !notes.some((nt) => NOTE.test(nt))) errors.push(`EP1: ${f} 하단 affNote 에 EPN 문장이 없다`);
+    if (!DATA(f)) continue;
+    checked++;
+    const re = f.startsWith("ko/") ? /투자 권유가 아닌/g : /not investment advice/gi;
+    const n = (t.match(re) || []).length;
+    const inFoot = new RegExp(re.source, "i").test(vis((h.match(/<footer[\s\S]*?<\/footer>/) || [""])[0]));
+    const cardDetail = /^cards\/[^/]+\.html$/.test(f) && f !== "cards/index.html";
+    if (cardDetail ? n > 1 || (n === 1 && !inFoot) : n !== 1 || !inFoot) errors.push(`EP1: ${f} 면책 "${re.source}" ${n}회${n && !inFoot ? "(푸터 밖)" : ""} — 푸터 한 줄만`);
+  }
+  if (!checked) errors.push("EP1: 데이터 페이지를 0장 읽었다");
+  if (exists("packs.js")) {
+    const js = read("packs.js");
+    for (const s of ["Paid Link: we may earn a commission from qualifying purchases made through eBay links.",
+      "Paid Link: As an eBay Partner, OP Box Index may earn a commission from qualifying purchases made through eBay links, at no extra cost to you.",
+      "Paid Link: eBay 링크를 통해 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다."])
+      if (!js.includes(s)) errors.push(`EP1: packs.js 에서 제휴 고지 문장이 바뀌었다: "${s.slice(0, 50)}…"`);
+  }
+}
+
 if (errors.length) {
   console.error(JSON.stringify({ guard: "FAIL", errors, ...(warnings.length ? { warnings } : {}) }, null, 2));
   process.exit(1);
 }
-console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, ...(warnings.length ? { warnings } : {}), checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "A5", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2", "GA1", "GA2", "UP1", "RD1", "AD1", "CL1", "KF1", "RF1", "SM1", "SE1", "FD1", "SF1", "U2", "PL1", "S4", "NM1", "KO1", "KO2", "KO3", "KO4", "AB1", "AS1", "LP1", "PO1", "CL2", "UP2", "DS1", "RY1", "NM2", "CM1", "PC1", "CW1", "CL3", "DF1", "PK1", "FQ1", "SP1", "AN1", "EQ1", "EL1", "CH1", "KD1", "FQ2", "WK1"] }));
+console.log(JSON.stringify({ guard: "OK", checkedPages: PUBLIC_HTML.length, version: ver, ...(warnings.length ? { warnings } : {}), checks: ["V1", "C1", "C2", "C3", "N1", "D1", "D3", "D4", "D5", "D5b", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "D14", "D15", "D16", "D17", "D18", "Q1", "Q2", "Q3", "Q4", "Q5", "S1", "S2", "S3", "F1", "H1", "H2", "H3", "U1", "C4", "L1", "L2", "L3", "I1", "R1", "R5", "T1", "T2", "T3", "P1", "W1", "W4", "W2", "W3", "X1", "X2", "I2", "P2", "J1", "V2", "M1", "M2", "A1", "A2", "A3", "A4", "A5", "E1", "G8", "G9", "R2", "R3", "R4", "K1", "K2", "Y1", "Y2", "GA1", "GA2", "UP1", "RD1", "AD1", "CL1", "KF1", "RF1", "SM1", "SE1", "FD1", "SF1", "U2", "PL1", "S4", "NM1", "KO1", "KO2", "KO3", "KO4", "AB1", "AS1", "LP1", "PO1", "CL2", "UP2", "DS1", "RY1", "NM2", "CM1", "PC1", "CW1", "CL3", "DF1", "PK1", "FQ1", "SP1", "AN1", "EQ1", "EL1", "CH1", "KD1", "FQ2", "WK1", "OL1", "OL2", "NC1", "DF2", "MD1", "KO5", "DF3", "CX1", "CX2", "CX3", "NP1", "UP3", "VN1", "EP1"] }));

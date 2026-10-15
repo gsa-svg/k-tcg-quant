@@ -35,13 +35,18 @@ function displayDate(isoDate) {
 }
 
 function validatePage(page) {
-  const requiredStrings = ["slug", "code", "title", "description", "headline", "published", "modified"];
+  const requiredStrings = ["slug", "code", "title", "headline", "published", "modified"];
   for (const key of requiredStrings) {
     if (!page[key] || typeof page[key] !== "string") throw new Error(`${page.slug || "page"}: missing ${key}`);
   }
   if (!/^(?:op|eb)-\d{2}$/.test(page.slug)) throw new Error(`${page.slug}: invalid upcoming set slug`);
-  for (const key of ["facts", "sections", "faq", "related"]) {
+  for (const key of ["facts", "faq", "related"]) {
     if (!Array.isArray(page[key]) || page[key].length === 0) throw new Error(`${page.slug}: missing ${key}`);
+  }
+  // 해설 필드는 쓰지 않는다 — 2026-10-15 소유자 결정(데이터 페이지 = 숫자·표·라벨만). 도입 문단(introHtml)·해설 섹션(sections)·
+  //   편집용 긴 설명(description)을 JSON 에서 지웠다. 다시 넣으면 화면에 안 나오는 죽은 글이 되므로 생성을 멈춘다.
+  for (const key of ["introHtml", "sections", "description"]) {
+    if (page[key] != null) throw new Error(`${page.slug}: "${key}" 는 쓰지 않는다(2026-10-15 소유자 결정 — 숫자·표·라벨만)`);
   }
   // 시장 데이터 상태는 손으로 쓰지 않는다 — box-sold-series 에서 만든다(marketStatusRow). 2026-10-14.
   if (page.facts.some(([label]) => label === "Market-data status")) {
@@ -110,6 +115,8 @@ function releaseBox(page) {
 // 예약판매 가격 표 — 2026-10-08. 발매 전에 실제로 검색되는 질문("EB-05 box pre-order price")에 우리 데이터로 답한다.
 // 호가는 collect-preorder-prices.js(일별, 배송비 포함 매물 백분위), 판매는 box-sold 러너. 둘 다 없으면 표를 그리지 않는다.
 // 라벨만 두고 설명문은 한 줄 — 추정·예측 문구 금지(공개 문구 규칙).
+// 2026-10-15: 그 한 줄에서도 "collected daily before release"·"not counted in sold-price tables"·"Same filters as …" 같은
+//   방법·집계 제외 설명을 뺐다. 남는 것은 값의 정의(무엇의 최저 호가·무엇의 중앙값·언제까지)뿐이다.
 // 2026-10-14: 발매 전 판매(예약판매)를 "Sold median" 으로 내던 것을 고쳤다 — 같은 날 사실 표는 "no completed sale" 이었고,
 //   다른 7개 페이지는 그 값을 실거래 중앙값으로 썼다. 이제 판매 원천은 box-sold-series 의 preRelease(발매일 이전 판매 요약)와
 //   current(발매 후 현재가)이고, 발매 전 판은 반드시 "presale" 라벨을 단다(가드 D16). 매물 3개 미만이면 값은 "—".
@@ -162,7 +169,7 @@ function preorderTable(page) {
       <table class="factTable preTbl text"><thead><tr><th data-ko="판">Edition</th><th data-ko="최저 호가">Cheapest ask</th>${soldTh}</tr></thead><tbody>
           ${rows.join("\n          ")}
       </tbody></table>
-      <p class="sourceNoteA">Asking prices: eBay fixed-price listings for sealed boxes, shipping included${asOf ? `, as of ${escapeHtml(asOf)}` : ""}; collected daily before release. Presale: completed eBay sales dated before the official release date${through ? `, through ${escapeHtml(through)}` : ""}; median only when at least ${SOLD_SERIES?.preReleaseMinListings || 3} different listings sold; not counted in sold-price tables. Same filters as the <a href="index.html">released-set guides</a>.</p>`;
+      <p class="sourceNoteA">Cheapest ask: eBay fixed-price sealed-box listings, incl. shipping${asOf ? `, as of ${escapeHtml(asOf)}` : ""} · Presale: completed eBay sales before the official release date${through ? `, through ${escapeHtml(through)}` : ""} · median = ${SOLD_SERIES?.preReleaseMinListings || 3}+ different listings sold</p>`;
 }
 
 // 사실 표의 "Market-data status" 줄 — 2026-10-14 부터 데이터에서 만든다(손으로 쓴 "no completed sale" 이 예약판매 실거래와 어긋났다).
@@ -241,26 +248,8 @@ function revealedTable(page) {
       <p class="sourceNoteA">${page.revealedCardsSourceHtml}</p>`;
 }
 
-function renderSections(sections) {
-  return sections.map((section) => `
-      <section${section.searchIntent ? ' class="searchIntent"' : ""}>
-        <h2>${escapeHtml(section.heading)}</h2>
-        ${section.paragraphsHtml.map((paragraph) => `<p>${paragraph}</p>`).join("\n        ")}
-      </section>`).join("\n");
-}
-
-// 산문은 전부 접는다 — 2026-10-15. 이 두 장(OP-18·EB-05)만 도입 문단과 해설 섹션 5개("What is confirmed and what is
-//   still open", "Update policy" …)가 펼쳐진 채 보였다. 일반 세트 페이지는 2026-08-12 부터 같은 종류의 글을 접힌
-//   "Set notes"(details.setMore)에 넣는다. 화면에는 발매일·예약판매·제품 정보·공개 카드 표만 남긴다.
-//   지우지는 않는다: "op 18 release date" 로 들어오는 페이지라 글은 HTML 에 그대로 있어야 하고, 구글은 접힌 것도 읽는다.
-//   틀·CSS 는 generate-set-pages.js 의 setMore 와 같다(한쪽만 바꾸면 세트 페이지끼리 접기 모양이 달라진다).
-function notesHtml(page) {
-  return `      <details class="setMore">
-        <summary data-ko="세트 해설 — 확정·미정 항목, 이전 세트 비교, 갱신 기준">Set notes — confirmed and open fields, earlier-set comparison, update policy</summary>
-        <p>${page.introHtml}</p>
-${renderSections(page.sections)}
-      </details>`;
-}
+// 해설 접기("Set notes")는 2026-10-15 에 지웠다 — 소유자 결정: 발매 전 페이지도 발매일·예약판매·제품 정보·공개 카드 표와
+// 데이터 문답만. 2026-10-15 오전엔 지우지 않고 접었으나(구글은 접힌 글도 읽는다), 소유자가 해설 자체가 필요 없다고 정했다.
 
 // 검색 제목·설명(2026-09-17): 구글은 제목 60자·설명 155자를 넘기면 잘라내거나 다시 쓴다(OP-18 은 82자/185자였다).
 // JSON 의 title·description 은 편집용 긴 문장이라 그대로 못 쓴다 — <title> 은 코드 + 세트명(title 에서 " (" / " — " 앞까지)
@@ -393,7 +382,6 @@ function renderPage(page) {
       .revCount{margin:4px 0 0;color:var(--muted);font-size:13px}.revCount b{color:var(--ink);font-family:var(--font-display);font-size:17px}
       @media (max-width:720px){.bodyPage table.factTable,.revTbl{display:table;width:100%;-webkit-mask-image:none;mask-image:none}}
       @media (max-width:420px){.revTbl{font-size:13px}.revTbl th,.revTbl td{padding:6px 4px}}
-      .setMore{margin:22px 0 0;border-top:1px solid var(--line)}.setMore>summary{cursor:pointer;padding:12px 0;font-size:14px;font-weight:700;color:var(--muted);list-style:none}.setMore>summary::-webkit-details-marker{display:none}.setMore>summary::before{content:"▸ ";color:var(--accent)}.setMore[open]>summary::before{content:"▾ "}.setMore>summary:hover{color:var(--ink)}.setMore>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     </style>
   </head>
   <body>
@@ -416,7 +404,6 @@ function renderPage(page) {
         const p = CARD_LIST.productOf(page.code);
         return p ? `\n      <p class="revCount"><a href="${escapeHtml(page.slug)}-card-list.html" data-ko="${escapeHtml(page.code)} 공식 카드 리스트">${escapeHtml(page.code)} official card list</a> · <b>${p.counts.cards}</b> <span data-ko="장">cards</span> · <span data-ko="확인">checked</span> <time datetime="${p.checked}">${p.checked}</time></p>` : "";
       })()}
-${notesHtml(page)}
       <section class="setFaq" aria-label="${escapeHtml(`${page.code} ${seoName(page)} frequently asked questions`)}">
         <h2>${escapeHtml(`${page.code} ${seoName(page)} — frequently asked questions`)}</h2>
         ${faqHtml}
@@ -428,7 +415,7 @@ ${notesHtml(page)}
         ${relatedHtml}
         <a href="../about.html">About OP Box Index</a>
       </nav>
-      <p class="affNote">OP Box Index is a data research site, not investment advice. Prices are references, not offers.</p>
+      <p class="affNote">OP Box Index is a data research site, not investment advice.</p>
     </footer>
     <script>
       // 남은 날수를 방문자 날짜로 센다(정적 글자는 upcoming/today/released).

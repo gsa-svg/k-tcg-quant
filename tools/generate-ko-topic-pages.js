@@ -52,8 +52,15 @@ function psa10Krw(c) {
   // 원화 = 영문 페이지 달러 값(psa10Usd — 옛 KRW 저장값은 관측일 환율로 되돌림) × fx.usdKrw. 2026-10-15(5차): KRW 저장값을 그대로 써 영문과 12~15% 갈렸다.
   const u = psa10Usd(p, fx);
   const krw = u != null && fx.usdKrw ? u * fx.usdKrw : null;
-  return krw == null ? null : { krw, n: p.sampleSize };   // 통화 불명이면 빈칸
+  return krw == null ? null : { krw, n: p.sampleSize, d: String(p.updated || "").slice(0, 10) || null };   // 통화 불명이면 빈칸
 }
+// PSA 10 표본 낡음 — 카드 상세·카드 허브(generate-card-pages.js)·홈(packs.js PSA10_STALE_DAYS)과 같은 35일. 넘으면 배수 "—".
+// 28일 넘은 값은 관측일을 붙인다(묵은 중앙값을 지금 값처럼 쓰지 않는다 — 카드 상세 설명문 CX3 와 같은 기준). 2026-10-15:
+// 이 페이지만 97일 된 OP13-118 표본으로 ×1.7 을 내 카드 상세·허브의 "—" 와 갈렸다.
+const PSA10_STALE_DAYS = 35;
+const p10AgeOf = (r) => (r.p10Date ? (Date.parse(DATA_DATE) - Date.parse(r.p10Date)) / 864e5 : NaN);
+const p10Cell = (r) => `${won(r.p10Krw)}${p10AgeOf(r) > 28 ? `<small>(${esc(r.p10Date)})</small>` : ""}`;
+const multCell = (r) => (r.p10Krw != null && !(p10AgeOf(r) > PSA10_STALE_DAYS) ? "×" + (r.p10Krw / r.nmKrw).toFixed(1) : "—");
 
 // ── 카드명 한글 병기 — 사전은 tools/ko-labels.js 한 곳(영문 auction.html 의 토글 data-ko 와 같은 사전). 2026-10-13 분리.
 //    캐릭터명만 매핑하고(변형 접미사는 영문 그대로), 확신 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
@@ -154,7 +161,8 @@ ${koHeadTags({ file, title, desc, breadcrumbName, enHref })}
       <h1>${esc(h1)}</h1>
 ${body}
       ${/* FAQ 섹션은 2026-08-28 소유자 지시로 삭제 — 표만 남긴다 */ ""}
-      <p class="koNote">${note || `데이터: 이베이 실거래·검증된 매물 집계, 공개 그레이딩 인구 리포트. 환율 ₩${fx.usdKrw}/$ (${esc(fx.date)}). 마지막 갱신 ${esc(DATA_DATE)}. 시세는 참고용이며 투자·구매 판단의 책임은 본인에게 있습니다.`}</p>
+      ${/* 출처·환율·갱신일만. 본문의 투자 면책 문장("시세는 참고용이며 …책임은 본인에게")은 지웠다 — 면책은 footer 한 줄(2026-10-15 소유자 결정) */ ""}
+      <p class="koNote">${note || `데이터: 이베이 실거래·검증된 매물 집계, 공개 그레이딩 인구 리포트 · 환율 ₩${fx.usdKrw}/$ (${esc(fx.date)}) · 마지막 갱신 ${esc(DATA_DATE)}.`}</p>
     </main>
     <footer class="footer">
       <p>OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
@@ -174,21 +182,20 @@ function cardsPage() {
       const p10 = psa10Krw(c);
       rows.push({
         code, name: c.name, number: String(c.number), nmKrw: c.nmJpy * fx.jpyKrw,
-        p10Krw: p10 ? p10.krw : null, n: p10 ? p10.n : null,
+        p10Krw: p10 ? p10.krw : null, n: p10 ? p10.n : null, p10Date: p10 ? p10.d : null,
         thumb: thumbHtml(c), ko: koCharOf(c.name),
       });
     }
   }
   rows.sort((a, b) => b.nmKrw - a.nmKrw);
   const top = rows.slice(0, 30);
-  const t0 = top[0];
   const sold = rows.filter((r) => r.p10Krw != null).sort((a, b) => b.p10Krw - a.p10Krw).slice(0, 20);
 
   // 카드 셀 — 한글 캐릭터명이 잡히면 [한글 / 영문 원본] 두 줄, 안 잡히면 영문만.
   const cell = (r) => `<td class="l"><span class="cardCell">${r.thumb}<span>${r.ko ? `${esc(r.ko)}<small>${esc(r.name)}</small>` : esc(r.name)}<small>${esc(r.number)} · ${esc(r.code)} ${esc(nameKo(r.code))}</small></span></span></td>`;
 
-  const tr = top.map((r, i) => `<tr><td>${i + 1}</td>${cell(r)}<td class="hideM">${won(r.nmKrw)}</td><td>${r.p10Krw != null ? won(r.p10Krw) : '<span style="color:#6a7182;font-size:12px">집계중</span>'}</td><td>${r.p10Krw != null ? "×" + (r.p10Krw / r.nmKrw).toFixed(1) : "—"}</td></tr>`).join("\n");
-  const sTr = sold.map((r, i) => `<tr><td>${i + 1}</td>${cell(r)}<td>${won(r.p10Krw)}</td><td class="hideM">${num(r.n)}</td><td class="hideM">${won(r.nmKrw)}</td><td>×${(r.p10Krw / r.nmKrw).toFixed(1)}</td></tr>`).join("\n");
+  const tr = top.map((r, i) => `<tr><td>${i + 1}</td>${cell(r)}<td class="hideM">${won(r.nmKrw)}</td><td>${r.p10Krw != null ? p10Cell(r) : '<span style="color:#6a7182;font-size:12px">집계중</span>'}</td><td>${multCell(r)}</td></tr>`).join("\n");
+  const sTr = sold.map((r, i) => `<tr><td>${i + 1}</td>${cell(r)}<td>${p10Cell(r)}</td><td class="hideM">${num(r.n)}</td><td class="hideM">${won(r.nmKrw)}</td><td>${multCell(r)}</td></tr>`).join("\n");
 
   const soldBlock = sold.length ? `
       <h2>PSA 10 실낙찰가 상위 ${sold.length} (일판)</h2>
@@ -206,15 +213,17 @@ ${sTr}
   // 한 페이지 안의 표라 "틀만 찍은 대량 페이지" 판정 위험이 없다. 세트 제목은 한국어 세트명으로, ko 세트 페이지에 건다.
   const cellShort = (r) => `<td class="l"><span class="cardCell">${r.thumb}<span>${r.ko ? `${esc(r.ko)}<small>${esc(r.name)}</small>` : esc(r.name)}<small>${esc(r.number)}</small></span></span></td>`;
   const bySet = codes.map((code) => ({ code, list: rows.filter((r) => r.code === code) })).filter((g) => g.list.length);
+  // 표 위·아래 주석은 라벨·한 조각 정의만(2026-10-15 소유자 결정) — "세트마다 추적 중인 카드 전부입니다"·"세트 이름을 누르면 …갑니다"·
+  // "…추정치로 채우지 않습니다" 같은 설명 문장은 지웠고, "집계중"·"정발 미수록" 의 뜻은 "= " 라벨로 남겼다.
   const allBlock = `
       <h2 id="all">세트별 전체 카드 시세 — ${rows.length}장 (일판 NM · 원화)</h2>
-      <p class="koNote">세트마다 추적 중인 카드 전부입니다. 일판 NM 시세 높은 순. 세트 이름을 누르면 그 세트의 박스 시세·재판 이력으로 갑니다.</p>
+      <p class="koNote">일판 NM 시세 높은 순</p>
 ${bySet.map((g) => `      <h3 id="set-${g.code.toLowerCase()}"><a href="${g.code.toLowerCase()}.html">${esc(g.code)} ${esc(nameKo(g.code))}</a> 카드 시세 (${g.list.length}장)</h3>
       <div style="overflow-x:auto">
       <table class="koBoard">
         <thead><tr><th>#</th><th class="l">카드 (번호)</th><th>일판 NM 시세</th><th class="hideM">PSA 10 실낙찰</th></tr></thead>
         <tbody>
-${g.list.map((r, i) => `<tr><td>${i + 1}</td>${cellShort(r)}<td>${won(r.nmKrw)}</td><td class="hideM">${r.p10Krw != null ? won(r.p10Krw) : "—"}</td></tr>`).join("\n")}
+${g.list.map((r, i) => `<tr><td>${i + 1}</td>${cellShort(r)}<td>${won(r.nmKrw)}</td><td class="hideM">${r.p10Krw != null ? p10Cell(r) : "—"}</td></tr>`).join("\n")}
         </tbody>
       </table>
       </div>`).join("\n")}`;
@@ -228,7 +237,7 @@ ${tr}
         </tbody>
       </table>
       </div>
-      <p class="koNote">일판 NM = 일본 리테일 무등급 재고가. PSA 10 실낙찰 = 이베이 낙찰 중앙값. "집계중"은 검증된 낙찰 표본(3건 이상)이 아직 없다는 뜻이며 추정치로 채우지 않습니다. 정발(한글판)은 집계하지 않습니다.</p>${soldBlock}${allBlock}
+      <p class="koNote">일판 NM = 일본 리테일 무등급 재고가 · PSA 10 실낙찰 = 이베이 낙찰 중앙값(표본 3건 이상) · 집계중 = 표본 3건 미만 · 배수 = PSA 10 ÷ NM(PSA 10 표본 35일 이내) · 정발(한글판) 미수록</p>${soldBlock}${allBlock}
       <h2>표기 — 일판 · 정발 · 패러렐 · 망가 아트</h2>
       <div style="overflow-x:auto">
       <table class="koBoard">
@@ -250,21 +259,23 @@ ${tr}
         <a class="ghost" href="amazon-lottery.html">아마존 응모 목록 →</a>
       </div>`;
 
+  // 설명문(meta·og) = 이 페이지 표에 보이는 값만 — 2026-10-15 소유자 결정. 세트 수는 "22세트" 고정 문자열이었다(세트가 늘면 틀린다) → 표 묶음 수.
+  // 1위 = 위 표 1행(같은 값·같은 이름). page() 에 넘기던 faqs 는 2026-08-28 FAQ 삭제 뒤로 그려지지 않는 죽은 값이라 지웠다(해설 문장 재유입 방지).
+  const t0 = top[0];
   return page({
     file: "cards.html",
     enHref: "cards/",   // 정규 URL — cards/index.html 을 가리키면 구글이 hreflang 을 무시한다(2026-09-16)
     title: "원피스 카드 시세 — 일판 NM·PSA10 실낙찰 | opboxindex",
-    desc: `원피스카드 일판 낱장 시세 — 인기 ${top.length}장 순위와 22세트 전체 ${rows.length}장의 NM·PSA 10 실낙찰가를 원화로. 정발(한글판) 제외.`,
+    desc: [
+      `원피스카드 일판 낱장 시세 ${bySet.length}세트 ${rows.length}장`,
+      t0 ? `NM 1위 ${t0.name}(${t0.number}) ${won(t0.nmKrw)}` : "",
+      sold.length ? `PSA 10 실낙찰 상위 ${sold.length}장` : "",
+      "원화 · 정발(한글판) 제외",
+    ].filter(Boolean).join(" · "),
     h1: "원피스 카드 시세 — 일판 낱장 NM·PSA 10 실낙찰 (원화)",
     eyebrow: "원피스카드 일판 시세",
     breadcrumbName: "원피스 카드 시세 (일판)",
     body,
-    faqs: [
-      { q: "원피스 카드 시세는 어디서 확인하나요?", a: `이 페이지에서 일본판 상위 카드의 NM 시세와 PSA 10 실낙찰가를 원화로 매일 갱신합니다. NM은 일본 리테일 재고가, PSA 10은 이베이 실제 낙찰 중앙값 기준입니다 (${DATA_DATE} 기준).` },
-      { q: "지금 제일 비싼 원피스 카드는 뭔가요?", a: `${t0.name}(${t0.number}, ${t0.code})의 NM 추적가는 약 ${won(t0.nmKrw)}이며 현재 1위입니다. 순위는 시세에 따라 바뀌며 표에서 최신 순위를 확인할 수 있습니다.` },
-      { q: "PSA 10 가격은 호가인가요, 실거래가인가요?", a: "실거래가입니다. 이베이에서 실제로 낙찰된 판매만 모아 중앙값을 내며, 표본 3건 미만이면 숫자 대신 '집계중'으로 비워 둡니다." },
-      { q: "같은 번호인데 가격이 왜 몇 배씩 차이 나나요?", a: "변형이 다르기 때문입니다. 일반판·패러렐·망가 아트·SP는 같은 번호라도 전혀 다른 카드로 거래됩니다. 이 표는 변형 하나에 고정된 값이므로, 매물 비교 시 일러스트까지 맞는지 확인해야 합니다." },
-    ],
   });
 }
 
@@ -282,15 +293,11 @@ function gradingPage() {
     };
   }).sort((a, b) => ((b.jp?.t || 0) + (b.en?.t || 0)) - ((a.jp?.t || 0) + (a.en?.t || 0)));
 
-  const tj = rows.reduce((t, r) => t + (r.jp?.t || 0), 0);
-  const te = rows.reduce((t, r) => t + (r.en?.t || 0), 0);
-  const big = rows[0];
-  const jpGem = rows.filter((r) => r.jp && r.jp.gem != null);
-  const hi = jpGem.reduce((m, r) => (r.jp.gem > m.jp.gem ? r : m));
-  const lo = jpGem.reduce((m, r) => (r.jp.gem < m.jp.gem ? r : m));
-
+  // 합계·최다·젬률 최고/최저(tj·te·big·hi·lo)는 그려지지 않는 faqs 에만 쓰이던 값이라 지웠다(2026-10-15) — 빈 배열이면 reduce 가 터지는 길이기도 했다.
   const tr = rows.map((r) => `<tr><td class="l">${esc(r.code)}<small>${esc(r.nk)}</small></td><td>${r.jp ? num(r.jp.t) : "—"}</td><td>${r.jp ? r.jp.gem + "%" : "—"}</td><td>${r.en ? num(r.en.t) : "—"}</td><td>${r.en ? r.en.gem + "%" : "—"}</td><td>${r.cgc ? num(r.cgc.total) : "—"}</td><td>${r.tag ? num(r.tag.total) : "—"}</td></tr>`).join("\n");
 
+  // 표 아래 주석은 라벨로("CGC·TAG 열은 …입니다. "—"는 미집계이며 0이 아닙니다" → "CGC·TAG = … · — = 미집계(0 아님)").
+  // 버튼 위 "그레이딩 데이터 읽는 법" 제목은 지웠다 — 그 아래 설명이 이미 없고 링크 버튼만 남아 있던 빈 제목(2026-10-15 소유자 결정).
   const body = `
       <div style="overflow-x:auto">
       <table class="koBoard">
@@ -300,29 +307,31 @@ ${tr}
         </tbody>
       </table>
       </div>
-      <p class="koNote">CGC·TAG 열은 각 등급사에 접수된 누적 장수(대표 판 기준)입니다. "—"는 미집계이며 0이 아닙니다.</p>
-      <h2>그레이딩 데이터 읽는 법</h2>
+      <p class="koNote">CGC·TAG = 누적 장수(대표 판) · — = 미집계(0 아님)</p>
       <div class="koCta">
         <a class="primary" href="cards.html">카드 시세 →</a>
         <a class="ghost" href="../psa-grading.html">영문 상세(주간 증감) →</a>
         <a class="ghost" href="auction.html">이베이 경매 데이터 →</a>
       </div>`;
 
+  // 설명문(meta·og) = 표에 보이는 값만 — 2026-10-15 소유자 결정. 종전 "주간 증가 …매주 갱신"은 이 표에 없는 값(주간 증감은 영문 psa-grading)이었다.
+  // PSA 일본판 최다 = 표의 "PSA 일본판" 열 최댓값(같은 수면 표 순서대로 모두).
+  const jpMax = Math.max(0, ...rows.map((r) => r.jp?.t || 0));
+  const jpTop = rows.filter((r) => jpMax && r.jp?.t === jpMax).map((r) => r.code);
   return page({
     file: "grading.html",
     enHref: "psa-grading.html",
     title: "원피스 그레이딩 통계 PSA·CGC·TAG | opboxindex",
-    desc: `PSA·CGC·TAG 세트별 등급 인구와 주간 증가. 일본판·영문판 분리 집계, 매주 갱신 (${DATA_DATE}).`,
+    desc: [
+      `원피스 카드 그레이딩 인구 ${rows.length}세트`,
+      "PSA 일본판·영문판 누적·젬률 · CGC·TAG 누적",
+      jpTop.length ? `PSA 일본판 최다 ${jpTop.join("·")} ${num(jpMax)}장` : "",
+      `갱신 ${DATA_DATE}`,
+    ].filter(Boolean).join(" · "),
     h1: "원피스 카드 그레이딩 인구 (PSA · CGC · TAG)",
     eyebrow: "그레이딩",
     breadcrumbName: "원피스 그레이딩 인구",
     body,
-    faqs: [
-      { q: "원피스 그레이딩은 어디에 얼마나 접수돼 있나요?", a: `추적 중인 ${rows.length}개 세트 기준 PSA에 일본판 ${num(tj)}장, 영문판 ${num(te)}장이 누적 접수돼 있습니다(${DATA_DATE} 기준). CGC·TAG 누적은 표에서 세트별로 확인할 수 있습니다.` },
-      { q: "젬률이 뭔가요?", a: "그 세트에서 PSA 10(만점)을 받은 비율입니다. 젬률이 낮을수록 만점 개체가 귀해서 PSA 10 프리미엄이 커지고, 90% 안팎이면 만점이 흔해 프리미엄이 얇아집니다." },
-      { q: "PSA·CGC·TAG 수량을 합쳐서 보면 안 되나요?", a: "안 됩니다. PSA 10, CGC 프리스틴 10/젬 민트 10, TAG 10/10P는 기준이 서로 다른 등급이라 합산하면 어느 쪽도 설명하지 못하는 숫자가 됩니다. 이 사이트는 등급사·판별을 항상 분리해 표기합니다." },
-      { q: "일본판과 영문판 중 어느 쪽이 더 많이 그레이딩되나요?", a: `추적 세트 합계 기준 영문판(${num(te)}장)이 일본판(${num(tj)}장)보다 많고, 격차는 매주 커지고 있습니다. 두 판은 별도 인쇄본이라 시장도 따로 움직입니다.` },
-    ],
   });
 }
 
@@ -339,7 +348,7 @@ function auctionPage() {
   const m = buildAuctionModel();
   if (!m) { console.error("ko/auction 실패: 일별 집계가 3일 미만 — 페이지 미생성"); process.exitCode = 1; return null; }
   const {
-    dataThrough: DATA_THROUGH, aggFrom, fullDays, skippedDays, totN,
+    dataThrough: DATA_THROUGH, aggFrom, skippedDays,   // fullDays·totN 은 설명문에서 뺐다(화면에 없는 합계 — 2026-10-15)
     last7, prev7, tempGap, kpis, weekly, wkTop: WK_TOP, kindRows, setRows, setWindow,
     cardWindowDays: CARD_WINDOW_DAYS, byPrice, bySales, hasPsa: HAS_PSA,
   } = m;
@@ -421,7 +430,15 @@ function auctionPage() {
 
   // ── <head> 는 다른 ko 주제 페이지와 같은 노출 상태(canonical ko·hreflang en↔ko·robots·og·빵부스러기)를 그대로 쓴다.
   const title = "원피스 이베이 경매 낙찰가·낙찰률 | opboxindex";
-  const desc = `원피스 이베이 경매 실제 낙찰가와 낙찰률 — 카드별·주별·세트별. ${fullDays}일 ${cnt(totN)}건, 호가 아닌 낙찰 기준 (${DATA_DATE}).`;
+  // 설명문(meta·og) = 화면 상단 "최근 7일" 3칸과 같은 값·같은 표기(pct·money·cnt), 날짜는 화면 기준일(DATA_THROUGH) — 2026-10-15 소유자 결정.
+  // 종전 "<집계일수>일 N건, 호가 아닌 낙찰 기준 (데이터 갱신일)"은 화면에 없는 합계와 화면 기준일이 아닌 날짜를 적었다.
+  const desc = [
+    `원피스 이베이 경매 최근 7일${last7.from ? `(${md(last7.from)}–${md(last7.to)})` : ""}`,
+    `낙찰률 ${pct(kpis.rate.cur)}`,
+    `중앙 낙찰가 ${money(kpis.med.cur)}`,
+    `종료 ${cnt(kpis.closed.cur)}건`,
+    `카드별·주별·세트별 낙찰가 · 기준일 ${DATA_THROUGH}`,
+  ].join(" · ");
 
   return `<!doctype html>
 <html lang="ko">
@@ -821,8 +838,8 @@ ${src.brands.map((b) => `          <tr><td class="l w">${b.label}</td><td class=
     eyebrow: "아마존 응모",
     breadcrumbName: "아마존 응모 (초대판매)",
     body,
-    faqs: [],
-    note: `목록 확인일 ${esc(src.checked || DATA_DATE)}. 응모 가능 여부·배송 가능 국가는 아마존 상품 페이지가 기준입니다.`,
+    // 확인일만 — "응모 가능 여부·배송 가능 국가는 아마존 상품 페이지가 기준입니다"는 위 응모 조건 표(해외배송 행)의 되풀이라 지웠다(2026-10-15 소유자 결정).
+    note: `목록 확인일 ${esc(src.checked || DATA_DATE)}.`,
   });
 }
 

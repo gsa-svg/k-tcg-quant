@@ -200,7 +200,7 @@ const DATA_URLS = [
   "https://opboxindex.com/data/onepiece-packs.json",
 ];
 const SITE_BASE = "https://opboxindex.com";
-const DATA_VERSION = "20261015seo";
+const DATA_VERSION = "20261015seo2";
 
 // 경매 중계기(Cloudflare Worker) 주소. 정적 호스팅이라 실시간 경매는 이 중계기를 통해서만 온다.
 // 비어 있으면 경매 섹션은 통째로 숨는다 — 빈 상자를 띄워 레이아웃만 밀어내지 않기 위함.
@@ -252,9 +252,8 @@ function floorNote(market, best, tag) {
   const off = Math.round((1 - lo / hi) * 100);
   const price = triMain(market.excludedLow, market.currency).main;
   const n = market.excludedSampleSize || 0;
-  return `<span class="floorNote" title="${t(
-    "중국·홍콩 판매자 매물은 재봉·가품 위험으로 시세 계산에서 뺍니다. 값만 참고로 보입니다.",
-    "Listings from China/Hong Kong sellers are excluded from our price figures for reseal and counterfeit risk. Shown for reference only.")}">
+  // 2026-10-15 소유자 결정: 이유를 설명하던 툴팁(재봉·가품 위험 …)을 뺐다. 뜻은 아래 라벨 한 토막("… excluded from price figures")이 맡는다.
+  return `<span class="floorNote">
     <em class="floorTag">${tag}</em>${t(`제외 매물 포함 최저 `, `Unverified low `)}<b>${price}</b>
     <em class="floorOff">-${off}%</em>
     <small>${t(`중국·홍콩 판매자 ${n}건 — 시세 계산에서 제외`, `${n} China/HK listings · excluded from price figures`)}</small></span>`;
@@ -343,7 +342,7 @@ function ebayLinks(pack) {
   }
   return `
     <div class="marketLinks" aria-label="eBay market links">
-      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 새벽 수집 매물 — 싼 매물은 빨리 팔려 품절일 수 있습니다`, `Captured ${market?.updated || ""} (daily refresh) — cheap listings sell fast and may be gone`)}"><em class="langTag">JP</em>${t("일본판 최저가 박스", "Lowest JP box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${market.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
+      ${bestUrl ? `<a class="featured" href="${bestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${market?.updated || ""} 수집 · 매일 갱신`, `Captured ${market?.updated || ""} · daily refresh`)}"><em class="langTag">JP</em>${t("일본판 최저가 박스", "Lowest JP box")} · <b>${bestPrice}</b><span class="ctaArrow">↗</span>${dealChip}${market?.updated ? `<em class="asOf">${t(`${market.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${market.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
       ${enBestUrl ? `<a class="featured featuredEn" href="${enBestUrl}" target="_blank" rel="noopener noreferrer sponsored" title="${t(`${enMarket?.updated || ""} 수집 · 영문판 미개봉 박스`, `Captured ${enMarket?.updated || ""} · English sealed box`)}"><em class="langTag langTagEn">EN</em>${t("영문판 최저가 박스", "Lowest EN box")} · <b>${enBestPrice}</b><span class="ctaArrow">↗</span>${enDealChip}${enMarket?.updated ? `<em class="asOf">${t(`${enMarket.updated.slice(2).replace(/-/g, ".")} 기준`, `as of ${enMarket.updated.slice(2).replace(/-/g, ".")}`)}</em>` : ""}</a>` : ""}
       ${floorNote(market, best, "JP")}${floorNote(enMarket, enBest, "EN")}
       <a href="${epnUrl(`${base}&LH_Sold=1&LH_Complete=1&_sop=13`)}" target="_blank" rel="noopener noreferrer sponsored">JP Sold</a>
@@ -387,24 +386,6 @@ function cardBuyLinks(card) {
   return `<div class="buyLinks"><a class="buyLink" href="${searchUrl}" target="_blank" rel="noopener noreferrer sponsored">${t("PSA10 매물 찾기", "Find PSA 10 listings")}<span class="ctaArrow">↗</span></a><small>Paid Link · ${t("검수 매물 수집 대기", "Verified listing pending")}</small></div>`;
 }
 
-function scoreLabel(score) {
-  if (score >= 80) return "A";
-  if (score >= 60) return "B";
-  if (score >= 40) return "C";
-  return "D";
-}
-
-function scoreClass(score) {
-  if (score >= 70) return "good";
-  if (score >= 45) return "watch";
-  return "risk";
-}
-
-function pressureClass(score) {
-  if (score >= 80) return "risk";
-  if (score >= 60) return "watch";
-  return "good";
-}
 
 function boxMidKrw(set) {
   const active = set.boxMarket?.jp?.ebayActive;
@@ -434,106 +415,8 @@ function boxMidKrw(set) {
   return null;
 }
 
-function recentSoldBoxKrw(set) {
-  const points = (set.boxSeries?.points || [])
-    .filter((point) => point?.d && Number.isFinite(point.p))
-    .slice()
-    .sort((a, b) => a.d.localeCompare(b.d));
-  const last = points[points.length - 1];
-  return last ? { value: last.p, date: last.d, sampleSize: last.n || 0 } : null;
-}
-
-// TCG 폴백의 고립 스파이크 — tools/market-data-normalizers.js tcgSpikes 와 같은 판정(위에서부터 다음 값의 2배 초과 & $3,000 초과).
-function tcgSpikeSet(cards) {
-  const vals = (cards || []).filter((c) => c && c.nmJpy == null && typeof c.priceUsd === "number").map((c) => c.priceUsd).sort((a, b) => b - a);
-  const bad = new Set();
-  for (let i = 0; i < vals.length; i++) {
-    const next = vals.find((v) => v < vals[i]);
-    if (next != null && vals[i] > 3000 && vals[i] > next * 2) bad.add(vals[i]);
-    else break;
-  }
-  return bad;
-}
-
-// 검증 안 된 raw 값(원화) — 못 쓰는 NM(읽은 날 없음·숨김 표시)의 NM, NM 이 없는 카드의 날짜 없는 1회성 TCG 값(스파이크 제외).
-// tools/market-data-normalizers.js rawValues 의 unverified 와 같은 규칙 — 2026-10-15(5차): NM 값과 TCG 값 중 큰 쪽.
-// 4차 규칙(NM 이 있으면 NM 만)이 클라이언트에 남아 서버와 갈렸다(EB-02 숨김 Boa SP NM $630·TCG $6,970).
-function unverifiedKrw(card, spikes) {
-  if (!card || nmUsable(card)) return null;
-  const fx = (state.data && state.data.fx) || {};
-  const vals = [];
-  if (Number.isFinite(card.nmJpy) && card.nmJpy > 0) vals.push(card.nmJpy * (fx.jpyKrw || 9.1));
-  if (Number.isFinite(card.priceUsd) && card.priceUsd > 0 && !spikes.has(card.priceUsd)) vals.push(marketKrw(card.priceUsd, "USD"));
-  return vals.length ? Math.max(...vals) : null;
-}
-
-function cardComparableKrw(card) {
-  if (nmUsable(card)) {
-    const fx = (state.data && state.data.fx) || {};
-    return {
-      value: card.nmJpy * (fx.jpyKrw || 9.1),
-      source: "일본판 NM",
-      sampleSize: 1,
-      confidence: "C",
-    };
-  }
-  return null;
-}
-
-
-function setAnalytics(set) {
-  const cards = (set.cards || []).slice(0, 10);
-  const box = boxMidKrw(set);
-  const soldBox = recentSoldBoxKrw(set);
-  const pricedCards = cards
-    .map((card) => ({ card, market: cardComparableKrw(card) }))
-    .filter((row) => row.market?.value != null)
-    .sort((a, b) => b.market.value - a.market.value);
-  // 검증 안 된 값이 센 값 중 가장 낮은 값 이상이면 "Card support" 를 비운다 — 다음 카드를 1위로 올려 계산하지 않는다(2026-10-15, 4차).
-  // 세트 지표(Value density·Chase concentration·Floor)·가장 비싼 카드와 같은 판정(market-data-normalizers countedValues). 종전엔 PRB-02 가
-  // 읽은 날 없는 산지 망가(¥198,000)를 빼고 $251 카드를 1위로 셌다.
-  const spikes = tcgSpikeSet(cards);
-  const floorKrw = pricedCards.length ? pricedCards[pricedCards.length - 1].market.value : 0;
-  const cardsUnknown = cards.some((card) => { const v = unverifiedKrw(card, spikes); return v != null && v >= floorKrw; });
-
-  const top1 = pricedCards[0]?.market.value || 0;
-  const top3Avg = pricedCards.slice(0, 3).reduce((sum, row) => sum + row.market.value, 0) / Math.max(1, Math.min(3, pricedCards.length));
-  const top10Avg = pricedCards.reduce((sum, row) => sum + row.market.value, 0) / Math.max(1, pricedCards.length);
-  const hitPower = top1 * 0.4 + top3Avg * 0.3 + top10Avg * 0.3;
-  const supportRatio = box?.value && !cardsUnknown ? hitPower / box.value : null;
-
-  const boxMarket = set.boxMarket?.jp?.ebayActive;
-  const spreadRatio = boxMarket?.high != null && boxMarket?.low != null && boxMarket.middle
-    ? (marketKrw(boxMarket.high, boxMarket.currency) - marketKrw(boxMarket.low, boxMarket.currency)) / marketKrw(boxMarket.middle, boxMarket.currency)
-    : null;
-
-  const liquidityScore = Math.min(100, Math.round(((box?.sampleSize || 0) / 10) * 55 + (pricedCards.length / 10) * 45));
-  // 카드 값을 모르면(cardsUnknown) 카드 지지력 점수도, 그 점수를 42% 넣는 투자 매력도도 비운다 — 0점으로 세면 틀린 낮은 점수가 된다(2026-10-15, 4차).
-  const cardPowerScore = cardsUnknown ? null : supportRatio == null ? 0 : Math.min(100, Math.round(supportRatio * 24));
-  const demand = soldDemandStats(set);
-  const supply = supplyPressureStats(set);
-  const valuation = valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRatio });
-  const confidencePenalty = pricedCards.filter((row) => row.market.confidence === "C").length * 3;
-  const riskPenalty = (spreadRatio != null && spreadRatio > 0.45 ? 12 : 0) + (!box?.soldBased ? 8 : 0) + confidencePenalty;
-  // Missing sold history must stay neutral. It must never turn into a false demand signal.
-  const demandScore = demand.available ? demand.score : 50;
-  const investmentScore = cardPowerScore == null ? null : Math.max(0, Math.min(100, Math.round(cardPowerScore * 0.42 + liquidityScore * 0.24 + demandScore * 0.2 + supply.score * 0.14 - riskPenalty)));
-
-  const risks = [];
-  if (supply.score >= 82) risks.push(supply.label);
-  if (!demand.available) risks.push(demand.label);
-  else if (demand.score <= 25) risks.push(demand.label);
-  if (!box) risks.push(t("박스가 없음", "No box price"));
-  else if (!box.soldBased) risks.push(t("호가 기준(실거래 아님)", "Listing price, not sold"));
-  if ((box?.sampleSize || 0) < 3) risks.push(t("박스 표본 부족", "Few box samples"));
-  if (spreadRatio != null && spreadRatio > 0.45) risks.push(t("가격 편차 큼", "Wide price spread"));
-  if (pricedCards.length < 5) risks.push(t("카드 표본 부족", "Few card samples"));
-  if (pricedCards.some((row) => row.market.confidence === "C")) risks.push(t("일부 카드가 불확실", "Some card prices uncertain"));
-  if (!risks.length) risks.push(t("큰 리스크 없음", "No notable risks"));
-
-  return { box, soldBox, pricedCards, hitPower, supportRatio, liquidityScore, cardPowerScore, demand, supply, valuation, investmentScore, spreadRatio, risks };
-}
-
+// 2026-10-15: 밸류 구간·투자 매력도·분석 요약 패널(renderSetAnalytics 와 그 계산 함수들)을 지웠다. 어디서도 부르지 않는
+// 죽은 경로였고, 내용이 "저평가/고평가"·"수요 강세" 같은 해석 문장이라 소유자 결정(숫자·표·라벨만)과도 맞지 않는다.
 
 // 2026-07-22 결정: 기존 박스 트렌드 차트(주간 시장시리즈 + eBay 매물호가 병합)는 소스 전환 지점에
 // 가짜 급등이 생겨 신뢰할 수 없다. 사용자 방침 — "우리 자체 eBay 실거래(sold)만 단일 기준으로 쌓아 보여준다".
@@ -710,45 +593,11 @@ function applyStaticI18n() {
   if (amazonLink) amazonLink.href = state.hl === "ko" ? "amazon-lottery.html?hl=ko" : "amazon-lottery.html";
   // 홈 제목(2026-09-30 소유자 확정): 박스 시세 + TCG 이베이 경매 데이터. 한국어 화면에서도 제목이 영어로 남지 않게.
   setHtml(".packHero h1", '원피스 박스 시세 <span>· TCG 이베이 경매 데이터</span>', 'One Piece Booster Box Prices <span>&amp; TCG eBay Auction Data</span>');
-  setHtml(
-    ".packHero .lead",
-    '추적 중인 원피스 부스터박스(일본판·영문판)의 이베이 실거래 중앙값과 13개 카드게임의 이베이 경매 결과를 직접 모아 매일 갱신합니다.',
-    'Median sold prices for every One Piece booster box we track (Japanese &amp; English) and settled eBay auction results across 13 trading card games — collected by us, updated daily.',
-  );
-  setHtml(
-    ".introPanel",
-    `<strong>OP Box Index — 원피스 미개봉 부스터박스 가격·히트카드 리서치</strong>
-      <p>일본어판 원피스 부스터박스별 주요 카드, 박스 거래 흐름, PSA 통계, 저평가/고평가 구간을 빠르게 비교합니다.</p>
-      <details class="introMore">
-        <summary>볼 수 있는 것 · 출처</summary>
-        <ul>
-          <li><b>박스 시세</b> — eBay Active와 Sold 흐름, High / Middle / Low</li>
-          <li><b>히트카드 TOP 10</b> — 박스별 고가 카드 이미지, 번호, 레어도</li>
-          <li><b>카드 시세</b> — 일본판 NM, 일본어판 PSA10 eBay Sold, 영문판 NM</li>
-          <li><b>PSA 통계</b> — PSA10·PSA9 수량과 PSA10 비율</li>
-          <li><b>밸류 구간</b> — 최근 실거래 대비 저평가/고평가 참고 지표</li>
-        </ul>
-        <p class="introMeta">출처 — TOP10 구성/박스 참고 TCG Quant · 일본판 NM 유유테이/카드러시 · PSA10/박스 eBay · 이미지 TCGplayer · PSA 통계 GemRate. 투자 참고용이며 매수 추천이 아닙니다.</p>
-      </details>`,
-    `<strong>OP Box Index — One Piece sealed booster box and chase-card research</strong>
-      <p>Compare Japanese One Piece booster boxes, key chase cards, box market flow and PSA population stats.</p>
-      <details class="introMore">
-        <summary>What you get · sources</summary>
-        <ul>
-          <li><b>Box prices</b> — eBay Active and Sold flow, High / Middle / Low</li>
-          <li><b>Top 10 chase cards</b> — key card images, numbers and rarities by box</li>
-          <li><b>Card prices</b> — Japanese NM, Japanese PSA 10 eBay Sold and English NM</li>
-          <li><b>PSA stats</b> — PSA 10 / PSA 9 counts and PSA 10 rate</li>
-          <li><b>Valuation range</b> — under/overvaluation signal versus recent sold prices</li>
-        </ul>
-        <p class="introMeta">Sources — TCG Quant for Top 10 / box reference · Yuyu-tei / Cardrush for Japanese NM · eBay for PSA 10 and box market · TCGplayer images · GemRate PSA stats. Reference only, not investment advice.</p>
-      </details>`,
-  );
+  // 2026-10-15 소유자 결정: 사이트 소개(.lead)·사이트 안내(.introPanel)를 HTML 에서 지웠다 — 여기서 다시 그리지 않는다.
   const jpTab = document.querySelector('.langTab[data-lang="jp"]');
   if (jpTab) jpTab.innerHTML = `${t("일본판 / 영문판 박스", "JP / EN BOX")} <small id="statJp"></small>`;
   const extraTab = document.querySelector('.langTab[data-lang="extra"]');
   if (extraTab) extraTab.innerHTML = `${t("EB·PRB", "EB / PRB")} <small id="statExtra"></small>`;
-  setText(".packSection > .note", "신규 세트는 시세 데이터가 준비되는 대로 반영됩니다. 모든 가격은 참고값입니다.", "New sets appear once price data is ready. All prices are reference values.");
   setText(".footer p", "OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.", "OP Box Index is a data-driven research site, not investment advice.");
   setText(
     ".footer .affDisclosure",
@@ -803,22 +652,16 @@ function bindDisplayLanguage() {
   applyStaticI18n();
 }
 
-function priceVenueLabel(venue) {
-  if (!venue) return t("유유테이", "Yuyu-tei");
-  if (venue.includes("遊々亭") || venue.includes("유유테이")) return t("유유테이", "Yuyu-tei");
-  if (/cardrush|카드러시|カードラッシュ/i.test(venue)) return t("카드러시", "Cardrush");
-  return venue;
-}
-
 function priceLines(c) {
   let h = "";
-  // 일본 NM 리서치 전 세트(예: OP-16 신작)는 TCGplayer USD 시세를 폴백 표시. 소스 라벨은 정직하게 TCGplayer 명시.
+  // 일본 NM 리서치 전 세트(예: OP-16 신작)는 영문 TCG 시장 USD 시세를 폴백 표시.
+  // 2026-10-15: 외부 시세 업체명을 화면에 쓰지 않는다(가드 S4 와 같은 원칙) — 라벨은 중립 "TCG", NM 출처는 "일본 소매"(세트 페이지 NM 정의와 같은 말).
   // 숨김 표시(nmHiddenReason — 변형 매칭 불확실) 카드의 TCG 값은 싣지 않는다 — 세트 Top 10 NM 칸(market-data-normalizers.rawPrice)과 같은 규칙(2026-10-15, 4차).
   if (c.nmJpy == null && c.priceUsd != null && !c.nmHiddenReason) {
     const p = triMain(c.priceUsd, "USD");
     // priceUsd 는 일회성 캡처라 관측일 필드가 없다(2026-08-26 확인 — 마지막 갱신 7월 말).
     // 날짜 없이 두면 매일 갱신되는 다른 줄들 틈에서 오늘 값처럼 읽힌다 — 스냅샷임을 밝힌다.
-    return `<div class="priceLines"><span class="pl nm"><i>${t("TCGplayer 시세", "TCGplayer market")}</i> <b>${p.main}</b> <small class="plStale">${t("스냅샷 · 일일 갱신 아님", "snapshot · not refreshed daily")} <em>TCGplayer</em></small></span></div>`;
+    return `<div class="priceLines"><span class="pl nm"><i>${t("TCG 시세", "TCG market")}</i> <b>${p.main}</b> <small class="plStale">${t("스냅샷 · 일일 갱신 아님", "snapshot · not refreshed daily")}</small></span></div>`;
   }
   if (nmUsable(c)) {
     const p = triMain(c.nmJpy, "JPY");
@@ -827,7 +670,7 @@ function priceLines(c) {
     // 갱신일이 없는 카드는 "확인일 미상"으로 보이던 것을 2026-10-15 부터 싣지 않는다(nmUsable — 세트·카드 상세·AI 피드와 같은 규칙).
     const nmD = c.nmUpdated.slice(2).replace(/-/g, ".");
     const nmStale = (Date.now() - Date.parse(c.nmUpdated)) > 21 * 864e5;
-    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small${nmStale ? ' class="plStale"' : ""}>${nmD} <em>${priceVenueLabel(c.nmVenue)}</em></small></span>`;
+    h += `<span class="pl nm"><i>${t("일본판 NM", "Japanese NM")}</i> <b>${p.main}</b> <small${nmStale ? ' class="plStale"' : ""}>${nmD} <em>${t("일본 소매", "JP retail")}</em></small></span>`;
   }
   if (c.psa10Usd != null) {
     const p = triMain(c.psa10Usd, "USD");
@@ -860,104 +703,6 @@ function priceLines(c) {
   return h ? `<div class="priceLines">${h}</div>` : "";
 }
 
-function soldDemandStats(set) {
-  // `basis: active` means listings, not completed sales. Mixing it into demand
-  // was the reason every actively listed box saturated at 100/100.
-  const points = (set.boxSeries?.points || [])
-    .filter((point) => point?.d && Number.isFinite(point.n) && point.basis !== "active")
-    .slice()
-    .sort((a, b) => a.d.localeCompare(b.d));
-  const referenceDate = new Date(`${state.data?.updated || new Date().toISOString().slice(0, 10)}T00:00:00Z`);
-  const toDate = (point) => new Date(`${point.d}T00:00:00Z`);
-  const dayMs = 24 * 60 * 60 * 1000;
-  const recent = points.filter((point) => {
-    const age = (referenceDate - toDate(point)) / dayMs;
-    return age >= 0 && age <= 28;
-  });
-  const previous = points.filter((point) => {
-    const age = (referenceDate - toDate(point)) / dayMs;
-    return age > 28 && age <= 56;
-  });
-  const recentSales = recent.reduce((sum, point) => sum + (point.n || 0), 0);
-  const previousSales = previous.reduce((sum, point) => sum + (point.n || 0), 0);
-  const trend = previousSales > 0 ? (recentSales - previousSales) / previousSales : recentSales > 0 ? 1 : 0;
-  const lastSoldDate = points.at(-1)?.d || null;
-  const lastSoldAge = lastSoldDate ? Math.round((referenceDate - new Date(`${lastSoldDate}T00:00:00Z`)) / dayMs) : null;
-  // Weekly sold snapshots can contain several completed-sales samples in one point.
-  // Require a meaningful sold sample count, not an arbitrary number of snapshots.
-  const available = recentSales >= 3 && lastSoldAge != null && lastSoldAge <= 28;
-  if (!available) {
-    return {
-      available: false,
-      score: null,
-      label: t("판매완료 표본 대기", "Sold sample pending"),
-      recentSales,
-      previousSales,
-      trend,
-      lastSoldDate,
-    };
-  }
-  const volumeScore = Math.min(70, 70 * Math.log1p(recentSales) / Math.log(21));
-  const trendScore = previousSales > 0 ? Math.max(0, Math.min(30, 15 + trend * 15)) : 15;
-  const score = Math.round(volumeScore + trendScore);
-  const label = recentSales >= 8 && trend >= 0.15 ? t("수요 강세", "Strong demand") : recentSales >= 5 ? t("수요 양호", "Healthy demand") : recentSales <= 2 ? t("수요 부진", "Weak demand") : trend < -0.25 ? t("수요 둔화", "Cooling demand") : t("수요 보통", "Steady demand");
-  return { available: true, score, label, recentSales, previousSales, trend, lastSoldDate };
-}
-
-function supplyPressureStats(set) {
-  const active = set.boxMarket?.jp?.ebayActive;
-  const activeCount = active?.sampleSize || 0;
-  const excludedCount = active?.excludedCount || 0;
-  const score = activeCount <= 2 ? 95 : activeCount <= 5 ? 82 : activeCount <= 10 ? 65 : activeCount <= 18 ? 42 : 22;
-  const label = activeCount <= 2 ? t("매물 희소", "Very scarce") : activeCount <= 5 ? t("매물 부족", "Scarce") : activeCount <= 10 ? t("다소 부족", "Somewhat scarce") : activeCount <= 18 ? t("매물 보통", "Moderate") : t("매물 충분", "Ample");
-  return { score, label, activeCount, excludedCount };
-}
-
-function valuationStats({ box, soldBox, supportRatio, demand, supply, spreadRatio }) {
-  const current = box?.value || null;
-  const sold = soldBox?.value || null;
-  const soldGap = current && sold ? (sold - current) / sold : null;
-  let score = 50;
-  if (soldGap != null) score += soldGap >= 0.25 ? 30 : soldGap >= 0.1 ? 18 : soldGap <= -0.25 ? -25 : soldGap <= -0.1 ? -12 : 0;
-  if (supportRatio != null) score += supportRatio >= 6 ? 28 : supportRatio >= 3 ? 18 : supportRatio >= 1.5 ? 8 : supportRatio < 0.8 ? -14 : 0;
-  if (demand.available && demand.score >= 70) score += 10;
-  else if (demand.available && demand.score <= 25) score -= 10;
-  if (supply.score >= 65) score += 8; else if (supply.score <= 25) score -= 5;
-  if (spreadRatio != null && spreadRatio > 0.45) score -= 12;
-  if (box && !box.soldBased) score -= 6;
-  const reliabilityRisk = (spreadRatio != null && spreadRatio > 0.45) || (box && !box.soldBased);
-  score = Math.max(0, Math.min(reliabilityRisk ? 88 : 100, Math.round(score)));
-  const label = score >= 75 && reliabilityRisk ? t("저평가 후보", "Undervalued candidate") : score >= 75 ? t("저평가", "Undervalued") : score >= 62 ? t("저평가 후보", "Undervalued candidate") : score >= 42 ? t("적정 구간", "Fair range") : score >= 28 ? t("고평가 주의", "Overvaluation risk") : t("고평가", "Overvalued");
-  const tone = score >= 62 ? "good" : score >= 42 ? "watch" : "risk";
-  const gapText = soldGap == null ? t("실거래 비교 없음", "No sold comparison") : `${soldGap >= 0 ? "+" : ""}${Math.round(soldGap * 100)}%`;
-  const gapDirectionText = soldGap == null ? t("실거래 비교 없음", "no sold comparison") : soldGap >= 0 ? t(`최근 실거래가보다 ${Math.round(soldGap * 100)}% 낮은`, `${Math.round(soldGap * 100)}% below recent sold`) : t(`최근 실거래가보다 ${Math.abs(Math.round(soldGap * 100))}% 높은`, `${Math.abs(Math.round(soldGap * 100))}% above recent sold`);
-  return { score, label, tone, soldGap, gapText, gapDirectionText, current, sold };
-}
-
-function renderSetAnalytics(set) {
-  const a = setAnalytics(set);
-  const support = a.supportRatio == null ? "-" : `${a.supportRatio.toFixed(1)}x`;
-  const spread = a.spreadRatio == null ? "-" : `${Math.round(a.spreadRatio * 100)}%`;
-  const demandTrend = a.demand.trend > 0 ? `+${Math.round(a.demand.trend * 100)}%` : `${Math.round(a.demand.trend * 100)}%`;
-  const demandScore = a.demand.available ? a.demand.score : "-";
-  const demandClass = a.demand.available ? scoreClass(a.demand.score) : "watch";
-  const demandDetail = a.demand.available
-    ? t(`최근 4주 eBay 판매완료 표본 ${a.demand.recentSales}건 · 이전 대비 ${demandTrend}`, `${a.demand.recentSales} eBay sold samples in 4 weeks · ${demandTrend} vs. prior`)
-    : t("eBay 판매완료 표본이 부족하거나 오래되어 점수를 숨깁니다.", "Not scored: eBay sold samples are too thin or stale.");
-  const valuationSentence = a.valuation.soldGap == null ? t("최근 Sold 자료가 부족해 카드값·공급·수요 중심으로 봅니다.", "Recent sold data is limited, so the signal leans on card value, supply and demand.") : t(`현재 박스가는 ${a.valuation.gapDirectionText} 수준입니다.`, `The current box price is ${a.valuation.gapDirectionText}.`);
-  return `<div class="quantPanel">
-    <div class="valuationBanner ${a.valuation.tone}"><span>${t("밸류 구간", "Valuation range")}</span><strong>${a.valuation.label}<small>${a.valuation.score}/100</small></strong><p>${valuationSentence}</p><small>${t("현재", "Current")} ${a.valuation.current ? triMain(a.valuation.current, "KRW").main : "-"} · ${t("최근 Sold", "Recent sold")} ${a.valuation.sold ? triMain(a.valuation.sold, "KRW").main : "-"}</small></div>
-    <div class="quantMetric ${a.investmentScore == null ? "watch" : scoreClass(a.investmentScore)}"><span>${t("투자 매력도", "Investment appeal")}</span><strong>${a.investmentScore == null ? "-" : `${a.investmentScore}<small>/100 · ${scoreLabel(a.investmentScore)}</small>`}</strong><small>${t("카드값·수요·공급·위험 종합", "Card value, demand, supply and risk")}</small></div>
-    <div class="quantMetric ${a.cardPowerScore == null ? "watch" : scoreClass(a.cardPowerScore)}"><span>${t("카드 지지력", "Card support")}</span><strong>${support}</strong><small>${t("박스값 대비 TOP10 카드 시세", "Top 10 card value vs. box price")}</small></div>
-    <div class="quantMetric ${scoreClass(a.liquidityScore)}"><span>${t("데이터 신뢰도", "Data confidence")}</span><strong>${a.liquidityScore}<small>/100 · ${scoreLabel(a.liquidityScore)}</small></strong><small>${t(`표본: 박스 ${a.box?.sampleSize || 0}건 · 카드 ${a.pricedCards.length}장`, `Samples: ${a.box?.sampleSize || 0} boxes · ${a.pricedCards.length} cards`)}</small></div>
-    <div class="quantMetric ${pressureClass(a.supply.score)}"><span>${t("매물 희소성", "Scarcity")}</span><strong>${a.supply.score}<small>/100 · ${a.supply.label}</small></strong><small>${t(`현재 매물 ${a.supply.activeCount}건`, `${a.supply.activeCount} active listings`)}</small></div>
-    <div class="quantMetric ${demandClass}"><span>${t("수요 강도", "Demand")}</span><strong>${demandScore}<small>${a.demand.available ? `/100 · ${a.demand.label}` : `· ${a.demand.label}`}</small></strong><small>${demandDetail}</small></div>
-    <div class="quantMetric ${a.spreadRatio != null && a.spreadRatio > 0.45 ? "risk" : "watch"}"><span>${t("가격 편차", "Price spread")}</span><strong>${spread}</strong><small>${t("동일 박스 최고·최저가 차이", "High-low gap for the same box")}</small></div>
-    <div class="analysisSummary"><h3>${t("분석 요약", "Analysis summary")}</h3><p>${valuationSentence}</p><p>${demandDetail}</p><p>${t(`현재 매물 ${a.supply.activeCount}건으로 ${a.supply.label} 상태입니다.`, `${a.supply.activeCount} active listings: ${a.supply.label}.`)}</p>${a.supportRatio == null ? "" : `<p>${t(`카드 지지력은 박스값의 ${support}입니다.`, `Card support is ${support} of the box price.`)}</p>`}</div>
-    <div class="analysisBreakdown"><span><b>${t("매물", "Supply")}</b><small>${t(`현재 ${a.supply.activeCount}건 · 제외 ${a.supply.excludedCount}건`, `${a.supply.activeCount} listed · ${a.supply.excludedCount} excluded`)}</small></span><span><b>${t("수요", "Demand")}</b><small>${a.demand.available ? t(`eBay Sold 4주 ${a.demand.recentSales}건`, `eBay Sold 4wk ${a.demand.recentSales}`) : t("판매완료 표본 대기", "Sold sample pending")}</small></span><span><b>${t("주의", "Watch")}</b><small>${a.risks.slice(0, 3).join(" · ")}</small></span></div>
-    <p class="quantNote">${t("모든 지표는 투자 참고용입니다. 가격 표본이 적거나 Active 호가 비중이 크면 보수적으로 해석하세요.", "All signals are for reference only. Treat them conservatively when samples are thin or listings dominate.")}</p>
-  </div>`;
-}
 
 const PSA_RAR_SHORT = { "Treasure Rare": "TR", "Secret Rare": "SEC", "Super Rare": "SR", "Alternate Art": "AA", "Manga Alternate Art": "MAA", "Red Manga Alternate Art": "RMA", "Special Alternate Art": "SP", "Wanted Alternate Art": "WAA", "Parallel": "PLL", "Rare": "R", "Leader": "L" };
 function psaRarShort(r) { return PSA_RAR_SHORT[r] || String(r || "").split(/\s+/).map((w) => w[0]).join("").slice(0, 4).toUpperCase(); }
@@ -1005,10 +750,8 @@ function renderGraderTable(set) {
         { h: t("젬 민트 10", "Gem Mint 10"), get: (e) => (e.gemMint10 != null ? num(e.gemMint10) : "&mdash;") },
         { h: t("프리스틴 10", "Pristine 10"), get: (e) => (e.pristine10 != null ? num(e.pristine10) : "&mdash;") },
       ],
-      // 열 제목이 이미 "젬 민트 10 / 프리스틴 10"이라고 말한다. 설명은 순서와 비교불가만 남긴다.
-      note: t(
-        "프리스틴 10 이 젬 민트 10 보다 위. PSA 10 과 1:1 대응은 아닙니다.",
-        "Pristine 10 ranks above Gem Mint 10. Neither equals a PSA 10."),
+      // 열 제목이 이미 "젬 민트 10 / 프리스틴 10"이라고 말한다. 각주는 순서 라벨 한 토막만(2026-10-15 — 설명 문장 삭제).
+      note: t("프리스틴 10 > 젬 민트 10", "Pristine 10 > Gem Mint 10"),
     },
     tag: {
       cls: "gTag",
@@ -1018,9 +761,8 @@ function renderGraderTable(set) {
         { h: "10", get: (e) => (e.g10 != null ? num(e.g10) : "&mdash;") },
         { h: "10P", get: (e) => (e.g10p != null ? num(e.g10p) : "&mdash;") },
       ],
-      note: t(
-        "10P 가 10 보다 위. 전체 TAG 등급의 3% 남짓입니다.",
-        "10P ranks above 10 — about 3% of all TAG grades."),
+      // "전체 TAG 등급의 3% 남짓"은 데이터에서 계산하지 않은 손글씨 숫자라 뺐다(2026-10-15).
+      note: "10P > 10",
     },
   };
   const block = (key) => {
@@ -1047,37 +789,34 @@ function renderGraderTable(set) {
         .map(([ed, e]) => `${ed === "jp" ? t("일본판", "JP") : t("영문판", "EN")} ${num(e.perfect10)}`)
       : [];
     // CGC 가 두 상품을 한 항목으로 세는 판(영문판 OP-14·OP-15 = EB-04 동봉 발매)은 그 사실을 밝힌다.
-    // 숫자를 고치는 게 아니라, 무엇을 세었는지 정확히 말하는 것이다.
+    // 숫자를 고치는 게 아니라, 무엇을 세었는지 정확히 말하는 것이다. 2026-10-15: 문장 대신 숫자에 붙는 라벨 한 토막으로.
     const combined = [["jp", v.jp], ["en", v.en]]
       .filter(([, e]) => e && e.combinedWith)
       .map(([ed, e]) => (ed === "jp"
-        ? t(`일본판 수치는 ${e.combinedWith} 를 포함합니다`, `The Japanese figure includes ${e.combinedWith}`)
-        : t(`영문판은 ${e.combinedWith} 와 한 상품으로 발매돼 CGC 가 한 항목으로 집계합니다 — 위 영문판 수치에 ${e.combinedWith} 가 포함돼 있습니다`,
-          `In English these shipped as one product with ${e.combinedWith}, and CGC counts them as one entry — the English figure above includes ${e.combinedWith}`)));
+        ? t(`일본판 = ${e.combinedWith} 포함`, `JP figure incl. ${e.combinedWith}`)
+        : t(`영문판 = ${e.combinedWith} 포함(CGC 한 항목)`, `EN figure incl. ${e.combinedWith} (one CGC entry)`)));
     return `<div class="grWrap"><table class="grTable"><thead><tr><th class="gHead ${m.cls}">${m.name}</th>${m.cols.map((c) => `<th>${c.h}</th>`).join("")}<th>${t("증감", "Change")}</th></tr></thead><tbody>
       ${row(t("일본판", "Japanese"), v.jp)}
       ${row(t("영문판", "English"), v.en)}
-    </tbody></table><p class="edFoot">${m.note}${combined.length ? ` ${combined.join(" · ")}.` : ""}${perfect.length ? ` ${t("이 세트엔 그 위 퍼펙트 10도 있습니다", "This set also has Perfect 10")} — ${perfect.join(" · ")}.` : ""}${win ? ` · ${win}` : ""}</p></div>`;
+    </tbody></table><p class="edFoot">${m.note}${combined.length ? ` · ${combined.join(" · ")}` : ""}${perfect.length ? ` · ${t("퍼펙트 10", "Perfect 10")} ${perfect.join(" · ")}` : ""}${win ? ` · ${win}` : ""}</p></div>`;
   };
   return ["cgc", "tag"].map(block).join("");
 }
 
+// 2026-10-15 소유자 결정: 숫자 표를 되풀이하던 문장("Across the full set, N cards …")과 해석 각주("Grade counts measure submission
+// activity, not boxes opened …")를 뺐다. ⚠️ 그 대신 "등급이 늘면 박스가 개봉된 것"이라는 뜻의 라벨도 쓰지 않는다 — 머리말을
+// "Grading & Destruction"(개봉 현황)에서 "PSA population"(등급 인구)으로 바꾼 이유다(2026-08-12 원칙 그대로). 표의 판은 "카드 JP" 머리가 말한다.
 function renderPsaDestruction(set) {
   const rows = set.psa || [];
   if (!rows.length && set.psaTotal == null && !set.psaFull) return "";
   const gem = set.psaGem, total = set.psaTotal, full = set.psaFull, updated = (set.psaFull && set.psaFull.updated) || set.psaUpdated || "";
   const fullGems = full ? (full.gems != null ? full.gems : full.gem10) : null;
   const body = rows.map((r) => `<tr><td class="pdName">${r.name} <em>#${r.number}</em></td><td><span class="pdRar">${psaRarShort(r.rarity)}</span></td><td class="pdNum">${num(r.psa10)}</td><td class="pdNum pdMut">${num(r.psa9)}</td><td class="pdNum">${num(r.total)}</td><td class="pdGem">${r.gem}%</td></tr>`).join("");
-  return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 · 개봉 현황", "Grading & Destruction")}</span><small class="pdSrc">${t("PSA 인구조사 · 세트 전체", "Population via PSA · full set")}${updated ? ` · ${updated}` : ""}</small></div>
+  return `<div class="boxChart psaDest"><div class="bcHead"><span class="bmLabel">${t("PSA 등급 인구", "PSA population")}</span><small class="pdSrc">${t("PSA 인구조사 · 세트 전체", "Population via PSA · full set")}${updated ? ` · ${updated}` : ""}</small></div>
     <div class="pdStats"><div class="pdStat"><span>${t("누적 등급 수", "Total Grades")}</span><b>${full ? num(full.total) : (total != null ? num(total) : "-")}</b><small style="display:block;color:#7d8698;font-size:11.5px;margin-top:2px;">${t("세트 전체", "full set")}</small></div><div class="pdStat"><span>${t("전체 PSA 10", "PSA 10 Total")}</span><b class="pdGemBig">${fullGems != null ? num(fullGems) : "-"}</b><small style="display:block;color:#7d8698;font-size:11.5px;margin-top:2px;">${t("세트 전체 젬민트 수", "full-set gem count")}</small></div><div class="pdStat"><span>${t("세트 젬률", "Full-set Gem Rate")}</span><b class="pdGemBig">${full ? full.gemRate + "%" : (gem != null ? gem + "%" : "-")}</b><small style="display:block;color:#7d8698;font-size:11.5px;margin-top:2px;">${t("PSA 10 비율", "PSA 10 share")}${full && full.opAvg != null ? ` · ${t("추적 세트 평균", "tracked-set avg")} ${full.opAvg}%${full.opDiff != null ? ` <em style="font-style:normal;color:${full.opDiff < 0 ? "#ff7a7a" : "#55d8ea"};">${full.opDiff > 0 ? "+" : ""}${full.opDiff}%</em>` : ""}` : ""}</small></div></div>
     ${renderEditionTable(set)}
-    <p class="note" style="margin:7px 0 2px;">${t(`세트 전체 <b>${full ? num(full.total) : "-"}장</b> 중 <b>${fullGems != null ? num(fullGems) : "-"}장</b>이 PSA 10입니다.`, `Across the full set, <b>${full ? num(full.total) : "-"}</b> cards have been graded and <b>${fullGems != null ? num(fullGems) : "-"}</b> received PSA 10.`)}</p>
     ${rows.length ? `<div class="pdTableWrap" role="region" tabindex="0" aria-label="${t("카드별 PSA 등급 수", "PSA population by card")}"><table class="pdTable"><thead><tr><th>${t("카드", "Card")} <em class="pdEd">${t("일본판", "JP")}</em></th><th>${t("등급", "Rarity")}</th><th>PSA10</th><th>PSA9</th><th>${t("총", "Total")}</th><th>Gem</th></tr></thead><tbody>${body}</tbody></table></div>` : ""}
-    <!-- ⚠️ "등급이 늘면 박스가 개봉된 것"이라고 쓰지 말 것. 2026-08-12 에 지웠다.
-         제출은 몇 년 전에 뽑아둔 생카드로도 이뤄지고, 무엇을 보낼지도 제출자가 고른다.
-         사이트의 기사·방법론은 전부 "개봉량을 알 수 없다"고 쓰는데 여기만 반대로 말하고 있었다.
-         이 문구는 JS 가 그려서 정적 HTML 검사에 안 걸렸다 — 그래서 오래 남았다. -->
-    <p class="note">${t("Top 10 은 카드별 PSA 등급 수, <b>일본판 기준</b>입니다. 등급 수는 <b>제출 활동</b>이지 개봉량이 아닙니다 — 예전에 뽑아둔 카드도 섞입니다.", "Top 10 shows PSA grades per card, <b>Japanese printings only</b>. Grade counts measure <b>submission activity</b>, not boxes opened — older raw cards get submitted too.")}</p></div>`;
+    </div>`;
 }
 
 function renderBoxMarket(set) {
@@ -1093,7 +832,7 @@ function renderBoxMarket(set) {
     const ratio = jpMid && enMid ? enMid / jpMid : null;
     enBlock = `<div class="bmHead bmEnHead"><span class="bmLabel">${t("영문판 박스 eBay Active", "English box · eBay Active")}</span><small>${en.updated || ""} · ${t(`표본 ${en.sampleSize}건`, `${en.sampleSize} samples`)}${ratio ? ` · <em class="bmRatio">${t(`일본판의 ×${ratio.toFixed(1)}`, `×${ratio.toFixed(1)} vs Japanese`)}</em>` : ""}</small></div><div class="bmRows">${priceBandRows(en)}</div>`;
   }
-  return `<div class="boxMarket"><div class="bmHead"><span class="bmLabel">${t("일본판 박스 eBay Active", "Japanese box · eBay Active")}</span><small>${market.updated || t("업데이트일 미상", "date unknown")} · ${t(`표본 ${market.sampleSize || 0}건`, `${market.sampleSize || 0} samples`)}${market.excludedCount ? t(` · 제외 ${market.excludedCount}건`, ` · ${market.excludedCount} excluded`) : ""}</small></div><div class="bmRows">${priceBandRows(market)}</div>${enBlock}<p>${t("정렬 후 하위/중앙/상위 가격대입니다. 중국권 발송지와 명확한 오탐은 제외합니다. 영문판은 제목에 English 명시 매물만 집계합니다.", "Low/mid/high bands after sorting. China-region sellers and obvious mismatches are excluded. English bands count only listings explicitly titled English.")}</p></div>`;
+  return `<div class="boxMarket"><div class="bmHead"><span class="bmLabel">${t("일본판 박스 eBay Active", "Japanese box · eBay Active")}</span><small>${market.updated || t("업데이트일 미상", "date unknown")} · ${t(`표본 ${market.sampleSize || 0}건`, `${market.sampleSize || 0} samples`)}${market.excludedCount ? t(` · 제외 ${market.excludedCount}건`, ` · ${market.excludedCount} excluded`) : ""}</small></div><div class="bmRows">${priceBandRows(market)}</div>${enBlock}<p>${t("하위 / 중앙 / 상위 · 중국·홍콩 발송 제외 · 영문판 = 제목에 English", "Low / mid / high · excl. China/HK sellers · EN = titled English")}</p></div>`;
 }
 
 // 박스 "시세 vs 매물" 두 숫자 모델 — 일판·영문 각 판. 실거래(sold)=대표 시세, 최저매물(active)=지금 사는 값.
@@ -1113,19 +852,20 @@ function boxTwoRow(m, ed) {
       <div class="emCard emAsk"><span class="emLabel">${t("최저 매물", "Lowest listing")} <em class="emKind">${t("호가", "ask")}</em></span><b class="emVal">${triMain(askVal, active.currency).main}</b><small>${active.updated || ""}${gap != null ? ` · <em class="${gap > 0 ? "emUp" : "emDn"}">${t(`실거래 ${gap >= 0 ? "+" : ""}${gap}%`, `${gap >= 0 ? "+" : ""}${gap}% vs sold`)}</em>` : ""}</small></div>
     </div></div>`;
 }
+// 2026-10-15 소유자 결정: 아래 각주의 해석("매물이 실거래보다 높으면 대기 신호")·이유 설명 문장을 빼고, 숫자의 뜻(실거래/매물 정의·판매자 제외)만 라벨로 남긴다.
 function renderBoxTwoNumber(set) {
   const bm = set.boxMarket || {};
   const rows =
     boxTwoRow(bm.jp, { name: t("일본판", "Japanese"), tag: "JP", tagCls: "" }) +
     boxTwoRow(bm.en, { name: t("영문판", "English"), tag: "EN", tagCls: "langTagEn" });
   if (!rows) return "";
-  return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("박스 시세 vs 매물", "Box market vs listing")}</span></div>${rows}<p class="emNote">${t('"실거래"는 실제 팔린 값(시세), "매물"은 지금 살 수 있는 최저 호가입니다. 매물이 실거래보다 높으면 급하지 않을 때 대기 신호. 미개봉 박스만 집계. <b>매물 숫자는 검수를 통과한 판매자만 집계합니다</b> — 중국·홍콩 판매자를 재봉·가품 위험으로 빼며, 수집분의 약 절반입니다. 실거래에는 이 필터가 없어 시장 전체를 담습니다. <a href="/methodology.html#exclusions">기준 보기</a>', 'Sold = what actually sold (market); listing = the cheapest you can buy now. Above sold = wait signal if not urgent. Sealed boxes only. <b>Listing figures count only sellers that passed verification</b> — we exclude China and Hong Kong sellers for reseal and counterfeit risk, about half of what we collect. Sold figures have no such filter and cover the whole market. <a href="/methodology.html#exclusions">See the rules</a>')}</p></div>`;
+  return `<div class="boxMarket enBoxMarket enTwo"><div class="bmHead"><span class="bmLabel">${t("박스 시세 vs 매물", "Box market vs listing")}</span></div>${rows}<p class="emNote">${t('실거래 = 팔린 값 · 매물 = 지금 최저 호가(중국·홍콩 판매자 제외) · 미개봉 박스 · <a href="/methodology.html#exclusions">기준</a>', 'Sold = completed sales · Listing = lowest ask now (excl. China/HK sellers) · sealed boxes · <a href="/methodology.html#exclusions">Rules</a>')}</p></div>`;
 }
 
 function renderSourceLegend(set) {
   const hasPsa10 = (set.cards || []).some((card) => card.psa10Usd != null || card.psa10Ebay?.sampleSize > 0);
   const hasEnglishNmEbay = (set.cards || []).some((card) => card.englishNmEbay?.sampleSize > 0);
-  return `<div class="sourceLegend" aria-label="${t("가격 출처 요약", "Price sources")}"><span><b>${t("일본판 NM", "Japanese NM")}</b><small>${t("유유테이 우선 · 카드러시 보조", "Yuyu-tei first · Cardrush backup")}</small></span><span class="${hasPsa10 ? "" : "muted"}"><b>${t("일본어판 PSA10", "Japanese PSA 10")}</b><small>${hasPsa10 ? t("eBay Sold 기준", "eBay Sold") : t("확인된 가격 없음", "No verified price")}</small></span><span><b>${t("영문판 NM", "English NM")}</b><small>${hasEnglishNmEbay ? "eBay Active" : t("매칭 없음", "No match")}</small></span><span><b>${t("박스가", "Box price")}</b><small>eBay Active / Sold</small></span></div>`;
+  return `<div class="sourceLegend" aria-label="${t("가격 출처 요약", "Price sources")}"><span><b>${t("일본판 NM", "Japanese NM")}</b><small>${t("일본 소매 호가", "JP retail ask")}</small></span><span class="${hasPsa10 ? "" : "muted"}"><b>${t("일본어판 PSA10", "Japanese PSA 10")}</b><small>${hasPsa10 ? t("eBay Sold 기준", "eBay Sold") : t("확인된 가격 없음", "No verified price")}</small></span><span><b>${t("영문판 NM", "English NM")}</b><small>${hasEnglishNmEbay ? "eBay Active" : t("매칭 없음", "No match")}</small></span><span><b>${t("박스가", "Box price")}</b><small>eBay Active / Sold</small></span></div>`;
 }
 
 async function load() {
@@ -1140,7 +880,7 @@ async function load() {
     const target = document.querySelector("#packList");
     if (target) {
       target.hidden = false;
-      target.innerHTML = `<div class="loadError" role="alert"><p>${t("시세 데이터를 불러오지 못했습니다. 기존 자료는 아래 표와 세트 가이드에서 확인할 수 있습니다.", "Price data could not be loaded. The dated tables and set guides are still available.")}</p><button type="button">${t("다시 시도", "Try again")}</button></div>`;
+      target.innerHTML = `<div class="loadError" role="alert"><p>${t("시세 데이터를 불러오지 못했습니다.", "Price data could not be loaded.")}</p><button type="button">${t("다시 시도", "Try again")}</button></div>`;
       target.querySelector("button").onclick = () => location.reload();
     }
     document.querySelector("#quickSet")?.removeAttribute("aria-busy");
@@ -1378,7 +1118,7 @@ function renderTodayDeals() {
   el.classList.toggle("isEmpty", !deals.length);
   if (!deals.length) {
     el.hidden = false;
-    el.innerHTML = `<p class="dealsLoading">${t("오늘은 최근 실거래가보다 싼 검수 매물이 없습니다.", "No verified listing is priced under recent sold today.")}</p>`;
+    el.innerHTML = `<p class="dealsLoading">${t("오늘 최근 실거래가보다 싼 검수 매물: 0", "Verified listings under recent sold today: 0")}</p>`;
     return;
   }
   deals.sort((a, b) => b.save - a.save);
@@ -1415,7 +1155,7 @@ function renderTodayDeals() {
         <span class="couponMeta"><b>${t("eBay 쿠폰 받기", "Get the eBay coupon")}</b>
           <small>${t("결제 시 코드 입력", "Apply the code at checkout")} · ${t(EBAY_COUPON.endLabel.ko, EBAY_COUPON.endLabel.en)}</small></span>
         <span class="couponCode">${EBAY_COUPON.code}</span></a>
-      <small class="couponNote">${t("쿠폰은 eBay 가 운영하며 조건·기간은 eBay 페이지 기준입니다. Paid Link.", "The coupon is run by eBay; terms and dates follow eBay's page. Paid Link.")}</small>
+      <small class="couponNote">${t("eBay 쿠폰 · 조건은 eBay 페이지", "eBay coupon · terms on eBay's page")} · Paid Link</small>
     </div>` : ""}`;
 }
 
@@ -1480,9 +1220,7 @@ function renderLiveAuctions() {
             <span class="aucBtn">${t("입찰", "Bid")} <i>↗</i></span>
           </a>
         </li>`).join("")}</ul>
-      <p class="aucNote">${t(
-        "입찰 수 → 판매자 규모 → 임박 순. 시세 계산에서 제외한 판매자·지역은 여기서도 제외합니다. 경매는 계속 종료되니 실제 상태는 매물 페이지에서 확인하세요.",
-        "Ranked by bids, then seller size, then time left. Sellers and locations excluded from our price data are excluded here too. Auctions end continuously — check the listing for current status.")}</p>`;
+      <p class="aucNote">${t("정렬: 입찰 수 → 판매자 규모 → 남은 시간", "Order: bids → seller size → time left")}</p>`;
   };
 
   const load = () => fetch(AUCTION_RELAY, { cache: "no-store" })
@@ -1680,8 +1418,8 @@ function cardGradePanel(card) {
   return `<div class="cardGradePanel"><h3>${t("이 카드의 등급 인구", "Grades for this card")}</h3>
     <table class="grTable"><thead><tr><th>${t("등급사", "Grader")}</th><th>${t("누적", "Total")}</th><th>${t("만점", "Top")}</th><th>${t("최상위", "Highest")}</th><th>${t("만점 비율", "Top rate")}</th></tr></thead><tbody>${rows.join("")}</tbody></table>
     <p class="edFoot">${t(
-      "PSA 는 만점이 10 하나뿐이라 최상위 칸이 비어 있습니다. CGC 는 젬 민트 10 위에 프리스틴 10, TAG 는 10 위에 10P 를 둡니다 — 가운데가 만점, 오른쪽이 그보다 엄격한 최상위입니다. 등급사끼리, 그리고 일본판·영문판을 합산하지 않습니다.",
-      "PSA has a single top grade, so its highest-tier cell is empty. CGC puts Pristine 10 above Gem Mint 10; TAG puts 10P above 10 — the middle column is the top grade, the right one is the stricter tier above it. We never sum across graders, or across Japanese and English.")}${asOf ? ` · ${t("기준", "as of")} ${asOf}` : ""}</p></div>`;
+      "만점 = PSA 10 · CGC 젬 민트 10 · TAG 10 · 최상위 = CGC 프리스틴 10 · TAG 10P",
+      "Top = PSA 10 · CGC Gem Mint 10 · TAG 10 · Highest = CGC Pristine 10 · TAG 10P")}${asOf ? ` · ${t("기준", "as of")} ${asOf}` : ""}</p></div>`;
 }
 
 function cardMarketPanel(card) {
@@ -1689,7 +1427,7 @@ function cardMarketPanel(card) {
   // 시세줄은 카드 카드(그리드)에 쓰는 것과 같은 함수다 — 확대창에서도 같은 값을 같은 라벨로 보여준다.
   const prices = card.number ? `<div class="cardLbPrices">${priceLines(card)}</div>` : "";
   const body = `${prices}${grades}`;
-  return body || `<div class="cardChartEmpty">${t("이 카드는 아직 실측값이 없습니다.", "No measured data for this card yet.")}</div>`;
+  return body || `<div class="cardChartEmpty">${t("실측값 없음", "No measured data")}</div>`;
 }
 
 function openLightbox(src, name, card, fallback) {
@@ -1730,13 +1468,14 @@ function renderPsaTable(psa, updated) {
     const gemClass = c.gem >= 90 ? "gemHi" : c.gem >= 80 ? "gemMid" : "gemLo";
     return `<tr><td class="pCard"><span class="pName">${c.name}</span><span class="pNo">#${c.number}</span></td><td class="pRar"><span class="pBadge" style="--c:${b.c}">${b.s}</span></td><td class="pNumv">${num(c.psa10)}</td><td class="pNumv dim">${num(c.psa9)}</td><td class="pNumv">${num(c.total)}</td><td class="pNumv ${gemClass}">${gem}</td></tr>`;
   }).join("");
-  return `<div class="psaWrap" role="region" tabindex="0" aria-label="${t("PSA 통계", "PSA statistics")}"><table class="psaTable"><thead><tr><th class="pCard">${t("카드", "Card")}</th><th class="pRar">${t("등급", "Rarity")}</th><th>PSA 10</th><th>PSA 9</th><th>${t("총계", "Total")}</th><th>${t("PSA10 비율", "PSA10 rate")}</th></tr></thead><tbody>${rows}</tbody></table><p class="note">${t("PSA 등급 인구 데이터입니다. PSA10 비율은 감정 카드 중 PSA10 비율입니다.", "PSA population data. PSA10 rate is the share of PSA 10 among graded copies.")}${updated ? ` · ${t("인구 기준일", "population as of")} ${updated} (GemRate)` : ""}</p></div>`;
+  return `<div class="psaWrap" role="region" tabindex="0" aria-label="${t("PSA 통계", "PSA statistics")}"><table class="psaTable"><thead><tr><th class="pCard">${t("카드", "Card")}</th><th class="pRar">${t("등급", "Rarity")}</th><th>PSA 10</th><th>PSA 9</th><th>${t("총계", "Total")}</th><th>${t("PSA10 비율", "PSA10 rate")}</th></tr></thead><tbody>${rows}</tbody></table><p class="note">${t("PSA10 비율 = PSA 10 ÷ 감정 수", "PSA10 rate = PSA 10 ÷ graded")}${updated ? ` · ${t("인구 기준일", "population as of")} ${updated}` : ""}</p></div>`;
 }
 
 function renderDataNotice() {
+  // 2026-10-15 소유자 결정: 설명 문장(수집 방식·구매 전 확인 안내)을 라벨 토막으로 바꿨다. "Paid Link: …" 제휴 고지 문장은 원문 그대로 둔다(EPN 요건).
   return `<div class="dataNotice"><b>${t("데이터 기준", "Data notes")}</b> ${t(
-    "eBay Active는 현재 호가이며 실거래가가 아닙니다. 검수 최저 박스와 PSA10 매물 링크는 매일 03:00(KST)에 재검수합니다. PSA 등급 수(누적·주간 증감)는 공개 PSA 인구조사 자료를 매주 월요일 자체 수집해 일본판·영문판을 따로 기록하며, 두 판을 합산하지 않습니다. Paid Link: eBay 링크를 통해 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다. 판매자, 배송비, 세금, 정품 여부, 재밀봉 리스크는 구매 전 본인이 최종 확인해야 합니다.",
-    "eBay Active shows listing prices, not sold prices. Verified lowest box and PSA 10 listing links are rechecked daily at 03:00 KST. PSA graded counts and weekly change are collected by us every Monday from public PSA population reporting, recorded separately for Japanese and English printings, and never summed across editions. Paid Link: we may earn a commission from qualifying purchases made through eBay links. Buyers must verify seller, shipping, tax, authenticity and reseal risk before purchase.",
+    "eBay Active = 현재 호가(실거래 아님) · 매물 링크 재검수 매일 03:00 KST · PSA 등급 수 = 매주 월요일, 일본판·영문판 따로. Paid Link: eBay 링크를 통해 적격 구매가 발생하면 OP Box Index가 수수료를 받을 수 있습니다.",
+    "eBay Active = listing prices (not sold) · listing links rechecked daily 03:00 KST · PSA counts = Mondays, Japanese and English separate. Paid Link: we may earn a commission from qualifying purchases made through eBay links.",
   )}</div>`;
 }
 
@@ -1756,8 +1495,8 @@ function setBadges(code) {
   const rel = bySet.jpRelease && bySet.jpRelease.date;
   if (rel) {
     const tipRel = t(
-      `일본판 발매일 ${rel} — 반다이 공식 제품 페이지 기준. 위의 release 는 영문판 날짜라 다릅니다.`,
-      `Japanese release ${rel}, from Bandai's official product page. The release date shown above is the English edition and differs.`
+      `일본판 발매일 ${rel} · 반다이 공식 제품 페이지`,
+      `Japanese release ${rel} · Bandai official product page`
     ).replace(/"/g, "'");
     out.push(`<a class="setBadge relDate" href="${href}" title="${tipRel}">${t("일본판 발매", "JP release")} ${rel}</a>`);
   }
@@ -1783,8 +1522,8 @@ function setBadges(code) {
   } else if (rel && !shopReprint.length) {
     // 발매일은 아는데 발매 후 추첨이 없다 — 조사했고 없었다는 뜻이라 빈칸으로 두지 않는다.
     const tipNone = t(
-      `발매 후 반다이 공식 추첨판매 기록을 찾지 못했습니다. 매장 재입고는 세트 페이지에 따로 적어 둡니다.`,
-      `No Bandai official lottery sale found after release. Retailer restocks, if any, are listed on the set page.`
+      `발매 후 반다이 공식 추첨판매 0회`,
+      `Bandai official lottery sales after release: 0`
     ).replace(/"/g, "'");
     out.push(`<a class="setBadge reprintNone" href="${href}" title="${tipNone}">${t("발매 후 추첨 없음", "No post-release draw")}</a>`);
   }
@@ -1804,8 +1543,8 @@ function renderDetail() {
     const boxBlocks = `${renderBoxSeries(set, pack.code)}${!set.boxSeries ? renderBoxMarket(set) : ""}${renderBoxTwoNumber(set)}`;
     const hasBox = /emVal|bmRows|opbcMount/.test(boxBlocks);
     const soon = hasBox
-      ? t("히트카드 TOP 10과 PSA 통계는 집계 중입니다. 박스 시세는 아래에서 먼저 확인하세요.", "Top 10 chase cards and PSA stats are still being compiled — box market data is available below.")
-      : t("이 세트는 아직 시세 데이터를 수집 중입니다. 준비되는 대로 반영됩니다.", "Price data for this set is still being collected and will appear once ready.");
+      ? t("히트카드 TOP 10 · PSA 통계: 집계 중", "Top 10 chase cards · PSA stats: collecting")
+      : t("시세 데이터: 수집 중", "Price data: collecting");
     el.innerHTML = `<div class="detailHead"><img class="detailBox" width="82" height="112" src="${set.box || FALLBACK}" alt="${pack.code} ${t("박스", "box")}" loading="lazy" decoding="async" onerror="this.src='${FALLBACK}'" /><div class="detailInfo"><p class="eyebrow">${pack.code} · ${t("부스터 박스", "Booster Box")}${setBadges(pack.code)} ${pinBtnHtml(pack.code)}</p><h2>${packName(pack)} <small>${packSubName(pack)}</small></h2><p class="pendingCards">${soon}</p><p class="setGuideLinks"><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}.html">${t("세트 가이드 →", "Set guide →")}</a><a class="setGuideLink" href="sets/${pack.code.toLowerCase()}-english.html">${t("영문판 박스 →", "English box →")}</a></p>${hasBox ? `${ebayLinks(pack)}${boxBlocks}${renderDataNotice()}` : ""}</div></div>`;
     el.querySelectorAll(".marketLinks a, .buyLink").forEach((a) => a.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1819,11 +1558,9 @@ function renderDetail() {
   if (state.view === "psa" && !hasPsa) state.view = "hits";
   // 2026-08-17 에 원화·엔화 병기를 없애고 달러 단일 표기가 됐는데 이 안내문만 옛말을 하고 있었다 —
   // "환산값을 함께 표시합니다"라는 없는 기능을 안내하면 사용자가 존재하지 않는 표기를 찾는다(2026-08-26 감사).
-  const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">${t("가격은 USD 기준입니다.", "Prices are shown in USD.")} ${t("참고 환율", "FX reference")}: $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}.</p>`
+  const body = state.view === "psa" ? renderPsaTable(set.psa, set.psaUpdated) : renderSourceLegend(set) + `<p class="srcNote">USD · ${t("참고 환율", "FX reference")} $1 = ₩${state.data.fx.usdKrw} / ¥1 = ₩${state.data.fx.jpyKrw}</p>`
       // 확대창에 등급 인구가 들어갔는데 눌러볼 수 있다는 걸 알 방법이 없었다 — 그리드 바로 위에서 알린다.
-      + `<p class="srcNote zoomHint">${t(
-        "카드 이미지를 누르면 크게 보기와 함께 PSA·CGC·TAG 등급 비율을 확인할 수 있습니다.",
-        "Tap a card image to enlarge it and see its PSA, CGC and TAG grade rates.")}</p>`
+      + `<p class="srcNote zoomHint">${t("카드 이미지 → 크게 보기 · PSA·CGC·TAG 등급", "Card image → enlarge · PSA / CGC / TAG grades")}</p>`
       + renderHitList(cards);
   const fullPsaRate = set.psaFull?.gemRate ?? set.psaGem ?? "-";
   const fullPsaTotal = set.psaFull?.total ?? set.psaTotal;

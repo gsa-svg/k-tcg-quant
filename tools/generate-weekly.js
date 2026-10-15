@@ -98,9 +98,10 @@ let gradeTable = "", gradeWeek = null;
     gradeWeek = latest;
     const cur = rows.filter((r) => r.d === latest).sort((a, b) => b.v - a.v);
     const total = cur.reduce((a, r) => a + r.v, 0);
+    // 2026-10-15: 외부 업체명(가드 S4 원칙)과 해석 문장("Grades measure submission activity, not boxes opened.")을 뺐다 — 라벨만.
     gradeTable = `<h2 id="grading" data-ko="이번 주 PSA 등급 증가 — 세트별">PSA grades added this week — by set</h2>
-      <p class="note" data-ko="GemRate 세트 집계 주간 델타 · 주 ${esc(latest)} · 합계 ${total.toLocaleString("en-US")}장 · 일본판. 등급 수는 제출 활동이지 박스 개봉 수가 아닙니다.">GemRate set-level weekly delta · week of ${esc(latest)} · total ${total.toLocaleString("en-US")} · Japanese. Grades measure submission activity, not boxes opened.</p>
-      <div style="overflow-x:auto"><table class="wkTable">
+      <p class="note" data-ko="PSA 세트 집계 주간 델타 · 주 ${esc(latest)} · 합계 ${total.toLocaleString("en-US")}장 · 일본판">PSA set-level weekly delta · week of ${esc(latest)} · total ${total.toLocaleString("en-US")} · Japanese</p>
+      <div style="overflow-x:auto"><table class="wkTable tblFit">
         <thead><tr><th>Set</th><th>Name</th><th>New PSA grades</th><th>Prev week</th><th>WoW</th></tr></thead>
         <tbody>
 ${cur.map((r) => `<tr><td><a href="sets/${r.code.toLowerCase()}.html">${esc(r.code)}</a></td><td>${esc(r.name)}</td><td class="num"><b>${r.v.toLocaleString("en-US")}</b></td><td class="num">${r.prev != null ? r.prev.toLocaleString("en-US") : "—"}</td>${pctCell(r.prev ? (r.v / r.prev - 1) * 100 : null)}</tr>`).join("\n")}
@@ -109,7 +110,10 @@ ${cur.map((r) => `<tr><td><a href="sets/${r.code.toLowerCase()}.html">${esc(r.co
 }
 
 const title = `One Piece Box Prices This Week — week ending ${weekEnd}`;
-const desc = `Week ending ${weekEnd}: ${up} Japanese boxes up, ${down} down week over week; ${volJp} JP and ${volEn} EN completed box sales tracked. Tables from our eBay sold ledger, dated per row.`;
+// 설명문 = 표에 보이는 값만(2026-10-15 소유자 결정). "Tables from our eBay sold ledger, dated per row." 같은 사이트 설명을 빼고(162자 → 160자 초과였다)
+// 표 1행(WoW 가장 큰 일본판 세트)을 넣는다. 값·표기는 표 WoW 칸(pctCell)과 같다.
+const topJp = jpThis.slice().sort((a, b) => b.wow - a.wow)[0] || null;
+const desc = `Week ending ${weekEnd}: ${up} Japanese boxes up, ${down} down week over week${topJp ? ` · top ${topJp.code} ${topJp.wow > 0 ? "+" : ""}${topJp.wow.toFixed(1)}%` : ""} · ${volJp} JP and ${volEn} EN completed eBay box sales.`;
 const ld = JSON.stringify({
   "@context": "https://schema.org", "@type": "Dataset",
   name: "One Piece booster box prices — weekly table", description: desc, url: `${SITE}/weekly.html`,
@@ -119,6 +123,7 @@ const ld = JSON.stringify({
   // 내려받기 파일을 걸지 않는다 — opbox-set-prices.csv 는 이 주간 표가 아니라 세트별 현재 시세 스냅샷이다(기간이 다르다, 2026-10-14 QA).
 });
 
+// 2026-10-15 소유자 결정: 정의 줄은 라벨 토막만 — "(same figure as the home page)" 같은 설명과 "Sets without a point … are dimmed" 문장을 범례 라벨로 바꿨다.
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -175,7 +180,7 @@ const html = `<!doctype html>
         <span data-ko-html="이번 주 실거래 <b>${volJp}</b> JP · <b>${volEn}</b> EN">Completed sales this week <b>${volJp}</b> JP · <b>${volEn}</b> EN</span>
         <span data-ko-html="세트 <b>${ORDER.length}</b> · USD · 이베이 즉시구매 실거래">Sets <b>${ORDER.length}</b> · USD · eBay Buy-It-Now sales</span>
       </div>
-      <p class="note" data-ko-html="이번 주 = 주간 점 ${esc(weekEnd)}. &quot;Last week&quot;는 정확히 7일 전 점(없으면 —). 4-wk = 28일 이상 전 마지막 점 대비(홈과 같은 값). Sales = 그 주 실거래 건수, n = 중앙값이 딛고 선 표본. Listed = 지금 올라와 있는 검수 통과 매물 수(Δ = 7일 전 대비). 이번 주 점이 없는 세트는 흐리게, 마지막 판매 주를 표시. <a href=&quot;methodology.html#box-median&quot;>규칙</a>.">This week = the weekly point dated ${esc(weekEnd)}. "Last week" = the point exactly 7 days earlier (— if missing). 4-wk = vs the last point 28+ days earlier (same figure as the home page). Sales = completed sales that week; n = the sample under the median. Listed = verified listings on sale now (Δ vs 7 days earlier). Sets without a point this week are dimmed and show their last sale week. <a href="methodology.html#box-median">Rules</a>.</p>
+      <p class="note" data-ko-html="이번 주 = 주간 점 ${esc(weekEnd)} · &quot;Last week&quot; = 정확히 7일 전 점(없으면 —) · 4-wk = 28일 이상 전 마지막 점 대비 · Sales = 그 주 실거래 건수, n = 중앙값이 딛고 선 표본 · Listed = 지금 올라와 있는 검수 통과 매물 수(Δ = 7일 전 대비) · 흐린 행 = 이번 주 점 없음(wk = 마지막 판매 주) · <a href=&quot;methodology.html#box-median&quot;>규칙</a>">This week = the weekly point dated ${esc(weekEnd)} · "Last week" = the point exactly 7 days earlier (— if missing) · 4-wk = vs the last point 28+ days earlier · Sales = completed sales that week; n = the sample under the median · Listed = verified listings on sale now (Δ vs 7 days earlier) · dimmed row = no point this week (wk = last sale week) · <a href="methodology.html#box-median">Rules</a></p>
 
       <h2 id="jp" data-ko="일본판 박스 — 주간 변화">Japanese boxes — week over week</h2>
       ${table("jp", jpRows)}
