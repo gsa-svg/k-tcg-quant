@@ -50,6 +50,14 @@ function headVersion(rel) {
 }
 
 // 이 파일이 가져야 할 (datePublished, dateModified) — 파일에 쓰지 않고 계산만.
+const MON = Object.fromEntries(["january","february","march","april","may","june","july","august","september","october","november","december"].map((m, i) => [m, i + 1]));
+function latestAsOf(html) {
+  const body = html.replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<[^>]+>/g, " ");
+  let latest = "";
+  for (const m of body.matchAll(/\bas of (\d{4}-\d{2}-\d{2})/gi)) if (m[1] > latest) latest = m[1];
+  for (const m of body.matchAll(/\bas of ([A-Z][a-z]+) (\d{1,2}), (\d{4})/gi)) { const mo = MON[m[1].toLowerCase()]; if (mo) { const d = `${m[3]}-${String(mo).padStart(2, "0")}-${m[2].padStart(2, "0")}`; if (d > latest) latest = d; } }
+  return latest;
+}
 function wantedDates(rel, html, today) {
   const ld = articleLd(html);
   if (!ld) return null;
@@ -64,6 +72,9 @@ function wantedDates(rel, html, today) {
     else { mod = cur > headMod ? cur : (today > headMod ? today : headMod); reason = "body-changed"; }
   }
   if (mod < pub) mod = pub;
+  // 본문의 "as of <날짜>" 가 수정일보다 늦으면 그 날짜로 — 가드 U1 과 같은 정의(2026-10-16). 날짜 라벨만 바뀐 날은 body-same 이라
+  // 수정일이 멈추는데, as-of 만 앞선 채 수정일이 뒤처지면 크롤러에는 묵은 값으로 읽히고 무인 빌드가 U1 로 멈춘다(10-16 08:57 실제).
+  const asOf = latestAsOf(html); if (asOf && asOf > mod) { mod = asOf; reason += "+asof"; }
   return { pub, mod, reason };
 }
 
@@ -106,7 +117,10 @@ module.exports = { bodyKey, articleLd, wantedDates, applyDates, longDate, listAr
 
 if (require.main === module) {
   const check = process.argv.includes("--check");
-  const today = new Date().toISOString().slice(0, 10);
+  // "오늘" = max(UTC 오늘, 사실 파일 hubDate(데이터 최신일)) — 2026-10-16. 08:57 KST(=23:57Z) 무인 빌드에서 주입기가 "as of 2026-10-16"(시계열 최신 점)을
+  // 쓰는데 UTC 오늘은 10-15 라 dateModified 가 본문보다 일러 가드 U1 로 커밋이 막혔다(주간 점이 새로 생기는 날에만 재발).
+  const F = require("./build-site-facts").load();
+  const today = [new Date().toISOString().slice(0, 10), F.hubDate || ""].sort().pop();
   const changed = [], same = [], skipped = [];
   for (const rel of listArticles()) {
     const abs = path.join(ROOT, rel);

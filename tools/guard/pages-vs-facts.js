@@ -538,7 +538,10 @@ function cardLists() {
         cmp("G9", w, "total", first(cs[i] || "", /^([\d,]+|—)/), g ? g.total : null); if (g) { cmp("G9", w, "add", first(cs[i], /<small>([+\-−][\d,]+)<\/small>/), g.add); if (g.gem != null) cmp("G9", w, "gem", first(cs[i], /class="gem">([\d.]+)% top/), (g.gem / g.total) * 100); }
       }
     }
-    cmp("G9", "psa-grading.html", "updated", first(h, /updated (\d{4}-\d{2}-\d{2})/), F.dataDate);
+    // "updated" = 등급 표의 마지막 관측일(generate-psa-grading-page 와 같은 정의) — 2026-10-16. F.dataDate(packs.updated)와 대조하던 탓에
+    // 진행매물 수집으로 packs.updated 만 하루 앞선 날(10-15 워크플로) 등급 표는 10-14 인데 FAIL 하여 그날 관측이 커밋되지 못했다.
+    const gradeTo = Object.values(S).flatMap((s) => (s.gradingPage ? ["jp", "en"].flatMap((e) => ["psa", "cgc", "tag"].map((k) => (s.gradingPage[e] && s.gradingPage[e][k] && s.gradingPage[e][k].to) || "")) : [])).sort().pop() || F.dataDate;
+    cmp("G9", "psa-grading.html", "updated", first(h, /updated (\d{4}-\d{2}-\d{2})/), gradeTo);
   }
   if (exists("opbox-grading-population.csv")) {
     const [head, ...lines] = read("opbox-grading-population.csv").trim().split("\n").map((l) => l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/)), col = (r, n) => r[head.indexOf(n)];

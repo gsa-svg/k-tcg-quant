@@ -127,6 +127,12 @@ function sync({ fromGit = false, write = true } = {}) {
       if (g) fromHistory++; else seeded++;
       d = g || cur || TODAY;
     }
+    // 글의 JSON-LD dateModified 가 더 늦으면 그 날짜 — 2026-10-16. sync-article-dates 가 본문 "as of" 날짜를 수정일 하한으로 쓰게 되면서
+    // 본문 해시(날짜 제외)는 같아도 수정일이 앞설 수 있다. 사이트맵이 글보다 이르면 아래 감사·가드 SM1 이 막는다.
+    if (/^articles\//.test(file) || file === "compare.html") {
+      const ld = (fs.readFileSync(abs, "utf8").match(/"dateModified":\s*"(\d{4}-\d{2}-\d{2})"/) || [])[1];
+      if (ld && ld > d) d = ld;
+    }
     next[loc] = { h, d };
     if (cur === d) { same++; continue; }
     const out = cur
