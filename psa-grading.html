@@ -96,6 +96,17 @@
         .setCell img, .setCell .noImg { width: 34px; height: 34px; flex-basis: 34px; }
         .setCell span:not(.noImg) { min-width: 0; }
       }
+      table.kfTable { width: 100%; max-width: 640px; min-width: 0; margin: 12px 0 4px; font-size: 14px; }
+      .kfTable th, .kfTable td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; line-height: 1.45; word-break: keep-all; overflow-wrap: break-word; }
+      .kfTable time, .kfSrc time { white-space: nowrap; }
+      .kfTable th { width: 40%; color: var(--muted); font-size: 13px; font-weight: 600; }
+      .kfTable th a { color: var(--accent); font-weight: 700; }
+      .kfTable td b { color: var(--ink); font-weight: 700; }
+      .kfTable td small { color: var(--muted); font-size: 12px; }
+      .kfSrc { margin: 4px 0 0; max-width: 640px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+      .kfSrc a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+      @media (max-width: 720px) { table.kfTable { display: table; overflow: visible; -webkit-mask-image: none; mask-image: none; } }
+      @media (max-width: 640px) { .kfTable th { width: 36%; } .kfTable td small { display: block; } }
     </style>
   </head>
   <body>
@@ -108,6 +119,15 @@
       <p class="eyebrow">Grading population · PSA · CGC · TAG · updated 2026-10-14</p>
       <h1>One Piece PSA population report by set</h1>
       <nav class="nextLinks" aria-label="Next"><a href="/" data-ko="실시간 박스 시세 →">Live box prices →</a><a href="/amazon-lottery.html" data-ko="OP-18 아마존 응모 →">OP-18 Amazon invite →</a><a href="/sets/op-18.html" data-ko="OP-18 발매일 →">OP-18 release date →</a><a href="/sets/index.html" data-ko="전체 세트 가이드 →">All set guides →</a></nav>
+      
+      <table class="kfTable text" id="key-facts-table" aria-label="Grading population key facts"><tbody>
+            <tr data-k="psajp"><th scope="row"><span data-ko="PSA 등급 · 일본판">PSA graded · Japanese</span></th><td><b>727,092</b> <small>+16,269 09-30 → 10-07 · 88.7% PSA 10</small></td></tr>
+            <tr data-k="psaen"><th scope="row"><span data-ko="PSA 등급 · 영문판">PSA graded · English</span></th><td><b>696,013</b> <small>+10,087 09-30 → 10-07 · 86.9% PSA 10</small></td></tr>
+            <tr data-k="cgc"><th scope="row"><span data-ko="CGC 등급 · 일본판 / 영문판">CGC graded · JP / EN</span></th><td><b>128,441</b> / <b>70,901</b></td></tr>
+            <tr data-k="tag"><th scope="row"><span data-ko="TAG 등급 · 일본판 / 영문판">TAG graded · JP / EN</span></th><td><b>10,374</b> / <b>19,485</b></td></tr>
+            <tr data-k="sets"><th scope="row"><span data-ko="세트 수">Sets covered</span></th><td><b>22</b></td></tr>
+            <tr data-k="updated"><th scope="row"><span data-ko="기준일">Updated</span></th><td><time datetime="2026-10-14">2026-10-14</time></td></tr>
+          </tbody></table>
       <p class="lead">Cards in PSA, CGC and TAG holders per booster set · Japanese and English printings kept separate · change = new grades since each company's previous report</p>
 
       <div class="statRow">

@@ -9,7 +9,7 @@
 const fs = require("fs");
 const path = require("path");
 // <head>·푸터·제휴 고지·사이트맵 갱신은 set-page-shared.js 한 곳에서 온다(영문판 생성기와 공유).
-const { SITE, EPN, CSS_VER, esc, usd, intl, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, keyFactsHtml, KF_CSS, withChartCss, dataDesc } = require("./set-page-shared");
+const { SITE, EPN, CSS_VER, esc, usd, intl, AFF_TOP, FOOT, pageHead, upsertSitemap, buyCta, BUY_CTA_CSS, keyFactsHtml, KF_CSS, KF_CSS_ANY, kfTableAny, withChartCss, dataDesc } = require("./set-page-shared");
 // 화면 크기에 맞는 이미지 파생본(2026-10-08): 머리 박스 사진 670px→264px, 랭킹 썸네일 100KB→5KB. 없으면 원본.
 const { variant } = require("./image-variants");
 
@@ -795,6 +795,14 @@ function hubPage() {
   return `${head({ title, desc, canonical, ogType: "website", extraLd: ld })}
       <p class="eyebrow">Set Guides</p>
       <h1>One Piece booster box price guides — every Japanese set</h1>
+      ${/* Key facts(2026-10-16) — 세트 페이지와 같은 표를 허브에도: 값은 사실 파일 home(최저·최고 박스, 4주 등락 집계)·hubDate·order 그대로. */ ""}
+      ${kfTableAny([
+        ["sets", "Set guides", "세트 가이드", `<b>${ORDER.length}</b> <small><span data-ko="일본판 박스">Japanese box</span> · ${englishCount} <span data-ko="영문판 박스 페이지">English box pages</span> · ${Object.keys(CARD_LISTS).length} <span data-ko="공식 카드 리스트">official card lists</span></small>`],
+        ["range", "Box price range (JP)", "박스 시세 범위 (일본판)", F.home.cheapest && F.home.priciest ? `<b>$${intl(F.home.cheapest.usd)}–$${intl(F.home.priciest.usd)}</b> <small>${esc(F.home.cheapest.codes.join(", "))} · ${esc(F.home.priciest.code)}</small>` : "—"],
+        ["change", "4-week change", "4주 등락", `<b>${F.home.nUp} <span data-ko="상승">up</span> · ${F.home.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${F.home.withChg} sets with a median 28 days earlier</span></small>`],
+        ["movers", "Largest moves", "최대 등락", [F.home.topUp ? `${esc(F.home.topUp.code)} ${F.home.topUp.pct >= 0 ? "+" : ""}${F.home.topUp.pct}%` : null, F.home.topDn ? `${esc(F.home.topDn.code)} ${F.home.topDn.pct >= 0 ? "+" : ""}${F.home.topDn.pct}%` : null].filter(Boolean).join(" · ") || "—"],
+        ["asof", "Data", "기준일", `<time datetime="${esc(hubDate)}">${esc(hubDate)}</time> <small><span data-ko="이베이 완료 거래 중앙값">eBay completed-sale medians</span></small>`],
+      ], { label: "Set guides key facts" })}
       ${/* 표 머리 설명을 라벨 조각으로(2026-10-15 소유자 결정) — 종전 "dated per row by its median point" 같은 방법 설명 문장을 정의 조각만 남겼다. */ ""}
       <p class="priceNote">Japanese sealed booster box · Box price = rolling median of completed eBay sales · n = sales in its 28–56-day window · 4-wk change = vs the median 28 days earlier · — = no median dated within ${STALE_DAYS} days (6+ sales) · Data ${esc(hubDate)} · <a href="../methodology.html#box-median">How these are counted</a></p>
       <div style="overflow-x:auto">
@@ -1047,6 +1055,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
         .kindRow .kMed { text-align: left; font-size: 12px; }
         .kindHead { display: none; }
       }
+${KF_CSS_ANY}
     </style>
   </head>
   <body>
@@ -1058,6 +1067,15 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
     <main id="main-content" class="rankWrap">
       <p class="eyebrow">PSA 10 · Japanese printing · as of ${esc(asOf)}</p>
       <h1>Top 10 most valuable One Piece cards — PSA 10 sold prices</h1>
+      ${/* Key facts(2026-10-16) — 아래 statRow 와 같은 값(한 사실 한 값)을 표 꼴로 H1 바로 아래: 최고값·관측일·표본이 첫 화면에 날짜와 함께 보이게. */ ""}
+      ${kfTableAny([
+        ["highest", "Highest PSA 10 (sold median)", "최고 PSA 10 (판매 중앙값)", `<b>${usd(t1.psa)}</b> <small>${esc(t1.name)}${t1.number ? ` · ${esc(t1.number)}` : ""} · ${t1.n} <span data-ko="건">sales</span>${t1.updated ? ` · <time datetime="${esc(t1.updated)}">${esc(t1.updated)}</time>` : ""}</small>`],
+        ["ranked", "Cards ranked", "순위 카드 수", `<b>${rows.length}</b> <small><span data-ko="일본판 · 카드당 판매 3건 이상">Japanese printing · 3+ sales per card</span></small>`],
+        ["over1k", "Sold above $1,000", "$1,000 이상", `<b>${over1k}</b>`],
+        ["multiple", "PSA 10 ÷ ungraded (median)", "PSA 10 ÷ 미등급 (중앙값)", medMult ? `<b>${medMult.toFixed(1)}×</b>` : "—"],
+        ["graded", "PSA-graded copies (ranked cards)", "PSA 등급 수량 (순위 카드)", totalPop ? `<b>${intl(totalPop)}</b> <small>${gemPct}% PSA 10</small>` : "—"],
+        ["asof", "As of", "기준일", `<time datetime="${esc(asOf)}">${esc(asOf)}</time>`],
+      ], { label: "PSA 10 ranking key facts" })}
       <p class="lead">Median of completed eBay sales · at least 3 sales per card · USD</p>
 
       <div class="statRow">

@@ -437,7 +437,8 @@ function articles() {
   }
   for (const [f, pick] of [["articles/one-piece-booster-box-price-guide.html", (cs) => [cs[1], cs[2], cs[3]]], ["articles/japan-vs-english.html", (cs) => [cs[1], cs[2], null]], ["articles/japanese-vs-english-box-price-data-2026.html", (cs) => [cs[cs.length - 3], cs[cs.length - 2], cs[cs.length - 1]]]]) {
     if (!exists(f)) continue;
-    const h = read(f), body = first(h, /<tbody[^>]*>([\s\S]*?)<\/tbody>/) || "";
+    // Key facts 표(kfTable, 2026-10-16 — H1 바로 아래 plain <tbody>)는 가격 표가 아니다 — 첫 tbody 를 읽기 전에 걷어낸다.
+    const h = read(f).replace(/<table class="kfTable[\s\S]*?<\/table>/g, ""), body = first(h, /<tbody[^>]*>([\s\S]*?)<\/tbody>/) || "";
     let n = 0;
     for (const tr of rows(body)) {
       const cs = cells(tr), code = first(strip(cs[0] || ""), /((?:OP|EB|PRB)-\d{2})/), s = S[code]; if (!s || cs.length < 3) continue;

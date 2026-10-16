@@ -15,6 +15,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { navHtml } = require("./site-nav");
+const { KF_CSS_ANY, kfTableAny } = require("./set-page-shared");
 
 const ROOT = path.resolve(__dirname, "..");
 const OUT = path.join(ROOT, "psa-grading.html");
@@ -184,6 +185,7 @@ const html = `<!doctype html>
         .setCell img, .setCell .noImg { width: 34px; height: 34px; flex-basis: 34px; }
         .setCell span:not(.noImg) { min-width: 0; }
       }
+${KF_CSS_ANY}
     </style>
   </head>
   <body>
@@ -195,6 +197,16 @@ const html = `<!doctype html>
     <main id="main-content" class="pgWrap">
       <p class="eyebrow">Grading population · PSA · CGC · TAG · updated ${esc(updated)}</p>
       <h1>One Piece PSA population report by set</h1>
+      ${/* Key facts(2026-10-16) — 구글 'psa population'(3개월 13노출·68위)이 닿는 페이지: 전체 PSA 등급 합계·증감 창·PSA 10 비율·기준일을 H1 바로 아래 표로.
+            값은 아래 statRow 의 K(세트 행 합계)와 같다(한 사실 한 값). */ ""}
+      ${kfTableAny([
+        ["psajp", "PSA graded · Japanese", "PSA 등급 · 일본판", `<b>${n(K.jppsa.total)}</b> <small>${sn(K.jppsa.add)} ${esc(win("psa", "jp"))}${K.jppsa.gem ? ` · ${pct(K.jppsa.gem, K.jppsa.total)} PSA 10` : ""}</small>`],
+        ["psaen", "PSA graded · English", "PSA 등급 · 영문판", `<b>${n(K.enpsa.total)}</b> <small>${sn(K.enpsa.add)} ${esc(win("psa", "en"))}${K.enpsa.gem ? ` · ${pct(K.enpsa.gem, K.enpsa.total)} PSA 10` : ""}</small>`],
+        ["cgc", "CGC graded · JP / EN", "CGC 등급 · 일본판 / 영문판", `<b>${n(K.jpcgc.total)}</b> / <b>${n(K.encgc.total)}</b>`],
+        ["tag", "TAG graded · JP / EN", "TAG 등급 · 일본판 / 영문판", `<b>${n(K.jptag.total)}</b> / <b>${n(K.entag.total)}</b>`],
+        ["sets", "Sets covered", "세트 수", `<b>${rows.length}</b>`],
+        ["updated", "Updated", "기준일", `<time datetime="${esc(updated)}">${esc(updated)}</time>`],
+      ], { label: "Grading population key facts" })}
       <p class="lead">Cards in PSA, CGC and TAG holders per booster set · Japanese and English printings kept separate · change = new grades since each company's previous report</p>
 
       <div class="statRow">

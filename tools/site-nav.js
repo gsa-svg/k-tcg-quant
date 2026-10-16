@@ -102,6 +102,13 @@ function upcomingGuideItems() {
   try { pages = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "upcoming-set-pages.json"), "utf8")).pages || []; } catch { return []; }
   return pages.filter((p) => p.slug && p.code).map((p) => [`${p.code} release date`, `/sets/${p.slug}.html`, `${p.code} 발매일`]);
 }
+// 한국어판 발매 예정 세트 링크 — 2026-10-16. ko/op-18·ko/eb-05(10/16 신설)로 들어오는 내부 링크가 영문 세트 페이지의 hreflang 뿐(각 2)이었다.
+//   영문 푸터(upcomingGuideItems)와 같은 JSON 에서 "<코드> 발매일" → /ko/<slug>.html.
+function upcomingGuideItemsKo() {
+  let pages = [];
+  try { pages = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "upcoming-set-pages.json"), "utf8")).pages || []; } catch { return []; }
+  return pages.filter((p) => p.slug && p.code).map((p) => [`${p.code} 발매일`, `/ko/${p.slug}.html`]);
+}
 // 세 번째 칸 = 한국어 토글 라벨(data-ko) — 2026-10-13 QA: 영문 페이지를 한국어로 바꿔도 이 줄이 통째로 영어로 남았다.
 // 2026-10-14(W6b): "Packs & MSRP"(팩 수·세트별 정가 글 — 들어오는 내부 링크가 4개뿐이었다)·카드 리스트 허브·글 허브를 더했다.
 // 일본어 발매일 표(ja/)는 파일이 있을 때만 — 푸터는 모든 페이지에 깔리므로 없는 주소를 걸지 않는다.
@@ -115,7 +122,7 @@ const GUIDE_ITEMS = [
   ...JA_RELEASE,
 ];
 const GUIDE_ITEMS_KO = [
-  ["부스터 박스", "/ko/"], ["이번 주", "/weekly.html"], ["세트 가이드", "/sets/index.html"], ["전체 박스 시세", "/box-prices.html"], ["팩 수·정가", "/articles/how-many-packs-one-piece-booster-box.html"], ["카드 시세", "/ko/cards.html"], ["카드 리스트", "/sets/index.html#card-lists"], ["PSA10 랭킹", "/psa10-ranking.html"],
+  ["부스터 박스", "/ko/"], ["이번 주", "/weekly.html"], ["세트 가이드", "/sets/index.html"], ...upcomingGuideItemsKo(), ["전체 박스 시세", "/box-prices.html"], ["팩 수·정가", "/articles/how-many-packs-one-piece-booster-box.html"], ["카드 시세", "/ko/cards.html"], ["카드 리스트", "/sets/index.html#card-lists"], ["PSA10 랭킹", "/psa10-ranking.html"],
   ["그레이딩 통계", "/ko/grading.html"], ["세트 비교", "/compare.html"], ["가이드", "/articles/"], ["무료 데이터", "/free-data.html"], ["아마존 응모", "/ko/amazon-lottery.html"], ["English", "/"],
   ...JA_RELEASE,
 ];

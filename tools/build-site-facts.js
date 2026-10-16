@@ -527,6 +527,9 @@ function buildSet(src, code, datasetUpdatedOn) {
   const cardFacts = cards.map((c, i) => buildCard(src, code, c, i, spikes, datasetUpdatedOn, ctx));
   // 가장 비싼 카드 = 검증된 NM 최댓값(동가는 ties). 검증 안 된 값이 1위 값 이상이면 null — 세트 페이지·한국어·비교표가 같은 값.
   const pc = N.priciest(cards, fx);
+  // Key facts 'Top chase (raw NM)' 행(2026-10-16) — 비교표 topUsd·가장 비싼 카드 문장과 같은 priciest 값을 두 판 모델에 같이 둔다(생성기 재계산 없음).
+  const chase = pc ? { number: pc.card.number || null, name: pc.card.name || null, usd: pc.price.usd, date: pc.price.date || null } : null;
+  kfJp.chase = chase; kfEn.chase = chase;
   const idx = (card) => cards.indexOf(card);
   const top10 = cards.slice(0, 10);
   const counted = N.countedValues(top10, fx);

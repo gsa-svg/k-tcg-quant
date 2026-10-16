@@ -34,7 +34,7 @@ const AFF_TOP = `<p class="affTop"><b>Paid Link:</b> As an eBay Partner Network 
 // 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도(사실 파일 cards[i].rarity — 세트·한국어·AI 피드와 같은 코드, 2026-10-15).
 // H1 의 작은 레어도 표기도 같은 코드 — 2026-10-15(3차): H1 은 원본 c.rarity(EB03-026 "· SR"), 같은 페이지 "Rarity label" 은 공식 SP 라 한 페이지에 두 값이었다.
 // <title> 과 H1 의 카드 이름은 그대로 둔다(SEO 민감 요소).
-const { buyCta, BUY_CTA_CSS } = require("./set-page-shared");
+const { buyCta, BUY_CTA_CSS, KF_CSS, kfTableAny } = require("./set-page-shared");
 const usd = (n) => (n == null ? null : "$" + Math.round(n).toLocaleString("en-US"));
 const jpy = (n) => (n == null ? null : "¥" + Math.round(n).toLocaleString("en-US"));
 const intl = (n) => (n == null ? "" : Number(n).toLocaleString("en-US"));
@@ -644,6 +644,7 @@ const hub = `<!doctype html>
       .clList { list-style: none; padding: 0; margin: 8px 0 18px; max-width: 760px; columns: 2; column-gap: 24px; font-size: 14px; line-height: 1.9; color: var(--muted); }
       .clList li { break-inside: avoid; }
       @media (max-width: 560px) { .clList { columns: 1; } }
+${KF_CSS}
     </style>
   </head>
   <body>
@@ -655,7 +656,14 @@ const hub = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Card Prices</p>
       <h1>PSA 10 vs raw price: One Piece card value list</h1>
-      <p>Cards with raw NM and PSA 10: <b>${gradedRows.length}</b> · one row per printing variant · as of ${DATA_DATE}</p>
+      ${/* Key facts(2026-10-16) — 머리 줄("Cards with raw NM and PSA 10: N … as of")을 표 꼴로: 같은 N·같은 날짜에 최고 PSA 10 값·관측일 범위를 더한다(값은 gradedRows 그대로). */ ""}
+      ${kfTableAny([
+        ["cards", "Cards with raw NM and PSA 10", "NM·PSA 10 둘 다 있는 카드", `<b>${gradedRows.length}</b> <small><span data-ko="인쇄 변형당 한 행">one row per printing variant</span></small>`],
+        gradedRows[0] ? ["highest", "Highest PSA 10 (sold median)", "최고 PSA 10 (판매 중앙값)", `<b>${money(gradedRows[0].psaUsd)}</b> <small>${esc(gradedRows[0].name)} · ${esc(gradedRows[0].number)} · ${gradedRows[0].n} <span data-ko="건">sales</span>${gradedRows[0].psaDate ? ` · <time datetime="${esc(gradedRows[0].psaDate)}">${esc(gradedRows[0].psaDate)}</time>` : ""}</small>`] : null,
+        psaDates.length ? ["psadates", "PSA 10 sold dates", "PSA 10 판매일 범위", `<time datetime="${esc(psaDates[0])}">${esc(psaDates[0])}</time> – <time datetime="${esc(psaDates.at(-1))}">${esc(psaDates.at(-1))}</time>`] : null,
+        nmDates.length ? ["nmdates", "Raw NM observed", "NM 관측일", `<time datetime="${esc(nmDates[0])}">${esc(nmDates[0])}</time>${nmDates[0] !== nmDates.at(-1) ? ` – <time datetime="${esc(nmDates.at(-1))}">${esc(nmDates.at(-1))}</time>` : ""}`] : null,
+        ["asof", "As of", "기준일", `<time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time>`],
+      ], { label: "Card value list key facts" })}
       ${AFF_TOP}
       ${gradedTable}
       <h2 id="tracked-cards">Raw NM price by card</h2>

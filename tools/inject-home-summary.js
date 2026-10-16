@@ -260,6 +260,25 @@ console.error("wrote box-prices.html");
   }
 }
 
+// 홈 H1 바로 아래 Key facts 표 — 2026-10-16. ChatGPT 착지 1위가 홈(28일 19세션)인데 첫 화면엔 라벨 칩뿐이고 숫자·날짜는 JS 시세판 뒤에 있었다.
+//   값은 사실 파일 home(최저·최고 박스, 4주 등락 집계)·order.board·dataDate 그대로 — 아래 HOME_SUMMARY 문답·box-prices 와 같은 값.
+{
+  const { KF_CSS_ANY, kfTableAny } = require("./set-page-shared");
+  const H = F.home;
+  const kf = kfTableAny([
+    H.cheapest && H.priciest ? ["range", "Japanese box price range", "일본판 박스 시세 범위", `<b>${usd(H.cheapest.usd)}–${usd(H.priciest.usd)}</b> <small>${esc(H.cheapest.codes.join(", "))} · ${esc(H.priciest.code)}</small>`] : null,
+    ["sets", "Sets tracked", "추적 세트", `<b>${rows.length}</b> <small><span data-ko="일본판 박스 · 영문판 박스 페이지 · 공식 카드 리스트">Japanese boxes · English box pages · official card lists</span></small>`],
+    ["change", "4-week change", "4주 등락", `<b>${H.nUp} <span data-ko="상승">up</span> · ${H.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${H.withChg} sets with a median 28 days earlier</span></small>`],
+    ["asof", "Data", "기준일", `<time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time> <small><span data-ko="이베이 완료 거래 중앙값 · 매일">eBay completed-sale medians · daily</span></small>`],
+  ], { id: "home-key-facts", label: "Home key facts" });
+  const KF_START = "<!-- HOME_KEY_FACTS:START -->", KF_END = "<!-- HOME_KEY_FACTS:END -->";
+  const fp = path.join(ROOT, "index.html");
+  let h = fs.readFileSync(fp, "utf8");
+  if (!h.includes(KF_START) || !h.includes(KF_END)) throw new Error("index.html: HOME_KEY_FACTS 마커가 없다");
+  h = h.replace(new RegExp(`${KF_START}[\\s\\S]*?${KF_END}`), () => `${KF_START}<style>\n${KF_CSS_ANY}\n        .packHero table.kfTable { margin: 10px 0 2px; }\n        </style>\n        ${kf}\n        ${KF_END}`);
+  fs.writeFileSync(fp, h, "utf8");
+}
+
 let touched = 0;
 for (const f of ["index.html", "packs.html"]) {
   const fp = path.join(ROOT, f);

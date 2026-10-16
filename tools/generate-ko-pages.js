@@ -30,6 +30,16 @@ const DATA_DATE = F.dataDate;
 // 허브 "기준일"·"마지막 갱신" = 허브 표에 보이는 가장 늦은 중앙값 날짜(사실 파일 koHub.date) — 2026-10-15(5차): 표의 OP-07 행은 10-15 인데 둘 다 10-14(데이터 갱신일)였다.
 // <title>·og:title 의 날짜는 그대로 둔다(SEO 민감 요소).
 const HUB_DATE = F.koHub.date;
+// 발매 예정 세트 표(한국어 허브) — 2026-10-16. ko/op-18·ko/eb-05 로 가는 한국어 내부 링크가 0 이었다(푸터 제외). 값은 사실 파일 upcoming[code]
+//   (공식 발매일·이베이 최저 호가·호가 기준일) — ko/<slug>.html 과 같은 칸. 발매된 세트는 표에서 빠지지 않고 '발매됨' 으로 남는다(행 수 고정).
+const UPCOMING_ROWS = Object.entries(F.upcoming || {})
+  .sort((a, b) => (a[1].release.en || "").localeCompare(b[1].release.en || ""))
+  .map(([code, u]) => {
+    const usd = (n) => (n == null ? "—" : `$${Math.round(n).toLocaleString("en-US")}`);
+    const ask = [["일본판", u.ask && u.ask.jp], ["영문판", u.ask && u.ask.en]].filter(([, a]) => a && a.best).map(([ed, a]) => `${ed} ${usd(a.best.total)}`).join(" · ");
+    const t = (iso) => `<time datetime="${esc(iso)}">${esc(iso)}</time>`;
+    return `            <tr><td class="l"><a href="${esc(u.slug)}.html"><strong>${esc(code)}</strong></a></td><td>${t(u.release.en)}${u.released.en ? " · 발매됨" : ""}</td><td>${t(u.release.jp)}${u.released.jp ? " · 발매됨" : ""}</td><td>${ask || "—"}${ask && u.askAsOf ? ` <small>(${esc(u.askAsOf)})</small>` : ""}</td></tr>`;
+  }).join("\n");
 
 // 세트번호 자연정렬(OP-01..OP-16, EB-01..EB-03, PRB-01..PRB-02) — 사실 파일 order.board.
 const BOARD = Object.fromEntries(F.board.map((b) => [b.code, b]));
@@ -288,6 +298,18 @@ ${tableRows}
         </div>
       </section>
 
+${UPCOMING_ROWS ? `      <section aria-label="발매 예정 세트">
+        <h2>발매 예정 세트 · 발매일</h2>
+        <div style="overflow-x:auto">
+        <table class="koBoard">
+          <thead><tr><th class="l">세트</th><th>영문판 발매일</th><th>일본판 발매일</th><th>최저 호가 (이베이 · 배송비 포함)</th></tr></thead>
+          <tbody>
+${UPCOMING_ROWS}
+          </tbody>
+        </table>
+        </div>
+      </section>
+` : ""}
       <section aria-label="주제별 데이터">
         <h2>주제별 데이터</h2>
         ${/* 링크 + 라벨만 — "셋 다 자체 수집 데이터로 매일 갱신됩니다"·"호가가 아닌 실제 …" 설명 문장은 지웠다(2026-10-15 소유자 결정) */ ""}

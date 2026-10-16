@@ -83,11 +83,32 @@ if (rows.length < 10) throw new Error(`세트가 ${rows.length}개뿐 — 시계
 const html = tableHtml(rows, F.compare.asOf || "");
 const out = ["compare.html", "articles/best-one-piece-booster-box.html"].map((f) => inject(f, html));
 
+
 // 글의 수정일(JSON-LD dateModified·화면 Updated)을 표의 "As of" 날짜에 맞춘다.
 // 2026-09-30 발견: 표는 매일 바뀌는데 수정일이 2026-08-10 에 멈춰 있었다(가드 U1).
 const MONTH = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => { const [y, m, d] = iso.split("-").map(Number); return `${MONTH[m - 1]} ${d}, ${y}`; };
 const asOf = F.compare.asOf || "";
+// Key facts 표(compare.html H1 바로 아래) — 2026-10-16. 값은 사실 파일 home(최저·최고 일본판 박스, 4주 등락 집계)·compare.asOf 와 이 표의 행(EN 중앙값 범위) 그대로.
+{
+  const { KF_CSS_ANY, kfTableAny } = require("./set-page-shared");
+  const H = F.home;
+  const withJp = rows.filter((r) => r.jp != null).length, withEn = rows.filter((r) => r.en != null).length;
+  const enRows = rows.filter((r) => r.en != null).sort((a, b) => a.en - b.en);
+  const kf = kfTableAny([
+    ["sets", "Sets compared", "비교 세트", `<b>${rows.length}</b> <small>${withJp} <span data-ko="일본판 중앙값">with a JP median</span> · ${withEn} <span data-ko="영문판 중앙값">with an EN median</span></small>`],
+    H.cheapest && H.priciest ? ["jp", "JP box range", "일본판 박스 범위", `<b>${money(H.cheapest.usd)}–${money(H.priciest.usd)}</b> <small>${esc(H.cheapest.codes.join(", "))} · ${esc(H.priciest.code)}</small>`] : null,
+    enRows.length ? ["en", "EN box range", "영문판 박스 범위", `<b>${money(enRows[0].en)}–${money(enRows.at(-1).en)}</b> <small>${esc(enRows[0].code)} · ${esc(enRows.at(-1).code)}</small>`] : null,
+    ["change", "4-week change (JP)", "4주 등락 (일본판)", `<b>${H.nUp} <span data-ko="상승">up</span> · ${H.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${H.withChg} sets with a median 28 days earlier</span></small>`],
+    ["asof", "As of", "기준일", `<time datetime="${esc(asOf)}">${esc(asOf)}</time> <small><span data-ko="이베이 완료 거래 중앙값">eBay completed-sale medians</span></small>`],
+  ], { label: "Set comparison key facts" });
+  const p = path.join(ROOT, "compare.html");
+  let s = fs.readFileSync(p, "utf8");
+  const re = /<!-- COMPARE_KEY_FACTS:START -->[\s\S]*?<!-- COMPARE_KEY_FACTS:END -->/;
+  if (!re.test(s)) throw new Error("compare.html: COMPARE_KEY_FACTS 마커가 없다");
+  s = s.replace(re, () => `<!-- COMPARE_KEY_FACTS:START --><style>\n${KF_CSS_ANY}\n      </style>\n      ${kf}\n      <!-- COMPARE_KEY_FACTS:END -->`);
+  fs.writeFileSync(p, s, "utf8");
+}
 if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {
   const p = path.join(ROOT, "articles/best-one-piece-booster-box.html");
   let s = fs.readFileSync(p, "utf8");

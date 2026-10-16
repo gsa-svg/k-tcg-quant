@@ -47,9 +47,12 @@ const nl = (s) => (crlf ? s.replace(/\n/g, "\r\n") : s);
 // 필수 자리 — 하나라도 없으면 쓰지 않고 실패로 끝낸다.
 const RE = {
   heading: /(<h2>The price gap right now: same set, two prices \()[^)<]*(\)<\/h2>)/,
-  tbody: /(<tbody[^>]*>)[\s\S]*?(<\/tbody>)/,
+  // 가격차 표의 tbody 만 — 2026-10-16. H1 아래 Key facts 표(plain <tbody>)가 앞에 오면서 "첫 tbody" 규칙이 그 표를 덮어썼다. 가격차 표의 style 속성으로 고정한다.
+  tbody: /(<tbody style="font-variant-numeric:tabular-nums;">)[\s\S]*?(<\/tbody>)/,
   note: /(<\/table>\s*<\/div>\s*<p [^>]*>)[\s\S]*?(<\/p>)/,
   dateModified: /("dateModified": ")[^"]*(")/,
+  // Key facts 표 자리(H1 바로 아래) — 2026-10-16. 인용 페이지에 값·기준일·표본만 담은 표(세트 페이지 kfTable 과 같은 꼴).
+  keyFacts: /<!-- JP_EN_KEY_FACTS:START -->[\s\S]*?<!-- JP_EN_KEY_FACTS:END -->/,
 };
 const missing = Object.keys(RE).filter((k) => !RE[k].test(html));
 if (missing.length) {
@@ -117,6 +120,18 @@ const opByPct = op.slice().sort((a, b) => a.pct - b.pct);
 const opLo = opByPct[0], opHi = opByPct[opByPct.length - 1];
 
 const before = html;
+
+// Key facts 표 — 2026-10-16. 값은 이 글의 표·설명 줄과 같은 pairs·tracked·lo/hi·jpLower·dataDate(한 사실 한 값).
+{
+  const { KF_CSS, kfTableAny } = require("./set-page-shared");
+  const kf = kfTableAny([
+    ["pairs", "Set pairs with fresh medians", "두 판 모두 최신 중앙값인 세트", `<b>${pairs.length}</b> <small><span data-ko="추적 ${tracked}쌍 중 · 두 판 모두 ${STALE_DAYS}일 안 날짜">of ${tracked} tracked · both editions dated within ${STALE_DAYS} days</span></small>`],
+    ["premium", "English premium range", "영문판 프리미엄 범위", `<b>${esc(pctTxt(lo.pct))} – ${esc(pctTxt(hi.pct))}</b> <small>${esc(lo.code)} · ${esc(hi.code)}</small>`],
+    ["jplower", "Japanese box cheaper", "일본판 박스가 더 쌈", `<b>${jpLower} <span data-ko="/">of</span> ${pairs.length}</b>`],
+    ["asof", "As of", "기준일", `<time datetime="${esc(dataDate)}">${esc(dataDate)}</time> <small><span data-ko="이베이 완료 거래 중앙값">eBay completed-sale medians</span></small>`],
+  ], { label: "Japanese vs English key facts" });
+  html = html.replace(RE.keyFacts, () => `<!-- JP_EN_KEY_FACTS:START --><style>\n${KF_CSS}\n      </style>\n      ${kf}\n      <!-- JP_EN_KEY_FACTS:END -->`);
+}
 
 // 제목 줄
 html = html.replace(RE.heading, (_m, a, b) => a + monthYear(dataDate) + b);

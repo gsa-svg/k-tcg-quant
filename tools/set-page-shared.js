@@ -249,6 +249,10 @@ function keyFactsHtml(m, { lang = "en", usdKrw = null } = {}) {
   row("cardlist", "Card list", "카드 리스트", cl
     ? `<b>${cl.cards}</b> <small>${t(`cards · ${cl.numbers} card numbers (Bandai card list)`, `장 · 카드 번호 ${cl.numbers}종 (반다이 카드 리스트)`)}</small>`
     : dash, cl ? `<a href="${esc(cl.href)}">${t("Card list", "카드 리스트")}</a>` : "");
+  // 'Top chase (raw NM)' 행 — 2026-10-16. 구글 질의 'op09 chase cards'(12위)·'op15 price guide'(15.5위)가 세트 페이지에 닿는데 Key facts 에 체이스 카드 값이 없었다.
+  //   값은 사실 파일 keyFacts.chase(= top10.priciest — 비교표 'Priciest card (raw)'·가장 비싼 카드 문장과 같은 값, tools/build-site-facts.js). 없으면 행을 그리지 않는다.
+  const ch = m.chase;
+  if (ch && ch.usd != null) row("chase", "Top chase (raw NM)", "최고가 카드 (NM)", `<b>${usd(ch.usd)}</b> <small>${esc(ch.name || "")}${ch.number ? ` · ${esc(ch.number)}` : ""}${ch.date ? ` · ${time(ch.date)}` : ""}</small>`);
 
   const src = m.sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">${t(x.en + (x.archived ? " (archived)" : ""), x.ko + (x.archived ? " (보관본)" : ""))}</a>${x.checked ? ` ${t("checked", "확인")} ${time(x.checked)}` : ""}`);
   const srcLine = src.length ? `<p class="kfSrc">${t("Bandai official", "반다이 공식")}: ${src.join(" · ")}</p>` : "";
@@ -272,6 +276,22 @@ const KF_CSS = `      .bodyPage table.kfTable { width: 100%; max-width: 640px; m
       @media (max-width: 720px) { .bodyPage table.kfTable { display: table; overflow: visible; -webkit-mask-image: none; mask-image: none; } }
       @media (max-width: 640px) { .bodyPage .kfTable th { width: 36%; } .bodyPage .kfTable td small { display: block; } }`;
 
+// 세트 페이지 밖(.bodyPage 가 아닌 main)의 같은 표 — 2026-10-16. rankWrap(psa10-ranking)·pgWrap(psa-grading)·comparePage·홈 hero 는 .bodyPage 가 아니라 KF_CSS 가 안 먹는다.
+const KF_CSS_ANY = KF_CSS.replace(/\.bodyPage /g, "");
+
+// 범용 Key facts 표(세트 페이지 밖) — 2026-10-16. ChatGPT 인용 18장 가운데 Key facts 표는 세트 페이지뿐이었고(10/14 추가), 빙 스니펫은 발매일
+//   ('May 30, 2026' 등)을 집어 와 갱신일이 묻혔다. 인용 페이지(psa10-ranking·cards/·psa-grading·japan-vs-english·compare·sets/·홈)에
+//   같은 꼴(값·기준일·표본만)을 H1 바로 아래 둔다. rows = [[k, labelEn, labelKo, valueHtml]] — 값은 호출한 생성기가 사실 파일에서 그대로 꺼낸 것.
+//   표 안에 eBay 링크를 두지 않는다(제휴 고지보다 앞). 날짜는 ISO <time>.
+function kfTableAny(rows, { id = "key-facts-table", label = "Key facts", lang = "en" } = {}) {
+  const ko = lang === "ko";
+  const t = (en, k) => (ko ? esc(k) : `<span data-ko="${esc(k)}">${esc(en)}</span>`);
+  const body = rows.filter(Boolean).map(([k, en, k2, v]) => `<tr data-k="${k}"><th scope="row">${t(en, k2)}</th><td>${v}</td></tr>`);
+  return `<table class="kfTable text" id="${esc(id)}" aria-label="${esc(label)}"><tbody>
+            ${body.join("\n            ")}
+          </tbody></table>`;
+}
+
 // 세트·영문세트·카드 생성기가 각자 인라인 <style> 에 넣는다(세 곳 모두 styles.css 를 따로 안 쓴다).
 const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-items: flex-start; gap: 2px; min-height: 52px; padding: 7px 16px;
         background: rgba(16,215,160,.16); border-color: rgba(16,215,160,.55); color: #10d7a0; }
@@ -282,4 +302,4 @@ const BUY_CTA_CSS = `      .ctaRow a.buyNow { flex-direction: column; align-item
       .ctaRow a.buyNow .buyAsOf { font-style: normal; font-size: 11.5px; color: rgba(255,255,255,.55); }
       .ctaRow a.buyNow .buyOff + .buyAsOf { margin-left: 8px; }`;
 
-module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, keyFactsHtml, KF_CSS, withChartCss, dataDesc };
+module.exports = { ROOT, SITE, EPN, CSS_VER, BoxChart, esc, usd, intl, monthYear, AFF_TOP, FOOT, foot, pageHead, upsertSitemap, epnUrl, buyCta, BUY_CTA_CSS, keyFactsHtml, KF_CSS, KF_CSS_ANY, kfTableAny, withChartCss, dataDesc };

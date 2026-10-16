@@ -394,13 +394,15 @@ function renderPage(page) {
       <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
       <h1>${escapeHtml(page.headline)}</h1>
       ${releaseBox(page)}
-      ${preorderTable(page)}
-      <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Updated <time datetime="${modified}">${displayDate(modified)}</time> · Published <time datetime="${page.published}">${displayDate(page.published)}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>
+      ${/* 2026-10-16: 'Product facts'(발매일·정가·팩 구성·카드 종류 — 공식 사실)를 예약가 표 위, 발매일 상자 바로 아래로. 빙 'op 18 release date' 5위·
+            'eb05 release date' US 9위는 전부 발매일 기사가 받고 이 세트 페이지는 두 질의 모두 30위 밖 — 첫 화면이 호가 표라 공식 사실이 뒤로 밀려 있었다. */ ""}
       <h2 data-ko="제품 정보">Product facts</h2>
       <table class="factTable text"><tbody>
           ${factRows}
       </tbody></table>
-      <p class="sourceNoteA">${page.sourceHtml}</p>${revealedTable(page)}${(() => {
+      <p class="sourceNoteA">${page.sourceHtml}</p>
+      ${preorderTable(page)}
+      <p class="articleMeta">Research and data: <a href="../about.html">OP Box Index</a> · Updated <time datetime="${modified}">${displayDate(modified)}</time> · Published <time datetime="${page.published}">${displayDate(page.published)}</time> · <a href="../methodology.html">Data sources &amp; methodology</a></p>${revealedTable(page)}${(() => {
         const p = CARD_LIST.productOf(page.code);
         return p ? `\n      <p class="revCount"><a href="${escapeHtml(page.slug)}-card-list.html" data-ko="${escapeHtml(page.code)} 공식 카드 리스트">${escapeHtml(page.code)} official card list</a> · <b>${p.counts.cards}</b> <span data-ko="장">cards</span> · <span data-ko="확인">checked</span> <time datetime="${p.checked}">${p.checked}</time></p>` : "";
       })()}
@@ -540,13 +542,14 @@ function renderPageKo(page) {
       <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 발매 예정 세트 · 공식 확인 ${page.modified}</p>
       <h1>${escapeHtml(page.code)} ${escapeHtml(name)} 발매일 · 예약판매 박스 가격</h1>
       ${releaseBoxKo(page)}
-      ${preorderTable(page, true)}
-      <p class="articleMeta">데이터: <a href="../about.html">OP Box Index</a> · 갱신 <time datetime="${modified}">${modified}</time> · 게시 <time datetime="${page.published}">${page.published}</time> · <a href="../methodology.html">출처·집계 방법</a></p>
+      ${/* 2026-10-16: 영문판과 같은 순서 — 제품 정보(공식 사실) → 예약가 표. */ ""}
       <h2>제품 정보</h2>
       <table class="factTable text"><tbody>
           ${factRows}
       </tbody></table>
-      <p class="sourceNoteA">${page.sourceHtml}</p>${koify(revealedTable(page))}${cardListHtml}
+      <p class="sourceNoteA">${page.sourceHtml}</p>
+      ${preorderTable(page, true)}
+      <p class="articleMeta">데이터: <a href="../about.html">OP Box Index</a> · 갱신 <time datetime="${modified}">${modified}</time> · 게시 <time datetime="${page.published}">${page.published}</time> · <a href="../methodology.html">출처·집계 방법</a></p>${koify(revealedTable(page))}${cardListHtml}
       <div class="koCta">
         <a class="primary" href="./">전 세트 시세표 →</a>
         <a class="ghost" href="../sets/${escapeHtml(page.slug)}.html">영문 상세 →</a>
