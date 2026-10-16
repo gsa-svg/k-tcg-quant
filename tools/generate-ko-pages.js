@@ -298,6 +298,14 @@ ${tableRows}
         </ul>
       </section>
 
+      ${/* 공식 카드 리스트 한국어판(ko/<code>-card-list.html) — 2026-10-16. 허브에서 가는 링크가 0 이라 EB-04 판은 들어오는 링크가 없는 고아였다. 라벨·수치만. */ ""}
+      <section aria-label="공식 카드 리스트">
+        <h2 id="card-lists">세트별 공식 카드 리스트 (일본판)</h2>
+        <ul class="koLinks">
+          ${F.cardLists.map((p) => `<li><a href="${p.slug}-card-list.html"><strong>${esc(p.code)}</strong> ${esc((F.sets[p.code] && F.sets[p.code].nameKo) || p.name || "")}</a> — 카드 ${p.counts.cards}장 · 번호 ${p.counts.numbers}종</li>`).join("\n          ")}
+        </ul>
+      </section>
+
       <div class="koCta">
         <a class="primary" href="amazon-lottery.html">아마존 응모 안내 →</a>
         <a class="ghost" href="../psa-grading.html">그레이딩 인구 데이터 →</a>

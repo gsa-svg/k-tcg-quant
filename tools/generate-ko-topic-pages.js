@@ -24,6 +24,8 @@ const won = (n) => (n == null || !isFinite(n) ? "—" : Math.round(n).toLocaleSt
 const num = (n) => (n == null ? "—" : Number(n).toLocaleString("ko-KR"));
 const codes = F.order.all;
 const nameKo = (c) => (F.sets[c] && F.sets[c].nameKo) || c;
+// 세트별 공식 카드리스트 한국어판(ko/<code>-card-list.html, 사실 파일 cardLists) — 2026-10-16. ko 카드리스트 23장으로 가는 링크가 세트 페이지 1장뿐이었다(EB-04 는 0).
+const CARD_LISTS = Object.fromEntries(F.cardLists.map((p) => [p.code, p]));
 
 // ── 카드 썸네일 — 자체 호스팅 경로만 쓴다(가드 I1: 외부 CDN 핫링크 금지).
 //    ko/ 는 루트보다 한 단계 아래라 상대경로에 ../ 를 붙인다. 맵에도 없고 자체호스팅 이미지도 없으면 이미지 없이 간다.
@@ -214,7 +216,7 @@ ${sTr}
   const allBlock = `
       <h2 id="all">세트별 전체 카드 시세 — ${rows.length}장 (일판 NM · 원화)</h2>
       <p class="koNote">일판 NM 시세 높은 순</p>
-${bySet.map((g) => `      <h3 id="set-${g.code.toLowerCase()}"><a href="${g.code.toLowerCase()}.html">${esc(g.code)} ${esc(nameKo(g.code))}</a> 카드 시세 (${g.list.length}장)</h3>
+${bySet.map((g) => `      <h3 id="set-${g.code.toLowerCase()}"><a href="${g.code.toLowerCase()}.html">${esc(g.code)} ${esc(nameKo(g.code))}</a> 카드 시세 (${g.list.length}장)${CARD_LISTS[g.code] ? ` · <a href="${g.code.toLowerCase()}-card-list.html">공식 카드 리스트 ${CARD_LISTS[g.code].counts.cards}장</a>` : ""}</h3>
       <div style="overflow-x:auto">
       <table class="koBoard">
         <thead><tr><th>#</th><th class="l">카드 (번호)</th><th>일판 NM 시세</th><th class="hideM">PSA 10 실낙찰</th></tr></thead>

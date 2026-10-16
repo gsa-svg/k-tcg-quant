@@ -4,8 +4,10 @@
  * Run: node tools/generate-upcoming-set-pages.js
  */
 const fs = require("fs");
-const { navHtml } = require("./site-nav");
+const { navHtml, navHtmlKo } = require("./site-nav");
 const { AFF_TOP, epnUrl } = require("./set-page-shared");
+const { detailRobotsMeta } = require("./adsense-review-gate");
+const { addUrls } = require("./sitemap-detail-urls");
 // 공식 카드리스트가 뜬 날(OP-18·EB-05) 이 페이지에서 바로 그 목록으로 — 2026-10-14(W7). 데이터 기준이라 생성 순서와 무관.
 const CARD_LIST = require("./card-list-shared");
 const path = require("path");
@@ -146,7 +148,7 @@ function salesCell(page, ed) {
   const span = pre.first === pre.last ? mmdd(pre.first) : `${mmdd(pre.first)}–${mmdd(pre.last)}`;
   return `${pre.median != null ? usd(pre.median) : "—"}<small data-ko="예약판매 · ${pre.sales}건 · 매물 ${pre.listings}개 · ${escapeHtml(span)}">presale · ${plural(pre.sales, "sale")} · ${plural(pre.listings, "listing")} · ${escapeHtml(span)}</small>`;
 }
-function preorderTable(page) {
+function preorderTable(page, ko = false) {
   const u = U(page);
   const sold = S(page);
   const rows = [["Japanese", "jp", "일본판"], ["English", "en", "영문판"]].map(([label, ed, ko]) => {
@@ -162,11 +164,15 @@ function preorderTable(page) {
   const allPre = !edReleased(page, "jp") && !edReleased(page, "en");
   const soldTh = allPre ? `<th data-ko="예약판매 거래 중앙값">Presale sold median</th>` : `<th data-ko="거래 중앙값">Sold median</th>`;
   const through = u.through;
-  return `
+  const table = `
       <h2 data-ko="${escapeHtml(page.code)} 예약판매 박스 가격(이베이)">${escapeHtml(page.code)} pre-order box prices on eBay</h2>
       <table class="factTable preTbl text"><thead><tr><th data-ko="판">Edition</th><th data-ko="최저 호가">Cheapest ask</th>${soldTh}</tr></thead><tbody>
           ${rows.join("\n          ")}
-      </tbody></table>
+      </tbody></table>`;
+  // 한국어판은 같은 표를 data-ko 로 바꿔 쓰고(koify), 정의 줄만 한국어로 — 값의 정의(무엇의 최저 호가·무엇의 중앙값·언제까지)뿐.
+  if (ko) return `${koify(table)}
+      <p class="sourceNoteA">최저 호가: 이베이 즉시구매 미개봉 박스 매물 · 배송비 포함${asOf ? ` · 기준일 ${escapeHtml(asOf)}` : ""} · 예약판매: 공식 발매일 전 이베이 완료 거래${through ? ` · ${escapeHtml(through)}까지` : ""} · 중앙값 = 서로 다른 매물 ${F.series.preReleaseMinListings}개 이상 판매</p>`;
+  return `${table}
       <p class="sourceNoteA">Cheapest ask: eBay fixed-price sealed-box listings, incl. shipping${asOf ? `, as of ${escapeHtml(asOf)}` : ""} · Presale: completed eBay sales before the official release date${through ? `, through ${escapeHtml(through)}` : ""} · median = ${F.series.preReleaseMinListings}+ different listings sold</p>`;
 }
 
@@ -337,6 +343,9 @@ function renderPage(page) {
     <script defer src="/track.js"></script>
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />
+    <link rel="alternate" hreflang="en" href="${canonical}" />
+    <link rel="alternate" hreflang="ko" href="${koCanonicalOf(page)}" />
+    <link rel="alternate" hreflang="x-default" href="${canonical}" />
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
@@ -423,8 +432,151 @@ function renderPage(page) {
 `;
 }
 
+// ── 한국어판 ko/<slug>.html — 2026-10-16. sets/op-18·eb-05 는 ko 짝이 없어 hreflang 이 0 이었다(세트 가이드는 ko 짝이 있을 때만 hreflang 을 낸다).
+//    같은 데이터(발매일·예약판매 호가·공식 사실·공개 카드·카드리스트 링크)를 한국어 라벨로 굽는다 — 문답·해설 없음(숫자·표·라벨만).
+//    라벨 번역은 영문 템플릿의 data-ko 한 곳만 유지한다: koify 가 data-ko 를 가진 요소의 글자를 그 값으로 바꾼다(lang-toggle.js 가 화면에서 하는 일과 같다).
+//    가드: 세트 페이지 검사(KF1·KO5·U2)는 발매 전 세트를 영문 짝처럼 뺀다(guard/seo.js). 한국어 고지 원문(EP1)·면책 한 줄(푸터)은 ko 규칙대로.
+//    사이트맵에는 addUrls 로 더하기만 한다(날짜는 sync-sitemap-lastmod 가 정한다).
+function koCanonicalOf(page) { return `https://opboxindex.com/ko/${page.slug}.html`; }
+function koify(html) {
+  return html.replace(/<(\w+)((?:(?!>)[\s\S])*?) data-ko="([^"]*)"((?:(?!>)[\s\S])*?)>([^<]*)<\/\1>/g, (_m, tag, a, ko, b) => `<${tag}${a}${b}>${ko}</${tag}>`);
+}
+const AFF_TOP_KO = `<p class="affTop"><b>Paid Link:</b> eBay 파트너 네트워크(EPN) 제휴사로서 eBay 링크를 통한 적격 구매가 발생하면 OP Box Index가 수수료를 받습니다.</p>`;
+const koDate = (iso) => new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+function staticLeftKo(iso) { return iso > TODAY ? "발매 예정" : iso === TODAY ? "오늘" : "발매됨"; }
+function releaseBoxKo(page) {
+  const rows = [["영문판", page.releaseEn], ["일본판", page.releaseJp]].sort((x, y) => x[1].localeCompare(y[1]));
+  const rowHtml = rows.map(([where, iso]) => `<div class="relRow"><span class="relWhere">${where}</span><b><time datetime="${iso}">${koDate(iso)}</time></b><span class="relLeft" data-release="${iso}">${staticLeftKo(iso)}</span></div>`).join("\n        ");
+  const ebay = epnUrl(`https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(`One Piece ${page.code} booster box`)}&_sop=10&customid=rel-ko-${page.slug}`);
+  return `<section class="relBox" aria-label="${escapeHtml(page.code)} 발매일">
+        ${rowHtml}
+        ${AFF_TOP_KO}
+        <p class="relBuy"><a class="relBtn" href="${escapeHtml(ebay)}" target="_blank" rel="noopener noreferrer sponsored">이베이 ${escapeHtml(page.code)} 예약판매 매물</a></p>
+      </section>`;
+}
+function renderPageKo(page) {
+  const canonical = `https://opboxindex.com/sets/${page.slug}.html`;
+  const koCanonical = koCanonicalOf(page);
+  const name = seoName(page);
+  const modified = pageModified(page);
+  const title = `${page.code} 발매일 · 예약판매 박스 가격 | opboxindex`;
+  // 설명문 = 이 페이지 표의 값만(발매일·최저 호가). 소개 문구 없음.
+  const u = U(page);
+  const askBits = [["일본판", u.ask.jp], ["영문판", u.ask.en]].filter(([, a]) => a && a.best).map(([ed, a]) => `${ed} ${usd(a.best.total)}`);
+  const desc = `${page.code} ${name} 부스터박스 발매일 영문판 ${page.releaseEn} · 일본판 ${page.releaseJp}${askBits.length ? ` · 최저 호가 ${askBits.join(" · ")} (이베이${u.askAsOf ? `, ${u.askAsOf} 기준` : ""})` : ""}`;
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "OP Box Index", item: "https://opboxindex.com/" },
+      { "@type": "ListItem", position: 2, name: "한국어 시세", item: "https://opboxindex.com/ko/" },
+      { "@type": "ListItem", position: 3, name: page.code, item: koCanonical },
+    ],
+  };
+  const webPage = { "@context": "https://schema.org", "@type": "WebPage", name: title, url: koCanonical, inLanguage: "ko", dateModified: modified };
+  const factRows = [...page.facts, marketStatusRow(page)]
+    .map(([label, value]) => `<tr><th scope="row">${escapeHtml(FACT_KO[label] || label)}</th><td>${escapeHtml(value)}</td></tr>`)
+    .join("\n          ");
+  const cl = CARD_LIST.productOf(page.code);
+  const cardListHtml = cl ? `\n      <p class="revCount"><a href="${escapeHtml(page.slug)}-card-list.html">${escapeHtml(page.code)} 공식 카드 리스트</a> · <b>${cl.counts.cards}</b> 장 · 확인 <time datetime="${cl.checked}">${cl.checked}</time></p>` : "";
+  return `<!doctype html>
+<!-- Generated by tools/generate-upcoming-set-pages.js; edit data/upcoming-set-pages.json. -->
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-P73SE1WVD0"></script>
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-P73SE1WVD0');</script>
+    <script defer src="/track.js"></script>
+    ${detailRobotsMeta()}
+    <link rel="canonical" href="${koCanonical}" />
+    <link rel="alternate" hreflang="ko" href="${koCanonical}" />
+    <link rel="alternate" hreflang="en" href="${canonical}" />
+    <link rel="alternate" hreflang="x-default" href="${canonical}" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <title>${escapeHtml(title)}</title>
+    <meta name="description" content="${escapeHtml(desc)}" />
+    <meta property="og:site_name" content="OP Box Index" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:description" content="${escapeHtml(desc)}" />
+    <meta property="og:url" content="${koCanonical}" />
+    <meta property="article:published_time" content="${page.published}" />
+    <meta property="article:modified_time" content="${modified}" />
+    <meta property="og:image" content="https://opboxindex.com/og/og-set-list.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json">${JSON.stringify(breadcrumbSchema)}</script>
+    <script type="application/ld+json">${JSON.stringify(webPage)}</script>
+    ${productSchemas(page, koCanonical).map((p) => `<script type="application/ld+json">${JSON.stringify(p)}</script>`).join("\n    ")}
+    <link rel="stylesheet" href="../styles.css?v=${CSS_VERSION}" />
+    <meta name="theme-color" content="#0a0c10" />
+    <style>
+      .factTable{width:100%;max-width:720px;border-collapse:collapse;margin:16px 0}.bodyPage table.factTable{width:100%;max-width:720px;min-width:0;font-size:14px}.bodyPage .factTable td{text-align:left;word-break:keep-all;overflow-wrap:break-word}.preTbl td small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}.preTbl td:first-child{white-space:nowrap}.factTable th,.factTable td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;vertical-align:top}.factTable th{width:36%;color:#9aa4b6;font-weight:600}.sourceNoteA{max-width:760px;color:#9aa4b6;font-size:13px;line-height:1.65}
+      .relBox{max-width:720px;margin:14px 0 18px;padding:12px 16px 14px;border:1px solid var(--accent-line);border-radius:12px;background:var(--accent-dim)}
+      .relRow{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+      .relWhere{flex:0 0 64px;color:var(--muted);font-size:13px;font-weight:600}
+      .relRow b{flex:1 1 auto;font-family:var(--font-display);font-size:19px;line-height:1.25;color:var(--ink)}
+      .relLeft{color:var(--accent);font-size:14px;font-weight:700;white-space:nowrap}
+      .relBox .affTop{margin:10px 0 0}
+      .relBuy{margin:10px 0 0}
+      .relBtn{display:inline-block;padding:9px 14px;border-radius:9px;background:var(--accent);color:#06222a;font-weight:700;font-size:14px;text-decoration:none}
+      .relBtn:hover,.relBtn:focus-visible{filter:brightness(1.08);text-decoration:underline}
+      @media (max-width:420px){.relWhere{flex-basis:100%}.relRow b{font-size:18px}}
+      .revTbl{font-size:14px}.revTbl th{width:auto}.revTbl th,.revTbl td{padding:7px 6px}.revTbl td:first-child{white-space:nowrap}.revTbl td small{display:block;color:var(--muted);font-size:11.5px;margin-top:2px}.revTbl td:last-child{white-space:nowrap}
+      .revCount{margin:4px 0 0;color:var(--muted);font-size:13px}.revCount b{color:var(--ink);font-family:var(--font-display);font-size:17px}
+      @media (max-width:720px){.bodyPage table.factTable,.revTbl{display:table;width:100%;-webkit-mask-image:none;mask-image:none}}
+      @media (max-width:420px){.revTbl{font-size:13px}.revTbl th,.revTbl td{padding:6px 4px}}
+      .koCta{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.koCta a{display:inline-block;padding:11px 18px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px}.koCta .primary{background:var(--accent);color:#08131a}.koCta .ghost{border:1px solid #2a3140;color:#cfd6e4}
+    </style>
+  </head>
+  <body>
+    <a class="skipLink" href="#main-content">본문으로 건너뛰기</a>
+    <header class="topbar">
+      <a class="brand" href="../"><span class="brandMark">OP</span><span><strong>OP Box Index</strong><small>부스터박스 리서치</small></span></a>
+      ${navHtmlKo(`ko/${page.slug}.html`, `/sets/${page.slug}.html`)}
+    </header>
+    <main id="main-content" class="bodyPage">
+      <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 발매 예정 세트 · 공식 확인 ${page.modified}</p>
+      <h1>${escapeHtml(page.code)} ${escapeHtml(name)} 발매일 · 예약판매 박스 가격</h1>
+      ${releaseBoxKo(page)}
+      ${preorderTable(page, true)}
+      <p class="articleMeta">데이터: <a href="../about.html">OP Box Index</a> · 갱신 <time datetime="${modified}">${modified}</time> · 게시 <time datetime="${page.published}">${page.published}</time> · <a href="../methodology.html">출처·집계 방법</a></p>
+      <h2>제품 정보</h2>
+      <table class="factTable text"><tbody>
+          ${factRows}
+      </tbody></table>
+      <p class="sourceNoteA">${page.sourceHtml}</p>${koify(revealedTable(page))}${cardListHtml}
+      <div class="koCta">
+        <a class="primary" href="./">전 세트 시세표 →</a>
+        <a class="ghost" href="../sets/${escapeHtml(page.slug)}.html">영문 상세 →</a>
+        <a class="ghost" href="amazon-lottery.html">아마존 응모 안내 →</a>
+      </div>
+    </main>
+    <footer class="footer">
+      <p>OP Box Index는 투자 권유가 아닌 데이터 기반 리서치 사이트입니다.</p>
+      <nav aria-label="정책 안내"><a href="../about.html">About</a><a href="../methodology.html">Methodology</a><a href="../privacy.html">Privacy</a><a href="../disclaimer.html">Disclaimer</a></nav>
+    </footer>
+    <script>
+      // 남은 날수를 방문자 날짜로 센다(정적 글자는 발매 예정/오늘/발매됨).
+      (function () {
+        var now = new Date(), today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        document.querySelectorAll(".relLeft[data-release]").forEach(function (el) {
+          var p = el.getAttribute("data-release").split("-"), d = Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - today) / 86400000);
+          el.textContent = d > 1 ? "D-" + d : d === 1 ? "내일" : d === 0 ? "오늘" : "발매됨";
+        });
+      })();
+    </script>
+  </body>
+</html>
+`;
+}
+
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+fs.mkdirSync(path.join(ROOT, "ko"), { recursive: true });
 for (const page of source.pages) {
   fs.writeFileSync(path.join(OUTPUT_DIR, `${page.slug}.html`), renderPage(page), "utf8");
+  fs.writeFileSync(path.join(ROOT, "ko", `${page.slug}.html`), renderPageKo(page), "utf8");
 }
-console.log(JSON.stringify({ pagesWritten: source.pages.length, sourceUpdated: source.updated }));
+const sm = addUrls(path.join(ROOT, "sitemap.xml"), source.pages.map((p) => ({ loc: koCanonicalOf(p), changed: false })));
+console.log(JSON.stringify({ pagesWritten: source.pages.length, koPagesWritten: source.pages.length, sitemapAdded: sm.added, sourceUpdated: source.updated }));

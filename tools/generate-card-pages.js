@@ -15,6 +15,9 @@ const { syncDetailUrls } = require("./sitemap-detail-urls");
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
 const F = require("./build-site-facts").load();
+// 세트별 공식 카드리스트(sets/<code>-card-list.html, 사실 파일 cardLists) — 2026-10-16. 카드 상세 116장·허브에서 가는 링크가 0 이라
+// 10-14 에 새로 난 46장이 GSC 에 '알려지지 않은 URL' 로 남았다(사이트맵만으로는 크롤 순서가 뒤로 밀린다).
+const CARD_LISTS = Object.fromEntries(F.cardLists.map((p) => [p.code, p]));
 // 경매 집계 기준일 — 경매 표 라벨 "last 45 days to <날짜>" 가 쓴다(수정일 pageDate 는 사실 파일이 같은 날짜로 센다). 카드리스트와 같은 값 — 2026-10-15.
 const AUC_DAY = F.cardAuction.day;
 const SITE = "https://opboxindex.com";
@@ -445,7 +448,7 @@ ${BUY_CTA_CSS}
             ${p10 ? `<div class="pc"><span>PSA 10 ${p10.kind === "sold" ? "(sold median)" : "(lowest listing)"}</span><b>${usd(p10.v)}</b><small>${p10.kind === "sold" ? `${p10.n} sales` : "ask, not a sale"} · ${esc(p10.date || "")}</small></div>` : ""}
             ${pop ? `<div class="pc"><span>PSA population</span><b>${intl(pop.total)}</b><small>${intl(pop.psa10)} in PSA 10 · ${pop.gem}% gem rate</small></div>` : ""}
           </div>
-          <p>Set: <a href="../sets/${setSlug}.html">${esc(`${code} ${s.nameEn || ""}`.trim())}</a>${c.rankShown ? ` · chase rank <b>#${rank}</b>` : ""}${boxMult && boxMult > 0.8 ? ` · raw NM ÷ sealed ${esc(code)} JP box: <b>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x</b> (${usd(boxUsd)} sold median, week of ${esc(boxAsOf)})` : ""}</p>
+          <p>Set: <a href="../sets/${setSlug}.html">${esc(`${code} ${s.nameEn || ""}`.trim())}</a>${CARD_LISTS[code] ? ` · <a href="../sets/${setSlug}-card-list.html">${esc(code)} card list</a>` : ""}${c.rankShown ? ` · chase rank <b>#${rank}</b>` : ""}${boxMult && boxMult > 0.8 ? ` · raw NM ÷ sealed ${esc(code)} JP box: <b>${boxMult >= 10 ? Math.round(boxMult) : boxMult.toFixed(1)}x</b> (${usd(boxUsd)} sold median, week of ${esc(boxAsOf)})` : ""}</p>
           <div class="ctaRow">
             ${psaBuy}
             <a class="${psaBuy ? "" : "primary"}" href="${ebayRaw}" target="_blank" rel="noopener noreferrer sponsored">Raw copies on eBay</a>
@@ -505,6 +508,7 @@ ${BUY_CTA_CSS}
       <p class="relatedHead">Related</p>
       <nav class="relatedLinks">
         <a href="../sets/${setSlug}.html">${esc(code)} set guide &amp; box price</a>
+        ${CARD_LISTS[code] ? `<a href="../sets/${setSlug}-card-list.html">${esc(code)} official card list — ${CARD_LISTS[code].counts.cards} cards</a>` : ""}
         <a href="../psa10-ranking.html">Most valuable PSA 10 cards</a>
         <a href="./">All tracked cards</a>
         <a href="../about.html">About the research</a>
@@ -637,6 +641,9 @@ const hub = `<!doctype html>
       .cardGrid b { display: block; font-size: 13px; margin-top: 7px; color: #eef2ff; line-height: 1.3; }
       .cardGrid small { color: var(--muted); font-size: 11.5px; }
       .cardGrid .pr { display: block; color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 800; margin-top: 3px; }
+      .clList { list-style: none; padding: 0; margin: 8px 0 18px; max-width: 760px; columns: 2; column-gap: 24px; font-size: 14px; line-height: 1.9; color: var(--muted); }
+      .clList li { break-inside: avoid; }
+      @media (max-width: 560px) { .clList { columns: 1; } }
     </style>
   </head>
   <body>
@@ -657,6 +664,10 @@ const hub = `<!doctype html>
       </div>
       <p class="srcNoteA" style="color:var(--muted);font-size:12.5px;margin-top:14px;">NM = raw near-mint Japanese single, Japanese retail</p>
       <p><a href="${ebayCardHub}" target="_blank" rel="noopener noreferrer sponsored">Browse current Japanese One Piece card listings on eBay</a></p>
+      ${F.cardLists.length ? `<h2 id="card-lists">Official card lists by set</h2>
+      <ul class="clList">
+        ${F.cardLists.map((p) => `<li><a href="../sets/${p.slug}-card-list.html"><strong>${esc(p.code)}</strong>${p.name ? " " + esc(p.name) : ""}</a> — ${p.counts.cards} cards · ${p.counts.numbers} card numbers</li>`).join("\n        ")}
+      </ul>` : ""}
       ${/* 설명 3문단은 2026-08-28 소유자 지시로 삭제 — TCG 퀀트처럼 표·그리드만.
             2026-10-15 소유자 결정: 머리 문단("… where we have both prices: …"·"Variant-specific — …")과 그리드 캡션의
             "Set pages carry the full top-10 tables; this hub covers the cross-set heavy hitters." 도 라벨로 바꾸거나 지웠다. */ ""}

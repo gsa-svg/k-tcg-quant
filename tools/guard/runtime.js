@@ -64,7 +64,8 @@ function run() {
 }
 
 // GA1 — 모든 페이지가 inject-nav.js 의 같은 로더 한 줄을 갖고, 가짜 문서에서 실제로 돌려 본다:
-//  자동화·/__v/ → 안 붙음 · utm·AI/검색 리퍼러 → DOMContentLoaded 직후 · 그 밖 → load+1.5초 / 첫 입력·문서 scroll / 탭 숨김 중 먼저 오는 때 1번
+//  자동화·/__v/ → 안 붙음 · 그 밖은 리퍼러·utm 과 무관하게 DOMContentLoaded 직후 1번(파싱이 끝나 있으면 즉시) · load·입력·scroll·탭 숨김·타이머에 걸지 않는다
+//  (2026-10-16: 직접 유입만 load+1.5초/첫 입력/scroll/숨김으로 늦추던 분기를 지웠다 — 창마다 측정 방식이 달라 7일 비교가 오염됐다)
 function ga1() {
   const loaders = new Map();
   for (const f of PUBLIC_HTML) {
@@ -77,10 +78,10 @@ function ga1() {
     loaders.get(found[0][2]).push(f);
   }
   if (loaders.size > 1) errors.push(`GA1: GA 로더 글자가 페이지마다 다르다(${loaders.size}종: ${[...loaders.values()].map((v) => v[0]).join(", ")}) — node tools/inject-nav.js 를 다시 돌릴 것`);
-  const run = (src, { search = "", pathname = "/", referrer = "", webdriver = false } = {}) => {
+  const run = (src, { search = "", pathname = "/", referrer = "", webdriver = false, readyState = "loading" } = {}) => {
     const added = [], listeners = [], timers = [];
     const on = (target) => (type, fn, opts) => listeners.push({ target, type, fn, capture: opts === true || !!(opts && opts.capture) });
-    const document = { referrer, readyState: "loading", visibilityState: "visible", head: { appendChild: (s) => added.push(s.src) }, createElement: () => ({}), addEventListener: on("document") };
+    const document = { referrer, readyState, visibilityState: "visible", head: { appendChild: (s) => added.push(s.src) }, createElement: () => ({}), addEventListener: on("document") };
     vm.runInNewContext(src, { document, window: { addEventListener: on("window") }, location: { search, pathname }, navigator: { webdriver }, setTimeout: (fn, ms) => timers.push({ fn, ms }) });
     const fire = (target, type) => listeners.filter((x) => x.target === target && x.type === type).forEach((x) => x.fn());
     return { added, listeners, timers, fire, flush: () => timers.splice(0).forEach((t) => t.fn()), document };
@@ -95,31 +96,25 @@ function ga1() {
         r.flush();
         if (r.added.length) bad(`${JSON.stringify(opt)} 에서 gtag.js 를 붙였다(자동화·/__v/ 는 0이어야 한다)`);
       }
-      for (const opt of [{ search: "?set=OP-13&hl=en&utm_source=chatgpt.com" }, { referrer: "https://chatgpt.com/" }, { referrer: "https://www.perplexity.ai/search/x" }, { referrer: "https://copilot.microsoft.com/" }, { referrer: "https://www.bing.com/" }, { referrer: "https://www.google.co.kr/" }, { referrer: "https://m.search.naver.com/search.naver?q=x" }, { referrer: "https://duckduckgo.com/" }]) {
+      // 리퍼러·utm 과 무관하게 같은 동작 — 직접 유입(빈 리퍼러·내부 리퍼러)도 AI·검색 리퍼러와 같은 시점에 붙어야 창끼리 비교가 된다.
+      for (const opt of [{ search: "?set=OP-13&hl=en&utm_source=chatgpt.com" }, { referrer: "https://chatgpt.com/" }, { referrer: "https://www.perplexity.ai/search/x" }, { referrer: "https://copilot.microsoft.com/" }, { referrer: "https://www.bing.com/" }, { referrer: "https://www.google.co.kr/" }, { referrer: "https://m.search.naver.com/search.naver?q=x" }, { referrer: "https://duckduckgo.com/" }, { referrer: "" }, { referrer: "https://opboxindex.com/sets/op-01.html" }, { referrer: "https://t.co/x" }]) {
         const r = run(src, opt);
         if (r.added.length) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 전에 붙였다`);
+        if (r.timers.length) bad(`${JSON.stringify(opt)} 에서 타이머를 걸었다(지연 로더가 되살아남)`);
         r.fire("document", "DOMContentLoaded");
         if (r.added.length !== 1 || !/googletagmanager\.com\/gtag\/js\?id=G-/.test(r.added[0] || "")) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 직후 gtag.js 1번이 아니다(${r.added.length})`);
+        // 그 뒤 어떤 이벤트(load·입력·scroll·탭 숨김·타이머)가 와도 두 번 붙지 않는다(DOMContentLoaded 는 브라우저가 한 번만 낸다).
+        r.fire("document", "visibilitychange");
+        ["load", "pointerdown", "keydown", "scroll"].forEach((t) => r.fire("window", t));
+        r.flush();
+        if (r.added.length !== 1) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 뒤 이벤트로 gtag.js 를 또 붙였다(${r.added.length})`);
+        const extra = r.listeners.filter((x) => !(x.target === "document" && x.type === "DOMContentLoaded"));
+        if (extra.length) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 밖의 리스너 ${extra.map((x) => x.type).join(",")} — 로더는 DOMContentLoaded 한 번만 듣는다`);
       }
-      const plain = { referrer: "https://opboxindex.com/sets/op-01.html" };
+      // 파싱이 이미 끝난 문서(readyState ≠ loading)에서는 기다리지 않고 바로 붙는다.
       {
-        const r = run(src, plain);
-        r.fire("document", "DOMContentLoaded");
-        if (r.added.length) bad("일반 진입에서 load 전에 gtag.js 를 붙였다");
-        r.fire("window", "load");
-        if (r.added.length || r.timers.length !== 1 || r.timers[0].ms !== 1500) bad("일반 진입이 load+1500ms 예약 1개가 아니다");
-        r.flush(); r.fire("window", "pointerdown");
-        if (r.added.length !== 1) bad(`일반 진입 load+1.5초 뒤 gtag.js ${r.added.length}번(1이어야 한다)`);
-        const scroll = r.listeners.filter((x) => x.target === "window" && x.type === "scroll");
-        if (scroll.length !== 1 || scroll[0].capture) bad("문서 scroll 리스너가 window 에 capture 없이 1개가 아니다");
-      }
-      for (const [target, type] of [["window", "pointerdown"], ["window", "keydown"], ["window", "scroll"], ["document", "visibilitychange"]]) {
-        const r = run(src, plain);
-        if (type === "visibilitychange") { r.fire(target, type); if (r.added.length) bad("탭이 보이는 상태의 visibilitychange 에서 붙였다"); r.document.visibilityState = "hidden"; }
-        r.fire(target, type);
-        if (r.added.length !== 1) bad(`${type} 가 load 전에 gtag.js 를 1번 붙이지 않았다(${r.added.length})`);
-        r.fire("window", "load"); r.flush(); r.fire("window", "keydown");
-        if (r.added.length !== 1) bad(`${type} 뒤 load·keydown 에서 gtag.js 를 또 붙였다(${r.added.length})`);
+        const r = run(src, { referrer: "", readyState: "interactive" });
+        if (r.added.length !== 1) bad(`readyState=interactive 에서 즉시 gtag.js 1번이 아니다(${r.added.length})`);
       }
     } catch (e) { bad(`가짜 문서에서 실행 실패 ${e.message}`); }
   }

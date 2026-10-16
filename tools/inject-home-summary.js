@@ -20,6 +20,8 @@ const F = require("./build-site-facts").load();
 // 시세표 행마다 영문판 페이지(있을 때)와 1위 카드 페이지(있을 때) 링크를 단다. 카드 슬러그는 generate-card-pages 산출물(card-map.json)에서 온다.
 const CARD_MAP = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8")); } catch { return {}; } })();
 const cardSlug = (c) => (c && c.number ? CARD_MAP[c.number + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")] : null);
+// 공식 카드리스트가 있는 세트(사실 파일 cardLists ← data/official-cardlist.json) — generate-card-list-pages 와 같은 기준.
+const CARD_LISTS = new Set(F.cardLists.map((p) => p.code));
 // board 는 세트별 시세판 공급원으로만 쓴다 — 지수 숫자·개봉미터 표시는
 // 2026-07-29 소유자 지시로 전부 삭제됨(값이 실제와 안 맞았음).
 const DATA_DATE = F.dataDate;
@@ -46,7 +48,9 @@ const tr = rows.map((b) => {
   const top = (s.cards || [])[0];
   const topSlug = cardSlug(top);
   const topLink = topSlug ? `<a href="cards/${topSlug}" title="${esc(top.name)} price">${esc(top.name)}</a>` : "";
-  const links = [enLink, topLink].filter(Boolean).join(" · ");
+  // 공식 카드리스트(sets/<code>-card-list.html) — 2026-10-16. 46장이 10-14 에 새로 났는데 홈에서 가는 링크가 0 이라 GSC 가 '알려지지 않은 URL' 로 봤다.
+  const clLink = CARD_LISTS.has(b.code) ? `<a href="sets/${slug}-card-list.html" title="${esc(b.code)} official card list">Card list</a>` : "";
+  const links = [enLink, clLink, topLink].filter(Boolean).join(" · ");
   const when = b.nowDate
     ? `<td class="num when" title="Median point ${esc(b.nowDate)}${b.n != null ? ` · ${b.n} sales in its ${b.windowDays ? `${b.windowDays}-day ` : ""}window` : ""}">${esc(mmdd(b.nowDate))}${nCell(b)}</td>`
     : `<td class="num when" title="${esc(NO_MEDIAN)}">—</td>`;

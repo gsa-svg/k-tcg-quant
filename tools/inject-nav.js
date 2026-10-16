@@ -121,19 +121,22 @@ function withFontPreload(html, prefix) {
   return html.replace(re, () => `${indent}${FONT_PRELOAD(prefix)}\n${m[0]}`);
 }
 
-// GA(gtag.js 175KB)는 첫 그리기 뒤에 받는다 — 2026-10-08. async 라도 모바일에선 CSS·이미지와 대역폭을 나눠 썼다
-// (라이트하우스 '사용하지 않는 JS' 1위). dataLayer 큐는 그대로라 page_view 는 gtag.js 가 붙을 때 전송된다.
-// 2026-10-14 개정(측정 복구) — load+1.5초만 기다리면 그 전에 나가는 방문은 GA 에 아예 안 잡혔다.
-//  · 기본: load 뒤 1.5초 / 첫 pointerdown·keydown·문서 scroll / 탭 숨김(visibilitychange→hidden) 중 먼저 오는 때.
-//    라이트하우스는 클릭·스크롤·탭 전환을 하지 않으므로 측정 트레이스 안에서는 종전과 같은 load+1.5초다.
-//    scroll 은 window 에 capture 없이 건다 — 메뉴 줄 가로 맞춤(파싱 중 scrollLeft)은 요소 scroll 이라 버블링하지 않아 안 걸린다.
-//  · utm_source 가 있거나 리퍼러가 AI·검색이면 DOMContentLoaded 직후 — 1초 안에 나가는 방문도 소스와 함께 잡는다.
+// GA(gtag.js 175KB) 로더 — 리퍼러와 무관하게 DOMContentLoaded 직후 한 번 붙인다(2026-10-16 10:33 KST 편집, 적용 시각 = 이 변경의 배포 커밋).
+// 이력(측정 방식이 창마다 달라 7일 비교가 오염됐다 — 2026-10-16 급락 분해):
+//  · ~10-08 17:24 KST: <script async> 즉시 → 즉시 이탈도 집계.
+//  · 10-08 17:24 ~ 10-14 22:25: window load+1.5초 단일 조건(라이트하우스 '사용하지 않는 JS' 대응). 그 전에 나가는 방문은 GA 에 없었다.
+//  · 10-14 22:25 ~ 10-16: utm·AI/검색 리퍼러만 DOMContentLoaded, 직접 유입은 load+1.5초 / 첫 pointerdown·keydown·scroll / 탭 숨김 중 먼저 오는 때.
+//    10/01–07 → 10/08–14 session_start 326→326 인데 page_view 581→480, 직접 page_view/세션 1.93→1.38(검색 1.66→1.63), scroll 58→35,
+//    10/15 미귀속 19세션·빈 방문페이지 11·Unassigned user_engagement 12 — 숨김 시점에 늦게 붙어 session_start 없이 참여 이벤트만 간 흔적.
+//  · 2026-10-16: 직접 유입 분기(load+1.5초·pointerdown·keydown·scroll·visibilitychange hidden)를 지우고 전원 DOMContentLoaded 직후.
+//    되돌리려면 이 한 줄과 가드 GA1 의 기대 동작을 함께 바꾼다.
+// 유지:
 //  · navigator.webdriver(자동화)·/__v/(성능 측정 경로)는 GA 를 붙이지 않는다 — 측정 트래픽이 방문으로 쌓이지 않게.
-//  · 문서 없는 수집 프로토콜을 직접 쏘는 비콘은 쓰지 않는다(gtag.js 한 경로).
+//  · dataLayer 큐는 그대로라 page_view 는 gtag.js 가 붙을 때 전송된다. 문서 없는 수집 프로토콜을 직접 쏘는 비콘은 쓰지 않는다(gtag.js 한 경로).
 // 가드 GA1 이 이 로더를 모든 페이지에서 같은 글자로, 위 동작대로 도는지 실행해 본다.
 const GTAG_ASYNC = /<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=([A-Z0-9-]+)"><\/script>/;
 const GTAG_DEFERRED = /<script data-gtag-deferred="([A-Z0-9-]+)">[\s\S]*?<\/script>/;
-const gtagLoader = (id) => String.raw`<script data-gtag-deferred="${id}">(function(){var d=document,w=window,l=location;if(navigator.webdriver||/^\/__v\//.test(l.pathname))return;var on=0;function go(){if(on)return;on=1;var s=d.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=${id}";d.head.appendChild(s);}var h=(d.referrer.match(/^https?:\/\/([^\/:?#]+)/i)||[])[1]||"";if(/[?&]utm_source=/.test(l.search)||/(^|\.)(chatgpt\.com|openai\.com|perplexity\.ai|copilot\.microsoft\.com|claude\.ai|bing\.com|google\.[a-z.]+|naver\.com|daum\.net|duckduckgo\.com|yahoo\.[a-z.]+|ecosia\.org|search\.brave\.com|yandex\.[a-z.]+|baidu\.com|kagi\.com|you\.com)$/i.test(h)){if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",go);else go();return;}w.addEventListener("load",function(){setTimeout(go,1500);});["pointerdown","keydown"].forEach(function(e){w.addEventListener(e,go,{once:true,passive:true,capture:true});});w.addEventListener("scroll",go,{once:true,passive:true});d.addEventListener("visibilitychange",function(){if(d.visibilityState==="hidden")go();});})();</script>`;
+const gtagLoader = (id) => String.raw`<script data-gtag-deferred="${id}">(function(){var d=document;if(navigator.webdriver||/^\/__v\//.test(location.pathname))return;function go(){var s=d.createElement("script");s.async=true;s.src="https://www.googletagmanager.com/gtag/js?id=${id}";d.head.appendChild(s);}if(d.readyState==="loading")d.addEventListener("DOMContentLoaded",go);else go();})();</script>`;
 function withDeferredGtag(html) {
   // 생성기가 막 쓴 async 태그든, 이미 바꿔 둔 옛 로더든 같은 최신 로더 한 줄로 맞춘다(몇 번 돌려도 결과가 같다).
   const m = html.match(GTAG_ASYNC) || html.match(GTAG_DEFERRED);

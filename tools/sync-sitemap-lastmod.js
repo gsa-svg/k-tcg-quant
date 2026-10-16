@@ -48,6 +48,20 @@ const DATE_TEXT = [
   /\b(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}\b/g,
   /\b\d{4}-\d{2}-\d{2}\b/g,
 ];
+// 시세 숫자·건수 토큰도 뺀다 — 2026-10-16(해시 판 3). 금액($·¥·₩·€·£)·백분율·독립 숫자(판매 건수·표본·매물 수·순위·창 일수)는
+//   매일 바뀌는 값이라 "본문이 바뀐 날"의 근거가 아니다. 10-16 실측: 269 URL 중 228 이 오늘 날짜(10-15 는 253) — 날짜 토큰만 빼서는
+//   매일 85% 가 오르고, 그런 lastmod 는 검색엔진이 신호로 쓰지 않는다(발견됨-미생성 134 전부 미크롤). 글자(세트명·카드명·라벨·행 추가·삭제)가
+//   바뀌면 여전히 바뀐 날이다. 카드 번호(OP01-001)·세트 코드(OP-18)·"35d" 처럼 글자·하이픈에 붙은 숫자는 그대로 둔다 — 식별자다.
+//   해시 정의가 바뀌는 날은 날짜를 올리지 않는다(HASH_VERSION 재해시 — 기록된 날짜를 그대로 두고 해시만 새로 적는다).
+//   판 3 = 어휘 집합: 제목·설명·본문에서 날짜·숫자를 뺀 뒤 "글자가 든 토큰의 집합"(순서·횟수 없음)을 해시한다 — 2026-10-16 실측(어제 21:48 → 오늘 커밋):
+//   판 2(토큰 열) 로는 269 중 203 이 여전히 "바뀜" 이었다. 원인은 제목·설명의 "as of 날짜"(판 1·2 는 본문만 걷어냈다)와, 같은 라벨의 데이터 행이
+//   하나 늘거나 순서가 바뀌는 것("Japanese 84→85", "— 39→37"). 새 카드명·라벨·절이 생기거나 사라지면 어휘가 바뀌어 여전히 잡힌다.
+const NUMBER_TEXT = [
+  /[$¥₩€£]\s?\d[\d,]*(?:\.\d+)?[KkMm]?/g,
+  /[+\-−±]?\d[\d,]*(?:\.\d+)?\s?%/g,
+  /(?<![A-Za-z0-9\-])[+\-−]?\d[\d,]*(?:\.\d+)?(?:x|d|배|원|円|건|장|개|회|일|종|日)?(?![A-Za-z0-9])/g,
+];
+const HASH_VERSION = 3;
 function bodyText(html) {
   const title = (html.match(/<title>([\s\S]*?)<\/title>/i) || [])[1] || "";
   const desc = (html.match(/<meta name="description" content="([^"]*)"/i) || [])[1] || "";
@@ -67,14 +81,18 @@ function bodyText(html) {
     .replace(/<img\b[^>]*?\balt="([^"]*)"[^>]*>/gi, " $1 ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/g, " ");
-  for (const re of DATE_TEXT) body = body.replace(re, " ");
-  body = body.replace(/\s+/g, " ").trim();
-  return `${title.trim()}\n${desc.trim()}\n${body}`;
+  let text = `${title} ${desc} ${body}`;
+  for (const re of DATE_TEXT) text = text.replace(re, " ");
+  for (const re of NUMBER_TEXT) text = text.replace(re, " ");
+  // 어휘 집합 — 글자(어느 문자든)가 든 토큰만, 중복 없이 정렬. 구두점만 남은 토큰("—"·"·"·"(")은 값이 있다/없다의 흔적이라 뺀다.
+  const words = new Set(text.split(/\s+/).filter((t) => /\p{L}/u.test(t)));
+  return [...words].sort().join("\n");
 }
 const bodyHash = (html) => crypto.createHash("sha1").update(bodyText(html)).digest("hex").slice(0, 16);
 
+// { urls, v } — v 는 해시 정의의 판. 없으면 1(날짜 토큰만 뺀 2026-10-14 판).
 function readState() {
-  try { return JSON.parse(fs.readFileSync(STATE, "utf8")).urls || {}; } catch { return {}; }
+  try { const j = JSON.parse(fs.readFileSync(STATE, "utf8")); return { urls: j.urls || {}, v: j.v || 1 }; } catch { return { urls: {}, v: HASH_VERSION }; }
 }
 
 // --from-git: 그 파일의 본문 해시가 지금과 같아진 가장 이른 커밋일(최신부터 거슬러 같은 해시가 이어지는 구간의 끝).
@@ -104,7 +122,9 @@ function gitBodyDate(file, hashNow) {
 
 function sync({ fromGit = false, write = true } = {}) {
   if (!fs.existsSync(SM)) return { status: "skip", reason: "sitemap 없음" };
-  const state = readState();
+  const { urls: state, v } = readState();
+  // 해시 정의가 바뀐 첫 실행: 모든 URL 의 날짜를 그대로 두고 해시만 새 정의로 다시 적는다 — 정의 변경을 "본문 변경"으로 치면 269개가 한꺼번에 오늘이 된다.
+  const rehash = v !== HASH_VERSION;
   const next = {};
   let sm = fs.readFileSync(SM, "utf8");
   const blocks = [...sm.matchAll(/<url>[\s\S]*?<\/url>/g)].map((m) => m[0]);
@@ -120,7 +140,7 @@ function sync({ fromGit = false, write = true } = {}) {
     const cur = (block.match(/<lastmod>(\d{4}-\d{2}-\d{2})/) || [])[1] || null;
     const st = state[loc];
     let d;
-    if (st && st.h === h) d = st.d;
+    if (st && (st.h === h || rehash)) d = st.d;
     else if (st) d = TODAY;
     else {
       const g = fromGit ? gitBodyDate(file, h) : null;
@@ -145,19 +165,21 @@ function sync({ fromGit = false, write = true } = {}) {
   if (write) {
     fs.writeFileSync(SM, sm);
     const doc = {
-      note: "sitemap.xml lastmod state — written only by tools/sync-sitemap-lastmod.js. h = hash of the page body without menus, footer, scripts, styles and cache keys; d = the day that body last changed (= the URL's lastmod).",
+      note: "sitemap.xml lastmod state — written only by tools/sync-sitemap-lastmod.js. h = hash of the page body without menus, footer, scripts, styles, cache keys, dates, prices, percentages and standalone counts (v2, 2026-10-16); d = the day that body last changed (= the URL's lastmod).",
+      v: HASH_VERSION,
       urls: Object.fromEntries(Object.entries(next).sort(([a], [b]) => (a < b ? -1 : 1))),
     };
     fs.writeFileSync(STATE, `${JSON.stringify(doc, null, 0).replace(/\},"/g, '},\n"')}\n`);
   }
-  return { status: "ok", urls: blocks.length, raised, restored, seeded, fromHistory, unchanged: same, missingFile: missing, samples };
+  return { status: "ok", hashVersion: HASH_VERSION, rehashed: rehash, urls: blocks.length, raised, restored, seeded, fromHistory, unchanged: same, missingFile: missing, samples };
 }
 
 // 가드 SM1 용 — 사이트맵 날짜가 상태 파일·본문 해시와 맞는지만 본다(쓰지 않는다).
 function verify() {
   const problems = [];
   if (!fs.existsSync(SM)) return problems;
-  const state = readState();
+  const { urls: state, v } = readState();
+  if (v !== HASH_VERSION) return [`상태 파일의 해시 판 v${v} ≠ 도구의 v${HASH_VERSION} — node tools/sync-sitemap-lastmod.js 를 한 번 돌려 해시를 다시 적을 것(날짜는 그대로 남는다)`];
   const sm = fs.readFileSync(SM, "utf8");
   for (const m of sm.matchAll(/<url>[\s\S]*?<\/url>/g)) {
     const loc = (m[0].match(/<loc>([^<]+)<\/loc>/) || [])[1];
@@ -178,7 +200,7 @@ function verify() {
   return problems;
 }
 
-module.exports = { bodyText, bodyHash, locToFile, sync, verify, STATE };
+module.exports = { bodyText, bodyHash, locToFile, sync, verify, STATE, HASH_VERSION };
 
 if (require.main === module) {
   if (process.argv.includes("--check")) {

@@ -18,7 +18,8 @@ const noindex = (h) => /name="robots" content="[^"]*noindex/i.test(h);
 function run() {
   const F = facts();
   const setPages = PUBLIC_HTML.filter((p) => /^sets\/(?:op|eb|prb)-\d+(?:-english)?\.html$/.test(p) && !(F.upcoming[p.slice(5, -5).toUpperCase()]));
-  const koSetPages = PUBLIC_HTML.filter((p) => /^ko\/(?:op|eb|prb)-\d+\.html$/.test(p));
+  // 발매 전 세트의 한국어판(ko/op-18·eb-05, 2026-10-16)은 영문 짝과 같이 세트 페이지 검사(KF1·MD1/KO5·U2)에서 뺀다 — 시세 표가 없는 발매일·예약판매 페이지다.
+  const koSetPages = PUBLIC_HTML.filter((p) => /^ko\/(?:op|eb|prb)-\d+\.html$/.test(p) && !(F.upcoming[p.slice(3, -5).toUpperCase()]));
   const cardPages = PUBLIC_HTML.filter((p) => /^cards\/(?!index\.html$)[^/]+\.html$/.test(p));
   const declared = new Map();
   for (const f of PUBLIC_HTML) {
