@@ -64,7 +64,7 @@ function run() {
 }
 
 // GA1 — 모든 페이지가 inject-nav.js 의 같은 로더 한 줄을 갖고, 가짜 문서에서 실제로 돌려 본다:
-//  자동화·/__v/ → 안 붙음 · 그 밖은 리퍼러·utm 과 무관하게 DOMContentLoaded 직후 1번(파싱이 끝나 있으면 즉시) · load·입력·scroll·탭 숨김·타이머에 걸지 않는다
+//  자동화·/__v/ → 안 붙음 · 그 밖은 리퍼러·utm 과 무관하게 window load 직후 1번(문서가 complete 면 즉시) · 입력·scroll·탭 숨김·타이머에 걸지 않는다
 //  (2026-10-16: 직접 유입만 load+1.5초/첫 입력/scroll/숨김으로 늦추던 분기를 지웠다 — 창마다 측정 방식이 달라 7일 비교가 오염됐다)
 function ga1() {
   const loaders = new Map();
@@ -99,22 +99,28 @@ function ga1() {
       // 리퍼러·utm 과 무관하게 같은 동작 — 직접 유입(빈 리퍼러·내부 리퍼러)도 AI·검색 리퍼러와 같은 시점에 붙어야 창끼리 비교가 된다.
       for (const opt of [{ search: "?set=OP-13&hl=en&utm_source=chatgpt.com" }, { referrer: "https://chatgpt.com/" }, { referrer: "https://www.perplexity.ai/search/x" }, { referrer: "https://copilot.microsoft.com/" }, { referrer: "https://www.bing.com/" }, { referrer: "https://www.google.co.kr/" }, { referrer: "https://m.search.naver.com/search.naver?q=x" }, { referrer: "https://duckduckgo.com/" }, { referrer: "" }, { referrer: "https://opboxindex.com/sets/op-01.html" }, { referrer: "https://t.co/x" }]) {
         const r = run(src, opt);
-        if (r.added.length) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 전에 붙였다`);
+        if (r.added.length) bad(`${JSON.stringify(opt)} 에서 load 전에 붙였다`);
         if (r.timers.length) bad(`${JSON.stringify(opt)} 에서 타이머를 걸었다(지연 로더가 되살아남)`);
         r.fire("document", "DOMContentLoaded");
-        if (r.added.length !== 1 || !/googletagmanager\.com\/gtag\/js\?id=G-/.test(r.added[0] || "")) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 직후 gtag.js 1번이 아니다(${r.added.length})`);
-        // 그 뒤 어떤 이벤트(load·입력·scroll·탭 숨김·타이머)가 와도 두 번 붙지 않는다(DOMContentLoaded 는 브라우저가 한 번만 낸다).
+        if (r.added.length) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 에 붙였다(LCP·TBT 창 안) — load 직후여야 한다`);
+        r.fire("window", "load");
+        if (r.added.length !== 1 || !/googletagmanager\.com\/gtag\/js\?id=G-/.test(r.added[0] || "")) bad(`${JSON.stringify(opt)} 에서 load 직후 gtag.js 1번이 아니다(${r.added.length})`);
+        // 그 뒤 어떤 이벤트(입력·scroll·탭 숨김·타이머)가 와도 두 번 붙지 않는다(load 는 브라우저가 한 번만 낸다).
         r.fire("document", "visibilitychange");
-        ["load", "pointerdown", "keydown", "scroll"].forEach((t) => r.fire("window", t));
+        ["pointerdown", "keydown", "scroll"].forEach((t) => r.fire("window", t));   // load 는 브라우저가 한 번만 낸다 — 위에서 이미 쐈다
         r.flush();
-        if (r.added.length !== 1) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 뒤 이벤트로 gtag.js 를 또 붙였다(${r.added.length})`);
-        const extra = r.listeners.filter((x) => !(x.target === "document" && x.type === "DOMContentLoaded"));
-        if (extra.length) bad(`${JSON.stringify(opt)} 에서 DOMContentLoaded 밖의 리스너 ${extra.map((x) => x.type).join(",")} — 로더는 DOMContentLoaded 한 번만 듣는다`);
+        if (r.added.length !== 1) bad(`${JSON.stringify(opt)} 에서 load 뒤 이벤트로 gtag.js 를 또 붙였다(${r.added.length})`);
+        const extra = r.listeners.filter((x) => !(x.target === "window" && x.type === "load"));
+        if (extra.length) bad(`${JSON.stringify(opt)} 에서 load 밖의 리스너 ${extra.map((x) => x.type).join(",")} — 로더는 window load 한 번만 듣는다`);
       }
-      // 파싱이 이미 끝난 문서(readyState ≠ loading)에서는 기다리지 않고 바로 붙는다.
+      // 이미 load 가 끝난 문서(readyState=complete)에서는 기다리지 않고 바로 붙고, interactive(파싱만 끝남)에서는 load 를 기다린다.
       {
-        const r = run(src, { referrer: "", readyState: "interactive" });
-        if (r.added.length !== 1) bad(`readyState=interactive 에서 즉시 gtag.js 1번이 아니다(${r.added.length})`);
+        const r = run(src, { referrer: "", readyState: "complete" });
+        if (r.added.length !== 1) bad(`readyState=complete 에서 즉시 gtag.js 1번이 아니다(${r.added.length})`);
+        const r2 = run(src, { referrer: "", readyState: "interactive" });
+        if (r2.added.length) bad(`readyState=interactive 에서 load 전에 붙였다`);
+        r2.fire("window", "load");
+        if (r2.added.length !== 1) bad(`readyState=interactive 에서 load 직후 gtag.js 1번이 아니다(${r2.added.length})`);
       }
     } catch (e) { bad(`가짜 문서에서 실행 실패 ${e.message}`); }
   }
