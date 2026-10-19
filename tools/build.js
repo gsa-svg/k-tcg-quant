@@ -55,6 +55,7 @@ const STEPS = [
   "generate-tcg-auction-page",
   "generate-free-data",         // free-data.html + opbox-*.csv — 카드리스트 json 을 읽으므로 그 뒤
   "generate-weekly",
+  "generate-market-page",       // market-2026.html(2026-10-19) — 사실 파일 market 만 읽는다. 사이트맵에 없으면 추가(sync-sitemap-lastmod 앞)
   // ── 3. AI 파일(opbox-ai-*.json · llms*.txt). data/ 만 읽는다 — 페이지와 무관.
   "generate-ai-data",
   "generate-ai-extras",
@@ -89,7 +90,7 @@ const OUTPUTS = [
   "data/sitemap-lastmod-state.json",
   "cards/", "sets/", "ko/", "ja/", "articles/", "img/", "card-img/",
   "index.html", "packs.html", "box-prices.html", "auction.html", "tcg-auction.html", "compare.html", "free-data.html", "weekly.html",
-  "psa-grading.html", "psa10-ranking.html", "about.html", "amazon-lottery.html", "changelog.html", "disclaimer.html", "methodology.html", "privacy.html",
+  "psa-grading.html", "psa10-ranking.html", "market-2026.html", "about.html", "amazon-lottery.html", "changelog.html", "disclaimer.html", "methodology.html", "privacy.html",
   "feed.xml", "sitemap.xml", "llms.txt", "llms-full.txt",
   "opbox-ai-data.json", "opbox-ai-cards.json", "opbox-ai-grading.json", "opbox-ai-auctions.json",
   "opbox-set-prices.csv", "opbox-grading-population.csv", "opbox-auction-daily.csv",

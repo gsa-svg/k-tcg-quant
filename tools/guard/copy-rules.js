@@ -6,8 +6,9 @@
 //  FQ1 가격 문답의 답은 그 판 판매 중앙값 꼴 [5차] · CL1(문구) 카드리스트에 이미지·효과 텍스트 금지 [2026-10-14 W7]
 const { errors, read, exists, PUBLIC_HTML, ldOf, shownText, strip, json, facts, capped } = require("./lib");
 
-const checks = ["S1", "S4", "VN1", "D18", "DF1", "DF2", "DF3", "NP1", "CX1", "NC1", "UP2", "UP3", "E1", "EP1", "AN1", "EQ1", "EL1", "R2", "KO1", "KO2", "KO3", "SP1", "FQ1", "CL1"];
-const DATA_PAGES = ["index.html", "packs.html", "box-prices.html", "weekly.html", "free-data.html", "auction.html", "tcg-auction.html"];
+const checks = ["PM1", "S1", "S4", "VN1", "D18", "DF1", "DF2", "DF3", "NP1", "CX1", "NC1", "UP2", "UP3", "E1", "EP1", "AN1", "EQ1", "EL1", "R2", "KO1", "KO2", "KO3", "SP1", "FQ1", "CL1"];
+// compare.html·market-2026.html 은 2026-10-19 에 더했다 — compare 하단 "Where the numbers come from" 문단에 업체명(Yuyu-tei)과 해설이 남아 있었다.
+const DATA_PAGES = ["index.html", "packs.html", "box-prices.html", "weekly.html", "free-data.html", "auction.html", "tcg-auction.html", "compare.html", "market-2026.html"];
 const visible = (h) => h.replace(/<!--[\s\S]*?-->/g, " ").replace(/<script[\s\S]*?<\/script>/g, " ").replace(/<style[\s\S]*?<\/style>/g, " ");
 // 금지 문구 목록을 파일 묶음에 적용(파일당 첫 매치만)
 const ban = (id, files, list, text = (h) => h, note = "") => {
@@ -23,6 +24,17 @@ function run() {
   const koSet = PUBLIC_HTML.filter((p) => /^ko\/(?:op|eb|prb)-\d+\.html$/.test(p));
   const cards = PUBLIC_HTML.filter((p) => /^cards\/(?!index\.html$)[^/]+\.html$/.test(p));
   const packsJs = read("packs.js");
+  // PM1 — 공개 HTML·robots.txt 에 작업 메모 0(과정 비공개, 2026-10-19). HTML 주석(<script>·<style> 밖)에 한글·'소유자'·AdSense, robots.txt 주석 줄에 한글.
+  //   주입 마커(<!-- HOME_SUMMARY:START --> 등)·영문 일반 주석은 허용. 배포본에서는 inject-nav 가 지운다(withoutMemoComments).
+  {
+    const push = capped("PM1", 10), MEMO = /[ㄱ-ㆎ가-힣]|소유자|adsense|애드센스/i;
+    for (const f of PUBLIC_HTML) {
+      const outside = read(f).split(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>/i).join(" ");
+      for (const m of outside.matchAll(/<!--([\s\S]*?)-->/g)) if (MEMO.test(m[1])) { push(`${f} 주석 "${m[1].replace(/\s+/g, " ").trim().slice(0, 50)}…" — 작업 메모는 배포본에 두지 않는다`); break; }
+    }
+    if (exists("robots.txt")) for (const line of read("robots.txt").split(/\r?\n/)) if (/^\s*#/.test(line) && /[ㄱ-ㆎ가-힣]|소유자/.test(line)) { push(`robots.txt 주석 "${line.slice(0, 50)}" — 영문 라벨로(지시문은 그대로)`); break; }
+    push.flush();
+  }
   // S1 · S4 · VN1
   for (const f of [...PUBLIC_HTML, "packs.js", "data/onepiece-packs.json", "data/card-series.json", "opbox-ai-data.json", "llms.txt", "feed.xml"].filter(exists)) if (/collectr/i.test(read(f))) errors.push(`S1: ${f} 에 외부 소스명 노출 (Weekly ungraded market 라벨 사용)`);
   const VENDOR = /tcgplayer|yuyu-?tei|遊々亭|pricecharting|cardmarket|cardrush|カードラッシュ|snkrdunk|\bgemrate\b|collectr|tcg quant/i;

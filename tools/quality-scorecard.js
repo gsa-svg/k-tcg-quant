@@ -292,6 +292,18 @@ const STATUS = runJSON("collect-status.js", ["--json"]);
   }
 }
 
+// ── G. AI 인용(로컬 주간 추적기 요약) — 2026-10-19. 추적기(저장소 밖 box-sold-cdp/ai-citations.js)가 이 PC 에만 남기는 요약 행(AI1~AI5)을 읽는다.
+//    파일이 없으면(워크플로·다른 PC) 행을 만들지 않는다. 질문 원문·답 원문은 읽지 않는다 — 요약의 id·지표명·값·상태·메모만.
+{
+  const f = process.env.OPBOX_AI_CITATIONS || path.join(ROOT, "..", "ai-citations", "score.json");
+  let s = null;
+  try { s = JSON.parse(fs.readFileSync(f, "utf8")); } catch {}
+  if (s && Array.isArray(s.rows)) {
+    const age = daysSince(s.date);
+    for (const r of s.rows) if (/^AI\d$/.test(r.id)) add(r.id, "ai", `${r.name}`, `${r.value} (${s.date}${age != null ? `, ${age}일 전` : ""})`, age != null && age > 9 ? "WARN" : r.status, r.status === "WARN" ? r.note : age != null && age > 9 ? "추적기 실행이 9일 넘게 없다" : "", r.fix || "AI 인용 추적기 재실행", r.status === "WARN" ? 0.3 : 0);
+  }
+}
+
 // ── 최악 1건 — rank(FAIL>WARN>미달 OK) 가 높고, 같은 rank 면 shortfall 이 큰 것. 같으면 위쪽 행(박스 → 시계열 → 신선도 → 카드 → 가드 → 페이지).
 const worst = rows.reduce((w, r) => (!w || r.rank > w.rank || (r.rank === w.rank && r.shortfall > w.shortfall) ? r : w), null);
 const counts = { FAIL: 0, WARN: 0, OK: 0, INFO: 0 };
@@ -305,7 +317,7 @@ if (JSON_OUT) {
 // 콘솔 표. 윈도우 cp949 라 이모지를 쓰지 않는다. 한글은 2칸으로 센다.
 const w = (s) => [...String(s)].reduce((a, c) => a + (c.charCodeAt(0) > 127 ? 2 : 1), 0);
 const pad = (s, n) => String(s) + " ".repeat(Math.max(0, n - w(s)));
-const GROUPS = { box: "A. 박스 실거래 커버리지", series: "B. 시계열 연속성", fresh: "C. 신선도(마지막 관측 경과일)", cards: "D. 카드 사실 커버리지", guards: "E. 일관성 가드", pages: "F. 페이지·공개 파일" };
+const GROUPS = { box: "A. 박스 실거래 커버리지", series: "B. 시계열 연속성", fresh: "C. 신선도(마지막 관측 경과일)", cards: "D. 카드 사실 커버리지", guards: "E. 일관성 가드", pages: "F. 페이지·공개 파일", ai: "G. AI 인용(로컬 추적기)" };
 const out = [`연구 품질 점수판 — ${today}   (FAIL ${counts.FAIL} · WARN ${counts.WARN} · OK ${counts.OK} · INFO ${counts.INFO})`, "정의·개선 방법: docs/quality-scorecard.md (지표 ID 기준)", ""];
 let g = null;
 for (const r of rows) {

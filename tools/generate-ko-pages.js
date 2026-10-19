@@ -29,7 +29,7 @@ const pct = (n) => (n == null ? "—" : (n >= 0 ? "+" : "") + n.toFixed(1) + "%"
 const DATA_DATE = F.dataDate;
 // 허브 "기준일"·"마지막 갱신" = 허브 표에 보이는 가장 늦은 중앙값 날짜(사실 파일 koHub.date) — 2026-10-15(5차): 표의 OP-07 행은 10-15 인데 둘 다 10-14(데이터 갱신일)였다.
 // <title>·og:title 의 날짜는 그대로 둔다(SEO 민감 요소).
-const HUB_DATE = F.koHub.date;
+const HUB_DATE = F.dataDate;   // 2026-10-19 — 제목(DATA_DATE)과 같은 값 하나(사실 파일 dataDate)
 // 발매 예정 세트 표(한국어 허브) — 2026-10-16. ko/op-18·ko/eb-05 로 가는 한국어 내부 링크가 0 이었다(푸터 제외). 값은 사실 파일 upcoming[code]
 //   (공식 발매일·이베이 최저 호가·호가 기준일) — ko/<slug>.html 과 같은 칸. 발매된 세트는 표에서 빠지지 않고 '발매됨' 으로 남는다(행 수 고정).
 const UPCOMING_ROWS = Object.entries(F.upcoming || {})

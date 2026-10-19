@@ -47,14 +47,20 @@ function kindOf(id, card) {
 function countsOf(product, cards) {
   const c = { cards: product.ids.length, numbers: 0, base: 0, parallel: 0, reprint: 0, sp: 0, tr: 0, other: 0, leaders: 0 };
   const nums = new Set();
+  // rarity = 공식 레어도(rarityShow)별 카드 ID 수 — 2026-10-19 카드리스트 'Rarity breakdown' 표. 순서는 RARITY_ORDER, 그 밖의 코드는 뒤에.
+  const rar = {};
   for (const id of product.ids) {
     const card = cards[id] || {};
     nums.add(card.num);
     const k = kindOf(id, card);
     if (k === "base" && card.type === "LEADER") c.leaders++;
     c[k]++;
+    const r = rarityShow(card.rarity) || "—";
+    rar[r] = (rar[r] || 0) + 1;
   }
   c.numbers = nums.size;
+  const ord = (r) => { const i = RARITY_ORDER.indexOf(r); return i < 0 ? 99 : i; };
+  c.rarity = Object.fromEntries(Object.entries(rar).sort(([a], [b]) => ord(a) - ord(b) || (a < b ? -1 : 1)));
   return c;
 }
 
@@ -117,6 +123,7 @@ function orderIds(code, ids) {
 //    카드리스트 페이지(공식 ID 전체)와 카드 상세는 공식 목록 행을 직접 읽으므로 여기 함수를 그대로 쓴다.
 // 레어도 코드 — 공식 표기를 줄인 것 하나: SPカード / SP CARD → "SP", 나머지(L·C·UC·R·SR·SEC·TR·P)는 공식 그대로.
 const rarityShow = (r) => (/^SP/i.test(String(r || "")) ? "SP" : String(r || ""));
+const RARITY_ORDER = ["L", "C", "UC", "R", "SR", "SEC", "SP", "TR", "P"];
 
 // 세트 Top 카드(onepiece-packs.json 의 카드 한 변형)의 레어도 = 반다이 공식 카드 리스트의 그 인쇄 레어도 — 2026-10-15.
 // 왜: 한국어 세트 페이지만 공식 레어도로 바꿔(1차) ST31-004 SP 인쇄가 ko/op-17 은 SP, sets/op-17·카드 상세·AI JSON 은 SR(Super Rare),

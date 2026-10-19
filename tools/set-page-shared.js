@@ -79,8 +79,6 @@ function pageHead({ title, desc, canonical, ogType = "article", extraLd = "", ko
       gtag('config', 'G-P73SE1WVD0');
     </script>
     <script defer src="/track.js"></script>
-    <!-- AdSense is intentionally limited to substantial editorial/core pages during site approval.
-         Set guides keep eBay EPN links but do not request Google ads. -->
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="${canonical}" />${hreflang}
     <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
@@ -256,7 +254,11 @@ function keyFactsHtml(m, { lang = "en", usdKrw = null } = {}) {
 
   const src = m.sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener nofollow">${t(x.en + (x.archived ? " (archived)" : ""), x.ko + (x.archived ? " (보관본)" : ""))}</a>${x.checked ? ` ${t("checked", "확인")} ${time(x.checked)}` : ""}`);
   const srcLine = src.length ? `<p class="kfSrc">${t("Bandai official", "반다이 공식")}: ${src.join(" · ")}</p>` : "";
-  return `<table class="kfTable text" id="key-facts-table" aria-label="${esc(ko ? `${m.code} 핵심 정보` : `${m.code} key facts`)}"><tbody>
+  // 표 제목(caption) — 2026-10-19. 표만 떼어 인용될 때도 무엇의 값·언제 값인지 붙어 가게: "<세트> Japanese booster box price · <판매 중앙값 날짜>".
+  //   날짜는 판매 중앙값 점의 날짜(없으면 매물 갱신일, 그것도 없으면 날짜 없이).
+  const capDate = (sd && sd.d) || (m.ask && m.ask.updated) || null;
+  const caption = `<caption>${ko ? esc(`${m.code} ${edKo} 부스터 박스 시세`) : `<span data-ko="${esc(`${m.code} ${edKo} 부스터 박스 시세`)}">${esc(`${m.code} ${edEn} booster box price`)}</span>`}${capDate ? ` · ${time(capDate)}` : ""}</caption>`;
+  return `<table class="kfTable text" id="key-facts-table" aria-label="${esc(ko ? `${m.code} 핵심 정보` : `${m.code} key facts`)}">${caption}<tbody>
             ${rows.join("\n            ")}
           </tbody></table>
           ${srcLine}`;
@@ -267,6 +269,7 @@ function keyFactsHtml(m, { lang = "en", usdKrw = null } = {}) {
 const KF_CSS = `      .bodyPage table.kfTable { width: 100%; max-width: 640px; min-width: 0; margin: 12px 0 4px; font-size: 14px; }
       .bodyPage .kfTable th, .bodyPage .kfTable td { padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; line-height: 1.45; word-break: keep-all; overflow-wrap: break-word; }
       .kfTable time, .kfSrc time { white-space: nowrap; }
+      .kfTable caption { caption-side: top; text-align: left; padding: 0 0 4px; color: var(--muted); font-size: 12.5px; font-weight: 600; }
       .bodyPage .kfTable th { width: 40%; color: var(--muted); font-size: 13px; font-weight: 600; }
       .bodyPage .kfTable th a { color: var(--accent); font-weight: 700; }
       .bodyPage .kfTable td b { color: var(--ink); font-weight: 700; }
@@ -283,11 +286,12 @@ const KF_CSS_ANY = KF_CSS.replace(/\.bodyPage /g, "");
 //   ('May 30, 2026' 등)을 집어 와 갱신일이 묻혔다. 인용 페이지(psa10-ranking·cards/·psa-grading·japan-vs-english·compare·sets/·홈)에
 //   같은 꼴(값·기준일·표본만)을 H1 바로 아래 둔다. rows = [[k, labelEn, labelKo, valueHtml]] — 값은 호출한 생성기가 사실 파일에서 그대로 꺼낸 것.
 //   표 안에 eBay 링크를 두지 않는다(제휴 고지보다 앞). 날짜는 ISO <time>.
-function kfTableAny(rows, { id = "key-facts-table", label = "Key facts", lang = "en" } = {}) {
+// caption = 이미 만든 HTML 조각(표 제목, 2026-10-19 — 표만 떼어 인용될 때 무엇·언제 값인지 붙어 가게). 없으면 생략. cls = 추가 class.
+function kfTableAny(rows, { id = "key-facts-table", label = "Key facts", lang = "en", caption = "", cls = "" } = {}) {
   const ko = lang === "ko";
   const t = (en, k) => (ko ? esc(k) : `<span data-ko="${esc(k)}">${esc(en)}</span>`);
   const body = rows.filter(Boolean).map(([k, en, k2, v]) => `<tr data-k="${k}"><th scope="row">${t(en, k2)}</th><td>${v}</td></tr>`);
-  return `<table class="kfTable text" id="${esc(id)}" aria-label="${esc(label)}"><tbody>
+  return `<table class="kfTable text${cls ? " " + esc(cls) : ""}" id="${esc(id)}" aria-label="${esc(label)}">${caption ? `<caption>${caption}</caption>` : ""}<tbody>
             ${body.join("\n            ")}
           </tbody></table>`;
 }

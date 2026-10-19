@@ -39,7 +39,11 @@ const STALE_DAYS = 28;
 const mmdd = (iso) => (iso ? iso.slice(5) : "—");
 const NO_MEDIAN = `No sold median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window)`;
 const nCell = (b) => (b.n != null ? `<small> n=${b.n}${b.windowDays ? `/${b.windowDays}d` : ""}</small>` : "");
-const tr = rows.map((b) => {
+// box-prices 표만 × MSRP 두 칸을 더 단다(2026-10-19) — 값은 사실 파일 board 의 msrpYen·msrpUsd·vsMsrp 그대로(일본판 박스 정가, 재계산 없음).
+const yen = (v) => "¥" + Math.round(v).toLocaleString("en-US");
+// 한 칸 두 줄(× MSRP / 정가 ¥) — 390px 한 화면 표(tblFit)에 두 칸을 더하면 82px 넘쳤다(audit-mobile-tables 실측).
+const msrpTds = (b) => `<td class="num msrpCol">${b.vsMsrp != null ? b.vsMsrp.toFixed(1) + "×" : "—"}${b.msrpYen ? `<small style="display:block;color:var(--muted);font-size:11.5px">${yen(b.msrpYen)}</small>` : ""}</td>`;
+const rowHtml = (withMsrp) => rows.map((b) => {
   const s = F.sets[b.code] || { cards: [] };
   const none = b.nowUsd == null;
   const chg = none ? null : b.changePct;
@@ -54,8 +58,10 @@ const tr = rows.map((b) => {
   const when = b.nowDate
     ? `<td class="num when" title="Median point ${esc(b.nowDate)}${b.n != null ? ` · ${b.n} sales in its ${b.windowDays ? `${b.windowDays}-day ` : ""}window` : ""}">${esc(mmdd(b.nowDate))}${nCell(b)}</td>`
     : `<td class="num when" title="${esc(NO_MEDIAN)}">—</td>`;
-  return `<tr${none ? ' class="stale"' : ""}><td class="code"><a href="sets/${slug}.html">${esc(b.code)}</a></td><td class="name">${esc(s.nameEn || "")}${links ? `<small class="rowLinks">${links}</small>` : ""}</td><td class="num">${usd(b.nowUsd)}</td>${when}<td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td></tr>`;
+  return `<tr${none ? ' class="stale"' : ""}><td class="code"><a href="sets/${slug}.html">${esc(b.code)}</a></td><td class="name">${esc(s.nameFull || s.nameEn || "")}${links ? `<small class="rowLinks">${links}</small>` : ""}</td><td class="num">${usd(b.nowUsd)}${withMsrp && b.vsMsrp != null ? `<small class="msrpSub">${b.vsMsrp.toFixed(1)}× MSRP</small>` : ""}</td>${when}<td class="num ${chg == null ? "" : chg > 0 ? "up" : chg < 0 ? "down" : "flat"}">${chg != null ? (chg > 0 ? "+" : "") + chg + "%" : "—"}</td>${withMsrp ? msrpTds(b) : ""}</tr>`;
 }).join("\n");
+const tr = rowHtml(false);
+const trBox = rowHtml(true);
 
 
 // ── 홈은 현재 사실상 유일하게 색인된 페이지 → 검색어 표면적을 최대한 넓힌다.
@@ -164,7 +170,7 @@ const cheapRows = H.cheapRows.map((c) => BOARD[c]);   // 가격 오름차순 5�
 const cheapTr = cheapRows.map((b) => {
   const s = F.sets[b.code] || {};
   const slug = b.code.toLowerCase();
-  return `<tr><td><a href="sets/${slug}.html">${esc(b.code)}</a><br><small>${esc(s.nameEn || "")}</small></td><td class="num">${usd(b.nowUsd)}</td><td class="num when">${esc(b.nowDate || "—")}</td><td class="num">${b.n != null ? b.n : "—"}${b.windowDays ? `<small> / ${b.windowDays}d</small>` : ""}</td></tr>`;
+  return `<tr><td><a href="sets/${slug}.html">${esc(b.code)}</a><br><small>${esc(s.nameFull || s.nameEn || "")}</small></td><td class="num">${usd(b.nowUsd)}</td><td class="num when">${esc(b.nowDate || "—")}</td><td class="num">${b.n != null ? b.n : "—"}${b.windowDays ? `<small> / ${b.windowDays}d</small>` : ""}</td></tr>`;
 }).join("\n");
 const cheapSection = cheapRows.length ? `<h2 id="cheapest" data-ko="가장 싼 일본판 부스터 박스">Cheapest Japanese booster boxes</h2>
       <div style="overflow-x:auto">
@@ -181,6 +187,16 @@ const NAV = `<header class="topbar">
       ${navHtml("")}
     </header>`;
 
+// box-prices Key facts 표 — 2026-10-19. 이 페이지는 H1 뒤 202자 안에 $·날짜가 없었다(lit/08 실측: 칩 줄 → 정의 줄). 값은 홈 Key facts 와 같은 사실 home·dataDate.
+const boxKf = (() => {
+  const { kfTableAny } = require("./set-page-shared");
+  return kfTableAny([
+    H.cheapest && H.priciest ? ["range", "Japanese box price range", "일본판 박스 시세 범위", `<b>${usd(H.cheapest.usd)}–${usd(H.priciest.usd)}</b> <small>${esc(H.cheapest.codes.join(", "))} · ${esc(H.priciest.code)}</small>`] : null,
+    ["sets", "Sets", "세트", `<b>${rows.length}</b> <small><span data-ko="일본판 박스">Japanese boxes</span></small>`],
+    ["change", "4-week change", "4주 등락", `<b>${H.nUp} <span data-ko="상승">up</span> · ${H.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${H.withChg} sets with a median 28 days earlier</span></small>`],
+  ], { label: "Booster box prices key facts", caption: `<span data-ko="원피스 일본판 부스터 박스 시세">One Piece Japanese booster box prices</span> · <time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time>` });
+})();
+const { KF_CSS: KF_CSS_BODY } = require("./set-page-shared");
 const pricesPage = `<!doctype html>
 <html lang="en">
   <head>
@@ -209,6 +225,9 @@ const pricesPage = `<!doctype html>
     <meta name="theme-color" content="#0a0c10" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <style>.homeSummaryTable .msrpSub{display:none}@media (max-width:720px){.homeSummaryTable .msrpCol{display:none}.homeSummaryTable .msrpSub{display:block;font-size:11.5px;color:var(--muted);font-weight:400}}
+${KF_CSS_BODY}
+    </style>
     <script type="application/ld+json">${dsLd}</script>
     <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://opboxindex.com/" }, { "@type": "ListItem", position: 2, name: "Booster box prices", item: "https://opboxindex.com/box-prices.html" }] })}</script>
   </head>
@@ -218,14 +237,15 @@ const pricesPage = `<!doctype html>
     <main id="main-content" class="bodyPage">
       <p class="eyebrow">Prices · Updated ${esc(DATA_DATE)} · refreshed daily</p>
       <h1>Japanese One Piece booster box prices — all ${rows.length} sets</h1>
-      <p class="note"><span data-ko="이베이 실거래 중앙값 · 기준일 = 그 중앙값 점의 날짜 · n = 그 점의 평균 창(28~56일, 세트별) 안 판매 건수 · 4주 등락 = 28일 전 중앙값 대비 · — = 28일 안에 날짜가 찍힌 중앙값 없음(중앙값은 창 안 판매 6건 이상)">Median of completed eBay sales · "As of" = date of that median point · n = sales inside its rolling window (28–56 days, set per series) · "4-wk change" = vs the median 28 days earlier · — = no median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window)</span> · ${nUp} up, ${nDn} down</p>
+      ${boxKf}
+      <p class="note"><span data-ko="이베이 실거래 중앙값 · 기준일 = 그 중앙값 점의 날짜 · n = 그 점의 평균 창(28~56일, 세트별) 안 판매 건수 · 4주 등락 = 28일 전 중앙값 대비 · — = 28일 안에 날짜가 찍힌 중앙값 없음(중앙값은 창 안 판매 6건 이상) · × 정가 = 박스 시세 ÷ 일본판 박스 정가">Median of completed eBay sales · "As of" = date of that median point · n = sales inside its rolling window (28–56 days, set per series) · "4-wk change" = vs the median 28 days earlier · — = no median dated within ${STALE_DAYS} days (a median needs at least 6 sales in its window) · × MSRP = box price ÷ JP box MSRP</span> · ${nUp} up, ${nDn} down</p>
       ${cheapSection}
       <h2 id="all-sets" data-ko="전체 ${rows.length}개 세트">All ${rows.length} sets</h2>
       <div style="overflow-x:auto">
       <table class="homeSummaryTable tblFit" data-all-sets>
-        <thead><tr><th data-ko="세트">Set</th><th class="name" data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th><span data-ko="기준일">As of</span> <small data-ko="n / 창">n / window</small></th><th><span data-ko="4주">4-wk</span> <small data-ko="등락">change</small></th></tr></thead>
+        <thead><tr><th data-ko="세트">Set</th><th class="name" data-ko="이름">Name</th><th data-ko="박스 시세">Box price</th><th><span data-ko="기준일">As of</span> <small data-ko="n / 창">n / window</small></th><th><span data-ko="4주">4-wk</span> <small data-ko="등락">change</small></th><th class="msrpCol" data-ko="× 정가">× MSRP</th></tr></thead>
         <tbody>
-${tr}
+${trBox}
         </tbody>
       </table>
       </div>
@@ -270,7 +290,7 @@ console.error("wrote box-prices.html");
     ["sets", "Sets tracked", "추적 세트", `<b>${rows.length}</b> <small><span data-ko="일본판 박스 · 영문판 박스 페이지 · 공식 카드 리스트">Japanese boxes · English box pages · official card lists</span></small>`],
     ["change", "4-week change", "4주 등락", `<b>${H.nUp} <span data-ko="상승">up</span> · ${H.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${H.withChg} sets with a median 28 days earlier</span></small>`],
     ["asof", "Data", "기준일", `<time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time> <small><span data-ko="이베이 완료 거래 중앙값 · 매일">eBay completed-sale medians · daily</span></small>`],
-  ], { id: "home-key-facts", label: "Home key facts" });
+  ], { id: "home-key-facts", label: "Home key facts", caption: `<span data-ko="원피스 일본판 부스터 박스 시세">One Piece Japanese booster box prices</span> · <time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time>` });
   const KF_START = "<!-- HOME_KEY_FACTS:START -->", KF_END = "<!-- HOME_KEY_FACTS:END -->";
   const fp = path.join(ROOT, "index.html");
   let h = fs.readFileSync(fp, "utf8");

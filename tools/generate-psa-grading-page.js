@@ -206,7 +206,7 @@ ${KF_CSS_ANY}
         ["tag", "TAG graded · JP / EN", "TAG 등급 · 일본판 / 영문판", `<b>${n(K.jptag.total)}</b> / <b>${n(K.entag.total)}</b>`],
         ["sets", "Sets covered", "세트 수", `<b>${rows.length}</b>`],
         ["updated", "Updated", "기준일", `<time datetime="${esc(updated)}">${esc(updated)}</time>`],
-      ], { label: "Grading population key facts" })}
+      ], { label: "Grading population key facts", caption: `<span data-ko="원피스 세트별 PSA 등급 수">One Piece PSA population by set</span> · <time datetime="${esc(updated)}">${esc(updated)}</time>` })}
       <p class="lead">Cards in PSA, CGC and TAG holders per booster set · Japanese and English printings kept separate · change = new grades since each company's previous report</p>
 
       <div class="statRow">

@@ -120,7 +120,7 @@ if (require.main === module) {
   // "오늘" = max(UTC 오늘, 사실 파일 hubDate(데이터 최신일)) — 2026-10-16. 08:57 KST(=23:57Z) 무인 빌드에서 주입기가 "as of 2026-10-16"(시계열 최신 점)을
   // 쓰는데 UTC 오늘은 10-15 라 dateModified 가 본문보다 일러 가드 U1 로 커밋이 막혔다(주간 점이 새로 생기는 날에만 재발).
   const F = require("./build-site-facts").load();
-  const today = [new Date().toISOString().slice(0, 10), F.hubDate || ""].sort().pop();
+  const today = [new Date().toISOString().slice(0, 10), F.dataDate || ""].sort().pop();
   const changed = [], same = [], skipped = [];
   for (const rel of listArticles()) {
     const abs = path.join(ROOT, rel);

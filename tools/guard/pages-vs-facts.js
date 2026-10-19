@@ -303,7 +303,7 @@ function summaryTables() {
       if (cs[4] != null) cmp("CW1", f, `${code} 4주`, cs[4], b.changePct);
     }
     if (!n) cmp("D17", f, "요약표 행", null, "행을 읽어야 한다");
-    if (f === "sets/index.html") cmp("CL3", f, "Data 날짜", first(h, /Data (\d{4}-\d{2}-\d{2})/), F.hubDate);
+    if (f === "sets/index.html") cmp("CL3", f, "Data 날짜", first(h, /Data (\d{4}-\d{2}-\d{2})/), F.dataDate);
     else if (f === "box-prices.html") cmp("D17", f, "Updated", first(h, /Updated (\d{4}-\d{2}-\d{2}) · refreshed daily/), F.dataDate);
     else cmp("D17", f, "데이터 날짜", first(h, /data (\d{4}-\d{2}-\d{2}) · each row dated/), F.dataDate);
   }
@@ -338,7 +338,7 @@ function summaryTables() {
       cmp("CW1", w, "4주 등락", first(cs[3], /^([+-]?[\d.]+%|—)/), b.changePct); if (b.changeBasis) cmp("CW1", w, "등락 기준일", first(cs[3], /fromDate[^>]*>(\d{4}-\d{2}-\d{2}) 대비/), b.changeBasis);
       cmp("KO2", w, "재판 칸", first(cs[4], /재판 (\d+)회/) ?? (/재판 기록 없음/.test(cs[4]) ? "—" : null), S[code].reprint.count || null); cmp("KO2", w, "발매 후 추첨", first(cs[4], /발매 후 추첨 (\d+)회/), S[code].reprint.lottery.length || null);
     }
-    cmp("KD1", "ko/index.html", "기준일", first(h, /기준일 (\d{4}-\d{2}-\d{2})\b/), K.date); cmp("KD1", "ko/index.html", "마지막 갱신", first(h, /마지막 갱신 (\d{4}-\d{2}-\d{2})\./), K.date); cmp("KD1", "ko/index.html", "설명문 기준일", first(d, /기준일 (\d{4}-\d{2}-\d{2})/), K.date);
+    cmp("KD1", "ko/index.html", "기준일", first(h, /기준일 (\d{4}-\d{2}-\d{2})\b/), F.dataDate); cmp("KD1", "ko/index.html", "마지막 갱신", first(h, /마지막 갱신 (\d{4}-\d{2}-\d{2})\./), F.dataDate); cmp("KD1", "ko/index.html", "설명문 기준일", first(d, /기준일 (\d{4}-\d{2}-\d{2})/), F.dataDate); cmp("KD1", "ko/index.html", "제목 기준일", first(h, /<title>[^<]*\((\d{4}-\d{2}-\d{2}) 기준\)/), F.dataDate);
     for (const [lbl, v] of [["최고", K.max], ["최저", K.min]]) { const m = d.match(new RegExp(`${lbl} ([A-Z0-9·-]+) ([\\d,]+)원`)); cmp("CH1", "ko/index.html", `설명문 ${lbl} 세트`, m && m[1].split("·").sort().join("·"), v ? [...v.codes].sort().join("·") : null); cmp("CH1", "ko/index.html", `설명문 ${lbl} 원화`, m && m[2], v ? v.krw : null); }
     const up = d.match(/급등 (\S+) ([+-][\d.]+%)/), dn = d.match(/급락 (\S+) ([+-]?[\d.]+%)/);
     if (K.topUp.length) { cmp("D17", "ko/index.html", "설명문 급등", up && up[1], K.topUp[0]); cmp("D17", "ko/index.html", "설명문 급등률", up && up[2], B[K.topUp[0]].changePct); cmp("D17", "ko/index.html", "설명문 급락", dn && dn[1], K.topDn[0]); cmp("D17", "ko/index.html", "설명문 급락률", dn && dn[2], B[K.topDn[0]].changePct); }
@@ -463,7 +463,23 @@ function upcoming() {
     cmp("UP1", f, "Article dateModified", (lds.find((j) => j["@type"] === "Article") || {}).dateModified, u.pageDate);
     cmp("UP1", f, "바이라인 Updated", first(h, /Updated <time datetime="(\d{4}-\d{2}-\d{2})"/), u.pageDate);
     cmp("UP1", f, "article:modified_time", first(h, /<meta property="article:modified_time" content="(\d{4}-\d{2}-\d{2})"/), u.pageDate);
-    for (const m of strip(h).matchAll(/\b(?:[Cc]hecked|[Rr]ead)(?: on)? ([A-Z][a-z]+ \d{1,2}, \d{4})/g)) if (!cmp("UP1", f, "확인일", m[1], longDate(u.modified))) break;
+    // "checked <날짜>" = 사실 확인일(page.modified). 단 "Bandai product page checked <날짜>" 는 그날 실제로 받은 상품 페이지 확인일(BD1, 2026-10-19).
+    for (const m of strip(h).matchAll(/(Bandai product page )?\b(?:[Cc]hecked|[Rr]ead)(?: on)? ([A-Z][a-z]+ \d{1,2}, \d{4})/g)) {
+      if (m[1]) { cmp("BD1", f, "반다이 상품 페이지 확인일(eyebrow)", m[2], u.bandai && u.bandai.checkedOn ? longDate(u.bandai.checkedOn) : null); continue; }
+      if (!cmp("UP1", f, "확인일", m[2], longDate(u.modified))) break;
+    }
+    // BD1 — 화면의 반다이 확인일 = 사실 파일 bandai.checkedOn = 수집 로그(data/bandai-product-check.json log)에 남은 그 세트의 성공 날짜. 확인한 적 없는 날짜를 쓰지 않는다.
+    {
+      const bc = u.bandai, B = json("data/bandai-product-check.json", { sets: {}, log: [] });
+      cmp("BD1", f, "상태 행 확인일", first(h, /Bandai product pages \(JP · EN\) checked <time datetime="(\d{4}-\d{2}-\d{2})"/), bc && bc.checkedOn ? bc.checkedOn : null);
+      const kf = `ko/${u.slug}.html`;
+      if (exists(kf)) cmp("BD1", kf, "eyebrow 반다이 확인일", first(read(kf), /반다이 상품 페이지 확인 (\d{4}-\d{2}-\d{2})/), bc && bc.checkedOn ? bc.checkedOn : null);
+      if (bc && bc.checkedOn) {
+        cmp("BD1", f, "확인일이 로그의 성공 날짜", (B.log || []).some((l) => l.code === code && l.d === bc.checkedOn && l.ok === true) ? bc.checkedOn : null, bc.checkedOn);
+        if (bc.checkedOn > new Date().toISOString().slice(0, 10)) cmp("BD1", f, "확인일이 미래", bc.checkedOn, "오늘 이하");
+      }
+      if (bc && bc.cardList && !CL.productOf(code)) cmp("BD1", f, "카드리스트 미공개 확인일", first(h, /Not published · Bandai card list checked <time datetime="(\d{4}-\d{2}-\d{2})"/), bc.cardList.checkedOn);
+    }
     const st = first(h, /Market-data status<\/th><td>([^<]*)<\/td>/) || "";
     if (s) { const sm = st.match(/sales since release: JP (\d+) · EN (\d+)/); cmp("D16", f, "상태 발매 후 JP", sm && sm[1], s.sinceRelease.jp ?? 0); cmp("D16", f, "상태 발매 후 EN", sm && sm[2], s.sinceRelease.en ?? 0); for (const ed of ["jp", "en"]) { const pr = s.preRelease[ed], pm = st.match(new RegExp(`${ed.toUpperCase()} (\\d+) sales \\((\\d+) listings\\)`)); cmp("D16", f, `상태 예약판매 ${ed}`, pm && pm[1], pr ? pr.sales : null); if (pm && pr) cmp("D16", f, `상태 예약판매 매물 ${ed}`, pm[2], pr.listings); } }
     cmp("D16", f, "상태 through", first(st, /through ([A-Z][a-z]+ \d{1,2}, \d{4})$/), longDate(u.through));
@@ -482,8 +498,10 @@ function cardLists() {
     const ids = CL.orderIds(c.code, (CL.productOf(c.code) || { ids: [] }).ids), N = c.numbers;
     for (const [f, ko] of [[`sets/${c.slug}-card-list.html`, false], [`ko/${c.slug}-card-list.html`, true]]) {
       if (!exists(f)) { cmp("CL1", f, "페이지", null, "있어야 한다"); continue; }
-      const h = read(f), sum = first(h, /<p class="clSummary">([\s\S]*?)<\/p>/) || "";
-      for (const [lbl, key] of [[ko ? "카드" : "Cards", "cards"], [ko ? "카드 번호" : "Card numbers", "numbers"], [ko ? "기본" : "Base", "base"], [ko ? "패러렐" : "Parallel", "parallel"], ["SP", "sp"], ["TR", "tr"], [ko ? "리더" : "Leaders", "leaders"]]) cmp("CL1", f, `요약 ${lbl}`, first(sum, new RegExp(`${lbl}(?:</span>)? <b>([^<]*)</b>`)), c.counts[key]);
+      // 요약 = Key facts 표(table.kfTable.clSummary, 2026-10-19 — 종전 p.clSummary 한 줄). 행마다 <th>라벨</th><td><b>값</b>.
+      const h = read(f), sum = first(h, /<table class="kfTable[^"]*\bclSummary\b[^"]*"[^>]*>([\s\S]*?)<\/table>/) || "";
+      for (const [lbl, key] of [[ko ? "카드" : "Cards", "cards"], [ko ? "카드 번호" : "Card numbers", "numbers"], [ko ? "기본" : "Base", "base"], [ko ? "패러렐" : "Parallel", "parallel"], ["SP", "sp"], ["TR", "tr"], [ko ? "리더(기본 인쇄)" : "Leaders (base print)", "leaders"]]) cmp("CL1", f, `요약 ${lbl}`, first(sum, new RegExp(`>${lbl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:</span>)?</th><td><b>([^<]*)</b>`)), c.counts[key]);   // 라벨에 괄호가 있어 이스케이프(2026-10-19)
+      cmp("CL1", f, "요약 caption 확인일", first(sum, /<caption>[\s\S]*?<time datetime="(\d{4}-\d{2}-\d{2})">/), c.checked);
       cmp("CL1", f, "공식 출처 링크", h.includes(`href="${c.url}"`) ? c.url : null, c.url); cmp("CL1", f, "공식 확인일", h.includes(`<time datetime="${c.checked}">${c.checked}</time>`) ? c.checked : null, c.checked);
       const box = h.match(/(?:JP box sold median|일본판 박스 판매 중앙값) <b>([^<]*)<\/b>(?: \((\d{4}-\d{2}-\d{2}), n=(\d+)\))?[^<]*?(?:EN box|영문판 박스) <b>([^<]*)<\/b>(?: \((\d{4}-\d{2}-\d{2}), n=(\d+)\))?/);
       for (const [ed, i] of [["jp", 1], ["en", 4]]) { const b = c.box[ed]; cmp("CL1", f, `${ed} 박스`, box && box[i], b ? b.usd : null); if (box && b) { cmp("CL1", f, `${ed} 박스 날짜`, box[i + 1], b.date); cmp("CL1", f, `${ed} 박스 n`, box[i + 2], b.n); } }
@@ -630,13 +648,32 @@ function aiFiles() {
 }
 
 // 영역별 대조 건수 하한 — 표 구조가 바뀌어 아무것도 못 읽으면(검사 안 하고 통과) 여기서 걸린다. 2026-10-15 실측의 절반쯤.
-const MIN = { sets: 3000, cards: 3500, summary: 300, compare: 230, weekly: 180, articles: 300, upcoming: 30, cardLists: 25000, ai: 1100 };   // 실측(2026-10-15) sets 6,286 · cards 7,210 · summary 603 · compare 474 · weekly 377 · articles 654 · upcoming 72 · cardLists 52,969 · ai 2,285
+// OV1 — 한 사실 한 값(2026-10-19): 세트 수·카드 페이지 수·기준일·세트 이름이 페이지마다 같은가. 종전 compare "Sets compared 24"(발매 전 2개 포함) vs
+//   다른 페이지 22, llms "115 cards with raw NM and PSA 10" vs cards/index 87, 홈 기준일 10-18 vs 세트 허브 10-19, PRB-01·PRB-02 둘 다 "Premium Booster" 였다.
+function oneValue() {
+  const nSets = F.board.length, nCards = F.cardPages.length;
+  const kfB = (h, k) => { const r = kfRows(h)[k]; return r ? first(r.td, /<b>(\d+)<\/b>/) : null; };
+  const kfT = (h, k) => { const r = kfRows(h)[k]; return r ? first(r.td, /<time datetime="(\d{4}-\d{2}-\d{2})"/) : null; };
+  for (const [f, k] of [["sets/index.html", "sets"], ["compare.html", "sets"], ["index.html", "sets"]]) if (exists(f)) cmp("OV1", f, "세트 수", kfB(read(f), k), nSets);
+  if (exists("box-prices.html")) cmp("OV1", "box-prices.html", "H1 세트 수", first(read("box-prices.html"), /<h1>[^<]*all (\d+) sets<\/h1>/), nSets);
+  if (exists("llms.txt")) {
+    const t = read("llms.txt");
+    cmp("OV1", "llms.txt", "Coverage 세트 수", first(t, /Coverage: (\d+) tracked One Piece sets/), nSets);
+    for (const re of [/(\d+) individual card price pages/, /all (\d+) card pages/, /(\d+) card pages, grading/, /cards\/\): (\d+) card pages/]) cmp("OV1", "llms.txt", `카드 페이지 수 ${re.source.slice(0, 24)}`, first(t, re), nCards);
+  }
+  for (const f of ["index.html", "sets/index.html", "compare.html", "cards/index.html"]) if (exists(f)) cmp("OV1", f, "기준일", kfT(read(f), "asof"), F.dataDate);
+  cmp("OV1", "compare", "compare.asOf = dataDate", F.compare.asOf, F.dataDate);
+  const nameOf = (c) => S[c] && (S[c].nameFull || S[c].nameEn);
+  if (exists("compare.html")) for (const m of read("compare.html").matchAll(/<th scope="row" class="ctSet"><a href="\/sets\/[^"]+"><b>([A-Z]+-\d+)<\/b><span>([^<]*)<\/span>/g)) if (S[m[1]] && !S[m[1]].unreleased) cmp("OV1", `compare.html ${m[1]}`, "세트 이름", unH(m[2]), nameOf(m[1]));
+  for (const f of ["box-prices.html", "index.html"]) if (exists(f)) for (const m of read(f).matchAll(/<td class="code"><a href="sets\/[^"]+">([A-Z]+-\d+)<\/a><\/td><td class="name">([^<]*)/g)) cmp("OV1", `${f} ${m[1]}`, "세트 이름", unH(m[2]), nameOf(m[1]));
+}
+const MIN = { oneValue: 60, sets: 3000, cards: 3500, summary: 300, compare: 230, weekly: 180, articles: 300, upcoming: 30, cardLists: 25000, ai: 1100 };   // 실측(2026-10-15) sets 6,286 · cards 7,210 · summary 603 · compare 474 · weekly 377 · articles 654 · upcoming 72 · cardLists 52,969 · ai 2,285
 let compared = 0;
 function run() {
   F = facts(); S = F.sets; counts = new Map(); compared = 0;
   const AREAS = [
     ["sets", () => { for (const code of F.order.setPages) { const f = `sets/${S[code].slug}.html`; if (exists(f)) setPage(code, "jp", f, "en"); } for (const code of F.order.englishPages) { const f = `sets/${S[code].slug}-english.html`; if (exists(f)) setPage(code, "en", f, "en"); } for (const code of F.order.setPages) { const f = `ko/${S[code].slug}.html`; if (exists(f)) setPage(code, "jp", f, "ko"); } }],
-    ["cards", cardPages], ["summary", summaryTables], ["compare", compareTables], ["weekly", weekly], ["articles", articles], ["upcoming", upcoming], ["cardLists", cardLists], ["ai", aiFiles],
+    ["cards", cardPages], ["summary", summaryTables], ["compare", compareTables], ["weekly", weekly], ["articles", articles], ["upcoming", upcoming], ["cardLists", cardLists], ["ai", aiFiles], ["oneValue", oneValue],
   ];
   const byArea = {};
   for (const [name, fn] of AREAS) { const before = compared; fn(); byArea[name] = compared - before; if (byArea[name] < MIN[name]) errors.push(`PAGES-VS-FACTS: ${name} 영역 대조 ${byArea[name]}건 < 하한 ${MIN[name]} — 표·칸 구조가 바뀌어 읽지 못했으면 이 검사도 같이 고칠 것`); }

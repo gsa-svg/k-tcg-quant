@@ -19,7 +19,7 @@ const { variant } = require("./image-variants");
 const joinNames = (cs) => { const n = cs.map((c) => esc(c.name)); return n.length <= 2 ? n.join(" and ") : `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}`; };
 
 const ROOT = path.join(__dirname, "..");
-// 사실 한 벌 — 세트별 값은 F.sets[code], 사이트 값은 F.board·F.baselines·F.latestSets·F.hubDate.
+// 사실 한 벌 — 세트별 값은 F.sets[code], 사이트 값은 F.board·F.baselines·F.latestSets·F.dataDate.
 const F = require("./build-site-facts").load();
 
 // 세트 허브의 "Upcoming sets" 목록 — data/upcoming-set-pages.json 에서 만든다.
@@ -760,7 +760,7 @@ function hubPage() {
   const board = {};
   for (const b of F.board) board[b.code] = b;
   // 표의 날짜 칸은 판매 원장 기준일(asOf)까지 간다 — "Data" 날짜가 그보다 이르면 안 된다(2026-10-15, OP-07 행 10-15 · Data 10-14). 사실 파일 hubDate.
-  const hubDate = F.hubDate;
+  const hubDate = F.dataDate;
   const STALE_DAYS = 28;
   const rows = ORDER.map((code) => {
     const s = F.sets[code];
@@ -802,7 +802,7 @@ function hubPage() {
         ["change", "4-week change", "4주 등락", `<b>${F.home.nUp} <span data-ko="상승">up</span> · ${F.home.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${F.home.withChg} sets with a median 28 days earlier</span></small>`],
         ["movers", "Largest moves", "최대 등락", [F.home.topUp ? `${esc(F.home.topUp.code)} ${F.home.topUp.pct >= 0 ? "+" : ""}${F.home.topUp.pct}%` : null, F.home.topDn ? `${esc(F.home.topDn.code)} ${F.home.topDn.pct >= 0 ? "+" : ""}${F.home.topDn.pct}%` : null].filter(Boolean).join(" · ") || "—"],
         ["asof", "Data", "기준일", `<time datetime="${esc(hubDate)}">${esc(hubDate)}</time> <small><span data-ko="이베이 완료 거래 중앙값">eBay completed-sale medians</span></small>`],
-      ], { label: "Set guides key facts" })}
+      ], { label: "Set guides key facts", caption: `<span data-ko="원피스 일본판 부스터 박스 시세">One Piece Japanese booster box prices</span> · <time datetime="${esc(hubDate)}">${esc(hubDate)}</time>` })}
       ${/* 표 머리 설명을 라벨 조각으로(2026-10-15 소유자 결정) — 종전 "dated per row by its median point" 같은 방법 설명 문장을 정의 조각만 남겼다. */ ""}
       <p class="priceNote">Japanese sealed booster box · Box price = rolling median of completed eBay sales · n = sales in its 28–56-day window · 4-wk change = vs the median 28 days earlier · — = no median dated within ${STALE_DAYS} days (6+ sales) · Data ${esc(hubDate)} · <a href="../methodology.html#box-median">How these are counted</a></p>
       <div style="overflow-x:auto">
@@ -874,7 +874,8 @@ function rankingRows() {
         code, setName: set.nameEn || code, name: c.name, number: c.number, rarity: c.rarityEn, psa: p.usd, n: p.n,
         low: p.low, high: p.high, updated: p.date,
         stale: p.stale,   // 관측일이 35일 넘은 sold 중앙값은 "지금 값"이 아니다 — 세트·카드 페이지(psaStale)·홈(PSA10_STALE_DAYS)과 같은 기준. 2026-09-30.
-        rawUsd: c.nm.usd, mult: p.multiple && p.multiple <= 40 ? p.multiple : null, pop: c.pop, img: ownImage(c), slug: CARD_MAP[cardKey(c.number, c.name)] || null,
+        // 배수 규칙(35일·40배)은 사실 파일 psa10.multiple 한 곳(2026-10-19)
+        rawUsd: c.nm.usd, mult: p.multiple, pop: c.pop, img: ownImage(c), slug: CARD_MAP[cardKey(c.number, c.name)] || null,
       });
     }
   }
@@ -945,6 +946,7 @@ ${list.map((r, i) => rowHtml(r, i + offset)).join("\n")}
   const ld = `<script type="application/ld+json">${JSON.stringify({
     "@context": "https://schema.org", "@type": "ItemList",
     name: "Most valuable One Piece PSA 10 cards",
+    dateModified: asOf,   // 2026-10-19 — 화면 "As of" 와 같은 값(표에 실린 카드들의 최신 관측일)
     itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.name} (${r.code}${r.number ? " " + r.number : ""}) PSA 10` })),
   })}</script>
     <script type="application/ld+json">${JSON.stringify({
@@ -1074,8 +1076,8 @@ ${KF_CSS_ANY}
         ["over1k", "Sold above $1,000", "$1,000 이상", `<b>${over1k}</b>`],
         ["multiple", "PSA 10 ÷ ungraded (median)", "PSA 10 ÷ 미등급 (중앙값)", medMult ? `<b>${medMult.toFixed(1)}×</b>` : "—"],
         ["graded", "PSA-graded copies (ranked cards)", "PSA 등급 수량 (순위 카드)", totalPop ? `<b>${intl(totalPop)}</b> <small>${gemPct}% PSA 10</small>` : "—"],
-        ["asof", "As of", "기준일", `<time datetime="${esc(asOf)}">${esc(asOf)}</time>`],
-      ], { label: "PSA 10 ranking key facts" })}
+        ["asof", "As of", "기준일", `<time datetime="${esc(asOf)}">${esc(asOf)}</time>`],   // 기준일은 표 제목(caption)의 <time> 이 첫 날짜다(2026-10-19)
+      ], { label: "PSA 10 ranking key facts", caption: `<span data-ko="가장 비싼 원피스 PSA 10 카드">Most valuable One Piece PSA 10 cards</span> · <time datetime="${esc(asOf)}">${esc(asOf)}</time>` })}
       <p class="lead">Median of completed eBay sales · at least 3 sales per card · USD</p>
 
       <div class="statRow">

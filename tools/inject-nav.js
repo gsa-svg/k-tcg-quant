@@ -30,14 +30,41 @@ function withGuideLinks(html, inKo) {
 // 착지 페이지 "다음 클릭" 줄 — 첫 </h1> 바로 뒤. 있으면 교체, 없으면 삽입. 목적지 자체(홈·응모)와 안내 페이지는 뺀다.
 const NEXT_RE = /<nav class="nextLinks"[^>]*>[\s\S]*?<\/nav>/;
 const NEXT_SKIP = new Set(["index.html", "404.html", "packs.html", "sets/index.html", "amazon-lottery.html", "privacy.html", "disclaimer.html", "changelog.html", "ko/index.html", "ko/amazon-lottery.html", "ja/release-dates.html"]);   // ja: 영문 칩을 일본어 표 위에 얹지 않는다(2026-10-14 W8)
+// 자리(2026-10-19): H1 바로 뒤에 Key facts 표가 있으면 그 표(뒤따르는 출처 줄 p.kfSrc·주입 마커 END 까지) 다음, 없으면 </h1> 다음.
+//   ChatGPT 스니펫(labrador)은 제목 + 본문 앞 ~200자를 저장하는데, H1 직후 칩 줄(~75자)이 그 몫을 먹고 첫 $·날짜가 202자 밖으로 밀렸다(lit/08).
+//   링크는 그대로 둔다(두 장째 클릭용) — 위치만 표 아래.
+const KF_AFTER_H1 = 4000;   // H1 끝에서 이 글자 수 안에 Key facts 표가 시작할 때만(본문 아래쪽 표를 잡지 않게)
+function nextLinksAt(html) {
+  const h1 = html.indexOf("</h1>");
+  if (h1 < 0) return -1;
+  const end = h1 + "</h1>".length;
+  const m = /<table class="kfTable[^"]*"[^>]*\bid="(?:key-facts-table|home-key-facts)"/.exec(html.slice(end, end + KF_AFTER_H1));
+  if (!m) return end;
+  let at = html.indexOf("</table>", end + m.index);
+  if (at < 0) return end;
+  at += "</table>".length;
+  const tail = /^\s*<p class="kfSrc">[\s\S]*?<\/p>/.exec(html.slice(at));
+  if (tail) at += tail[0].length;
+  const mark = /^\s*<!-- [A-Z_]+:END -->/.exec(html.slice(at));
+  if (mark) at += mark[0].length;
+  return at;
+}
 function withNextLinks(html, rel, inKo) {
   if (NEXT_SKIP.has(rel)) return html;
   const want = nextLinksHtml(inKo, rel);
-  if (NEXT_RE.test(html)) return html.replace(NEXT_RE, () => want);
-  const at = html.indexOf("</h1>");
+  // 있으면 지우고 정해진 자리에 다시 — 같은 입력이면 같은 결과(몇 번 돌려도 같다).
+  const base = html.replace(new RegExp("\\n?[ \\t]*" + NEXT_RE.source), "");
+  const at = nextLinksAt(base);
   if (at < 0) return html;
-  const end = at + "</h1>".length;
-  return html.slice(0, end) + "\n      " + want + html.slice(end);
+  return base.slice(0, at) + "\n      " + want + base.slice(at);
+}
+
+// 공개 HTML 의 작업 메모 주석 제거 — 2026-10-19(과정 비공개 규칙). 한글·'소유자'·AdSense 가 든 HTML 주석은 배포본에서 뺀다.
+//   주입 마커(<!-- HOME_SUMMARY:START --> 등 ASCII 식별자)·영문 일반 주석은 그대로. <script>·<style> 안은 건드리지 않는다. 가드 CM1(copy-rules)이 0 을 본다.
+const MEMO_RE = /[ㄱ-ㆎ가-힣]|소유자|adsense|애드센스/i;
+function withoutMemoComments(html) {
+  const parts = html.split(/(<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>)/i);
+  return parts.map((p, i) => (i % 2 ? p : p.replace(/\n?[ \t]*<!--([\s\S]*?)-->/g, (all, body) => (MEMO_RE.test(body) ? "" : all)))).join("");
 }
 
 // 영문 페이지 푸터·브랜드 부제의 한국어 토글 라벨 — 2026-10-13 QA: 한국어로 바꿔도 푸터 문구·푸터 메뉴·상단 부제가 영어로 남았다.
@@ -171,6 +198,11 @@ for (const rel of listHtml()) {
   if (withFoot !== html) {
     if (checkOnly) mismatch.push(rel + " (footer ko labels)");
     else { fs.writeFileSync(abs, withFoot, "utf8"); html = withFoot; if (!changed.includes(rel)) changed.push(rel); }
+  }
+  const withoutMemo = withoutMemoComments(html);
+  if (withoutMemo !== html) {
+    if (checkOnly) mismatch.push(rel + " (memo comments)");
+    else { fs.writeFileSync(abs, withoutMemo, "utf8"); html = withoutMemo; if (!changed.includes(rel)) changed.push(rel); }
   }
   if (!NAV_RE.test(html)) { skipped.push(rel); continue; }
 

@@ -50,6 +50,8 @@ const INPUTS = [
   "data/grading-series.json", "data/auction-series.json", "data/tcg-series.json", "cards/card-map.json",
   // 카드 쪽(2026-10-15): 카드별 경매 실적(45일 롤링)·카드 시세 이력·예약판매 호가·PSA 판별 주간 증감
   "data/auction-card-stats.json", "data/card-series.json", "data/preorder-series.json", "data/psa-edition-weekly.json",
+  // 반다이 상품 페이지 확인(2026-10-19, tools/check-bandai-product-pages.js) — 발매 전 페이지의 "Bandai product page checked" 날짜
+  "data/bandai-product-check.json",
 ];
 // 사이트의 "현재" 기준(일) — 마지막 관측이 이보다 오래되면 현재값으로 쓰지 않는다(가드 D17). 카드 페이지의 박스 배수 분모·Product 호가 신선도가 같은 값.
 const CURRENT_DAYS = 28;
@@ -349,11 +351,15 @@ function buildCard(src, code, c, i, spikes, datasetUpdatedOn, ctx = {}) {
     if (v != null) {
       const toU = (x) => (x == null ? null : sold.currency === "USD" ? x : sold.currency === "KRW" ? x / (N.fxAt(sold.updated) || fx.usdKrw) : null);
       const ageDays = ageOf(sold.updated);
+      const stale = Number.isFinite(ageDays) && ageDays > PSA10_STALE_DAYS;
+      // 배수(PSA 10 ÷ NM) 규칙은 여기 한 곳 — 2026-10-19. 35일 넘은 표본이거나 40배 넘으면(raw 오매칭) null. 종전엔 PSA10 랭킹은 묵은 표본도 1.7× 를,
+      //   카드 허브는 "—" 를 내 한 카드가 두 값이었다(OP13-118). 랭킹·허브·카드 상세가 이 값을 그대로 쓴다.
+      const mult = nmUsd > 0 ? v / nmUsd : null;
       psa10 = {
         usd: v, krw: fx.usdKrw ? v * fx.usdKrw : null, low: toU(sold.low), high: toU(sold.high),
         n: sold.sampleSize || null, date: sold.updated || null, ageDays,
-        stale: Number.isFinite(ageDays) && ageDays > PSA10_STALE_DAYS,   // 35일 넘은 sold 중앙값은 "현재가"가 아니다(홈 PSA10_STALE_DAYS 와 같은 기준)
-        multiple: nmUsd > 0 ? v / nmUsd : null,            // PSA 10 ÷ 쓸 수 있는 NM(달러)
+        stale,   // 35일 넘은 sold 중앙값은 "현재가"가 아니다(홈 PSA10_STALE_DAYS 와 같은 기준)
+        multiple: mult != null && !stale && mult <= 40 ? mult : null,            // PSA 10 ÷ 쓸 수 있는 NM(달러)
       };
     }
   }
@@ -544,7 +550,9 @@ function buildSet(src, code, datasetUpdatedOn) {
   const auc = auction.sets && auction.sets[code];
   const board = src.boardByCode[code] || null;
   return {
-    code, nameEn: s.nameEn || null, nameKo: s.nameKo || null, slug: slug(code), box: s.box || null, release: s.release || null,
+    // nameFull = 표·목록에 쓰는 세트 이름(공식 부제까지 — PRB-01 "Premium Booster — The Best", PRB-02 "… The Best vol.2") — 2026-10-19.
+    //   nameEn 은 제목·H1 이 쓰는 이름이라 그대로 둔다(제목 불변 규칙). card-list-shared.nameEnOf 한 곳이 정한다.
+    code, nameEn: s.nameEn || null, nameFull: CL.nameEnOf(code) || s.nameEn || null, nameKo: s.nameKo || null, slug: slug(code), box: s.box || null, release: s.release || null,
     canonicalUrl: canonical,
     englishGuideUrl: fs.existsSync(path.join(ROOT, "sets", `${slug(code)}-english.html`)) ? `${SITE}/sets/${slug(code)}-english.html` : null,
     hasCards: cards.length > 0, hasPoints: { jp: (ser.jp || []).length > 0, en: (ser.en || []).length > 0 },
@@ -782,7 +790,6 @@ function build(inputs) {
   const koHub = {
     max: priced.length ? pick(Math.max(...priced.map(krwOf))) : null, min: priced.length ? pick(Math.min(...priced.map(krwOf))) : null,
     topUp: movers.slice(0, 3).map((b) => b.code), topDn: movers.slice(-3).reverse().map((b) => b.code),
-    date: rows.map((b) => b.nowDate).filter((x) => isDate(x)).sort().pop() || dataDate,   // 허브 표에 보이는 가장 늦은 중앙값 날짜
   };
 
   // ── 주간 표 기준 주 — 시리즈 전체에서 가장 늦은 주간 점 날짜. weekly.html 의 데이터일은 시리즈 갱신일.
@@ -833,12 +840,39 @@ function build(inputs) {
     const top = s.top10.priciest;
     const change = N.boxChange28(jp, eds.current && eds.current.jp);
     return {
-      code, name: s.nameEn || "", jp: now.median, jpN: now.n, en: enNow ? enNow.median : null, enN: enNow ? enNow.n : null,
+      code, name: s.nameFull || "", jp: now.median, jpN: now.n, en: enNow ? enNow.median : null, enN: enNow ? enNow.n : null,
       chg: change ? change.pct : null, ratio: enNow && now.median ? enNow.median / now.median : null,
       topNames: top ? top.ties.map((c) => c.name) : null, topUsd: top ? top.usd : null, topDate: top ? top.date : null,
       gem: s.grading.psa.jp ? s.grading.psa.jp.gemRate ?? null : null,
     };
   }).filter(Boolean).sort((a, b) => a.code.localeCompare(b.code));
+  // 'Ranked by' 표(compare.html 첫 화면) — 2026-10-19. 제목 질의 "best one piece booster box to buy" 에 판정·점수 없이 답하는 정렬 줄.
+  //   값은 위 board(일본판 current·4주 등락·× MSRP·n)와 compareRows(최고가 카드) 그대로 — 고르기만 한다. 같은 화면 값이면 전부(표 순서).
+  const rankedBy = (() => {
+    const shown = { usd: (v) => Math.round(v), pct: (v) => v, x: (v) => v.toFixed(1), n: (v) => v };
+    const pick = (list, val, dir, unit) => {
+      const xs = list.filter((x) => val(x) != null);
+      if (!xs.length) return null;
+      const best = xs.reduce((m, x) => (dir * (val(x) - val(m)) > 0 ? x : m), xs[0]);
+      return xs.filter((x) => shown[unit](val(x)) === shown[unit](val(best))).sort((a, b) => orderKey(a.code) - orderKey(b.code));
+    };
+    const live = board.filter((b) => b.nowUsd != null);
+    const row = (k, label, ties, unit, value, date, extra = {}) => (ties ? { k, label, codes: ties.map((t) => t.code), unit, value: value(ties[0]), dates: ties.map(date), ...extra } : null);
+    const out = [
+      row("cheapest", "Lowest JP box price", pick(live, (b) => b.nowUsd, -1, "usd"), "usd", (b) => b.nowUsd, (b) => b.nowDate),
+      row("gain", "Largest 4-week gain (JP)", pick(live.filter((b) => b.changePct != null), (b) => b.changePct, 1, "pct"), "pct", (b) => b.changePct, (b) => b.nowDate),
+      row("fall", "Largest 4-week fall (JP)", pick(live.filter((b) => b.changePct != null), (b) => b.changePct, -1, "pct"), "pct", (b) => b.changePct, (b) => b.nowDate),
+      row("lowMsrp", "Lowest × MSRP (JP)", pick(live, (b) => b.vsMsrp, -1, "x"), "x", (b) => b.vsMsrp, (b) => b.nowDate),
+      row("highMsrp", "Highest × MSRP (JP)", pick(live, (b) => b.vsMsrp, 1, "x"), "x", (b) => b.vsMsrp, (b) => b.nowDate),
+      row("mostSales", "Most sales in window (JP)", pick(live.filter((b) => b.n != null), (b) => b.n, 1, "n"), "n", (b) => b.n, (b) => b.nowDate, { windowDays: null }),
+      row("chase", "Highest raw chase card", pick(compareRows.filter((r) => r.topUsd != null), (r) => r.topUsd, 1, "usd"), "usd", (r) => r.topUsd, (r) => r.topDate),
+    ].filter(Boolean);
+    const mostSales = out.find((r) => r.k === "mostSales");
+    if (mostSales) mostSales.windowDays = mostSales.codes.map((c) => (board.find((b) => b.code === c) || {}).windowDays || null);
+    const chase = out.find((r) => r.k === "chase");
+    if (chase) chase.names = chase.codes.map((c) => (compareRows.find((r) => r.code === c) || {}).topNames || []);
+    return out;
+  })();
 
   // ── 지표 기준선 — 일본판은 시리즈가 있는 전 세트(주간 점 5개 이상)의 중앙값, 영문판은 영문판 페이지가 있는 세트의 중앙값. n 은 실제 모수.
   const hasBoxSold = (c) => ["jp", "en"].some((ed) => packs.sets[c]?.boxMarket?.[ed]?.ebaySold?.median != null);
@@ -913,6 +947,8 @@ function build(inputs) {
   const UP = readJson("data/upcoming-set-pages.json", { pages: [] });
   const through = sold.builtFrom?.updated || sold.asOf || "";
   const upcoming = {};
+  // 반다이 상품 페이지 확인 — checkedOn = 두 판 상품 페이지에서 데이터 파일의 발매일·정가를 그대로 본 마지막 날(사실이 바뀐 날 modified 와 별도), cardList = 공식 목록 공개 여부와 확인일.
+  const BANDAI = readJson("data/bandai-product-check.json", { sets: {} }).sets || {};
   for (const page of UP.pages || []) {
     const s = sets[page.code] || null;
     const relOf = (ed) => (s && s.seriesRelease && s.seriesRelease[ed]) || (ed === "jp" ? page.releaseJp : page.releaseEn);
@@ -921,15 +957,68 @@ function build(inputs) {
     const hasRow = (ed) => !!(ask[ed] || (s && s.preRelease[ed]) || (s && s.current[ed]) || released(ed));
     const hasTable = hasRow("jp") || hasRow("en");
     const askAsOf = (ask.jp && ask.jp.d) || (ask.en && ask.en.d) || preorder.updated || "";
-    const dates = [page.modified, through];
+    const bc = BANDAI[page.code] || null;
+    const bandai = bc ? { checkedOn: bc.lastOkOn || null, cardList: bc.cardList ? { listed: !!bc.cardList.listed, checkedOn: bc.cardList.checkedOn || null } : null } : null;
+    const dates = [page.modified, through, bandai && bandai.checkedOn, bandai && bandai.cardList && bandai.cardList.checkedOn];
     if (hasTable) { dates.push(askAsOf); for (const ed of ["jp", "en"]) dates.push(released(ed) ? s && s.current[ed] && s.current[ed].d : s && s.preRelease[ed] && s.preRelease[ed].last); }
     const prod = (page.facts || []).find((f) => f[0] === "Product");
     upcoming[page.code] = {
       slug: page.slug, modified: page.modified, release: { jp: relOf("jp"), en: relOf("en") }, released: { jp: released("jp"), en: released("en") },
-      ask, askAsOf, through, hasTable, pageDate: N.latestDate(...dates),
+      ask, askAsOf, through, hasTable, pageDate: N.latestDate(...dates), bandai,
       nameJa: prod ? String(prod[1]).split(" · ")[0].replace(/【[^】]*】/g, "").trim() : "",
     };
   }
+
+  // ── 2026 시장 추이(market-2026.html) — 2026-10-19. 'one piece card market trend 2026' 질문은 4엔진 모두 우리 인용 0(10/19 실측), 받을 페이지가 없었다.
+  //   달마다: 일본판·영문판 박스 = 세트마다 그 달 마지막 주간 중앙값 점 → 세트 사이 중앙값(n = 세트 수) · 4주 등락 = 그 점의 boxChange28(세트 페이지와 같은 정의) ↑/↓ 세트 수 ·
+  //   PSA 등급 증가 = 주간 증가(psaWeekly.weeks, 전 세트 합)의 그 달 합(n = 주 수) · 경매 = auction-series 월간 낙찰 수(n = 관측일 수). asOf = 그 칸 값의 마지막 관측일.
+  const MARKET_MIN_SETS = 5;
+  const market = (() => {
+    const year = String(sold.asOf || dataDate || "").slice(0, 4);
+    if (!/^\d{4}$/.test(year)) return null;
+    const lastMonth = String(sold.asOf || dataDate).slice(0, 7);
+    const months = [];
+    for (let m = 1; m <= 12; m++) { const ym = `${year}-${String(m).padStart(2, "0")}`; if (ym <= lastMonth) months.push(ym); }
+    const med = (xs) => { const s = [...xs].sort((a, b) => a - b); const k = s.length; return k ? (k % 2 ? s[(k - 1) / 2] : (s[k / 2 - 1] + s[k / 2]) / 2) : null; };
+    const boxOf = (ym, ed) => {
+      const vals = [], dates = [];
+      for (const c of seriesCodes) {
+        const pts = ((sold.sets[c] || {})[ed] || []).filter((p) => p && N.isPositive(p.median) && N.isDate(p.d) && p.d.slice(0, 7) === ym);
+        const last = pts[pts.length - 1];
+        if (last) { vals.push(last.median); dates.push(last.d); }
+      }
+      // 세트 5개 미만이면 "시장 중앙값"이 아니라 몇 세트의 값이다 — 칸을 비운다(n 은 남긴다).
+      return vals.length >= MARKET_MIN_SETS ? { usd: Math.round(med(vals)), n: vals.length, asOf: dates.sort().pop() } : vals.length ? { usd: null, n: vals.length, asOf: dates.sort().pop() } : null;
+    };
+    const chgOf = (ym) => {
+      let up = 0, dn = 0, flat = 0; const dates = [];
+      for (const c of seriesCodes) {
+        const all = ((sold.sets[c] || {}).jp || []).filter((p) => p && N.isPositive(p.median) && N.isDate(p.d));
+        const inM = all.filter((p) => p.d.slice(0, 7) === ym), cur = inM[inM.length - 1];
+        if (!cur) continue;
+        const ch = N.boxChange28(all.filter((p) => p.d <= cur.d), cur);
+        if (!ch) continue;
+        if (ch.pct > 0) up++; else if (ch.pct < 0) dn++; else flat++;
+        dates.push(cur.d);
+      }
+      return up + dn + flat ? { up, down: dn, flat, n: up + dn + flat, asOf: dates.sort().pop() } : null;
+    };
+    const psaOf = (ym) => { const ws = (psaWeekly.weeks || []).filter((w) => w.d.slice(0, 7) === ym); return ws.length ? { added: ws.reduce((t, w) => t + w.v, 0), n: ws.length, asOf: ws[ws.length - 1].d } : null; };
+    const aucOf = (ym) => {
+      const mo = ((auctionSeries && auctionSeries.monthly) || []).find((r) => String(r.d).slice(0, 7) === ym);
+      if (!mo) return null;
+      const days = ((auctionSeries && auctionSeries.daily) || []).filter((r) => String(r.d).slice(0, 7) === ym).map((r) => r.d).sort();
+      return { sold: mo.sold, n: mo.days, partialDays: mo.partialDays || 0, asOf: days.pop() || null };
+    };
+    const rows = months.map((ym) => ({ month: ym, jp: boxOf(ym, "jp"), en: boxOf(ym, "en"), chg: chgOf(ym), psa: psaOf(ym), auction: aucOf(ym) }))
+      .filter((r) => r.jp || r.en || r.chg || r.psa || r.auction);
+    // 이번 달(데이터 기준일의 달) 등락은 홈·box-prices·compare 와 같은 값이어야 한다(한 사실 한 값) — 2026-10-19 검증:
+    // 시장 페이지 10월 '▲7·▼8 n=18'(그 달 마지막 점 기준) vs 홈 '7 up · 9 down of 19'(현재가 기준). 이번 달만 현재가 기준으로 맞춘다.
+    const curYm = String(dataDate || "").slice(0, 7), curRow = rows.find((r) => r.month === curYm);
+    if (curRow && home && home.withChg) curRow.chg = { up: home.nUp, down: home.nDn, flat: home.withChg - home.nUp - home.nDn, n: home.withChg, asOf: dataDate };
+    const asOf = N.latestDate(...rows.flatMap((r) => [r.jp && r.jp.asOf, r.en && r.en.asOf, r.chg && r.chg.asOf, r.psa && r.psa.asOf, r.auction && r.auction.asOf]));
+    return { year, rows, asOf, minSets: MARKET_MIN_SETS };
+  })();
 
   const coverage = {
     aiData: aiSpan && { ...aiSpan, modified: N.latestDate(datasetUpdatedOn, aiSpan.to) },
@@ -940,13 +1029,14 @@ function build(inputs) {
 
   return {
     schemaVersion: 1,
-    dataDate,
+    // 페이지의 "As of"·"Data"·"기준일" 은 이 값 하나 — 2026-10-19. 종전엔 dataDate(packs.updated)·hubDate(판매 원장 asOf 와의 늦은 쪽)·koHub.date(허브 표 최신 점)가
+    //   따로 나가 같은 날 홈 10-18 · 세트 허브 10-19 · ko 제목 10-18 / 본문 10-19 로 갈렸다. 표에 보이는 어느 행 날짜보다도 이르지 않다(판매 원장 asOf 이상).
+    dataDate: N.latestDate(dataDate, sold.asOf),
     fx: { date: fx.date || null, jpyKrw: fx.jpyKrw ?? null, usdKrw: fx.usdKrw ?? null, jpyUsd: fx.jpyKrw && fx.usdKrw ? fx.jpyKrw / fx.usdKrw : null },
     // builtFromUpdated = 판매 원장 마지막 날(발매 예정 페이지 "through") · preReleaseMinListings = 예약판매 중앙값에 필요한 서로 다른 매물 수(없으면 3)
     series: { asOf: sold.asOf || null, updated: sold.updated || null, staleDays: sold.staleDays || 28, builtFromUpdated: sold.builtFrom?.updated || null, preReleaseMinListings: sold.preReleaseMinListings || 3 },
     auctionWindow: { days: auction.window?.days ?? null, from: auction.window?.from || null, to: auction.window?.to || null, minDecided: auction.window?.minDecided ?? null, updated: auction.updated || null },
     ai: { datasetUpdatedOn },
-    hubDate: N.latestDate(dataDate, sold.asOf),
     // packSets = packs.sets 의 키 순서(원장 적재 순서 — 카드 상세 후보·허브 표가 같은 순서로 돈다; 동가 정렬이 이 순서를 따른다)
     order: { all: codes, setPages, englishPages, board: rows.map((b) => b.code), series: seriesCodes, packSets: Object.keys(packs.sets || {}) },
     latestSets: latestSets(facts, codes, dataDate),
@@ -964,7 +1054,8 @@ function build(inputs) {
     enPackContents: Object.fromEntries(Object.keys(F).filter((c) => F[c].enPackContents).sort(CL.naturalCode).map((c) => [c, { cardsPerPack: F[c].enPackContents.cardsPerPack ?? null, source: F[c].enPackContents.source || null, verifiedOn: F[c].enPackContents.verifiedOn || null }])),
     aiGrading,
     coverage,
-    compare: { rows: compareRows, asOf: sold.asOf || sold.updated || dataDate },
+    compare: { rows: compareRows, rankedBy, asOf: N.latestDate(dataDate, sold.asOf) },   // = 위 dataDate(한 날짜, 2026-10-19)
+    market,
     sets,
     inputs,
   };

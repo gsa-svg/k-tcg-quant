@@ -40,6 +40,14 @@ const money = (v) => (v == null ? "—" : "$" + Math.round(v).toLocaleString("en
 
 const buildRows = () => F.compare.rows;
 
+// × MSRP 열(2026-10-19) — 값은 사실 파일 board 의 msrpYen·msrpUsd·vsMsrp 그대로(일본판 박스 정가, 재계산 없음). 영문판 박스 정가는 사실 파일에 없어 열을 두지 않는다.
+const BOARD = Object.fromEntries(F.board.map((b) => [b.code, b]));
+const yen = (v) => "¥" + Math.round(v).toLocaleString("en-US");
+const msrpCells = (code) => {
+  const b = BOARD[code] || {};
+  return `<td>${b.msrpYen ? `${yen(b.msrpYen)}${b.msrpUsd ? `<small style="color:#7d8698"> $${b.msrpUsd}</small>` : ""}` : "—"}</td><td>${b.vsMsrp != null ? b.vsMsrp.toFixed(1) + "×" : "—"}</td>`;
+};
+
 function tableHtml(rows, updated) {
   const body = rows.map((r) => {
     const chgTxt = r.chg == null ? "—" : `${r.chg > 0 ? "+" : ""}${r.chg}%`;   // 세트 페이지 "4-week change" 와 같은 표기(소수 한 자리)
@@ -52,17 +60,18 @@ function tableHtml(rows, updated) {
       `<td>${r.ratio ? r.ratio.toFixed(1) + "x" : "—"}</td>` +
       `<td>${r.topNames ? `${money(r.topUsd)}${r.topDate && r.topDate !== updated ? ` (${esc(r.topDate)})` : ""} <small style="color:#7d8698">${r.topNames.map((n) => esc(n)).join(", ")}</small>` : "—"}</td>` +
       `<td>${r.gem == null ? "—" : r.gem + "%"}</td>` +
+      msrpCells(r.code) +
       `</tr>`;
   }).join("\n");
 
   return `${MARK_START}
         <div class="setComparisonScroll" role="region" tabindex="0" aria-label="Japanese and English booster box price comparison" style="overflow-x:auto;"><table class="ctTable" style="width:100%; border-collapse:collapse;">
-          <thead><tr><th class="ctSet">Set</th><th>JP box</th><th>EN box</th><th>4-wk</th><th>EN/JP</th><th>Priciest card (raw)</th><th>PSA 10 rate</th></tr></thead>
+          <thead><tr><th class="ctSet">Set</th><th>JP box</th><th>EN box</th><th>4-wk</th><th>EN/JP</th><th>Priciest card (raw)</th><th>PSA 10 rate</th><th>MSRP (JP box)</th><th>× MSRP</th></tr></thead>
           <tbody>
 ${body}
           </tbody>
         </table></div>
-        <p style="color:#7d8698;font-size:12.5px;margin-top:10px;">Box prices are medians of completed eBay buy-it-now sales we collect ourselves; n is the sample behind each figure. 4-wk compares the latest median with the median 28 days earlier, as on each set page. Priciest card is the raw single at Japanese retail near-mint — not a graded price. PSA 10 rate is the share of that set's PSA submissions that came back 10. As of ${esc(updated)}.</p>
+        ${/* 표 밑 설명 문장 → 정의 라벨(2026-10-19, 데이터 페이지는 숫자·표·라벨만). 끝의 "As of 날짜." 는 가드 CW1 이 읽는다. */ ""}<p style="color:#7d8698;font-size:12.5px;margin-top:10px;">Median of completed eBay sales · n = sales behind the median · 4-wk = vs the median 28 days earlier · Priciest card = raw NM single · PSA 10 rate = PSA 10 share of PSA grades · × MSRP = JP box median ÷ JP box MSRP · As of ${esc(updated)}.</p>
         ${MARK_END}`;
 }
 
@@ -95,18 +104,45 @@ const asOf = F.compare.asOf || "";
   const H = F.home;
   const withJp = rows.filter((r) => r.jp != null).length, withEn = rows.filter((r) => r.en != null).length;
   const enRows = rows.filter((r) => r.en != null).sort((a, b) => a.en - b.en);
+  // 세트 수 = 발매된 세트(사이트 전체의 22와 같은 값) — 2026-10-19. 표에 남겨 둔 발매 전 세트(값 칸 "—")는 따로 센다(종전 "24" 는 다른 페이지의 22와 엇갈렸다).
+  const upcomingRows = rows.filter((r) => (F.sets[r.code] || {}).unreleased);
+  const released = rows.length - upcomingRows.length;
   const kf = kfTableAny([
-    ["sets", "Sets compared", "비교 세트", `<b>${rows.length}</b> <small>${withJp} <span data-ko="일본판 중앙값">with a JP median</span> · ${withEn} <span data-ko="영문판 중앙값">with an EN median</span></small>`],
     H.cheapest && H.priciest ? ["jp", "JP box range", "일본판 박스 범위", `<b>${money(H.cheapest.usd)}–${money(H.priciest.usd)}</b> <small>${esc(H.cheapest.codes.join(", "))} · ${esc(H.priciest.code)}</small>`] : null,
+    ["sets", "Sets compared", "비교 세트", `<b>${released}</b> <small>${withJp} <span data-ko="일본판 중앙값">with a JP median</span> · ${withEn} <span data-ko="영문판 중앙값">with an EN median</span>${upcomingRows.length ? ` · ${upcomingRows.length} <span data-ko="발매 전">upcoming</span> (${esc(upcomingRows.map((r) => r.code).join(", "))})` : ""}</small>`],
     enRows.length ? ["en", "EN box range", "영문판 박스 범위", `<b>${money(enRows[0].en)}–${money(enRows.at(-1).en)}</b> <small>${esc(enRows[0].code)} · ${esc(enRows.at(-1).code)}</small>`] : null,
     ["change", "4-week change (JP)", "4주 등락 (일본판)", `<b>${H.nUp} <span data-ko="상승">up</span> · ${H.nDn} <span data-ko="하락">down</span></b> <small><span data-ko="28일 전 중앙값이 있는 세트">of ${H.withChg} sets with a median 28 days earlier</span></small>`],
     ["asof", "As of", "기준일", `<time datetime="${esc(asOf)}">${esc(asOf)}</time> <small><span data-ko="이베이 완료 거래 중앙값">eBay completed-sale medians</span></small>`],
-  ], { label: "Set comparison key facts" });
+  ], { label: "Set comparison key facts", caption: `<span data-ko="원피스 부스터 박스 비교">One Piece booster boxes compared</span> · <time datetime="${esc(asOf)}">${esc(asOf)}</time>` });
   const p = path.join(ROOT, "compare.html");
   let s = fs.readFileSync(p, "utf8");
   const re = /<!-- COMPARE_KEY_FACTS:START -->[\s\S]*?<!-- COMPARE_KEY_FACTS:END -->/;
   if (!re.test(s)) throw new Error("compare.html: COMPARE_KEY_FACTS 마커가 없다");
   s = s.replace(re, () => `<!-- COMPARE_KEY_FACTS:START --><style>\n${KF_CSS_ANY}\n      </style>\n      ${kf}\n      <!-- COMPARE_KEY_FACTS:END -->`);
+  // 'Ranked by' 표 — 2026-10-19. 제목("Best One Piece Booster Box to Buy")에 판정 없이 답하는 정렬 줄: 행마다 세트·값·기준일.
+  //   행은 사실 파일 compare.rankedBy(board·compareRows 에서 고르기만 한 것). 같은 화면 값이면 세트를 전부 싣는다.
+  const fmt = (r) => (r.unit === "usd" ? money(r.value) : r.unit === "pct" ? `${r.value > 0 ? "+" : ""}${r.value}%` : r.unit === "x" ? `${r.value.toFixed(1)}×` : String(r.value));
+  const setCell = (r) => r.codes.map((c, i) => `<a href="/sets/${esc(c.toLowerCase())}.html">${esc(c)}</a>${r.names && r.names[i] && r.names[i].length ? ` <small>${esc(r.names[i].join(", "))}</small>` : ""}${r.windowDays && r.windowDays[i] ? ` <small>/ ${r.windowDays[i]}d</small>` : ""}`).join("<br>");
+  const dateCell = (r) => [...new Set(r.dates.filter(Boolean))].map((d) => `<time datetime="${esc(d)}">${esc(d)}</time>`).join(" · ") || "—";
+  // 390px 에서 값 칸이 스크롤 상자 밖으로 밀리지 않게(최고가 카드 이름이 nowrap 이면 표가 넓어진다) — 이 표만 줄바꿈·왼쪽 정렬, 카드 이름은 세트 아래 줄.
+  const ranked = `<!-- COMPARE_RANKED:START -->
+      <style>.ctTable.rankedBy th, .ctTable.rankedBy td { white-space: normal; text-align: left; vertical-align: top; } .ctTable.rankedBy td small { display: block; color: var(--muted); font-size: 11.5px; } .ctTable.rankedBy td time { white-space: nowrap; }</style>
+      <h2 id="ranked-by" style="font-size:19px; margin-top:20px;" data-ko="정렬 기준별 1위">Ranked by</h2>
+      <div style="overflow-x:auto"><table class="ctTable rankedBy" style="width:100%; border-collapse:collapse;">
+        <thead><tr><th class="ctSet" data-ko="기준">Ranked by</th><th data-ko="세트">Set</th><th data-ko="값">Value</th><th data-ko="기준일">As of</th></tr></thead>
+        <tbody>
+${(F.compare.rankedBy || []).map((r) => `          <tr data-k="${esc(r.k)}"><th scope="row" class="ctSet">${esc(r.label)}</th><td>${setCell(r)}</td><td><b>${fmt(r)}</b></td><td>${dateCell(r)}</td></tr>`).join("\n")}
+        </tbody>
+      </table></div>
+      <!-- COMPARE_RANKED:END -->`;
+  const rr = /<!-- COMPARE_RANKED:START -->[\s\S]*?<!-- COMPARE_RANKED:END -->/;
+  if (!rr.test(s)) throw new Error("compare.html: COMPARE_RANKED 마커가 없다");
+  s = s.replace(rr, () => ranked);
+  // 페이지 수정일(JSON-LD) = 표의 As of — 2026-10-19. 사이트맵은 compare.html 의 dateModified 를 lastmod 하한으로 쓴다(sync-sitemap-lastmod).
+  const ld = `<script type="application/ld+json" id="page-date">${JSON.stringify({ "@context": "https://schema.org", "@type": "WebPage", name: "Compare One Piece booster boxes", url: "https://opboxindex.com/compare.html", dateModified: asOf })}</script>`;
+  const lr = /<script type="application\/ld\+json" id="page-date">[\s\S]*?<\/script>/;
+  if (lr.test(s)) s = s.replace(lr, () => ld);
+  else s = s.replace(/<\/head>/, () => `    ${ld}\n  </head>`);
   fs.writeFileSync(p, s, "utf8");
 }
 if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) {

@@ -166,7 +166,7 @@ const html = `<!doctype html>
 
       ${gradeTable}
 
-      <p class="note" style="margin-top:22px" data-ko-html="같은 숫자의 다른 화면: <a href=&quot;./&quot;>홈(4주 등락·그래프)</a> · <a href=&quot;box-prices.html&quot;>전체 박스 시세</a> · <a href=&quot;sets/index.html&quot;>세트 가이드</a> · <a href=&quot;free-data.html&quot;>CSV/JSON</a>">Same numbers, other views: <a href="./">home (4-week movers, charts)</a> · <a href="box-prices.html">all box prices</a> · <a href="sets/index.html">set guides</a> · <a href="free-data.html">CSV / JSON</a></p>
+      <p class="note" style="margin-top:22px" data-ko-html="같은 숫자의 다른 화면: <a href=&quot;./&quot;>홈(4주 등락·그래프)</a> · <a href=&quot;box-prices.html&quot;>전체 박스 시세</a> · <a href=&quot;sets/index.html&quot;>세트 가이드</a> · <a href=&quot;market-2026.html&quot;>2026 월별</a> · <a href=&quot;free-data.html&quot;>CSV/JSON</a>">Same numbers, other views: <a href="./">home (4-week movers, charts)</a> · <a href="box-prices.html">all box prices</a> · <a href="sets/index.html">set guides</a> · <a href="market-2026.html">2026 by month</a> · <a href="free-data.html">CSV / JSON</a></p>
     </main>
     <footer class="footer">
       <p>OP Box Index is a data-driven research site, not investment advice.</p>

@@ -178,6 +178,19 @@ function preorderTable(page, ko = false) {
 
 // 사실 표의 "Market-data status" 줄 — 2026-10-14 부터 데이터에서 만든다(손으로 쓴 "no completed sale" 이 예약판매 실거래와 어긋났다).
 // 라벨과 숫자만. 판별 발매 여부·발매 후 판매 건수·예약판매 건수/매물 수·원장 기준일.
+// 반다이 확인 상태 행 — 2026-10-19. 값은 사실 파일 upcoming[code].bandai(tools/check-bandai-product-pages.js 가 그날 실제로 받은 페이지에서
+//   데이터 파일의 발매일·정가 문자열을 그대로 본 마지막 날 = checkedOn, 공식 카드리스트 공개 여부·확인일 = cardList). 사실이 바뀐 날(page.modified)과 따로 둔다.
+//   행 = [영문 라벨, 한국어 라벨, 영문 값 HTML, 한국어 값 HTML]. 확인 기록이 없으면 행을 그리지 않는다(지어내지 않는다). 가드 BD1 이 날짜를 로그와 대조한다.
+function bandaiRows(page) {
+  const b = U(page).bandai, rows = [];
+  const t = (iso) => `<time datetime="${escapeHtml(iso)}">${escapeHtml(iso)}</time>`;
+  if (b && b.checkedOn) rows.push(["Release date status", "발매일 확인", `Confirmed · Bandai product pages (JP · EN) checked ${t(b.checkedOn)}`, `확인됨 · 반다이 상품 페이지(일본판·영문판) 확인 ${t(b.checkedOn)}`]);
+  const p = CARD_LIST.productOf(page.code);
+  if (p) rows.push(["Card list status", "카드 리스트", `Published · <a href="${escapeHtml(page.slug)}-card-list.html">${p.counts.cards} cards</a> · checked ${t(p.checked)}`, `공개 · <a href="${escapeHtml(page.slug)}-card-list.html">${p.counts.cards}장</a> · 확인 ${t(p.checked)}`]);
+  else if (b && b.cardList && b.cardList.checkedOn) rows.push(["Card list status", "카드 리스트", `Not published · Bandai card list checked ${t(b.cardList.checkedOn)}`, `미공개 · 반다이 카드 리스트 확인 ${t(b.cardList.checkedOn)}`]);
+  return rows;
+}
+const bandaiChecked = (page) => (U(page).bandai && U(page).bandai.checkedOn) || null;
 const MARKET_STATUS_LABEL = "Market-data status";
 function marketStatusRow(page) {
   const s = S(page);
@@ -321,8 +334,9 @@ function renderPage(page) {
       acceptedAnswer: { "@type": "Answer", text: answer },
     })),
   };
-  const factRows = [...page.facts, marketStatusRow(page)]
-    .map(([label, value]) => `<tr><th scope="row"${FACT_KO[label] ? ` data-ko="${FACT_KO[label]}"` : ""}>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`)
+  const factRows = [...bandaiRows(page).map(([en, ko, html]) => `<tr><th scope="row" data-ko="${escapeHtml(ko)}">${escapeHtml(en)}</th><td>${html}</td></tr>`),
+    ...[...page.facts, marketStatusRow(page)]
+      .map(([label, value]) => `<tr><th scope="row"${FACT_KO[label] ? ` data-ko="${FACT_KO[label]}"` : ""}>${escapeHtml(label)}</th><td>${escapeHtml(value)}</td></tr>`)]
     .join("\n          ");
   // FAQ 는 일반 세트 페이지와 같은 틀(질문만 보이고 답은 <details>) — 머리말도 "<코드> <세트명> — frequently asked questions" 로 맞춘다. 2026-10-15.
   const faqHtml = page.faq
@@ -391,7 +405,7 @@ function renderPage(page) {
       ${navHtml("../")}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow">${escapeHtml(page.eyebrow)}</p>
+      <p class="eyebrow">${escapeHtml(page.eyebrow)}${bandaiChecked(page) ? ` · Bandai product page checked ${escapeHtml(displayDate(bandaiChecked(page)))}` : ""}</p>
       <h1>${escapeHtml(page.headline)}</h1>
       ${releaseBox(page)}
       ${/* 2026-10-16: 'Product facts'(발매일·정가·팩 구성·카드 종류 — 공식 사실)를 예약가 표 위, 발매일 상자 바로 아래로. 빙 'op 18 release date' 5위·
@@ -476,8 +490,9 @@ function renderPageKo(page) {
     ],
   };
   const webPage = { "@context": "https://schema.org", "@type": "WebPage", name: title, url: koCanonical, inLanguage: "ko", dateModified: modified };
-  const factRows = [...page.facts, marketStatusRow(page)]
-    .map(([label, value]) => `<tr><th scope="row">${escapeHtml(FACT_KO[label] || label)}</th><td>${escapeHtml(value)}</td></tr>`)
+  const factRows = [...bandaiRows(page).map(([, ko, , html]) => `<tr><th scope="row">${escapeHtml(ko)}</th><td>${html}</td></tr>`),
+    ...[...page.facts, marketStatusRow(page)]
+      .map(([label, value]) => `<tr><th scope="row">${escapeHtml(FACT_KO[label] || label)}</th><td>${escapeHtml(value)}</td></tr>`)]
     .join("\n          ");
   const cl = CARD_LIST.productOf(page.code);
   const cardListHtml = cl ? `\n      <p class="revCount"><a href="${escapeHtml(page.slug)}-card-list.html">${escapeHtml(page.code)} 공식 카드 리스트</a> · <b>${cl.counts.cards}</b> 장 · 확인 <time datetime="${cl.checked}">${cl.checked}</time></p>` : "";
@@ -539,7 +554,7 @@ function renderPageKo(page) {
       ${navHtmlKo(`ko/${page.slug}.html`, `/sets/${page.slug}.html`)}
     </header>
     <main id="main-content" class="bodyPage">
-      <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 발매 예정 세트 · 공식 확인 ${page.modified}</p>
+      <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 발매 예정 세트 · 공식 확인 ${page.modified}${bandaiChecked(page) ? ` · 반다이 상품 페이지 확인 ${bandaiChecked(page)}` : ""}</p>
       <h1>${escapeHtml(page.code)} ${escapeHtml(name)} 발매일 · 예약판매 박스 가격</h1>
       ${releaseBoxKo(page)}
       ${/* 2026-10-16: 영문판과 같은 순서 — 제품 정보(공식 사실) → 예약가 표. */ ""}

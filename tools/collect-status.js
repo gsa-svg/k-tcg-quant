@@ -174,6 +174,11 @@ const SOURCES = [
       const ds = ["jp", "en"].flatMap((l) => Object.values((j[l] && j[l].products) || {}).map((p) => p.checked)).filter(Boolean).sort();
       return ds[0] || null;
     } },
+  // 반다이 상품 페이지 확인(발매 전 세트 JP·EN + 카드리스트 공개 여부) — 2026-10-19 신설(check-bandai-product-pages.js). 기준일 = 마지막 시도일(updated).
+  //   발매 전 세트가 없으면 파일은 그대로 남고 updated 만 오른다. 확인 성공일(lastOkOn)은 페이지·가드 BD1 이 본다.
+  { key: "bandai-product-check", name: "반다이 상품 페이지 확인(발매 전 세트)", mode: "auto", every: "매일 03:00 KST", wf: "update-active-listings",
+    warn: 2, late: 3, files: ["bandai-product-check.json"],
+    get: () => readJSON("data/bandai-product-check.json").updated || null },
 
   // ── 수동 (실브라우저 필요) ──
   { key: "box", name: "박스 판매(BIN) 원장", mode: "manual", every: "주 3회(월·수·금)",

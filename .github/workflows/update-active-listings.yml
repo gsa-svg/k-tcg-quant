@@ -173,6 +173,8 @@ jobs:
           set -o pipefail
           mkdir -p logs
           node tools/fetch-official-cardlist.js 2>&1 | tee logs/fetch-official-cardlist.log
+          # 발매 전 세트의 반다이 상품 페이지(JP·EN)·카드리스트 공개 여부 → data/bandai-product-check.json(2026-10-19). 실패해도 0 — 직전 확인일이 남는다.
+          node tools/check-bandai-product-pages.js 2>&1 | tee logs/check-bandai-product-pages.log
           node tools/fetch-box-images.js 2>&1 | tee logs/fetch-box-images.log
           node tools/fetch-card-images.js 2>&1 | tee logs/fetch-card-images.log
 
@@ -214,18 +216,19 @@ jobs:
             data/auction-stats.json
             data/auction-deals.json
             data/official-cardlist.json
+            data/bandai-product-check.json
           retention-days: 14
           if-no-files-found: ignore
 
       - name: Commit changes
         run: |
-          if git diff --quiet data/onepiece-packs.json data/box-sold-series.json data/grading-series.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html; then
+          if git diff --quiet data/onepiece-packs.json data/box-sold-series.json data/grading-series.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json data/bandai-product-check.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html market-2026.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html; then
             echo "No active listing changes."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/onepiece-packs.json data/box-sold-series.json data/grading-series.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
+          git add data/onepiece-packs.json data/box-sold-series.json data/grading-series.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json data/bandai-product-check.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html market-2026.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
           if ! git diff --quiet; then
             echo "::error::Tracked generated files remain unstaged. Update the explicit commit scope before publishing."
             git status --short
@@ -254,7 +257,7 @@ jobs:
             node tools/build-set-auction-stats.js
             node tools/build.js
             node tools/check.js --gate
-            git add data/onepiece-packs.json data/box-sold-series.json data/grading-series.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
+            git add data/onepiece-packs.json data/box-sold-series.json data/grading-series.json data/card-series.json data/active-listing-audit.json data/price-quality-audit.json data/psa10-mismatch-audit.json data/set-auction-stats.json data/supply-series.json data/preorder-series.json data/image-variants.json data/listing-ids.json data/auction-stats.json data/auction-deals.json data/official-cardlist.json data/bandai-product-check.json logs/en-backfill-status.json sets/ cards/ ko/ img/ card-img/ index.html packs.html auction.html box-prices.html tcg-auction.html compare.html articles/ free-data.html weekly.html psa10-ranking.html market-2026.html feed.xml opbox-ai-data.json opbox-ai-cards.json opbox-ai-grading.json opbox-ai-auctions.json llms.txt llms-full.txt opbox-set-prices.csv opbox-grading-population.csv opbox-auction-daily.csv sitemap.xml data/sitemap-lastmod-state.json ja/ about.html amazon-lottery.html changelog.html disclaimer.html methodology.html privacy.html psa-grading.html
             if ! git diff --quiet; then
               echo "::error::Post-rebase regeneration left tracked files unstaged."
               git status --short
@@ -266,6 +269,7 @@ jobs:
 
       # 검색엔진에 갱신을 즉시 통지 — IndexNow(Bing·Naver·Yandex). 구글은 안 받지만 네이버 색인 지연을 줄인다.
       # 2026-10-14(W9): 사이트맵 전체 대신 lastmod 가 오늘인 URL(=오늘 본문이 바뀐 페이지)만 보낸다. 실패해도 갱신을 막지 않는다.
+      # 2026-10-19: lastmod ≥ 오늘−2일(cron 이 빠진 날 보충) + 월요일 AI 인용 데이터 페이지 전체 + 발매 창 페이지 매일(tools/indexnow-submit.js 머리 주석).
       - name: Notify IndexNow
         if: success()
         continue-on-error: true

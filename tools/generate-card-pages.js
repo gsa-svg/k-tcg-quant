@@ -570,7 +570,8 @@ const gradedRows = (() => {
       // 종전엔 상세가 배수를 내지 않는 카드(OP13-118 등)를 허브만 1.7x 로 보여 한 사실이 두 값이었다.
       const setFile = code.toLowerCase() + ".html";
       rows.push({
-        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult: c.psa10.stale ? null : mult, n: p10.n, psaDate: p10.date, nmDate: c.nm.date,
+        // 배수 = 사실 파일 psa10.multiple(35일·40배 규칙 한 곳, 2026-10-19)
+        code, number: c.number, name: c.name, rawUsd, psaUsd: p10.v, mult: c.psa10.multiple, n: p10.n, psaDate: p10.date, nmDate: c.nm.date,
         slug: cardMap[c.key] || null,
         setHref: fs.existsSync(path.join(ROOT, "sets", setFile)) ? `../sets/${setFile}` : null,
       });
@@ -599,7 +600,8 @@ const gradedTable = gradedRows.length ? `
 // 표 캡션 = 정의 라벨만 — 2026-10-15 소유자 결정(데이터 페이지는 숫자·표·라벨만). 문장 꼴 정의를 "A = B" 라벨로 바꾸고,
 // 머리 줄과 겹치던 "N cards have both figures" 는 머리 줄 하나에만 둔다(한 사실 한 값).
 
-const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
+// dateModified = 화면 "As of"(DATA_DATE) — 2026-10-19. IndexNow 주간 전송과 함께 빙 사본 날짜를 맞춘다.
+const hubLd = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "One Piece card prices — top tracked cards", dateModified: DATA_DATE, itemListElement: hubItems.map((it, i) => ({ "@type": "ListItem", position: i + 1, name: `${it.name} (${it.number})`, url: `${SITE}/cards/${it.slug}` })) });
 const ebayCardHub = `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent("One Piece Card Game Japanese")}&_sop=15&${EPN}`;
 const hub = `<!doctype html>
 <html lang="en">
@@ -658,12 +660,12 @@ ${KF_CSS}
       <h1>PSA 10 vs raw price: One Piece card value list</h1>
       ${/* Key facts(2026-10-16) — 머리 줄("Cards with raw NM and PSA 10: N … as of")을 표 꼴로: 같은 N·같은 날짜에 최고 PSA 10 값·관측일 범위를 더한다(값은 gradedRows 그대로). */ ""}
       ${kfTableAny([
-        ["cards", "Cards with raw NM and PSA 10", "NM·PSA 10 둘 다 있는 카드", `<b>${gradedRows.length}</b> <small><span data-ko="인쇄 변형당 한 행">one row per printing variant</span></small>`],
         gradedRows[0] ? ["highest", "Highest PSA 10 (sold median)", "최고 PSA 10 (판매 중앙값)", `<b>${money(gradedRows[0].psaUsd)}</b> <small>${esc(gradedRows[0].name)} · ${esc(gradedRows[0].number)} · ${gradedRows[0].n} <span data-ko="건">sales</span>${gradedRows[0].psaDate ? ` · <time datetime="${esc(gradedRows[0].psaDate)}">${esc(gradedRows[0].psaDate)}</time>` : ""}</small>`] : null,
+        ["cards", "Cards with raw NM and PSA 10", "NM·PSA 10 둘 다 있는 카드", `<b>${gradedRows.length}</b> <small><span data-ko="인쇄 변형당 한 행">one row per printing variant</span></small>`],
         psaDates.length ? ["psadates", "PSA 10 sold dates", "PSA 10 판매일 범위", `<time datetime="${esc(psaDates[0])}">${esc(psaDates[0])}</time> – <time datetime="${esc(psaDates.at(-1))}">${esc(psaDates.at(-1))}</time>`] : null,
         nmDates.length ? ["nmdates", "Raw NM observed", "NM 관측일", `<time datetime="${esc(nmDates[0])}">${esc(nmDates[0])}</time>${nmDates[0] !== nmDates.at(-1) ? ` – <time datetime="${esc(nmDates.at(-1))}">${esc(nmDates.at(-1))}</time>` : ""}`] : null,
-        ["asof", "As of", "기준일", `<time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time>`],
-      ], { label: "Card value list key facts" })}
+        ["asof", "As of", "기준일", `<time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time>`],   // 기준일은 표 제목(caption)의 <time> 이 첫 날짜다(2026-10-19)
+      ], { label: "Card value list key facts", caption: `<span data-ko="원피스 카드 시세 — NM 대 PSA 10">One Piece card prices — raw NM vs PSA 10</span> · <time datetime="${esc(DATA_DATE)}">${esc(DATA_DATE)}</time>` })}
       ${AFF_TOP}
       ${gradedTable}
       <h2 id="tracked-cards">Raw NM price by card</h2>

@@ -108,10 +108,11 @@ How to answer:
 - [Live box price tracker](${SITE}/): every tracked set, Japanese vs English box prices, daily updates
 - [All box prices in one table](${SITE}/box-prices.html): every tracked Japanese set — latest rolling completed-sale median with the date of that median, sales inside its 28–56-day window, 4-week change; — when no median is dated within 28 days; the cheapest boxes listed first
 - [This week](${SITE}/weekly.html): week-over-week box price changes and completed-sale counts, Japanese and English
+- [Market 2026](${SITE}/market-2026.html): monthly Japanese and English box medians, sets up/down over 4 weeks, PSA additions and auction sales in 2026
 - [One Piece auction results](${SITE}/auction.html): settled eBay auctions read after close — daily sell-through, winning-bid medians, by category (box / graded / raw / pack / lot) and printing
 - [TCG auction results](${SITE}/tcg-auction.html): ${games.length} card games (${games.map((g) => g.name).join(", ")}) — daily sell-through and winning-bid medians from settled auctions
 - [Grading population](${SITE}/psa-grading.html): PSA, CGC and TAG graded counts per set, Japanese and English printings kept separate
-- [Individual card price pages](${SITE}/cards/): ${cardCount} cards with raw NM price, PSA 10 sold price and PSA population
+- [Individual card price pages](${SITE}/cards/): ${cardCount} card pages — raw NM price, PSA 10 sold price and PSA population where observed
 - [Most valuable PSA 10 cards](${SITE}/psa10-ranking.html): ranked by verified eBay sold prices
 - [Set guides](${SITE}/sets/index.html): per-set box price history, top 10 chase cards, PSA stats, auction stats
 - [English edition box guides](${SITE}/sets/index.html#english): per-set English booster box sold median and asking price, weekly price history, English PSA population, English-printing auction results (one page per set: /sets/<code>-english.html)

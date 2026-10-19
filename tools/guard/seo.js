@@ -10,7 +10,7 @@
 const { errors, read, exists, list, PUBLIC_HTML, ISO, money, unH, ldOf, ldFlat, shownText, descOf, strip, json, packs, facts } = require("./lib");
 const { KO_LABELS } = require("../site-nav");
 
-const checks = ["C1", "C2", "N1", "H1", "L1", "L2", "L3", "I1", "I2", "R1", "S2", "F1", "T1", "U1", "U2", "CL2", "DS1", "SE1", "FQ2", "PL1", "PO1", "S3", "KF1", "MD1", "KO5", "RD1", "AD1", "UP1"];
+const checks = ["C1", "C2", "N1", "H1", "L1", "L2", "L3", "I1", "I2", "R1", "S2", "F1", "T1", "U1", "U2", "CL2", "DS1", "SE1", "FQ2", "PL1", "PO1", "S3", "KF1", "KF2", "KF3", "MD1", "KO5", "RD1", "AD1", "UP1"];
 const SITE = "https://opboxindex.com";
 const toRel = (u) => { let p; try { p = new URL(u, SITE + "/").pathname; } catch { return null; } return p === "/" ? "index.html" : decodeURIComponent(p.slice(1)) + (p.endsWith("/") ? "index.html" : ""); };
 const noindex = (h) => /name="robots" content="[^"]*noindex/i.test(h);
@@ -233,6 +233,12 @@ function run() {
     if (at < 0) { errors.push(`KF1: ${f} 에 Key facts 표(kfTable)가 없다 — H1 바로 아래 라벨:값 표`); continue; }
     const between = html.slice(h1End + 5, at).replace(/<nav class="nextLinks"[^>]*>[\s\S]*?<\/nav>/, "").replace(/\s+/g, "");
     if (h1End < 0 || h1End > at || between) errors.push(`KF1: ${f} Key facts 표가 H1 바로 아래가 아니다(사이: ${between.slice(0, 60) || "H1 없음"})`);
+    // KF2(2026-10-19) — 다음 링크 칩(nextLinks)은 Key facts 표 뒤. H1 바로 뒤 칩 줄이 AI 스니펫(본문 앞 ~200자) 몫을 먹었다. 표는 caption(무엇·언제)을 단다.
+    const nl = html.indexOf('<nav class="nextLinks"');
+    if (nl >= 0 && nl < at) errors.push(`KF2: ${f} nextLinks 가 Key facts 표 앞 — inject-nav 가 표 뒤로 옮긴다`);
+    if (!/^<table class="kfTable[^>]*><caption>/.test(html.slice(at, html.indexOf(">", at) + 10))) errors.push(`KF2: ${f} Key facts 표에 caption 이 없다`);
+    // KF3(2026-10-19) — 차트 점마다 <title> 글자(과거 $값·날짜 수백 개)를 다시 넣지 않는다. 값은 data-* 속성 + hover JS.
+    if (/<svg\b(?:(?!<\/svg>)[\s\S])*?<title>/.test(html)) errors.push(`KF3: ${f} SVG 안에 <title> — 차트 툴팁은 data-* 로(box-chart.js)`);
     const ratio = f.startsWith("ko/") ? bodyText(html.slice(0, at)).length / bodyText(html).length : at / html.length;
     if (ratio > 0.25) errors.push(`KF1: ${f} Key facts 표가 ${(ratio * 100).toFixed(1)}% 지점 — 앞쪽 25% 안이어야 한다`);
     const tbl = html.slice(at, html.indexOf("</table>", at));

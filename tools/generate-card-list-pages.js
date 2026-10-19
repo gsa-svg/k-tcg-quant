@@ -17,7 +17,7 @@
 // Run: node tools/generate-card-list-pages.js   (generate-card-pages.js 뒤 — 사실 파일이 cards/card-map.json 을 읽는다)
 const fs = require("node:fs");
 const path = require("node:path");
-const { SITE, CSS_VER, esc, usd, pageHead, foot } = require("./set-page-shared");
+const { SITE, CSS_VER, esc, usd, pageHead, foot, kfTableAny, KF_CSS } = require("./set-page-shared");
 const CL = require("./card-list-shared");
 const { addUrls } = require("./sitemap-detail-urls");
 const { navHtmlKo } = require("./site-nav");
@@ -77,6 +77,8 @@ function rowsOf(product) {
   });
 }
 const anchorOf = (id) => id.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+// ItemList 항목 주소 — 카드 상세 페이지가 있으면 그 페이지(2026-10-19), 없으면 이 표의 행 앵커.
+const itemUrl = (r, canonical) => (r.href ? `${SITE}/cards/${r.href.replace("../cards/", "")}` : `${canonical}#${anchorOf(r.id)}`);
 // 공식 목록의 빈 값("-", 이벤트·스테이지의 파워 등)은 화면에 "—" — 사이트 규칙(2026-10-14 QA: "Power -" 로 나갔다).
 const shown = (v) => (v == null || v === "" || v === "-" ? null : String(v));
 const dashOr = (v) => (shown(v) == null ? "—" : esc(v));
@@ -123,7 +125,72 @@ const CSS = `      .clSummary { display: flex; flex-wrap: wrap; gap: 4px 14px; m
         .clTable .wide { display: none; }
         .clTable .sub { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
       }
-      .clLegend { margin: 6px 0 0; max-width: 900px; color: var(--muted); font-size: 12px; line-height: 1.65; }`;
+      .clLegend { margin: 6px 0 0; max-width: 900px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+      .bodyPage table.clMini { width: 100%; max-width: 640px; min-width: 0; margin: 8px 0 14px; font-size: 13.5px; }
+      .clMini th, .clMini td { padding: 6px 8px; overflow-wrap: anywhere; }
+      .bodyPage table.clMini :is(th, td):not(.num) { text-align: left; }
+      .clMini td.num, .clMini th.num { text-align: right; white-space: nowrap; }
+      .clMini td small { display: block; color: var(--muted); font-size: 11.5px; }
+      .bodyPage h2.clH2 { margin: 22px 0 2px; font-size: 18px; }
+      @media (max-width: 900px) { .bodyPage table.clMini { display: table; overflow: visible; -webkit-mask-image: none; mask-image: none; } }
+${KF_CSS}`;
+
+// ── 표 세 개(2026-10-19): Leaders · Most valuable cards · Rarity breakdown — 'op-17 card list' 빙 1쪽 10곳이 모두 카드리스트 전문 페이지였고
+//   이긴 페이지 구조는 H2 Leaders / Most valuable / Rarity breakdown 였다(AUDIT). 우리 페이지는 H2 가 0개였다.
+//   값: 리더 = 공식 목록 행 그대로 · 가장 비싼 카드 = 세트 페이지 Top 10 과 같은 사실 값(F.sets[code].cards[].shown) · 레어도 = 공식 목록 레어도별 ID 수(card-list-shared countsOf).
+const CARD_MAP = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, "cards", "card-map.json"), "utf8")); } catch { return {}; } })();
+const cardPageOf = (c) => CARD_MAP[(c.number || "") + "|" + String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")] || null;
+function extraSections(code, rows, counts, ko) {
+  const T = (en, k) => (ko ? esc(k) : `<span data-ko="${esc(k)}">${esc(en)}</span>`);
+  const h2 = (id, en, k) => `<h2 class="clH2" id="${id}"${ko ? "" : ` data-ko="${esc(k)}"`}>${esc(ko ? k : en)}</h2>`;
+  const out = [];
+  const colorOf = (c) => (ko ? String(c || "").split("/").map((x) => COLOR_KO[x] || x).join("/") : c);
+  const leaders = rows.filter((r) => r.type === "LEADER" && r.kind === "base");
+  if (leaders.length) {
+    out.push(`${h2("leaders", "Leaders", "리더")}
+      <div style="overflow-x:auto"><table class="clMini">
+        <thead><tr><th>${T("Leader", "리더")}</th><th>${T("Color", "색")}</th><th class="num">${T("Life", "라이프")}</th><th class="num">${T("Power", "파워")}</th></tr></thead>
+        <tbody>
+          ${leaders.map((r) => { const name = esc(r.nameEn || r.nameJa); return `<tr><td>${r.href ? `<a href="${esc(r.href)}">${name}</a>` : name}<small>${esc(r.id)}</small></td><td>${esc(colorOf(r.color))}</td><td class="num">${dashOr(r.cost)}</td><td class="num">${dashOr(r.power)}</td></tr>`; }).join("\n          ")}
+        </tbody>
+      </table></div>`);
+  }
+  const s = F.sets[code];
+  // 표 머리가 '# · Card · NM (raw) · PSA 10' 이라 순서는 보이는 NM 값 내림차순(값 없음은 뒤, 같은 값은 큐레이션 순서) — 2026-10-19 검증.
+  const nmOf = (c) => (c && c.shown && Number.isFinite(c.shown.nm) ? c.shown.nm : -1);
+  const top = s && Array.isArray(s.cards) ? s.cards.map((c, i) => ({ c, i })).sort((a, b) => nmOf(b.c) - nmOf(a.c) || a.i - b.i).map((x) => x.c) : [];
+  if (top.length) {
+    const href = (c) => { const pg = cardPageOf(c); return pg ? `../cards/${pg}` : null; };
+    const psaCell = (p) => (p.psa != null ? `${usd(p.psa)}<small>${p.psaKind === "sold" ? `${ko ? "판매" : "sold"}${p.psaDate ? " · " + esc(p.psaDate.slice(5)) : ""}` : ko ? "호가" : "ask"}</small>` : "—");
+    out.push(`${h2("most-valuable", "Most valuable cards", "가장 비싼 카드")}
+      <div style="overflow-x:auto"><table class="clMini">
+        <thead><tr><th class="num">#</th><th>${T("Card", "카드")}</th><th class="num">NM (raw)</th><th class="num">PSA 10</th></tr></thead>
+        <tbody>
+          ${top.map((c, i) => { const p = c.shown || {}; const h = href(c); const name = `<b>${esc(c.name)}</b>`; return `<tr><td class="num">${i + 1}</td><td>${h ? `<a href="${esc(h)}">${name}</a>` : name}<small>${esc(c.number || "")}${c.rarityEn ? ` · ${esc(c.rarityEn)}` : ""}</small></td><td class="num">${p.nm != null ? `${usd(p.nm)}${p.nmSrc === "tcg" ? "<small>TCG</small>" : ""}` : "—"}</td><td class="num">${psaCell(p)}</td></tr>`; }).join("\n          ")}
+        </tbody>
+      </table></div>`);
+  }
+  const rar = Object.entries(counts.rarity || {});
+  if (rar.length) {
+    out.push(`${h2("rarity", "Rarity breakdown", "레어도별 카드 수")}
+      <div style="overflow-x:auto"><table class="clMini">
+        <thead><tr><th>${T("Rarity", "레어도")}</th><th class="num">${T("Cards", "카드")}</th></tr></thead>
+        <tbody>
+          ${rar.map(([r, n]) => `<tr><td>${esc(r)}${CL.RARITY_EN[r] && !ko ? ` <small>${esc(CL.RARITY_EN[r])}</small>` : ""}</td><td class="num">${n}</td></tr>`).join("\n          ")}
+        </tbody>
+      </table></div>`);
+  }
+  return out.join("\n      ");
+}
+// Key facts 표(요약 숫자) — 종전 p.clSummary 한 줄을 표로(2026-10-19). caption = "<코드> card list · Bandai list checked <날짜>". 가드 CL1 이 행 값을 대조한다.
+function summaryTable(code, n, checked, ko) {
+  const rows = [["cards", "Cards", "카드", n.cards], ["numbers", "Card numbers", "카드 번호", n.numbers], ["base", "Base", "기본", n.base], ["parallel", "Parallel", "패러렐", n.parallel],
+    ...(n.reprint ? [["reprint", "Reprint", "재수록", n.reprint]] : []), ["sp", "SP", "SP", n.sp], ["tr", "TR", "TR", n.tr], ["leaders", "Leaders (base print)", "리더(기본 인쇄)", n.leaders]]
+    .map(([k, en, k2, v]) => [k, en, k2, `<b>${v}</b>`]);
+  const time = `<time datetime="${esc(checked)}">${esc(checked)}</time>`;
+  const caption = ko ? `${esc(code)} 카드 리스트 · 반다이 목록 확인 ${time}` : `<span data-ko="${esc(`${code} 카드 리스트 · 반다이 목록 확인`)}">${esc(`${code} card list · Bandai list checked`)}</span> ${time}`;
+  return kfTableAny(rows, { lang: ko ? "ko" : "en", label: ko ? `${code} 카드 리스트 요약` : `${code} card list key facts`, caption, cls: "clSummary" });
+}
 
 const numCell = (o, sub, fmt = money) => (o ? `${fmt(o.usd)}<small>${esc(sub(o))}</small>` : "—");
 const nmSub = (o) => (o.date ? o.date.slice(5) : "");
@@ -169,14 +236,12 @@ function pageEn(p, rows, nameEn, src, box, links) {
       "@type": "ItemList",
       name: `${label} official card list (Japanese edition)`,
       numberOfItems: rows.length,
-      itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.id} ${r.nameEn || r.nameJa}`, url: `${canonical}#${anchorOf(r.id)}` })),
+      itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.id} ${r.nameEn || r.nameJa}`, url: itemUrl(r, canonical) })),
     },
   };
   const extraLd = `<script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: crumbs })}</script>
     <script type="application/ld+json">${JSON.stringify(ld)}</script>`;
 
-  const sum = [["Cards", "카드", n.cards], ["Card numbers", "카드 번호", n.numbers], ["Base", "기본", n.base], ["Parallel", "패러렐", n.parallel],
-    ...(n.reprint ? [["Reprint", "재수록", n.reprint]] : []), ["SP", "SP", n.sp], ["TR", "TR", n.tr], ["Leaders", "리더", n.leaders]];
   const enSrc = src.en.length
     ? src.en.map((e) => `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.code)}</a> checked <time datetime="${e.checked}">${e.checked}</time>`).join(" · ")
     : "—";
@@ -210,9 +275,11 @@ function pageEn(p, rows, nameEn, src, box, links) {
       <p class="eyebrow" data-ko="공식 카드 리스트 · 일본판">Official card list · Japanese edition</p>
       <h1>${esc(h1)}</h1>
       <!-- CARD-LIST:START -->
-      <p class="clSummary">${sum.map(([en, ko, v]) => `<span><span data-ko="${ko}">${en}</span> <b>${v}</b></span>`).join("")}</p>
+      ${summaryTable(code, n, src.jp.checked, false)}
       <p class="clMeta"><span data-ko="공식 목록(일본판):">Official list (Japanese):</span> <a href="${esc(src.jp.url)}" target="_blank" rel="noopener noreferrer">Bandai card list</a> checked <time datetime="${src.jp.checked}">${src.jp.checked}</time><br /><span data-ko="영문 이름:">English names:</span> Bandai English card list ${enSrc}<br />${boxBit("jp", "JP box sold median")} · ${boxBit("en", "EN box")}</p>
       <p class="clLinks">${linkBits.join("")}</p>
+      ${extraSections(code, rows, n, false)}
+      <h2 class="clH2" id="all-cards" data-ko="전체 ${n.cards}장">All ${n.cards} cards</h2>
       ${LEGEND_EN}
       <table class="clTable text">
         <thead><tr><th data-ko="카드">Card</th><th class="wide" data-ko="레어도">Rarity</th><th class="wide" data-ko="종류">Type</th><th class="wide" data-ko="색">Color</th><th class="num wide" data-ko="코스트/라이프">Cost / Life</th><th class="num wide" data-ko="파워">Power</th><th class="num wide">NM</th><th class="num wide" data-ko="경매 일본판">Auction JP</th><th class="num wide" data-ko="경매 영문판">Auction EN</th><th class="num wide">PSA 10</th></tr></thead>
@@ -245,9 +312,8 @@ function pageKo(p, rows, nameEn, nameKo, src, box, links) {
     "@context": "https://schema.org", "@type": "CollectionPage", name: h1, url: canonical, inLanguage: "ko", dateModified: pageDate(code), isBasedOn: src.jp.url,
     isPartOf: { "@type": "WebSite", name: "OP Box Index", url: `${SITE}/` },
     mainEntity: { "@type": "ItemList", name: `${label} 공식 카드 리스트(일본판)`, numberOfItems: rows.length,
-      itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.id} ${r.nameEn || r.nameJa}`, url: `${canonical}#${anchorOf(r.id)}` })) },
+      itemListElement: rows.map((r, i) => ({ "@type": "ListItem", position: i + 1, name: `${r.id} ${r.nameEn || r.nameJa}`, url: itemUrl(r, canonical) })) },
   });
-  const sum = [["카드", n.cards], ["카드 번호", n.numbers], ["기본", n.base], ["패러렐", n.parallel], ...(n.reprint ? [["재수록", n.reprint]] : []), ["SP", n.sp], ["TR", n.tr], ["리더", n.leaders]];
   const enSrc = src.en.length ? src.en.map((e) => `<a href="${esc(e.url)}" target="_blank" rel="noopener noreferrer">${esc(e.code)}</a> 확인 <time datetime="${e.checked}">${e.checked}</time>`).join(" · ") : "—";
   const boxBit = (ed, lbl) => (box[ed] ? `${lbl} <b>${money(box[ed].usd)}</b> (${esc(box[ed].date)}, n=${box[ed].n})` : `${lbl} <b>—</b>`);
   const colorKo = (c) => String(c || "").split("/").map((x) => COLOR_KO[x] || x).join("/");
@@ -316,9 +382,11 @@ ${CSS}
       <p class="eyebrow"><a href="./" style="color:var(--muted);text-decoration:none">한국어 시세</a> · 공식 카드 리스트 · 일본판</p>
       <h1>${esc(h1)}</h1>
       <!-- CARD-LIST:START -->
-      <p class="clSummary">${sum.map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join("")}</p>
+      ${summaryTable(code, n, src.jp.checked, true)}
       <p class="clMeta">공식 목록(일본판): <a href="${esc(src.jp.url)}" target="_blank" rel="noopener noreferrer">반다이 카드 리스트</a> 확인 <time datetime="${src.jp.checked}">${src.jp.checked}</time><br />영문 이름: 반다이 영문 카드 리스트 ${enSrc}<br />${boxBit("jp", "일본판 박스 판매 중앙값")} · ${boxBit("en", "영문판 박스")}</p>
       <p class="clLinks">${linkBits.join("")}</p>
+      ${extraSections(code, rows, n, true)}
+      <h2 class="clH2" id="all-cards">전체 ${n.cards}장</h2>
       <p class="clLegend">기본 = 접미어 없는 공식 카드 ID · 패러렐 = _p 로 끝나는 ID · 재수록 = _r 로 끝나는 ID · SP = 레어도 SP CARD · TR = 레어도 TR · 리더 = 기본 인쇄 리더 카드<br />금액 = 달러(USD) · NM = 일본판 미개봉급 낱장 소매 호가, 엔 → 달러(MM-DD = 관측일) · 경매 일본판/영문판 = 그 카드의 일본판/영문판 인쇄·미감정 낙찰가 중앙값, ${esc(AUCTION_DAY || "—")}까지 45일(n = 낙찰 수) · PSA 10 = 판매 완료 중앙값(n ≥ ${MIN_N}) · — = 규칙에 맞는 값 없음 · 데이터 ${esc(pageDate(code))}</p>
       <table class="clTable text">
         <thead><tr><th>카드</th><th class="wide">레어도</th><th class="wide">종류</th><th class="wide">색</th><th class="num wide">코스트/라이프</th><th class="num wide">파워</th><th class="num wide">NM</th><th class="num wide">경매 일본판</th><th class="num wide">경매 영문판</th><th class="num wide">PSA 10</th></tr></thead>

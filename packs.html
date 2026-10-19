@@ -10,18 +10,14 @@
     />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <link rel="preload" href="fonts/bricolage-grotesque-latin-750.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="stylesheet" href="styles.css?v=20261015seo2" />
-    <script defer src="lang-toggle.js?v=20261015seo2"></script>
-    <!-- 시세 데이터를 여기서 미리 요청한다. packs.js 는 defer 라 HTML 파싱이 끝나야 실행되는데,
-         그때 요청하면 스크립트 받는 시간만큼 첫 표가 늦게 뜬다(로컬 실측 222ms → 125ms).
-         rel=preload 는 요청 조건이 조금만 달라도 재사용이 안 돼 같은 파일을 두 번 받아서(실측) 인라인 fetch 로 한다.
-         ?v= 는 packs.js 의 DATA_VERSION 과 반드시 같아야 한다(가드 V1 이 검사). 실패하면 packs.js 가 알아서 다시 받는다. -->
+    <link rel="stylesheet" href="styles.css?v=20261019geo" />
+    <script defer src="lang-toggle.js?v=20261019geo"></script>
     <script>
       // 2026-10-08: 첫 화면은 정적 선렌더(prerender-home.js)라 JSON 이 첫 그리기에 필요 없다. 1MB 를 첫 그리기 전에 받아 파싱하면
       // 느린 폰에서 그만큼 그리기가 늦어진다(라이트하우스 실측). load 뒤에 받고, 받으면 packs.js 가 같은 화면을 다시 그린다.
       window.__opPackData = new Promise(function (resolve) {
         var go = function () {
-          resolve(fetch("data/onepiece-packs.json?v=20261015seo2", { cache: "default", priority: "low" })
+          resolve(fetch("data/onepiece-packs.json?v=20261019geo", { cache: "default", priority: "low" })
             .then(function (r) { return r.ok ? r.json() : null; })
             .catch(function () { return null; }));
         };
@@ -38,7 +34,6 @@
       gtag('config', 'G-P73SE1WVD0');
     </script>
     <script defer src="/track.js"></script>
-    <!-- Legacy home alias: no AdSense. Canonical traffic and ads belong on /. -->
     <meta name="robots" content="noindex,follow" />
     <link rel="canonical" href="https://opboxindex.com/" />
     <link rel="alternate" hreflang="en" href="https://opboxindex.com/" />
@@ -1106,7 +1101,6 @@
       <section class="packHero">
         <p class="eyebrow">OP Box Index</p>
         <h1>One Piece Booster Box Prices <span>&amp; TCG eBay Auction Data</span></h1>
-        <!-- 2026-10-15 소유자 결정: 사이트 소개 문장(lead)을 뺐다 — 데이터 페이지는 숫자·표·라벨만. -->
         <p class="affTop"><b>Paid Link:</b> As an eBay Partner Network affiliate, we earn from qualifying purchases.</p>
       </section>
       <div class="marketStatus" id="marketStatus" aria-label="Market status"><!--PRERENDER:marketStatus--><span><i></i>eBay completed sales</span><span>updated daily</span><span>data 2026-10-18</span><span>22 sets · USD</span><!--/PRERENDER:marketStatus--></div>
@@ -1155,7 +1149,6 @@
       </a>
     </div>
     <!--/PRERENDER:todayDeals--></section>
-      <!-- 실시간 경매. 중계기가 응답할 때만 나타난다 (worker/SETUP.md) -->
       <section class="liveAuctions" id="liveAuctions" aria-label="eBay auctions ending soon" aria-live="polite" hidden></section>
 
       <div class="langTabs" role="group" aria-label="Set category">
@@ -1168,7 +1161,7 @@
         <div id="detail"><p class="detailLoading">Loading set details…</p></div>
         <!-- HOME_SUMMARY:START -->
         <section class="homeSummary" aria-label="Current Japanese booster box prices">
-          <h2><span data-ko="일본판 부스터 박스 시세 — 전체 22개 세트">Japanese booster box prices — all 22 sets</span> <small data-ko="데이터 2026-10-18 · 행마다 그 중앙값의 날짜">data 2026-10-18 · each row dated by its median point</small></h2>
+          <h2><span data-ko="일본판 부스터 박스 시세 — 전체 22개 세트">Japanese booster box prices — all 22 sets</span> <small data-ko="데이터 2026-10-19 · 행마다 그 중앙값의 날짜">data 2026-10-19 · each row dated by its median point</small></h2>
           <p data-ko-html="$80 (OP-07, OP-08) – $299 (OP-01), eBay 실거래 중앙값, 매일 갱신. 4주간 &lt;strong&gt;7&lt;/strong&gt; 상승 · &lt;strong&gt;9&lt;/strong&gt; 하락. &lt;a href=&quot;box-prices.html&quot;&gt;&lt;strong&gt;전체 표 — 22개 세트 →&lt;/strong&gt;&lt;/a&gt;">$80 (OP-07, OP-08) – $299 (OP-01), median of completed eBay sales, updated daily. <strong>7</strong> up · <strong>9</strong> down over 4 weeks. <a href="box-prices.html"><strong>Full table — all 22 sets →</strong></a></p>
           <details class="homeCollapse">
           <summary data-ko="빠른 표(전체 페이지와 같은 데이터)">Quick table (same data as the full page)</summary>
@@ -1196,8 +1189,8 @@
 <tr class="stale"><td class="code"><a href="sets/eb-01.html">EB-01</a></td><td class="name">Memorial Collection<small class="rowLinks"><a href="sets/eb-01-english.html" title="English EB-01 box price">EN box</a> · <a href="sets/eb-01-card-list.html" title="EB-01 official card list">Card list</a> · <a href="cards/eb01-006-tony-tonychopper-alternate-art-manga.html" title="Tony TonyChopper Alternate Art Manga price">Tony TonyChopper Alternate Art Manga</a></small></td><td class="num">—</td><td class="num when" title="No sold median dated within 28 days (a median needs at least 6 sales in its window)">—</td><td class="num ">—</td></tr>
 <tr><td class="code"><a href="sets/eb-02.html">EB-02</a></td><td class="name">Anime 25th Collection<small class="rowLinks"><a href="sets/eb-02-english.html" title="English EB-02 box price">EN box</a> · <a href="sets/eb-02-card-list.html" title="EB-02 official card list">Card list</a> · <a href="cards/op07-038-boa-hancock-sp.html" title="Boa Hancock SP price">Boa Hancock SP</a></small></td><td class="num">$135</td><td class="num when" title="Median point 2026-10-09 · 13 sales in its 56-day window">10-09<small> n=13/56d</small></td><td class="num flat">0%</td></tr>
 <tr><td class="code"><a href="sets/eb-03.html">EB-03</a></td><td class="name">Heroine's Edition<small class="rowLinks"><a href="sets/eb-03-english.html" title="English EB-03 box price">EN box</a> · <a href="sets/eb-03-card-list.html" title="EB-03 official card list">Card list</a> · <a href="cards/eb03-026-boa-hancock-sp.html" title="Boa Hancock SP price">Boa Hancock SP</a></small></td><td class="num">$115</td><td class="num when" title="Median point 2026-10-15 · 13 sales in its 49-day window">10-15<small> n=13/49d</small></td><td class="num down">-2.5%</td></tr>
-<tr><td class="code"><a href="sets/prb-01.html">PRB-01</a></td><td class="name">Premium Booster<small class="rowLinks"><a href="sets/prb-01-english.html" title="English PRB-01 box price">EN box</a> · <a href="sets/prb-01-card-list.html" title="PRB-01 official card list">Card list</a></small></td><td class="num">$150</td><td class="num when" title="Median point 2026-10-09 · 13 sales in its 49-day window">10-09<small> n=13/49d</small></td><td class="num down">-3.2%</td></tr>
-<tr><td class="code"><a href="sets/prb-02.html">PRB-02</a></td><td class="name">Premium Booster<small class="rowLinks"><a href="sets/prb-02-english.html" title="English PRB-02 box price">EN box</a> · <a href="sets/prb-02-card-list.html" title="PRB-02 official card list">Card list</a> · <a href="cards/op06-119-sanji-op06-119-manga.html" title="Sanji OP06 119 Manga price">Sanji OP06 119 Manga</a></small></td><td class="num">$100</td><td class="num when" title="Median point 2026-10-18 · 13 sales in its 42-day window">10-18<small> n=13/42d</small></td><td class="num up">+1%</td></tr>
+<tr><td class="code"><a href="sets/prb-01.html">PRB-01</a></td><td class="name">Premium Booster — The Best<small class="rowLinks"><a href="sets/prb-01-english.html" title="English PRB-01 box price">EN box</a> · <a href="sets/prb-01-card-list.html" title="PRB-01 official card list">Card list</a></small></td><td class="num">$150</td><td class="num when" title="Median point 2026-10-09 · 13 sales in its 49-day window">10-09<small> n=13/49d</small></td><td class="num down">-3.2%</td></tr>
+<tr><td class="code"><a href="sets/prb-02.html">PRB-02</a></td><td class="name">Premium Booster — The Best vol.2<small class="rowLinks"><a href="sets/prb-02-english.html" title="English PRB-02 box price">EN box</a> · <a href="sets/prb-02-card-list.html" title="PRB-02 official card list">Card list</a> · <a href="cards/op06-119-sanji-op06-119-manga.html" title="Sanji OP06 119 Manga price">Sanji OP06 119 Manga</a></small></td><td class="num">$100</td><td class="num when" title="Median point 2026-10-18 · 13 sales in its 42-day window">10-18<small> n=13/42d</small></td><td class="num up">+1%</td></tr>
             </tbody>
           </table>
           </div>
@@ -1208,12 +1201,12 @@
         <section class="homeFaqWrap" aria-label="Frequently asked questions">
           <details class="homeCollapse">
           <summary><h2>One Piece booster box prices — common questions</h2></summary>
-          <details class="homeFaq"><summary>How much is a One Piece booster box?</summary><p>Sealed Japanese One Piece booster boxes currently range from about $80 (OP-07 500 Years in the Future and OP-08 Two Legends) to $299 (OP-01 Romance Dawn) — median of completed eBay sales, as of 2026-10-18.</p></details>
+          <details class="homeFaq"><summary>How much is a One Piece booster box?</summary><p>Sealed Japanese One Piece booster boxes currently range from about $80 (OP-07 500 Years in the Future and OP-08 Two Legends) to $299 (OP-01 Romance Dawn) — median of completed eBay sales, as of 2026-10-19.</p></details>
           <details class="homeFaq"><summary>Which One Piece booster box is the most valuable?</summary><p>OP-01 Romance Dawn is the most expensive sealed Japanese box we track at about $299, ahead of OP-05 Awakening of the New Era at $175.</p></details>
           <details class="homeFaq"><summary>Are One Piece booster boxes going up or down in price?</summary><p>Of the 19 Japanese sets with a 4-week reference point, 7 are up and 9 are down over the last 4 weeks (latest weekly sold median vs 4 weeks earlier); the largest gain is OP-09 at +6.3% and the largest fall is OP-16 at -9.4%.</p></details>
           </details>
         </section>
-        <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much is a One Piece booster box?","acceptedAnswer":{"@type":"Answer","text":"Sealed Japanese One Piece booster boxes currently range from about $80 (OP-07 500 Years in the Future and OP-08 Two Legends) to $299 (OP-01 Romance Dawn) — median of completed eBay sales, as of 2026-10-18."}},{"@type":"Question","name":"Which One Piece booster box is the most valuable?","acceptedAnswer":{"@type":"Answer","text":"OP-01 Romance Dawn is the most expensive sealed Japanese box we track at about $299, ahead of OP-05 Awakening of the New Era at $175."}},{"@type":"Question","name":"Are One Piece booster boxes going up or down in price?","acceptedAnswer":{"@type":"Answer","text":"Of the 19 Japanese sets with a 4-week reference point, 7 are up and 9 are down over the last 4 weeks (latest weekly sold median vs 4 weeks earlier); the largest gain is OP-09 at +6.3% and the largest fall is OP-16 at -9.4%."}}]}</script>
+        <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How much is a One Piece booster box?","acceptedAnswer":{"@type":"Answer","text":"Sealed Japanese One Piece booster boxes currently range from about $80 (OP-07 500 Years in the Future and OP-08 Two Legends) to $299 (OP-01 Romance Dawn) — median of completed eBay sales, as of 2026-10-19."}},{"@type":"Question","name":"Which One Piece booster box is the most valuable?","acceptedAnswer":{"@type":"Answer","text":"OP-01 Romance Dawn is the most expensive sealed Japanese box we track at about $299, ahead of OP-05 Awakening of the New Era at $175."}},{"@type":"Question","name":"Are One Piece booster boxes going up or down in price?","acceptedAnswer":{"@type":"Answer","text":"Of the 19 Japanese sets with a 4-week reference point, 7 are up and 9 are down over the last 4 weeks (latest weekly sold median vs 4 weeks earlier); the largest gain is OP-09 at +6.3% and the largest fall is OP-16 at -9.4%."}}]}</script>
         <script type="application/ld+json">{"@context":"https://schema.org","@type":"Dataset","name":"One Piece TCG box markets and Top 7 card data","description":"Citable data for 22 tracked One Piece Card Game products: Japanese and English completed-sale and active-ask box markets, Top 7 exact card variants, and field-level observation dates and sample sizes.","url":"https://opboxindex.com/free-data.html","license":"https://creativecommons.org/licenses/by/4.0/","isAccessibleForFree":true,"dateModified":"2026-10-19","temporalCoverage":"2026-06-29/2026-10-19","creator":{"@type":"Organization","name":"OP Box Index","url":"https://opboxindex.com/"},"distribution":[{"@type":"DataDownload","encodingFormat":"application/json","contentUrl":"https://opboxindex.com/opbox-ai-data.json"}]}</script>
         <!-- HOME_SUMMARY:END -->
         <nav class="setGuidesNav" aria-label="Set price guides">
@@ -1245,12 +1238,10 @@
         </nav>
       </section>
 
-      <!-- 2026-10-15 소유자 결정: 사이트 안내(introPanel)·검색어 해설(seoPanel)·"New sets are reflected…" 문장을 뺐다 — 데이터 페이지는 숫자·표·라벨만.
-           seoPanel 의 글 링크 2개(박스 시세 가이드·PSA 10 vs NM)는 위 Guides 줄에 이미 있다. -->
     </main>
 
     <footer class="footer">
-      <nav class="guideLinks" aria-label="Price guides" style="display:block;margin:0 0 14px;font-size:13px;line-height:1.9;color:var(--muted);"><span style="font-weight:700;" data-ko="가격 가이드:">Price guides:</span> <span style="white-space:nowrap;"><a href="/" data-ko="부스터 박스">Booster boxes</a> ·</span> <span style="white-space:nowrap;"><a href="/weekly.html" data-ko="이번 주">This week</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html" data-ko="세트 가이드">Set guides</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/op-18.html" data-ko="OP-18 발매일">OP-18 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/eb-05.html" data-ko="EB-05 발매일">EB-05 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/one-piece-set-list-release-dates.html" data-ko="발매일 목록">Release dates</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/how-many-packs-one-piece-booster-box.html" data-ko="팩 수·정가">Packs & MSRP</a> ·</span> <span style="white-space:nowrap;"><a href="/box-prices.html" data-ko="전체 박스 시세">All box prices</a> ·</span> <span style="white-space:nowrap;"><a href="/cards/" data-ko="카드 시세">Card prices</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html#card-lists" data-ko="카드 리스트">Card lists</a> ·</span> <span style="white-space:nowrap;"><a href="/psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a> ·</span> <span style="white-space:nowrap;"><a href="/psa-grading.html" data-ko="그레이딩 통계">Grading population</a> ·</span> <span style="white-space:nowrap;"><a href="/compare.html" data-ko="세트 비교">Compare sets</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/" data-ko="가이드">Guides</a> ·</span> <span style="white-space:nowrap;"><a href="/free-data.html" data-ko="무료 데이터">Free data</a> ·</span> <span style="white-space:nowrap;"><a href="/ko/">한국어</a> ·</span> <span style="white-space:nowrap;"><a href="/ja/release-dates.html">日本語</a></span></nav>
+      <nav class="guideLinks" aria-label="Price guides" style="display:block;margin:0 0 14px;font-size:13px;line-height:1.9;color:var(--muted);"><span style="font-weight:700;" data-ko="가격 가이드:">Price guides:</span> <span style="white-space:nowrap;"><a href="/" data-ko="부스터 박스">Booster boxes</a> ·</span> <span style="white-space:nowrap;"><a href="/weekly.html" data-ko="이번 주">This week</a> ·</span> <span style="white-space:nowrap;"><a href="/market-2026.html" data-ko="2026 시장">Market 2026</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html" data-ko="세트 가이드">Set guides</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/op-18.html" data-ko="OP-18 발매일">OP-18 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/eb-05.html" data-ko="EB-05 발매일">EB-05 release date</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/one-piece-set-list-release-dates.html" data-ko="발매일 목록">Release dates</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/how-many-packs-one-piece-booster-box.html" data-ko="팩 수·정가">Packs & MSRP</a> ·</span> <span style="white-space:nowrap;"><a href="/box-prices.html" data-ko="전체 박스 시세">All box prices</a> ·</span> <span style="white-space:nowrap;"><a href="/cards/" data-ko="카드 시세">Card prices</a> ·</span> <span style="white-space:nowrap;"><a href="/sets/index.html#card-lists" data-ko="카드 리스트">Card lists</a> ·</span> <span style="white-space:nowrap;"><a href="/psa10-ranking.html" data-ko="PSA10 랭킹">Top PSA 10</a> ·</span> <span style="white-space:nowrap;"><a href="/psa-grading.html" data-ko="그레이딩 통계">Grading population</a> ·</span> <span style="white-space:nowrap;"><a href="/compare.html" data-ko="세트 비교">Compare sets</a> ·</span> <span style="white-space:nowrap;"><a href="/articles/" data-ko="가이드">Guides</a> ·</span> <span style="white-space:nowrap;"><a href="/free-data.html" data-ko="무료 데이터">Free data</a> ·</span> <span style="white-space:nowrap;"><a href="/ko/">한국어</a> ·</span> <span style="white-space:nowrap;"><a href="/ja/release-dates.html">日本語</a></span></nav>
       <p>OP Box Index is a data-driven research site, not investment advice.</p>
       <p class="affDisclosure">Paid Link: As an eBay Partner, OP Box Index may earn a commission from qualifying purchases made through eBay links, at no extra cost to you.</p>
       <nav aria-label="Footer navigation">
@@ -1264,9 +1255,6 @@
       </nav>
     </footer>
 
-    <!-- 2026-10-08: 화면 JS(box-chart·packs)는 load 뒤에 끼운다. 첫 화면은 정적 선렌더라 JS 가 그리기 전에 필요 없는데,
-         defer 로 두면 첫 그리기 전에 받자마자 실행돼(느린 폰 CPU 4배 기준 1초+) 첫 글자가 그만큼 늦게 떴다(라이트하우스 실측).
-         ?v= 는 packs.js 의 DATA_VERSION 과 같아야 한다(가드 V1). -->
-    <script data-home-js>(function(){function go(){["packs.js?v=20261015seo2"].forEach(function(src){var e=document.createElement("script");e.src=src;e.async=false;document.body.appendChild(e);});}if(document.readyState==="complete")setTimeout(go,0);else window.addEventListener("load",function(){setTimeout(go,0);});})();</script>
+    <script data-home-js>(function(){function go(){["packs.js?v=20261019geo"].forEach(function(src){var e=document.createElement("script");e.src=src;e.async=false;document.body.appendChild(e);});}if(document.readyState==="complete")setTimeout(go,0);else window.addEventListener("load",function(){setTimeout(go,0);});})();</script>
   </body>
 </html>

@@ -175,7 +175,7 @@ function weeklyTable(code) {
           </tbody>
         </table>
       </div>
-      <p class="priceNote">Completed eBay sales, sealed English boxes · dated by sale date · median window ${METRICS[code]?.windowDays || 28}+ days · <a href="../methodology.html">Source rules</a> · ${esc(F.hubDate)}</p>`;   // 표의 첫 행은 판매 원장 기준일(asOf)까지 간다 — 그보다 이른 날짜를 찍지 않는다(2026-10-15). 문장("…so thin weeks borrow neighbours")은 라벨 조각으로(2026-10-15)
+      <p class="priceNote">Completed eBay sales, sealed English boxes · dated by sale date · median window ${METRICS[code]?.windowDays || 28}+ days · <a href="../methodology.html">Source rules</a> · ${esc(F.dataDate)}</p>`;   // 표의 첫 행은 판매 원장 기준일(asOf)까지 간다 — 그보다 이른 날짜를 찍지 않는다(2026-10-15). 문장("…so thin weeks borrow neighbours")은 라벨 조각으로(2026-10-15)
 }
 
 function compareTable(code, m, s) {

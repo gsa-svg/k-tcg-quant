@@ -129,7 +129,7 @@ const before = html;
     ["premium", "English premium range", "영문판 프리미엄 범위", `<b>${esc(pctTxt(lo.pct))} – ${esc(pctTxt(hi.pct))}</b> <small>${esc(lo.code)} · ${esc(hi.code)}</small>`],
     ["jplower", "Japanese box cheaper", "일본판 박스가 더 쌈", `<b>${jpLower} <span data-ko="/">of</span> ${pairs.length}</b>`],
     ["asof", "As of", "기준일", `<time datetime="${esc(dataDate)}">${esc(dataDate)}</time> <small><span data-ko="이베이 완료 거래 중앙값">eBay completed-sale medians</span></small>`],
-  ], { label: "Japanese vs English key facts" });
+  ], { label: "Japanese vs English key facts", caption: `<span data-ko="원피스 일본판 대 영문판 박스 시세">Japanese vs English One Piece booster box prices</span> · <time datetime="${esc(dataDate)}">${esc(dataDate)}</time>` });
   html = html.replace(RE.keyFacts, () => `<!-- JP_EN_KEY_FACTS:START --><style>\n${KF_CSS}\n      </style>\n      ${kf}\n      <!-- JP_EN_KEY_FACTS:END -->`);
 }
 

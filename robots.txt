@@ -182,8 +182,8 @@ Disallow: /CLAUDE.md
 Disallow: /AGENTS.md
 Disallow: /SECURITY.md
 
-# GPTBot: 2026-08-27 차단 해제. 학습 전용인 줄 알았으나 ChatGPT 검색의 검색 코퍼스도
-# 이 봇이 채운다(OAI-SearchBot 은 링크 표시용) — 막으면 ChatGPT 노출을 스스로 잃는다.
+# GPTBot — allowed (2026-08-27). Its crawl also feeds ChatGPT search;
+# OAI-SearchBot is the link-display fetcher.
 User-agent: GPTBot
 Allow: /
 Allow: /data/
@@ -195,8 +195,8 @@ Disallow: /CLAUDE.md
 Disallow: /AGENTS.md
 Disallow: /SECURITY.md
 
-# ClaudeBot: 2026-08-27 차단 해제(GPTBot 과 같은 이유 — Claude 검색 표면에도 쓰인다).
-# 학습 전용 anthropic-ai 는 아래에서 계속 차단.
+# ClaudeBot — allowed (2026-08-27), same reason as GPTBot (Claude search).
+# Training-only anthropic-ai stays blocked below.
 User-agent: ClaudeBot
 Allow: /
 Allow: /data/

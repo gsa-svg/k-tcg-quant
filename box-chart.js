@@ -445,20 +445,14 @@
       '" r="' + (i === pts.length - 1 ? 4.5 : solo.has(i) ? 3.5 : 3) + '" fill="' + color + '"' +
       (i === pts.length - 1 || solo.has(i) ? "" : ' opacity="0"') + "/>").join("");
 
-    // JS 가 안 돌거나 막힌 환경(일부 인앱 브라우저·미리보기)에서도 숫자가 읽혀야 한다.
-    // 넉넉한 투명 원 + <title> 이면 브라우저 기본 툴팁으로 값이 나온다. 아래 스크럽 JS 는 그 위에 얹는 향상일 뿐이다.
-    // 툴팁 문구를 data-* 로 싣는다 — 종전엔 <title> 문자열을 스크럽 JS 가 다시 쪼갰는데
-    // 그 파싱이 언어·형식이 바뀔 때마다 깨질 자리였다. <title> 은 무JS 폴백으로 유지.
+    // 툴팁 값은 data-* 속성에만 싣고 hover/스크럽 JS 가 읽는다(2026-10-19).
     const hits = pts.map((p, i) =>
       '<circle class="opbcHitDot" cx="' + XY[i].x.toFixed(1) + '" cy="' + XY[i].y.toFixed(1) + '" r="14" fill="transparent"' +
       ' data-d="' + (grain === "month" ? p.d.slice(0, 7) : p.d) + '" data-t="' + p.d + '" data-v="' + money(p.median) +
       '" data-r="' + rangeWord + " " + money(p.low) + "–" + money(p.high) +
       // n 은 그 점(중앙값)을 만든 표본 수. 막대 건수는 달력 칸 기준이라 막대(data-l)에 따로 싣는다.
       '" data-n="' + p.n + sampleWord +
-      '" data-x="' + md(p.d) + '">' +
-      "<title>" + (grain === "month" ? p.d.slice(0, 7) : p.d) + " · " + money(p.median) +
-      " (" + rangeWord + " " + money(p.low) + "–" + money(p.high) +
-      " · " + p.n + sampleWord + ")</title></circle>").join("");
+      '" data-x="' + md(p.d) + '"/>').join("");
 
     // ── 새 시각 요소(2026-08-27 확정안): 현재가 플래그·고점/저점 라벨.
     const flagY = py(last.median);
@@ -600,11 +594,9 @@
       ' data-jp="' + (p.jp == null ? "" : p.jp) + '" data-en="' + (p.en == null ? "" : p.en) + '"' +
       ' data-jpy="' + (p.jp == null ? "" : py(p.jp).toFixed(1)) + '" data-eny="' + (p.en == null ? "" : py(p.en).toFixed(1)) + '"/>').join("");
 
-    // JS 가 안 돌아도 값이 읽히도록 기본 툴팁도 남긴다.
+    // 값은 위 앵커(opbcSupDot)의 data-* 를 hover JS 가 읽는다 — 점마다 <title> 글자는 두지 않는다(2026-10-19, 위 가격 차트와 같은 이유).
     const hits = pts.map((p) =>
-      '<circle class="opbcHitDot" cx="' + px(p).toFixed(1) + '" cy="' + (SUP_H - SUP_B) / 2 + '" r="10" fill="transparent">' +
-      "<title>" + p.d + " · " + jpWord + " " + (p.jp == null ? "-" : p.jp) +
-      " · " + enWord + " " + (p.en == null ? "-" : p.en) + "</title></circle>").join("");
+      '<circle class="opbcHitDot" cx="' + px(p).toFixed(1) + '" cy="' + (SUP_H - SUP_B) / 2 + '" r="10" fill="transparent"/>').join("");
 
     const xl = [pts[0], { d: iso(t1) }].map((p, i) =>
       '<text class="opbcAx" x="' + px(p).toFixed(1) + '" y="' + (SUP_H - 10) + '" text-anchor="' +
