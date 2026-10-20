@@ -15,7 +15,7 @@
 - 계정 생성·결제·GitHub 앱 권한 승인처럼 **영구적 권한을 넘기는 행위는 사용자가 직접** 클릭해야 한다 (분류기가 막는 게 정상 — 우회 시도 금지).
 
 ## 사이트 정보
-- 라이브: https://opboxindex.com (GitHub Pages, repo: `gsa-svg/k-tcg-quant`, branch `main`)
+- 라이브: https://opboxindex.com (GitHub Pages, repo: `opboxindex/k-tcg-quant`, branch `main`)
 - 메인 페이지: `index.html`/`https://opboxindex.com/`. `packs.html`은 루트 canonical의 noindex 레거시 별칭.
 - SEO 세트 가이드: `sets/*.html` (21개, `tools/generate-set-pages.js`로 재생성)
 - 데이터: `data/onepiece-packs.json` (가격/매물, 자동 갱신됨)
@@ -66,7 +66,7 @@
   브랜딩 바뀌면 세션에서 PIL로 재생성(생성 코드는 git log 2026-07-06 커밋 참고).
 - **PSA10 최저가 오매칭 방어**: 두 수집기의 hasVariantSignal 강화(SP↔패러렐↔망가 교차 차단) +
   활성 수집기에 "Sold 중간값 35% 미만이면 버튼 숨김" 안전장치. 이 로직 완화 금지.
-- **GSC 소유 계정 주의**: Search Console 속성 소유자는 kimtt1107@gmail.com(감자). gsa@whatsong.kr 아님.
+- **GSC 소유 계정 주의**: Search Console 속성 소유 계정은 소유자 개인 구글 계정(로컬 메모 참고).
 
 ## 일본 시장 판단 (2026-07-06, 사용자와 합의된 방향)
 - **일본어 버전은 당분간 만들지 않는다.** 야후재팬=구글 엔진이라 별도 등록 불필요하지만,
@@ -77,7 +77,7 @@
 
 ## TCGplayer 제휴 (Impact.com, 진행 중 — 2026-07-06 업데이트)
 - TCGplayer 제휴: Impact.com 경유, **판매가 3.5%**, 첫 클릭 귀속·48시간·장바구니 전체 인정. EPN보다 요율 높음.
-- **진행 상태**: Impact 계정 가입(kimtt1107@gmail.com), 사이트 소유권 인증 진행 중.
+- **진행 상태**: Impact 계정 가입(소유자 개인 메일), 사이트 소유권 인증 진행 중.
   - 사이트 인증용 메타태그 **이미 배포됨**: `<meta name="impact-site-verification" value="16e92286-f00c-4878-ba9f-9747912758b6" />` (packs.html·index.html head, 라이브 확인됨). 삭제 금지.
   - 다음 단계: Impact 대시보드에서 TCGplayer 프로그램 신청→승인 대기→추적링크(Impact deep link) 형식 확보.
 - **통합 계획(승인 후)**: 카드 카드의 "영문판 NM" 표시 자리에 "Buy English version on TCGplayer" 버튼.
@@ -199,7 +199,7 @@
 ## 🚨 사고: GitHub eBay 시크릿 소실 → 파이프라인 3일 정지 (2026-07-09 발견)
 - **증상**: `update-active-listings`(매일) 워크플로가 07-06 실행(run#6)부터 **연속 실패**. 단계 `Require eBay API secrets`에서 `EBAY_CLIENT_ID`/`EBAY_CLIENT_SECRET`가 비어(-z) exit 1 → 이후 모든 수집·커밋 스텝 skip. 07-05(run#5)까지는 성공.
 - **영향**: 07-05 이후 박스 active·영문 active·PSA10 링크·박스/카드 이력 누적이 **전부 중단**(데이터 동결). 영문판 sold 백필(`backfill-en-now.yml`)도 같은 이유(App ID 빈값)로 "Missing EBAY_APP_ID" 에러 → 소급 0건.
-- **진단 방법**: 백필 스크립트에 세트별 상태요약(`logs/en-backfill-status.json`) 커밋하게 해서 원인 특정(→ 503 아님, 자격증명 빈값). 워크플로 실행/실패단계는 `api.github.com/repos/gsa-svg/k-tcg-quant/actions/...` 공개 API로 확인(gh CLI·인증 불필요).
+- **진단 방법**: 백필 스크립트에 세트별 상태요약(`logs/en-backfill-status.json`) 커밋하게 해서 원인 특정(→ 503 아님, 자격증명 빈값). 워크플로 실행/실패단계는 `api.github.com/repos/opboxindex/k-tcg-quant/actions/...` 공개 API로 확인(gh CLI·인증 불필요).
 - **로컬은 정상**: `.env`에 EBAY_CLIENT_ID(37자)·EBAY_CLIENT_SECRET(36자) 존재 → 로컬 Browse API 수집 OK. Finding API(sold)만 로컬 IP 503(별개 이슈).
 - **복구(사용자 액션 필요)**: GitHub → 저장소 Settings → Secrets and variables → Actions 에서 저장소 시크릿 **EBAY_CLIENT_ID**, **EBAY_CLIENT_SECRET** 재등록. 값은 로컬 `.env`의 동일 키. (시크릿 등록은 권한행위라 에이전트가 대신 못 함. 값 출력·커밋 금지.)
 - **복구 후 확인**: `backfill-en-now.yml` 자기발동 재실행 → `logs/en-backfill-status.json`에서 ok:true·weeks 확인. Finding API가 GitHub IP에서도 503이면 sold 소급은 불가 → 영문판 그래프는 매일 active 누적(basis:active, '호가' 라벨)으로 실제화하는 경로로 전환.
@@ -248,7 +248,7 @@
 ## ⚠️ Pages 배포 재트리거 함정 (2026-07-09 실수 교훈)
 - GitHub Pages 배포는 **concurrency로 새 배포가 뜨면 이전 in-progress 배포를 자동 취소**함. 배포 느리다고 **빈 커밋 재트리거를 연속으로 날리면 오히려 진행 중이던 배포가 cancelled 되어 더 늦어짐.**
 - 올바른 대응: push 후 **그냥 기다린다**(오늘처럼 GitHub 혼잡 시 5~10분). 재트리거는 배포가 'cancelled/failure'로 확정된 걸 확인한 뒤에만 1회.
-- 배포 상태 확인: `api.github.com/repos/gsa-svg/k-tcg-quant/actions/workflows/299896261/runs`(pages-build-deployment). head_sha로 어느 커밋이 배포됐는지 확인.
+- 배포 상태 확인: `api.github.com/repos/opboxindex/k-tcg-quant/actions/workflows/299896261/runs`(pages-build-deployment). head_sha로 어느 커밋이 배포됐는지 확인.
 
 
 ## 영문판 두 숫자 모델: 실거래(시세) vs 최저매물(호가) (2026-07-09)

@@ -521,7 +521,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 ## START — 현재 상태·다음 작업 (2026-07-17 밤 기준)
 
 ### 현재 상태 스냅샷
-- **배포**: GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
+- **배포**: GitHub Pages, repo `opboxindex/k-tcg-quant` branch `main`, 커스텀 도메인 opboxindex.com. push하면 1~2분 내 라이브.
 - **캐시 버전**: `20260719a`. ⚠️ packs.js/styles.css/데이터를 바꾸면 **packs.js의 `DATA_VERSION` 상수(~177행)와 전체 `?v=` 문자열을 반드시 동시에** 새 값으로 범프. 방법: 파이썬 os.walk 단일패스 치환(레포에서 bash while+sed 루프는 2분 타임아웃 남 — 쓰지 말 것). 범프 후 `node tools/generate-card-pages.js && node tools/generate-set-pages.js` 재실행(구운 페이지에도 ?v 들어감).
 - **야간 자동화**: `.github/workflows/update-active-listings.yml`(매일) — eBay 가격 갱신 → 카드 페이지 → 세트 페이지 순 재생성 → 커밋. 로컬 push가 거부되면: `git pull --rebase`; 꼬이면 `rebase --abort` → `reset --hard origin/main` → 자기 커밋에서 자기 파일만 checkout → 재생성 → push.
 - **트래픽**: GA 활성 54(-28%), 신규 50(-31%), 조회수 477(+7%). 원인 진단 완료(아래 0G): **구글에 미색인**(브랜드 검색조차 0노출). 콘텐츠·리텐션은 정상. SEO 효과는 색인 후 2~6주 걸림 — 그 전 숫자 하락은 정상이라고 사용자에게 이미 설명함.
@@ -553,7 +553,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 - 8/31 예약작업(opbox-aug31): 공급/판매/PSA 누적 → Market Data 콤보 롤아웃 + eBay 시리즈 전환(boxSeriesEbay 승격).
 
 ### 금지·주의 (실수 잦은 순)
-- **🛡️ 모든 수정 후 `node tools/guard-invariants.js` 필수 — FAIL이면 푸시 금지.** 과거 사고 5유형(canonical 스왑·버전 엇갈림·시리즈 덮어쓰기·소스명 노출·검증파일 삭제)을 기계 검사. 야간 워크플로도 커밋 직전 같은 가드로 불량 배포 차단, 실패 시 GitHub이 gsa@whatsong.kr로 실패 메일 발송. 시리즈 소스 기준선은 tools/series-source-manifest.json — 정당한 전환(8/31 eBay 승격 등) 때만 의도적으로 갱신.
+- **🛡️ 모든 수정 후 `node tools/guard-invariants.js` 필수 — FAIL이면 푸시 금지.** 과거 사고 5유형(canonical 스왑·버전 엇갈림·시리즈 덮어쓰기·소스명 노출·검증파일 삭제)을 기계 검사. 야간 워크플로도 커밋 직전 같은 가드로 불량 배포 차단, 실패 시 GitHub이 소유자 메일로 실패 메일 발송. 시리즈 소스 기준선은 tools/series-source-manifest.json — 정당한 전환(8/31 eBay 승격 등) 때만 의도적으로 갱신.
 - **정확도 최우선**: 틀린 숫자보다 빈칸. 카드 가격은 **변형(variant) 매칭 엄수**(망가/패러렐/SP 다 다른 카드). 봉입률 등 근거 없는 수치 게시 금지.
 - **외부 소스명 공개 금지**(영구 규칙): Collectr 등 업체명을 사이트/공개 JSON/클라이언트 코드에 쓰면 안 됨. 라벨은 "Weekly ungraded market (JP/EN-NA)", 필드 `marketProductId`. tools/update-box-series-history.js의 wm-시리즈 보호 로직(boxSeriesEbay 우회 축적) 건드리지 말 것.
 - **스크래핑 금지**: TCGplayer/PriceCharting/CardLadder 가격 수집 금지(공식 상품 이미지는 OK). `tools/update-ebay-psa10-prices.js` 절대 실행 금지. variantOK/hasVariantSignal 완화 금지.
@@ -580,7 +580,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 - **진단**(GSC 직접 확인): 수동조치 없음. 사이트 전체 노출은 유지되는데 packs.html?hl=en이 노출 94회로 최다 — **구글이 중복 클러스터(/, packs.html, ?hl=, ?set=)의 canonical을 /에서 packs.html 변형으로 스왑**. 원인: 사이트맵에 packs.html?set= 42개 등재(7/7 제출) + 전 페이지 브랜드로고가 packs.html?hl=en으로 링크 → 내부 신호가 packs.html에 몰림.
 - **수정**: ①사이트맵 42개 제거(0G) ②**전 사이트 내부링크 홈 통일**(brand/nav/브레드크럼 스키마/절대URL, 79개 파일+생성기 2개: packs.html?hl=en→/ , ?hl=ko→/?hl=ko; **?set= 딥링크는 기능이라 유지**) ③audit-seo에 재발방지 검사(사이트맵에 /index.html·/packs.html 등재 시 에러) ④GSC 홈 재크롤 요청.
 - **회복 관찰법**: GSC 실적→페이지에서 / 노출이 돌아오는지 (수일~2주). packs.html?hl=en 노출이 /로 넘어오면 성공.
-- GSC 소유권: gsa@whatsong.kr로 인증됨(google1d76c313bd3d0b59.html — 삭제금지). 색인요청 실행: /, sets/op-17, cards/, articles/japan-vs-english, sets/eb-05. 색인요청 쿼터 하루 ~10개.
+- GSC 소유권: 소유자 계정으로 인증됨(google1d76c313bd3d0b59.html — 삭제금지). 색인요청 실행: /, sets/op-17, cards/, articles/japan-vs-english, sets/eb-05. 색인요청 쿼터 하루 ~10개.
 - Bing Webmaster: ✅ 2026-07-18 등록 완료(GSC 가져오기). llms.txt 추가, robots에서 ClaudeBot/Claude-SearchBot 허용(AI 인용 목적).
 
 ## 0G. 2026-07-17 밤: 트래픽 회복 패스 — 캐시 `20260717c`
@@ -616,7 +616,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 
 ## 0C. 2026-07-16: 애드센스 "가치가 별로 없는 콘텐츠" 거절 대응 — 캐시 `20260716b`
 - **거절 원인 진단**: compare.html 정적 텍스트 92단어(봇에겐 빈 페이지), 세트페이지 22개 템플릿 중복, 아티클 얇음(~560단어), 도메인 3주 신생.
-- **조치**: ①compare.html 정적 산문+7월 스냅샷 표(~650단어) ②세트페이지에 세트별 고유 데이터 섹션 2개 추가(6개월 시세 궤적·주간 등급 모멘텀, 생성기 tools/generate-set-pages.js — ~940단어/페이지) ③데이터 리포트 아티클 2편(각 1,300단어: japanese-vs-english-box-price-data-2026.html, psa-grading-vs-sealed-supply-2026.html — 수치 전부 우리 실데이터, scratchpad article_stats.json에서 추출) ④about.html E-E-A-T(출처·정확도정책·운영자·갱신주기·정정 연락처 gsa@whatsong.kr) ⑤홈 7월 데이터 다이제스트+OP-16 가이드 링크 누락 수정. SEO 감사 통과.
+- **조치**: ①compare.html 정적 산문+7월 스냅샷 표(~650단어) ②세트페이지에 세트별 고유 데이터 섹션 2개 추가(6개월 시세 궤적·주간 등급 모멘텀, 생성기 tools/generate-set-pages.js — ~940단어/페이지) ③데이터 리포트 아티클 2편(각 1,300단어: japanese-vs-english-box-price-data-2026.html, psa-grading-vs-sealed-supply-2026.html — 수치 전부 우리 실데이터, scratchpad article_stats.json에서 추출) ④about.html E-E-A-T(출처·정확도정책·운영자·갱신주기·정정 연락처) ⑤홈 7월 데이터 다이제스트+OP-16 가이드 링크 누락 수정. SEO 감사 통과.
 - **⚠️ 재심사 타이밍**: 콘텐츠 색인 잡히게 **최소 2주 숙성 후** "검토 요청" 클릭 권장(2026-07-30 이후). 연속 거절 방지. IndexNow 일괄 통지 완료 시점 기록 참조.
 - 아티클 수치 갱신 시: 이 리포트들의 표는 정적이므로 큰 데이터 개편 때 수동 갱신 필요(as-of 날짜 명시돼 있음).
 
@@ -639,7 +639,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 원피스 TCG **부스터박스/카드 시세 리서치 사이트**. eBay 실데이터를 최대한 활용하되 **정확도가 최우선**(불확실하면 숨긴다: 틀린값 노출 < 빈값). 수익화: eBay 제휴(EPN, 켜짐) + AdSense(심사중). 사장님은 비개발자, **짧고 반말**로 소통.
 
 ## 2. 위치·배포
-- 라이브: https://opboxindex.com — GitHub Pages, repo `gsa-svg/k-tcg-quant` branch `main`.
+- 라이브: https://opboxindex.com — GitHub Pages, repo `opboxindex/k-tcg-quant` branch `main`.
 - 프로젝트 폴더: `C:\Users\kimtt\Documents\Codex\2026-06-21\https-youtu-be-rhuyy9lp72m-si-a4jhiygdebzzpvjf`
 - 메인 앱: `packs.html` + `packs.js`(SPA 렌더러) + `styles.css`. 데이터: `data/onepiece-packs.json`(단일 소스, 여기서만 값 읽기).
 - 정적 SEO 페이지: `sets/*.html`·`sets/index.html`·`psa10-ranking.html`(생성기 `tools/generate-set-pages.js`), `compare.html`, `articles/*`.
@@ -680,7 +680,7 @@ top10 카드 표는 일본판 전용이다. 영문판 카드별을 붙이지 말
 5. **최대 활용 아이디어**: sold 판매량(수요 신호)·가격 모멘텀(sold 스냅샷 2개+ 후) 지표화.
 
 ## 6B. 2026-07-10 B/A/C 패스 (리텐션·데이터·속도) — 캐시값 `20260710b`
-방문자 실측(GA4 authuser=1=kimtt1107): 지난 7일 활성 75명(미국34·한국20), 검색유입 27세션, eBay outbound_click 60회. 서치콘솔: 노출 150·클릭 20·평균순위 7.4. → 리텐션 나쁘지 않음. 아래로 계속 고도화.
+방문자 실측(GA4 authuser=1=소유자 개인 계정): 지난 7일 활성 75명(미국34·한국20), 검색유입 27세션, eBay outbound_click 60회. 서치콘솔: 노출 150·클릭 20·평균순위 7.4. → 리텐션 나쁘지 않음. 아래로 계속 고도화.
 - **B(랜딩 다듬기)**: 카드 0장인 세트(OP-16)가 "준비중" disabled 타일 + 박스 시세도 안 뜨는 죽은 페이지였음. → `renderDetail` 카드없음 분기에서 박스 시세(sold/active) 렌더 + "TOP10 집계중" 안내(`.pendingCards`). `renderPackGrid`는 `hasBoxData()` 있으면 칩 클릭 가능("박스 시세" 태그). `applyRouteState`도 박스만 있는 세트 `?set=` 라우팅 허용. (기존엔 카드 있는 세트만) — `hasBoxData()` 헬퍼 추가.
 - **A(PSA10 sold 완성·정확도)**: 상위 9장 브라우저 eBay 재수집(7/10). 변형필터(vOK) 그대로, 제목 확인, n>=3만 채택. OP13-118·OP09-119·OP07-051·EB03-055·EB03-026·OP01-120·OP11-118·EB03-053·OP01-003. 표본 대폭↑(4→18 등). 실제 냉각 반영(OP09-119 -32%, OP01-003 -43%). **같은번호 멀티변형 15장(OP05-119·EB02-061·OP06-118·EB01-006·OP05-069·OP09-051 등)은 오염 위험으로 보류(6/29 유지)** — 정확도 원칙. 나머지 저가·6/29 카드는 미착수(가치 낮음).
 - **C(속도/모바일)**: 측정 CLS **0**, DOM 130ms, 광고 async·폰트 display=swap·preconnect 이미 양호. FCP~2s는 AdSense 메인스레드(수익원, 손 안 댐). 개선: **데이터 JSON(459KB)을 index/packs/compare.html에서 `<link rel=preload as=fetch>`** → SPA 첫 렌더 앞당김. ⚠️ **preload href의 `?v=`는 DATA_VERSION과 반드시 동기**(안 그러면 이중 다운로드). 버전 bump 스크립트가 `20260710b` 문자열을 전부 치환하므로 같이 갱신됨 — 수동으로 DATA_VERSION만 바꾸지 말 것.
