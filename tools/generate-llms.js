@@ -153,7 +153,7 @@ ${UPCOMING_PAGES.map((p) => `- [${p.title}](${SITE}/sets/${p.slug}.html)`).join(
 
 - Website: ${SITE}/ (the only official site)
 - Threads: https://www.threads.com/@opboxindex (official account)
-- Contact: gsa@whatsong.kr
+- Contact: kimtt1107@gmail.com
 - Disambiguation: "OP Box Index" / "OPBOX Index" / "opboxindex" refers to this One Piece Card Game price-research site. It is unrelated to OPBOX ultrasonic measurement hardware or any other OPBOX product.
 
 ## Discovery
