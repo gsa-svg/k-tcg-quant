@@ -51,15 +51,16 @@ const thumbHtml = (c) => {
 //    원화 = 영문 페이지 달러 값(psa10Usd — 옛 KRW 저장값은 관측일 환율로 되돌림) × fx.usdKrw(2026-10-15, 5차). 통화 불명이면 빈칸.
 function psa10Krw(c) {
   const p = c.psa10;
-  return p && p.krw != null ? { krw: p.krw, n: p.n, d: String(p.date || "").slice(0, 10) || null } : null;
+  return p && p.krw != null ? { krw: p.krw, n: p.n, d: String(p.date || "").slice(0, 10) || null, age: p.ageDays, mult: p.multiple } : null;
 }
 // PSA 10 표본 낡음 — 카드 상세·카드 허브(generate-card-pages.js)·홈(packs.js PSA10_STALE_DAYS)과 같은 35일. 넘으면 배수 "—".
 // 28일 넘은 값은 관측일을 붙인다(묵은 중앙값을 지금 값처럼 쓰지 않는다 — 카드 상세 설명문 CX3 와 같은 기준). 2026-10-15:
 // 이 페이지만 97일 된 OP13-118 표본으로 ×1.7 을 내 카드 상세·허브의 "—" 와 갈렸다.
-const PSA10_STALE_DAYS = 35;
-const p10AgeOf = (r) => (r.p10Date ? (Date.parse(DATA_DATE) - Date.parse(r.p10Date)) / 864e5 : NaN);
+// 2026-10-20: 나이·배수는 사실 계층(build-site-facts psa10.ageDays·multiple) 값을 그대로 쓴다. 여기서 날짜만 잘라 다시 세면
+//   관측 시각이 빠져 하루 차이로 35일 경계가 갈렸다(무인 수집 가드 CX2 FAIL — OP06-118 등 5장 "—" vs 사실 2.2).
+const p10AgeOf = (r) => (Number.isFinite(r.p10Age) ? r.p10Age : NaN);
 const p10Cell = (r) => `${won(r.p10Krw)}${p10AgeOf(r) > 28 ? `<small>(${esc(r.p10Date)})</small>` : ""}`;
-const multCell = (r) => (r.p10Krw != null && !(p10AgeOf(r) > PSA10_STALE_DAYS) ? "×" + (r.p10Krw / r.nmKrw).toFixed(1) : "—");
+const multCell = (r) => (r.mult != null ? "×" + r.mult.toFixed(1) : "—");
 
 // ── 카드명 한글 병기 — 사전은 tools/ko-labels.js 한 곳(영문 auction.html 의 토글 data-ko 와 같은 사전). 2026-10-13 분리.
 //    캐릭터명만 매핑하고(변형 접미사는 영문 그대로), 확신 없는 이름은 넣지 않는다: 빈 값이 틀린 값보다 낫다.
@@ -180,7 +181,7 @@ function cardsPage() {
       const p10 = psa10Krw(c);
       rows.push({
         code, name: c.name, number: String(c.number), nmKrw: c.nm.krw,
-        p10Krw: p10 ? p10.krw : null, n: p10 ? p10.n : null, p10Date: p10 ? p10.d : null,
+        p10Krw: p10 ? p10.krw : null, n: p10 ? p10.n : null, p10Date: p10 ? p10.d : null, p10Age: p10 ? p10.age : null, mult: p10 ? p10.mult : null,
         thumb: thumbHtml(c), ko: koCharOf(c.name),
       });
     }
