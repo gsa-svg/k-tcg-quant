@@ -66,6 +66,7 @@ function cardTier(card) {
 }
 
 const PROX = Math.log(3);   // 기존값 대비 3배 이내 후보만 인정(그 이상은 값이 이동했거나 기존이 틀린 것 → 스킵+수동).
+const NAMED_TIERS = new Set(["red", "super", "gold", "silver", "wanted"]);   // 이름만으로 변형이 확정되는 등급(parallel·alt·base 는 애매해서 제외).
 
 // 한 카드번호에 속한 우리 카드들 ↔ 유유테이 후보들을 매칭.
 // 핵심: top10 카드는 대부분 파라렐/chase라 base가 아니다. 변형 가격은 자릿수로 갈리므로,
@@ -75,6 +76,16 @@ const PROX = Math.log(3);   // 기존값 대비 3배 이내 후보만 인정(그
 function assignByNumber(ourCards, cands) {
   const res = new Map();
   const used = new Set();
+  // 0) 등급 이름이 분명한 카드(레드·슈퍼·금·은·수배서)는 그 등급 후보가 양쪽 다 하나뿐이면 근접도보다 먼저 고정한다. 2026-10-21 추가.
+  //    왜: 근접도는 옛값이 맞다는 전제다. 옛값이 다른 변형 값이면 그리디가 변형을 맞바꾼다.
+  //    실측(2026-10-21) OP-12 OP09-093 티치 SP — 유유테이 金 ¥148,000·銀 ¥99,800 인데
+  //    은 카드 옛값 ¥148,000 이 金 후보와 딱 맞아 먼저 가져갔고, 금 카드는 남은 銀 ¥99,800 을 받았다(3배 안이라 통과).
+  for (const c of ourCards) {
+    const t = cardTier(c);
+    if (!NAMED_TIERS.has(t) || ourCards.filter((o) => cardTier(o) === t).length !== 1) continue;
+    const ms = cands.filter((p) => yuyuTier(p) === t);
+    if (ms.length === 1 && !used.has(ms[0])) { res.set(c, ms[0]); used.add(ms[0]); }
+  }
   // 1) 기존값 있는 카드: (카드,후보) 근접쌍을 로그비 오름차순으로 그리디 배정(1:1, 3배 초과는 배정 안 함).
   const pairs = [];
   for (const c of ourCards) {
