@@ -27,9 +27,9 @@
   "leaders": 6
  },
  "box": {
-  "japaneseSoldMedianUsd": 134,
-  "japaneseObservedOn": "2026-10-13",
-  "japaneseN": 10,
+  "japaneseSoldMedianUsd": 127,
+  "japaneseObservedOn": "2026-10-20",
+  "japaneseN": 11,
   "englishSoldMedianUsd": 596,
   "englishObservedOn": "2026-10-18",
   "englishN": 25
@@ -3570,7 +3570,13 @@
     "usd": 188.28,
     "observedOn": "2026-10-11"
    },
-   "auction": null,
+   "auction": {
+    "print": "Japanese",
+    "medianUsd": 157.5,
+    "sold": 3,
+    "windowDays": 45,
+    "through": "2026-10-20"
+   },
    "auctionEnglishPrint": null,
    "psa10": {
     "usd": 577,
