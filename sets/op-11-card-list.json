@@ -6,14 +6,14 @@
  "updated": "2026-10-21",
  "officialList": {
   "url": "https://www.onepiece-cardgame.com/cardlist/?series=550111",
-  "checked": "2026-10-20",
+  "checked": "2026-10-21",
   "changed": "2026-10-14"
  },
  "englishNames": [
   {
    "product": "OP-11",
    "url": "https://en.onepiece-cardgame.com/cardlist/?series=569111",
-   "checked": "2026-10-20"
+   "checked": "2026-10-21"
   }
  ],
  "counts": {
@@ -78,8 +78,8 @@
    "auction": null,
    "auctionEnglishPrint": {
     "print": "English",
-    "medianUsd": 23,
-    "sold": 4,
+    "medianUsd": 24,
+    "sold": 5,
     "windowDays": 45,
     "through": "2026-10-21"
    },
@@ -539,7 +539,13 @@
    "features": "Navy/SWORD",
    "trigger": true,
    "nm": null,
-   "auction": null,
+   "auction": {
+    "print": "Japanese",
+    "medianUsd": 35,
+    "sold": 3,
+    "windowDays": 45,
+    "through": "2026-10-21"
+   },
    "auctionEnglishPrint": null,
    "psa10": null,
    "cardPage": null
