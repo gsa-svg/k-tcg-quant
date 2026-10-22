@@ -324,7 +324,13 @@
    "trigger": false,
    "nm": null,
    "auction": null,
-   "auctionEnglishPrint": null,
+   "auctionEnglishPrint": {
+    "print": "English",
+    "medianUsd": 3,
+    "sold": 5,
+    "windowDays": 45,
+    "through": "2026-10-21"
+   },
    "psa10": null,
    "cardPage": null
   },
@@ -3076,7 +3082,7 @@
    "auctionEnglishPrint": {
     "print": "English",
     "medianUsd": 1.72,
-    "sold": 9,
+    "sold": 10,
     "windowDays": 45,
     "through": "2026-10-21"
    },
@@ -3264,7 +3270,7 @@
    "auctionEnglishPrint": {
     "print": "English",
     "medianUsd": 5.5,
-    "sold": 13,
+    "sold": 14,
     "windowDays": 45,
     "through": "2026-10-21"
    },

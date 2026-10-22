@@ -3,7 +3,7 @@
  "name": "The Azure Sea's Seven",
  "edition": "Japanese",
  "page": "https://opboxindex.com/sets/op-14-card-list.html",
- "updated": "2026-10-21",
+ "updated": "2026-10-22",
  "officialList": {
   "url": "https://www.onepiece-cardgame.com/cardlist/?series=550114",
   "checked": "2026-10-21",
@@ -30,9 +30,9 @@
   "japaneseSoldMedianUsd": 89,
   "japaneseObservedOn": "2026-10-13",
   "japaneseN": 16,
-  "englishSoldMedianUsd": 268,
-  "englishObservedOn": "2026-10-19",
-  "englishN": 26
+  "englishSoldMedianUsd": 265,
+  "englishObservedOn": "2026-10-22",
+  "englishN": 27
  },
  "notes": "Card facts (number, names, rarity, type, color, cost/life, power, counter, attribute, features, trigger) are from Bandai's official card lists linked above; effect text and images are not included. nm/auction/psa10 are OP Box Index observations attached only where the official card ID matches by rule (null otherwise): nm = Japanese raw near-mint retail ask in USD, auction / auctionEnglishPrint = median winning bid for the Japanese / English print of that card number and print type, ungraded, 45-day window (prints never combined), psa10 = median of completed sales (n >= 3). OP Box Index numbers: CC BY 4.0, attribute 'OP Box Index (opboxindex.com)'.",
  "cards": [
@@ -409,7 +409,7 @@
    "auctionEnglishPrint": {
     "print": "English",
     "medianUsd": 0.99,
-    "sold": 18,
+    "sold": 19,
     "windowDays": 45,
     "through": "2026-10-21"
    },
@@ -757,7 +757,7 @@
    "auctionEnglishPrint": {
     "print": "English",
     "medianUsd": 5.5,
-    "sold": 5,
+    "sold": 6,
     "windowDays": 45,
     "through": "2026-10-21"
    },
@@ -856,7 +856,7 @@
    "auction": {
     "print": "Japanese",
     "medianUsd": 0.06,
-    "sold": 3,
+    "sold": 11,
     "windowDays": 45,
     "through": "2026-10-21"
    },
@@ -1835,7 +1835,13 @@
    "features": "Donquixote Pirates",
    "trigger": false,
    "nm": null,
-   "auction": null,
+   "auction": {
+    "print": "Japanese",
+    "medianUsd": 0.06,
+    "sold": 11,
+    "windowDays": 45,
+    "through": "2026-10-21"
+   },
    "auctionEnglishPrint": null,
    "psa10": null,
    "cardPage": null
@@ -2998,7 +3004,13 @@
    "trigger": true,
    "nm": null,
    "auction": null,
-   "auctionEnglishPrint": null,
+   "auctionEnglishPrint": {
+    "print": "English",
+    "medianUsd": 1.25,
+    "sold": 15,
+    "windowDays": 45,
+    "through": "2026-10-21"
+   },
    "psa10": null,
    "cardPage": null
   },
@@ -3020,7 +3032,13 @@
    "trigger": true,
    "nm": null,
    "auction": null,
-   "auctionEnglishPrint": null,
+   "auctionEnglishPrint": {
+    "print": "English",
+    "medianUsd": 0.99,
+    "sold": 12,
+    "windowDays": 45,
+    "through": "2026-10-21"
+   },
    "psa10": null,
    "cardPage": null
   },
